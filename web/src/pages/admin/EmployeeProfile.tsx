@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import PassportView, { type PassportData } from '@/components/PassportView'
-import { Avatar, Card, CardTitle, PageHeader, Spinner, StatusBadge, Table, Td } from '@/components/ui'
+import { Avatar, Card, CardTitle, PageHeader, Spinner, StatusBadge } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 import type { Employee, Registration } from '@/lib/types'
@@ -19,18 +20,14 @@ export default function EmployeeProfile() {
       <PassportView data={passport} />
       <Card className="mt-6" padded={false}>
         <div className="p-5 pb-0"><CardTitle>{t('portal.myTraining')}</CardTitle></div>
-        <Table head={[t('admin.registrations.program'), t('admin.registrations.source'), t('common.status'), t('admin.registrations.attendance'), t('admin.registrations.certificate'), t('admin.impact.score')]}>
-          {registrations.map((r) => (
-            <tr key={r.id}>
-              <Td className="font-semibold">{r.program?.title}</Td>
-              <Td className="text-xs">{t(`sources.${r.source}`)}</Td>
-              <Td><StatusBadge status={r.status} /></Td>
-              <Td>{fmt.percent(r.attendance_percent)}</Td>
-              <Td><StatusBadge status={r.certificate_status} /></Td>
-              <Td>{fmt.number(r.impact_score, 1)}</Td>
-            </tr>
-          ))}
-        </Table>
+        <DataView id="admin.employee.registrations" rows={registrations} rowKey={(r) => r.id} columns={[
+          { key: 'program', header: t('admin.registrations.program'), role: 'title', cell: (r) => r.program?.title },
+          { key: 'source', header: t('admin.registrations.source'), role: 'subtitle', cell: (r) => <span className="text-xs">{t(`sources.${r.source}`)}</span> },
+          { key: 'status', header: t('common.status'), role: 'badge', cell: (r) => <StatusBadge status={r.status} /> },
+          { key: 'attendance', header: t('admin.registrations.attendance'), cell: (r) => fmt.percent(r.attendance_percent) },
+          { key: 'certificate', header: t('admin.registrations.certificate'), cell: (r) => <StatusBadge status={r.certificate_status} /> },
+          { key: 'impact', header: t('admin.impact.score'), cell: (r) => fmt.number(r.impact_score, 1) },
+        ]} />
       </Card>
     </>
   )

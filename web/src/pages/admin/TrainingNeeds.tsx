@@ -2,7 +2,8 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BarsChart, DonutChart } from '@/components/admin/charts'
-import { Badge, Button, Card, CardTitle, Empty, Field, Modal, PageHeader, Spinner, StatusBadge, Table, Tabs, Td } from '@/components/ui'
+import { Badge, Button, Card, CardTitle, Field, Modal, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -72,11 +73,12 @@ export default function TrainingNeeds() {
           <div className="grid gap-6 xl:grid-cols-2">
             <Card>
               <CardTitle>{t('admin.needs.mostNeeded')}</CardTitle>
-              <Table head={[t('admin.registrations.program'), t('admin.needs.demand'), t('programs.capacity'), t('admin.needs.seatsGap')]}>
-                {a.most_needed_programs.map((p) => (
-                  <tr key={p.program_id}><Td className="font-semibold">{p.program}</Td><Td>{fmt.number(p.demand)}</Td><Td>{fmt.number(p.capacity)}</Td><Td>{p.seats_gap > 0 ? <Badge color="red">{fmt.number(p.seats_gap)}</Badge> : <Badge color="green">0</Badge>}</Td></tr>
-                ))}
-              </Table>
+              <div className="-mx-5 sm:-mx-6"><DataView id="admin.needs.programs" rows={a.most_needed_programs} rowKey={(p) => p.program_id} columns={[
+                { key: 'program', header: t('admin.registrations.program'), role: 'title', cell: (p) => p.program },
+                { key: 'gap', header: t('admin.needs.seatsGap'), role: 'badge', cell: (p) => p.seats_gap > 0 ? <Badge color="red">{fmt.number(p.seats_gap)}</Badge> : <Badge color="green">0</Badge> },
+                { key: 'demand', header: t('admin.needs.demand'), cell: (p) => fmt.number(p.demand) },
+                { key: 'capacity', header: t('programs.capacity'), cell: (p) => fmt.number(p.capacity) },
+              ]} cardsClassName="sm:grid-cols-1 2xl:grid-cols-2" /></div>
               {!!a.uncovered_skills.length && (
                 <div className="mt-5 rounded-xl bg-red-50 p-4">
                   <div className="mb-2 text-sm font-bold text-red-700">{t('admin.needs.uncovered')}</div>
@@ -102,26 +104,21 @@ export default function TrainingNeeds() {
 
       {tab === 'requests' && (
         <Card padded={false}>
-          {list.isLoading ? <Spinner /> : !list.data?.data.length ? <Empty /> : (
-            <Table head={[t('admin.needs.school'), t('admin.needs.skill'), t('admin.needs.employees'), t('admin.needs.priority'), t('admin.needs.reason'), t('common.status'), '']}>
-              {list.data.data.map((n) => (
-                <tr key={n.id}>
-                  <Td className="font-semibold">{n.school ? nm(n.school) : ''}</Td>
-                  <Td>{n.skill_name}</Td>
-                  <Td>{fmt.number(n.employees_count)}</Td>
-                  <Td><StatusBadge status={n.priority} /></Td>
-                  <Td className="max-w-xs truncate text-xs text-slate-500">{n.reason}</Td>
-                  <Td><StatusBadge status={n.status} /></Td>
-                  <Td>{isCenter && (
-                    <select className="input py-1 text-xs" value="" onChange={(e) => e.target.value && review(n.id, e.target.value)}>
-                      <option value="">{t('admin.needs.review')}</option>
-                      {['under_review', 'approved', 'planned', 'fulfilled', 'rejected'].map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-                    </select>
-                  )}</Td>
-                </tr>
-              ))}
-            </Table>
-          )}
+          <DataView id="admin.needs" rows={list.data?.data} total={list.data?.total} loading={list.isLoading} rowKey={(n) => n.id} defaultMode="cards" columns={[
+            { key: 'skill', header: t('admin.needs.skill'), role: 'title', cell: (n) => n.skill_name },
+            { key: 'school', header: t('admin.needs.school'), role: 'subtitle', cell: (n) => n.school ? nm(n.school) : '' },
+            { key: 'priority', header: t('admin.needs.priority'), role: 'badge', cell: (n) => <StatusBadge status={n.priority} /> },
+            { key: 'status', header: t('common.status'), role: 'badge', cell: (n) => <StatusBadge status={n.status} /> },
+            { key: 'count', header: t('admin.needs.employees'), cell: (n) => <span className="font-bold">{fmt.number(n.employees_count)}</span> },
+            { key: 'date', header: t('common.date'), cell: (n) => fmt.date(n.created_at) },
+            { key: 'reason', header: t('admin.needs.reason'), className: 'max-w-xs truncate text-xs text-slate-500', cell: (n) => <span title={n.reason}>{n.reason}</span> },
+            { key: 'review', header: '', role: 'actions', cell: (n) => isCenter ? (
+              <select className="input py-1 text-xs" value="" onChange={(e) => e.target.value && review(n.id, e.target.value)}>
+                <option value="">{t('admin.needs.review')}</option>
+                {['under_review', 'approved', 'planned', 'fulfilled', 'rejected'].map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+              </select>
+            ) : null },
+          ]} />
         </Card>
       )}
 

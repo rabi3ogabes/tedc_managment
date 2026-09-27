@@ -1,7 +1,8 @@
 import { Search, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, Empty, PageHeader, Spinner, Table, Td } from '@/components/ui'
+import { Card, PageHeader } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 import type { LaravelPage } from '@/lib/types'
@@ -23,20 +24,14 @@ export default function Schools() {
           <div className="relative min-w-60 flex-1"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <select className="input w-auto" value={region} onChange={(e) => setRegion(e.target.value)}><option value="">{t('admin.schools.region')}</option>{regions.map((r) => <option key={r} value={r}>{t(`regions.${r}`)}</option>)}</select>
         </div>
-        {isLoading ? <Spinner /> : !data?.data.length ? <Empty /> : (
-          <Table head={[t('admin.schools.code'), t('common.name'), t('admin.schools.type'), t('admin.schools.stage'), t('admin.schools.region'), t('admin.schools.employees')]}>
-            {data.data.map((s) => (
-              <tr key={s.id}>
-                <Td><span className="font-mono text-xs" dir="ltr">{s.code}</span></Td>
-                <Td className="font-semibold text-navy-900">{i18n.language === 'ar' ? s.name_ar : s.name_en} {s.is_partner && <Star className="inline size-3.5 fill-gold-500 text-gold-500" />}</Td>
-                <Td>{t(`schoolTypes.${s.type}`)}</Td>
-                <Td>{t(`stages.${s.stage}`)}</Td>
-                <Td>{t(`regions.${s.region}`)}</Td>
-                <Td>{fmt.number(s.employees_count)}</Td>
-              </tr>
-            ))}
-          </Table>
-        )}
+        <DataView id="admin.schools" rows={data?.data} total={data?.total} loading={isLoading} rowKey={(s) => s.id} columns={[
+          { key: 'code', header: t('admin.schools.code'), role: 'media', cell: (s) => <span className="inline-block rounded-lg bg-navy-100/70 px-2 py-1 font-mono text-[11px] font-bold text-navy-800" dir="ltr">{s.code}</span> },
+          { key: 'name', header: t('common.name'), role: 'title', cell: (s) => <span className="font-semibold text-navy-900">{i18n.language === 'ar' ? s.name_ar : s.name_en} {s.is_partner && <Star className="inline size-3.5 fill-gold-500 text-gold-500" />}</span> },
+          { key: 'region', header: t('admin.schools.region'), role: 'subtitle', cell: (s) => t(`regions.${s.region}`) },
+          { key: 'type', header: t('admin.schools.type'), cell: (s) => t(`schoolTypes.${s.type}`) },
+          { key: 'stage', header: t('admin.schools.stage'), cell: (s) => t(`stages.${s.stage}`) },
+          { key: 'employees', header: t('admin.schools.employees'), cell: (s) => <span className="font-bold">{fmt.number(s.employees_count)}</span> },
+        ]} />
       </Card>
     </>
   )

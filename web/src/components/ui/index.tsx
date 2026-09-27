@@ -69,7 +69,7 @@ const statusTone: Record<string, keyof typeof tone> = {
 }
 
 export function Badge({ children, color = 'navy', className }: { children: ReactNode; color?: keyof typeof tone; className?: string }) {
-  return <span className={clsx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset', tone[color], className)}>{children}</span>
+  return <span className={clsx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset', tone[color], className)}>{children}</span>
 }
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {

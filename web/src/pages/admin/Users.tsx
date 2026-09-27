@@ -1,7 +1,8 @@
 import { ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge, Button, Card, CardTitle, PageHeader, Spinner, StatusBadge, Table, Tabs, Td } from '@/components/ui'
+import { Avatar, Badge, Button, Card, CardTitle, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -42,20 +43,15 @@ export default function Users() {
       {tab === 'users' && (
         <Card padded={false}>
           <div className="border-b border-navy-100 p-4"><input className="input max-w-md" placeholder={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} /></div>
-          {users.isLoading ? <Spinner /> : (
-            <Table head={[t('common.name'), t('common.email'), t('admin.users.role'), t('admin.users.lastLogin'), t('common.status'), '']}>
-              {users.data?.data.map((u) => (
-                <tr key={u.id}>
-                  <Td className="font-semibold">{i18n.language === 'ar' ? u.name_ar ?? u.name : u.name}</Td>
-                  <Td className="text-xs" ><span dir="ltr">{u.email}</span></Td>
-                  <Td><div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.slug} color="navy">{nm(r)}</Badge>)}</div></Td>
-                  <Td className="text-xs">{fmt.dateTime(u.last_login_at)}</Td>
-                  <Td><StatusBadge status={u.status === 'active' ? 'approved' : 'blocked'} label={u.status} /></Td>
-                  <Td><Button size="sm" variant="ghost" onClick={() => toggleStatus(u)}>{u.status === 'active' ? '⏸' : '▶'}</Button></Td>
-                </tr>
-              ))}
-            </Table>
-          )}
+          <DataView id="admin.users" rows={users.data?.data} total={users.data?.total} loading={users.isLoading} rowKey={(u) => u.id} columns={[
+            { key: 'avatar', header: '', role: 'media', hideInTable: true, cell: (u) => <Avatar name={u.name} size={44} /> },
+            { key: 'name', header: t('common.name'), role: 'title', cell: (u) => <span className="font-semibold">{i18n.language === 'ar' ? u.name_ar ?? u.name : u.name}</span> },
+            { key: 'email', header: t('common.email'), role: 'subtitle', cell: (u) => <span className="text-xs" dir="ltr">{u.email}</span> },
+            { key: 'roles', header: t('admin.users.role'), cell: (u) => <div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.slug} color="navy">{nm(r)}</Badge>)}</div> },
+            { key: 'login', header: t('admin.users.lastLogin'), cell: (u) => <span className="text-xs">{fmt.dateTime(u.last_login_at)}</span> },
+            { key: 'status', header: t('common.status'), role: 'badge', cell: (u) => <StatusBadge status={u.status === 'active' ? 'approved' : 'blocked'} label={u.status} /> },
+            { key: 'toggle', header: '', role: 'actions', cell: (u) => <Button size="sm" variant="ghost" onClick={() => toggleStatus(u)}>{u.status === 'active' ? '⏸' : '▶'}</Button> },
+          ]} />
         </Card>
       )}
       {tab === 'roles' && (roles.isLoading || !roles.data ? <Spinner /> : (

@@ -1,7 +1,8 @@
 import { ClipboardCheck, Plus, QrCode, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Empty, Field, Modal, Spinner, StatusBadge, Table, Td } from '@/components/ui'
+import { Button, Card, Field, Modal, Spinner, StatusBadge, Table, Td } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -35,26 +36,20 @@ export default function SessionsTab({ program }: { program: Program }) {
   return (
     <Card padded={false}>
       {can('programs.manage') && <div className="border-b border-navy-100 p-4"><Button size="sm" icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>{t('admin.programs.addSession')}</Button></div>}
-      {isLoading ? <Spinner /> : !data?.data.length ? <Empty /> : (
-        <Table head={['#', t('programs.sessionsTitle'), t('common.date'), t('programs.trainersTitle'), t('common.status'), t('common.actions')]}>
-          {data.data.map((s) => (
-            <tr key={s.id}>
-              <Td className="font-bold text-gold-700">{s.sequence}</Td>
-              <Td><div className="font-semibold text-navy-900">{s.title}</div><div className="text-xs text-slate-400">{s.location}</div></Td>
-              <Td className="whitespace-nowrap text-sm">{fmt.dateTime(s.starts_at)} – {fmt.time(s.ends_at)}</Td>
-              <Td className="text-sm">{s.trainer?.name}</Td>
-              <Td><StatusBadge status={s.status} /></Td>
-              <Td>
-                <div className="flex gap-1">
-                  {can('attendance.manage') && <Button size="sm" variant="gold" icon={<QrCode className="size-4" />} onClick={() => window.open(`/admin/sessions/${s.id}/qr`, '_blank')}>{t('admin.programs.qr')}</Button>}
-                  {can('attendance.manage') && <Button size="sm" variant="outline" icon={<ClipboardCheck className="size-4" />} onClick={() => setAttendanceFor(s)}>{t('admin.menu.attendance')}</Button>}
-                  {can('programs.manage') && <Button size="sm" variant="ghost" onClick={async () => { await api.delete(`/admin/sessions/${s.id}`); refetch() }}><Trash2 className="size-4" /></Button>}
-                </div>
-              </Td>
-            </tr>
-          ))}
-        </Table>
-      )}
+      <DataView id="admin.program.sessions" rows={data?.data} loading={isLoading} rowKey={(s) => s.id} columns={[
+        { key: 'seq', header: '#', role: 'media', cell: (s) => <span className="grid size-9 place-items-center rounded-xl bg-gold-100 font-bold text-gold-700">{s.sequence}</span> },
+        { key: 'title', header: t('programs.sessionsTitle'), role: 'title', cell: (s) => <><div className="font-semibold text-navy-900">{s.title}</div><div className="text-xs font-normal text-slate-400">{s.location}</div></> },
+        { key: 'date', header: t('common.date'), className: 'whitespace-nowrap', cell: (s) => <span className="text-sm">{fmt.dateTime(s.starts_at)} – {fmt.time(s.ends_at)}</span> },
+        { key: 'trainer', header: t('programs.trainersTitle'), cell: (s) => <span className="text-sm">{s.trainer?.name ?? '—'}</span> },
+        { key: 'status', header: t('common.status'), role: 'badge', cell: (s) => <StatusBadge status={s.status} /> },
+        { key: 'actions', header: t('common.actions'), role: 'actions', cell: (s) => (
+          <div className="flex gap-1">
+            {can('attendance.manage') && <Button size="sm" variant="gold" icon={<QrCode className="size-4" />} onClick={() => window.open(`/admin/sessions/${s.id}/qr`, '_blank')}>{t('admin.programs.qr')}</Button>}
+            {can('attendance.manage') && <Button size="sm" variant="outline" icon={<ClipboardCheck className="size-4" />} onClick={() => setAttendanceFor(s)}>{t('admin.menu.attendance')}</Button>}
+            {can('programs.manage') && <Button size="sm" variant="ghost" aria-label={t('common.delete')} onClick={async () => { await api.delete(`/admin/sessions/${s.id}`); refetch() }}><Trash2 className="size-4" /></Button>}
+          </div>
+        ) },
+      ]} />
 
       <Modal open={adding} onClose={() => setAdding(false)} title={t('admin.programs.addSession')}>
         <div className="grid gap-3 sm:grid-cols-2">
