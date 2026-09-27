@@ -31,7 +31,7 @@ export default function MyTraining() {
             <Card key={r.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <Link to={`/programs/${r.program?.code}`} className="text-lg font-bold text-navy-900 hover:text-gold-700">{r.program?.title}</Link>
+                  <Link to={`/programs/${r.program?.code}`} className="text-lg font-bold text-navy-900 hover:text-link">{r.program?.title}</Link>
                   <div className="text-xs text-slate-400">{fmt.date(r.program?.start_date)} – {fmt.date(r.program?.end_date)} · {t(`sources.${r.source}`)}</div>
                 </div>
                 <StatusBadge status={r.status} />

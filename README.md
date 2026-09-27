@@ -23,7 +23,7 @@ Documentation: [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.
 
 ## Highlights
 
-- **Arabic first.** Arabic is the default language across the API (`X-Locale`), web (RTL) and mobile, with a full English
+- **Arabic first.** All numbers and dates use Western (English) digits. Arabic is the default language across the API (`X-Locale`), web (RTL) and mobile, with a full English
   translation. All content is bilingual (`*_ar` / `*_en`).
 - **Luxury government design.** Deep navy, off-white and gold, glass cards, El Messiri / Tajawal typography. The homepage
   opens with an **image slider of Qatar**, including a slide dedicated to the **Ministry of Education and Higher Education**
@@ -41,6 +41,9 @@ Documentation: [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.
 - **Impact measurement.** Surveys at 30/60/90 days, supervisor evaluation, and a weighted **Training Impact Score**.
 - **AI Training Assistant.** Ask *"What training programs should we create for teachers?"* — the assistant grounds
   Claude in aggregated platform data and returns suggested programs, seats, target groups and rationale.
+- **Brand Studio.** Administrators restyle the platform live — primary/accent colors, buttons, links, banners and
+  slider images, background colors and background patterns (Islamic star, arabesque, grid…), with curated luxury
+  presets, a live desktop/mobile preview and an accessibility contrast check. Published instantly to every page.
 - **Analytics.** Admin dashboard, executive dashboard, geographic map of coverage and gaps, training-needs analytics.
 - **Security.** Supabase JWT verification (HS256 or JWKS), 8 roles / 33 permissions, row-level security, private storage
   with short-lived signed URLs, encrypted national IDs, rate limiting, security headers and an append-only audit log.
@@ -88,7 +91,8 @@ A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 
 ## Production with Supabase
 
-1. Create the Supabase project and follow [`supabase/README.md`](supabase/README.md) (migrations, RLS, buckets, realtime).
+1. Create the Supabase project and follow the step-by-step guide in [`supabase/README.md`](supabase/README.md)
+   (keys, migrations, RLS, buckets, realtime, and `php artisan tedc:supabase-sync-users` to create the logins).
 2. API `.env`: `DB_CONNECTION=pgsql`, `DB_URL=…`, `TEDC_AUTH_DRIVER=supabase`, `TEDC_STORAGE_DRIVER=supabase`,
    `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `CORS_ALLOWED_ORIGINS`,
    `TEDC_WEB_URL`, and optionally `ANTHROPIC_API_KEY` for the AI assistant.
@@ -102,7 +106,7 @@ A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 
 | Check | Command |
 |-------|---------|
-| API tests (31 feature tests) | `cd backend && php artisan test` |
+| API tests (38 feature tests) | `cd backend && php artisan test` |
 | PHP code style | `cd backend && vendor/bin/pint --test` |
 | Web type-check, lint & build | `cd web && npm run lint && npm run build` |
 | Mobile analysis & tests | `cd mobile && flutter analyze && flutter test` |

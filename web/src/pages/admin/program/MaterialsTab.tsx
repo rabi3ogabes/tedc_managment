@@ -51,7 +51,7 @@ export default function MaterialsTab({ program }: { program: Program }) {
                   <div className="font-semibold text-navy-900">{i18n.language === 'ar' ? m.title_ar : m.title_en}</div>
                   <div className="text-xs text-slate-400">{m.type} · {m.visibility} {m.size ? `· ${fmt.number(m.size / 1024 / 1024, 1)} MB` : ''}</div>
                 </div>
-                {m.url && <a href={m.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-gold-700">{t('common.view')}</a>}
+                {m.url && <a href={m.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-link">{t('common.view')}</a>}
                 {can('materials.manage') && <button className="text-slate-400 hover:text-danger" onClick={async () => { await api.delete(`/admin/materials/${m.id}`); refetch() }}><Trash2 className="size-4" /></button>}
               </li>
             ))}

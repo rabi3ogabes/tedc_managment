@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui'
+import { useTheme } from '@/lib/ThemeProvider'
 import { DohaSkyline, HeritageDesert, IslamicArtMuseum, MinistryOfEducation } from './QatarArt'
 
 /**
@@ -30,6 +31,7 @@ export default function HeroSlider() {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const rtl = i18n.language === 'ar'
+  const { active: theme } = useTheme()
 
   const go = useCallback((dir: 1 | -1) => setIndex((i) => (i + dir + SLIDES.length) % SLIDES.length), [])
 
@@ -48,13 +50,13 @@ export default function HeroSlider() {
         <div key={slide.photo} className={clsx('absolute inset-0 transition-opacity duration-[1400ms]', i === index ? 'opacity-100' : 'opacity-0')} aria-hidden={i !== index}>
           <div className={clsx('absolute inset-0', i === index && 'animate-ken-burns')}>
             {slide.art}
-            <SlidePhoto src={slide.photo} />
+            <SlidePhoto key={theme.banners.hero_images[i] ?? slide.photo} src={theme.banners.hero_images[i] ?? slide.photo} />
           </div>
         </div>
       ))}
 
       {/* Legibility overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/40 to-navy-950/10" />
+      <div className="hero-overlay absolute inset-0" />
       <div className={clsx('absolute inset-0 bg-gradient-to-l from-transparent to-navy-950/70', rtl && 'bg-gradient-to-r')} />
       <div className="pattern-bg absolute inset-0 opacity-30" />
 

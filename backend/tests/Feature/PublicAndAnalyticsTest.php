@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Program;
 use App\Models\Role;
 use App\Models\TrainingNeed;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PublicAndAnalyticsTest extends TestCase
@@ -25,7 +26,7 @@ class PublicAndAnalyticsTest extends TestCase
     public function test_cached_home_payload_survives_serialization(): void
     {
         config(['cache.default' => 'file']);
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         $this->makeSchool(['is_partner' => true]);
 
         $this->getJson('/api/v1/public/home')->assertOk();

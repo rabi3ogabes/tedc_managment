@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import {
   Award, Bell, Bot, BookOpen, ClipboardList, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone,
-  Menu, Notebook, School, Shield, Target, UserCog, Users, Wallet, X,
+  Menu, Notebook, Palette, School, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -62,6 +62,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         { title: m('groups.security'), items: [
           { to: '/admin/users', label: m('users'), icon: UserCog, permission: 'users.manage' },
           { to: '/admin/audit', label: m('audit'), icon: FileSearch, permission: 'audit.view' },
+        ] },
+        { title: m('groups.settings'), items: [
+          { to: '/admin/appearance', label: m('appearance'), icon: Palette, permission: 'settings.manage' },
         ] },
       ]
 

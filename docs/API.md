@@ -18,6 +18,7 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | GET | `/public/programs` | — |
 | GET | `/public/programs/{idOrCode}` | — |
 | GET | `/public/stats` | — |
+| GET | `/public/theme` | — (active Brand Studio theme) |
 | GET | `/public/trainers` | — |
 
 ## Authentication
@@ -156,3 +157,10 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | POST | `/admin/users` | `users.manage` |
 | PUT | `/admin/users/{user}` | `users.manage` |
 
+## Brand Studio
+
+| Method | Path | Permission |
+|---|---|---|
+| PUT | `/admin/theme` | `settings.manage` |
+| POST | `/admin/theme/reset` | `settings.manage` |
+| POST | `/admin/theme/assets` | `settings.manage` (multipart `file`, `kind` = hero, banner or pattern) |

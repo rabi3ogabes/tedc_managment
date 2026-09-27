@@ -42,7 +42,7 @@ export default function CalendarPage() {
                 <Card key={s.id} className="!p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <Link to={`/programs/${s.program?.code}`} className="font-bold text-navy-900 hover:text-gold-700">{s.program?.title}</Link>
+                      <Link to={`/programs/${s.program?.code}`} className="font-bold text-navy-900 hover:text-link">{s.program?.title}</Link>
                       <div className="text-sm text-slate-500">{s.title}</div>
                     </div>
                     {p && <Badge color={p.registration_open ? 'green' : 'gray'}><Users className="size-3" />{fmt.number(p.seats_available)}</Badge>}
@@ -51,7 +51,7 @@ export default function CalendarPage() {
                     <span className="flex items-center gap-1"><Clock className="size-3.5" />{fmt.dateTime(s.starts_at)}</span>
                     {s.location && <span className="flex items-center gap-1"><MapPin className="size-3.5" />{s.location}</span>}
                   </div>
-                  <a href={googleCalendarUrl(s)} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-gold-700 hover:text-gold-600"><CalendarPlus className="size-4" />{t('calendar.addToCalendar')}</a>
+                  <a href={googleCalendarUrl(s)} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-link hover:opacity-80"><CalendarPlus className="size-4" />{t('calendar.addToCalendar')}</a>
                 </Card>
               )
             })}

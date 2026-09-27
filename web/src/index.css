@@ -17,6 +17,8 @@
   --color-ivory: #f8f6f1;
   --color-ivory-dark: #efebe2;
   --color-ink: #0f172a;
+  --color-surface: #ffffff;
+  --color-link: #8f6f22;
   --color-success: #0f8a5f;
   --color-danger: #c0392b;
 
@@ -48,16 +50,31 @@ html[lang="en"] { --font-sans: "Inter", "Tajawal", ui-sans-serif, system-ui, san
 }
 
 @layer components {
-  .glass { @apply bg-white/70 backdrop-blur-xl border border-white/60 shadow-glass; }
-  .glass-dark { @apply bg-navy-900/55 backdrop-blur-xl border border-white/10 text-white; }
-  .card { @apply bg-white rounded-2xl border border-navy-100/80 shadow-[0_1px_2px_rgb(11_31_58/0.04),0_8px_24px_-12px_rgb(11_31_58/0.12)]; }
+  .glass { @apply bg-white/70 border border-white/60 shadow-glass; backdrop-filter: blur(var(--glass-blur, 20px)); }
+  .glass-dark { @apply bg-navy-900/55 border border-white/10 text-white; backdrop-filter: blur(var(--glass-blur, 20px)); }
+  .card {
+    @apply border border-navy-100/80;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-card, 1rem);
+    box-shadow: 0 1px 2px color-mix(in oklab, var(--color-navy-900) 4%, transparent), 0 8px 24px -12px color-mix(in oklab, var(--color-navy-900) 12%, transparent);
+  }
+  .btn { border-radius: var(--radius-btn, 0.75rem); text-transform: var(--btn-transform, none); }
+  .btn-accent {
+    background: var(--btn-accent-bg, linear-gradient(to left, var(--color-gold-400), var(--color-gold-500), var(--color-gold-600)));
+    color: var(--btn-accent-text, var(--color-navy-950));
+    border: 1.5px solid var(--btn-accent-border, transparent);
+    box-shadow: var(--shadow-gold);
+  }
+  .btn-accent:hover { filter: brightness(1.05); }
+  .hero-overlay { background: linear-gradient(to top, var(--hero-overlay-strong, rgb(6 18 42 / 0.7)), var(--hero-overlay-soft, rgb(6 18 42 / 0.28)) 55%, transparent); }
   .container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
   .gold-line { @apply h-0.5 w-16 bg-gradient-to-l from-gold-300 via-gold-500 to-gold-600 rounded-full; }
   .input { @apply w-full rounded-xl border border-navy-100 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:border-gold-500 focus:outline-none focus:ring-4 focus:ring-gold-100 transition; }
   .label { @apply mb-1.5 block text-sm font-medium text-navy-800; }
+  /* Brand Studio controlled background pattern (see src/lib/theme.ts). */
   .pattern-bg {
-    background-image: radial-gradient(circle at 1px 1px, rgb(200 162 74 / 0.18) 1px, transparent 0);
-    background-size: 22px 22px;
+    background-image: var(--pattern-image, radial-gradient(circle at 1px 1px, rgb(200 162 74 / 0.18) 1px, transparent 0));
+    background-size: var(--pattern-size, 22px) var(--pattern-size, 22px);
   }
 }
 

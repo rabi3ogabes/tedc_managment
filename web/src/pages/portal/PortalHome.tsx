@@ -73,7 +73,7 @@ export function RecommendationGrid({ items }: { items: Recommendation[] }) {
           <ProgramCover program={r.program} className="h-28" />
           <div className="p-4">
             <div className="flex items-center justify-between"><Badge color="gold">{fmt.number(r.score)}%</Badge><span className="text-xs text-slate-400">{t(`modes.${r.program.delivery_mode}`)}</span></div>
-            <h4 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-gold-700">{r.program.title}</h4>
+            <h4 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-link">{r.program.title}</h4>
             <Progress value={r.score} className="mt-3" />
             <div className="mt-3 text-xs font-bold text-slate-500">{t('portal.why')}</div>
             <ul className="mt-1 space-y-1">{r.reasons.slice(0, 3).map((x) => <li key={x} className="text-xs text-slate-500">• {x}</li>)}</ul>

@@ -43,6 +43,7 @@ class RolePermissionSeeder extends Seeder
         'users.manage' => ['security', 'إدارة المستخدمين', 'Manage users'],
         'roles.manage' => ['security', 'إدارة الأدوار والصلاحيات', 'Manage roles & permissions'],
         'audit.view' => ['security', 'سجل التدقيق', 'Audit log'],
+        'settings.manage' => ['settings', 'الهوية البصرية والمظهر', 'Brand & appearance'],
     ];
 
     public const ROLES = [

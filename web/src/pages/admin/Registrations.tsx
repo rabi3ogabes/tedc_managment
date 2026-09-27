@@ -40,7 +40,7 @@ export default function Registrations() {
             {data.data.map((r) => (
               <tr key={r.id} className="hover:bg-ivory/70">
                 <Td><div className="font-semibold text-navy-900">{r.employee?.name}</div><div className="text-xs text-slate-400">{r.employee?.school?.name}</div></Td>
-                <Td><Link to={`/admin/programs/${r.program_id}`} className="text-sm font-semibold text-navy-800 hover:text-gold-700">{r.program?.title}</Link></Td>
+                <Td><Link to={`/admin/programs/${r.program_id}`} className="text-sm font-semibold text-navy-800 hover:text-link">{r.program?.title}</Link></Td>
                 <Td className="text-xs text-slate-500">{t(`sources.${r.source}`)}</Td>
                 <Td><button onClick={() => setViewing(r)}><StatusBadge status={r.eligibility?.eligible === false ? 'not_eligible' : 'eligible'} label={r.eligibility?.label ?? t('status.eligible')} /></button></Td>
                 <Td><StatusBadge status={r.status} /></Td>

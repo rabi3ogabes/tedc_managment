@@ -27,7 +27,7 @@ export default function Employees() {
                 <Td>{e.job_title?.name}</Td>
                 <Td className="text-sm">{e.school?.name}</Td>
                 <Td>{fmt.number(e.experience_years, 1)}</Td>
-                <Td><Link to={`/admin/employees/${e.id}`} className="text-sm font-bold text-gold-700">{t('admin.employees.passport')}</Link></Td>
+                <Td><Link to={`/admin/employees/${e.id}`} className="text-sm font-bold text-link">{t('admin.employees.passport')}</Link></Td>
               </tr>
             ))}
           </Table>

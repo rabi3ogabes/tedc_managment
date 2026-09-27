@@ -32,7 +32,7 @@ export default function ProgramsAdmin() {
             {data.data.map((p) => (
               <tr key={p.id} className="hover:bg-ivory/70">
                 <Td><span className="font-mono text-xs text-slate-500" dir="ltr">{p.code}</span></Td>
-                <Td><Link to={`/admin/programs/${p.id}`} className="font-bold text-navy-900 hover:text-gold-700">{p.title}</Link><div className="text-xs text-slate-400">{t(`modes.${p.delivery_mode}`)} · {fmt.number(p.total_hours)} {t('common.hours')}</div></Td>
+                <Td><Link to={`/admin/programs/${p.id}`} className="font-bold text-navy-900 hover:text-link">{p.title}</Link><div className="text-xs text-slate-400">{t(`modes.${p.delivery_mode}`)} · {fmt.number(p.total_hours)} {t('common.hours')}</div></Td>
                 <Td className="text-slate-600">{p.category?.name}</Td>
                 <Td className="whitespace-nowrap text-slate-600">{fmt.date(p.start_date, { day: 'numeric', month: 'short', year: 'numeric' })}</Td>
                 <Td><div className="w-32"><div className="mb-1 text-xs text-slate-500">{fmt.number(p.seats_taken ?? 0)} / {fmt.number(p.capacity)}</div><Progress value={((p.seats_taken ?? 0) / p.capacity) * 100} /></div></Td>

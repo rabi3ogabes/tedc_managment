@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
+use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -39,6 +40,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('public')->middleware('throttle:public')->controller(PublicController::class)->group(function () {
         Route::get('home', 'home');
         Route::get('stats', 'stats');
+        Route::get('theme', [ThemeController::class, 'show']);
         Route::get('programs', 'programs');
         Route::get('programs/{idOrCode}', 'program');
         Route::get('categories', 'categories');
@@ -239,6 +241,13 @@ Route::prefix('v1')->group(function () {
                 Route::get('reports', [ReportController::class, 'index']);
                 Route::get('reports/programs/{program}', [ReportController::class, 'program']);
                 Route::post('reports/executive-snapshot', [ReportController::class, 'snapshot']);
+            });
+
+            // Brand Studio (appearance)
+            Route::middleware('permission:settings.manage')->group(function () {
+                Route::put('theme', [ThemeController::class, 'update']);
+                Route::post('theme/reset', [ThemeController::class, 'reset']);
+                Route::post('theme/assets', [ThemeController::class, 'upload']);
             });
 
             // Users, roles, audit

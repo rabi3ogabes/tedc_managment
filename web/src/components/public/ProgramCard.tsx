@@ -44,7 +44,7 @@ export default function ProgramCard({ program }: { program: Program }) {
           <StatusBadge status={program.status} />
           <span className="text-xs text-slate-400">{t(`levels.${program.level}`)}</span>
         </div>
-        <h3 className="text-lg font-bold leading-snug text-navy-900 transition group-hover:text-gold-700">{program.title}</h3>
+        <h3 className="text-lg font-bold leading-snug text-navy-900 transition group-hover:text-link">{program.title}</h3>
         {program.summary && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{program.summary}</p>}
         <div className="mt-auto grid grid-cols-2 gap-2 pt-5 text-xs text-slate-500">
           <span className="flex items-center gap-1.5"><CalendarDays className="size-4 text-gold-600" />{fmt.date(program.start_date, { day: 'numeric', month: 'short' })}</span>

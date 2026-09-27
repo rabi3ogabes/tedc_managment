@@ -112,7 +112,7 @@ function ReviewModal({ task, onClose }: { task: Task; onClose: () => void }) {
                 <StatusBadge status={s.status} />
               </div>
               {s.text_response && <p className="mt-2 rounded-xl bg-ivory p-3 text-sm text-slate-700">{s.text_response}</p>}
-              {s.file_name && <button onClick={() => openFile(s.id)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-700"><FileText className="size-4" />{s.file_name}</button>}
+              {s.file_name && <button onClick={() => openFile(s.id)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-link"><FileText className="size-4" />{s.file_name}</button>}
               <textarea className="input mt-3 text-sm" placeholder={t('admin.tasks.feedback')} value={feedback[s.id] ?? s.feedback ?? ''} onChange={(e) => setFeedback({ ...feedback, [s.id]: e.target.value })} />
               <div className="mt-2 flex gap-2">
                 <Button size="sm" variant="gold" onClick={() => review(s.id, 'approved')}>{t('admin.tasks.approve')}</Button>

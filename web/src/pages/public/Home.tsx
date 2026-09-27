@@ -7,6 +7,7 @@ import { SectionTitle } from '@/components/public/Section'
 import { Avatar, Button, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
+import { useTheme } from '@/lib/ThemeProvider'
 import type { Program } from '@/lib/types'
 
 type HomeData = {
@@ -25,6 +26,8 @@ export default function Home() {
   const { data, isLoading } = useGet<{ data: HomeData }>('/public/home')
   const home = data?.data
   const pillars = t('home.pillars', { returnObjects: true }) as { title: string; text: string }[]
+  const { active: theme } = useTheme()
+  const ctaStyle = theme.banners.cta_style === 'image' && !theme.banners.page_banner_image ? 'gradient' : theme.banners.cta_style
 
   return (
     <>
@@ -76,7 +79,7 @@ export default function Home() {
         <div className="container-x">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionTitle title={t('home.featured')} text={t('home.featuredText')} />
-            <Link to="/programs" className="mb-10 text-sm font-bold text-gold-700 hover:text-gold-600">{t('common.viewAll')}</Link>
+            <Link to="/programs" className="mb-10 text-sm font-bold text-link hover:opacity-80">{t('common.viewAll')}</Link>
           </div>
           {isLoading ? <Spinner /> : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -101,7 +104,7 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-bold text-navy-900 group-hover:text-gold-700">{p.title}</h3>
+                    <h3 className="truncate font-bold text-navy-900 group-hover:text-link">{p.title}</h3>
                     <p className="mt-1 text-sm text-slate-500">{t(`modes.${p.delivery_mode}`)} · {fmt.number(p.total_hours)} {t('common.hours')} · {p.category?.name}</p>
                   </div>
                   <div className="hidden text-center sm:block">
@@ -179,15 +182,16 @@ export default function Home() {
       {/* CTA */}
       <section className="pb-24">
         <div className="container-x">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-l from-navy-900 via-navy-800 to-navy-700 p-10 text-white shadow-glass sm:p-14">
+          <div className={`relative overflow-hidden rounded-[2rem] p-10 shadow-glass sm:p-14 ${ctaStyle === 'accent' ? 'btn-accent !shadow-gold' : 'bg-gradient-to-l from-navy-900 via-navy-800 to-navy-700 text-white'}`}>
+            {ctaStyle === 'image' && <><img src={theme.banners.page_banner_image!} alt="" className="absolute inset-0 h-full w-full object-cover" /><div className="hero-overlay absolute inset-0" /></>}
             <div className="pattern-bg absolute inset-0 opacity-25" />
             <div className="absolute -end-16 -top-16 size-72 rounded-full bg-gold-500/25 blur-3xl" />
             <div className="relative flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
               <div className="max-w-2xl">
                 <h2 className="text-3xl font-bold sm:text-4xl">{t('home.ctaTitle')}</h2>
-                <p className="mt-3 text-white/75">{t('home.ctaText')}</p>
+                <p className={`mt-3 ${ctaStyle === 'accent' ? 'opacity-80' : 'text-white/75'}`}>{t('home.ctaText')}</p>
               </div>
-              <Button to="/login" variant="gold" size="lg">{t('home.ctaButton')}</Button>
+              <Button to="/login" variant={ctaStyle === 'accent' ? 'primary' : 'gold'} size="lg">{t('home.ctaButton')}</Button>
             </div>
           </div>
         </div>
@@ -207,7 +211,7 @@ export function NewsCard({ item }: { item: { id: string; title: string; excerpt:
       </div>
       <div className="p-5">
         <time className="text-xs text-slate-400">{fmt.date(item.published_at)}</time>
-        <h3 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-gold-700">{item.title}</h3>
+        <h3 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-link">{item.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm text-slate-500">{item.excerpt}</p>
       </div>
     </Link>

@@ -84,11 +84,43 @@ const en: Dictionary = {
     demo: 'Demo accounts', demoHint: 'Password for all accounts: Tedc@2026!',
   },
   admin: {
+    brand: {
+      title: 'Brand Studio', subtitle: 'Control the platform colors, buttons, links, banners, backgrounds and patterns — changes preview live before you publish',
+      publish: 'Publish theme', discard: 'Discard changes', reset: 'Restore default', unsaved: 'Unpublished changes', published: 'Theme published successfully', resetDone: 'Default theme restored',
+      confirmReset: 'Restore the default theme? Current settings will be replaced.',
+      sections: { presets: 'Presets', colors: 'Brand colors', buttons: 'Buttons & links', banners: 'Banners & imagery', background: 'Background & pattern', shape: 'Shape & corners' },
+      presetsHint: 'Start from a curated luxury identity, then fine-tune it.',
+      colors: {
+        primary: 'Primary', primaryHint: 'Header, navigation, headings and primary buttons',
+        accent: 'Accent', accentHint: 'Gold buttons, ornamental lines and highlights',
+        background: 'Background', backgroundHint: 'Page background of the website and dashboard',
+        surface: 'Surface', surfaceHint: 'Cards and forms',
+        text: 'Text', textHint: 'Body text',
+        link: 'Links', linkHint: 'Text links such as “View all”',
+      },
+      buttons: {
+        style: 'Accent button style', gradient: 'Gradient', solid: 'Solid', outline: 'Outline', radius: 'Button corner radius', accentText: 'Accent button text', uppercase: 'Uppercase (English)',
+        sample: 'Primary', sampleAccent: 'Accent', sampleLink: 'Text link',
+      },
+      banners: {
+        overlay: 'Banner overlay color', overlayOpacity: 'Overlay strength', hero: 'Homepage slider images', heroHint: 'Landscape images, 2400×1350 recommended. The illustration stays when no photo is uploaded.',
+        slides: ['Slide 1 — Doha', 'Slide 2 — Ministry of Education', 'Slide 3 — National landmark', 'Slide 4 — Heritage'],
+        pageBanner: 'Inner pages banner image', cta: 'Call-to-action banner', ctaGradient: 'Gradient', ctaAccent: 'Accent color', ctaImage: 'Banner image',
+      },
+      pattern: {
+        type: 'Background pattern', color: 'Pattern color', opacity: 'Pattern opacity', size: 'Pattern scale', custom: 'Custom pattern (image)',
+        types: { none: 'None', dots: 'Dots', grid: 'Grid', islamic_star: 'Islamic star', arabesque: 'Arabesque', diagonal: 'Diagonal', custom: 'Custom' },
+      },
+      shape: { card: 'Card corner radius', blur: 'Glass blur' },
+      upload: 'Upload image', replace: 'Replace', remove: 'Remove', uploading: 'Uploading…', orUrl: 'or paste an image URL',
+      preview: { title: 'Live preview', desktop: 'Desktop', mobile: 'Mobile', hero: 'Building educator capability', card: 'Educational Leadership', cardText: 'A complete program for school leaders.', stat: 'training hours' },
+      contrast: { title: 'Accessibility check', text: 'Text on background', primary: 'White text on primary', accent: 'Accent button text', link: 'Links on cards', pass: 'Excellent', warn: 'Acceptable', fail: 'Poor' },
+    },
     menu: {
-      dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
+      appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
       certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', impact: 'Impact',
       communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', users: 'Users & roles',
-      audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security' },
+      audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },
     },
     kpis: {
       total_schools: 'Total schools', total_employees: 'Total employees', active_programs: 'Active programs', participants: 'Participants',
