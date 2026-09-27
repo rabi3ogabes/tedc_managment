@@ -1,0 +1,28 @@
+name: Live site check
+
+# Probes the public endpoints of the deployed platform (no credentials) to diagnose a live deployment.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site address
+        required: false
+        default: https://tedc-managment.vercel.app
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        env:
+          BASE: ${{ inputs.base_url }}
+        run: |
+          for path in / /up /api/v1/public/theme /api/v1/public/stats /api/v1/public/programs?per_page=1 /api/v1/public/mobile-config; do
+            code=$(curl -sS -o body.txt -w '%{http_code}' --max-time 30 "$BASE$path" || echo 000)
+            echo "::group::$code  $path"
+            head -c 600 body.txt; echo
+            echo "::endgroup::"
+            echo "| \`$path\` | $code |" >> table.md
+          done
+          { echo "| Endpoint | HTTP |"; echo "|---|---|"; cat table.md; } >> "$GITHUB_STEP_SUMMARY"
+          cat table.md
