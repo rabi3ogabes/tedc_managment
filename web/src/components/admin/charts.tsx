@@ -49,7 +49,7 @@ export function TrendChart({ data, series }: { data: Record<string, number | str
           <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="label" {...axis} />
           <YAxis {...axis} allowDecimals={false} />
-          <Tooltip content={<TooltipBox />} cursor={{ stroke: '#c8a24a', strokeWidth: 1 }} />
+          <Tooltip content={<TooltipBox />} cursor={{ stroke: '#a29475', strokeWidth: 1 }} />
           <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
           {series.map((s, i) => (
             <Area key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={SERIES[i]} strokeWidth={2} fill={`url(#g-${s.key})`} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />

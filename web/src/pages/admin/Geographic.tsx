@@ -1,6 +1,7 @@
 import { CircleMarker, MapContainer, TileLayer, Tooltip as MapTooltip } from 'react-leaflet'
 import { useTranslation } from 'react-i18next'
-import { Card, CardTitle, PageHeader, Progress, Spinner, Table, Td } from '@/components/ui'
+import { Card, CardTitle, PageHeader, Progress, Spinner } from '@/components/ui'
+import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 
@@ -8,7 +9,7 @@ type Region = { region: string; schools: number; participating_schools: number; 
 type SchoolPoint = { id: string; name: string; region: string; lat: number | null; lng: number | null; employees: number; participants: number; trained: number; coverage: number; open_needs: number }
 
 /** Sequential single-hue ramp (light → dark navy) for training coverage. */
-const RAMP = ['#d6e2f3', '#a9c1e6', '#6f93cf', '#3a64ad', '#1b365f']
+const RAMP = ['#f1e3e7', '#dcb3c0', '#bd6f88', '#9d3a58', '#5a0e24']
 const rampColor = (coverage: number) => RAMP[Math.min(RAMP.length - 1, Math.floor(coverage / 20))]
 
 export default function Geographic() {
@@ -57,20 +58,17 @@ export default function Geographic() {
         </Card>
       </div>
       <Card className="mt-6" padded={false}>
-        <Table head={[t('admin.schools.region'), t('admin.menu.schools'), t('admin.analytics.participation'), t('admin.employees.title'), t('admin.analytics.trained'), t('admin.geo.coverage'), t('admin.geo.gap'), t('admin.geo.openNeeds')]}>
-          {d.regions.map((r) => (
-            <tr key={r.region}>
-              <Td className="font-bold text-navy-900">{t(`regions.${r.region}`)}</Td>
-              <Td>{r.schools}</Td>
-              <Td>{r.participating_schools} / {r.schools}</Td>
-              <Td>{fmt.number(r.employees)}</Td>
-              <Td>{fmt.number(r.trained)}</Td>
-              <Td><div className="w-28"><Progress value={r.coverage} tone="navy" /><span className="text-xs">{fmt.percent(r.coverage, 1)}</span></div></Td>
-              <Td className="font-semibold text-danger">{fmt.number(r.gap)}</Td>
-              <Td>{fmt.number(r.open_needs)}</Td>
-            </tr>
-          ))}
-        </Table>
+        <DataView id="admin.geo.regions" rows={d.regions} rowKey={(r) => r.region} columns={[
+          { key: 'region', header: t('admin.schools.region'), role: 'title', cell: (r) => <span className="font-bold text-navy-900">{t(`regions.${r.region}`)}</span> },
+          { key: 'coverage', header: t('admin.geo.coverage'), role: 'badge', cell: (r) => <span className="font-mono text-sm font-bold text-navy-900">{fmt.percent(r.coverage, 1)}</span> },
+          { key: 'schools', header: t('admin.menu.schools'), cell: (r) => r.schools },
+          { key: 'participation', header: t('admin.analytics.participation'), cell: (r) => `${r.participating_schools} / ${r.schools}` },
+          { key: 'employees', header: t('admin.employees.title'), cell: (r) => fmt.number(r.employees) },
+          { key: 'trained', header: t('admin.analytics.trained'), cell: (r) => fmt.number(r.trained) },
+          { key: 'bar', header: t('admin.geo.coverage'), hideInCards: true, cell: (r) => <div className="w-28"><Progress value={r.coverage} tone="navy" /></div> },
+          { key: 'gap', header: t('admin.geo.gap'), cell: (r) => <span className="font-semibold text-danger">{fmt.number(r.gap)}</span> },
+          { key: 'needs', header: t('admin.geo.openNeeds'), cell: (r) => fmt.number(r.open_needs) },
+        ]} />
       </Card>
     </>
   )

@@ -230,8 +230,8 @@ class ProgramCover extends StatelessWidget {
   final double height;
 
   static const _palettes = {
-    'leadership': [Color(0xFF0B1F3A), Color(0xFF264775)],
-    'pedagogy': [Color(0xFF12294A), Color(0xFF3A5D8F)],
+    'leadership': [Color(0xFF5A0E24), Color(0xFF8A1538)],
+    'pedagogy': [Color(0xFF3D0A1C), Color(0xFF756B54)],
     'digital': [Color(0xFF0B2A3A), Color(0xFF0E7490)],
     'assessment': [Color(0xFF1E1B4B), Color(0xFF5B21B6)],
     'wellbeing': [Color(0xFF3B0D24), Color(0xFF9D174D)],

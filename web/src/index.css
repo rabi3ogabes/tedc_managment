@@ -1,32 +1,42 @@
 @import "tailwindcss";
 
+/*
+ * Qatar Sans — the Qatar Government typeface. Licensed files are not bundled: place them in
+ * public/fonts/ (see public/fonts/README.md) or upload them in the Brand Studio. When absent the
+ * stack falls back to Tajawal / Inter.
+ */
+@font-face { font-family: "Qatar Sans"; src: local("Qatar Sans"), local("QatarSans-Regular"), url("/fonts/QatarSans-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Qatar Sans"; src: local("Qatar Sans Medium"), local("QatarSans-Medium"), url("/fonts/QatarSans-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Qatar Sans"; src: local("Qatar Sans Bold"), local("QatarSans-Bold"), url("/fonts/QatarSans-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
 @theme {
-  --color-navy-950: #06122a;
-  --color-navy-900: #0b1f3a;
-  --color-navy-800: #12294a;
-  --color-navy-700: #1b365f;
-  --color-navy-600: #264775;
-  --color-navy-500: #3a5d8f;
-  --color-navy-100: #e3e9f2;
-  --color-gold-700: #8f6f22;
-  --color-gold-600: #a8852f;
-  --color-gold-500: #c8a24a;
-  --color-gold-400: #d6b566;
-  --color-gold-300: #e5cd8a;
-  --color-gold-100: #f6edd6;
-  --color-ivory: #f8f6f1;
+  /* Default palette: Qatar Government identity (Al Adaam maroon + Dune). Overridden at runtime by the Brand Studio. */
+  --color-navy-950: #5a0e24;
+  --color-navy-900: #8a1538;
+  --color-navy-800: #932848;
+  --color-navy-700: #9d3a58;
+  --color-navy-600: #a8526c;
+  --color-navy-500: #b66e84;
+  --color-navy-100: #f1e3e7;
+  --color-gold-700: #756b54;
+  --color-gold-600: #8a7e63;
+  --color-gold-500: #a29475;
+  --color-gold-400: #b0a48a;
+  --color-gold-300: #c3b9a5;
+  --color-gold-100: #eceae3;
+  --color-ivory: #f8f6f2;
   --color-ivory-dark: #efebe2;
-  --color-ink: #0f172a;
+  --color-ink: #1a1a1a;
   --color-surface: #ffffff;
-  --color-link: #8f6f22;
+  --color-link: #8a1538;
   --color-success: #0f8a5f;
   --color-danger: #c0392b;
 
-  --font-sans: "Tajawal", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "El Messiri", "Playfair Display", serif;
+  --font-sans: "Qatar Sans", "Tajawal", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Qatar Sans", "El Messiri", "Playfair Display", serif;
 
   --shadow-glass: 0 10px 40px -12px rgb(11 31 58 / 0.25);
-  --shadow-gold: 0 12px 40px -12px rgb(200 162 74 / 0.45);
+  --shadow-gold: 0 12px 40px -12px rgb(162 148 117 / 0.45);
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-ken-burns: ken-burns 12s ease-out both;
 
@@ -45,7 +55,7 @@ html[lang="en"] { --font-sans: "Inter", "Tajawal", ui-sans-serif, system-ui, san
 @layer base {
   html { scroll-behavior: smooth; }
   body { @apply bg-ivory text-ink font-sans antialiased; }
-  h1, h2, h3, .font-display { font-family: var(--font-display); }
+  h1, h2, h3, .font-display { font-family: var(--font-display); font-weight: var(--heading-weight, 700); }
   ::selection { @apply bg-gold-300 text-navy-900; }
 }
 

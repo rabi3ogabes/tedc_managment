@@ -19,14 +19,14 @@ export function DohaSkyline() {
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden>
       <defs>
         <linearGradient id="ds-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#06122a" />
-          <stop offset="0.45" stopColor="#1b365f" />
+          <stop offset="0" stopColor="#2a0612" />
+          <stop offset="0.45" stopColor="#6b1631" />
           <stop offset="0.75" stopColor="#8a5a3c" />
           <stop offset="1" stopColor="#e3a857" />
         </linearGradient>
         <linearGradient id="ds-sea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1b365f" />
-          <stop offset="1" stopColor="#06122a" />
+          <stop offset="0" stopColor="#6b1631" />
+          <stop offset="1" stopColor="#2a0612" />
         </linearGradient>
         <radialGradient id="ds-sun" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" stopColor="#ffe3a3" />
@@ -34,9 +34,9 @@ export function DohaSkyline() {
           <stop offset="1" stopColor="#f5c56b" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="ds-tower" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#0b1f3a" />
-          <stop offset="0.6" stopColor="#12294a" />
-          <stop offset="1" stopColor="#1b365f" />
+          <stop offset="0" stopColor="#3d0a1c" />
+          <stop offset="0.6" stopColor="#4f0f26" />
+          <stop offset="1" stopColor="#6b1631" />
         </linearGradient>
         <pattern id="ds-windows" width="14" height="18" patternUnits="userSpaceOnUse">
           <rect width="14" height="18" fill="transparent" />
@@ -49,7 +49,7 @@ export function DohaSkyline() {
       <circle cx="1180" cy="610" r="70" fill="#ffd98c" opacity="0.9" />
 
       {/* Far skyline */}
-      <g fill="#12294a" opacity="0.85">
+      <g fill="#4f0f26" opacity="0.85">
         <rect x="120" y="470" width="60" height="200" />
         <rect x="190" y="430" width="44" height="240" />
         <rect x="560" y="455" width="52" height="215" />
@@ -63,29 +63,29 @@ export function DohaSkyline() {
         {/* Cylindrical tower with dome (Burj Doha-like) */}
         <path d="M700 670 V330 Q700 250 745 215 Q790 250 790 330 V670 Z" fill="url(#ds-tower)" />
         <path d="M700 670 V330 Q700 250 745 215 Q790 250 790 330 V670 Z" fill="url(#ds-windows)" opacity="0.9" />
-        <line x1="745" y1="215" x2="745" y2="160" stroke="#c8a24a" strokeWidth="3" />
+        <line x1="745" y1="215" x2="745" y2="160" stroke="#a29475" strokeWidth="3" />
         {/* Hyperboloid tower (Tornado-like) */}
-        <path d="M960 670 C940 560 1000 470 975 360 L1065 360 C1040 470 1100 560 1080 670 Z" fill="#12294a" />
-        <path d="M975 360 L1065 360 C1040 470 1100 560 1080 670 L1060 670 C1080 560 1020 470 1045 360 Z" fill="#c8a24a" opacity="0.35" />
+        <path d="M960 670 C940 560 1000 470 975 360 L1065 360 C1040 470 1100 560 1080 670 Z" fill="#4f0f26" />
+        <path d="M975 360 L1065 360 C1040 470 1100 560 1080 670 L1060 670 C1080 560 1020 470 1045 360 Z" fill="#a29475" opacity="0.35" />
         {/* Slanted glass towers */}
         <path d="M430 670 V380 L500 340 V670 Z" fill="url(#ds-tower)" />
         <path d="M430 670 V380 L500 340 V670 Z" fill="url(#ds-windows)" opacity="0.7" />
-        <path d="M515 670 V300 L575 270 L575 670 Z" fill="#0b1f3a" />
+        <path d="M515 670 V300 L575 270 L575 670 Z" fill="#3d0a1c" />
         <path d="M515 670 V300 L575 270 L575 670 Z" fill="url(#ds-windows)" opacity="0.6" />
         <path d="M1150 670 V420 Q1195 380 1240 420 V670 Z" fill="url(#ds-tower)" />
         <path d="M1150 670 V420 Q1195 380 1240 420 V670 Z" fill="url(#ds-windows)" opacity="0.8" />
-        <path d="M1260 670 V360 L1320 330 V670 Z" fill="#0b1f3a" />
+        <path d="M1260 670 V360 L1320 330 V670 Z" fill="#3d0a1c" />
         <rect x="250" y="400" width="70" height="270" fill="url(#ds-tower)" />
         <rect x="250" y="400" width="70" height="270" fill="url(#ds-windows)" opacity="0.7" />
-        <path d="M330 670 V455 L360 430 L390 455 V670 Z" fill="#12294a" />
-        <rect x="620" y="420" width="62" height="250" fill="#12294a" />
+        <path d="M330 670 V455 L360 430 L390 455 V670 Z" fill="#4f0f26" />
+        <rect x="620" y="420" width="62" height="250" fill="#4f0f26" />
         <rect x="620" y="420" width="62" height="250" fill="url(#ds-windows)" opacity="0.5" />
         <rect x="810" y="385" width="58" height="285" fill="url(#ds-tower)" />
         <rect x="810" y="385" width="58" height="285" fill="url(#ds-windows)" opacity="0.8" />
       </g>
 
       {/* Corniche + sea */}
-      <rect x="0" y="668" width="1600" height="8" fill="#c8a24a" opacity="0.8" />
+      <rect x="0" y="668" width="1600" height="8" fill="#a29475" opacity="0.8" />
       <rect x="0" y="676" width="1600" height="224" fill="url(#ds-sea)" />
       <g opacity="0.35">
         {Array.from({ length: 14 }, (_, i) => (
@@ -95,10 +95,10 @@ export function DohaSkyline() {
 
       {/* Dhow */}
       <g transform="translate(260 700)">
-        <path d="M0 40 Q90 70 190 40 L175 60 Q95 80 15 60 Z" fill="#06122a" />
-        <path d="M95 40 L95 -90" stroke="#06122a" strokeWidth="4" />
+        <path d="M0 40 Q90 70 190 40 L175 60 Q95 80 15 60 Z" fill="#2a0612" />
+        <path d="M95 40 L95 -90" stroke="#2a0612" strokeWidth="4" />
         <path d="M97 -85 Q170 -30 175 30 L97 30 Z" fill="#f6edd6" opacity="0.92" />
-        <path d="M60 -40 L150 -95" stroke="#06122a" strokeWidth="3" />
+        <path d="M60 -40 L150 -95" stroke="#2a0612" strokeWidth="3" />
       </g>
     </svg>
   )
@@ -110,7 +110,7 @@ export function MinistryOfEducation() {
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden>
       <defs>
         <linearGradient id="me-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#0b1f3a" />
+          <stop offset="0" stopColor="#3d0a1c" />
           <stop offset="0.6" stopColor="#264775" />
           <stop offset="1" stopColor="#c9b28a" />
         </linearGradient>
@@ -120,11 +120,11 @@ export function MinistryOfEducation() {
         </linearGradient>
         <linearGradient id="me-glass" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#3a5d8f" />
-          <stop offset="1" stopColor="#12294a" />
+          <stop offset="1" stopColor="#4f0f26" />
         </linearGradient>
         <pattern id="me-mashrabiya" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="#c8a24a" strokeWidth="1.6" opacity="0.8" />
-          <circle cx="20" cy="20" r="5" fill="none" stroke="#c8a24a" strokeWidth="1.2" opacity="0.7" />
+          <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="#a29475" strokeWidth="1.6" opacity="0.8" />
+          <circle cx="20" cy="20" r="5" fill="none" stroke="#a29475" strokeWidth="1.2" opacity="0.7" />
         </pattern>
         <radialGradient id="me-glow" cx="0.5" cy="0.35" r="0.6">
           <stop offset="0" stopColor="#f5c56b" stopOpacity="0.45" />
@@ -147,7 +147,7 @@ export function MinistryOfEducation() {
       {/* Main building */}
       <g>
         <rect x="470" y="330" width="660" height="340" fill="url(#me-wall)" />
-        <rect x="470" y="310" width="660" height="26" fill="#c8a24a" />
+        <rect x="470" y="310" width="660" height="26" fill="#a29475" />
         <rect x="500" y="290" width="600" height="22" fill="#e5cd8a" />
         {/* central glass atrium with arch */}
         <path d="M700 670 V470 Q800 380 900 470 V670 Z" fill="url(#me-glass)" />
@@ -155,10 +155,10 @@ export function MinistryOfEducation() {
         <path d="M720 670 V480 Q800 405 880 480 V670" fill="none" stroke="#e5cd8a" strokeWidth="3" />
         {/* arcades */}
         {Array.from({ length: 4 }, (_, i) => (
-          <path key={`l${i}`} d={`M${500 + i * 48} 670 V560 Q${520 + i * 48} 520 ${540 + i * 48} 560 V670 Z`} fill="#12294a" opacity="0.85" />
+          <path key={`l${i}`} d={`M${500 + i * 48} 670 V560 Q${520 + i * 48} 520 ${540 + i * 48} 560 V670 Z`} fill="#4f0f26" opacity="0.85" />
         ))}
         {Array.from({ length: 4 }, (_, i) => (
-          <path key={`r${i}`} d={`M${920 + i * 48} 670 V560 Q${940 + i * 48} 520 ${960 + i * 48} 560 V670 Z`} fill="#12294a" opacity="0.85" />
+          <path key={`r${i}`} d={`M${920 + i * 48} 670 V560 Q${940 + i * 48} 520 ${960 + i * 48} 560 V670 Z`} fill="#4f0f26" opacity="0.85" />
         ))}
         {/* upper mashrabiya screens */}
         <rect x="500" y="370" width="180" height="150" fill="url(#me-mashrabiya)" />
@@ -172,19 +172,19 @@ export function MinistryOfEducation() {
 
       {/* Open book emblem above entrance (education motif) */}
       <g transform="translate(800 240)">
-        <circle r="52" fill="#0b1f3a" stroke="#c8a24a" strokeWidth="3" />
+        <circle r="52" fill="#3d0a1c" stroke="#a29475" strokeWidth="3" />
         <path d="M-30 -8 Q-15 -18 0 -8 Q15 -18 30 -8 V22 Q15 12 0 22 Q-15 12 -30 22 Z" fill="#f6edd6" />
-        <line x1="0" y1="-8" x2="0" y2="22" stroke="#c8a24a" strokeWidth="2" />
-        <path d="M-12 -30 L0 -42 L12 -30" fill="none" stroke="#c8a24a" strokeWidth="3" />
+        <line x1="0" y1="-8" x2="0" y2="22" stroke="#a29475" strokeWidth="2" />
+        <path d="M-12 -30 L0 -42 L12 -30" fill="none" stroke="#a29475" strokeWidth="3" />
       </g>
 
       {/* Plaza */}
-      <rect x="0" y="668" width="1600" height="232" fill="#0b1f3a" />
-      <path d="M0 668 H1600" stroke="#c8a24a" strokeWidth="4" />
-      <path d="M700 668 L520 900 H1080 L900 668 Z" fill="#12294a" />
+      <rect x="0" y="668" width="1600" height="232" fill="#3d0a1c" />
+      <path d="M0 668 H1600" stroke="#a29475" strokeWidth="4" />
+      <path d="M700 668 L520 900 H1080 L900 668 Z" fill="#4f0f26" />
       {Array.from({ length: 8 }, (_, i) => (
         <g key={i} transform={`translate(${130 + i * 190} 640)`}>
-          <rect x="-3" y="0" width="6" height="30" fill="#06122a" />
+          <rect x="-3" y="0" width="6" height="30" fill="#2a0612" />
           <circle cy="-6" r="20" fill="#0f3d2e" />
         </g>
       ))}
@@ -198,8 +198,8 @@ export function IslamicArtMuseum() {
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden>
       <defs>
         <linearGradient id="mi-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#06122a" />
-          <stop offset="0.7" stopColor="#12294a" />
+          <stop offset="0" stopColor="#2a0612" />
+          <stop offset="0.7" stopColor="#4f0f26" />
           <stop offset="1" stopColor="#264775" />
         </linearGradient>
         <linearGradient id="mi-stone" x1="0" y1="0" x2="1" y2="1">
@@ -211,15 +211,15 @@ export function IslamicArtMuseum() {
           <stop offset="1" stopColor="#8f7a55" />
         </linearGradient>
         <linearGradient id="mi-water" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1b365f" />
-          <stop offset="1" stopColor="#06122a" />
+          <stop offset="0" stopColor="#6b1631" />
+          <stop offset="1" stopColor="#2a0612" />
         </linearGradient>
       </defs>
       <rect width="1600" height="900" fill="url(#mi-sky)" />
       <Stars count={110} seed={11} />
       <g transform="translate(1260 170)">
         <circle r="46" fill="#f6edd6" />
-        <circle cx="18" cy="-10" r="42" fill="#0b1f3a" />
+        <circle cx="18" cy="-10" r="42" fill="#3d0a1c" />
       </g>
 
       {/* Museum mass */}
@@ -231,27 +231,27 @@ export function IslamicArtMuseum() {
         <polygon points="120,110 360,110 360,40 120,40" fill="url(#mi-stone)" />
         <polygon points="360,110 420,110 410,45 360,40" fill="url(#mi-shade)" />
         <polygon points="170,40 310,40 280,-20 200,-20" fill="#e5cd8a" />
-        <circle cx="240" cy="-26" r="10" fill="#c8a24a" />
+        <circle cx="240" cy="-26" r="10" fill="#a29475" />
         {/* signature oculus */}
-        <path d="M200 110 Q240 60 280 110 Z" fill="#0b1f3a" />
-        <path d="M180 330 Q240 250 300 330 V420 H180 Z" fill="#0b1f3a" />
-        <path d="M195 330 Q240 270 285 330" fill="none" stroke="#c8a24a" strokeWidth="3" />
-        {Array.from({ length: 5 }, (_, i) => <rect key={i} x={30 + i * 30} y="260" width="12" height="60" fill="#0b1f3a" opacity="0.4" />)}
-        {Array.from({ length: 5 }, (_, i) => <rect key={`r${i}`} x={330 + i * 30} y="260" width="12" height="60" fill="#0b1f3a" opacity="0.4" />)}
+        <path d="M200 110 Q240 60 280 110 Z" fill="#3d0a1c" />
+        <path d="M180 330 Q240 250 300 330 V420 H180 Z" fill="#3d0a1c" />
+        <path d="M195 330 Q240 270 285 330" fill="none" stroke="#a29475" strokeWidth="3" />
+        {Array.from({ length: 5 }, (_, i) => <rect key={i} x={30 + i * 30} y="260" width="12" height="60" fill="#3d0a1c" opacity="0.4" />)}
+        {Array.from({ length: 5 }, (_, i) => <rect key={`r${i}`} x={330 + i * 30} y="260" width="12" height="60" fill="#3d0a1c" opacity="0.4" />)}
       </g>
 
       {/* Palms on the promenade */}
       {[180, 320, 1360, 1480].map((x, i) => (
         <g key={i} transform={`translate(${x} 670)`}>
-          <path d="M0 0 Q6 -90 2 -170" stroke="#06122a" strokeWidth="9" fill="none" />
+          <path d="M0 0 Q6 -90 2 -170" stroke="#2a0612" strokeWidth="9" fill="none" />
           {[-60, -25, 15, 55, 95].map((a, j) => (
-            <path key={j} d={`M2 -170 q${Math.cos((a * Math.PI) / 180) * 70} ${Math.sin((a * Math.PI) / 180) * 30 - 10} ${Math.cos((a * Math.PI) / 180) * 110} ${Math.sin((a * Math.PI) / 180) * 70 + 20}`} stroke="#06122a" strokeWidth="7" fill="none" strokeLinecap="round" />
+            <path key={j} d={`M2 -170 q${Math.cos((a * Math.PI) / 180) * 70} ${Math.sin((a * Math.PI) / 180) * 30 - 10} ${Math.cos((a * Math.PI) / 180) * 110} ${Math.sin((a * Math.PI) / 180) * 70 + 20}`} stroke="#2a0612" strokeWidth="7" fill="none" strokeLinecap="round" />
           ))}
         </g>
       ))}
 
       <rect x="0" y="668" width="1600" height="232" fill="url(#mi-water)" />
-      <rect x="0" y="668" width="1600" height="5" fill="#c8a24a" opacity="0.7" />
+      <rect x="0" y="668" width="1600" height="5" fill="#a29475" opacity="0.7" />
       {/* reflection */}
       <g opacity="0.18" transform="translate(560 1090) scale(1 -1)">
         <polygon points="0,420 480,420 480,200 0,200" fill="#f6edd6" />
@@ -267,7 +267,7 @@ export function HeritageDesert() {
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden>
       <defs>
         <linearGradient id="hd-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#12294a" />
+          <stop offset="0" stopColor="#4f0f26" />
           <stop offset="0.55" stopColor="#8a5a3c" />
           <stop offset="1" stopColor="#f0c27b" />
         </linearGradient>

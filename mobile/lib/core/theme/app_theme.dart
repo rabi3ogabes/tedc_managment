@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// Luxury government palette: deep navy, off-white and gold.
+/// Qatar Government identity (gba.gco.gov.qa): Al Adaam maroon, Dune and off-white.
+/// Token names are kept (navy = primary shades, gold = accent shades) so the
+/// rest of the app follows the identity without changes.
 class AppColors {
-  static const navy950 = Color(0xFF06122A);
-  static const navy900 = Color(0xFF0B1F3A);
-  static const navy800 = Color(0xFF12294A);
-  static const navy700 = Color(0xFF1B365F);
-  static const navy100 = Color(0xFFE3E9F2);
-  static const gold700 = Color(0xFF8F6F22);
-  static const gold500 = Color(0xFFC8A24A);
-  static const gold300 = Color(0xFFE5CD8A);
-  static const gold100 = Color(0xFFF6EDD6);
-  static const ivory = Color(0xFFF8F6F1);
-  static const ink = Color(0xFF0F172A);
+  static const navy950 = Color(0xFF5A0E24);
+  static const navy900 = Color(0xFF8A1538); // Al Adaam
+  static const navy800 = Color(0xFF932848);
+  static const navy700 = Color(0xFF9D3A58);
+  static const navy100 = Color(0xFFF1E3E7);
+  static const gold700 = Color(0xFF756B54);
+  static const gold500 = Color(0xFFA29475); // Dune
+  static const gold300 = Color(0xFFC3B9A5);
+  static const gold100 = Color(0xFFECEAE3);
+  static const ivory = Color(0xFFF8F6F2);
+  static const ink = Color(0xFF1A1A1A);
   static const muted = Color(0xFF64748B);
   static const success = Color(0xFF0F8A5F);
   static const danger = Color(0xFFC0392B);
   static const warning = Color(0xFFB7791F);
 
-  static const goldGradient = LinearGradient(colors: [Color(0xFFD6B566), gold500, Color(0xFFA8852F)]);
+  static const goldGradient = LinearGradient(colors: [Color(0xFFB0A48A), gold500, Color(0xFF8A7E63)]);
   static const navyGradient = LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [navy900, navy700]);
 }
 

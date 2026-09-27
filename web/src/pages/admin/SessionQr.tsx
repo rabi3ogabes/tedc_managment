@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
-import { LogoMark } from '@/components/public/Logo'
+import { BrandMark } from '@/components/public/Logo'
 import { Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
@@ -37,11 +37,11 @@ export default function SessionQr() {
       <div className="pattern-bg absolute inset-0 opacity-20" />
       <div className="absolute -top-40 start-1/2 size-[600px] -translate-x-1/2 rounded-full bg-gold-500/10 blur-3xl" />
       <button onClick={() => document.documentElement.requestFullscreen?.()} className="glass-dark absolute end-6 top-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm"><Maximize2 className="size-4" />{t('admin.qr.fullscreen')}</button>
-      <div className="relative flex items-center gap-3"><LogoMark className="size-12" /><div className="font-display text-xl font-bold">{t('brand.name')}</div></div>
+      <div className="relative flex items-center gap-3"><BrandMark onDark className="h-12 max-w-[200px]" markClassName="size-12" /><div className="font-display text-xl font-bold">{t('brand.name')}</div></div>
       <h1 className="relative mt-8 text-center text-3xl font-bold sm:text-4xl">{qr.session.title}</h1>
       <p className="relative mt-2 text-white/60">{fmt.dateTime(qr.session.starts_at)} – {fmt.time(qr.session.ends_at)}</p>
       <div className="relative mt-10 rounded-[2rem] bg-white p-6 shadow-gold">
-        <QRCodeSVG value={qr.payload} size={Math.min(420, window.innerWidth - 120)} level="M" fgColor="#0B1F3A" />
+        <QRCodeSVG value={qr.payload} size={Math.min(420, window.innerWidth - 120)} level="M" fgColor="#3d0a1c" />
         <div className="mt-5 h-2 overflow-hidden rounded-full bg-navy-100"><div className="h-full rounded-full bg-gradient-to-l from-gold-400 to-gold-600 transition-[width] duration-200" style={{ width: `${pct}%` }} /></div>
       </div>
       <p className="relative mt-6 max-w-lg text-center text-white/70">{t('admin.qr.hint', { s: qr.rotation_seconds })}</p>

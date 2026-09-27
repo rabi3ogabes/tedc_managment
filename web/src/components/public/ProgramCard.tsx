@@ -6,8 +6,8 @@ import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 
 const palettes: Record<string, [string, string]> = {
-  leadership: ['#0b1f3a', '#264775'],
-  pedagogy: ['#12294a', '#3a5d8f'],
+  leadership: ['#5a0e24', '#8a1538'],
+  pedagogy: ['#3d0a1c', '#756b54'],
   digital: ['#0b2a3a', '#0e7490'],
   assessment: ['#1e1b4b', '#5b21b6'],
   wellbeing: ['#3b0d24', '#9d174d'],

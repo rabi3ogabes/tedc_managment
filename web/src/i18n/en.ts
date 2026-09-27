@@ -8,6 +8,7 @@ const en: Dictionary = {
     portal: 'My Training', logout: 'Sign out', language: 'العربية',
   },
   common: {
+    viewTable: 'Table', viewCards: 'Cards', viewMode: 'View mode', results: '{{count}} results',
     loading: 'Loading…', save: 'Save', cancel: 'Cancel', create: 'Create', edit: 'Edit', delete: 'Delete', search: 'Search', filter: 'Filter',
     all: 'All', view: 'View', details: 'Details', back: 'Back', submit: 'Submit', close: 'Close', yes: 'Yes', no: 'No', hours: 'hours',
     seats: 'seats', seatsAvailable: 'seats left', required: 'Required', optional: 'Optional', actions: 'Actions', status: 'Status', date: 'Date',
@@ -88,7 +89,7 @@ const en: Dictionary = {
       title: 'Brand Studio', subtitle: 'Control the platform colors, buttons, links, banners, backgrounds and patterns — changes preview live before you publish',
       publish: 'Publish theme', discard: 'Discard changes', reset: 'Restore default', unsaved: 'Unpublished changes', published: 'Theme published successfully', resetDone: 'Default theme restored',
       confirmReset: 'Restore the default theme? Current settings will be replaced.',
-      sections: { presets: 'Presets', colors: 'Brand colors', buttons: 'Buttons & links', banners: 'Banners & imagery', background: 'Background & pattern', shape: 'Shape & corners' },
+      sections: { presets: 'Presets', identity: 'Logo & identity', typography: 'Typography', colors: 'Brand colors', buttons: 'Buttons & links', banners: 'Banners & imagery', background: 'Background & pattern', shape: 'Shape & corners' },
       presetsHint: 'Start from a curated luxury identity, then fine-tune it.',
       colors: {
         primary: 'Primary', primaryHint: 'Header, navigation, headings and primary buttons',
@@ -109,9 +110,19 @@ const en: Dictionary = {
       },
       pattern: {
         type: 'Background pattern', color: 'Pattern color', opacity: 'Pattern opacity', size: 'Pattern scale', custom: 'Custom pattern (image)',
-        types: { none: 'None', dots: 'Dots', grid: 'Grid', islamic_star: 'Islamic star', arabesque: 'Arabesque', diagonal: 'Diagonal', custom: 'Custom' },
+        types: { none: 'None', serrated: 'Flag serration', dots: 'Dots', grid: 'Grid', islamic_star: 'Islamic star', arabesque: 'Arabesque', diagonal: 'Diagonal', custom: 'Custom' },
       },
       shape: { card: 'Card corner radius', blur: 'Glass blur' },
+      identity: {
+        hint: 'Upload the official logo (e.g. the Ministry of Education and Higher Education) in Arabic and English. It is used in the header, footer, dashboard and certificates.',
+        logoAr: 'Logo — Arabic version', logoEn: 'Logo — English version', logoArLight: 'Arabic version for dark backgrounds (optional)', logoEnLight: 'English version for dark backgrounds (optional)',
+        showName: 'Show the center name next to the logo', guidelines: 'Qatar Government brand guidelines', filesHint: 'Without uploads, files in web/public/brand are used automatically.',
+      },
+      typography: {
+        hint: 'The official government typeface is Qatar Sans. Upload the licensed font files (woff2) or leave empty to use the installed font, then Tajawal / Inter.',
+        arabic: 'Arabic typeface', latin: 'English typeface', family: 'Font family name', file: 'Font file (woff2 / woff / ttf / otf)', uploadFont: 'Upload font file',
+        headingWeight: 'Heading weight', specimenAr: 'مركز التدريب والتطوير التربوي — نصنع أثراً مستداماً', specimenEn: 'Training & Educational Development Center — 2026',
+      },
       upload: 'Upload image', replace: 'Replace', remove: 'Remove', uploading: 'Uploading…', orUrl: 'or paste an image URL',
       preview: { title: 'Live preview', desktop: 'Desktop', mobile: 'Mobile', hero: 'Building educator capability', card: 'Educational Leadership', cardText: 'A complete program for school leaders.', stat: 'training hours' },
       contrast: { title: 'Accessibility check', text: 'Text on background', primary: 'White text on primary', accent: 'Accent button text', link: 'Links on cards', pass: 'Excellent', warn: 'Acceptable', fail: 'Poor' },

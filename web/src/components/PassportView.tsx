@@ -36,7 +36,7 @@ export default function PassportView({ data }: { data: PassportData }) {
                 <RadarChart data={data.skills_by_category.map((c) => ({ name: c.category, level: c.average_level }))}>
                   <PolarGrid stroke="#e2e8f0" />
                   <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} />
-                  <Radar dataKey="level" stroke={SINGLE} fill="#c8a24a" fillOpacity={0.35} strokeWidth={2} />
+                  <Radar dataKey="level" stroke={SINGLE} fill="#a29475" fillOpacity={0.35} strokeWidth={2} />
                   <Tooltip />
                 </RadarChart>
               </ResponsiveContainer>

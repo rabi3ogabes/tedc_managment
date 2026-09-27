@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Check, CircleAlert, CircleCheck, Droplets, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, RotateCcw, Shapes, Sparkles, Undo2 } from 'lucide-react'
+import { BadgeCheck, Check, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, PageHeader } from '@/components/ui'
@@ -7,12 +7,14 @@ import { api, errorMessage } from '@/lib/api'
 import { useTheme } from '@/lib/ThemeProvider'
 import { contrast, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
-import { ColorField, ImageField, Segmented, SliderField } from './brand/controls'
+import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
 
-type Section = 'presets' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape'
+type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape'
 
 const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] = [
   { id: 'presets', icon: Sparkles },
+  { id: 'identity', icon: BadgeCheck },
+  { id: 'typography', icon: Type },
   { id: 'colors', icon: Palette },
   { id: 'buttons', icon: MousePointerClick },
   { id: 'banners', icon: LayoutTemplate },
@@ -20,7 +22,7 @@ const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] =
   { id: 'shape', icon: Droplets },
 ]
 
-const PATTERNS: PatternType[] = ['none', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom']
+const PATTERNS: PatternType[] = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom']
 
 /** Brand Studio: live, previewable control of the platform's visual identity. */
 export default function BrandStudio() {
@@ -101,7 +103,7 @@ export default function BrandStudio() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div className="space-y-5">
           {/* Section rail */}
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
             {SECTIONS.map(({ id, icon: Icon }) => (
               <button key={id} onClick={() => setSection(id)}
                 className={clsx('flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-bold transition',
@@ -134,6 +136,45 @@ export default function BrandStudio() {
                     </button>
                   ))}
                 </div>
+              </Panel>
+            )}
+
+            {section === 'identity' && (
+              <Panel title={t('admin.brand.sections.identity')} hint={t('admin.brand.identity.hint')}>
+                <a href="https://gba.gco.gov.qa/ar/guidelines/brand-identity/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-ivory px-3 py-2 text-xs font-bold text-link ring-1 ring-navy-100 hover:ring-gold-400">
+                  <ExternalLink className="size-3.5" />{t('admin.brand.identity.guidelines')}
+                </a>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ImageField kind="logo" contain aspect="aspect-[16/7]" label={t('admin.brand.identity.logoAr')} value={draft.identity.logo_ar} onChange={(url) => update('identity', { logo_ar: url })} />
+                  <ImageField kind="logo" contain aspect="aspect-[16/7]" label={t('admin.brand.identity.logoEn')} value={draft.identity.logo_en} onChange={(url) => update('identity', { logo_en: url })} />
+                  <div className="rounded-2xl bg-navy-900 p-3"><ImageField kind="logo" contain onDark aspect="aspect-[16/7]" label={t('admin.brand.identity.logoArLight')} value={draft.identity.logo_ar_light} onChange={(url) => update('identity', { logo_ar_light: url })} /></div>
+                  <div className="rounded-2xl bg-navy-900 p-3"><ImageField kind="logo" contain onDark aspect="aspect-[16/7]" label={t('admin.brand.identity.logoEnLight')} value={draft.identity.logo_en_light} onChange={(url) => update('identity', { logo_en_light: url })} /></div>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-navy-800"><input type="checkbox" className="size-4 accent-[var(--color-gold-600)]" checked={draft.identity.show_center_name} onChange={(e) => update('identity', { show_center_name: e.target.checked })} />{t('admin.brand.identity.showName')}</label>
+                <p className="text-xs text-slate-400">{t('admin.brand.identity.filesHint')}</p>
+              </Panel>
+            )}
+
+            {section === 'typography' && (
+              <Panel title={t('admin.brand.sections.typography')} hint={t('admin.brand.typography.hint')}>
+                {(['arabic', 'latin'] as const).map((script) => (
+                  <div key={script} className="space-y-3 rounded-2xl border border-navy-100 p-4">
+                    <div className="text-sm font-bold text-navy-900">{t(`admin.brand.typography.${script}`)}</div>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-semibold text-slate-500">{t('admin.brand.typography.family')}</span>
+                      <input dir="ltr" className="input" value={draft.typography[`${script}_family`]} onChange={(e) => update('typography', { [`${script}_family`]: e.target.value.replace(/[^\p{L}\p{N} -]/gu, '') })} />
+                    </label>
+                    <FontField label={t('admin.brand.typography.file')} value={draft.typography[`${script}_font_url`]} onChange={(url) => update('typography', { [`${script}_font_url`]: url })} />
+                    <div className="rounded-xl bg-ivory p-4" dir={script === 'arabic' ? 'rtl' : 'ltr'} style={{ fontFamily: `"${draft.typography[`${script}_family`]}", ${script === 'arabic' ? 'Tajawal' : 'Inter'}, sans-serif` }}>
+                      <div className="text-xl" style={{ fontWeight: draft.typography.heading_weight }}>{script === 'arabic' ? t('admin.brand.typography.specimenAr') : t('admin.brand.typography.specimenEn')}</div>
+                      <div className="mt-1 text-sm text-slate-500">{script === 'arabic' ? 'أ ب ت ث ج ح خ د ذ ر ز س ش ص ض — 0123456789' : 'Aa Bb Cc Dd Ee Ff Gg — 0123456789'}</div>
+                    </div>
+                  </div>
+                ))}
+                <Field label={t('admin.brand.typography.headingWeight')}>
+                  <Segmented value={String(draft.typography.heading_weight)} onChange={(v) => update('typography', { heading_weight: Number(v) })}
+                    options={['500', '600', '700', '800', '900'].map((w) => ({ id: w, label: <span style={{ fontWeight: Number(w) }}>{w}</span> }))} />
+                </Field>
               </Panel>
             )}
 

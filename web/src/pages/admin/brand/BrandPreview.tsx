@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Clock, Monitor, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LogoMark } from '@/components/public/Logo'
+import { BrandMark } from '@/components/public/Logo'
 import { DohaSkyline } from '@/components/public/QatarArt'
 import { patternImage, type Theme } from '@/lib/theme'
 
@@ -35,7 +35,7 @@ export default function BrandPreview({ theme }: { theme: Theme }) {
             <div className="hero-overlay absolute inset-0" />
             <div className="absolute inset-0" style={{ backgroundImage: patternImage(theme.pattern), backgroundSize: `${theme.pattern.size}px`, opacity: 0.6 }} />
             <div className="relative flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2"><LogoMark className="size-7" /><span className="text-[11px] font-bold">{t('brand.short')}</span></div>
+              <div className="flex items-center gap-2"><BrandMark onDark className="h-7 max-w-[90px]" markClassName="size-7" /><span className="text-[11px] font-bold">{t('brand.short')}</span></div>
               {device === 'desktop' && <div className="flex gap-3 text-[10px] text-white/80"><span>{t('nav.home')}</span><span>{t('nav.programs')}</span><span>{t('nav.calendar')}</span></div>}
             </div>
             <div className="relative px-4 pt-4">

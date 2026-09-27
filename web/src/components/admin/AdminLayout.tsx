@@ -6,7 +6,7 @@ import {
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { LogoMark } from '@/components/public/Logo'
+import { BrandMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { Avatar } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -74,7 +74,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const sidebar = (
     <aside className="flex h-full w-72 flex-col bg-navy-950 text-white">
       <div className="relative flex items-center gap-3 px-6 py-6">
-        <LogoMark className="size-11" />
+        <BrandMark onDark className="h-11 max-w-[120px]" />
         <div className="leading-tight">
           <div className="font-display text-sm font-bold">{t('brand.name')}</div>
           <div className="text-[11px] text-gold-300">{portal ? t('nav.portal') : t('nav.dashboard')}</div>

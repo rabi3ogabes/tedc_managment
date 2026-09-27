@@ -6,7 +6,7 @@
  * whole website, dashboard and portal instantly — no rebuild required.
  */
 
-export type PatternType = 'none' | 'dots' | 'grid' | 'islamic_star' | 'arabesque' | 'diagonal' | 'custom'
+export type PatternType = 'none' | 'serrated' | 'dots' | 'grid' | 'islamic_star' | 'arabesque' | 'diagonal' | 'custom'
 
 export type Theme = {
   preset: string
@@ -15,22 +15,46 @@ export type Theme = {
   banners: { overlay_color: string; overlay_opacity: number; hero_images: (string | null)[]; page_banner_image: string | null; cta_style: 'gradient' | 'accent' | 'image' }
   pattern: { type: PatternType; color: string; opacity: number; size: number; image: string | null }
   shape: { card_radius: number; glass_blur: number }
+  identity: { logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
+  typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
+}
+
+/**
+ * Official files dropped into web/public (see public/brand/README.md and public/fonts/README.md).
+ * They are used automatically whenever no uploaded asset is configured in the Brand Studio.
+ */
+export const BRAND_FILES = {
+  logo_ar: '/brand/logo-ar.png',
+  logo_en: '/brand/logo-en.png',
+  logo_ar_light: '/brand/logo-ar-white.png',
+  logo_en_light: '/brand/logo-en-white.png',
+}
+
+/** Qatar Government identity (Government Communications Office brand guidelines). */
+export const QATAR_GOV = {
+  alAdaam: '#8A1538',
+  dune: '#A29475',
+  black: '#1A1A1A',
+  white: '#FFFFFF',
 }
 
 export const DEFAULT_THEME: Theme = {
-  preset: 'royal_navy',
-  colors: { primary: '#0B1F3A', accent: '#C8A24A', background: '#F8F6F1', surface: '#FFFFFF', text: '#0F172A', link: '#8F6F22' },
-  buttons: { style: 'gradient', radius: 12, accent_text: '#06122A', uppercase: false },
-  banners: { overlay_color: '#06122A', overlay_opacity: 70, hero_images: [null, null, null, null], page_banner_image: null, cta_style: 'gradient' },
-  pattern: { type: 'dots', color: '#C8A24A', opacity: 18, size: 22, image: null },
-  shape: { card_radius: 16, glass_blur: 20 },
+  preset: 'qatar_gov',
+  colors: { primary: QATAR_GOV.alAdaam, accent: QATAR_GOV.dune, background: '#F8F6F2', surface: '#FFFFFF', text: QATAR_GOV.black, link: QATAR_GOV.alAdaam },
+  buttons: { style: 'solid', radius: 10, accent_text: QATAR_GOV.black, uppercase: false },
+  banners: { overlay_color: '#3A0918', overlay_opacity: 72, hero_images: [null, null, null, null], page_banner_image: null, cta_style: 'gradient' },
+  pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null },
+  shape: { card_radius: 14, glass_blur: 18 },
+  identity: { logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
+  typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
 }
 
 export type Preset = { id: string; name: { ar: string; en: string }; colors: Theme['colors']; accent_text: string; overlay: string; pattern: PatternType }
 
 /** Curated luxury palettes. Each keeps WCAG AA contrast for body text and buttons. */
 export const PRESETS: Preset[] = [
-  { id: 'royal_navy', name: { ar: 'الكحلي الملكي والذهبي', en: 'Royal Navy & Gold' }, colors: DEFAULT_THEME.colors, accent_text: '#06122A', overlay: '#06122A', pattern: 'dots' },
+  { id: 'qatar_gov', name: { ar: 'الهوية الحكومية القطرية', en: 'Qatar Government' }, colors: DEFAULT_THEME.colors, accent_text: QATAR_GOV.black, overlay: '#3A0918', pattern: 'serrated' },
+  { id: 'royal_navy', name: { ar: 'الكحلي الملكي والذهبي', en: 'Royal Navy & Gold' }, colors: { primary: '#0B1F3A', accent: '#C8A24A', background: '#F8F6F1', surface: '#FFFFFF', text: '#0F172A', link: '#8F6F22' }, accent_text: '#06122A', overlay: '#06122A', pattern: 'dots' },
   { id: 'qatar_maroon', name: { ar: 'العنابي القطري', en: 'Qatar Maroon' }, colors: { primary: '#5A0F2E', accent: '#D4AF37', background: '#FAF7F2', surface: '#FFFFFF', text: '#1F1216', link: '#8A1538' }, accent_text: '#2A0615', overlay: '#2A0615', pattern: 'islamic_star' },
   { id: 'emerald_sand', name: { ar: 'الزمردي والرملي', en: 'Emerald & Sand' }, colors: { primary: '#0F3D2E', accent: '#C9A66B', background: '#F7F4EC', surface: '#FFFFFF', text: '#10231C', link: '#7A5A22' }, accent_text: '#0A241B', overlay: '#08241B', pattern: 'arabesque' },
   { id: 'midnight_silver', name: { ar: 'منتصف الليل الفضي', en: 'Midnight Silver' }, colors: { primary: '#111827', accent: '#A7B1C2', background: '#F5F6F8', surface: '#FFFFFF', text: '#0B1220', link: '#334155' }, accent_text: '#0B1220', overlay: '#05070C', pattern: 'grid' },
@@ -86,6 +110,9 @@ export function patternImage(p: Theme['pattern']): string {
       return 'none'
     case 'custom':
       return p.image ? `url("${p.image}")` : 'none'
+    case 'serrated':
+      // The nine-point serration of the Qatari flag, as a repeating ornamental band.
+      return enc(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M16 0l8 4.44-8 4.45 8 4.44-8 4.45 8 4.44-8 4.45 8 4.44-8 4.45" fill="none" stroke="${c}" stroke-opacity="${o}" stroke-width="1.2" stroke-linejoin="round"/></svg>`)
     case 'dots':
       return enc(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="1.5" cy="1.5" r="1.2" fill="${c}" fill-opacity="${o}"/></svg>`)
     case 'grid':
@@ -148,12 +175,58 @@ export function themeVariables(theme: Theme): Record<string, string> {
     '--hero-overlay-soft': rgba(overlay, strength * 0.4),
     '--pattern-image': patternImage(theme.pattern),
     '--pattern-size': `${theme.pattern.size}px`,
+    '--heading-weight': String(theme.typography.heading_weight),
   }
 }
 
-export function applyTheme(theme: Theme) {
+const safeFamily = (name: string) => name.replace(/[^\p{L}\p{N} -]/gu, '').trim() || 'Qatar Sans'
+
+/** Font stacks for the active language. Brand fonts first, then bundled web fonts. */
+export function fontStacks(theme: Theme, lang: string) {
+  const ar = safeFamily(theme.typography.arabic_family)
+  const en = safeFamily(theme.typography.latin_family)
+  return lang === 'en'
+    ? { sans: `"${en}", "Inter", "${ar}", "Tajawal", ui-sans-serif, system-ui, sans-serif`, display: `"${en}", "Playfair Display", "${ar}", "El Messiri", serif` }
+    : { sans: `"${ar}", "Tajawal", "${en}", "Inter", ui-sans-serif, system-ui, sans-serif`, display: `"${ar}", "El Messiri", "${en}", "Playfair Display", serif` }
+}
+
+/** Registers uploaded font files (Brand Studio) as @font-face rules. */
+function registerFonts(theme: Theme) {
+  const rules = [
+    [theme.typography.arabic_family, theme.typography.arabic_font_url],
+    [theme.typography.latin_family, theme.typography.latin_font_url],
+  ]
+    .filter(([, url]) => url)
+    .map(([family, url]) => `@font-face{font-family:"${safeFamily(family!)}";src:url("${encodeURI(url!)}");font-weight:100 900;font-display:swap;}`)
+    .join('\n')
+
+  let tag = document.getElementById('tedc-brand-fonts') as HTMLStyleElement | null
+  if (!tag) {
+    tag = document.createElement('style')
+    tag.id = 'tedc-brand-fonts'
+    document.head.appendChild(tag)
+  }
+  if (tag.textContent !== rules) tag.textContent = rules
+}
+
+/** Resolves the logo for a language / background, falling back to the files shipped in /public/brand. */
+export function logoFor(theme: Theme, lang: string, onDark: boolean): { src: string; invert: boolean } {
+  const id = theme.identity
+  const base = lang === 'en' ? id.logo_en ?? id.logo_ar : id.logo_ar ?? id.logo_en
+  const light = lang === 'en' ? id.logo_en_light ?? id.logo_ar_light : id.logo_ar_light ?? id.logo_en_light
+  if (onDark && light) return { src: light, invert: false }
+  if (base) return { src: base, invert: onDark }
+  if (onDark) return { src: lang === 'en' ? BRAND_FILES.logo_en_light : BRAND_FILES.logo_ar_light, invert: false }
+  return { src: lang === 'en' ? BRAND_FILES.logo_en : BRAND_FILES.logo_ar, invert: false }
+}
+
+export function applyTheme(theme: Theme, lang: string) {
   const root = document.documentElement
   Object.entries(themeVariables(theme)).forEach(([k, v]) => root.style.setProperty(k, v))
+  const fonts = fontStacks(theme, lang)
+  root.style.setProperty('--font-sans', fonts.sans)
+  root.style.setProperty('--font-display', fonts.display)
+  registerFonts(theme)
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.colors.primary)
 }
 
@@ -167,5 +240,7 @@ export function mergeTheme(input?: Partial<Theme> | null): Theme {
     banners: { ...DEFAULT_THEME.banners, ...input.banners, hero_images: [0, 1, 2, 3].map((i) => input.banners?.hero_images?.[i] ?? null) },
     pattern: { ...DEFAULT_THEME.pattern, ...input.pattern },
     shape: { ...DEFAULT_THEME.shape, ...input.shape },
+    identity: { ...DEFAULT_THEME.identity, ...input.identity },
+    typography: { ...DEFAULT_THEME.typography, ...input.typography },
   }
 }
