@@ -163,4 +163,4 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 |---|---|---|
 | PUT | `/admin/theme` | `settings.manage` |
 | POST | `/admin/theme/reset` | `settings.manage` |
-| POST | `/admin/theme/assets` | `settings.manage` (multipart `file`, `kind` = hero, banner or pattern) |
+| POST | `/admin/theme/assets` | `settings.manage` (multipart `file`; `kind` = hero, banner, pattern or logo (JPG/PNG/WebP ≤ 6 MB, SVG rejected), or font (WOFF2/WOFF/TTF/OTF ≤ 4 MB)) |

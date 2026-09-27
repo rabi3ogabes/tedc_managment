@@ -41,9 +41,18 @@ Documentation: [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.
 - **Impact measurement.** Surveys at 30/60/90 days, supervisor evaluation, and a weighted **Training Impact Score**.
 - **AI Training Assistant.** Ask *"What training programs should we create for teachers?"* — the assistant grounds
   Claude in aggregated platform data and returns suggested programs, seats, target groups and rationale.
-- **Brand Studio.** Administrators restyle the platform live — primary/accent colors, buttons, links, banners and
-  slider images, background colors and background patterns (Islamic star, arabesque, grid…), with curated luxury
-  presets, a live desktop/mobile preview and an accessibility contrast check. Published instantly to every page.
+- **Qatar Government identity.** The default look follows the Qatar Government brand guidelines
+  (https://gba.gco.gov.qa/ar/guidelines/brand-identity/): Al Adaam maroon `#8A1538`, Dune `#A29475`, black and white,
+  the Qatar Sans typeface and a flag-serration background pattern. The official Ministry logos (Arabic and English,
+  light and dark variants) and the Qatar Sans web fonts drop into `web/public/brand` and `web/public/fonts`, or are
+  uploaded in the Brand Studio. They are then used across the header, footer, dashboard, QR screens and PDF certificates.
+- **Brand Studio.** Administrators restyle the platform live: identity (logos), typography (Arabic/English families,
+  uploaded web fonts, heading weight), primary/accent colors, buttons, links, banners and slider images, background
+  colors and patterns (flag serration, Islamic star, arabesque, grid…). It includes curated presets, a live
+  desktop/mobile preview and an accessibility contrast check, and changes are published instantly to every page.
+- **Table or cards.** Every admin list (programs, registrations, participants, sessions, certificates, schools,
+  employees, users, training needs, regions, audit log) can be shown as a classic table or as cards. Each user's
+  choice is remembered per list.
 - **Analytics.** Admin dashboard, executive dashboard, geographic map of coverage and gaps, training-needs analytics.
 - **Security.** Supabase JWT verification (HS256 or JWKS), 8 roles / 33 permissions, row-level security, private storage
   with short-lived signed URLs, encrypted national IDs, rate limiting, security headers and an append-only audit log.
