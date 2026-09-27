@@ -4,45 +4,35 @@ namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
-/** Vercel environment defaults (backend/scripts/vercel-env.php). */
+/** Vercel environment defaults (backend/scripts/vercel-env.php), run in a child process so no variable leaks. */
 class VercelEnvTest extends TestCase
 {
-    private array $saved = [];
-
-    protected function setUp(): void
+    private function run(array $env): array
     {
-        parent::setUp();
-        foreach (['DB_URL', 'DB_CONNECTION'] as $key) {
-            $this->saved[$key] = [getenv($key), $_ENV[$key] ?? null, $_SERVER[$key] ?? null];
-            putenv($key);
-            unset($_ENV[$key], $_SERVER[$key]);
+        $script = 'require '.var_export(realpath(__DIR__.'/../../scripts/vercel-env.php'), true).'; tedc_vercel_env(false);'
+            .' echo json_encode(["DB_URL" => getenv("DB_URL"), "DB_CONNECTION" => getenv("DB_CONNECTION"), "APP_ENV" => getenv("APP_ENV")]);';
+        $vars = '';
+        foreach ($env as $key => $value) {
+            $vars .= $key.'='.escapeshellarg($value).' ';
         }
-    }
+        $output = shell_exec('env -i PATH='.escapeshellarg((string) getenv('PATH')).' '.$vars.escapeshellarg(PHP_BINARY).' -r '.escapeshellarg($script));
 
-    protected function tearDown(): void
-    {
-        foreach ($this->saved as $key => [$env, $e, $s]) {
-            $env === false ? putenv($key) : putenv("{$key}={$env}");
-            $e === null ? $_ENV[$key] = null : $_ENV[$key] = $e;
-            $s === null ? $_SERVER[$key] = null : $_SERVER[$key] = $s;
-            if ($e === null) {
-                unset($_ENV[$key]);
-            }
-            if ($s === null) {
-                unset($_SERVER[$key]);
-            }
-        }
-        parent::tearDown();
+        return json_decode((string) $output, true) ?? [];
     }
 
     public function test_supabase_session_pooler_url_is_switched_to_the_transaction_pooler_with_ssl(): void
     {
-        require_once __DIR__.'/../../scripts/vercel-env.php';
-        putenv('DB_URL=postgresql://postgres.ref:pw@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres');
+        $result = $this->run(['DB_URL' => 'postgresql://postgres.ref:pw@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres']);
 
-        tedc_vercel_env(runtime: false);
+        $this->assertSame('postgresql://postgres.ref:pw@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require', $result['DB_URL']);
+        $this->assertSame('pgsql', $result['DB_CONNECTION']);
+    }
 
-        $this->assertSame('postgresql://postgres.ref:pw@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require', getenv('DB_URL'));
-        $this->assertSame('pgsql', getenv('DB_CONNECTION'));
+    public function test_values_set_in_vercel_win_over_defaults(): void
+    {
+        $result = $this->run(['DB_URL' => 'postgresql://u:p@db.example.com:5432/app', 'DB_CONNECTION' => 'pgsql', 'APP_ENV' => 'staging']);
+
+        $this->assertSame('postgresql://u:p@db.example.com:5432/app', $result['DB_URL']);
+        $this->assertSame('staging', $result['APP_ENV']);
     }
 }
