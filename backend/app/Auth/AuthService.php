@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Auth;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\ValidationException;
+use Throwable;
+
+/**
+ * Issues sessions either through Supabase Auth (GoTrue) or locally.
+ */
+class AuthService
+{
+    public function __construct(private readonly JwtVerifier $verifier) {}
+
+    public function usesSupabase(): bool
+    {
+        return config('tedc.auth.driver') === 'supabase';
+    }
+
+    /** @return array{user: User, access_token: string, refresh_token: string, expires_in: int} */
+    public function login(string $email, string $password): array
+    {
+        $email = strtolower(trim($email));
+
+        return $this->usesSupabase()
+            ? $this->supabaseGrant('password', ['email' => $email, 'password' => $password])
+            : $this->localLogin($email, $password);
+    }
+
+    public function refresh(string $refreshToken): array
+    {
+        if ($this->usesSupabase()) {
+            return $this->supabaseGrant('refresh_token', ['refresh_token' => $refreshToken]);
+        }
+
+        try {
+            $claims = $this->verifier->decodeRefresh($refreshToken);
+        } catch (Throwable) {
+            throw ValidationException::withMessages(['refresh_token' => __('auth.invalid_refresh')]);
+        }
+
+        $user = User::whereKey($claims->sub)->where('status', 'active')->firstOrFail();
+
+        return $this->issueLocal($user);
+    }
+
+    private function localLogin(string $email, string $password): array
+    {
+        $user = User::where('email', $email)->first();
+
+        if (! $user || ! $user->password || ! Hash::check($password, $user->password) || $user->status !== 'active') {
+            throw ValidationException::withMessages(['email' => __('auth.failed')]);
+        }
+
+        $user->forceFill(['last_login_at' => now()])->save();
+
+        return $this->issueLocal($user);
+    }
+
+    private function issueLocal(User $user): array
+    {
+        $ttl = config('tedc.auth.token_ttl');
+        $claims = ['sub' => $user->auth_id ?? $user->id, 'email' => $user->email];
+
+        return [
+            'user' => $user,
+            'access_token' => $this->verifier->issue($claims + ['typ' => 'access'], $ttl),
+            'refresh_token' => $this->verifier->issue(['sub' => $user->id, 'typ' => 'refresh'], config('tedc.auth.refresh_ttl')),
+            'expires_in' => $ttl,
+        ];
+    }
+
+    private function supabaseGrant(string $grant, array $payload): array
+    {
+        $response = Http::withHeaders(['apikey' => config('tedc.supabase.anon_key')])
+            ->timeout(10)
+            ->post(rtrim(config('tedc.supabase.url'), '/')."/auth/v1/token?grant_type={$grant}", $payload);
+
+        if ($response->failed()) {
+            throw ValidationException::withMessages(['email' => __('auth.failed')]);
+        }
+
+        $data = $response->json();
+        $authUser = $data['user'] ?? [];
+
+        $user = User::where('auth_id', $authUser['id'] ?? null)->first()
+            ?? User::where('email', strtolower($authUser['email'] ?? ''))->first();
+
+        if (! $user || $user->status !== 'active') {
+            throw ValidationException::withMessages(['email' => __('auth.not_provisioned')]);
+        }
+
+        $user->forceFill(['auth_id' => $authUser['id'], 'last_login_at' => now()])->save();
+
+        return [
+            'user' => $user,
+            'access_token' => $data['access_token'],
+            'refresh_token' => $data['refresh_token'],
+            'expires_in' => (int) ($data['expires_in'] ?? 3600),
+        ];
+    }
+}

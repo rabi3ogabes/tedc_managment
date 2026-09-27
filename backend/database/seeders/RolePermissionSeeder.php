@@ -1,0 +1,86 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Permission;
+use App\Models\Role;
+use Illuminate\Database\Seeder;
+
+class RolePermissionSeeder extends Seeder
+{
+    /** slug => [group, ar, en] */
+    public const PERMISSIONS = [
+        'dashboard.view' => ['dashboard', 'عرض لوحة التحكم', 'View dashboard'],
+        'analytics.view' => ['analytics', 'عرض التحليلات', 'View analytics'],
+        'analytics.executive' => ['analytics', 'لوحة الإدارة العليا', 'Executive dashboard'],
+        'schools.view' => ['organization', 'عرض المدارس', 'View schools'],
+        'schools.manage' => ['organization', 'إدارة المدارس', 'Manage schools'],
+        'employees.view' => ['organization', 'عرض الموظفين', 'View employees'],
+        'employees.manage' => ['organization', 'إدارة الموظفين', 'Manage employees'],
+        'programs.view' => ['programs', 'عرض البرامج', 'View programs'],
+        'programs.manage' => ['programs', 'إدارة البرامج والجلسات', 'Manage programs & sessions'],
+        'materials.manage' => ['programs', 'إدارة المواد التدريبية', 'Manage training materials'],
+        'trainers.manage' => ['programs', 'إدارة المدربين', 'Manage trainers'],
+        'registrations.view' => ['registrations', 'عرض التسجيلات', 'View registrations'],
+        'registrations.manage' => ['registrations', 'اعتماد التسجيلات', 'Approve registrations'],
+        'registrations.import' => ['registrations', 'الاستيراد الجماعي', 'Bulk import'],
+        'nominations.center' => ['registrations', 'ترشيح مباشر من المركز', 'Training-center nomination'],
+        'nominations.school' => ['registrations', 'ترشيح من المدرسة', 'School nomination'],
+        'attendance.manage' => ['attendance', 'إدارة الحضور', 'Manage attendance'],
+        'tasks.manage' => ['tasks', 'إدارة المهام', 'Manage tasks'],
+        'tasks.review' => ['tasks', 'مراجعة المهام', 'Review submissions'],
+        'certificates.view' => ['certificates', 'عرض الشهادات', 'View certificates'],
+        'certificates.issue' => ['certificates', 'إصدار الشهادات', 'Issue certificates'],
+        'certificates.revoke' => ['certificates', 'إلغاء الشهادات', 'Revoke certificates'],
+        'impact.view' => ['impact', 'عرض قياس الأثر', 'View impact'],
+        'impact.supervise' => ['impact', 'تقييم المشرف', 'Supervisor evaluation'],
+        'needs.submit' => ['needs', 'رفع الاحتياجات التدريبية', 'Submit training needs'],
+        'needs.view' => ['needs', 'عرض الاحتياجات التدريبية', 'View training needs'],
+        'needs.manage' => ['needs', 'إدارة الاحتياجات التدريبية', 'Manage training needs'],
+        'announcements.manage' => ['communication', 'مركز التواصل', 'Communication center'],
+        'ai.assistant' => ['ai', 'المساعد الذكي', 'AI assistant'],
+        'reports.view' => ['reports', 'التقارير', 'Reports'],
+        'users.manage' => ['security', 'إدارة المستخدمين', 'Manage users'],
+        'roles.manage' => ['security', 'إدارة الأدوار والصلاحيات', 'Manage roles & permissions'],
+        'audit.view' => ['security', 'سجل التدقيق', 'Audit log'],
+    ];
+
+    public const ROLES = [
+        Role::SUPER_ADMIN => ['مدير النظام', 'Super Admin', 100, ['*']],
+        Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage']],
+        Role::COORDINATOR => ['منسق البرامج', 'Program Coordinator', 70, [
+            'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
+            'trainers.manage', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
+            'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
+            'announcements.manage', 'ai.assistant', 'reports.view',
+        ]],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review']],
+        Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
+            'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
+            'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view',
+        ]],
+        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view']],
+        Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
+            'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'certificates.view',
+            'impact.view', 'needs.view', 'ai.assistant', 'reports.view',
+        ]],
+        Role::EMPLOYEE => ['موظف', 'Employee', 10, []],
+    ];
+
+    public function run(): void
+    {
+        foreach (self::PERMISSIONS as $slug => [$group, $ar, $en]) {
+            Permission::updateOrCreate(['slug' => $slug], ['group' => $group, 'name_ar' => $ar, 'name_en' => $en]);
+        }
+        $all = Permission::pluck('id', 'slug');
+
+        foreach (self::ROLES as $slug => [$ar, $en, $level, $grants]) {
+            $role = Role::updateOrCreate(['slug' => $slug], ['name_ar' => $ar, 'name_en' => $en, 'level' => $level, 'is_system' => true]);
+
+            $slugs = in_array('*', $grants, true) ? $all->keys()->all() : $grants;
+            $slugs = array_diff($slugs, array_map(fn ($g) => ltrim($g, '-'), array_filter($grants, fn ($g) => str_starts_with($g, '-'))));
+
+            $role->permissions()->sync($all->only($slugs)->values());
+        }
+    }
+}
