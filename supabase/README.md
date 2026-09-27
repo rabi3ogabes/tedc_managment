@@ -11,15 +11,19 @@ login; follow these steps to switch to Supabase.
 
 ## Step 2 — Collect the keys
 
-| Where in the Supabase dashboard | Value | Goes into |
+| Where in the Supabase dashboard | Example | Goes into |
 |---|---|---|
-| **Project Settings → API → Project URL** | `https://xxxx.supabase.co` | `SUPABASE_URL` |
-| **Project Settings → API Keys → anon / publishable** | public key | `SUPABASE_ANON_KEY` (API, web, mobile) |
-| **Project Settings → API Keys → service_role** (use the *Legacy API keys* tab if shown) | secret key — **server only** | `SUPABASE_SERVICE_ROLE_KEY` |
-| **Project Settings → JWT Keys → Legacy JWT secret** (only if your project still uses HS256) | secret | `SUPABASE_JWT_SECRET` (leave empty for new projects — the API then validates tokens with the project's public JWKS keys) |
-| **Connect → Session pooler → URI** | `postgresql://postgres.xxxx:[PASSWORD]@aws-0-….pooler.supabase.com:5432/postgres` | `DB_URL` |
+| **Project Settings → Data API → Project URL** | `https://xxxx.supabase.co` | `SUPABASE_URL` |
+| **Project Settings → API Keys → Publishable key** | `sb_publishable_…` | `SUPABASE_PUBLISHABLE_KEY` (API), `VITE_SUPABASE_PUBLISHABLE_KEY` (web), `SUPABASE_PUBLISHABLE_KEY` (mobile) |
+| **Project Settings → API Keys → Secret key** | `sb_secret_…` — **server only** | `SUPABASE_SECRET_KEY` (API only) |
+| **Project Settings → JWT Keys** (JWKS URL) | `https://xxxx.supabase.co/auth/v1/.well-known/jwks.json` | `SUPABASE_JWKS_URL` (optional — derived from the URL when empty) |
+| **Connect** button (top bar) → **Session pooler** → URI | `postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-0-….pooler.supabase.com:5432/postgres` | `DB_URL` |
 
-> Never put the `service_role` key in the web or mobile app — it bypasses all security.
+> Never put the **secret key** in the web or mobile app, in git, or in chat — it bypasses all security. If it was
+> exposed, roll it (*API Keys → Secret keys → ⋯ → Roll*) and update `backend/.env`.
+>
+> Older projects that still show **anon** / **service_role** keys can use `SUPABASE_ANON_KEY`,
+> `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_JWT_SECRET` instead — both formats are supported.
 
 ## Step 3 — Configure the API (`backend/.env`)
 
@@ -31,9 +35,10 @@ TEDC_AUTH_DRIVER=supabase
 TEDC_STORAGE_DRIVER=supabase
 
 SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_ANON_KEY=eyJ...            # anon / publishable key
-SUPABASE_SERVICE_ROLE_KEY=eyJ...    # service_role key (server only)
-SUPABASE_JWT_SECRET=                # legacy HS256 secret, or empty to use JWKS
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...          # server only
+SUPABASE_JWKS_URL=https://xxxx.supabase.co/auth/v1/.well-known/jwks.json
+SUPABASE_JWT_SECRET=                       # leave empty (tokens are verified with the JWKS keys)
 ```
 
 Then clear the config cache: `php artisan config:clear`.
@@ -76,7 +81,7 @@ Users who later sign up directly in Supabase Auth are added automatically with t
 ```dotenv
 VITE_API_URL=https://api.your-domain.qa/api/v1   # or /api/v1 in local development
 VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...                     # anon key only
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...  # publishable key only
 ```
 
 Also set `CORS_ALLOWED_ORIGINS` and `TEDC_WEB_URL` in `backend/.env` to the web app's address.
@@ -87,7 +92,7 @@ Also set `CORS_ALLOWED_ORIGINS` and `TEDC_WEB_URL` in `backend/.env` to the web 
 flutter run \
   --dart-define=API_URL=https://api.your-domain.qa/api/v1 \
   --dart-define=SUPABASE_URL=https://xxxx.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=eyJ...
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
 ## Step 9 — Check it works
@@ -103,6 +108,6 @@ flutter run \
 |---|---|
 | `could not connect to server` / timeout | Use the **Session pooler** URI (port 5432) and add `?sslmode=require`. |
 | Login says the account is not enabled | Run `php artisan tedc:supabase-sync-users` — the e-mail must exist in both places. |
-| `401` on every request after login | `SUPABASE_JWT_SECRET` is wrong: copy the legacy secret exactly, or leave it empty so JWKS is used. |
-| File uploads fail | Check `SUPABASE_SERVICE_ROLE_KEY` and that `setup.sql` created the buckets. |
+| `401` on every request after login | Leave `SUPABASE_JWT_SECRET` empty (new projects sign tokens with JWKS keys) and check `SUPABASE_JWKS_URL`. |
+| File uploads fail | Check `SUPABASE_SECRET_KEY` and that `setup.sql` created the buckets. |
 | No live notifications | Set `VITE_SUPABASE_*`, and make sure `setup.sql` ran (it adds `notifications` to Realtime). |

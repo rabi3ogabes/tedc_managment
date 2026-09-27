@@ -2,6 +2,7 @@
 
 namespace App\Auth;
 
+use App\Support\Supabase;
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -94,7 +95,7 @@ class JwtVerifier
 
     private function jwks(): array
     {
-        $url = rtrim((string) config('tedc.supabase.url'), '/').'/auth/v1/.well-known/jwks.json';
+        $url = Supabase::jwksUrl();
 
         $set = Cache::remember('supabase.jwks', config('tedc.supabase.jwks_cache_seconds'), function () use ($url) {
             try {

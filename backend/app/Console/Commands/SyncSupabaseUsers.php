@@ -3,10 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Support\Supabase;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
 #[Signature('tedc:supabase-sync-users {--password= : Initial password for new Supabase Auth users (otherwise a password-reset invite is sent)} {--email=* : Only sync these e-mails}')]
 #[Description('Create / link platform users in Supabase Auth and store their auth_id')]
@@ -18,12 +18,12 @@ class SyncSupabaseUsers extends Command
         $key = (string) config('tedc.supabase.service_role_key');
 
         if (! $url || ! $key) {
-            $this->error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env first.');
+            $this->error('Set SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) in .env first.');
 
             return self::FAILURE;
         }
 
-        $admin = Http::withHeaders(['apikey' => $key, 'Authorization' => "Bearer {$key}"])->baseUrl("{$url}/auth/v1")->timeout(20);
+        $admin = Supabase::admin(20)->baseUrl("{$url}/auth/v1");
         $password = $this->option('password');
 
         // Existing Supabase Auth users, keyed by e-mail.

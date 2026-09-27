@@ -94,13 +94,13 @@ A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 1. Create the Supabase project and follow the step-by-step guide in [`supabase/README.md`](supabase/README.md)
    (keys, migrations, RLS, buckets, realtime, and `php artisan tedc:supabase-sync-users` to create the logins).
 2. API `.env`: `DB_CONNECTION=pgsql`, `DB_URL=…`, `TEDC_AUTH_DRIVER=supabase`, `TEDC_STORAGE_DRIVER=supabase`,
-   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `CORS_ALLOWED_ORIGINS`,
+   `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `SUPABASE_JWKS_URL`, `CORS_ALLOWED_ORIGINS`,
    `TEDC_WEB_URL`, and optionally `ANTHROPIC_API_KEY` for the AI assistant.
 3. Run the scheduler (`php artisan schedule:work` or cron `* * * * * php artisan schedule:run`) — it advances program
    statuses, sends session reminders and dispatches 30/60/90-day impact surveys.
 4. Web: `VITE_API_URL=https://api.example.qa/api/v1 npm run build` (plus `VITE_SUPABASE_URL` /
-   `VITE_SUPABASE_ANON_KEY` for live notifications) and serve `web/dist` as a SPA.
-5. Mobile: `flutter build appbundle|ipa --dart-define=API_URL=… --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=…`
+   `VITE_SUPABASE_PUBLISHABLE_KEY` for live notifications) and serve `web/dist` as a SPA.
+5. Mobile: `flutter build appbundle|ipa --dart-define=API_URL=… --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_PUBLISHABLE_KEY=…`
 
 ## Quality
 

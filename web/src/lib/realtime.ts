@@ -5,7 +5,8 @@ import { sessionStore } from './api'
 import { useAuth } from './auth'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+// Publishable key (sb_publishable_…) or legacy anon key — never the secret key.
+const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
 
 let client: SupabaseClient | null = null
 function supabase() {

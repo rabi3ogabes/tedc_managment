@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Support\Supabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -139,8 +139,6 @@ class FileStorage
 
     private function supabase()
     {
-        $key = config('tedc.supabase.service_role_key');
-
-        return Http::withHeaders(['apikey' => $key, 'Authorization' => "Bearer {$key}"])->timeout(30);
+        return Supabase::admin();
     }
 }

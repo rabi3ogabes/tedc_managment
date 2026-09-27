@@ -3,8 +3,8 @@
 namespace App\Auth;
 
 use App\Models\User;
+use App\Support\Supabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -75,9 +75,7 @@ class AuthService
 
     private function supabaseGrant(string $grant, array $payload): array
     {
-        $response = Http::withHeaders(['apikey' => config('tedc.supabase.anon_key')])
-            ->timeout(10)
-            ->post(rtrim(config('tedc.supabase.url'), '/')."/auth/v1/token?grant_type={$grant}", $payload);
+        $response = Supabase::public()->post(Supabase::url("/auth/v1/token?grant_type={$grant}"), $payload);
 
         if ($response->failed()) {
             throw ValidationException::withMessages(['email' => __('auth.failed')]);

@@ -33,8 +33,10 @@ return [
 
     'supabase' => [
         'url' => env('SUPABASE_URL'),
-        'anon_key' => env('SUPABASE_ANON_KEY'),
-        'service_role_key' => env('SUPABASE_SERVICE_ROLE_KEY'),
+        // New key format (sb_publishable_ / sb_secret_) or legacy JWT keys (anon / service_role).
+        'anon_key' => env('SUPABASE_PUBLISHABLE_KEY') ?: env('SUPABASE_ANON_KEY'),
+        'service_role_key' => env('SUPABASE_SECRET_KEY') ?: env('SUPABASE_SERVICE_ROLE_KEY'),
+        'jwks_url' => env('SUPABASE_JWKS_URL'),
         'jwks_cache_seconds' => 3600,
         'buckets' => [
             'materials' => env('SUPABASE_BUCKET_MATERIALS', 'materials'),
