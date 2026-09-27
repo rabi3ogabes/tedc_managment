@@ -40,9 +40,9 @@ class PublicController extends Controller
                 ->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN])
                 ->where('start_date', '>=', today())->orderBy('start_date')->limit(6)->get())->resolve(),
             'categories' => ProgramCategory::withCount(['programs' => fn ($q) => $q->visible()])->get()
-                ->map(fn ($c) => ['id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color, 'programs' => $c->programs_count]),
+                ->map(fn ($c) => ['id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color, 'programs' => $c->programs_count])->all(),
             'partners' => School::where('is_partner', true)->orderBy('name_ar')->limit(12)->get()
-                ->map(fn ($s) => ['id' => $s->id, 'name' => $s->translate('name'), 'logo_url' => FileStorage::publicUrl($s->logo_path), 'stage' => $s->stage]),
+                ->map(fn ($s) => ['id' => $s->id, 'name' => $s->translate('name'), 'logo_url' => FileStorage::publicUrl($s->logo_path), 'stage' => $s->stage])->all(),
             'testimonials' => Evaluation::with(['employee.user', 'employee.jobTitle', 'employee.school', 'program'])
                 ->where('allow_testimonial', true)->whereNotNull('comments')->where('satisfaction_score', '>=', 80)
                 ->latest('submitted_at')->limit(6)->get()
@@ -53,8 +53,8 @@ class PublicController extends Controller
                     'school' => $e->employee->school?->translate('name'),
                     'program' => $e->program->translate('title'),
                     'rating' => round($e->satisfaction_score / 20, 1),
-                ]),
-            'news' => $this->newsQuery()->limit(3)->get()->map(fn ($a) => $this->newsItem($a)),
+                ])->all(),
+            'news' => $this->newsQuery()->limit(3)->get()->map(fn ($a) => $this->newsItem($a))->all(),
         ]);
 
         return response()->json(['data' => $data]);

@@ -22,6 +22,16 @@ class PublicAndAnalyticsTest extends TestCase
         $this->getJson('/api/v1/public/programs/DRAFT-1')->assertNotFound();
     }
 
+    public function test_cached_home_payload_survives_serialization(): void
+    {
+        config(['cache.default' => 'file']);
+        \Illuminate\Support\Facades\Cache::flush();
+        $this->makeSchool(['is_partner' => true]);
+
+        $this->getJson('/api/v1/public/home')->assertOk();
+        $this->getJson('/api/v1/public/home')->assertOk()->assertJsonCount(1, 'data.partners')->assertJsonPath('data.partners.0.stage', 'primary');
+    }
+
     public function test_arabic_is_default_and_english_on_request(): void
     {
         $this->makeProgram(['code' => 'L-1', 'title_ar' => 'عنوان', 'title_en' => 'Title']);
