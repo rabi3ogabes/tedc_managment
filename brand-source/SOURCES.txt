@@ -1,1 +1,5 @@
 # Downloaded from edu.gov.qa by .github/workflows/fetch-brand-assets.yml
+/Images/moe-logo2.png
+https://stmoewebprodqc01.blob.core.windows.net/moesite/2a83872f-dda0-4c34-9666-f1565eabaf1c.webp?sv=2018-03-28&amp;sr=b&amp;sig=j6WElx3mbpwIhRdqwLJuEUqNNyZzOwWHEkq8c%2BnLoVI%3D&amp;st=2024-01-16T09%3A52%3A02Z&amp;se=9999-12-30T21%3A00%3A00Z&amp;sp=r&amp;rsce=UTF-8&amp;rscd=filename%3D2a83872f-dda0-4c34-9666-f1565eabaf1c.webp
+https://stmoewebprodqc01.blob.core.windows.net/moesite/6e1294e3-9a50-45a3-b34f-62cc2285685e.webp?sv=2018-03-28&amp;sr=b&amp;sig=GrNu7l%2FCe4eQpgZSXF5BbOrbcvHhYW8QDeCSHfOAWms%3D&amp;st=2024-01-16T09%3A52%3A03Z&amp;se=9999-12-30T21%3A00%3A00Z&amp;sp=r&amp;rsce=UTF-8&amp;rscd=filename%3D6e1294e3-9a50-45a3-b34f-62cc2285685e.webp
+https://stmoewebprodqc01.blob.core.windows.net/moesite/8b015ef8-2e2b-4682-a905-0e39c9e78194.jpg?sv=2018-03-28&amp;sr=b&amp;sig=jYhTXITQnD75KbkXnrhNO6B81lo6OZYMIdxsZuuqNc0%3D&amp;st=2024-07-21T11%3A24%3A33Z&amp;se=9999-12-30T21%3A00%3A00Z&amp;sp=r&amp;rsce=UTF-8&amp;rscd=filename%3D8b015ef8-2e2b-4682-a905-0e39c9e78194.jpg
