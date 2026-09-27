@@ -102,6 +102,7 @@ A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 
 The root `Dockerfile` builds the web app and the API into one image, and `railway.json` deploys it on Railway.
 See [docs/DEPLOY-RAILWAY.md](docs/DEPLOY-RAILWAY.md).
+To host the web app on Vercel with the API on Railway, see [docs/DEPLOY-VERCEL.md](docs/DEPLOY-VERCEL.md).
 
 ## Production with Supabase
 
