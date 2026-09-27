@@ -97,6 +97,7 @@ flutter run \
 
 ## Step 9 — Check it works
 
+0. `php artisan tedc:supabase-check` → checks that the API can reach Supabase over HTTPS with your keys.
 1. `php artisan serve`, then log in on the web app as `admin@tedc.qa` → the login is now verified by Supabase Auth
    (you will see the users under *Authentication → Users* in the dashboard).
 2. Upload a training material or issue a certificate → the files appear under **Storage**.
@@ -106,6 +107,7 @@ flutter run \
 
 | Symptom | Fix |
 |---|---|
+| `cURL error 60: SSL certificate … unable to get local issuer certificate` | PHP has no trusted CA list (typical on Windows/XAMPP/Laragon). Download [cacert.pem](https://curl.se/ca/cacert.pem) (e.g. to `C:\php\extras\ssl\cacert.pem`) and either set `SUPABASE_CA_BUNDLE=C:/php/extras/ssl/cacert.pem` in `backend/.env`, or set `curl.cainfo` and `openssl.cafile` to that path in `php.ini`. Restart `php artisan serve`, then run `php artisan tedc:supabase-check`. Never disable SSL verification. |
 | `could not connect to server` / timeout | Use the **Session pooler** URI (port 5432) and add `?sslmode=require`. |
 | Login says the account is not enabled | Run `php artisan tedc:supabase-sync-users` — the e-mail must exist in both places. |
 | `401` on every request after login | Leave `SUPABASE_JWT_SECRET` empty (new projects sign tokens with JWKS keys) and check `SUPABASE_JWKS_URL`. |

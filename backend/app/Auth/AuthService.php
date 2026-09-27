@@ -4,7 +4,9 @@ namespace App\Auth;
 
 use App\Models\User;
 use App\Support\Supabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -75,7 +77,13 @@ class AuthService
 
     private function supabaseGrant(string $grant, array $payload): array
     {
-        $response = Supabase::public()->post(Supabase::url("/auth/v1/token?grant_type={$grant}"), $payload);
+        try {
+            $response = Supabase::public()->post(Supabase::url("/auth/v1/token?grant_type={$grant}"), $payload);
+        } catch (ConnectionException $e) {
+            Log::error('Supabase Auth is unreachable: '.$e->getMessage(), Supabase::isCertificateError($e) ? ['hint' => Supabase::certificateHint()] : []);
+
+            throw ValidationException::withMessages(['email' => __(Supabase::isCertificateError($e) ? 'auth.tls_error' : 'auth.unreachable')]);
+        }
 
         if ($response->failed()) {
             throw ValidationException::withMessages(['email' => __('auth.failed')]);

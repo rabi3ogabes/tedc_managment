@@ -7,7 +7,6 @@ use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
@@ -99,7 +98,7 @@ class JwtVerifier
 
         $set = Cache::remember('supabase.jwks', config('tedc.supabase.jwks_cache_seconds'), function () use ($url) {
             try {
-                return Http::timeout(5)->get($url)->throw()->json();
+                return Supabase::http(5)->get($url)->throw()->json();
             } catch (Throwable $e) {
                 throw new UnexpectedValueException('Unable to load signing keys.', 0, $e);
             }

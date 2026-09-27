@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Role;
+use App\Support\Supabase;
 use Firebase\JWT\JWT;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -98,5 +100,25 @@ class SupabaseConnectionTest extends TestCase
         $this->artisan('tedc:supabase-sync-users', ['--password' => 'Tedc@2026!'])->assertSuccessful();
 
         Http::assertSent(fn (Request $r) => $r->hasHeader('apikey', 'sb_secret_test') && ! $r->hasHeader('Authorization'));
+    }
+
+    public function test_tls_certificate_failure_returns_a_clear_message(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('cURL error 60: SSL certificate OpenSSL verify result: unable to get local issuer certificate (20)'));
+
+        $this->postJson('/api/v1/auth/login', ['email' => 'admin@tedc.qa', 'password' => 'secret'], ['X-Locale' => 'en'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.email.0', __('auth.tls_error', [], 'en'));
+    }
+
+    public function test_configured_ca_bundle_is_used_for_tls_verification(): void
+    {
+        config(['tedc.supabase.ca_bundle' => '/etc/ssl/cacert.pem']);
+
+        $this->assertSame('/etc/ssl/cacert.pem', Supabase::public()->getOptions()['verify']);
+        $this->assertSame('/etc/ssl/cacert.pem', Supabase::admin()->getOptions()['verify']);
+
+        config(['tedc.supabase.ca_bundle' => '']);
+        $this->assertArrayNotHasKey('verify', Supabase::http()->getOptions());
     }
 }

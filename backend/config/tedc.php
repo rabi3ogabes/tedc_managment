@@ -37,6 +37,9 @@ return [
         'anon_key' => env('SUPABASE_PUBLISHABLE_KEY') ?: env('SUPABASE_ANON_KEY'),
         'service_role_key' => env('SUPABASE_SECRET_KEY') ?: env('SUPABASE_SERVICE_ROLE_KEY'),
         'jwks_url' => env('SUPABASE_JWKS_URL'),
+        // CA certificate bundle (cacert.pem) used to verify HTTPS calls to Supabase, for PHP installs
+        // without a system CA store (common on Windows: "cURL error 60"). Empty = PHP/system default.
+        'ca_bundle' => env('SUPABASE_CA_BUNDLE'),
         'jwks_cache_seconds' => 3600,
         'buckets' => [
             'materials' => env('SUPABASE_BUCKET_MATERIALS', 'materials'),
