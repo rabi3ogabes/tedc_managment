@@ -1,0 +1,51 @@
+name: Fetch official brand assets
+
+# Downloads the Ministry of Education and Higher Education logos from edu.gov.qa (not reachable from every
+# build environment) and commits them to brand-source/ on the selected branch for review.
+on:
+  workflow_dispatch:
+    inputs:
+      extra_urls:
+        description: Extra image URLs to download (space-separated, optional)
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Discover and download logo candidates
+        env:
+          EXTRA: ${{ inputs.extra_urls }}
+        run: |
+          set -u
+          mkdir -p brand-source
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
+          for page in https://www.edu.gov.qa/ar https://www.edu.gov.qa/en https://www.edu.gov.qa/; do
+            curl -sSL -A "$UA" --max-time 40 "$page" -o page.html || continue
+            echo "== $page ($(wc -c < page.html) bytes)"
+            grep -oiE '(src|href|content)="[^"]+\.(png|svg|jpg|jpeg|webp|ico)[^"]*"' page.html | cut -d'"' -f2 | sort -u | tee -a candidates.txt
+          done
+          for u in $EXTRA; do echo "$u" >> candidates.txt; done
+          sort -u candidates.txt | grep -iE 'logo|moe|ministry|brand|icon|favicon|header' > picked.txt || true
+          echo "== picked"; cat picked.txt
+          i=0
+          while read -r url; do
+            case "$url" in http*) full="$url" ;; //*) full="https:$url" ;; /*) full="https://www.edu.gov.qa$url" ;; *) full="https://www.edu.gov.qa/$url" ;; esac
+            name=$(basename "${full%%\?*}" | tr -c 'A-Za-z0-9._-' '_')
+            i=$((i+1))
+            curl -sSL -A "$UA" --max-time 40 "$full" -o "brand-source/$(printf %02d $i)-$name" && echo "downloaded $full"
+          done < picked.txt
+          ls -la brand-source
+          file brand-source/* || true
+          { echo "# Downloaded from edu.gov.qa by .github/workflows/fetch-brand-assets.yml"; cat picked.txt; } > brand-source/SOURCES.txt
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add brand-source
+          git diff --cached --quiet && echo "nothing new" || (git commit -m "Add official brand assets fetched from edu.gov.qa" && git push)
