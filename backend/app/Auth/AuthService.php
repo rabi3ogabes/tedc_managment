@@ -86,6 +86,17 @@ class AuthService
         }
 
         if ($response->failed()) {
+            $code = $response->json('error_code') ?? $response->json('code');
+
+            if ($code === 'email_not_confirmed') {
+                throw ValidationException::withMessages(['email' => __('auth.email_not_confirmed')]);
+            }
+
+            if ($grant === 'password' && User::where('email', strtolower((string) ($payload['email'] ?? '')))->whereNull('auth_id')->exists()) {
+                // Not revealed to the client (account enumeration); tells the operator what to do.
+                Log::warning('Supabase login failed for a platform user that is not linked to Supabase Auth. Run: php artisan tedc:supabase-sync-users --password=...', ['email' => $payload['email']]);
+            }
+
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 

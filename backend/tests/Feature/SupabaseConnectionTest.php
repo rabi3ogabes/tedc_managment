@@ -122,4 +122,28 @@ class SupabaseConnectionTest extends TestCase
         config(['tedc.supabase.ca_bundle' => '']);
         $this->assertFileExists(Supabase::http()->getOptions()['verify']);
     }
+
+    public function test_sync_can_reset_the_password_of_existing_supabase_users(): void
+    {
+        $id = '44444444-4444-4444-4444-444444444444';
+        Http::fake([
+            self::URL.'/auth/v1/admin/users?*' => Http::response(['users' => [['id' => $id, 'email' => 'exists@tedc.qa']]]),
+            self::URL."/auth/v1/admin/users/{$id}" => Http::response(['id' => $id]),
+        ]);
+        $user = $this->makeUser(Role::EMPLOYEE, ['email' => 'exists@tedc.qa']);
+
+        $this->artisan('tedc:supabase-sync-users', ['--password' => 'Tedc@2026!', '--email' => ['exists@tedc.qa'], '--reset-password' => true])->assertSuccessful();
+
+        Http::assertSent(fn (Request $r) => $r->method() === 'PUT' && $r->url() === self::URL."/auth/v1/admin/users/{$id}" && $r['password'] === 'Tedc@2026!');
+        $this->assertSame($id, $user->fresh()->auth_id);
+    }
+
+    public function test_unconfirmed_email_gets_a_specific_message(): void
+    {
+        Http::fake([self::URL.'/auth/v1/token*' => Http::response(['code' => 400, 'error_code' => 'email_not_confirmed', 'msg' => 'Email not confirmed'], 400)]);
+
+        $this->postJson('/api/v1/auth/login', ['email' => 'admin@tedc.qa', 'password' => 'secret'], ['X-Locale' => 'en'])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.email.0', __('auth.email_not_confirmed', [], 'en'));
+    }
 }

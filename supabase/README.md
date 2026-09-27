@@ -71,7 +71,10 @@ Every platform user needs a Supabase Auth account with the same e-mail. One comm
 php artisan tedc:supabase-sync-users --password='Tedc@2026!'   # demo: same initial password for everyone
 php artisan tedc:supabase-sync-users                            # production: users receive a "set your password" e-mail
 php artisan tedc:supabase-sync-users --email=new.teacher@schools.edu.qa   # a single user
+php artisan tedc:supabase-sync-users --password='Tedc@2026!' --reset-password   # also set the password of users already in Supabase
 ```
+
+On Windows PowerShell or CMD use double quotes: `--password="Tedc@2026!"`.
 
 Users who later sign up directly in Supabase Auth are added automatically with the `employee` role
 (`TEDC_AUTO_PROVISION_USERS=true`).
@@ -109,6 +112,7 @@ flutter run \
 |---|---|
 | `cURL error 60: SSL certificate … unable to get local issuer certificate` | PHP has no trusted CA list (typical on Windows/XAMPP/Laragon). Update the code (`git pull`), run `composer install` (it adds the Mozilla CA bundle the API now uses automatically) and `php artisan optimize:clear`, then restart `php artisan serve` and run `php artisan tedc:supabase-check`. Behind a company proxy that inspects HTTPS, set `SUPABASE_CA_BUNDLE` to a `.pem` file that includes your company's root certificate. Never disable SSL verification. |
 | `could not connect to server` / timeout | Use the **Session pooler** URI (port 5432) and add `?sslmode=require`. |
+| Login says `بيانات الدخول غير صحيحة` / invalid credentials | The account does not exist in Supabase Auth or has another password. Run `php artisan tedc:supabase-sync-users --password="Tedc@2026!" --reset-password`. Check `storage/logs/laravel.log` for a hint. |
 | Login says the account is not enabled | Run `php artisan tedc:supabase-sync-users` — the e-mail must exist in both places. |
 | `401` on every request after login | Leave `SUPABASE_JWT_SECRET` empty (new projects sign tokens with JWKS keys) and check `SUPABASE_JWKS_URL`. |
 | File uploads fail | Check `SUPABASE_SECRET_KEY` and that `setup.sql` created the buckets. |
