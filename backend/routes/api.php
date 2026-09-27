@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
+use App\Http\Controllers\Api\V1\SystemController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +36,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+
+    // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
+    Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
+        Route::get('cron', 'cron');
+        Route::post('setup', 'setup');
+    });
 
     // Public website ----------------------------------------------------------
     Route::prefix('public')->middleware('throttle:public')->controller(PublicController::class)->group(function () {

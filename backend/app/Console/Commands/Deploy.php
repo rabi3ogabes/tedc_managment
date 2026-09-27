@@ -22,7 +22,10 @@ class Deploy extends Command
             $this->call('db:seed', ['--force' => true]);
         }
 
-        $this->call('storage:link', ['--force' => true]);
+        // Read-only file systems (serverless) cannot hold the public/storage symlink.
+        if (is_writable(public_path())) {
+            $this->call('storage:link', ['--force' => true]);
+        }
 
         if (! $this->option('no-cache')) {
             $this->call('optimize');

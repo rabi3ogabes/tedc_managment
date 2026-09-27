@@ -1,0 +1,10 @@
+backend/vendor
+backend/.env
+backend/storage/logs
+backend/database/*.sqlite
+web/node_modules
+web/dist
+web/.env
+web/.env.local
+mobile
+vendor

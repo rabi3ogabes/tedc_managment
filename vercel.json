@@ -2,10 +2,24 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "npm ci --prefix web",
-  "buildCommand": "npm run build --prefix web",
+  "buildCommand": "VITE_API_URL=/api/v1 npm run build --prefix web",
   "outputDirectory": "web/dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.9.0",
+      "maxDuration": 60,
+      "memory": 1024,
+      "excludeFiles": "{.vercel/**,web/**,mobile/**,docs/**,supabase/**,docker/**,.github/**,backend/tests/**,backend/storage/**,backend/node_modules/**,backend/database/*.sqlite}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.php" },
+    { "source": "/up", "destination": "/api/index.php" },
+    { "source": "/files/(.*)", "destination": "/api/index.php" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "headers": [
     { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
-  ]
+  ],
+  "crons": [{ "path": "/api/v1/system/cron", "schedule": "0 5 * * *" }]
 }

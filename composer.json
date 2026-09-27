@@ -1,0 +1,15 @@
+{
+    "name": "tedc/vercel-build",
+    "description": "Vercel build shim: the vercel-php runtime only runs Composer at the repository root, so this installs the Laravel API's dependencies from backend/.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3"
+    },
+    "scripts": {
+        "vercel": [
+            "@composer install --working-dir=backend --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-scripts",
+            "@php backend/scripts/vercel-prune.php backend/vendor"
+        ]
+    }
+}

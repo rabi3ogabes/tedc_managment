@@ -13,6 +13,9 @@ return [
         'en' => env('TEDC_NAME_EN', 'Training & Educational Development Center'),
     ],
 
+    // Bearer token for /api/v1/system/* (Vercel Cron sends it automatically). Empty disables the endpoints.
+    'cron_secret' => env('CRON_SECRET'),
+
     'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
     /*
