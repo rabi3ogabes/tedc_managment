@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
@@ -39,6 +40,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+
+    // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
+    Route::get('public/health', HealthController::class);
 
     // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {

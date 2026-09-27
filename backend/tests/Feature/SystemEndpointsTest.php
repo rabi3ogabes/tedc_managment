@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Api\V1\HealthController;
 use App\Models\Role;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -52,5 +53,25 @@ class SystemEndpointsTest extends TestCase
             ->assertJsonPath('data.status', 'ok');
 
         Http::assertSent(fn ($r) => $r->method() === 'POST' && str_ends_with($r->url(), '/auth/v1/admin/users') && $r['password'] === 'Tedc@2026!');
+    }
+
+    public function test_health_reports_database_state_without_secrets(): void
+    {
+        $this->getJson('/api/v1/public/health')->assertOk()
+            ->assertJsonPath('data.database.connection', 'ok')
+            ->assertJsonPath('data.database.tables', 'ok')
+            ->assertJsonPath('data.app_key', 'set');
+    }
+
+    public function test_health_describes_database_errors_without_details(): void
+    {
+        $e = new \PDOException('SQLSTATE[08006] [7] connection to server at "db.internal" failed for user "postgres" password "secret-password"');
+
+        $info = HealthController::describe(new \RuntimeException('wrapped', 0, $e), 'pgsql');
+
+        $this->assertSame('08006', $info['sqlstate']);
+        $this->assertStringContainsString('DB_URL', $info['hint']);
+        $this->assertStringNotContainsString('secret', json_encode($info));
+        $this->assertSame('42P05', HealthController::describe(new \PDOException('SQLSTATE[42P05]: Duplicate prepared statement'), 'pgsql')['sqlstate']);
     }
 }

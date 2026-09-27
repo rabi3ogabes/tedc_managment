@@ -17,7 +17,7 @@ jobs:
         env:
           BASE: ${{ inputs.base_url }}
         run: |
-          for path in / /up /api/v1/public/theme /api/v1/public/stats /api/v1/public/programs?per_page=1 /api/v1/public/mobile-config; do
+          for path in / /up /api/v1/public/health /api/v1/public/theme /api/v1/public/stats /api/v1/public/programs?per_page=1 /api/v1/public/mobile-config; do
             code=$(curl -sS -o body.txt -w '%{http_code}' --max-time 30 "$BASE$path" || echo 000)
             echo "::group::$code  $path"
             head -c 600 body.txt; echo

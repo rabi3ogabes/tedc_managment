@@ -85,6 +85,7 @@ Then open `https://<project>.vercel.app/login` and sign in as `admin@tedc.qa`.
 | Symptom | Fix |
 |---|---|
 | `404: NOT_FOUND` on every page | Redeploy the latest commit with Root Directory `./`, so `vercel.json` is used. |
+| Diagnose any API error | Open `https://<project>.vercel.app/api/v1/public/health`. It shows the database driver, whether it connects, whether tables exist and a hint (SQLSTATE code only, no secrets). |
 | API returns `500` right after deploying | Open the deployment → **Functions** logs. Usually a missing `APP_KEY` or `DB_URL`, or the setup call (step 3) has not run yet. |
 | `SQLSTATE[08006]` / `prepared statement "pdo_stmt_…" already exists` | Use the transaction pooler (port 6543) **and** `DB_EMULATE_PREPARES=true`. |
 | Login: `بيانات الدخول غير صحيحة` | Run the setup call with `sync_users_password` (step 3). |
