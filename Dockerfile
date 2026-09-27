@@ -10,9 +10,11 @@ COPY web/ ./
 # Public build-time values (never secrets). Set them as Railway variables to enable Supabase Realtime.
 ARG VITE_SUPABASE_URL=""
 ARG VITE_SUPABASE_PUBLISHABLE_KEY=""
+ARG VITE_SHOW_DEMO_ACCOUNTS="true"
 ENV VITE_API_URL=/api/v1 \
     VITE_SUPABASE_URL=$VITE_SUPABASE_URL \
-    VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
+    VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY \
+    VITE_SHOW_DEMO_ACCOUNTS=$VITE_SHOW_DEMO_ACCOUNTS
 RUN npm run build
 
 # ---- 2. PHP dependencies ------------------------------------------------------------------

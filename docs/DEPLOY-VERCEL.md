@@ -45,6 +45,7 @@ Settings → **Environment Variables**. Add the following for *Production* (and 
 | `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` (live notifications) |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` (never the secret key) |
 | `TEDC_SEED_DEMO` | `true` for the demo data and the 8 demo accounts (optional) |
+| `VITE_SHOW_DEMO_ACCOUNTS` | the login page shows the demo accounts panel by default; set `false` to hide it before a real launch |
 | `ANTHROPIC_API_KEY` | optional: AI assistant |
 
 `APP_URL` defaults to the production domain automatically. Then **Deploy**, or redeploy if the project already

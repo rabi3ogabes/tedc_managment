@@ -14,6 +14,10 @@ const DEMO = [
   ['school@tedc.qa', 'School Admin'], ['teacher@tedc.qa', 'Employee'], ['supervisor@tedc.qa', 'Supervisor'], ['executive@tedc.qa', 'Executive'],
 ]
 
+// Demo accounts panel: shown by default (also on the live site); build with VITE_SHOW_DEMO_ACCOUNTS=false to hide it.
+const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
+const DEMO_PASSWORD = 'Tedc@2026!'
+
 export default function Login() {
   const { t } = useTranslation()
   const { login, user } = useAuth()
@@ -57,13 +61,13 @@ export default function Login() {
             {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</p>}
             <Button variant="primary" size="lg" className="w-full" loading={loading}>{t('auth.signIn')}</Button>
           </form>
-          {import.meta.env.DEV && (
+          {SHOW_DEMO && (
             <div className="mt-8 rounded-2xl border border-dashed border-gold-300 bg-gold-100/40 p-4">
               <p className="text-sm font-bold text-navy-900">{t('auth.demo')}</p>
-              <p className="mb-3 text-xs text-slate-500">{t('auth.demoHint')}</p>
+              <p className="mb-3 text-xs text-slate-500">{t('auth.demoHint')} <bdi dir="ltr" className="font-mono font-bold text-navy-900">{DEMO_PASSWORD}</bdi></p>
               <div className="flex flex-wrap gap-2">
                 {DEMO.map(([mail, role]) => (
-                  <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword('Tedc@2026!') }} className="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-navy-800 ring-1 ring-navy-100 hover:ring-gold-400">{role}</button>
+                  <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword(DEMO_PASSWORD) }} className="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-navy-800 ring-1 ring-navy-100 hover:ring-gold-400">{role}</button>
                 ))}
               </div>
             </div>

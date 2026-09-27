@@ -51,6 +51,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
 # Optional
 TEDC_SEED_DEMO=true           # demo schools, programs and the 8 demo accounts on the first deploy
+VITE_SHOW_DEMO_ACCOUNTS=true  # demo accounts panel on the login page; false hides it
 ANTHROPIC_API_KEY=            # AI assistant (rule-based fallback without it)
 ```
 
