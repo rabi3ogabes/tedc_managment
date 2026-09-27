@@ -23,6 +23,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Unauthenticated endpoints backing the public training-center website.
@@ -84,7 +85,7 @@ class PublicController extends Controller
     {
         $program = $this->programQuery()
             ->with(['sessions.trainer', 'sessions.room', 'targetGroups.jobTitle'])
-            ->where(fn ($q) => $q->where('code', $idOrCode)->orWhere('id', $idOrCode))
+            ->where(fn ($q) => Str::isUuid($idOrCode) ? $q->whereKey($idOrCode) : $q->where('code', $idOrCode))
             ->firstOrFail();
 
         return new ProgramResource($program);

@@ -43,4 +43,5 @@ return [
         'row_employee_missing' => 'Row :row: no employee found with number :no',
     ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
+    'not_found' => 'The requested item was not found.',
 ];

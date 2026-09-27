@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,4 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
         $exceptions->render(fn (AuthenticationException $e, Request $request) => response()->json(['message' => __('auth.unauthenticated')], 401));
+        // PostgreSQL rejects malformed UUIDs (SQLSTATE 22P02): a bad id in a URL is "not found", not a server error.
+        $exceptions->render(fn (QueryException $e, Request $request) => ($e->errorInfo[0] ?? null) === '22P02'
+            ? response()->json(['message' => __('messages.not_found')], 404)
+            : null);
     })->create();

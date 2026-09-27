@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Role;
+use App\Models\SiteSetting;
 use App\Services\ThemeService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -43,7 +45,10 @@ class ThemeTest extends TestCase
             ->assertJsonCount(4, 'data.banners.hero_images');
 
         $this->asUser($admin)->postJson('/api/v1/admin/theme/reset')->assertOk()->assertJsonPath('data.colors.primary', '#8A1538');
-        $this->assertDatabaseHas('audit_logs', ['auditable_id' => 'theme']);
+        $audit = AuditLog::where('auditable_type', (new SiteSetting)->getMorphClass())->latest()->first();
+        $this->assertNotNull($audit);
+        $this->assertNull($audit->auditable_id);
+        $this->assertSame('theme', $audit->new_values['key'] ?? null);
     }
 
     public function test_identity_logos_and_fonts_are_saved(): void

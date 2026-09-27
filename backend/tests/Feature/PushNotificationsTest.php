@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\DeviceToken;
 use App\Models\Role;
+use App\Models\SiteSetting;
 use App\Services\NotificationService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -60,6 +62,8 @@ class PushNotificationsTest extends TestCase
             ->assertJsonPath('data.settings.client.project_id', 'tedc-demo');
 
         $this->assertStringNotContainsString('PRIVATE KEY', $response->getContent());
+        $audit = AuditLog::where('auditable_type', (new SiteSetting)->getMorphClass())->latest()->first();
+        $this->assertSame('[redacted]', $audit->new_values['value']['service_account'] ?? null);
     }
 
     public function test_invalid_service_account_is_rejected(): void
