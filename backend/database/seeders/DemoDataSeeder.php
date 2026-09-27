@@ -464,6 +464,13 @@ class DemoDataSeeder extends Seeder
                 'attendance_percent' => 100, 'tasks_completed' => true, 'evaluation_completed' => true, 'certificate_status' => 'issued',
                 'completed_at' => Carbon::parse($past->end_date)->addDay(), 'approved_at' => Carbon::parse($past->start_date)->subDays(5),
             ]);
+            foreach ($past->sessions as $session) {
+                Attendance::create([
+                    'program_session_id' => $session->id, 'registration_id' => $reg->id, 'employee_id' => $teacher->id,
+                    'check_in_at' => $session->starts_at->copy()->subMinutes(5), 'check_out_at' => $session->ends_at, 'method' => 'qr',
+                    'status' => 'present', 'minutes_attended' => $session->durationMinutes(),
+                ]);
+            }
             Certificate::create([
                 'certificate_no' => 'TEDC-'.now()->year.'-DEMO01', 'verification_code' => 'TEDCDEMO2026',
                 'registration_id' => $reg->id, 'employee_id' => $teacher->id, 'program_id' => $past->id,

@@ -98,7 +98,7 @@ class _Header extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                const BrandMark(size: 42),
+                const OfficialEmblem(size: 46),
                 const SizedBox(width: 12),
                 Expanded(child: Text(s.t('app.name'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13))),
               ]),

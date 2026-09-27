@@ -66,7 +66,7 @@ class WalletScreen extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [const BrandMark(size: 38), const Spacer(), StatusChip(c.str('status'))]),
+                        Row(children: [const OfficialEmblem(size: 44), const Spacer(), StatusChip(c.str('status'))]),
                         const SizedBox(height: 18),
                         Text(c.obj('program')?.str('title') ?? '', style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),

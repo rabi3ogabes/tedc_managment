@@ -17,6 +17,7 @@ use App\Services\ImpactService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
@@ -76,7 +77,9 @@ class MyOutcomesController extends MyTrainingController
             'file' => ['nullable', 'file', 'max:'.($task->max_file_mb * 1024)],
         ]);
 
-        abort_if(empty($data['text_response']) && ! $request->hasFile('file'), 422, __('validation.required', ['attribute' => 'file']));
+        if (empty($data['text_response']) && ! $request->hasFile('file')) {
+            throw ValidationException::withMessages(['text_response' => __('messages.task_answer_required')]);
+        }
 
         $existing = TaskSubmission::where('task_id', $task->id)->where('registration_id', $registration->id)->first();
         if ($existing?->status === TaskSubmission::STATUS_APPROVED) {

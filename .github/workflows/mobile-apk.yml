@@ -3,7 +3,7 @@ name: Mobile APK
 # Builds the Android app (release APK) and publishes it as a GitHub pre-release with a direct download link.
 #
 # API address baked into the app, in order: the `api_url` input, the repository variable TEDC_API_URL, then
-# auto-detection of the live Vercel deployment. Testers can still change it in the app (long-press the emblem
+# the production domain https://tedc-managment.vercel.app. Testers can still change it in the app (long-press the emblem
 # on the sign-in screen).
 #
 # Optional repository secrets for a store-grade signature (otherwise the debug key is used, fine for testing):
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       api_url:
-        description: API base URL (e.g. https://your-project.vercel.app/api/v1). Empty = auto-detect.
+        description: API base URL. Empty = https://tedc-managment.vercel.app/api/v1
         required: false
         default: ''
   push:
@@ -21,7 +21,6 @@ on:
 
 permissions:
   contents: write
-  deployments: read
 
 concurrency:
   group: mobile-apk-${{ github.ref }}
@@ -42,31 +41,17 @@ jobs:
         env:
           INPUT_URL: ${{ inputs.api_url }}
           VAR_URL: ${{ vars.TEDC_API_URL }}
-          GH_TOKEN: ${{ github.token }}
         run: |
-          probe() { curl -fsS --max-time 20 "$1/public/mobile-config" -o /dev/null; }
-          pick=""
-          for candidate in "$INPUT_URL" "$VAR_URL"; do
-            [ -n "$candidate" ] && { pick="$candidate"; break; }
-          done
-          if [ -z "$pick" ]; then
-            candidates="https://${{ github.event.repository.name }}.vercel.app/api/v1"
-            dep=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/deployments?environment=Production&per_page=5" | jq -r '.[].statuses_url' | head -5)
-            for s in $dep; do
-              u=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "$s" | jq -r '[.[] | select(.state=="success")][0].environment_url // empty')
-              case "$u" in *vercel.app*) candidates="$candidates $u/api/v1";; esac
-            done
-            for c in $candidates; do
-              echo "probing $c"
-              if probe "$c"; then pick="$c"; break; fi
-            done
-            [ -z "$pick" ] && pick="https://${{ github.event.repository.name }}.vercel.app/api/v1"
-          fi
+          # The production domain always serves the latest deployment. Per-deployment URLs are immutable
+          # snapshots, so they are never baked into the app.
+          PRODUCTION="https://tedc-managment.vercel.app/api/v1"
+          pick="${INPUT_URL:-${VAR_URL:-$PRODUCTION}}"
           echo "url=$pick" >> "$GITHUB_OUTPUT"
-          if probe "$pick"; then status="reachable ✅"; else status="not reachable from CI ⚠️ (change it in the app: long-press the emblem)"; fi
-          echo "API: $pick — $status"
+          code=$(curl -sS -o body.json -w '%{http_code}' --max-time 25 "$pick/public/mobile-config" || echo 000)
+          echo "GET $pick/public/mobile-config -> HTTP $code"
+          head -c 400 body.json 2>/dev/null; echo
+          if [ "$code" = "200" ]; then status="reachable ✅"; else status="HTTP $code from CI ⚠️ — check the deployment, or change the server in the app (long-press the emblem)"; fi
           echo "api_status=$status" >> "$GITHUB_OUTPUT"
-          curl -fsS --max-time 20 "$pick/public/mobile-config" | jq -c '.data.push | {enabled}' || true
 
       - uses: actions/setup-java@v4
         with:

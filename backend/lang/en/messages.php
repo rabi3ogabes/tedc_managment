@@ -42,4 +42,5 @@ return [
         'invalid_file' => 'The file could not be read. Please use the official template.',
         'row_employee_missing' => 'Row :row: no employee found with number :no',
     ],
+    'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
 ];

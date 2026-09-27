@@ -58,7 +58,7 @@ class RegistrationScreen extends ConsumerWidget {
                   subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}'),
                   trailing: attendance[session.str('id')] != null
                       ? StatusChip(attendance[session.str('id')]!.str('status'))
-                      : ((session.date('ends_at') ?? DateTime.now()).isBefore(DateTime.now()) ? const StatusChip('absent') : null),
+                      : ((session.date('ends_at') ?? DateTime.now()).isBefore(DateTime.now()) ? StatusChip(_inferredAttendance(r.number('attendance_percent'))) : null),
                 ),
               ),
             if (active) ...[
@@ -197,3 +197,7 @@ class _EvaluationSheetState extends ConsumerState<_EvaluationSheet> {
     );
   }
 }
+
+/// A past session without an attendance record: the registration's overall attendance tells whether the
+/// employee attended all sessions (100%), none (0%), or it is unknown for this session.
+String _inferredAttendance(num percent) => percent >= 100 ? 'present' : (percent <= 0 ? 'absent' : 'not_recorded');

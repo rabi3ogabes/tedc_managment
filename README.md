@@ -98,6 +98,12 @@ All demo passwords: `Tedc@2026!`
 
 A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 
+## Mobile app (APK)
+
+GitHub Actions builds the Android APK on every change to `mobile/` and publishes it under **Releases**.
+Push notifications (Firebase) are managed from the dashboard under Settings → Notifications.
+See [docs/MOBILE-APP.md](docs/MOBILE-APP.md).
+
 ## Deploying (Railway / Docker)
 
 The root `Dockerfile` builds the web app and the API into one image, and `railway.json` deploys it on Railway.

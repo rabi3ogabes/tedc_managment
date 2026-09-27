@@ -8,7 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// The server address can also be changed inside the app (long-press the emblem on the sign-in screen),
 /// which is handy for testing an APK against another environment.
 class AppConfig {
-  static const defaultApiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://10.0.2.2:8000/api/v1');
+  static const defaultApiUrl = String.fromEnvironment('API_URL', defaultValue: 'https://tedc-managment.vercel.app/api/v1');
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   // Publishable key (sb_publishable_…) or legacy anon key — never the secret key.
   static const _publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');

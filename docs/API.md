@@ -164,3 +164,14 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | PUT | `/admin/theme` | `settings.manage` |
 | POST | `/admin/theme/reset` | `settings.manage` |
 | POST | `/admin/theme/assets` | `settings.manage` (multipart `file`; `kind` = hero, banner, pattern or logo (JPG/PNG/WebP ≤ 6 MB, SVG rejected), or font (WOFF2/WOFF/TTF/OTF ≤ 4 MB)) |
+
+## Push notifications (Firebase)
+
+| Method | Path | Access |
+|---|---|---|
+| GET | `/public/mobile-config` | public: Firebase client options (when enabled) and brand colors for the app |
+| POST | `/me/devices` | signed in: register this device (`token`, `platform` android/ios/web, `locale`, `app_version`) |
+| DELETE | `/me/devices` | signed in: unregister (`token`) |
+| GET / PUT | `/admin/settings/push` | `settings.manage`: settings (the service account is write-only), categories, stats, delivery log |
+| POST | `/admin/settings/push/verify` | `settings.manage`: sign in to Google with the service account |
+| POST | `/admin/settings/push/test` | `settings.manage`: test notification to own devices (`audience=me`) or all devices (`audience=all`) |
