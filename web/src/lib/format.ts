@@ -1,6 +1,12 @@
 import i18n from '@/i18n'
 
-const locale = () => (i18n.language === 'en' ? 'en-GB' : 'ar-QA')
+/**
+ * Intl locale for formatting. Arabic text keeps Arabic month/day names, but every number
+ * and date uses Western (Latin) digits: `-u-nu-latn` forces the Latin numbering system.
+ */
+export const intlLocale = () => (i18n.language === 'en' ? 'en-GB' : 'ar-QA-u-nu-latn')
+
+const locale = intlLocale
 
 export const fmt = {
   number: (n: number | null | undefined, digits = 0) =>

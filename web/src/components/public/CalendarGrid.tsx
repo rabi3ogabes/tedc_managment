@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { intlLocale } from '@/lib/format'
 import type { Session } from '@/lib/types'
 
 /** Month grid used by the public calendar and the employee calendar. */
@@ -9,7 +10,7 @@ export default function CalendarGrid({ month, onMonth, sessions, onSelect, selec
   month: Date; onMonth: (d: Date) => void; sessions: Session[]; onSelect: (d: Date) => void; selected: Date | null
 }) {
   const { i18n } = useTranslation()
-  const locale = i18n.language === 'en' ? 'en-GB' : 'ar-QA'
+  const locale = intlLocale()
   const rtl = i18n.language === 'ar'
 
   const days = useMemo(() => {
