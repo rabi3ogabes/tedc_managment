@@ -9,7 +9,8 @@
     "scripts": {
         "vercel": [
             "@composer install --working-dir=backend --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-scripts",
-            "@php backend/scripts/vercel-prune.php backend/vendor"
+            "@php backend/scripts/vercel-prune.php backend/vendor",
+            "@php backend/scripts/vercel-build.php"
         ]
     }
 }

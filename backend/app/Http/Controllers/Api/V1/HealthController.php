@@ -45,6 +45,11 @@ class HealthController extends Controller
 
         $report['database']['emulate_prepares'] = (bool) env('DB_EMULATE_PREPARES', false);
         $report['app_key'] = filled(config('app.key')) ? 'set' : 'missing';
+        // Names only (never values) of deployment variables that are still missing.
+        $report['missing_env'] = array_values(array_filter(
+            ['APP_KEY', 'DB_URL', 'SUPABASE_SECRET_KEY', 'CRON_SECRET'],
+            fn (string $name) => blank(env($name)),
+        ));
         $healthy = ($report['database']['connection'] ?? null) === 'ok' && ($report['database']['tables'] ?? null) === 'ok' && $report['app_key'] === 'set';
 
         return response()->json(['data' => $report], $healthy ? 200 : 503);

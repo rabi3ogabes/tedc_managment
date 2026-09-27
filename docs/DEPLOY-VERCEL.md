@@ -25,53 +25,37 @@ Vercel → **Add New… → Project** → import `tedc_managment`, then:
 - **Root Directory**: `./` (the repository root).
 - Leave the build, output and install commands empty; `vercel.json` provides them.
 
-## 2. Environment variables
+## 2. Environment variables (4 secrets)
 
-Settings → **Environment Variables**. Add the following for *Production* (and *Preview* if you use it):
+Public settings (the Supabase URL, publishable key and JWKS URL; the Supabase drivers; demo data) already have
+defaults in `backend/scripts/vercel-env.php`. Only the secrets go into Vercel → Settings → **Environment Variables**
+(tick *Production* and *Preview*):
 
 | Name | Value |
 |---|---|
-| `APP_KEY` | `base64:…`, generated with `php artisan key:generate --show` (or any `base64:` of 32 random bytes) |
-| `DB_CONNECTION` | `pgsql` |
-| `DB_URL` | Supabase **Transaction pooler** URI, port **6543**: `postgresql://postgres.<ref>:<db-password>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require` |
-| `DB_EMULATE_PREPARES` | `true` (required by the transaction pooler) |
-| `TEDC_AUTH_DRIVER` | `supabase` |
-| `TEDC_STORAGE_DRIVER` | `supabase` (**required**: Vercel has no persistent disk) |
-| `SUPABASE_URL` | `https://<ref>.supabase.co` |
-| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` |
-| `SUPABASE_SECRET_KEY` | `sb_secret_…` (keep it only here) |
-| `SUPABASE_JWKS_URL` | `https://<ref>.supabase.co/auth/v1/.well-known/jwks.json` |
-| `CRON_SECRET` | a long random string (e.g. `openssl rand -hex 32`), which protects `/api/v1/system/*` |
-| `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` (live notifications) |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` (never the secret key) |
-| `TEDC_SEED_DEMO` | `true` for the demo data and the 8 demo accounts (optional) |
-| `VITE_SHOW_DEMO_ACCOUNTS` | the login page shows the demo accounts panel by default; set `false` to hide it before a real launch |
-| `ANTHROPIC_API_KEY` | optional: AI assistant |
+| `APP_KEY` | `base64:` followed by 32 random bytes in base64, e.g. from `php artisan key:generate --show` |
+| `DB_URL` | Supabase → **Connect** → pooler URI with the database password, e.g. `postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres`. A session-pooler URI (port 5432) is switched to the transaction pooler (6543) automatically. |
+| `SUPABASE_SECRET_KEY` | `sb_secret_…` (Supabase → Project Settings → API Keys) |
+| `CRON_SECRET` | a long random string; it protects `/api/v1/system/*` and the daily cron job |
 
-The API function runs in Vercel's Singapore region (`"regions": ["sin1"]` in `vercel.json`), next to a Supabase project in `ap-southeast-1`. If your Supabase project is elsewhere, change it to the nearest [Vercel region](https://vercel.com/docs/edge-network/regions).
+Any other variable from `backend/.env.example` can still be set to override a default, for example
+`TEDC_SEED_DEMO=false` for a production launch or `ANTHROPIC_API_KEY` for the AI assistant.
 
-`APP_URL` defaults to the production domain automatically. Then **Deploy**, or redeploy if the project already
-exists.
+## 3. Deploy: the database sets itself up
 
-## 3. One-time setup (database and users)
+Redeploy after saving the variables. The build (`backend/scripts/vercel-build.php`) then runs the migrations and
+seeds an empty database: roles, reference data and, with `TEDC_SEED_DEMO`, the demo data. It also creates the
+demo accounts in Supabase Auth with the password `Tedc@2026!`; existing accounts keep their password. Later
+deployments only apply new migrations. The build never fails because of the database: check
+`https://<project>.vercel.app/api/v1/public/health`. It lists any missing variable names and the database state.
 
-After the first successful deployment, create the tables and the Supabase Auth accounts. The request is
-protected by `CRON_SECRET`:
+Manual alternative, e.g. to reset the demo passwords:
 
 ```bash
 curl -X POST https://<project>.vercel.app/api/v1/system/setup \
-  -H "Authorization: Bearer <CRON_SECRET>" \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <CRON_SECRET>" -H "Content-Type: application/json" \
   -d '{"sync_users_password": "Tedc@2026!"}'
 ```
-
-On Windows PowerShell, use `curl.exe` and escape the JSON quotes, or run the same call from any HTTP client
-(Postman, Insomnia).
-
-The response lists what ran: the migrations, the seeding on an empty database, and the users created in Supabase
-Auth with that password. Run it again after a release that adds migrations; leave out `sync_users_password` then.
-
-Then open `https://<project>.vercel.app/login` and sign in as `admin@tedc.qa`.
 
 ## Limits on Vercel
 

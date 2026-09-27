@@ -15,31 +15,8 @@ foreach (['storage/app/mpdf', 'storage/app/public', 'storage/framework/cache/dat
     }
 }
 
-$productionHost = getenv('VERCEL_PROJECT_PRODUCTION_URL') ?: getenv('VERCEL_URL');
-
-$defaults = [
-    'LARAVEL_STORAGE_PATH' => "{$tmp}/storage",
-    'VIEW_COMPILED_PATH' => "{$tmp}/storage/framework/views",
-    'APP_CONFIG_CACHE' => "{$tmp}/bootstrap/config.php",
-    'APP_EVENTS_CACHE' => "{$tmp}/bootstrap/events.php",
-    'APP_PACKAGES_CACHE' => "{$tmp}/bootstrap/packages.php",
-    'APP_ROUTES_CACHE' => "{$tmp}/bootstrap/routes-v7.php",
-    'APP_SERVICES_CACHE' => "{$tmp}/bootstrap/services.php",
-    'APP_ENV' => 'production',
-    'APP_DEBUG' => 'false',
-    'LOG_CHANNEL' => 'stderr',
-    'SESSION_DRIVER' => 'cookie',
-    'CACHE_STORE' => 'database',
-    'QUEUE_CONNECTION' => 'sync',
-    'APP_URL' => $productionHost ? "https://{$productionHost}" : null,
-];
-
-foreach ($defaults as $key => $value) {
-    if ($value !== null && getenv($key) === false && ! isset($_ENV[$key]) && ! isset($_SERVER[$key])) {
-        putenv("{$key}={$value}");
-        $_ENV[$key] = $_SERVER[$key] = $value;
-    }
-}
+require __DIR__.'/../backend/scripts/vercel-env.php';
+tedc_vercel_env();
 
 // Present the request to Laravel as if it hit public/index.php at the web root. Otherwise Symfony derives a
 // "/api" base path from /api/index.php and strips it from /api/v1/... URLs.
