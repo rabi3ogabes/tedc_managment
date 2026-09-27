@@ -18,43 +18,64 @@ class ThemeService
 
     private const CACHE = 'site.theme';
 
-    public const PATTERNS = ['none', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom'];
+    public const PATTERNS = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom'];
 
+    /**
+     * Default identity: the Qatar Government brand (Government Communications Office guidelines) —
+     * Al Adaam maroon (flag, Pantone 1955 C), Dune (Qatari architecture), black and white, with the
+     * Qatar Sans typeface — co-branded with the Ministry of Education and Higher Education logo.
+     */
     public static function defaults(): array
     {
         return [
-            'preset' => 'royal_navy',
+            'preset' => 'qatar_gov',
             'colors' => [
-                'primary' => '#0B1F3A',
-                'accent' => '#C8A24A',
-                'background' => '#F8F6F1',
+                'primary' => '#8A1538',    // Al Adaam
+                'accent' => '#A29475',     // Dune
+                'background' => '#F8F6F2',
                 'surface' => '#FFFFFF',
-                'text' => '#0F172A',
-                'link' => '#8F6F22',
+                'text' => '#1A1A1A',       // Black
+                'link' => '#8A1538',
             ],
             'buttons' => [
-                'style' => 'gradient',     // gradient | solid | outline
-                'radius' => 12,
-                'accent_text' => '#06122A',
+                'style' => 'solid',        // gradient | solid | outline
+                'radius' => 10,
+                'accent_text' => '#1A1A1A',
                 'uppercase' => false,
             ],
             'banners' => [
-                'overlay_color' => '#06122A',
-                'overlay_opacity' => 70,
+                'overlay_color' => '#3A0918',
+                'overlay_opacity' => 72,
                 'hero_images' => [null, null, null, null],
                 'page_banner_image' => null,
                 'cta_style' => 'gradient', // gradient | accent | image
             ],
             'pattern' => [
-                'type' => 'dots',
-                'color' => '#C8A24A',
-                'opacity' => 18,
-                'size' => 22,
+                'type' => 'serrated',
+                'color' => '#A29475',
+                'opacity' => 16,
+                'size' => 40,
                 'image' => null,
             ],
             'shape' => [
-                'card_radius' => 16,
-                'glass_blur' => 20,
+                'card_radius' => 14,
+                'glass_blur' => 18,
+            ],
+            // Official logos (e.g. the Ministry of Education and Higher Education). Empty values fall back
+            // to the files in web/public/brand/ and then to the built-in mark.
+            'identity' => [
+                'logo_ar' => null,
+                'logo_en' => null,
+                'logo_ar_light' => null,
+                'logo_en_light' => null,
+                'show_center_name' => true,
+            ],
+            'typography' => [
+                'arabic_family' => 'Qatar Sans',
+                'latin_family' => 'Qatar Sans',
+                'arabic_font_url' => null,
+                'latin_font_url' => null,
+                'heading_weight' => 700,
             ],
         ];
     }
@@ -93,5 +114,6 @@ class ThemeService
         Cache::forget(self::CACHE);
         Cache::forget('public.home.ar');
         Cache::forget('public.home.en');
+        Cache::forget('certificate.theme');
     }
 }

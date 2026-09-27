@@ -163,10 +163,16 @@ class CertificateService
             'scale' => 6,
         ])))->render($certificate->verificationUrl());
 
+        $theme = app(ThemeService::class)->get();
+
         $html = view('certificates.pdf', [
             'certificate' => $certificate,
             'qr' => $qr,
             'center' => config('tedc.name'),
+            'primary' => $theme['colors']['primary'],
+            'accent' => $theme['colors']['accent'],
+            'text' => $theme['colors']['text'],
+            'logo' => $theme['identity']['logo_ar'] ?? null,
         ])->render();
 
         $mpdf = new Mpdf([

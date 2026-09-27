@@ -55,6 +55,18 @@ class ThemeController extends Controller
             'shape' => ['required', 'array'],
             'shape.card_radius' => ['required', 'integer', 'between:0,40'],
             'shape.glass_blur' => ['required', 'integer', 'between:0,40'],
+            'identity' => ['sometimes', 'array'],
+            'identity.logo_ar' => $asset,
+            'identity.logo_en' => $asset,
+            'identity.logo_ar_light' => $asset,
+            'identity.logo_en_light' => $asset,
+            'identity.show_center_name' => ['boolean'],
+            'typography' => ['sometimes', 'array'],
+            'typography.arabic_family' => ['required_with:typography', 'string', 'max:60', 'regex:/^[\pL\pN \-]+$/u'],
+            'typography.latin_family' => ['required_with:typography', 'string', 'max:60', 'regex:/^[\pL\pN \-]+$/u'],
+            'typography.arabic_font_url' => $asset,
+            'typography.latin_font_url' => $asset,
+            'typography.heading_weight' => ['sometimes', 'integer', Rule::in([500, 600, 700, 800, 900])],
         ]);
 
         return response()->json(['data' => $this->themes->update($data, $this->user())]);
@@ -65,12 +77,14 @@ class ThemeController extends Controller
         return response()->json(['data' => $this->themes->reset($this->user())]);
     }
 
-    /** Uploads a banner, hero or pattern image to the public assets bucket and returns its URL. */
+    /** Uploads a banner / hero / pattern / logo image or a web font to the public assets bucket. */
     public function upload(Request $request, FileStorage $storage): JsonResponse
     {
+        $request->validate(['kind' => ['required', Rule::in(['hero', 'banner', 'pattern', 'logo', 'font'])]]);
         $request->validate([
-            'file' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,svg', 'max:6144'],
-            'kind' => ['required', Rule::in(['hero', 'banner', 'pattern'])],
+            'file' => $request->input('kind') === 'font'
+                ? ['required', 'file', 'extensions:woff2,woff,ttf,otf', 'max:4096']
+                : ['required', 'file', 'extensions:jpg,jpeg,png,webp', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
         ]);
 
         $path = $storage->uploadPublic($request->file('file'), 'theme/'.$request->input('kind'));
