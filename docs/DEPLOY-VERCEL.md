@@ -48,6 +48,8 @@ Settings → **Environment Variables**. Add the following for *Production* (and 
 | `VITE_SHOW_DEMO_ACCOUNTS` | the login page shows the demo accounts panel by default; set `false` to hide it before a real launch |
 | `ANTHROPIC_API_KEY` | optional: AI assistant |
 
+The API function runs in Vercel's Singapore region (`"regions": ["sin1"]` in `vercel.json`), next to a Supabase project in `ap-southeast-1`. If your Supabase project is elsewhere, change it to the nearest [Vercel region](https://vercel.com/docs/edge-network/regions).
+
 `APP_URL` defaults to the production domain automatically. Then **Deploy**, or redeploy if the project already
 exists.
 
