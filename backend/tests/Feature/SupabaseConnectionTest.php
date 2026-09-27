@@ -146,4 +146,19 @@ class SupabaseConnectionTest extends TestCase
             ->assertStatus(422)
             ->assertJsonPath('errors.email.0', __('auth.email_not_confirmed', [], 'en'));
     }
+
+    public function test_check_command_explains_why_a_login_is_rejected(): void
+    {
+        Http::fake([
+            self::URL.'/auth/v1/admin/users*' => Http::response(['users' => [['id' => '55555555-5555-5555-5555-555555555555', 'email' => 'diag@tedc.qa', 'email_confirmed_at' => now()->toIso8601String()]]]),
+            self::URL.'/auth/v1/token*' => Http::response(['code' => 400, 'error_code' => 'invalid_credentials', 'msg' => 'Invalid login credentials'], 400),
+            '*' => Http::response(['ok' => true]),
+        ]);
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'diag@tedc.qa']);
+
+        $this->artisan('tedc:supabase-check', ['--email' => 'diag@tedc.qa', '--password' => 'wrong'])
+            ->expectsOutputToContain('invalid_credentials')
+            ->expectsOutputToContain('--reset-password --email=diag@tedc.qa')
+            ->assertFailed();
+    }
 }

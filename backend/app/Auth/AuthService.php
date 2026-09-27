@@ -87,6 +87,11 @@ class AuthService
 
         if ($response->failed()) {
             $code = $response->json('error_code') ?? $response->json('code');
+            Log::info('Supabase Auth rejected the '.$grant.' grant', [
+                'status' => $response->status(),
+                'error_code' => $code,
+                'message' => $response->json('msg') ?? $response->json('error_description') ?? $response->json('message'),
+            ]);
 
             if ($code === 'email_not_confirmed') {
                 throw ValidationException::withMessages(['email' => __('auth.email_not_confirmed')]);
