@@ -13,7 +13,7 @@ return [
         'en' => env('TEDC_NAME_EN', 'Training & Educational Development Center'),
     ],
 
-    'web_url' => env('TEDC_WEB_URL', 'http://localhost:5173'),
+    'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
     /*
     | Authentication. "supabase" delegates credential checks to Supabase Auth (GoTrue)

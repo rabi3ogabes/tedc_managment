@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.
+        $middleware->trustProxies(at: '*');
         $middleware->api(prepend: [SetLocale::class]);
         $middleware->append(SecurityHeaders::class);
         $middleware->alias(['permission' => EnsurePermission::class]);

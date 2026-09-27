@@ -98,6 +98,11 @@ All demo passwords: `Tedc@2026!`
 
 A demo certificate can be verified at `/verify/TEDCDEMO2026`.
 
+## Deploying (Railway / Docker)
+
+The root `Dockerfile` builds the web app and the API into one image, and `railway.json` deploys it on Railway.
+See [docs/DEPLOY-RAILWAY.md](docs/DEPLOY-RAILWAY.md).
+
 ## Production with Supabase
 
 1. Create the Supabase project and follow the step-by-step guide in [`supabase/README.md`](supabase/README.md)
