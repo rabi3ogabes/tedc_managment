@@ -9,6 +9,7 @@
         "php": "^8.3",
         "anthropic-ai/sdk": "^0.51.0",
         "chillerlan/php-qrcode": "^6.0",
+        "composer/ca-bundle": "^1.5",
         "firebase/php-jwt": "^7.2",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",

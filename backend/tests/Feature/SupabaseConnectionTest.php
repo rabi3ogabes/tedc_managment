@@ -118,7 +118,8 @@ class SupabaseConnectionTest extends TestCase
         $this->assertSame('/etc/ssl/cacert.pem', Supabase::public()->getOptions()['verify']);
         $this->assertSame('/etc/ssl/cacert.pem', Supabase::admin()->getOptions()['verify']);
 
+        // Without configuration a trusted bundle is still found, so TLS works on PHP installs without a CA store.
         config(['tedc.supabase.ca_bundle' => '']);
-        $this->assertArrayNotHasKey('verify', Supabase::http()->getOptions());
+        $this->assertFileExists(Supabase::http()->getOptions()['verify']);
     }
 }

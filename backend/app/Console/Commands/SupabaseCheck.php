@@ -28,7 +28,7 @@ class SupabaseCheck extends Command
         }
 
         $this->line('URL:        '.Supabase::url());
-        $this->line('CA bundle:  '.($bundle ?: '(PHP default: curl.cainfo / openssl.cafile / system store)'));
+        $this->line('CA bundle:  '.Supabase::caBundle());
 
         $checks = [
             'Auth (publishable key)' => fn () => Supabase::public()->get(Supabase::url('/auth/v1/settings')),

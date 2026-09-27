@@ -107,7 +107,7 @@ flutter run \
 
 | Symptom | Fix |
 |---|---|
-| `cURL error 60: SSL certificate … unable to get local issuer certificate` | PHP has no trusted CA list (typical on Windows/XAMPP/Laragon). Download [cacert.pem](https://curl.se/ca/cacert.pem) (e.g. to `C:\php\extras\ssl\cacert.pem`) and either set `SUPABASE_CA_BUNDLE=C:/php/extras/ssl/cacert.pem` in `backend/.env`, or set `curl.cainfo` and `openssl.cafile` to that path in `php.ini`. Restart `php artisan serve`, then run `php artisan tedc:supabase-check`. Never disable SSL verification. |
+| `cURL error 60: SSL certificate … unable to get local issuer certificate` | PHP has no trusted CA list (typical on Windows/XAMPP/Laragon). Update the code (`git pull`), run `composer install` (it adds the Mozilla CA bundle the API now uses automatically) and `php artisan optimize:clear`, then restart `php artisan serve` and run `php artisan tedc:supabase-check`. Behind a company proxy that inspects HTTPS, set `SUPABASE_CA_BUNDLE` to a `.pem` file that includes your company's root certificate. Never disable SSL verification. |
 | `could not connect to server` / timeout | Use the **Session pooler** URI (port 5432) and add `?sslmode=require`. |
 | Login says the account is not enabled | Run `php artisan tedc:supabase-sync-users` — the e-mail must exist in both places. |
 | `401` on every request after login | Leave `SUPABASE_JWT_SECRET` empty (new projects sign tokens with JWKS keys) and check `SUPABASE_JWKS_URL`. |

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Composer\CaBundle\CaBundle;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
@@ -30,13 +31,22 @@ class Supabase
         return self::isLegacyJwtKey($key) ? ['apikey' => $key, 'Authorization' => "Bearer {$key}"] : ['apikey' => $key];
     }
 
-    /** Base HTTP client for Supabase, verifying TLS with the configured CA bundle when one is set. */
+    /** Base HTTP client for Supabase; TLS is always verified against a trusted CA bundle. */
     public static function http(int $timeout = 10): PendingRequest
     {
-        $request = Http::timeout($timeout);
-        $bundle = (string) config('tedc.supabase.ca_bundle');
+        return Http::timeout($timeout)->withOptions(['verify' => self::caBundle()]);
+    }
 
-        return $bundle !== '' ? $request->withOptions(['verify' => $bundle]) : $request;
+    /**
+     * CA bundle used to verify Supabase's certificate: SUPABASE_CA_BUNDLE when set, otherwise the
+     * system store (php.ini / SSL_CERT_FILE / OS paths) or, when PHP has none — typical on Windows —
+     * the Mozilla bundle shipped with composer/ca-bundle.
+     */
+    public static function caBundle(): string
+    {
+        $configured = (string) config('tedc.supabase.ca_bundle');
+
+        return $configured !== '' ? $configured : CaBundle::getSystemCaRootBundlePath();
     }
 
     /** Client authorised with the secret (service) key — server only. */
