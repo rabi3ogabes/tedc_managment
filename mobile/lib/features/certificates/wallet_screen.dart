@@ -1,0 +1,106 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+import '../../core/api/api_client.dart';
+import '../../core/format.dart';
+import '../../core/l10n/strings.dart';
+import '../../core/models.dart';
+import '../../core/providers.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/brand.dart';
+import '../../core/widgets/widgets.dart';
+
+/// Certificate wallet: every issued certificate as a premium card with its verification QR.
+class WalletScreen extends ConsumerWidget {
+  const WalletScreen({super.key});
+
+  static const path = '/me/certificates';
+
+  Future<void> _open(BuildContext context, WidgetRef ref, Json cert) async {
+    try {
+      final bytes = await ref.read(apiProvider).bytes('/certificates/${cert.str('id')}/download');
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/${cert.str('certificate_no')}.pdf');
+      await file.writeAsBytes(bytes, flush: true);
+      await OpenFilex.open(file.path, type: 'application/pdf');
+    } catch (e) {
+      if (context.mounted) showSnack(context, ApiException.from(e).message, error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final fmt = Fmt(s.languageCode);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(s.t('certs.title'))),
+      body: RefreshIndicator(
+        onRefresh: () => ref.refresh(getProvider(path).future),
+        child: AsyncView(
+          value: ref.watch(getProvider(path)),
+          onRetry: () => ref.invalidate(getProvider(path)),
+          builder: (raw) {
+            final items = Map<String, dynamic>.from(raw as Map).list('data');
+            if (items.isEmpty) return ListView(children: const [EmptyView(icon: Icons.workspace_premium_outlined)]);
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 16),
+              itemBuilder: (_, i) {
+                final c = items[i];
+                return Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy800, AppColors.navy700]),
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .25), blurRadius: 24, offset: const Offset(0, 10))],
+                  ),
+                  child: Stack(children: [
+                    const Positioned.fill(child: DotPattern(opacity: .14)),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [const BrandMark(size: 38), const Spacer(), StatusChip(c.str('status'))]),
+                        const SizedBox(height: 18),
+                        Text(c.obj('program')?.str('title') ?? '', style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 4),
+                        Text('${fmt.number(c.number('hours'))} ${s.t('common.hours')} · ${fmt.date(c.date('issued_at'))}', style: const TextStyle(color: AppColors.gold300)),
+                        const SizedBox(height: 18),
+                        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(s.t('certs.number'), style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                              Text(c.str('certificate_no'), textDirection: TextDirection.ltr, style: const TextStyle(color: Colors.white, fontFamily: 'monospace')),
+                            ]),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                            child: QrImageView(data: c.str('verification_url'), size: 84, padding: EdgeInsets.zero, eyeStyle: const QrEyeStyle(color: AppColors.navy900, eyeShape: QrEyeShape.square), dataModuleStyle: const QrDataModuleStyle(color: AppColors.navy900, dataModuleShape: QrDataModuleShape.square)),
+                          ),
+                        ]),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => _open(context, ref, c),
+                          style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+                          icon: const Icon(Icons.picture_as_pdf_outlined),
+                          label: Text(s.t('certs.open')),
+                        ),
+                      ]),
+                    ),
+                  ]),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
