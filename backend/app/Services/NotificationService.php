@@ -4,16 +4,20 @@ namespace App\Services;
 
 use App\Models\AppNotification;
 use App\Models\User;
+use App\Services\Push\PushDispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Writes bilingual in-app notifications. Supabase Realtime streams each inserted
- * row to the owning user's web / mobile clients (RLS restricts rows to auth.uid()).
+ * row to the owning user's web / mobile clients (RLS restricts rows to auth.uid()),
+ * and, when Firebase is configured, each notification is also pushed to the users' phones.
  */
 class NotificationService
 {
+    public function __construct(private readonly PushDispatcher $push) {}
+
     /**
      * @param  User|string  $user  user model or id
      * @param  array{ar: string, en: string}  $title
@@ -21,8 +25,10 @@ class NotificationService
      */
     public function send(User|string $user, string $type, array $title, ?array $body = null, array $data = []): AppNotification
     {
-        return AppNotification::create([
-            'user_id' => $user instanceof User ? $user->id : $user,
+        $userId = $user instanceof User ? $user->id : $user;
+
+        $notification = AppNotification::create([
+            'user_id' => $userId,
             'type' => $type,
             'title_ar' => $title['ar'],
             'title_en' => $title['en'],
@@ -30,6 +36,10 @@ class NotificationService
             'body_en' => $body['en'] ?? null,
             'data' => $data,
         ]);
+
+        $this->push->dispatch([$userId], $type, $title, $body, $data + ['notification_id' => $notification->id]);
+
+        return $notification;
     }
 
     /**
@@ -59,6 +69,8 @@ class NotificationService
             DB::table('notifications')->insert($rows);
             $count += count($rows);
         });
+
+        $this->push->dispatch($userIds, $type, $title, $body, $data);
 
         return $count;
     }
