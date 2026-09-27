@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Qatar Government identity: Al Adaam maroon. Used as the notification accent color. -->
+    <color name="brand_primary">#8A1538</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
+</resources>

@@ -1,0 +1,147 @@
+name: Mobile APK
+
+# Builds the Android app (release APK) and publishes it as a GitHub pre-release with a direct download link.
+#
+# API address baked into the app, in order: the `api_url` input, the repository variable TEDC_API_URL, then
+# auto-detection of the live Vercel deployment. Testers can still change it in the app (long-press the emblem
+# on the sign-in screen).
+#
+# Optional repository secrets for a store-grade signature (otherwise the debug key is used, fine for testing):
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: API base URL (e.g. https://your-project.vercel.app/api/v1). Empty = auto-detect.
+        required: false
+        default: ''
+  push:
+    branches: [main, 'claude/**']
+    paths: ['mobile/**', '.github/workflows/mobile-apk.yml']
+
+permissions:
+  contents: write
+  deployments: read
+
+concurrency:
+  group: mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve the API address
+        id: api
+        env:
+          INPUT_URL: ${{ inputs.api_url }}
+          VAR_URL: ${{ vars.TEDC_API_URL }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          probe() { curl -fsS --max-time 20 "$1/public/mobile-config" -o /dev/null; }
+          pick=""
+          for candidate in "$INPUT_URL" "$VAR_URL"; do
+            [ -n "$candidate" ] && { pick="$candidate"; break; }
+          done
+          if [ -z "$pick" ]; then
+            candidates="https://${{ github.event.repository.name }}.vercel.app/api/v1"
+            dep=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/deployments?environment=Production&per_page=5" | jq -r '.[].statuses_url' | head -5)
+            for s in $dep; do
+              u=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "$s" | jq -r '[.[] | select(.state=="success")][0].environment_url // empty')
+              case "$u" in *vercel.app*) candidates="$candidates $u/api/v1";; esac
+            done
+            for c in $candidates; do
+              echo "probing $c"
+              if probe "$c"; then pick="$c"; break; fi
+            done
+            [ -z "$pick" ] && pick="https://${{ github.event.repository.name }}.vercel.app/api/v1"
+          fi
+          echo "url=$pick" >> "$GITHUB_OUTPUT"
+          if probe "$pick"; then status="reachable ✅"; else status="not reachable from CI ⚠️ (change it in the app: long-press the emblem)"; fi
+          echo "API: $pick — $status"
+          echo "api_status=$status" >> "$GITHUB_OUTPUT"
+          curl -fsS --max-time 20 "$pick/public/mobile-config" | jq -c '.data.push | {enabled}' || true
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
+      - name: Release signing (optional)
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > android/app/release.jks
+            printf 'storeFile=release.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > android/key.properties
+            echo "Signing with the release keystore."
+          else
+            echo "No keystore secrets: signing with the debug key (installable for testing)."
+          fi
+
+      - name: Build APK
+        env:
+          API_URL: ${{ steps.api.outputs.url }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          VERSION="1.0.${{ github.run_number }}"
+          flutter build apk --release \
+            --build-name="$VERSION" --build-number="${{ github.run_number }}" \
+            --dart-define=API_URL="$API_URL" \
+            --dart-define=APP_VERSION="$VERSION" \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+          mkdir -p ../dist
+          cp build/app/outputs/flutter-apk/app-release.apk "../dist/tedc-mobile-$VERSION.apk"
+          ls -la ../dist
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tedc-mobile-${{ env.VERSION }}
+          path: dist/*.apk
+
+      - name: Publish pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: TEDC Mobile ${{ env.VERSION }}
+          prerelease: true
+          files: dist/*.apk
+          body: |
+            **Android test build** — install the APK on the phone (allow "Install unknown apps" for your browser/files app).
+
+            - API: `${{ steps.api.outputs.url }}` (${{ steps.api.outputs.api_status }})
+            - Branch: `${{ github.ref_name }}` · commit `${{ github.sha }}`
+            - Sign in with a demo account (password `Tedc@2026!`) or your own account.
+            - Push notifications: enable and configure them on the dashboard → Settings → Notifications.
+            - Change the server inside the app: long-press the emblem on the sign-in screen.
+
+      - name: Summary
+        run: |
+          {
+            echo "### 📱 TEDC Mobile ${VERSION}"
+            echo "- Download: https://github.com/${{ github.repository }}/releases/tag/mobile-v${VERSION}"
+            echo "- API: \`${{ steps.api.outputs.url }}\` — ${{ steps.api.outputs.api_status }}"
+          } >> "$GITHUB_STEP_SUMMARY"

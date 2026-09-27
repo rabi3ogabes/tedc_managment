@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/config.dart';
 import '../../core/providers.dart';
+import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
@@ -87,6 +89,14 @@ class ProfileScreen extends ConsumerWidget {
                       onTap: () => context.push('/school'),
                     ),
                   ],
+                  const Divider(height: 1),
+                  const _PushTile(),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.info_outline, color: AppColors.gold700),
+                    title: Text(s.t('profile.about')),
+                    subtitle: Text('${s.t('profile.version')} ${AppConfig.appVersion} · ${Uri.tryParse(AppConfig.apiUrl)?.host ?? ''}', textDirection: TextDirection.ltr, textAlign: s.isArabic ? TextAlign.right : TextAlign.left),
+                  ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.logout, color: AppColors.danger),
@@ -174,5 +184,35 @@ class _Passport extends StatelessWidget {
           ),
       ],
     ]);
+  }
+}
+
+/// Push notification status on this device, with a retry / permission prompt.
+class _PushTile extends ConsumerWidget {
+  const _PushTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final push = ref.watch(pushServiceProvider);
+    return ValueListenableBuilder<PushStatus>(
+      valueListenable: push.status,
+      builder: (context, status, _) {
+        final (icon, color, key) = switch (status) {
+          PushStatus.enabled => (Icons.notifications_active, AppColors.success, 'push.enabled'),
+          PushStatus.denied => (Icons.notifications_off_outlined, AppColors.warning, 'push.denied'),
+          PushStatus.notConfigured => (Icons.notifications_paused_outlined, AppColors.muted, 'push.notConfigured'),
+          PushStatus.unsupported => (Icons.notifications_off_outlined, AppColors.muted, 'push.unsupported'),
+          PushStatus.error => (Icons.error_outline, AppColors.danger, 'push.error'),
+        };
+        return ListTile(
+          leading: Icon(icon, color: color),
+          title: Text(s.t('push.title')),
+          subtitle: Text(s.t(key)),
+          trailing: status == PushStatus.enabled ? const Icon(Icons.check_circle, color: AppColors.success) : const Icon(Icons.refresh),
+          onTap: status == PushStatus.enabled || status == PushStatus.unsupported ? null : push.start,
+        );
+      },
+    );
   }
 }

@@ -26,15 +26,21 @@ dependencies:
     sdk: flutter
   path_provider: ^2.1.6
   open_filex: ^4.7.0
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/brand/moe-emblem.png
 
   # Tajawal (SIL Open Font License, see assets/fonts/OFL.txt) — Arabic + Latin in one family.
   fonts:
@@ -49,3 +55,15 @@ flutter:
         - asset: assets/fonts/Tajawal-800.ttf
           weight: 800
 
+
+# App icon: the Ministry of Education and Higher Education emblem (assets/brand). Regenerate with:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/brand/app-icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/brand/app-icon-foreground.png"
+  adaptive_icon_monochrome: "assets/brand/app-icon-monochrome.png"
+  min_sdk_android: 23

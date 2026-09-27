@@ -2,6 +2,30 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+/// The Ministry of Education and Higher Education emblem (official artwork, also the app icon) on a
+/// white medallion with a soft Dune glow.
+class OfficialEmblem extends StatelessWidget {
+  const OfficialEmblem({super.key, this.size = 96});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * .14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.gold300, width: 2),
+        boxShadow: [BoxShadow(color: AppColors.gold500.withValues(alpha: .35), blurRadius: size * .35, spreadRadius: 1)],
+      ),
+      child: Image.asset('assets/brand/moe-emblem.png', fit: BoxFit.contain, semanticLabel: 'Ministry of Education and Higher Education'),
+    );
+  }
+}
+
 /// Brand mark: a stylised academy portico in gold on navy.
 class BrandMark extends StatelessWidget {
   const BrandMark({super.key, this.size = 48});

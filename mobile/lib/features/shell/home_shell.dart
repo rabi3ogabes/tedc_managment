@@ -9,6 +9,8 @@ import '../../core/auth/session_store.dart';
 import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/providers.dart';
+import '../../core/push/push_service.dart';
+import '../../core/widgets/push_banner.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
@@ -24,11 +26,32 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   RealtimeChannel? _channel;
   Timer? _poll;
+  StreamSubscription<PushMessage>? _pushMessages;
+  StreamSubscription<String>? _pushTaps;
+  PushMessage? _banner;
+  Timer? _bannerTimer;
 
   @override
   void initState() {
     super.initState();
     _listenForNotifications();
+    _startPush();
+  }
+
+  /// Registers the phone for push notifications (when configured on the dashboard) and handles messages.
+  void _startPush() {
+    final push = ref.read(pushServiceProvider);
+    _pushMessages = push.messages.listen((message) {
+      _refreshBadge();
+      _bannerTimer?.cancel();
+      setState(() => _banner = message);
+      _bannerTimer = Timer(const Duration(seconds: 6), () => mounted ? setState(() => _banner = null) : null);
+    });
+    _pushTaps = push.openedRoutes.listen((route) {
+      _refreshBadge();
+      if (mounted) context.go(route);
+    });
+    push.start();
   }
 
   /// Supabase Realtime when configured (RLS restricts rows to the user); polling otherwise.
@@ -64,6 +87,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   void dispose() {
+    _pushMessages?.cancel();
+    _pushTaps?.cancel();
+    _bannerTimer?.cancel();
     _poll?.cancel();
     if (_channel != null) Supabase.instance.client.removeChannel(_channel!);
     super.dispose();
@@ -77,7 +103,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final num count = meta is Map ? (meta['total'] as num? ?? 0) : 0;
 
     return Scaffold(
-      body: widget.shell,
+      body: Stack(children: [
+        widget.shell,
+        PushBanner(
+          message: _banner,
+          onTap: (route) {
+            setState(() => _banner = null);
+            context.go(route);
+          },
+          onDismiss: () => setState(() => _banner = null),
+        ),
+      ]),
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.navy100))),
         child: NavigationBar(

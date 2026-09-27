@@ -46,6 +46,7 @@ class ApiClient {
 
     dio.interceptors.add(QueuedInterceptorsWrapper(
       onRequest: (options, handler) async {
+        options.baseUrl = AppConfig.apiUrl; // follows a server change made in the app
         final session = await _store.read();
         if (session != null) options.headers['Authorization'] = 'Bearer ${session.accessToken}';
         options.headers['X-Locale'] = locale();

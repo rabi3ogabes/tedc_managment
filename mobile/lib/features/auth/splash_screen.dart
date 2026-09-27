@@ -11,7 +11,7 @@ class SplashScreen extends StatelessWidget {
     return const Scaffold(
       backgroundColor: AppColors.navy950,
       body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        BrandMark(size: 84),
+        OfficialEmblem(size: 104),
         SizedBox(height: 24),
         SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: AppColors.gold500, strokeWidth: 2.5)),
       ])),

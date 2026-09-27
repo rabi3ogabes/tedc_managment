@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'api/api_client.dart';
 import 'auth/session_store.dart';
 import 'models.dart';
+import 'push/push_service.dart';
 
 final sessionStoreProvider = Provider<SessionStore>((ref) => SessionStore());
 
@@ -20,6 +21,7 @@ class LocaleController extends Notifier<Locale> {
   Future<void> set(String code) async {
     state = Locale(code);
     await ref.read(sessionStoreProvider).writeLocale(code);
+    ref.read(pushServiceProvider).updateLocale();
   }
 
   Future<void> toggle() => set(state.languageCode == 'ar' ? 'en' : 'ar');
@@ -57,6 +59,7 @@ class AuthController extends AsyncNotifier<Me?> {
   }
 
   Future<void> logout() async {
+    await ref.read(pushServiceProvider).stop();
     await ref.read(sessionStoreProvider).write(null);
     state = const AsyncData(null);
   }

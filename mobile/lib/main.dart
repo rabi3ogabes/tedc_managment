@@ -8,7 +8,7 @@ import 'core/config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([initializeDateFormatting('ar'), initializeDateFormatting('en')]);
+  await Future.wait([initializeDateFormatting('ar'), initializeDateFormatting('en'), AppConfig.load()]);
 
   if (AppConfig.realtimeEnabled) {
     await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);
