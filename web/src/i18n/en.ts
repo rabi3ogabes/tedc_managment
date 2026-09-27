@@ -85,6 +85,57 @@ const en: Dictionary = {
     demo: 'Demo accounts', demoHint: 'Password for all accounts:',
   },
   admin: {
+    push: {
+      title: 'Notification settings', subtitle: 'Manage mobile push notifications through Google Firebase — no new app release needed.',
+      save: 'Save settings', saved: 'Notification settings saved', unsaved: 'Unsaved', invalidJson: 'This file is not valid JSON',
+      enable: 'Enable push notifications', live: 'Notifications are reaching users’ phones', notLive: 'Complete the three steps to start sending',
+      statusReady: 'Live', statusSetup: 'Setting up',
+      steps: { account: 'Firebase service account', app: 'Android app', enable: 'Enable sending' },
+      stats: { devices: 'Registered devices', users: 'Users', delivered: 'Delivered (7 days)', failed: 'Failed (7 days)' },
+      account: {
+        title: 'Firebase service account', subtitle: 'The server key that sends notifications. Stored encrypted and never shown again.',
+        drop: 'Drop the service account file (JSON) or click to choose', dropHint: 'Firebase → Project settings → Service accounts → Generate new private key',
+        wrongFile: 'This is not a service account file. Choose the file downloaded from “Service accounts”.', verify: 'Test connection to Google',
+        verified: 'Connected to project {{project}}', secure: 'Encrypted on the server',
+      },
+      app: {
+        title: 'Android app', subtitle: 'The mobile app ({{package}}) settings in Firebase. Sent to the app automatically.',
+        drop: 'Drop google-services.json to fill the fields automatically', dropHint: 'Firebase → Project settings → Your apps → Android → google-services.json',
+        wrongFile: 'This is not a google-services.json file', packageMismatch: 'No app with the id {{package}} in this file; the first app was used. Add an Android app with this id in Firebase.',
+        appId: 'App ID', apiKey: 'API key', senderId: 'Sender ID', projectId: 'Project ID', bucket: 'Storage bucket (optional)',
+      },
+      categories: {
+        title: 'What reaches the phone?', subtitle: 'Choose which notification categories are pushed. All of them stay in the app and the platform.',
+        items: {
+          registration: { title: 'Registrations & nominations', hint: 'Approved, rejected or waitlisted' },
+          session: { title: 'Session reminders', hint: 'One day before a training session' },
+          task: { title: 'Tasks & reviews', hint: 'Submitted tasks approved or changes requested' },
+          certificate: { title: 'Certificates', hint: 'A new certificate is ready to download' },
+          impact: { title: 'Impact measurement', hint: '30/60/90-day surveys and supervisor evaluation requests' },
+          announcement: { title: 'Announcements', hint: 'Communication center announcements' },
+          training_need: { title: 'Training needs', hint: 'Updates on training need requests' },
+        },
+      },
+      android: { channelAr: 'Notification channel name (Arabic)', channelEn: 'Notification channel name (English)', color: 'Notification color' },
+      test: {
+        title: 'Send a test notification', subtitle: 'Check that notifications reach the phone', me: 'My devices', all: 'All devices',
+        titleLabel: 'Title', titlePlaceholder: 'Test notification', bodyLabel: 'Message', bodyPlaceholder: 'Push notifications are working ✓', send: 'Send now',
+        notReady: 'Complete the setup and enable sending first.', saveFirst: 'Save your changes before sending.', result: 'Delivered to {{delivered}} of {{devices}} devices',
+      },
+      guide: {
+        title: 'Quick setup guide', console: 'Open Firebase Console',
+        steps: [
+          'Create a project in Firebase Console (or use an existing one).',
+          'Add an Android app with the package name {{package}}, download google-services.json and drop it in step 2.',
+          'In Project settings → Service accounts, generate a new private key and drop the JSON file in step 1.',
+          'Enable sending and save, then sign in on the app, allow notifications and send a test.',
+        ],
+      },
+      log: {
+        title: 'Delivery log', empty: 'No push notifications sent yet', notification: 'Notification', when: 'When', devices: 'Devices', delivered: 'Delivered', failed: 'Failed',
+        ok: 'Delivered', partial: 'Partial', error: 'Failed', details: 'Details', pruned: '{{count}} inactive devices removed',
+      },
+    },
     brand: {
       title: 'Brand Studio', subtitle: 'Control the platform colors, buttons, links, banners, backgrounds and patterns — changes preview live before you publish',
       publish: 'Publish theme', discard: 'Discard changes', reset: 'Restore default', unsaved: 'Unpublished changes', published: 'Theme published successfully', resetDone: 'Default theme restored',
@@ -128,7 +179,7 @@ const en: Dictionary = {
       contrast: { title: 'Accessibility check', text: 'Text on background', primary: 'White text on primary', accent: 'Accent button text', link: 'Links on cards', pass: 'Excellent', warn: 'Acceptable', fail: 'Poor' },
     },
     menu: {
-      appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
+      pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
       certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', impact: 'Impact',
       communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', users: 'Users & roles',
       audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },

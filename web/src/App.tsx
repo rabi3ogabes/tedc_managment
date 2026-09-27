@@ -35,6 +35,7 @@ const EmployeeProfile = lazy(() => import('@/pages/admin/EmployeeProfile'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
 const BrandStudio = lazy(() => import('@/pages/admin/BrandStudio'))
+const PushSettings = lazy(() => import('@/pages/admin/PushSettings'))
 
 const PortalHome = lazy(() => import('@/pages/portal/PortalHome'))
 const MyTraining = lazy(() => import('@/pages/portal/MyTraining'))
@@ -92,6 +93,7 @@ export default function App() {
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="appearance" element={<RequireAuth permission="settings.manage"><BrandStudio /></RequireAuth>} />
+          <Route path="settings/notifications" element={<RequireAuth permission="settings.manage"><PushSettings /></RequireAuth>} />
         </Route>
 
         <Route path="portal" element={<RequireAuth><AdminLayout portal /></RequireAuth>}>

@@ -83,6 +83,57 @@ const ar = {
     demo: 'حسابات تجريبية', demoHint: 'كلمة المرور لجميع الحسابات:',
   },
   admin: {
+    push: {
+      title: 'إعدادات الإشعارات', subtitle: 'أدِر الإشعارات الفورية لتطبيق الجوال عبر Google Firebase — دون إصدار تطبيق جديد.',
+      save: 'حفظ الإعدادات', saved: 'تم حفظ إعدادات الإشعارات', unsaved: 'غير محفوظ', invalidJson: 'الملف ليس JSON صالحاً',
+      enable: 'تفعيل الإشعارات الفورية', live: 'تصل الإشعارات إلى هواتف المستخدمين الآن', notLive: 'أكمل الخطوات الثلاث لتفعيل الإرسال',
+      statusReady: 'تعمل', statusSetup: 'قيد الإعداد',
+      steps: { account: 'حساب خدمة Firebase', app: 'تطبيق Android', enable: 'تفعيل الإرسال' },
+      stats: { devices: 'أجهزة مسجلة', users: 'مستخدمون', delivered: 'أُرسلت (7 أيام)', failed: 'تعذّر إرسالها (7 أيام)' },
+      account: {
+        title: 'حساب خدمة Firebase', subtitle: 'مفتاح الخادم الذي يرسل الإشعارات. يُحفظ مشفّراً ولا يُعرض مجدداً.',
+        drop: 'اسحب ملف حساب الخدمة (JSON) أو اضغط للاختيار', dropHint: 'Firebase ← إعدادات المشروع ← حسابات الخدمة ← إنشاء مفتاح خاص جديد',
+        wrongFile: 'هذا ليس ملف حساب خدمة. اختر الملف المنزّل من «حسابات الخدمة».', verify: 'اختبار الاتصال بـ Google',
+        verified: 'تم الاتصال بمشروع {{project}} بنجاح', secure: 'مشفّر على الخادم',
+      },
+      app: {
+        title: 'تطبيق Android', subtitle: 'إعدادات تطبيق الجوال ({{package}}) في Firebase. تُرسل للتطبيق تلقائياً.',
+        drop: 'اسحب ملف google-services.json لتعبئة الحقول تلقائياً', dropHint: 'Firebase ← إعدادات المشروع ← تطبيقاتك ← Android ← google-services.json',
+        wrongFile: 'هذا ليس ملف google-services.json', packageMismatch: 'لم يُعثر على تطبيق بالمعرّف {{package}} في الملف؛ استُخدم أول تطبيق. أضف تطبيق Android بهذا المعرّف في Firebase.',
+        appId: 'معرّف التطبيق (App ID)', apiKey: 'مفتاح API', senderId: 'رقم المرسل (Sender ID)', projectId: 'معرّف المشروع', bucket: 'حاوية التخزين (اختياري)',
+      },
+      categories: {
+        title: 'ما الذي يُرسل للهاتف؟', subtitle: 'اختر فئات الإشعارات التي تصل كإشعار فوري. تبقى جميعها داخل التطبيق والمنصة.',
+        items: {
+          registration: { title: 'التسجيل والترشيح', hint: 'قبول أو رفض أو إدراج في قائمة الانتظار' },
+          session: { title: 'تذكير الجلسات', hint: 'قبل موعد الجلسة التدريبية بيوم' },
+          task: { title: 'المهام والتقييم', hint: 'قبول المهام المسلّمة أو طلب تعديلها' },
+          certificate: { title: 'الشهادات', hint: 'إصدار شهادة جديدة جاهزة للتحميل' },
+          impact: { title: 'قياس الأثر', hint: 'استبيانات 30/60/90 يوماً وطلبات تقييم المشرف' },
+          announcement: { title: 'الإعلانات', hint: 'إعلانات مركز التواصل الموجهة للمستخدمين' },
+          training_need: { title: 'الاحتياجات التدريبية', hint: 'تحديثات على طلبات الاحتياج التدريبي' },
+        },
+      },
+      android: { channelAr: 'اسم قناة الإشعارات (عربي)', channelEn: 'اسم قناة الإشعارات (English)', color: 'لون الإشعار' },
+      test: {
+        title: 'إرسال إشعار تجريبي', subtitle: 'تحقّق من وصول الإشعارات إلى الهاتف', me: 'أجهزتي', all: 'جميع الأجهزة',
+        titleLabel: 'العنوان', titlePlaceholder: 'إشعار تجريبي', bodyLabel: 'النص', bodyPlaceholder: 'الإشعارات تعمل بنجاح ✓', send: 'إرسال الآن',
+        notReady: 'أكمل الإعداد وفعّل الإرسال أولاً.', saveFirst: 'احفظ التغييرات قبل الإرسال.', result: 'وصل الإشعار إلى {{delivered}} من {{devices}} جهاز',
+      },
+      guide: {
+        title: 'دليل الإعداد السريع', console: 'فتح Firebase Console',
+        steps: [
+          'أنشئ مشروعاً في Firebase Console (أو استخدم مشروعاً قائماً).',
+          'أضف تطبيق Android بمعرّف الحزمة {{package}} ثم نزّل ملف google-services.json واسحبه في الخطوة 2.',
+          'من إعدادات المشروع ← حسابات الخدمة، أنشئ مفتاحاً خاصاً جديداً واسحب ملف JSON في الخطوة 1.',
+          'فعّل الإرسال واحفظ، ثم سجّل الدخول في التطبيق واسمح بالإشعارات، وأرسل إشعاراً تجريبياً.',
+        ],
+      },
+      log: {
+        title: 'سجل الإرسال', empty: 'لم تُرسل إشعارات فورية بعد', notification: 'الإشعار', when: 'الوقت', devices: 'الأجهزة', delivered: 'وصلت', failed: 'فشلت',
+        ok: 'ناجح', partial: 'جزئي', error: 'فشل', details: 'التفاصيل', pruned: 'أُزيل {{count}} جهاز غير نشط',
+      },
+    },
     brand: {
       title: 'استوديو الهوية البصرية', subtitle: 'تحكّم في ألوان المنصة والأزرار والروابط واللافتات والخلفيات والنقوش — تظهر التغييرات مباشرة قبل النشر',
       publish: 'نشر الهوية', discard: 'تجاهل التغييرات', reset: 'استعادة الافتراضي', unsaved: 'تغييرات غير منشورة', published: 'تم نشر الهوية البصرية بنجاح', resetDone: 'تمت استعادة الهوية الافتراضية',
@@ -126,7 +177,7 @@ const ar = {
       contrast: { title: 'فحص إمكانية الوصول', text: 'النص على الخلفية', primary: 'نص أبيض على اللون الأساسي', accent: 'نص زر التمييز', link: 'الروابط على البطاقات', pass: 'ممتاز', warn: 'مقبول', fail: 'ضعيف' },
     },
     menu: {
-      appearance: 'الهوية البصرية', dashboard: 'لوحة القيادة', programs: 'البرامج', registrations: 'التسجيل والترشيح', attendance: 'الحضور', tasks: 'المهام',
+      pushSettings: 'إعدادات الإشعارات', appearance: 'الهوية البصرية', dashboard: 'لوحة القيادة', programs: 'البرامج', registrations: 'التسجيل والترشيح', attendance: 'الحضور', tasks: 'المهام',
       certificates: 'الشهادات', needs: 'الاحتياجات التدريبية', analytics: 'التحليلات التنفيذية', geo: 'التحليل الجغرافي', impact: 'قياس الأثر',
       communication: 'مركز التواصل', ai: 'المساعد الذكي', schools: 'المدارس', employees: 'الموظفون', trainers: 'المدربون', users: 'المستخدمون والصلاحيات',
       audit: 'سجل التدقيق', reports: 'التقارير', groups: { overview: 'نظرة عامة', lifecycle: 'دورة التدريب', insights: 'التحليلات والذكاء', organization: 'المؤسسة', security: 'الأمان', settings: 'الإعدادات' },
