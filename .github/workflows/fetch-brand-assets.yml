@@ -24,6 +24,17 @@ jobs:
         run: |
           set -u
           mkdir -p brand-source
+          # edu.gov.qa does not send its intermediate certificate. Browsers fetch it from the certificate's
+          # AIA "CA Issuers" URL; do the same so TLS is still fully verified.
+          cp /etc/ssl/certs/ca-certificates.crt bundle.pem
+          echo | openssl s_client -connect www.edu.gov.qa:443 -servername www.edu.gov.qa -showcerts 2>/dev/null \
+            | awk '/BEGIN CERT/{f=1} f{print} /END CERT/{exit}' > leaf.pem
+          for aia in $(openssl x509 -in leaf.pem -noout -text | grep -oE 'CA Issuers - URI:[^ ]+' | sed 's/CA Issuers - URI://'); do
+            echo "intermediate: $aia"
+            curl -sSL --max-time 30 "$aia" -o inter.bin || continue
+            (openssl x509 -inform DER -in inter.bin -outform PEM 2>/dev/null || openssl x509 -in inter.bin -outform PEM) >> bundle.pem
+          done
+          export CURL_CA_BUNDLE="$PWD/bundle.pem"
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36"
           for page in https://www.edu.gov.qa/ar https://www.edu.gov.qa/en https://www.edu.gov.qa/; do
             curl -sSL -A "$UA" --max-time 40 "$page" -o page.html || continue
