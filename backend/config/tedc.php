@@ -23,7 +23,8 @@ return [
     */
     'auth' => [
         'driver' => env('TEDC_AUTH_DRIVER', 'local'),
-        'jwt_secret' => env('SUPABASE_JWT_SECRET', env('APP_KEY')),
+        // Empty SUPABASE_JWT_SECRET falls back to APP_KEY (local driver).
+        'jwt_secret' => env('SUPABASE_JWT_SECRET') ?: env('APP_KEY'),
         'jwt_audience' => env('TEDC_JWT_AUDIENCE', 'authenticated'),
         'token_ttl' => (int) env('TEDC_TOKEN_TTL', 3600),
         'refresh_ttl' => (int) env('TEDC_REFRESH_TTL', 60 * 60 * 24 * 14),

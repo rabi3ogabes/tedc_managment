@@ -22,6 +22,17 @@ class AuthAndRbacTest extends TestCase
             ->assertJsonPath('data.id', $user->id);
     }
 
+    public function test_login_works_when_supabase_jwt_secret_is_empty(): void
+    {
+        // Regression: `SUPABASE_JWT_SECRET=` (empty, as in .env.example) caused "Provided key is too short".
+        config(['tedc.auth.jwt_secret' => '']);
+        $this->makeUser(Role::SUPER_ADMIN, ['email' => 'root@tedc.qa']);
+
+        $token = $this->postJson('/api/v1/auth/login', ['email' => 'root@tedc.qa', 'password' => 'Secret#12345'])->assertOk()->json('access_token');
+
+        $this->withHeader('Authorization', 'Bearer '.$token)->getJson('/api/v1/auth/me')->assertOk();
+    }
+
     public function test_invalid_credentials_are_rejected_in_arabic_by_default(): void
     {
         $this->makeUser(Role::EMPLOYEE, ['email' => 'x@tedc.qa']);

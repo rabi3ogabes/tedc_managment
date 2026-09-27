@@ -7,6 +7,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
 
@@ -23,7 +24,7 @@ class JwtVerifier
         $alg = $header['alg'] ?? null;
 
         $keys = $alg === 'HS256'
-            ? new Key((string) config('tedc.auth.jwt_secret'), 'HS256')
+            ? new Key($this->secret(), 'HS256')
             : $this->jwks();
 
         $claims = JWT::decode($jwt, $keys);
@@ -53,17 +54,32 @@ class JwtVerifier
             'iat' => $now,
             'exp' => $now + $ttl,
             'role' => 'authenticated',
-        ], $claims), (string) config('tedc.auth.jwt_secret'), 'HS256');
+        ], $claims), $this->secret(), 'HS256');
     }
 
     public function decodeRefresh(string $jwt): object
     {
-        $claims = JWT::decode($jwt, new Key((string) config('tedc.auth.jwt_secret'), 'HS256'));
+        $claims = JWT::decode($jwt, new Key($this->secret(), 'HS256'));
         if (($claims->typ ?? null) !== 'refresh') {
             throw new UnexpectedValueException('Not a refresh token.');
         }
 
         return $claims;
+    }
+
+    /**
+     * HS256 signing secret. Falls back to APP_KEY when SUPABASE_JWT_SECRET is empty, and
+     * fails loudly (instead of the cryptic "key is too short") when neither is configured.
+     */
+    private function secret(): string
+    {
+        $secret = (string) (config('tedc.auth.jwt_secret') ?: config('app.key'));
+
+        if (strlen($secret) < 32) {
+            throw new RuntimeException('JWT secret is missing or shorter than 32 characters. Run `php artisan key:generate` or set SUPABASE_JWT_SECRET.');
+        }
+
+        return $secret;
     }
 
     private function header(string $jwt): array
