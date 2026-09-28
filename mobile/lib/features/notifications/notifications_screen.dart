@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
@@ -56,12 +57,14 @@ class NotificationsScreen extends ConsumerWidget {
                   title: Text(n.str('title'), style: TextStyle(fontWeight: unread ? FontWeight.w800 : FontWeight.w600)),
                   subtitle: Text('${n.str('body')}\n${fmt.dateTime(n.date('created_at'))}'),
                   isThreeLine: true,
-                  onTap: unread
-                      ? () async {
-                          await ref.read(apiProvider).post('/me/notifications/${n.str('id')}/read');
-                          _refresh(ref);
-                        }
-                      : null,
+                  onTap: () async {
+                    final surveyId = n.obj('data')?.str('needs_survey_id') ?? '';
+                    if (surveyId.isNotEmpty) context.push('/needs-surveys/$surveyId');
+                    if (unread) {
+                      await ref.read(apiProvider).post('/me/notifications/${n.str('id')}/read');
+                      _refresh(ref);
+                    }
+                  },
                 );
               },
             );
@@ -76,6 +79,7 @@ class NotificationsScreen extends ConsumerWidget {
     if (type.startsWith('registration')) return Icons.how_to_reg_outlined;
     if (type.startsWith('task')) return Icons.assignment_outlined;
     if (type.startsWith('impact')) return Icons.insights;
+    if (type.startsWith('needs_survey')) return Icons.assignment_outlined;
     if (type.startsWith('session')) return Icons.event_outlined;
     if (type == 'announcement') return Icons.campaign_outlined;
     return Icons.notifications_outlined;

@@ -45,6 +45,8 @@ class PushService {
   /// Where a tap on a notification should lead, from its type (server-provided route as fallback).
   static String routeFor(Map<String, dynamic> data) {
     final type = (data['type'] ?? '').toString();
+    final surveyId = (data['needs_survey_id'] ?? '').toString();
+    if (type.startsWith('needs_survey') && surveyId.isNotEmpty) return '/needs-surveys/$surveyId';
     if (type.startsWith('certificate')) return '/certificates';
     if (type.startsWith('registration') || type.startsWith('task') || type.startsWith('impact') || type.startsWith('session')) return '/training';
     final route = (data['route'] ?? '').toString();

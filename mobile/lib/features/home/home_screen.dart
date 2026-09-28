@@ -9,6 +9,7 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
+import '../needs/needs_survey_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -24,7 +25,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: RefreshIndicator(
         color: AppColors.gold500,
-        onRefresh: () => ref.refresh(getProvider(path).future),
+        onRefresh: () {
+          ref.invalidate(getProvider(needsListPath));
+          return ref.refresh(getProvider(path).future);
+        },
         child: AsyncView(
           value: home,
           onRetry: () => ref.invalidate(getProvider(path)),
@@ -48,6 +52,7 @@ class HomeScreen extends ConsumerWidget {
                   ]),
                   const SizedBox(height: 16),
                   _ScanCard(onTap: () => context.push('/scan')),
+                  const PendingNeedsBanner(),
                   if (stats.number('pending_surveys') > 0) ...[
                     const SizedBox(height: 12),
                     Card(

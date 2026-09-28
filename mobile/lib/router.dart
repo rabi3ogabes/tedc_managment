@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/providers.dart';
+import 'features/needs/needs_survey_screen.dart';
 import 'features/attendance/scan_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/splash_screen.dart';
@@ -44,6 +45,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/registrations/:id', builder: (_, s) => RegistrationScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/tasks/:id', builder: (_, s) => TaskScreen(taskId: s.pathParameters['id']!)),
       GoRoute(path: '/surveys/:id', builder: (_, s) => SurveyScreen(surveyId: s.pathParameters['id']!)),
+      GoRoute(path: '/needs-surveys', builder: (_, _) => const NeedsSurveysScreen()),
+      GoRoute(path: '/needs-surveys/:id', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: NeedsSurveyScreen(id: s.pathParameters['id']!))),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => HomeShell(shell: shell),
         branches: [

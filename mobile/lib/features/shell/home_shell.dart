@@ -49,7 +49,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     });
     _pushTaps = push.openedRoutes.listen((route) {
       _refreshBadge();
-      if (mounted) context.go(route);
+      if (mounted) _open(route);
     });
     push.start();
   }
@@ -95,6 +95,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     super.dispose();
   }
 
+  /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
+  void _open(String route) => route.startsWith('/needs-surveys/') ? context.push(route) : context.go(route);
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
@@ -109,7 +112,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           message: _banner,
           onTap: (route) {
             setState(() => _banner = null);
-            context.go(route);
+            _open(route);
           },
           onDismiss: () => setState(() => _banner = null),
         ),
