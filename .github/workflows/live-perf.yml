@@ -1,0 +1,28 @@
+name: Live performance
+
+# Measures response times of the deployed platform: first hit (possibly a cold start) and warm repeats.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site address
+        required: false
+        default: https://tedc-managment.vercel.app
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Timings
+        env:
+          BASE: ${{ inputs.base_url }}
+        run: |
+          fmt='%{http_code} ttfb=%{time_starttransfer}s total=%{time_total}s size=%{size_download}B cache=%header{x-vercel-cache}\n'
+          for path in / /api/v1/public/health /api/v1/public/theme /api/v1/public/home /api/v1/public/stats "/api/v1/public/programs?per_page=12" /api/v1/public/mobile-config; do
+            echo "== $path"
+            for i in 1 2 3 4; do curl -s -o /dev/null -w "$fmt" "$BASE$path"; done
+          done
+          echo "== login"
+          for i in 1 2 3; do curl -s -o /dev/null -w "$fmt" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"email":"admin@tedc.qa","password":"Tedc@2026!"}' "$BASE/api/v1/auth/login"; done
+          echo "== static assets"
+          curl -s "$BASE/" | grep -oE '/assets/[^"]+\.(js|css)' | sort -u | while read a; do curl -s -o /dev/null -w "$a $fmt" --compressed "$BASE$a"; done
