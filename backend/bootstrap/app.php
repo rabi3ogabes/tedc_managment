@@ -11,13 +11,16 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up',
+        // Liveness probe for load balancers: plain JSON outside the web middleware group
+        // (no session, cookies or views), so it answers wherever PHP runs.
+        then: fn () => Route::get('/up', fn () => response()->json(['status' => 'up']))->name('health'),
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.

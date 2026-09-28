@@ -55,6 +55,11 @@ class SystemEndpointsTest extends TestCase
         Http::assertSent(fn ($r) => $r->method() === 'POST' && str_ends_with($r->url(), '/auth/v1/admin/users') && $r['password'] === 'Tedc@2026!');
     }
 
+    public function test_liveness_probe_is_plain_json_without_session_cookies(): void
+    {
+        $this->get('/up')->assertOk()->assertExactJson(['status' => 'up'])->assertCookieMissing(config('session.cookie'));
+    }
+
     public function test_health_reports_database_state_without_secrets(): void
     {
         $this->getJson('/api/v1/public/health')->assertOk()
