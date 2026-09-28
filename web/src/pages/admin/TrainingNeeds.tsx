@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BarsChart, DonutChart } from '@/components/admin/charts'
 import { Badge, Button, Card, CardTitle, Field, Modal, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
@@ -9,6 +10,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { LaravelPage } from '@/lib/types'
+import SurveysTab from './needs/SurveysTab'
 
 type Need = { id: string; skill_name: string; employees_count: number; priority: string; reason: string; status: string; target_group?: string; created_at: string; school?: { name_ar: string; name_en: string; region: string } }
 type Analytics = {
@@ -24,7 +26,11 @@ export default function TrainingNeeds() {
   const { t, i18n } = useTranslation()
   const { can } = useAuth()
   const isCenter = can('needs.manage')
-  const [tab, setTab] = useState<'analytics' | 'requests'>(isCenter ? 'analytics' : 'requests')
+  const [params, setParams] = useSearchParams()
+  type Tab = 'surveys' | 'analytics' | 'requests'
+  const requested = params.get('tab') as Tab | null
+  const tab: Tab = isCenter ? (requested && ['surveys', 'analytics', 'requests'].includes(requested) ? requested : 'surveys') : 'requests'
+  const setTab = (next: Tab) => setParams(next === 'surveys' ? {} : { tab: next }, { replace: true })
   const [creating, setCreating] = useState(false)
   const list = useGet<LaravelPage<Need>>('/admin/training-needs', { per_page: 50 })
   const analytics = useGet<{ data: Analytics }>(isCenter ? '/admin/training-needs/analytics' : null)
@@ -48,7 +54,9 @@ export default function TrainingNeeds() {
   return (
     <>
       <PageHeader title={t('admin.needs.title')} actions={can('needs.submit') && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>{t('admin.needs.submit')}</Button>} />
-      {isCenter && <Tabs value={tab} onChange={setTab} tabs={[{ id: 'analytics', label: t('admin.menu.analytics') }, { id: 'requests', label: t('admin.needs.title') }]} />}
+      {isCenter && <Tabs value={tab} onChange={setTab} tabs={[{ id: 'surveys', label: t('surveys.tab') }, { id: 'analytics', label: t('admin.menu.analytics') }, { id: 'requests', label: t('admin.needs.title') }]} />}
+
+      {tab === 'surveys' && <SurveysTab />}
 
       {tab === 'analytics' && (analytics.isLoading || !a ? <Spinner /> : (
         <div className="space-y-6">

@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import ar from './ar'
 import en from './en'
+import { surveysAr, surveysEn } from './surveys'
 
 export type Locale = 'ar' | 'en'
 
@@ -22,7 +23,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: ar }, en: { translation: en } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr } }, en: { translation: { ...en, surveys: surveysEn } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { Bell, CheckCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { Button, Card, Empty, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api } from '@/lib/api'
@@ -11,7 +12,12 @@ export default function Notifications() {
   const { t } = useTranslation()
   const { data, isLoading, refetch } = useGet<Paginated<NotificationItem>>('/me/notifications')
   const readAll = async () => { await api.post('/me/notifications/read-all'); refetch() }
-  const read = async (n: NotificationItem) => { if (!n.read) { await api.post(`/me/notifications/${n.id}/read`); refetch() } }
+  const navigate = useNavigate()
+  const read = async (n: NotificationItem) => {
+    if (!n.read) { await api.post(`/me/notifications/${n.id}/read`); refetch() }
+    // Notifications may carry an in-app link (e.g. a survey that opens in a popup).
+    if (typeof n.data?.link === 'string' && n.data.link.startsWith('/')) navigate(n.data.link)
+  }
   return (
     <>
       <PageHeader title={t('portal.notifications')} actions={<Button variant="outline" icon={<CheckCheck className="size-4" />} onClick={readAll}>{t('portal.markAllRead')}</Button>} />

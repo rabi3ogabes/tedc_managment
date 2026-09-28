@@ -2,6 +2,7 @@ import { Award, BookOpen, CalendarClock, ClipboardList, Clock, MapPin, Sparkles,
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ProgramCover } from '@/components/public/ProgramCard'
+import { PendingSurveysBanner } from '@/components/surveys/NeedsSurveys'
 import { Badge, Card, CardTitle, Empty, PageHeader, Progress, Spinner, StatCard } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
@@ -25,6 +26,7 @@ export default function PortalHome() {
   return (
     <>
       <PageHeader title={<>{t('portal.welcome')} {d.greeting_name}</>} />
+      <PendingSurveysBanner />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard accent label={t('portal.totalHours')} value={fmt.number(d.stats.training_hours)} icon={<Clock className="size-5" />} />
         <StatCard label={t('portal.activePrograms')} value={fmt.number(d.stats.active_programs)} icon={<BookOpen className="size-5" />} />

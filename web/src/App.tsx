@@ -25,6 +25,7 @@ const ProgramManage = lazy(() => import('@/pages/admin/ProgramManage'))
 const SessionQr = lazy(() => import('@/pages/admin/SessionQr'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
+const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
@@ -93,6 +94,7 @@ export default function App() {
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="needs" element={<TrainingNeeds />} />
+          <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
           <Route path="geo" element={<Geographic />} />
           <Route path="ai" element={<AiAssistant />} />

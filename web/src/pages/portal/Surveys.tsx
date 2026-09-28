@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { NeedsSurveys } from '@/components/surveys/NeedsSurveys'
 import { Badge, Button, Card, Empty, Field, PageHeader, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -13,7 +14,9 @@ export default function Surveys() {
   const { data, isLoading, refetch } = useGet<{ data: Survey[] }>('/me/surveys')
   return (
     <>
-      <PageHeader title={t('portal.surveys')} />
+      <PageHeader title={t('surveys.portal.title')} subtitle={t('surveys.portal.subtitle')} />
+      <NeedsSurveys />
+      <h2 className="mb-4 mt-10 text-lg font-bold text-navy-900">{t('surveys.portal.impact')}</h2>
       {isLoading ? <Spinner /> : !data?.data.length ? <Card><Empty /></Card> : (
         <div className="grid gap-4 lg:grid-cols-2">{data.data.map((s) => <SurveyCard key={s.id} survey={s} onDone={refetch} />)}</div>
       )}
