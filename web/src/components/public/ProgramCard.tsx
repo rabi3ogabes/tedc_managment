@@ -1,7 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, Clock, MapPin, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from '@/components/ui'
+import { api } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 
@@ -35,9 +37,15 @@ export function ProgramCover({ program, className = 'h-44', labels = true }: { p
 }
 
 export default function ProgramCard({ program }: { program: Program }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const qc = useQueryClient()
+  // Warm the detail page while the pointer is on its way, so the click feels instant.
+  const prefetch = () => {
+    const url = `/public/programs/${program.code}`
+    void qc.prefetchQuery({ queryKey: [url, undefined, i18n.language], queryFn: async () => (await api.get(url)).data, staleTime: 60_000 })
+  }
   return (
-    <Link to={`/programs/${program.code}`} className="group card flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-glass">
+    <Link to={`/programs/${program.code}`} onMouseEnter={prefetch} onFocus={prefetch} onTouchStart={prefetch} className="group card flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-glass">
       <ProgramCover program={program} />
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-2 flex items-center gap-2">

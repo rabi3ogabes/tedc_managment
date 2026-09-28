@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ProgramCard from '@/components/public/ProgramCard'
 import { PageHero } from '@/components/public/Section'
-import { Button, Empty, Spinner } from '@/components/ui'
+import { Button, Empty } from '@/components/ui'
+import { ProgramGridSkeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import type { Paginated, Program } from '@/lib/types'
 
@@ -36,7 +37,7 @@ export default function Programs() {
             {(['in_person', 'online', 'hybrid'] as const).map((m) => <Chip key={m} active={mode === m} onClick={() => setMode(mode === m ? '' : m)}>{t(`modes.${m}`)}</Chip>)}
             <Chip active={open} onClick={() => setOpen(!open)}>{t('programs.openOnly')}</Chip>
           </div>
-          {isLoading ? <Spinner /> : !data?.data.length ? <Empty /> : (
+          {isLoading ? <ProgramGridSkeleton /> : !data?.data.length ? <Empty /> : (
             <>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{data.data.map((p) => <ProgramCard key={p.id} program={p} />)}</div>
               {data.meta && data.meta.last_page > 1 && (

@@ -24,10 +24,10 @@ export type Theme = {
  * They are used automatically whenever no uploaded asset is configured in the Brand Studio.
  */
 export const BRAND_FILES = {
-  logo_ar: '/brand/logo-ar.png',
-  logo_en: '/brand/logo-en.png',
-  logo_ar_light: '/brand/logo-ar-white.png',
-  logo_en_light: '/brand/logo-en-white.png',
+  logo_ar: '/brand/logo-ar.webp',
+  logo_en: '/brand/logo-en.webp',
+  logo_ar_light: '/brand/logo-ar-white.webp',
+  logo_en_light: '/brand/logo-en-white.webp',
 }
 
 /** Qatar Government identity (Government Communications Office brand guidelines). */

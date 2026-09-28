@@ -1,21 +1,44 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+import { QueryClient } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import '@/i18n'
 import './index.css'
-import 'leaflet/dist/leaflet.css'
 import App from './App'
 import { AuthProvider } from '@/lib/auth'
 import { ThemeProvider } from '@/lib/ThemeProvider'
 
+import i18n from '@/i18n'
+import { api } from '@/lib/api'
+
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60_000, retry: 1, refetchOnWindowFocus: false } },
+  defaultOptions: { queries: { staleTime: 60_000, gcTime: 24 * 60 * 60_000, retry: 1, refetchOnWindowFocus: false } },
 })
+
+// Public website data is remembered between visits: pages render instantly from the last copy while a fresh
+// one loads. Personal data (/me, /admin) is never written to the browser's storage.
+const persister = createSyncStoragePersister({ storage: window.localStorage, key: 'tedc.cache', throttleTime: 2000 })
+const persistOptions = {
+  persister,
+  maxAge: 24 * 60 * 60_000,
+  buster: __BUILD_ID__,
+  dehydrateOptions: {
+    shouldDehydrateQuery: (q: { queryKey: readonly unknown[]; state: { status: string } }) =>
+      q.state.status === 'success' && String(q.queryKey[0] ?? '').startsWith('/public/'),
+  },
+}
+
+// Start loading the home page data in parallel with the application code (no request waterfall).
+if (window.location.pathname === '/') {
+  const lang = i18n.language === 'en' ? 'en' : 'ar'
+  void queryClient.prefetchQuery({ queryKey: ['/public/home', undefined, lang], queryFn: async () => (await api.get('/public/home')).data })
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
@@ -23,6 +46,6 @@ createRoot(document.getElementById('root')!).render(
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>,
 )

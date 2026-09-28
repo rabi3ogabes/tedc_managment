@@ -1,3 +1,4 @@
+import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, TileLayer, Tooltip as MapTooltip } from 'react-leaflet'
 import { useTranslation } from 'react-i18next'
 import { Card, CardTitle, PageHeader, Progress, Spinner } from '@/components/ui'

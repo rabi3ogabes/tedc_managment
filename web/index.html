@@ -8,14 +8,41 @@
     <meta name="description" content="منصة إدارة التدريب وقياس الأثر — مركز التدريب والتطوير التربوي" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts load without blocking the first paint (system font first, then swap), trimmed to the weights in use. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=El+Messiri:wght@700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=El+Messiri:wght@700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      />
+    </noscript>
+    <link rel="preload" as="image" href="/brand/emblem-splash.webp" type="image/webp" />
+    <style>
+      /* Branded splash shown instantly, before the application code has loaded (React replaces it). */
+      #splash { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #fff 0%, #f8f6f2 65%); font-family: system-ui, sans-serif; }
+      #splash .ring { position: relative; width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 20px 60px -20px rgba(138, 21, 56, .35), 0 0 0 1px rgba(162, 148, 117, .35); }
+      #splash .ring::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; border-top-color: #8a1538; border-right-color: #a29475; animation: splash-spin 1.1s linear infinite; }
+      #splash img { width: 72px; height: auto; }
+      #splash p { margin: 22px 0 0; color: #8a1538; font-weight: 700; text-align: center; }
+      @keyframes splash-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #splash .ring::after { animation: none; } }
+    </style>
     <title>مركز التدريب والتطوير التربوي</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="splash" role="status" aria-label="جارٍ التحميل">
+        <div>
+          <div class="ring"><img src="/brand/emblem-splash.webp" alt="" width="72" height="67" /></div>
+          <p>مركز التدريب والتطوير التربوي</p>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

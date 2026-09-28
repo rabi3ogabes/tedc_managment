@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { sessionStore } from './api'
@@ -8,10 +8,11 @@ const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 // Publishable key (sb_publishable_…) or legacy anon key — never the secret key.
 const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
 
-let client: SupabaseClient | null = null
-function supabase() {
+let client: Promise<SupabaseClient> | null = null
+/** The Supabase SDK (~60 KB) is loaded on demand, only for signed-in users with Realtime configured. */
+function supabase(): Promise<SupabaseClient> | null {
   if (!url || !key) return null
-  client ??= createClient(url, key, { auth: { persistSession: false } })
+  client ??= import('@supabase/supabase-js').then(({ createClient }) => createClient(url, key, { auth: { persistSession: false } }))
   return client
 }
 
@@ -25,20 +26,27 @@ export function useRealtimeNotifications() {
   const qc = useQueryClient()
 
   useEffect(() => {
-    const sb = supabase()
+    const loading = supabase()
     const session = sessionStore.get()
-    if (!sb || !user || !session) return
+    if (!loading || !user || !session) return
 
-    sb.realtime.setAuth(session.access_token)
-    const channel = sb
-      .channel(`notifications:${user.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
-        qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/me') })
-      })
-      .subscribe()
+    let cancelled = false
+    let cleanup: (() => void) | undefined
+    loading.then((sb) => {
+      if (cancelled) return
+      sb.realtime.setAuth(session.access_token)
+      const channel = sb
+        .channel(`notifications:${user.id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+          qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/me') })
+        })
+        .subscribe()
+      cleanup = () => sb.removeChannel(channel)
+    })
 
     return () => {
-      sb.removeChannel(channel)
+      cancelled = true
+      cleanup?.()
     }
   }, [user, qc])
 }

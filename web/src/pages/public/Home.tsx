@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import HeroSlider from '@/components/public/HeroSlider'
 import ProgramCard from '@/components/public/ProgramCard'
 import { SectionTitle } from '@/components/public/Section'
-import { Avatar, Button, Spinner } from '@/components/ui'
+import { Avatar, Button } from '@/components/ui'
+import { ProgramGridSkeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 import { useTheme } from '@/lib/ThemeProvider'
@@ -81,7 +82,7 @@ export default function Home() {
             <SectionTitle title={t('home.featured')} text={t('home.featuredText')} />
             <Link to="/programs" className="mb-10 text-sm font-bold text-link hover:opacity-80">{t('common.viewAll')}</Link>
           </div>
-          {isLoading ? <Spinner /> : (
+          {isLoading ? <ProgramGridSkeleton count={3} /> : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {home?.featured_programs.map((p) => <ProgramCard key={p.id} program={p} />)}
             </div>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from './api'
 import { applyTheme, mergeTheme, type Theme } from './theme'
@@ -25,12 +25,32 @@ function cached(): Theme | null {
   }
 }
 
+const FRESH_KEY = 'tedc.theme.fresh'
+
+/** After an administrator publishes, bypass the CDN copy for a while so this browser sees the new theme at once. */
+function markFresh() {
+  try {
+    localStorage.setItem(FRESH_KEY, String(Date.now()))
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+function freshParam(): Record<string, string> | undefined {
+  try {
+    const at = Number(localStorage.getItem(FRESH_KEY) ?? 0)
+    return Date.now() - at < 10 * 60_000 ? { v: String(at) } : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /** Loads the published theme (cached locally to avoid a flash of the default palette) and applies it. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preview, setPreview] = useState<Theme | null>(null)
   const query = useQuery({
     queryKey: ['theme'],
-    queryFn: async () => mergeTheme((await api.get('/public/theme')).data.data),
+    queryFn: async () => mergeTheme((await api.get('/public/theme', { params: freshParam() })).data.data),
     staleTime: 5 * 60_000,
     placeholderData: cached() ?? undefined,
   })
@@ -52,7 +72,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [query.data])
 
-  const value = useMemo(() => ({ theme, active, setPreview, refresh: query.refetch }), [theme, active, query.refetch])
+  const { refetch } = query
+  const refresh = useCallback(() => {
+    markFresh()
+    return refetch()
+  }, [refetch])
+  const value = useMemo(() => ({ theme, active, setPreview, refresh }), [theme, active, refresh])
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 

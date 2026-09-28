@@ -31,7 +31,10 @@ export const api = axios.create({ baseURL: API_URL, headers: { Accept: 'applicat
 api.interceptors.request.use((config) => {
   const session = sessionStore.get()
   if (session) config.headers.Authorization = `Bearer ${session.access_token}`
-  config.headers['X-Locale'] = i18n.language === 'en' ? 'en' : 'ar'
+  const lang = i18n.language === 'en' ? 'en' : 'ar'
+  config.headers['X-Locale'] = lang
+  // The language is also part of the URL so CDN-cached public responses are stored per language.
+  if ((config.method ?? 'get') === 'get') config.params = { lang, ...(config.params ?? {}) }
   return config
 })
 

@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react'
+import { TopProgress } from '@/components/ui/TopProgress'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import PublicLayout from '@/components/public/PublicLayout'
 import { Spinner } from '@/components/ui'
@@ -54,8 +55,18 @@ function RequireAuth({ children, permission }: { children: ReactNode; permission
   return <>{children}</>
 }
 
+// After the first page is shown, quietly download the code of the pages visitors open next.
+const idle = (cb: () => void) => ('requestIdleCallback' in window ? window.requestIdleCallback(cb, { timeout: 4000 }) : setTimeout(cb, 2500))
+idle(() => {
+  void import('@/pages/public/Programs')
+  void import('@/pages/public/ProgramDetail')
+  void import('@/pages/public/Login')
+})
+
 export default function App() {
   return (
+    <>
+    <TopProgress />
     <Suspense fallback={<Spinner className="min-h-screen" />}>
       <Routes>
         <Route element={<PublicLayout />}>
@@ -109,5 +120,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </>
   )
 }

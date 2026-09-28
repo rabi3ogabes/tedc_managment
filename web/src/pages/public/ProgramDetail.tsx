@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { ProgramCover } from '@/components/public/ProgramCard'
-import { Avatar, Badge, Button, Card, EligibilityPanel, ErrorState, Progress, Spinner, StatusBadge } from '@/components/ui'
+import { Avatar, Badge, Button, Card, EligibilityPanel, ErrorState, Progress, StatusBadge } from '@/components/ui'
+import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useGet, useSend } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -20,7 +21,7 @@ export default function ProgramDetail() {
   const register = useSend('post', () => `/me/programs/${program!.id}/register`, ['/me', '/public'])
   const [message, setMessage] = useState<string | null>(null)
 
-  if (isLoading) return <div className="pt-32"><Spinner /></div>
+  if (isLoading) return <PageSkeleton />
   if (error || !program) return <div className="pt-32"><ErrorState /></div>
 
   const seatsPct = program.capacity ? ((program.seats_taken ?? 0) / program.capacity) * 100 : 0
