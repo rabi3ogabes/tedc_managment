@@ -55,10 +55,29 @@ class HealthController extends Controller
         return response()->json(['data' => $report], $healthy ? 200 : 503);
     }
 
-    /** @return array{sqlstate: ?string, hint: string} safe to show publicly */
+    /** Known connection failures: [message fragment, reason, hint]. Only the reason (never the message) is shown. */
+    private const REASONS = [
+        ['Tenant or user not found', 'tenant_not_found', 'The pooler host or user does not match your project. In Supabase → Connect → Transaction pooler, copy the exact URI (the host may be aws-0-… or aws-1-…, and the user is postgres.<project-ref>) into DB_URL.'],
+        ['password authentication failed', 'wrong_password', 'The database password in DB_URL is wrong. Reset it in Supabase → Project Settings → Database and update DB_URL.'],
+        ['could not translate host name', 'unknown_host', 'The host in DB_URL does not exist: copy the URI from Supabase → Connect.'],
+        ['timeout expired', 'timeout', 'The database did not answer in time: check the host and port (6543) in DB_URL.'],
+        ['timed out', 'timeout', 'The database did not answer in time: check the host and port (6543) in DB_URL.'],
+        ['Connection refused', 'refused', 'The port in DB_URL is closed: use 6543 (transaction pooler).'],
+        ['SSL', 'ssl', 'SSL negotiation failed: keep sslmode=require for Supabase.'],
+        ['Max client connections', 'too_many_connections', 'Too many connections: use the transaction pooler (port 6543).'],
+    ];
+
+    /** @return array{sqlstate: ?string, reason?: string, hint: string} safe to show publicly */
     public static function describe(Throwable $e, string $driver): array
     {
         $state = self::sqlState($e);
+        for ($x = $e; $x; $x = $x->getPrevious()) {
+            foreach (self::REASONS as [$fragment, $reason, $hint]) {
+                if (stripos($x->getMessage(), $fragment) !== false) {
+                    return ['sqlstate' => $state, 'reason' => $reason, 'hint' => $hint];
+                }
+            }
+        }
 
         return ['sqlstate' => $state, 'hint' => self::HINTS[$state] ?? ($driver === 'sqlite'
             ? 'DB_CONNECTION is sqlite: set DB_CONNECTION=pgsql and DB_URL in the deployment environment.'

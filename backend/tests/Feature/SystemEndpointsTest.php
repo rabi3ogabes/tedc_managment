@@ -72,6 +72,9 @@ class SystemEndpointsTest extends TestCase
         $this->assertSame('08006', $info['sqlstate']);
         $this->assertStringContainsString('DB_URL', $info['hint']);
         $this->assertStringNotContainsString('secret', json_encode($info));
+        $tenant = HealthController::describe(new \PDOException('SQLSTATE[08006] [7] connection to server at "aws-0-x.pooler.supabase.com" failed: FATAL:  Tenant or user not found'), 'pgsql');
+        $this->assertSame('tenant_not_found', $tenant['reason']);
+        $this->assertStringNotContainsString('aws-0-x', json_encode($tenant));
         $this->assertSame('42P05', HealthController::describe(new \PDOException('SQLSTATE[42P05]: Duplicate prepared statement'), 'pgsql')['sqlstate']);
     }
 }
