@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
+use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
+use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
@@ -108,6 +110,9 @@ Route::prefix('v1')->group(function () {
             Route::get('certificates', [MyOutcomesController::class, 'certificates']);
             Route::get('surveys', [MyOutcomesController::class, 'surveys']);
             Route::post('surveys/{survey}', [MyOutcomesController::class, 'submitSurvey']);
+            Route::get('needs-surveys', [MyNeedsSurveyController::class, 'index']);
+            Route::get('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'show']);
+            Route::post('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'submit']);
 
             Route::get('team', [MyOutcomesController::class, 'team'])->middleware('permission:impact.supervise');
             Route::post('team/registrations/{registration}/evaluation', [MyOutcomesController::class, 'supervisorEvaluation'])->middleware('permission:impact.supervise');
@@ -235,6 +240,26 @@ Route::prefix('v1')->group(function () {
             Route::post('training-needs', [TrainingNeedController::class, 'store'])->middleware('permission:needs.submit');
             Route::patch('training-needs/{need}', [TrainingNeedController::class, 'update'])->middleware('permission:needs.manage');
             Route::get('training-needs/analytics', [TrainingNeedController::class, 'analytics'])->middleware('permission:needs.view');
+
+            // Training-needs assessment surveys
+            Route::middleware('permission:needs.manage')->prefix('needs-surveys')->group(function () {
+                Route::get('/', [NeedsSurveyController::class, 'index']);
+                Route::post('/', [NeedsSurveyController::class, 'store']);
+                Route::get('templates', [NeedsSurveyController::class, 'templates']);
+                Route::get('audience/options', [NeedsSurveyController::class, 'audienceOptions']);
+                Route::post('audience/preview', [NeedsSurveyController::class, 'audiencePreview']);
+                Route::get('{needsSurvey}', [NeedsSurveyController::class, 'show']);
+                Route::put('{needsSurvey}', [NeedsSurveyController::class, 'update']);
+                Route::delete('{needsSurvey}', [NeedsSurveyController::class, 'destroy']);
+                Route::post('{needsSurvey}/duplicate', [NeedsSurveyController::class, 'duplicate']);
+                Route::post('{needsSurvey}/publish', [NeedsSurveyController::class, 'publish']);
+                Route::post('{needsSurvey}/remind', [NeedsSurveyController::class, 'remind']);
+                Route::post('{needsSurvey}/close', [NeedsSurveyController::class, 'close']);
+                Route::post('{needsSurvey}/reopen', [NeedsSurveyController::class, 'reopen']);
+                Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
+                Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
+                Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
 
             // Communication center
             Route::middleware('permission:announcements.manage')->group(function () {

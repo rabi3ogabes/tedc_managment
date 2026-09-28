@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\SupabaseUserResolver;
 use App\Models\AppNotification;
 use App\Models\ImpactSurvey;
+use App\Models\NeedsSurvey;
 use App\Models\ProgramSession;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         }
         Route::bind('need', fn ($id) => TrainingNeed::findOrFail($id));
         Route::bind('survey', fn ($id) => ImpactSurvey::findOrFail($id));
+        Route::bind('needsSurvey', fn ($id) => NeedsSurvey::findOrFail($id));
         Route::bind('submission', fn ($id) => TaskSubmission::findOrFail($id));
         Route::bind('session', fn ($id) => ProgramSession::findOrFail($id));
         Route::bind('notification', fn ($id) => AppNotification::findOrFail($id));

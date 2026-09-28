@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['school_id', 'submitted_by', 'skill_id', 'skill_name', 'employees_count', 'priority', 'reason', 'target_job_title_id', 'target_group', 'status', 'program_id', 'reviewed_by', 'review_notes'])]
+#[Fillable(['school_id', 'submitted_by', 'skill_id', 'skill_name', 'employees_count', 'priority', 'reason', 'target_job_title_id', 'target_group', 'status', 'program_id', 'reviewed_by', 'review_notes', 'survey_id', 'need_index'])]
 class TrainingNeed extends Model
 {
     use Auditable, HasUuids;
@@ -35,5 +35,10 @@ class TrainingNeed extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function survey(): BelongsTo
+    {
+        return $this->belongsTo(NeedsSurvey::class, 'survey_id');
     }
 }
