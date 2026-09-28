@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CompactJson;
+use App\Http\Middleware\EdgeCache;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -20,9 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.
         $middleware->trustProxies(at: '*');
-        $middleware->api(prepend: [SetLocale::class]);
+        $middleware->api(prepend: [CompactJson::class, SetLocale::class]);
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['permission' => EnsurePermission::class]);
+        $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class]);
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

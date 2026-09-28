@@ -36,8 +36,8 @@ class PublicController extends Controller
 
         $data = Cache::remember("public.home.{$locale}", 300, fn () => [
             'stats' => $this->statsPayload(),
-            'featured_programs' => ProgramResource::collection($this->programQuery()->where('is_featured', true)->limit(6)->get())->resolve(),
-            'upcoming_programs' => ProgramResource::collection($this->programQuery()
+            'featured_programs' => ProgramResource::compactCollection($this->programQuery()->where('is_featured', true)->limit(6)->get())->resolve(),
+            'upcoming_programs' => ProgramResource::compactCollection($this->programQuery()
                 ->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN])
                 ->where('start_date', '>=', today())->orderBy('start_date')->limit(6)->get())->resolve(),
             'categories' => ProgramCategory::withCount(['programs' => fn ($q) => $q->visible()])->get()
@@ -78,7 +78,7 @@ class PublicController extends Controller
             ->orderBy('start_date')
             ->paginate($this->perPage($request, 12));
 
-        return ProgramResource::collection($programs);
+        return ProgramResource::compactCollection($programs);
     }
 
     public function program(string $idOrCode): ProgramResource

@@ -5,12 +5,34 @@ namespace App\Http\Resources;
 use App\Models\Program;
 use App\Services\FileStorage;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /** @mixin Program */
 class ProgramResource extends JsonResource
 {
+    /** Fields only the detail and edit screens need; dropped from catalogue lists to keep them light. */
+    private const DETAIL_ONLY = ['title_ar', 'title_en', 'summary_ar', 'summary_en', 'description', 'description_ar', 'description_en', 'objectives'];
+
+    /** Resource collection for listings (catalogue cards, home page). */
+    public static function compactCollection($resource): AnonymousResourceCollection
+    {
+        $collection = static::collection($resource);
+        $collection->collection->each(fn (self $item) => $item->compact = true);
+
+        return $collection;
+    }
+
+    public bool $compact = false;
+
     public function toArray(Request $request): array
+    {
+        $data = $this->payload($request);
+
+        return $this->compact ? array_diff_key($data, array_flip(self::DETAIL_ONLY)) : $data;
+    }
+
+    private function payload(Request $request): array
     {
         $seatsTaken = $this->seats_taken ?? null;
 

@@ -10,6 +10,9 @@
 function tedc_vercel_env(bool $runtime = true): void
 {
     $tmp = '/tmp/tedc';
+    // Framework caches prebuilt during the Vercel build (read-only in the function); /tmp otherwise.
+    $bundled = dirname(__DIR__).'/bootstrap/cache';
+    $cache = fn (string $file) => ($runtime && is_file("{$bundled}/{$file}")) ? "{$bundled}/{$file}" : "{$tmp}/bootstrap/{$file}";
     $productionHost = getenv('VERCEL_PROJECT_PRODUCTION_URL') ?: getenv('VERCEL_URL');
 
     $defaults = [
@@ -17,15 +20,18 @@ function tedc_vercel_env(bool $runtime = true): void
         'LARAVEL_STORAGE_PATH' => $runtime ? "{$tmp}/storage" : null,
         'VIEW_COMPILED_PATH' => $runtime ? "{$tmp}/storage/framework/views" : null,
         'APP_CONFIG_CACHE' => "{$tmp}/bootstrap/config.php",
-        'APP_EVENTS_CACHE' => "{$tmp}/bootstrap/events.php",
-        'APP_PACKAGES_CACHE' => "{$tmp}/bootstrap/packages.php",
-        'APP_ROUTES_CACHE' => "{$tmp}/bootstrap/routes-v7.php",
-        'APP_SERVICES_CACHE' => "{$tmp}/bootstrap/services.php",
+        'APP_EVENTS_CACHE' => $cache('events.php'),
+        'APP_PACKAGES_CACHE' => $cache('packages.php'),
+        'APP_ROUTES_CACHE' => $cache('routes-v7.php'),
+        'APP_SERVICES_CACHE' => $cache('services.php'),
         'APP_ENV' => 'production',
         'APP_DEBUG' => 'false',
         'LOG_CHANNEL' => 'stderr',
         'SESSION_DRIVER' => 'cookie',
-        'CACHE_STORE' => 'database',
+        // In-memory per-instance cache (APCu) at runtime; nothing to cache during the build.
+        'CACHE_STORE' => $runtime ? (extension_loaded('apcu') ? 'apc' : 'file') : 'array',
+        // Reuse database connections across requests of a warm instance (no TLS/auth handshake each time).
+        'DB_PERSISTENT' => 'true',
         'QUEUE_CONNECTION' => 'sync',
         'APP_URL' => $productionHost ? "https://{$productionHost}" : null,
 

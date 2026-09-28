@@ -77,4 +77,18 @@ class SystemEndpointsTest extends TestCase
         $this->assertStringNotContainsString('aws-0-x', json_encode($tenant));
         $this->assertSame('42P05', HealthController::describe(new \PDOException('SQLSTATE[42P05]: Duplicate prepared statement'), 'pgsql')['sqlstate']);
     }
+
+    public function test_public_responses_are_edge_cacheable_and_compact(): void
+    {
+        $response = $this->get('/api/v1/public/theme?lang=ar')->assertOk();
+        $this->assertStringContainsString('s-maxage=60', (string) $response->headers->get('Vercel-CDN-Cache-Control'));
+        $this->assertStringContainsString('public', (string) $response->headers->get('Cache-Control'));
+
+        // Signed-in requests are never cached at the edge.
+        $this->withHeader('Authorization', 'Bearer anything')->get('/api/v1/public/theme')
+            ->assertHeaderMissing('Vercel-CDN-Cache-Control');
+
+        // Arabic is sent as UTF-8, not \uXXXX escapes.
+        $this->assertStringNotContainsString('\\u0', $this->get('/api/v1/public/theme?lang=ar')->getContent());
+    }
 }

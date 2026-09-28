@@ -39,7 +39,8 @@ class PushSettings
 
     public function all(): array
     {
-        return Cache::rememberForever(self::CACHE, function () {
+        // A short TTL keeps per-instance caches (APCu on serverless) in sync after an administrator's change.
+        return Cache::remember(self::CACHE, 60, function () {
             $stored = SiteSetting::find(self::KEY)?->value ?? [];
 
             return array_replace_recursive(self::defaults(), Arr::only($stored, array_keys(self::defaults())));

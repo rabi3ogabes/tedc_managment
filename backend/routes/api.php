@@ -51,7 +51,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Public website ----------------------------------------------------------
-    Route::prefix('public')->middleware('throttle:public')->controller(PublicController::class)->group(function () {
+    Route::prefix('public')->middleware(['throttle:public', 'edge.cache:60'])->controller(PublicController::class)->group(function () {
         Route::get('home', 'home');
         Route::get('stats', 'stats');
         Route::get('theme', [ThemeController::class, 'show']);

@@ -14,6 +14,17 @@ tedc_vercel_env(runtime: false);
 $artisan = escapeshellarg(__DIR__.'/../artisan');
 $php = escapeshellarg(PHP_BINARY);
 
+// Prebuild the framework caches into backend/bootstrap/cache; the function reads them instead of rebuilding
+// them on every cold start. Configuration is not cached: it depends on runtime variables.
+$bundled = dirname(__DIR__).'/bootstrap/cache';
+foreach (['APP_PACKAGES_CACHE' => 'packages.php', 'APP_SERVICES_CACHE' => 'services.php', 'APP_ROUTES_CACHE' => 'routes-v7.php', 'APP_EVENTS_CACHE' => 'events.php'] as $key => $file) {
+    putenv("{$key}={$bundled}/{$file}");
+}
+echo '→ Prebuilding framework caches…'.PHP_EOL;
+passthru("{$php} {$artisan} package:discover --no-interaction 2>&1");
+passthru("{$php} {$artisan} route:cache --no-interaction 2>&1");
+passthru("{$php} {$artisan} event:cache --no-interaction 2>&1");
+
 $missing = array_values(array_filter(['APP_KEY', 'DB_URL'], fn ($k) => ! getenv($k)));
 if ($missing) {
     echo '⚠ Database setup skipped — set in Vercel → Settings → Environment Variables: '.implode(', ', $missing).PHP_EOL;

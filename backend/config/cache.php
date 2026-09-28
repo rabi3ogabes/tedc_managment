@@ -39,6 +39,11 @@ return [
             'serialize' => false,
         ],
 
+        // In-memory, per server instance (APCu): the fastest store for serverless functions.
+        'apc' => [
+            'driver' => 'apc',
+        ],
+
         'database' => [
             'driver' => 'database',
             'connection' => env('DB_CACHE_CONNECTION'),
