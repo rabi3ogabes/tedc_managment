@@ -1,7 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'dart:async';
+
 import 'api/api_client.dart';
+import 'api/response_cache.dart';
 import 'auth/session_store.dart';
 import 'models.dart';
 import 'push/push_service.dart';
@@ -32,7 +35,10 @@ final localeProvider = NotifierProvider<LocaleController, Locale>(LocaleControll
 final apiProvider = Provider<ApiClient>((ref) => ApiClient(
       ref.read(sessionStoreProvider),
       locale: () => ref.read(localeProvider).languageCode,
-      onSessionExpired: () => ref.invalidate(authProvider),
+      onSessionExpired: () {
+        ResponseCache.instance.clear();
+        ref.invalidate(authProvider);
+      },
     ));
 
 class AuthController extends AsyncNotifier<Me?> {
@@ -61,6 +67,7 @@ class AuthController extends AsyncNotifier<Me?> {
   Future<void> logout() async {
     await ref.read(pushServiceProvider).stop();
     await ref.read(sessionStoreProvider).write(null);
+    await ResponseCache.instance.clear();
     state = const AsyncData(null);
   }
 }
@@ -68,8 +75,24 @@ class AuthController extends AsyncNotifier<Me?> {
 final authProvider = AsyncNotifierProvider<AuthController, Me?>(AuthController.new);
 
 /// GET helper provider keyed by path. Re-fetches when the language changes because
-/// the API returns localized content.
-final getProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, path) {
-  ref.watch(localeProvider);
-  return ref.watch(apiProvider).get(path);
+/// the API returns localized content. Results stay in memory for a few minutes so
+/// going back to a screen is instant, and the last copy on disk is shown when offline.
+final getProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, path) async {
+  final locale = ref.watch(localeProvider).languageCode;
+  final link = ref.keepAlive();
+  final timer = Timer(const Duration(minutes: 5), link.close);
+  ref.onDispose(timer.cancel);
+
+  final key = '$locale|$path';
+  try {
+    final data = await ref.watch(apiProvider).get(path);
+    unawaited(ResponseCache.instance.write(key, data));
+    return data;
+  } on ApiException catch (e) {
+    // Only fall back for connectivity problems, never for real API answers such as 403 or 404.
+    if (e.status != null) rethrow;
+    final cached = await ResponseCache.instance.read(key);
+    if (cached == null) rethrow;
+    return cached;
+  }
 });

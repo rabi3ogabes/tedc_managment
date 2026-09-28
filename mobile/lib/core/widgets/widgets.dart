@@ -23,11 +23,134 @@ class AsyncView<T> extends StatelessWidget {
   }
 }
 
+/// Branded shimmer placeholder shaped like the content that is about to appear.
 class LoadingView extends StatelessWidget {
-  const LoadingView({super.key});
+  const LoadingView({super.key, this.items = 4});
+
+  final int items;
 
   @override
-  Widget build(BuildContext context) => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: AppColors.gold500)));
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.tr('common.loading'),
+      child: Shimmer(
+        // Works in both scrollable and fixed-height parents: only as many rows as fit are drawn.
+        child: LayoutBuilder(builder: (context, constraints) {
+          final fit = constraints.hasBoundedHeight ? ((constraints.maxHeight - 32 - 150) / 84).floor() + 1 : items;
+          final count = fit.clamp(1, items);
+          if (constraints.hasBoundedHeight && constraints.maxHeight < 200) {
+            return Padding(padding: const EdgeInsets.all(8), child: SkeletonBox(height: (constraints.maxHeight - 16).clamp(8, 150).toDouble(), radius: 14));
+          }
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              for (var i = 0; i < count; i++) ...[
+                if (i > 0) const SizedBox(height: 14),
+                i == 0 ? const SkeletonBox(height: 150, radius: 20) : const _SkeletonCard(),
+              ],
+            ]),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 7),
+      child: Row(children: [
+        SkeletonBox(width: 56, height: 56, radius: 14),
+        SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            SkeletonBox(height: 14),
+            SizedBox(height: 10),
+            FractionallySizedBox(widthFactor: .6, child: SkeletonBox(height: 12)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+/// A placeholder block; animate a group of them with [Shimmer].
+class SkeletonBox extends StatelessWidget {
+  const SkeletonBox({super.key, this.width, this.height = 12, this.radius = 8});
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(color: const Color(0xFFEDE8E0), borderRadius: BorderRadius.circular(radius)),
+      );
+}
+
+/// Sweeps a soft Dune-tinted highlight across its child (respects reduced motion).
+class Shimmer extends StatefulWidget {
+  const Shimmer({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<Shimmer> createState() => _ShimmerState();
+}
+
+class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) => ShaderMask(
+        blendMode: BlendMode.srcATop,
+        shaderCallback: (bounds) {
+          final dx = bounds.width * (_controller.value * 2 - 0.5);
+          return LinearGradient(
+            colors: const [Color(0xFFEDE8E0), Color(0xFFF8F5EF), Color(0xFFEDE8E0)],
+            stops: const [0.35, 0.5, 0.65],
+            transform: _SlideGradient(dx),
+          ).createShader(bounds);
+        },
+        child: child,
+      ),
+    );
+  }
+}
+
+class _SlideGradient extends GradientTransform {
+  const _SlideGradient(this.dx);
+
+  final double dx;
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) => Matrix4.translationValues(dx - bounds.width / 2, 0, 0);
 }
 
 class ErrorView extends StatelessWidget {

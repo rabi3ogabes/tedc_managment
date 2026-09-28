@@ -50,6 +50,8 @@ class ApiClient {
         final session = await _store.read();
         if (session != null) options.headers['Authorization'] = 'Bearer ${session.accessToken}';
         options.headers['X-Locale'] = locale();
+        // The language is also part of the URL so shared CDN caches keep one copy per language.
+        if (options.method == 'GET') options.queryParameters = {'lang': locale(), ...options.queryParameters};
         handler.next(options);
       },
       onError: (error, handler) async {

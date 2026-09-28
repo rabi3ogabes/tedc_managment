@@ -48,4 +48,15 @@ void main() {
     await tester.pumpWidget(_wrap(const StatusChip('issued'), locale: const Locale('en')));
     expect(find.text('Issued'), findsOneWidget);
   });
+
+  testWidgets('LoadingView skeleton fits full-screen, small and unbounded parents', (tester) async {
+    await tester.pumpWidget(_wrap(const LoadingView()));
+    expect(find.byType(SkeletonBox), findsWidgets);
+    await tester.pumpWidget(_wrap(const SizedBox(height: 90, child: LoadingView())));
+    expect(find.byType(SkeletonBox), findsOneWidget);
+    await tester.pumpWidget(_wrap(const SingleChildScrollView(child: Column(children: [LoadingView(items: 3)]))));
+    expect(find.byType(SkeletonBox), findsWidgets);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.takeException(), isNull);
+  });
 }
