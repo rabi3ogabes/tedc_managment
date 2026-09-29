@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
+use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
+use App\Http\Controllers\Api\V1\Admin\TrainerController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -253,12 +255,29 @@ Route::prefix('v1')->group(function () {
             });
 
             // Catalog
-            Route::get('trainers', [CatalogController::class, 'trainers'])->middleware('permission:programs.view|trainers.manage');
-            Route::middleware('permission:trainers.manage')->group(function () {
-                Route::post('trainers', [CatalogController::class, 'storeTrainer']);
-                Route::put('trainers/{trainer}', [CatalogController::class, 'updateTrainer']);
-                Route::post('trainers/{trainer}/photo', [CatalogController::class, 'trainerPhoto']);
-                Route::delete('trainers/{trainer}', [CatalogController::class, 'destroyTrainer']);
+            Route::prefix('trainers')->controller(TrainerController::class)->group(function () {
+                Route::middleware('permission:programs.view|trainers.manage')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('options', 'options');
+                    Route::get('candidates', 'candidates');
+                    Route::get('suggest', 'suggest');
+                    Route::get('{trainer}', 'show');
+                    Route::get('{trainer}/schedule', 'schedule');
+                });
+                Route::middleware('permission:trainers.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{trainer}', 'update');
+                    Route::post('{trainer}/photo', 'photo');
+                    Route::delete('{trainer}', 'destroy');
+                });
+            });
+            Route::prefix('partners')->controller(PartnerOrganizationController::class)->group(function () {
+                Route::get('/', 'index')->middleware('permission:programs.view|trainers.manage');
+                Route::middleware('permission:trainers.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{partner}', 'update');
+                    Route::delete('{partner}', 'destroy');
+                });
             });
             Route::middleware('permission:programs.manage')->group(function () {
                 Route::post('categories', [CatalogController::class, 'storeCategory']);

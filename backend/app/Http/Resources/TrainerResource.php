@@ -12,6 +12,8 @@ class TrainerResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $manage = (bool) $request->user()?->hasPermission('trainers.manage');
+
         return [
             'id' => $this->id,
             'name' => $this->translate('name'),
@@ -25,15 +27,31 @@ class TrainerResource extends JsonResource
             'bio_en' => $this->bio_en,
             'specializations' => $this->specializations ?? [],
             'photo_url' => FileStorage::publicUrl($this->photo_path),
+            'source' => $this->source,
+            'source_label' => $this->sourceLabel(),
             'is_external' => $this->is_external,
-            'organization' => $this->organization,
+            'organization' => $this->partner ? $this->partner->translate('name') : $this->organization,
+            'country' => $this->country,
+            'languages' => $this->languages ?? [],
+            'experience_years' => $this->experience_years,
             'rating' => $this->rating,
-            'email' => $this->when($request->user()?->hasPermission('trainers.manage'), $this->email),
-            'phone' => $this->when($request->user()?->hasPermission('trainers.manage'), $this->phone),
-            'user_id' => $this->when($request->user()?->hasPermission('trainers.manage'), $this->user_id),
             'status' => $this->status,
             'role' => $this->whenPivotLoaded('program_trainer', fn () => $this->pivot->role),
             'programs_count' => $this->whenCounted('programs'),
+            'sessions_count' => $this->whenCounted('sessions'),
+            // Internal details are only for people who manage trainers.
+            'email' => $this->when($manage, $this->email),
+            'phone' => $this->when($manage, $this->phone),
+            'user_id' => $this->when($manage, $this->user_id),
+            'employee_id' => $this->when($manage, $this->employee_id),
+            'school_id' => $this->when($manage, $this->school_id),
+            'school' => $this->when($manage, fn () => $this->school ? ['id' => $this->school->id, 'name' => $this->school->translate('name')] : null),
+            'partner_id' => $this->when($manage, $this->partner_id),
+            'partner' => $this->when($manage, fn () => $this->partner ? ['id' => $this->partner->id, 'name' => $this->partner->translate('name'), 'type' => $this->partner->type] : null),
+            'city' => $this->when($manage, $this->city),
+            'hourly_rate' => $this->when($manage, $this->hourly_rate),
+            'currency' => $this->when($manage, $this->currency),
+            'notes' => $this->when($manage, $this->notes),
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Certificate;
 use App\Models\Employee;
 use App\Models\Evaluation;
 use App\Models\JobTitle;
+use App\Models\PartnerOrganization;
 use App\Models\Program;
 use App\Models\ProgramCategory;
 use App\Models\ProgramSession;
@@ -111,13 +112,45 @@ class DemoDataSeeder extends Seeder
             ['أ. فهد المري', 'Mr. Fahad Al-Marri', 'مدرب إدارة الصف', 'Classroom Management Coach', ['classroom_management', 'behavior_management'], 4.5],
         ];
 
+        $partners = collect([
+            ['qu', 'جامعة قطر', 'Qatar University', 'university'],
+            ['qf', 'مؤسسة قطر', 'Qatar Foundation', 'foundation'],
+            ['moph', 'وزارة الصحة العامة', 'Ministry of Public Health', 'ministry'],
+        ])->mapWithKeys(fn ($p) => [$p[0] => PartnerOrganization::updateOrCreate(['name_en' => $p[2]], ['name_ar' => $p[1], 'type' => $p[3], 'country' => 'Qatar', 'status' => 'active'])]);
+
         $trainers = [];
         foreach ($rows as $i => [$ar, $en, $tAr, $tEn, $specs, $rating]) {
+            $source = match (true) {
+                $i === 5 => Trainer::MINISTRY,
+                $i >= 6 => Trainer::PARTNER,
+                default => Trainer::CENTER,
+            };
             $trainers[] = Trainer::updateOrCreate(['name_en' => $en], [
                 'name_ar' => $ar, 'title_ar' => $tAr, 'title_en' => $tEn, 'specializations' => $specs, 'rating' => $rating,
                 'bio_ar' => "{$tAr} بخبرة تزيد على ".(10 + $i).' عاماً في تطوير الكوادر التعليمية في دولة قطر ومنطقة الخليج.',
                 'bio_en' => "{$tEn} with more than ".(10 + $i).' years of experience developing educators in Qatar and the Gulf region.',
-                'email' => 'trainer'.($i + 1).'@tedc.qa', 'is_external' => $i >= 6, 'organization' => $i >= 6 ? 'Qatar University' : null, 'status' => 'active',
+                'email' => 'trainer'.($i + 1).'@tedc.qa', 'status' => 'active', 'source' => $source, 'country' => 'Qatar', 'languages' => ['ar', 'en'],
+                'experience_years' => 10 + $i,
+                'partner_id' => $source === Trainer::PARTNER ? $partners['qu']->id : null,
+                'organization' => match ($source) {
+                    Trainer::PARTNER => 'جامعة قطر', Trainer::MINISTRY => 'وزارة التربية والتعليم والتعليم العالي', default => null
+                },
+            ]);
+        }
+
+        // Further sources for the demo: other partners, an outside consultant and a trainer from abroad.
+        $extra = [
+            ['د. علياء الأنصاري', 'Dr. Alia Al-Ansari', 'مستشارة تعلم رقمي', 'Digital Learning Consultant', ['digital_content', 'blended_learning'], 4.7, Trainer::PARTNER, 'qf', 'Qatar', null],
+            ['د. ماجد الكعبي', 'Dr. Majid Al-Kaabi', 'أخصائي صحة نفسية', 'Mental Health Specialist', ['student_wellbeing'], 4.6, Trainer::PARTNER, 'moph', 'Qatar', null],
+            ['أ. سامي حداد', 'Mr. Sami Haddad', 'مستشار مستقل', 'Independent Consultant', ['coaching_mentoring'], 4.4, Trainer::EXTERNAL, null, 'Qatar', 'Haddad Consulting'],
+            ['Prof. Helen Carter', 'Prof. Helen Carter', 'خبيرة سياسات تعليمية', 'Education Policy Expert', ['educational_leadership', 'strategic_planning'], 4.9, Trainer::INTERNATIONAL, null, 'United Kingdom', 'University of Cambridge'],
+        ];
+        foreach ($extra as $k => [$ar, $en, $tAr, $tEn, $specs, $rating, $source, $partnerKey, $country, $org]) {
+            Trainer::updateOrCreate(['name_en' => $en], [
+                'name_ar' => $ar, 'title_ar' => $tAr, 'title_en' => $tEn, 'specializations' => $specs, 'rating' => $rating, 'status' => 'active',
+                'source' => $source, 'partner_id' => $partnerKey ? $partners[$partnerKey]->id : null, 'country' => $country,
+                'organization' => $partnerKey ? $partners[$partnerKey]->name_ar : $org, 'languages' => $source === Trainer::INTERNATIONAL ? ['en'] : ['ar', 'en'],
+                'experience_years' => 12 + $k, 'email' => 'guest'.($k + 1).'@tedc.qa',
             ]);
         }
 

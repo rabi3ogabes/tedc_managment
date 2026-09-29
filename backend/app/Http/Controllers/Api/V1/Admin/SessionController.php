@@ -10,6 +10,7 @@ use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
 use App\Services\RoomService;
+use App\Services\TrainerService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ use Illuminate\Validation\Rule;
 
 class SessionController extends Controller
 {
-    public function __construct(private readonly AttendanceService $attendance, private readonly CalendarService $calendar, private readonly RoomService $rooms) {}
+    public function __construct(private readonly AttendanceService $attendance, private readonly CalendarService $calendar, private readonly RoomService $rooms, private readonly TrainerService $trainers) {}
 
     public function index(Program $program): AnonymousResourceCollection
     {
@@ -30,7 +31,7 @@ class SessionController extends Controller
     {
         $data = $this->validated($request);
         $this->guardCalendar($request, $data['starts_at'], $data['ends_at']);
-        $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null);
+        $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null, $data['trainer_id'] ?? null);
         $session = $program->sessions()->create(Arr::except($data, 'calendar_approval_reason'));
 
         return (new SessionResource($session->load(['trainer', 'room'])))->response()->setStatusCode(201);
@@ -42,13 +43,15 @@ class SessionController extends Controller
         $moved = isset($data['starts_at']) || isset($data['ends_at']);
         $cancelled = ($data['status'] ?? $session->status) === 'cancelled';
         $roomId = array_key_exists('training_room_id', $data) ? $data['training_room_id'] : $session->training_room_id;
-        if (! $cancelled && ($moved || ($roomId && $roomId !== $session->training_room_id))) {
+        $trainerId = array_key_exists('trainer_id', $data) ? $data['trainer_id'] : $session->trainer_id;
+        $resourceChanged = ($roomId && $roomId !== $session->training_room_id) || ($trainerId && $trainerId !== $session->trainer_id);
+        if (! $cancelled && ($moved || $resourceChanged)) {
             $start = $data['starts_at'] ?? $session->starts_at;
             $end = $data['ends_at'] ?? $session->ends_at;
             if ($moved) {
                 $this->guardCalendar($request, $start, $end);
             }
-            $this->guardResources($start, $end, $roomId, $session->id);
+            $this->guardResources($start, $end, $roomId, $trainerId, $session->id);
         }
         $session->update(Arr::except($data, 'calendar_approval_reason'));
 
@@ -113,11 +116,16 @@ class SessionController extends Controller
         $this->calendar->assertTrainingAllowed($start, $end);
     }
 
-    /** The room must be active and free for the whole session. */
-    private function guardResources(mixed $startsAt, mixed $endsAt, ?string $roomId, ?string $exceptSessionId = null): void
+    /** The room and the trainer must be active and free for the whole session. */
+    private function guardResources(mixed $startsAt, mixed $endsAt, ?string $roomId, ?string $trainerId, ?string $exceptSessionId = null): void
     {
+        $start = Carbon::parse($startsAt);
+        $end = Carbon::parse($endsAt);
         if ($roomId) {
-            $this->rooms->assertBookable($roomId, Carbon::parse($startsAt), Carbon::parse($endsAt), $exceptSessionId);
+            $this->rooms->assertBookable($roomId, $start, $end, $exceptSessionId);
+        }
+        if ($trainerId) {
+            $this->trainers->assertAssignable($trainerId, $start, $end, $exceptSessionId);
         }
     }
 
