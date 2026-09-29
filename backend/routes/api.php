@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
+use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
@@ -143,6 +144,22 @@ Route::prefix('v1')->group(function () {
                 });
             });
 
+            // Training rooms (locations, layouts, equipment, availability)
+            Route::prefix('rooms')->controller(RoomController::class)->group(function () {
+                Route::middleware('permission:programs.view|rooms.manage')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('options', 'options');
+                    Route::get('availability', 'availability');
+                    Route::get('{room}', 'show');
+                    Route::get('{room}/schedule', 'schedule');
+                });
+                Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{room}', 'update');
+                    Route::delete('{room}', 'destroy');
+                });
+            });
+
             // Programs & sessions
             Route::middleware('permission:programs.view|programs.manage')->group(function () {
                 Route::get('programs', [ProgramController::class, 'index']);
@@ -244,7 +261,6 @@ Route::prefix('v1')->group(function () {
                 Route::delete('trainers/{trainer}', [CatalogController::class, 'destroyTrainer']);
             });
             Route::middleware('permission:programs.manage')->group(function () {
-                Route::post('rooms', [CatalogController::class, 'storeRoom']);
                 Route::post('categories', [CatalogController::class, 'storeCategory']);
                 Route::post('skills', [CatalogController::class, 'storeSkill']);
                 Route::post('job-titles', [CatalogController::class, 'storeJobTitle']);

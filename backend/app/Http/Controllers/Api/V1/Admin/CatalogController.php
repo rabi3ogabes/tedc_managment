@@ -76,17 +76,6 @@ class CatalogController extends Controller
 
     // Generic reference tables ------------------------------------------
 
-    public function storeRoom(Request $request): JsonResponse
-    {
-        return response()->json(['data' => TrainingRoom::create($request->validate([
-            'name_ar' => ['required', 'string', 'max:255'],
-            'name_en' => ['required', 'string', 'max:255'],
-            'building' => ['nullable', 'string', 'max:255'],
-            'capacity' => ['required', 'integer', 'min:1'],
-            'facilities' => ['nullable', 'array'],
-        ]))], 201);
-    }
-
     public function storeCategory(Request $request): JsonResponse
     {
         return response()->json(['data' => ProgramCategory::create($request->validate([

@@ -54,6 +54,15 @@ return [
             'normal' => 'Normal day (closed for training)',
         ],
     ],
+    'room' => [
+        'unavailable' => 'Room ":room" is not available (maintenance or inactive).',
+        'booked' => 'Room ":room" is already booked at this time.',
+        'capacity' => 'Room ":room" seats :capacity, fewer than the program needs (:needed).',
+    ],
+    'trainer' => [
+        'inactive' => 'Trainer ":trainer" is inactive.',
+        'busy' => 'Trainer ":trainer" already has another session at this time.',
+    ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
     'not_found' => 'The requested item was not found.',
 ];

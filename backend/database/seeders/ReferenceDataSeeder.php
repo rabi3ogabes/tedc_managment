@@ -76,14 +76,24 @@ class ReferenceDataSeeder extends Seeder
             ProgramCategory::updateOrCreate(['slug' => $slug], ['name_ar' => $ar, 'name_en' => $en, 'icon' => $icon, 'color' => $color]);
         }
 
+        // [ar, en, code, office, building, floor, layouts, equipment]
         $rooms = [
-            ['قاعة الريادة', 'Al Riyada Hall', 'المبنى الرئيسي', 60, ['projector', 'smart_board', 'video_conference']],
-            ['قاعة الإبداع', 'Al Ibdaa Lab', 'المبنى الرئيسي', 30, ['computers', 'smart_board']],
-            ['قاعة الأثر', 'Al Athar Room', 'مبنى الابتكار', 40, ['projector', 'recording']],
-            ['مختبر المستقبل', 'Future Lab', 'مبنى الابتكار', 24, ['vr', 'computers', '3d_printer']],
+            ['قاعة الريادة', 'Al Riyada Hall', 'R-101', 'المقر الرئيسي', 'المبنى الرئيسي', '1', ['theatre' => 80, 'classroom' => 60, 'u_shape' => 36, 'cluster' => 48],
+                [['projector', 1], ['smart_board', 1], ['video_conference', 1], ['sound_system', 1], ['microphone', 4], ['whiteboard', 2], ['markers', 12], ['wifi', 1], ['air_conditioning', 1]]],
+            ['قاعة الإبداع', 'Al Ibdaa Lab', 'R-201', 'المقر الرئيسي', 'المبنى الرئيسي', '2', ['classroom' => 30, 'cluster' => 24, 'u_shape' => 20],
+                [['computers', 30], ['smart_board', 1], ['projector', 1], ['whiteboard', 1], ['markers', 6], ['wifi', 1], ['power_outlets', 30], ['air_conditioning', 1]]],
+            ['قاعة الأثر', 'Al Athar Room', 'R-301', 'مركز الابتكار', 'مبنى الابتكار', '1', ['classroom' => 40, 'boardroom' => 20, 'cluster' => 32, 'exam' => 30],
+                [['projector', 1], ['recording', 1], ['camera', 2], ['whiteboard', 1], ['markers', 6], ['flipchart', 2], ['wifi', 1], ['air_conditioning', 1]]],
+            ['مختبر المستقبل', 'Future Lab', 'R-302', 'مركز الابتكار', 'مبنى الابتكار', '2', ['cluster' => 24, 'open' => 24],
+                [['vr', 12], ['computers', 12], ['3d_printer', 2], ['screen', 2], ['wifi', 1], ['power_outlets', 24], ['air_conditioning', 1]]],
         ];
-        foreach ($rooms as [$ar, $en, $building, $capacity, $facilities]) {
-            TrainingRoom::updateOrCreate(['name_en' => $en], ['name_ar' => $ar, 'building' => $building, 'capacity' => $capacity, 'facilities' => $facilities, 'latitude' => 25.3176, 'longitude' => 51.4386]);
+        foreach ($rooms as [$ar, $en, $code, $office, $building, $floor, $layouts, $equipment]) {
+            TrainingRoom::updateOrCreate(['name_en' => $en], [
+                'name_ar' => $ar, 'code' => $code, 'office' => $office, 'building' => $building, 'floor' => $floor,
+                'capacity' => max($layouts), 'layout' => array_key_first($layouts), 'layouts' => $layouts,
+                'facilities' => array_map(fn ($e) => ['key' => $e[0], 'qty' => $e[1]], $equipment),
+                'status' => 'active', 'latitude' => 25.3176, 'longitude' => 51.4386,
+            ]);
         }
     }
 }

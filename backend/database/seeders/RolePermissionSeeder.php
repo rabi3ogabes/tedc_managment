@@ -18,6 +18,7 @@ class RolePermissionSeeder extends Seeder
         'employees.view' => ['organization', 'عرض الموظفين', 'View employees'],
         'employees.manage' => ['organization', 'إدارة الموظفين', 'Manage employees'],
         'programs.view' => ['programs', 'عرض البرامج', 'View programs'],
+        'rooms.manage' => ['programs', 'إدارة القاعات التدريبية', 'Manage training rooms'],
         'calendar.view' => ['programs', 'عرض التقويم التدريبي', 'View training calendar'],
         'calendar.manage' => ['programs', 'إدارة الإجازات وأيام الاختبارات', 'Manage vacations & exam days'],
         'calendar.approve' => ['programs', 'اعتماد التدريب في الأيام المغلقة', 'Approve training on closed days'],
@@ -54,7 +55,7 @@ class RolePermissionSeeder extends Seeder
         Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage']],
         Role::COORDINATOR => ['منسق البرامج', 'Program Coordinator', 70, [
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
-            'trainers.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
+            'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
             'announcements.manage', 'ai.assistant', 'reports.view',
         ]],
