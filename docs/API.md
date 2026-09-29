@@ -157,6 +157,22 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | POST | `/admin/users` | `users.manage` |
 | PUT | `/admin/users/{user}` | `users.manage` |
 
+## Training calendar
+
+Every date resolves to a `kind`: `workday`, `weekend` (Fri/Sat, `TEDC_WEEKEND_DAYS`), `vacation`, `exam` or `normal`.
+Vacation and weekend are **off days**; exam and normal days are working days that are **closed for training**.
+A closed day only accepts sessions after an **approval**. Creating or moving a session onto an unapproved closed
+day fails with `422` and `code: calendar_closed`. Users with `calendar.approve` may send `calendar_approval_reason`
+with the session to approve and schedule in one request.
+
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/admin/calendar?from=&to=&kind=` (max 800 days; one row per date, for calendar and table views) | `calendar.view|calendar.manage` |
+| POST | `/admin/calendar/days` (`date`, optional `end_date`, `type`, `title_ar`, `title_en`, `notes`; re-marking a date updates it) | `calendar.manage` |
+| PUT / DELETE | `/admin/calendar/days/{day}` | `calendar.manage` |
+| POST | `/admin/calendar/approvals` (`date`, optional `end_date`, `reason`) | `calendar.approve` |
+| DELETE | `/admin/calendar/approvals/{date}` | `calendar.approve` |
+
 ## Brand Studio
 
 | Method | Path | Permission |

@@ -16,6 +16,14 @@ return [
     // Bearer token for /api/v1/system/* (Vercel Cron sends it automatically). Empty disables the endpoints.
     'cron_secret' => env('CRON_SECRET'),
 
+    /*
+    | Training calendar. Weekend days use Carbon's numbering (0 = Sunday ... 5 = Friday, 6 = Saturday);
+    | Qatar's weekend is Friday and Saturday. Weekends are closed for training unless approved.
+    */
+    'calendar' => [
+        'weekend' => array_map('intval', array_filter(explode(',', (string) env('TEDC_WEEKEND_DAYS', '5,6')), 'strlen')),
+    ],
+
     'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
     /*

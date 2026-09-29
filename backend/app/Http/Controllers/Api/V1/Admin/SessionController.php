@@ -8,14 +8,17 @@ use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Services\AttendanceService;
+use App\Services\CalendarService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class SessionController extends Controller
 {
-    public function __construct(private readonly AttendanceService $attendance) {}
+    public function __construct(private readonly AttendanceService $attendance, private readonly CalendarService $calendar) {}
 
     public function index(Program $program): AnonymousResourceCollection
     {
@@ -24,14 +27,22 @@ class SessionController extends Controller
 
     public function store(Request $request, Program $program): JsonResponse
     {
-        $session = $program->sessions()->create($this->validated($request));
+        $data = $this->validated($request);
+        $this->guardCalendar($request, $data['starts_at'], $data['ends_at']);
+        $session = $program->sessions()->create(Arr::except($data, 'calendar_approval_reason'));
 
         return (new SessionResource($session->load(['trainer', 'room'])))->response()->setStatusCode(201);
     }
 
     public function update(Request $request, ProgramSession $session): SessionResource
     {
-        $session->update($this->validated($request, true));
+        $data = $this->validated($request, true);
+        $moved = isset($data['starts_at']) || isset($data['ends_at']);
+        $cancelled = ($data['status'] ?? $session->status) === 'cancelled';
+        if ($moved && ! $cancelled) {
+            $this->guardCalendar($request, $data['starts_at'] ?? $session->starts_at, $data['ends_at'] ?? $session->ends_at);
+        }
+        $session->update(Arr::except($data, 'calendar_approval_reason'));
 
         return new SessionResource($session->load(['trainer', 'room']));
     }
@@ -77,6 +88,23 @@ class SessionController extends Controller
         return response()->json(['data' => $this->attendance->mark($session, $registration, $data['status'], $this->user(), $data['minutes'] ?? null)]);
     }
 
+    /**
+     * Sessions may only run on days open for training. A closed day (weekend, vacation, exam or
+     * restricted normal day) needs an approval; users allowed to approve can do it in the same
+     * request by sending `calendar_approval_reason`.
+     */
+    private function guardCalendar(Request $request, mixed $startsAt, mixed $endsAt): void
+    {
+        $start = Carbon::parse($startsAt);
+        $end = Carbon::parse($endsAt);
+
+        if ($request->filled('calendar_approval_reason') && $this->user()->hasPermission('calendar.approve')) {
+            $this->calendar->approveSpan($start, $end, (string) $request->input('calendar_approval_reason'), $this->user()->id);
+        }
+
+        $this->calendar->assertTrainingAllowed($start, $end);
+    }
+
     private function authorizeTrainer(ProgramSession $session): void
     {
         $user = $this->user();
@@ -107,6 +135,7 @@ class SessionController extends Controller
             'activities' => ['nullable', 'array'],
             'activities.*' => ['string', 'max:255'],
             'status' => ['sometimes', Rule::in(['scheduled', 'live', 'completed', 'cancelled'])],
+            'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
         ]);
     }
 }

@@ -42,6 +42,18 @@ return [
         'invalid_file' => 'The file could not be read. Please use the official template.',
         'row_employee_missing' => 'Row :row: no employee found with number :no',
     ],
+    'calendar' => [
+        'closed_for_training' => 'Training cannot be scheduled on :dates because they are closed for training. Ask for approval first.',
+        'already_approved' => 'This day is already approved for training.',
+        'not_closed' => 'This day is already open for training and needs no approval.',
+        'kind' => [
+            'workday' => 'Working day',
+            'weekend' => 'Weekend',
+            'vacation' => 'Vacation',
+            'exam' => 'Exam day',
+            'normal' => 'Normal day (closed for training)',
+        ],
+    ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
     'not_found' => 'The requested item was not found.',
 ];

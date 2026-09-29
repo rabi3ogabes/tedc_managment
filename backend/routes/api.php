@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
@@ -127,6 +128,20 @@ Route::prefix('v1')->group(function () {
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
             Route::get('analytics/geographic', [AnalyticsController::class, 'geographic'])->middleware('permission:analytics.view');
+
+            // Training calendar (working / off days, vacations, exam days, approvals)
+            Route::prefix('calendar')->controller(CalendarController::class)->group(function () {
+                Route::get('/', 'index')->middleware('permission:calendar.view|calendar.manage');
+                Route::middleware('permission:calendar.manage')->group(function () {
+                    Route::post('days', 'store');
+                    Route::put('days/{day}', 'update');
+                    Route::delete('days/{day}', 'destroy');
+                });
+                Route::middleware('permission:calendar.approve')->group(function () {
+                    Route::post('approvals', 'approve');
+                    Route::delete('approvals/{date}', 'revoke');
+                });
+            });
 
             // Programs & sessions
             Route::middleware('permission:programs.view|programs.manage')->group(function () {

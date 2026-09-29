@@ -18,6 +18,9 @@ class RolePermissionSeeder extends Seeder
         'employees.view' => ['organization', 'عرض الموظفين', 'View employees'],
         'employees.manage' => ['organization', 'إدارة الموظفين', 'Manage employees'],
         'programs.view' => ['programs', 'عرض البرامج', 'View programs'],
+        'calendar.view' => ['programs', 'عرض التقويم التدريبي', 'View training calendar'],
+        'calendar.manage' => ['programs', 'إدارة الإجازات وأيام الاختبارات', 'Manage vacations & exam days'],
+        'calendar.approve' => ['programs', 'اعتماد التدريب في الأيام المغلقة', 'Approve training on closed days'],
         'programs.manage' => ['programs', 'إدارة البرامج والجلسات', 'Manage programs & sessions'],
         'materials.manage' => ['programs', 'إدارة المواد التدريبية', 'Manage training materials'],
         'trainers.manage' => ['programs', 'إدارة المدربين', 'Manage trainers'],
@@ -51,7 +54,7 @@ class RolePermissionSeeder extends Seeder
         Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage']],
         Role::COORDINATOR => ['منسق البرامج', 'Program Coordinator', 70, [
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
-            'trainers.manage', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
+            'trainers.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
             'announcements.manage', 'ai.assistant', 'reports.view',
         ]],
@@ -62,7 +65,7 @@ class RolePermissionSeeder extends Seeder
         ]],
         Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view']],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
-            'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'certificates.view',
+            'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view',
         ]],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, []],
