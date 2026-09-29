@@ -6,6 +6,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import { homeFor, useAuth } from '@/lib/auth'
 import Logo from './Logo'
+import { useCenterName } from '@/lib/ThemeProvider'
 
 const links = [
   { to: '/', key: 'home' },
@@ -33,6 +34,7 @@ export function LanguageToggle({ light }: { light?: boolean }) {
 
 export default function PublicLayout() {
   const { t } = useTranslation()
+  const centerName = useCenterName()
   const { user } = useAuth()
   const { pathname } = useLocation()
   const [scrolled, setScrolled] = useState(false)
@@ -136,7 +138,7 @@ export default function PublicLayout() {
         </div>
         <div className="relative border-t border-white/10">
           <div className="container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-white/50 sm:flex-row">
-            <span>© {new Date().getFullYear()} {t('brand.name')} — {t('footer.rights')}</span>
+            <span>© {new Date().getFullYear()} {centerName} — {t('footer.rights')}</span>
             <span>{t('contact.hours')}</span>
           </div>
         </div>

@@ -56,6 +56,8 @@ class ThemeController extends Controller
             'shape.card_radius' => ['required', 'integer', 'between:0,40'],
             'shape.glass_blur' => ['required', 'integer', 'between:0,40'],
             'identity' => ['sometimes', 'array'],
+            'identity.name_ar' => ['nullable', 'string', 'max:120'],
+            'identity.name_en' => ['nullable', 'string', 'max:120'],
             'identity.logo_ar' => $asset,
             'identity.logo_en' => $asset,
             'identity.logo_ar_light' => $asset,

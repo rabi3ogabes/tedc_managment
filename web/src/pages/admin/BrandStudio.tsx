@@ -145,6 +145,17 @@ export default function BrandStudio() {
                   <ExternalLink className="size-3.5" />{t('admin.brand.identity.guidelines')}
                 </a>
                 <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-semibold text-slate-500">{t('admin.brand.identity.nameAr')}</span>
+                    <input dir="rtl" maxLength={120} className="input" value={draft.identity.name_ar} onChange={(e) => update('identity', { name_ar: e.target.value })} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-semibold text-slate-500">{t('admin.brand.identity.nameEn')}</span>
+                    <input dir="ltr" maxLength={120} className="input" value={draft.identity.name_en} onChange={(e) => update('identity', { name_en: e.target.value })} />
+                  </label>
+                  <p className="text-xs text-slate-400 sm:col-span-2">{t('admin.brand.identity.nameHint')}</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
                   <ImageField kind="logo" contain aspect="aspect-[16/7]" label={t('admin.brand.identity.logoAr')} value={draft.identity.logo_ar} onChange={(url) => update('identity', { logo_ar: url })} />
                   <ImageField kind="logo" contain aspect="aspect-[16/7]" label={t('admin.brand.identity.logoEn')} value={draft.identity.logo_en} onChange={(url) => update('identity', { logo_en: url })} />
                   <div className="rounded-2xl bg-navy-900 p-3"><ImageField kind="logo" contain onDark aspect="aspect-[16/7]" label={t('admin.brand.identity.logoArLight')} value={draft.identity.logo_ar_light} onChange={(url) => update('identity', { logo_ar_light: url })} /></div>

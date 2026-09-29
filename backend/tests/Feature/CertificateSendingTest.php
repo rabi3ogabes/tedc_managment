@@ -8,6 +8,8 @@ use App\Models\Certificate;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Services\CertificateService;
+use App\Services\ThemeService;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -96,5 +98,31 @@ class CertificateSendingTest extends TestCase
         // School admins do not hold certificates.issue, so they cannot send at all.
         $this->asUser($schoolAdmin)->postJson('/api/v1/admin/certificates/send', ['ids' => [$mine->id, $theirs->id]])->assertForbidden();
         Mail::assertNothingSent();
+    }
+
+    public function test_certificate_pdf_is_a_single_page_and_uses_the_center_name_from_settings(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $certificate = $this->certificate();
+        $service = app(CertificateService::class);
+
+        $pdf = $service->render($certificate);
+        $this->assertStringStartsWith('%PDF', $pdf);
+        $this->assertSame(1, preg_match_all('#/Type\s*/Page\b(?!s)#', $pdf), 'the certificate must fit on one page');
+
+        // The default name, then a name changed in the settings page.
+        $this->assertSame('مركز التدريب والتطوير', app(ThemeService::class)->centerName()['ar']);
+        $theme = $this->getJson('/api/v1/public/theme')->assertOk()->json('data');
+        $this->assertSame('مركز التدريب والتطوير', $theme['identity']['name_ar']);
+        $theme['identity']['name_ar'] = 'مركز الابتكار التدريبي';
+        $theme['identity']['name_en'] = 'Training Innovation Center';
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.identity.name_ar', 'مركز الابتكار التدريبي');
+        $this->getJson('/api/v1/public/theme')->assertOk()->assertJsonPath('data.identity.name_en', 'Training Innovation Center');
+        $this->assertSame('Training Innovation Center', app(ThemeService::class)->centerName()['en']);
+        $this->assertSame('Training Innovation Center', app(CertificateService::class)->verify($certificate->verification_code)['issuer']['en']);
+
+        // Clearing the name restores the default instead of leaving it empty.
+        $theme['identity']['name_ar'] = '   ';
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.identity.name_ar', 'مركز التدريب والتطوير');
     }
 }

@@ -9,8 +9,8 @@
 return [
 
     'name' => [
-        'ar' => env('TEDC_NAME_AR', 'مركز التدريب والتطوير التربوي'),
-        'en' => env('TEDC_NAME_EN', 'Training & Educational Development Center'),
+        'ar' => env('TEDC_NAME_AR', 'مركز التدريب والتطوير'),
+        'en' => env('TEDC_NAME_EN', 'Training & Development Center'),
     ],
 
     // Bearer token for /api/v1/system/* (Vercel Cron sends it automatically). Empty disables the endpoints.

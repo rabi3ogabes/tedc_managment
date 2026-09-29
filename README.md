@@ -1,5 +1,5 @@
 # TEDC — Training Management & Impact Platform
-### منصة إدارة التدريب وقياس الأثر — مركز التدريب والتطوير التربوي
+### منصة إدارة التدريب وقياس الأثر — مركز التدريب والتطوير
 
 An enterprise, Arabic-first (RTL) training ecosystem for a training center serving the schools of the State of Qatar.
 It manages the **complete training lifecycle**:

@@ -15,7 +15,7 @@ class S {
   String status(String value) => t('status.$value');
 
   static const Map<String, String> _ar = {
-    'app.name': 'مركز التدريب والتطوير التربوي',
+    'app.name': 'مركز التدريب والتطوير',
     'app.tagline': 'نصنع أثراً مستداماً في التعليم',
     'nav.home': 'الرئيسية',
     'nav.programs': 'البرامج',
@@ -206,7 +206,7 @@ class S {
   };
 
   static const Map<String, String> _en = {
-    'app.name': 'Training & Educational Development Center',
+    'app.name': 'Training & Development Center',
     'app.tagline': 'Creating lasting impact in education',
     'nav.home': 'Home',
     'nav.programs': 'Programs',

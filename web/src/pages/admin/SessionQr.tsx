@@ -7,6 +7,7 @@ import { BrandMark } from '@/components/public/Logo'
 import { Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
+import { useCenterName } from '@/lib/ThemeProvider'
 
 type Qr = { payload: string; expires_at: string; rotation_seconds: number; session: { id: string; title: string; starts_at: string; ends_at: string } }
 
@@ -14,6 +15,7 @@ type Qr = { payload: string; expires_at: string; rotation_seconds: number; sessi
 export default function SessionQr() {
   const { id } = useParams()
   const { t } = useTranslation()
+  const centerName = useCenterName()
   const [now, setNow] = useState(Date.now())
   const { data, refetch } = useGet<{ data: Qr }>(`/admin/sessions/${id}/qr`, undefined, { staleTime: 0 })
   const report = useGet<{ data: { expected: number; present: number } }>(`/admin/sessions/${id}/attendance`, undefined, { refetchInterval: 10_000, staleTime: 0 })
@@ -37,7 +39,7 @@ export default function SessionQr() {
       <div className="pattern-bg absolute inset-0 opacity-20" />
       <div className="absolute -top-40 start-1/2 size-[600px] -translate-x-1/2 rounded-full bg-gold-500/10 blur-3xl" />
       <button onClick={() => document.documentElement.requestFullscreen?.()} className="glass-dark absolute end-6 top-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm"><Maximize2 className="size-4" />{t('admin.qr.fullscreen')}</button>
-      <div className="relative flex items-center gap-3"><BrandMark onDark className="h-12 max-w-[200px]" markClassName="size-12" /><div className="font-display text-xl font-bold">{t('brand.name')}</div></div>
+      <div className="relative flex items-center gap-3"><BrandMark onDark className="h-12 max-w-[200px]" markClassName="size-12" /><div className="font-display text-xl font-bold">{centerName}</div></div>
       <h1 className="relative mt-8 text-center text-3xl font-bold sm:text-4xl">{qr.session.title}</h1>
       <p className="relative mt-2 text-white/60">{fmt.dateTime(qr.session.starts_at)} – {fmt.time(qr.session.ends_at)}</p>
       <div className="relative mt-10 rounded-[2rem] bg-white p-6 shadow-gold">

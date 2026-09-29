@@ -15,7 +15,7 @@ export type Theme = {
   banners: { overlay_color: string; overlay_opacity: number; hero_images: (string | null)[]; page_banner_image: string | null; cta_style: 'gradient' | 'accent' | 'image' }
   pattern: { type: PatternType; color: string; opacity: number; size: number; image: string | null }
   shape: { card_radius: number; glass_blur: number }
-  identity: { logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
+  identity: { name_ar: string; name_en: string; logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
   typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
 }
 
@@ -45,7 +45,7 @@ export const DEFAULT_THEME: Theme = {
   banners: { overlay_color: '#3A0918', overlay_opacity: 72, hero_images: [null, null, null, null], page_banner_image: null, cta_style: 'gradient' },
   pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null },
   shape: { card_radius: 14, glass_blur: 18 },
-  identity: { logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
+  identity: { name_ar: 'مركز التدريب والتطوير', name_en: 'Training & Development Center', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
   typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
 }
 
@@ -240,7 +240,12 @@ export function mergeTheme(input?: Partial<Theme> | null): Theme {
     banners: { ...DEFAULT_THEME.banners, ...input.banners, hero_images: [0, 1, 2, 3].map((i) => input.banners?.hero_images?.[i] ?? null) },
     pattern: { ...DEFAULT_THEME.pattern, ...input.pattern },
     shape: { ...DEFAULT_THEME.shape, ...input.shape },
-    identity: { ...DEFAULT_THEME.identity, ...input.identity },
+    identity: {
+      ...DEFAULT_THEME.identity,
+      ...input.identity,
+      name_ar: input.identity?.name_ar?.trim() || DEFAULT_THEME.identity.name_ar,
+      name_en: input.identity?.name_en?.trim() || DEFAULT_THEME.identity.name_en,
+    },
     typography: { ...DEFAULT_THEME.typography, ...input.typography },
   }
 }

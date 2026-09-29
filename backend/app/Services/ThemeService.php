@@ -64,6 +64,9 @@ class ThemeService
             // Official logos (e.g. the Ministry of Education and Higher Education). Empty values fall back
             // to the files in web/public/brand/ and then to the built-in mark.
             'identity' => [
+                // Center name shown across the platform, on certificates and in e-mails.
+                'name_ar' => config('tedc.name.ar'),
+                'name_en' => config('tedc.name.en'),
                 'logo_ar' => null,
                 'logo_en' => null,
                 'logo_ar_light' => null,
@@ -90,9 +93,24 @@ class ThemeService
         });
     }
 
+    /** The center name administrators set in the settings page. @return array{ar: string, en: string} */
+    public function centerName(): array
+    {
+        $identity = $this->get()['identity'];
+
+        return [
+            'ar' => trim((string) ($identity['name_ar'] ?? '')) ?: config('tedc.name.ar'),
+            'en' => trim((string) ($identity['name_en'] ?? '')) ?: config('tedc.name.en'),
+        ];
+    }
+
     public function update(array $theme, User $user): array
     {
         $merged = array_replace_recursive(self::defaults(), Arr::only($theme, array_keys(self::defaults())));
+        // A cleared name falls back to the default rather than leaving the platform without one.
+        foreach (['name_ar', 'name_en'] as $key) {
+            $merged['identity'][$key] = trim((string) ($merged['identity'][$key] ?? '')) ?: self::defaults()['identity'][$key];
+        }
         // Hero images is a positional list; replace rather than merge.
         $merged['banners']['hero_images'] = array_values(array_pad(array_slice($theme['banners']['hero_images'] ?? [], 0, 4), 4, null));
 

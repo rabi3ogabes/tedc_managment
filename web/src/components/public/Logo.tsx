@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { useTheme } from '@/lib/ThemeProvider'
+import { useTheme, useCenterName } from '@/lib/ThemeProvider'
 import { logoFor } from '@/lib/theme'
 
 /** Built-in mark, drawn in the active theme colours (fallback when no official logo is configured). */
@@ -56,12 +56,13 @@ export function OfficialLogo({ onDark = false, className, onMissing }: { onDark?
 
 export default function Logo({ light = false, compact = false }: { light?: boolean; compact?: boolean }) {
   const { t } = useTranslation()
+  const centerName = useCenterName()
   const { active } = useTheme()
   const [hasOfficial, setHasOfficial] = useState(true)
 
   const name = (
     <div className={clsx('leading-tight', compact && 'hidden sm:block xl:hidden 2xl:block')}>
-      <div className={clsx('whitespace-nowrap font-display text-[15px] font-bold sm:text-base', light ? 'text-white' : 'text-navy-900')}>{t('brand.name')}</div>
+      <div className={clsx('whitespace-nowrap font-display text-[15px] font-bold sm:text-base', light ? 'text-white' : 'text-navy-900')}>{centerName}</div>
       <div className={clsx('whitespace-nowrap text-[11px] tracking-wide', light ? 'text-gold-300' : 'text-gold-700')}>{t('brand.tagline')}</div>
     </div>
   )

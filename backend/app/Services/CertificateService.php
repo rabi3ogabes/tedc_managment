@@ -171,7 +171,7 @@ class CertificateService
         $html = view('certificates.pdf', [
             'certificate' => $certificate,
             'qr' => $qr,
-            'center' => config('tedc.name'),
+            'center' => app(ThemeService::class)->centerName(),
             'primary' => $theme['colors']['primary'],
             'accent' => $theme['colors']['accent'],
             'text' => $theme['colors']['text'],
@@ -281,7 +281,7 @@ class CertificateService
             'program' => ['ar' => $certificate->program->title_ar, 'en' => $certificate->program->title_en],
             'hours' => $certificate->hours,
             'issued_at' => $certificate->issued_at->toDateString(),
-            'issuer' => config('tedc.name'),
+            'issuer' => app(ThemeService::class)->centerName(),
         ];
     }
 

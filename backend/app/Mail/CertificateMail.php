@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Certificate;
+use App\Services\ThemeService;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
@@ -15,7 +16,7 @@ class CertificateMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'شهادتك من '.config('tedc.name.ar').' · Your certificate from '.config('tedc.name.en'));
+        return new Envelope(subject: 'شهادتك من '.app(ThemeService::class)->centerName()['ar'].' · Your certificate from '.app(ThemeService::class)->centerName()['en']);
     }
 
     public function content(): Content
@@ -24,7 +25,7 @@ class CertificateMail extends Mailable
             'name_ar' => $this->certificate->employee->user->name_ar ?: $this->certificate->employee->user->name,
             'name_en' => $this->certificate->employee->user->name,
             'program' => $this->certificate->program,
-            'center' => config('tedc.name'),
+            'center' => app(ThemeService::class)->centerName(),
             'verifyUrl' => $this->certificate->verificationUrl(),
         ]);
     }

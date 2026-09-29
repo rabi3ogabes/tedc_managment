@@ -61,6 +61,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     applyTheme(active, i18n.language)
+    document.title = i18n.language === 'en' ? active.identity.name_en : active.identity.name_ar
   }, [active, i18n.language])
 
   useEffect(() => {
@@ -79,6 +80,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [refetch])
   const value = useMemo(() => ({ theme, active, setPreview, refresh }), [theme, active, refresh])
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+}
+
+/** The center name in the current language, as set by administrators in the settings page. */
+export function useCenterName(): string {
+  const { active } = useTheme()
+  const { i18n } = useTranslation()
+  return i18n.language === 'en' ? active.identity.name_en : active.identity.name_ar
 }
 
 export function useTheme() {

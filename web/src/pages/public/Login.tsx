@@ -8,6 +8,7 @@ import { MinistryOfEducation } from '@/components/public/QatarArt'
 import { Button, Field } from '@/components/ui'
 import { errorMessage } from '@/lib/api'
 import { homeFor, useAuth } from '@/lib/auth'
+import { useCenterName } from '@/lib/ThemeProvider'
 
 const DEMO = [
   ['admin@tedc.qa', 'Super Admin'], ['center@tedc.qa', 'Center Admin'], ['coordinator@tedc.qa', 'Coordinator'], ['trainer@tedc.qa', 'Trainer'],
@@ -20,6 +21,7 @@ const DEMO_PASSWORD = 'Tedc@2026!'
 
 export default function Login() {
   const { t } = useTranslation()
+  const centerName = useCenterName()
   const { login, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
@@ -78,7 +80,7 @@ export default function Login() {
         <MinistryOfEducation />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/30 to-transparent" />
         <div className="absolute inset-x-12 bottom-14 text-white">
-          <h2 className="text-4xl font-bold">{t('brand.name')}</h2>
+          <h2 className="text-4xl font-bold">{centerName}</h2>
           <div className="gold-line mt-4" />
           <p className="mt-4 max-w-md text-white/75">{t('home.introText')}</p>
         </div>

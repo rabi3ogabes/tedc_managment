@@ -1,7 +1,7 @@
 import type { Dictionary } from './ar'
 
 const en: Dictionary = {
-  brand: { name: 'Training & Educational Development Center', short: 'TEDC', tagline: 'Creating lasting impact in education' },
+  brand: { name: 'Training & Development Center', short: 'TEDC', tagline: 'Creating lasting impact in education' },
   nav: {
     home: 'Home', about: 'About', programs: 'Programs', trainers: 'Trainers', calendar: 'Training Calendar',
     verify: 'Verify Certificate', news: 'News', contact: 'Contact', login: 'Sign in', dashboard: 'Dashboard',
@@ -167,7 +167,7 @@ const en: Dictionary = {
       identity: {
         hint: 'Upload the official logo (e.g. the Ministry of Education and Higher Education) in Arabic and English. It is used in the header, footer, dashboard and certificates.',
         logoAr: 'Logo — Arabic version', logoEn: 'Logo — English version', logoArLight: 'Arabic version for dark backgrounds (optional)', logoEnLight: 'English version for dark backgrounds (optional)',
-        showName: 'Show the center name next to the logo', guidelines: 'Qatar Government brand guidelines', filesHint: 'Without uploads, files in web/public/brand are used automatically.',
+        showName: 'Show the center name next to the logo', nameAr: 'Center name (Arabic)', nameEn: 'Center name (English)', nameHint: 'Shown on the website, dashboard, browser tab, certificates and e-mails. Leave empty to use the default name.', guidelines: 'Qatar Government brand guidelines', filesHint: 'Without uploads, files in web/public/brand are used automatically.',
       },
       typography: {
         hint: 'The official government typeface is Qatar Sans. Upload the licensed font files (woff2) or leave empty to use the installed font, then Tajawal / Inter.',
@@ -236,7 +236,17 @@ const en: Dictionary = {
       type: 'Type', types: { news: 'News', announcement: 'Announcement', circular: 'Circular' }, isPublic: 'Publish on public website', attachments: 'Attachments (files, videos, links)',
       addLink: 'Add link', recipients: 'Sent to {{n}} users', bodyAr: 'Body (Arabic)', bodyEn: 'Body (English)',
     },
-    certificates: { title: 'Certificates', number: 'Certificate no.', revoke: 'Revoke', reason: 'Reason', requirements: 'Certificate requirements', issue: 'Issue certificate' },
+    certificates: {
+      title: 'Certificates', number: 'Certificate no.', revoke: 'Revoke', reason: 'Reason', requirements: 'Certificate requirements', issue: 'Issue certificate',
+      search: 'Search by name, e-mail or number…', allPrograms: 'All programs', allSent: 'Sent and unsent', sentOnly: 'Sent', unsentOnly: 'Not sent yet', validOnly: 'Valid', revokedOnly: 'Revoked',
+      from: 'Issued from', to: 'Issued to', clear: 'Clear filters', preview: 'Preview', previewFailed: 'The preview could not be loaded.',
+      send: 'Send', sendSelected: 'Send selected', sendAll: 'Send all matching', sendTitle: 'Send certificates', selected: '{{count}} selected', selectPage: 'Select all on this page',
+      confirmSelected: 'Send {{count}} selected certificate(s) by e-mail with the PDF attached?', confirmAll: 'Send every unsent certificate that matches the current filters?',
+      sent: 'Sent', notSent: 'Not sent', sentOn: 'Sent on {{date}}', sentTo: 'Sent to {{email}}', sentTimes: 'sent {{count}} times', sendFailed: 'Last send failed: {{error}}',
+      resend: 'Send again', resendConfirm: 'This certificate was already sent. Send it again?', includeSent: 'Also resend to those already sent',
+      resultTitle: 'Sending result', resultSent: '{{count}} sent', resultSkipped: 'Skipped', resultFailed: 'Failed', done: 'Done',
+      reasons: { already_sent: 'Already sent', revoked: 'Certificate revoked', no_email: 'No e-mail address', mail_error: 'The mail server rejected it' },
+    },
     users: { title: 'Users & roles', roles: 'Roles', permissions: 'Permissions', users: 'Users', role: 'Role', lastLogin: 'Last sign-in' },
     audit: { title: 'Audit log', action: 'Action', entity: 'Entity', user: 'User', ip: 'IP' },
     schools: { title: 'Schools', code: 'Code', type: 'Type', stage: 'Stage', region: 'Region', employees: 'Employees', partner: 'Partner' },

@@ -61,6 +61,13 @@ export type Registration = {
 export type Certificate = {
   id: string; certificate_no: string; verification_code: string; verification_url: string; issued_at: string; hours: number; status: string
   program?: { id: string; code: string; title: string }; employee?: { id: string; employee_no: string; name: string }; download_url: string
+  is_sent: boolean; sent_at: string | null; sent_count: number; sent_to: string | null; sent_by: string | null; send_error: string | null
+}
+
+export type CertificateSendResult = {
+  sent: number; total: number
+  skipped: { id: string; certificate_no: string; employee: string | null; reason: string }[]
+  failed: { id: string; certificate_no: string; employee: string | null; reason: string }[]
 }
 
 export type Me = {

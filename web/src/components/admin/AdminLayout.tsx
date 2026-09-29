@@ -12,11 +12,13 @@ import { Avatar } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
+import { useCenterName } from '@/lib/ThemeProvider'
 
 type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean }
 
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t } = useTranslation()
+  const centerName = useCenterName()
   const { user, logout, can } = useAuth()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
@@ -77,7 +79,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
       <div className="relative flex items-center gap-3 px-6 py-6">
         <BrandMark onDark className="h-11 max-w-[120px]" />
         <div className="leading-tight">
-          <div className="font-display text-sm font-bold">{t('brand.name')}</div>
+          <div className="font-display text-sm font-bold">{centerName}</div>
           <div className="text-[11px] text-gold-300">{portal ? t('nav.portal') : t('nav.dashboard')}</div>
         </div>
       </div>
