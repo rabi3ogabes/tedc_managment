@@ -22,6 +22,12 @@ class CertificateResource extends JsonResource
             'revoked_reason' => $this->revoked_reason,
             'program' => $this->whenLoaded('program', fn () => ['id' => $this->program->id, 'code' => $this->program->code, 'title' => $this->program->translate('title')]),
             'employee' => $this->whenLoaded('employee', fn () => ['id' => $this->employee->id, 'employee_no' => $this->employee->employee_no, 'name' => $this->employee->user?->displayName()]),
+            'is_sent' => $this->sent_at !== null,
+            'sent_at' => $this->sent_at?->toIso8601String(),
+            'sent_count' => $this->sent_count,
+            'sent_to' => $this->sent_to,
+            'sent_by' => $this->whenLoaded('sender', fn () => $this->sender?->displayName()),
+            'send_error' => $this->send_error,
             'download_url' => route('api.certificates.download', $this->id),
         ];
     }

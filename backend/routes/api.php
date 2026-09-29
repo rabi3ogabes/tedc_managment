@@ -231,6 +231,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('registrations/{registration}/certificate-requirements', [CertificateController::class, 'requirements']);
             });
             Route::post('registrations/{registration}/certificate', [CertificateController::class, 'issue'])->middleware('permission:certificates.issue');
+            Route::post('certificates/send', [CertificateController::class, 'send'])->middleware('permission:certificates.issue');
             Route::post('programs/{program}/certificates', [CertificateController::class, 'issueForProgram'])->middleware('permission:certificates.issue');
             Route::post('certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->middleware('permission:certificates.revoke');
 

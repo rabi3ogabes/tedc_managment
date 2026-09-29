@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
+use App\Mail\CertificateMail;
 use App\Models\Certificate;
 use App\Models\Registration;
 use App\Models\Task;
@@ -12,8 +13,10 @@ use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Mpdf\Mpdf;
+use Throwable;
 
 /**
  * Smart Certificate Engine.
@@ -188,6 +191,65 @@ class CertificateService
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');
+    }
+
+    /** The stored PDF, or a fresh render when the stored file is missing. */
+    public function pdf(Certificate $certificate): string
+    {
+        try {
+            if ($certificate->file_path) {
+                return $this->storage->get('certificates', $certificate->file_path);
+            }
+        } catch (Throwable) {
+            // fall through to a fresh render
+        }
+
+        return $this->render($certificate);
+    }
+
+    /**
+     * E-mails the certificate PDF to its holder and notifies them in the app.
+     *
+     * @return array{status: 'sent'|'skipped'|'failed', reason?: string}
+     */
+    public function send(Certificate $certificate, ?User $actor = null, bool $resend = false): array
+    {
+        $certificate->loadMissing(['employee.user', 'program']);
+
+        if ($certificate->status !== 'valid') {
+            return ['status' => 'skipped', 'reason' => 'revoked'];
+        }
+        if ($certificate->sent_at && ! $resend) {
+            return ['status' => 'skipped', 'reason' => 'already_sent'];
+        }
+        $email = $certificate->employee->user?->email;
+        if (! $email) {
+            return ['status' => 'skipped', 'reason' => 'no_email'];
+        }
+
+        try {
+            Mail::to($email)->send(new CertificateMail($certificate, $this->pdf($certificate)));
+        } catch (Throwable $e) {
+            report($e);
+            $certificate->update(['send_error' => mb_substr($e->getMessage(), 0, 500)]);
+
+            return ['status' => 'failed', 'reason' => 'mail_error'];
+        }
+
+        $certificate->update([
+            'sent_at' => now(), 'sent_count' => $certificate->sent_count + 1, 'sent_to' => $email,
+            'sent_by' => $actor?->id, 'send_error' => null,
+        ]);
+
+        $this->notifications->send(
+            $certificate->employee->user_id,
+            'certificate.sent',
+            ['ar' => 'وصلتك شهادتك', 'en' => 'Your certificate was sent'],
+            ['ar' => "أُرسلت شهادة «{$certificate->program->title_ar}» إلى بريدك الإلكتروني.", 'en' => "The certificate for \"{$certificate->program->title_en}\" was sent to your e-mail."],
+            ['certificate_id' => $certificate->id],
+        );
+
+        return ['status' => 'sent'];
     }
 
     public function revoke(Certificate $certificate, string $reason): Certificate

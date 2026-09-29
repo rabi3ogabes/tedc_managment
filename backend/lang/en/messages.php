@@ -23,6 +23,7 @@ return [
         'locked' => 'This task was approved and can no longer be changed.',
     ],
     'certificate' => [
+        'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'blocked' => 'The certificate cannot be issued because requirements are not met.',
         'registration' => 'Approved program registration',
         'attendance' => 'Attendance :actual% (required :required%)',

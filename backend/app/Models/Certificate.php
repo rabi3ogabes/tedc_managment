@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['certificate_no', 'verification_code', 'registration_id', 'employee_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'issued_by', 'meta'])]
+#[Fillable(['certificate_no', 'verification_code', 'registration_id', 'employee_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'issued_by', 'meta', 'sent_at', 'sent_count', 'sent_to', 'sent_by', 'send_error'])]
 class Certificate extends Model
 {
     use Auditable, HasUuids;
 
-    protected $casts = ['issued_at' => 'datetime', 'meta' => 'array', 'hours' => 'float'];
+    protected $casts = ['issued_at' => 'datetime', 'sent_at' => 'datetime', 'meta' => 'array', 'hours' => 'float'];
 
     public function registration(): BelongsTo
     {
@@ -28,6 +28,11 @@ class Certificate extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function sender(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sent_by');
     }
 
     public function verificationUrl(): string
