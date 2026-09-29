@@ -73,6 +73,8 @@ class ProgramResource extends JsonResource
             'registration_open' => $this->isRegistrationOpen(),
             'registration_modes' => $this->registration_modes ?? [],
             'status' => $this->status,
+            'source_type' => $this->source_type,
+            'audience' => $this->audience,
             'is_featured' => $this->is_featured,
             'cover_url' => FileStorage::publicUrl($this->cover_path),
             'skills' => $this->whenLoaded('skills', fn () => $this->skills->map(fn ($s) => [

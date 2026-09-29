@@ -34,11 +34,12 @@ class EligibilityRuleController extends Controller
             'rules.*.message_ar' => ['nullable', 'string', 'max:255'],
             'rules.*.message_en' => ['nullable', 'string', 'max:255'],
             'rules.*.is_mandatory' => ['sometimes', 'boolean'],
+            'rules.*.is_generated' => ['sometimes', 'boolean'],
         ]);
 
         $program->eligibilityRules()->delete();
         foreach (array_values($data['rules']) as $i => $rule) {
-            $program->eligibilityRules()->create($rule + ['sort_order' => $i, 'is_mandatory' => $rule['is_mandatory'] ?? true]);
+            $program->eligibilityRules()->create($rule + ['sort_order' => $i, 'is_mandatory' => $rule['is_mandatory'] ?? true, 'is_generated' => $rule['is_generated'] ?? false]);
         }
 
         return $this->index($program->refresh());

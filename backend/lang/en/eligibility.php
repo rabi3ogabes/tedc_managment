@@ -21,6 +21,11 @@ return [
         'completed_program' => 'Completed programs',
         'skill_level' => 'Skill level',
         'qualification' => 'Qualification',
+        'specialization' => 'Specialization',
+        'gender' => 'Gender',
+        'nationality' => 'Nationality',
+        'school' => 'School',
+        'age' => 'Age',
     ],
     'operators' => [
         'eq' => 'equal to',
@@ -39,6 +44,7 @@ return [
     'lacks_skill' => 'Intended for employees below level :level in :expected',
     'none' => 'not set',
     'values' => [
+        'male' => 'Male', 'female' => 'Female',
         'teaching' => 'Teaching', 'leadership' => 'Leadership', 'administrative' => 'Administrative', 'support' => 'Support',
         'government' => 'Government', 'private' => 'Private', 'community' => 'Community', 'international' => 'International',
         'kindergarten' => 'Kindergarten', 'primary' => 'Primary', 'preparatory' => 'Preparatory', 'secondary' => 'Secondary', 'multi' => 'Multi-stage',

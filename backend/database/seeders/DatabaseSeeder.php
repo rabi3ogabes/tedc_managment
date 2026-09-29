@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         if (app()->environment(['local', 'development', 'staging']) || env('TEDC_SEED_DEMO', false)) {
-            $this->call([DemoDataSeeder::class, DemoNeedsSurveySeeder::class]);
+            $this->call([DemoDataSeeder::class, DemoNeedsSurveySeeder::class, DemoCalendarSeeder::class]);
         }
     }
 }

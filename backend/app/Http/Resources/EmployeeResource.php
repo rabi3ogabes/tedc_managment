@@ -29,6 +29,8 @@ class EmployeeResource extends JsonResource
             'supervisor_id' => $this->supervisor_id,
             'gender' => $this->gender,
             'nationality' => $this->nationality,
+            'birth_date' => $this->birth_date?->toDateString(),
+            'age' => $this->age(),
             'hire_date' => $this->hire_date?->toDateString(),
             'experience_years' => $this->experience_years,
             'education_stage' => $this->education_stage,

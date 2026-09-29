@@ -55,6 +55,11 @@ class DemoDataSeeder extends Seeder
         'الملا' => 'Al-Mulla', 'السويدي' => 'Al-Suwaidi', 'اليافعي' => 'Al-Yafei',
     ];
 
+    /** @var array<string, string> job title id => code */
+    private array $titleCodes = [];
+
+    private array $teachingSpecializations = ['رياضيات', 'علوم', 'لغة عربية', 'لغة إنجليزية', 'دراسات اجتماعية', 'تربية إسلامية', 'حاسب آلي', 'تربية بدنية', 'فنون', 'صفوف أولية'];
+
     private string $passwordHash;
 
     public function run(): void
@@ -200,6 +205,18 @@ class DemoDataSeeder extends Seeder
         $user->roles()->syncWithoutDetaching(Role::where('slug', Role::EMPLOYEE)->pluck('id'));
 
         $experience = round(mt_rand(5, 250) / 10, 1);
+        $code = $this->titleCodes[$jobTitleId] ??= (string) JobTitle::whereKey($jobTitleId)->value('code');
+        $specialization = match ($code) {
+            'TEACHER', 'SENIOR_TEACHER', 'SUBJECT_COORD' => $this->teachingSpecializations[array_rand($this->teachingSpecializations)],
+            'PSYCH_SPECIALIST' => 'علم النفس التربوي',
+            'SOCIAL_SPECIALIST' => 'الخدمة الاجتماعية',
+            'IT_SPECIALIST' => 'تقنية المعلومات',
+            'LEARNING_RESOURCES' => 'مصادر التعلم',
+            'ACADEMIC_ADVISOR' => 'الإرشاد الأكاديمي',
+            'ADMIN_OFFICER' => 'الشؤون الإدارية',
+            default => 'القيادة التربوية',
+        };
+        $age = min(62, 22 + (int) $experience + mt_rand(0, 6));
 
         return Employee::updateOrCreate(['user_id' => $user->id], [
             'school_id' => $school->id,
@@ -208,7 +225,9 @@ class DemoDataSeeder extends Seeder
             'employee_no' => "E-{$no}",
             'national_id' => (string) mt_rand(28000000000, 29999999999),
             'gender' => $female ? 'female' : 'male',
-            'nationality' => mt_rand(0, 3) ? 'Qatar' : 'Jordan',
+            'nationality' => mt_rand(0, 3) ? 'Qatar' : ['Jordan', 'Egypt', 'Sudan', 'Syria'][mt_rand(0, 3)],
+            'birth_date' => now()->subYears($age)->subDays(mt_rand(0, 364))->toDateString(),
+            'specialization' => $specialization,
             'hire_date' => now()->subYears((int) $experience)->toDateString(),
             'experience_years' => $experience,
             'education_stage' => $stage,

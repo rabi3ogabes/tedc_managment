@@ -64,6 +64,10 @@ return [
         'inactive' => 'Trainer ":trainer" is inactive.',
         'busy' => 'Trainer ":trainer" already has another session at this time.',
     ],
+    'program_builder' => [
+        'nomination_note' => 'Automatic nomination within the program target audience.',
+        'publish_first' => 'Publish the program before nominating its audience.',
+    ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
     'not_found' => 'The requested item was not found.',
 ];

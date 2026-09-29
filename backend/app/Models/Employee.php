@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status'])]
+#[Fillable(['user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'birth_date', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status'])]
 #[Hidden(['national_id'])]
 class Employee extends Model
 {
@@ -23,8 +23,15 @@ class Employee extends Model
         return [
             'national_id' => 'encrypted',
             'hire_date' => 'date',
+            'birth_date' => 'date',
             'experience_years' => 'float',
         ];
+    }
+
+    /** Age in whole years, or null when the birth date is unknown. */
+    public function age(): ?int
+    {
+        return $this->birth_date?->age;
     }
 
     public function user(): BelongsTo

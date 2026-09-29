@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\DB;
 /**
  * Resolves the target audience (الفئة المستهدفة) of a survey from profile filters:
  * school, region, school type, stage, job title, specialization, nationality, gender,
- * qualification and years of experience.
+ * qualification, years of experience and age.
  */
 class SurveyAudience
 {
     public const LIST_FILTERS = ['school_ids', 'regions', 'school_types', 'stages', 'job_title_ids', 'specializations', 'nationalities', 'genders', 'qualifications'];
+
+    public const AGE_BANDS = ['<30' => [0, 29], '30-39' => [30, 39], '40-49' => [40, 49], '50+' => [50, 120]];
 
     public const EXPERIENCE_BANDS = ['0-2' => [0, 2], '3-5' => [2.01, 5], '6-10' => [5.01, 10], '11-15' => [10.01, 15], '16+' => [15.01, 99]];
 
@@ -29,6 +31,8 @@ class SurveyAudience
         }
         $rules[$prefix.'experience_min'] = ['nullable', 'numeric', 'min:0', 'max:60'];
         $rules[$prefix.'experience_max'] = ['nullable', 'numeric', 'min:0', 'max:60'];
+        $rules[$prefix.'age_min'] = ['nullable', 'integer', 'min:16', 'max:80'];
+        $rules[$prefix.'age_max'] = ['nullable', 'integer', 'min:16', 'max:80'];
 
         return $rules;
     }
@@ -44,9 +48,9 @@ class SurveyAudience
                 $clean[$key] = $values;
             }
         }
-        foreach (['experience_min', 'experience_max'] as $key) {
+        foreach (['experience_min', 'experience_max', 'age_min', 'age_max'] as $key) {
             if (isset($audience[$key]) && $audience[$key] !== '' && is_numeric($audience[$key])) {
-                $clean[$key] = (float) $audience[$key];
+                $clean[$key] = str_starts_with($key, 'age') ? (int) $audience[$key] : (float) $audience[$key];
             }
         }
 
@@ -73,7 +77,10 @@ class SurveyAudience
             ->when($a['genders'] ?? null, fn ($q, $v) => $q->whereIn('employees.gender', $v))
             ->when($a['qualifications'] ?? null, fn ($q, $v) => $q->whereIn('employees.qualification', $v))
             ->when(isset($a['experience_min']), fn ($q) => $q->where('employees.experience_years', '>=', $a['experience_min']))
-            ->when(isset($a['experience_max']), fn ($q) => $q->where('employees.experience_years', '<=', $a['experience_max']));
+            ->when(isset($a['experience_max']), fn ($q) => $q->where('employees.experience_years', '<=', $a['experience_max']))
+            // Age N means born on or before today-N years; at most N means born after today-(N+1) years.
+            ->when(isset($a['age_min']), fn ($q) => $q->where('employees.birth_date', '<=', today()->subYears($a['age_min'])->toDateString()))
+            ->when(isset($a['age_max']), fn ($q) => $q->where('employees.birth_date', '>', today()->subYears($a['age_max'] + 1)->toDateString()));
     }
 
     /** Live size and composition of the audience, shown before sending. */
@@ -96,6 +103,11 @@ class SurveyAudience
             $bands[] = ['label' => $label, 'value' => (clone $base)->whereBetween('employees.experience_years', [$min, $max])->count()];
         }
 
+        $ages = [];
+        foreach (self::AGE_BANDS as $band => [$min, $max]) {
+            $ages[] = ['label' => $band, 'value' => (clone $base)->where('employees.birth_date', '<=', today()->subYears($min)->toDateString())->where('employees.birth_date', '>', today()->subYears($max + 1)->toDateString())->count()];
+        }
+
         $label = fn ($rows, $names = null) => $rows->map(fn ($r) => ['label' => $names ? ($names[$r->k] ?? '—') : ($r->k ?? '—'), 'value' => (int) $r->n])->values();
 
         return [
@@ -106,7 +118,19 @@ class SurveyAudience
             'by_nationality' => $label($group('employees.nationality')),
             'by_specialization' => $label($group('employees.specialization')),
             'by_experience' => $bands,
+            'by_age' => $ages,
+            'by_gender' => $label($group('employees.gender')),
         ];
+    }
+
+    /** A few matching employees, shown next to the count so the audience can be sanity-checked. */
+    public function sample(array $audience, int $limit = 8): array
+    {
+        return $this->query($audience)->with(['user:id,name,name_ar', 'school:id,name_ar,name_en', 'jobTitle:id,name_ar,name_en'])
+            ->orderByDesc('employees.experience_years')->limit($limit)->get()->map(fn (Employee $e) => [
+                'id' => $e->id, 'employee_no' => $e->employee_no, 'name' => $e->user?->displayName(), 'school' => $e->school?->translate('name'),
+                'job_title' => $e->jobTitle?->translate('name'), 'specialization' => $e->specialization, 'age' => $e->age(), 'experience_years' => $e->experience_years,
+            ])->all();
     }
 
     /** Distinct values available for the free-text profile filters. */
@@ -122,6 +146,7 @@ class SurveyAudience
             'stages' => $distinct('education_stage'),
             'genders' => ['male', 'female'],
             'experience_bands' => array_keys(self::EXPERIENCE_BANDS),
+            'age_bands' => array_keys(self::AGE_BANDS),
         ];
     }
 
@@ -138,6 +163,9 @@ class SurveyAudience
         }
         if (isset($a['school_ids'])) {
             $parts[] = count($a['school_ids']).' مدرسة';
+        }
+        if (isset($a['age_min']) || isset($a['age_max'])) {
+            $parts[] = 'العمر '.($a['age_min'] ?? 16).'–'.($a['age_max'] ?? '∞').' سنة';
         }
         if (isset($a['experience_min']) || isset($a['experience_max'])) {
             $parts[] = 'الخبرة '.($a['experience_min'] ?? 0).'–'.($a['experience_max'] ?? '∞').' سنة';

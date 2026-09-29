@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
+use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
@@ -145,6 +146,18 @@ Route::prefix('v1')->group(function () {
                     Route::delete('approvals/{date}', 'revoke');
                 });
             });
+
+            // Smart program creation (from needs or audience filters)
+            Route::prefix('program-builder')->controller(ProgramBuilderController::class)->middleware('permission:programs.manage')->group(function () {
+                Route::get('options', 'options');
+                Route::post('draft', 'draft');
+                Route::post('schedule', 'schedule');
+                Route::post('audience/preview', 'preview');
+                Route::post('/', 'store');
+            });
+            Route::get('programs/{program}/audience', [ProgramBuilderController::class, 'showAudience'])->middleware('permission:programs.view|programs.manage');
+            Route::put('programs/{program}/audience', [ProgramBuilderController::class, 'updateAudience'])->middleware('permission:programs.manage');
+            Route::post('programs/{program}/audience/nominate', [ProgramBuilderController::class, 'nominateAudience'])->middleware('permission:nominations.center');
 
             // Training rooms (locations, layouts, equipment, availability)
             Route::prefix('rooms')->controller(RoomController::class)->group(function () {

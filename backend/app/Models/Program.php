@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'code', 'category_id', 'title_en', 'title_ar', 'summary_en', 'summary_ar', 'description_en', 'description_ar',
     'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'requires_tasks',
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
-    'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by',
+    'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
 ])]
 class Program extends Model
 {
@@ -49,6 +49,7 @@ class Program extends Model
     {
         return [
             'objectives' => 'array',
+            'audience' => 'array',
             'registration_modes' => 'array',
             'requires_tasks' => 'boolean',
             'requires_evaluation' => 'boolean',

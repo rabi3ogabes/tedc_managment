@@ -6,6 +6,7 @@ use App\Models\EligibilityRule;
 use App\Models\Employee;
 use App\Models\JobTitle;
 use App\Models\Program;
+use App\Models\School;
 use App\Models\Skill;
 use App\Models\TargetGroup;
 
@@ -129,6 +130,11 @@ class EligibilityEngine
     private function display(string $field, mixed $value): string
     {
         $values = (array) $value;
+
+        if ($field === 'school') {
+            $schools = School::whereIn('id', $values)->get();
+            $values = array_map(fn ($id) => $schools->firstWhere('id', $id)?->translate('name') ?? $id, $values);
+        }
 
         if ($field === 'job_title') {
             $titles = JobTitle::whereIn('code', $values)->get();

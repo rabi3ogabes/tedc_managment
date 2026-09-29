@@ -21,6 +21,11 @@ return [
         'completed_program' => 'البرامج المكتملة',
         'skill_level' => 'مستوى المهارة',
         'qualification' => 'المؤهل العلمي',
+        'specialization' => 'التخصص',
+        'gender' => 'الجنس',
+        'nationality' => 'الجنسية',
+        'school' => 'المدرسة',
+        'age' => 'العمر',
     ],
     'operators' => [
         'eq' => 'يساوي',
@@ -39,6 +44,7 @@ return [
     'lacks_skill' => 'البرنامج موجّه لمن لا يمتلك مهارة :expected بمستوى :level',
     'none' => 'غير محدد',
     'values' => [
+        'male' => 'ذكر', 'female' => 'أنثى',
         'teaching' => 'تعليمية', 'leadership' => 'قيادية', 'administrative' => 'إدارية', 'support' => 'مساندة',
         'government' => 'حكومية', 'private' => 'خاصة', 'community' => 'مجتمعية', 'international' => 'دولية',
         'kindergarten' => 'رياض الأطفال', 'primary' => 'الابتدائية', 'preparatory' => 'الإعدادية', 'secondary' => 'الثانوية', 'multi' => 'متعددة المراحل',

@@ -26,6 +26,11 @@ final class EmployeeContext
         public readonly array $skills,
         public readonly ?string $jobTitleId = null,
         public readonly ?string $departmentId = null,
+        public readonly ?string $specialization = null,
+        public readonly ?string $gender = null,
+        public readonly ?string $nationality = null,
+        public readonly ?string $schoolId = null,
+        public readonly ?int $age = null,
     ) {}
 
     public static function fromEmployee(Employee $employee): self
@@ -52,6 +57,11 @@ final class EmployeeContext
             skills: $employee->skills->mapWithKeys(fn ($s) => [$s->code => (int) $s->pivot->level])->all(),
             jobTitleId: $employee->job_title_id,
             departmentId: $employee->department_id,
+            specialization: $employee->specialization,
+            gender: $employee->gender,
+            nationality: $employee->nationality,
+            schoolId: $employee->school_id,
+            age: $employee->age(),
         );
     }
 
@@ -69,6 +79,11 @@ final class EmployeeContext
             'qualification' => $this->qualification,
             'completed_program' => $this->completedPrograms,
             'skill_level' => $this->skills,
+            'specialization' => $this->specialization,
+            'gender' => $this->gender,
+            'nationality' => $this->nationality,
+            'school' => $this->schoolId,
+            'age' => $this->age,
             default => null,
         };
     }

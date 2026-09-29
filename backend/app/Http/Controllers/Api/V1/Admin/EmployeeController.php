@@ -126,6 +126,7 @@ class EmployeeController extends Controller
             'supervisor_id' => ['nullable', 'uuid', 'exists:employees,id'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'nationality' => ['nullable', 'string', 'max:64'],
+            'birth_date' => ['nullable', 'date', 'before:-15 years', 'after:1930-01-01'],
             'hire_date' => ['nullable', 'date'],
             'experience_years' => ['sometimes', 'numeric', 'between:0,60'],
             'education_stage' => ['nullable', 'string', 'max:32'],
