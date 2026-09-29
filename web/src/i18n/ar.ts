@@ -177,7 +177,7 @@ const ar = {
       contrast: { title: 'فحص إمكانية الوصول', text: 'النص على الخلفية', primary: 'نص أبيض على اللون الأساسي', accent: 'نص زر التمييز', link: 'الروابط على البطاقات', pass: 'ممتاز', warn: 'مقبول', fail: 'ضعيف' },
     },
     menu: {
-      pushSettings: 'إعدادات الإشعارات', appearance: 'الهوية البصرية', dashboard: 'لوحة القيادة', programs: 'البرامج', registrations: 'التسجيل والترشيح', attendance: 'الحضور', tasks: 'المهام',
+      settings: 'الإعدادات', pushSettings: 'إعدادات الإشعارات', appearance: 'الهوية البصرية', dashboard: 'لوحة القيادة', programs: 'البرامج', registrations: 'التسجيل والترشيح', attendance: 'الحضور', tasks: 'المهام',
       certificates: 'الشهادات', needs: 'الاحتياجات التدريبية', analytics: 'التحليلات التنفيذية', geo: 'التحليل الجغرافي', impact: 'قياس الأثر',
       communication: 'مركز التواصل', ai: 'المساعد الذكي', schools: 'المدارس', employees: 'الموظفون', trainers: 'المدربون', rooms: 'القاعات', calendar: 'التقويم التدريبي', users: 'المستخدمون والصلاحيات',
       audit: 'سجل التدقيق', reports: 'التقارير', groups: { overview: 'نظرة عامة', lifecycle: 'دورة التدريب', insights: 'التحليلات والذكاء', organization: 'المؤسسة', security: 'الأمان', settings: 'الإعدادات' },

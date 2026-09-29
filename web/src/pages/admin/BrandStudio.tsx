@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button, Card, PageHeader } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { useTheme } from '@/lib/ThemeProvider'
+import { useSettingsTab, useTabDirty } from './settings/tabContext'
 import { contrast, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
 import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
@@ -36,9 +37,12 @@ export default function BrandStudio() {
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(published), [draft, published])
 
   // Live preview across the whole app while editing; revert when leaving the studio.
+  const { active } = useSettingsTab()
+  useTabDirty(dirty)
   useEffect(() => {
-    setPreview(draft)
-  }, [draft, setPreview])
+    // Inside the settings workspace the draft is only previewed while this tab is visible.
+    setPreview(active ? draft : null)
+  }, [draft, active, setPreview])
   useEffect(() => () => setPreview(null), [setPreview])
 
   const update = <K extends keyof Theme>(key: K, patch: Partial<Theme[K]>) =>

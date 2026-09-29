@@ -23,6 +23,7 @@ const ProgramsAdmin = lazy(() => import('@/pages/admin/ProgramsAdmin'))
 const ProgramEditor = lazy(() => import('@/pages/admin/ProgramEditor'))
 const ProgramManage = lazy(() => import('@/pages/admin/ProgramManage'))
 const SessionQr = lazy(() => import('@/pages/admin/SessionQr'))
+const SettingsWorkspace = lazy(() => import('@/pages/admin/settings/SettingsWorkspace'))
 const ProgramWizard = lazy(() => import('@/pages/admin/smart/ProgramWizard'))
 const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
 const TrainersAdmin = lazy(() => import('@/pages/admin/Trainers'))
@@ -40,8 +41,6 @@ const Employees = lazy(() => import('@/pages/admin/Employees'))
 const EmployeeProfile = lazy(() => import('@/pages/admin/EmployeeProfile'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
-const BrandStudio = lazy(() => import('@/pages/admin/BrandStudio'))
-const PushSettings = lazy(() => import('@/pages/admin/PushSettings'))
 
 const PortalHome = lazy(() => import('@/pages/portal/PortalHome'))
 const MyTraining = lazy(() => import('@/pages/portal/MyTraining'))
@@ -113,8 +112,9 @@ export default function App() {
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
-          <Route path="appearance" element={<RequireAuth permission="settings.manage"><BrandStudio /></RequireAuth>} />
-          <Route path="settings/notifications" element={<RequireAuth permission="settings.manage"><PushSettings /></RequireAuth>} />
+          <Route path="settings" element={<SettingsWorkspace />} />
+          <Route path="appearance" element={<Navigate to="/admin/settings?tab=appearance" replace />} />
+          <Route path="settings/notifications" element={<Navigate to="/admin/settings?tab=notifications" replace />} />
         </Route>
 
         <Route path="portal" element={<RequireAuth><AdminLayout portal /></RequireAuth>}>

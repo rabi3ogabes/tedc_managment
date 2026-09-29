@@ -179,7 +179,7 @@ const en: Dictionary = {
       contrast: { title: 'Accessibility check', text: 'Text on background', primary: 'White text on primary', accent: 'Accent button text', link: 'Links on cards', pass: 'Excellent', warn: 'Acceptable', fail: 'Poor' },
     },
     menu: {
-      pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
+      settings: 'Settings', pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
       certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', impact: 'Impact',
       communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', rooms: 'Rooms', calendar: 'Training calendar', users: 'Users & roles',
       audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },

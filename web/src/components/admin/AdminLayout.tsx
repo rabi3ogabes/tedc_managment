@@ -1,5 +1,7 @@
 import clsx from 'clsx'
-import { Award, Bell, BellRing, BookOpen, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, Palette, School, Shield, Target, UserCog, Users, Wallet, X } from 'lucide-react'
+import {
+  Award, Bell, BookOpen, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+} from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -66,8 +68,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/audit', label: m('audit'), icon: FileSearch, permission: 'audit.view' },
         ] },
         { title: m('groups.settings'), items: [
-          { to: '/admin/appearance', label: m('appearance'), icon: Palette, permission: 'settings.manage' },
-          { to: '/admin/settings/notifications', label: m('pushSettings'), icon: BellRing, permission: 'settings.manage' },
+          { to: '/admin/settings', label: m('settings'), icon: Settings2, permission: 'settings.manage' },
         ] },
       ]
 
