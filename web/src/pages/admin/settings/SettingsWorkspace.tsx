@@ -104,7 +104,8 @@ export default function SettingsWorkspace() {
   // A link such as /admin/settings?tab=users opens that tab even when the workspace is already mounted.
   const wanted = params.get('tab')
   useEffect(() => {
-    if (wanted && wanted !== wsRef.current.active && byId.has(wanted)) openTab(wanted)
+    if (wanted === HOME && wsRef.current.active !== HOME) setWs((cur) => ({ ...cur, active: HOME }))
+    else if (wanted && wanted !== wsRef.current.active && byId.has(wanted)) openTab(wanted)
   }, [wanted, byId, openTab])
 
   // Keyboard: Ctrl/⌘+K palette, Alt+W close, Alt+←/→ switch.
@@ -166,7 +167,7 @@ export default function SettingsWorkspace() {
 
       <div className="overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-glass">
         <TabStrip tabs={stripTabs} active={ws.active} onSelect={(id) => setWs((cur) => ({ ...cur, active: id }))} onClose={(id) => closeTabs([id])} onReorder={reorder}
-          onContextMenu={(id, x, y) => setMenu({ id, x, y })} onAdd={() => setPalette(true)} />
+          onContextMenu={(id, x, y) => setMenu({ id, x, y })} />
 
         <div className="bg-ivory p-4 sm:p-6">
           <div hidden={ws.active !== HOME} role="tabpanel">

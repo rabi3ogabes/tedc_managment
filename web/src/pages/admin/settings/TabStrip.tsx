@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight, LayoutGrid, Plus, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ComponentType, type DragEvent, type MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HOME } from './registry'
@@ -13,11 +13,10 @@ type Props = {
   onClose: (id: string) => void
   onReorder: (from: string, to: string) => void
   onContextMenu: (id: string, x: number, y: number) => void
-  onAdd: () => void
 }
 
 /** Browser-style tab rail: pinned home, closable / draggable tabs, overflow arrows. */
-export default function TabStrip({ tabs, active, onSelect, onClose, onReorder, onContextMenu, onAdd }: Props) {
+export default function TabStrip({ tabs, active, onSelect, onClose, onReorder, onContextMenu }: Props) {
   const { t, i18n } = useTranslation()
   const rtl = i18n.dir() === 'rtl'
   const scroller = useRef<HTMLDivElement>(null)
@@ -112,7 +111,6 @@ export default function TabStrip({ tabs, active, onSelect, onClose, onReorder, o
       </div>
 
       {overflow && <button type="button" aria-label={t('mgmt.settings.scrollEnd')} onClick={() => scrollBy(1)} className="mb-1 grid size-8 shrink-0 place-items-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white"><EndIcon className="size-4" /></button>}
-      <button type="button" aria-label={t('mgmt.settings.openSetting')} title={`${t('mgmt.settings.openSetting')} (Ctrl/⌘ K)`} onClick={onAdd} className="mb-1 grid size-8 shrink-0 place-items-center rounded-lg bg-gold-500/90 text-navy-950 transition hover:bg-gold-400"><Plus className="size-4" /></button>
     </div>
   )
 }

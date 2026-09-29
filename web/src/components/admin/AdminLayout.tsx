@@ -1,10 +1,11 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bell, ChevronDown, BookOpen, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { Avatar } from '@/components/ui'
@@ -19,12 +20,22 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t } = useTranslation()
   const centerName = useCenterName()
   const { user, logout, can } = useAuth()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const activeTab = new URLSearchParams(search).get('tab')
+  const onSettings = pathname.startsWith('/admin/settings')
+  const [settingsOpen, setSettingsOpen] = useState(() => {
+    try { return localStorage.getItem('tedc.nav.settings') !== 'closed' } catch { return true }
+  })
+  const toggleSettings = (next: boolean) => {
+    setSettingsOpen(next)
+    try { localStorage.setItem('tedc.nav.settings', next ? 'open' : 'closed') } catch { /* storage unavailable */ }
+  }
+  const settingsChildren = SETTINGS_SECTIONS.filter((s) => s.permission.some((p) => can(p)))
   const [open, setOpen] = useState(false)
   const unread = useGet<{ meta?: { total: number } }>('/me/notifications', { unread: 1, per_page: 1 }, { refetchInterval: 60_000 })
   useRealtimeNotifications()
 
-  useEffect(() => setOpen(false), [pathname])
+  useEffect(() => setOpen(false), [pathname, search])
 
   const m = (k: string) => t(`admin.menu.${k}`)
   const groups: { title: string; items: Item[] }[] = portal
@@ -89,7 +100,41 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           <div key={group.title}>
             <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-white/35">{group.title}</div>
             <div className="space-y-1">
-              {group.items.map((item) => (
+              {group.items.map((item) => item.to === '/admin/settings' && settingsChildren.length > 0 ? (
+                <div key={item.to}>
+                  <div className={clsx('flex items-stretch rounded-xl transition', onSettings ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 ring-1 ring-gold-500/30' : 'hover:bg-white/5')}>
+                    <Link to="/admin/settings?tab=home" onClick={() => !settingsOpen && toggleSettings(true)}
+                      className={clsx('flex flex-1 items-center gap-3 px-3 py-2.5 text-sm font-medium', onSettings ? 'text-gold-300' : 'text-white/70 hover:text-white')}>
+                      <item.icon className="size-5" />
+                      {item.label}
+                    </Link>
+                    <button type="button" aria-expanded={settingsOpen} aria-controls="settings-submenu" aria-label={item.label}
+                      onClick={() => toggleSettings(!settingsOpen)}
+                      className={clsx('grid w-10 place-items-center rounded-e-xl transition', onSettings ? 'text-gold-300 hover:bg-white/10' : 'text-white/50 hover:bg-white/10 hover:text-white')}>
+                      <ChevronDown className={clsx('size-4 transition-transform duration-300', settingsOpen && 'rotate-180')} />
+                    </button>
+                  </div>
+                  <div id="settings-submenu" className={clsx('grid transition-[grid-template-rows,opacity] duration-300 ease-out', settingsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0')} aria-hidden={!settingsOpen}>
+                    <div className="overflow-hidden">
+                      <ul className="relative mt-1 space-y-0.5 ms-5 border-s border-white/10 ps-2">
+                        {settingsChildren.map((s) => {
+                          const active = onSettings && activeTab === s.id
+                          return (
+                            <li key={s.id}>
+                              <Link to={`/admin/settings?tab=${s.id}`} tabIndex={settingsOpen ? 0 : -1}
+                                className={clsx('flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition', active ? 'bg-white/10 text-gold-300' : 'text-white/60 hover:bg-white/5 hover:text-white')}>
+                                <s.icon className={clsx('size-4 shrink-0', active ? 'text-gold-300' : 'text-white/40')} />
+                                <span className="truncate">{t(`mgmt.settings.sections.${s.id}.title`)}</span>
+                                {active && <span className="ms-auto size-1.5 shrink-0 rounded-full bg-gold-400" />}
+                              </Link>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <NavLink key={item.to} to={item.to} end={item.end}
                   className={({ isActive }) => clsx('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                     isActive ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 text-gold-300 ring-1 ring-gold-500/30' : 'text-white/70 hover:bg-white/5 hover:text-white')}>
