@@ -1,4 +1,4 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -31,7 +31,7 @@ export default function ProgramsAdmin() {
 
   return (
     <>
-      <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <Button to="/admin/programs/new" variant="gold" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button>} />
+      <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <div className="flex flex-wrap gap-2"><Button to="/admin/programs/smart" variant="gold" icon={<Wand2 className="size-4" />}>{t('mgmt.wizard.smartCreate')}</Button><Button to="/admin/programs/new" variant="outline" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button></div>} />
       <Card padded={false}>
         <div className="flex flex-wrap gap-3 border-b border-navy-100 p-4">
           <div className="relative min-w-60 flex-1"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} /></div>

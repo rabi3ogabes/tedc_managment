@@ -6,14 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\PartnerOrganization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Validation\Rule;
 
 /** Organizations that supply trainers (Qatar Foundation, Ministry of Public Health, universities ...). */
 class PartnerOrganizationController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): AnonymousResourceCollection
     {
-        return response()->json(PartnerOrganization::withCount('trainers')
+        return JsonResource::collection(PartnerOrganization::withCount('trainers')
             ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")))
             ->when($request->query('type'), fn ($q, $v) => $q->where('type', $v))
             ->orderBy('name_ar')->paginate($this->perPage($request, 50)));

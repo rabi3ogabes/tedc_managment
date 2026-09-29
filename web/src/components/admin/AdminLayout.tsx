@@ -1,8 +1,5 @@
 import clsx from 'clsx'
-import {
-  Award, Bell, Bot, BookOpen, ClipboardList, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone,
-  BellRing, Menu, Notebook, Palette, School, Shield, Target, UserCog, Users, Wallet, X,
-} from 'lucide-react'
+import { Award, Bell, BellRing, BookOpen, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, Palette, School, Shield, Target, UserCog, Users, Wallet, X } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -49,6 +46,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         { title: m('groups.lifecycle'), items: [
           { to: '/admin/needs', label: m('needs'), icon: Notebook, permission: 'needs.view' },
           { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
+          { to: '/admin/calendar', label: m('calendar'), icon: CalendarDays, permission: 'calendar.view' },
           { to: '/admin/registrations', label: m('registrations'), icon: ClipboardList, permission: 'registrations.view' },
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
         ] },
@@ -60,6 +58,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         { title: m('groups.organization'), items: [
           { to: '/admin/schools', label: m('schools'), icon: School, permission: 'schools.view' },
           { to: '/admin/employees', label: m('employees'), icon: Users, permission: 'employees.view' },
+          { to: '/admin/trainers', label: m('trainers'), icon: GraduationCap, permission: 'programs.view' },
+          { to: '/admin/rooms', label: m('rooms'), icon: DoorOpen, permission: 'programs.view' },
         ] },
         { title: m('groups.security'), items: [
           { to: '/admin/users', label: m('users'), icon: UserCog, permission: 'users.manage' },

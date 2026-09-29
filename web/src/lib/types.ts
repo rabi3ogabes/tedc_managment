@@ -8,10 +8,37 @@ export type LaravelPage<T> = { data: T[]; current_page: number; last_page: numbe
 
 export type Skill = { id: string; code: string; name: string; target_level?: number; level?: number; category?: string; source?: string }
 
+export type TrainerSource = 'center' | 'school' | 'ministry' | 'partner' | 'external' | 'international'
+
 export type Trainer = {
-  id: string; name: string; name_ar: string; name_en: string; title?: string; bio?: string; photo_url?: string | null
-  specializations: string[]; is_external: boolean; organization?: string | null; rating: number; programs_count?: number; role?: string
+  id: string; name: string; name_ar: string; name_en: string; title?: string; title_ar?: string | null; title_en?: string | null; bio?: string; bio_ar?: string | null; bio_en?: string | null
+  photo_url?: string | null; specializations: string[]; is_external: boolean; organization?: string | null; rating: number; programs_count?: number; sessions_count?: number; role?: string
+  source: TrainerSource; source_label: string; country?: string | null; languages: string[]; experience_years: number; status: string
+  email?: string | null; phone?: string | null; employee_id?: string | null; school_id?: string | null; school?: { id: string; name: string } | null
+  partner_id?: string | null; partner?: { id: string; name: string; type: string } | null; city?: string | null; hourly_rate?: number | null; currency?: string; notes?: string | null
 }
+
+export type Partner = {
+  id: string; name_ar: string; name_en: string; type: string; country: string; contact_name?: string | null; email?: string | null; phone?: string | null
+  website?: string | null; notes?: string | null; status: string; trainers_count?: number
+}
+
+export type Room = {
+  id: string; code?: string | null; name: string; name_ar: string; name_en: string; office?: string | null; building?: string | null; location?: string | null; floor?: string | null
+  capacity: number; area_m2?: number | null; layout: string; layouts: { key: string; label: string; capacity: number }[]
+  equipment: { key: string; qty: number; label: string }[]; is_accessible: boolean; status: 'active' | 'maintenance' | 'inactive'; notes?: string | null
+  sessions_count?: number; upcoming_sessions_count?: number
+}
+
+export type CalendarKind = 'workday' | 'weekend' | 'vacation' | 'exam' | 'normal'
+
+export type CalendarDayInfo = {
+  date: string; weekday: number; kind: CalendarKind; is_working_day: boolean; is_weekend: boolean; training_allowed: boolean; requires_approval: boolean; sessions_count: number
+  entry: { id: string; type: string; title: string; title_ar: string; title_en: string; notes?: string | null } | null
+  approval: { id: string; reason: string; approved_at?: string | null; approved_by?: string | null } | null
+}
+
+export type CalendarSummary = { total: number; working: number; off: number; vacation: number; exam: number; normal: number; weekend: number; approved: number; open_for_training: number; sessions: number }
 
 export type Session = {
   id: string; program_id: string; sequence: number; title: string; title_ar: string; title_en: string; description?: string | null

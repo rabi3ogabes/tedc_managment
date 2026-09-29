@@ -23,6 +23,10 @@ const ProgramsAdmin = lazy(() => import('@/pages/admin/ProgramsAdmin'))
 const ProgramEditor = lazy(() => import('@/pages/admin/ProgramEditor'))
 const ProgramManage = lazy(() => import('@/pages/admin/ProgramManage'))
 const SessionQr = lazy(() => import('@/pages/admin/SessionQr'))
+const ProgramWizard = lazy(() => import('@/pages/admin/smart/ProgramWizard'))
+const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
+const TrainersAdmin = lazy(() => import('@/pages/admin/Trainers'))
+const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
@@ -90,6 +94,10 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="programs" element={<ProgramsAdmin />} />
           <Route path="programs/new" element={<ProgramEditor />} />
+          <Route path="programs/smart" element={<RequireAuth permission="programs.manage"><ProgramWizard /></RequireAuth>} />
+          <Route path="rooms" element={<RequireAuth permission="programs.view"><RoomsAdmin /></RequireAuth>} />
+          <Route path="trainers" element={<RequireAuth permission="programs.view"><TrainersAdmin /></RequireAuth>} />
+          <Route path="calendar" element={<RequireAuth permission="calendar.view"><TrainingCalendar /></RequireAuth>} />
           <Route path="programs/:id/edit" element={<ProgramEditor />} />
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />

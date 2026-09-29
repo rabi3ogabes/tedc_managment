@@ -181,7 +181,7 @@ const en: Dictionary = {
     menu: {
       pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
       certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', impact: 'Impact',
-      communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', users: 'Users & roles',
+      communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', rooms: 'Rooms', calendar: 'Training calendar', users: 'Users & roles',
       audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },
     },
     kpis: {
