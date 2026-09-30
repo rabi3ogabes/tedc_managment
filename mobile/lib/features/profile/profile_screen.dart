@@ -208,7 +208,8 @@ class _PushTile extends ConsumerWidget {
         return ListTile(
           leading: Icon(icon, color: color),
           title: Text(s.t('push.title')),
-          subtitle: Text(s.t(key)),
+          subtitle: Text(status == PushStatus.error && push.detail.value != null ? '${s.t(key)}\n${push.detail.value}' : s.t(key)),
+          isThreeLine: status == PushStatus.error && push.detail.value != null,
           trailing: status == PushStatus.enabled ? const Icon(Icons.check_circle, color: AppColors.success) : const Icon(Icons.refresh),
           onTap: status == PushStatus.enabled || status == PushStatus.unsupported ? null : push.start,
         );

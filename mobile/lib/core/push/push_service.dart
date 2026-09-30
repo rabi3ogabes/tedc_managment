@@ -35,12 +35,17 @@ class PushService {
   final Ref _ref;
   final _messages = StreamController<PushMessage>.broadcast();
   final _status = ValueNotifier<PushStatus>(PushStatus.notConfigured);
+  final _detail = ValueNotifier<String?>(null);
+  Timer? _retry;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   String? _token;
   bool _starting = false;
 
   Stream<PushMessage> get messages => _messages.stream;
   ValueListenable<PushStatus> get status => _status;
+
+  /// Why the last attempt failed (which step, and the error), for the profile screen.
+  ValueListenable<String?> get detail => _detail;
 
   /// Where a tap on a notification should lead, from its type (server-provided route as fallback).
   static String routeFor(Map<String, dynamic> data) {
@@ -56,20 +61,38 @@ class PushService {
 
   bool get _supported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
+  /// Keeps trying while the platform is not configured yet or a step failed, so a phone opened before the
+  /// administrator switched sending on registers by itself a little later.
+  PushStatus _finish(PushStatus status) {
+    _status.value = status;
+    final settled = status == PushStatus.enabled || status == PushStatus.unsupported || status == PushStatus.denied;
+    if (settled) {
+      _retry?.cancel();
+      _retry = null;
+    } else {
+      _retry ??= Timer.periodic(const Duration(seconds: 30), (_) => start());
+    }
+    return status;
+  }
+
   /// Configures Firebase from the platform and registers this device. Safe to call repeatedly.
   Future<PushStatus> start() async {
-    if (!_supported) return _status.value = PushStatus.unsupported;
+    if (!_supported) return _finish(PushStatus.unsupported);
     if (_starting) return _status.value;
+    if (_status.value == PushStatus.enabled && _token != null) return _status.value;
     _starting = true;
+    var step = 'config';
     try {
       final api = _ref.read(apiProvider);
       final config = Map<String, dynamic>.from(((await api.get('/public/mobile-config')) as Map)['data'] as Map);
       final push = Map<String, dynamic>.from(config['push'] as Map);
       if (push['enabled'] != true || push['options'] == null) {
         await _native.invokeMethod('clear');
-        return _status.value = PushStatus.notConfigured;
+        _detail.value = null;
+        return _finish(PushStatus.notConfigured);
       }
 
+      step = 'firebase';
       final o = Map<String, dynamic>.from(push['options'] as Map);
       final android = Map<String, dynamic>.from((push['android'] ?? {}) as Map);
       final isArabic = _ref.read(localeProvider).languageCode == 'ar';
@@ -96,13 +119,22 @@ class PushService {
         await Firebase.initializeApp(options: options);
       }
 
+      step = 'permission';
       final messaging = FirebaseMessaging.instance;
       final permission = await messaging.requestPermission();
-      if (permission.authorizationStatus == AuthorizationStatus.denied) return _status.value = PushStatus.denied;
+      if (permission.authorizationStatus == AuthorizationStatus.denied) {
+        _detail.value = null;
+        return _finish(PushStatus.denied);
+      }
 
+      step = 'token';
       await messaging.setForegroundNotificationPresentationOptions(alert: false, badge: true, sound: true);
       final token = await messaging.getToken();
-      if (token != null) await _register(token);
+      if (token == null || token.isEmpty) throw StateError('Firebase returned no device token');
+
+      step = 'register';
+      final failure = await _register(token);
+      if (failure != null) throw StateError(failure);
 
       if (_subscriptions.isEmpty) {
         _subscriptions
@@ -112,10 +144,13 @@ class PushService {
         final initial = await messaging.getInitialMessage();
         if (initial != null) _onOpened(initial);
       }
-      return _status.value = PushStatus.enabled;
+      _detail.value = null;
+      return _finish(PushStatus.enabled);
     } catch (e) {
-      debugPrint('Push setup failed: $e');
-      return _status.value = PushStatus.error;
+      final message = e.toString().split('\n').first;
+      debugPrint('Push setup failed at $step: $e');
+      _detail.value = '$step: ${message.length > 160 ? message.substring(0, 160) : message}';
+      return _finish(PushStatus.error);
     } finally {
       _starting = false;
     }
@@ -123,8 +158,11 @@ class PushService {
 
   /// Unregisters this device before signing out, so the next user does not receive the previous one's alerts.
   Future<void> stop() async {
+    _retry?.cancel();
+    _retry = null;
     final token = _token;
     _token = null;
+    _status.value = PushStatus.notConfigured;
     if (token == null) return;
     try {
       await _ref.read(apiProvider).dio.delete('/me/devices', data: {'token': token});
@@ -134,7 +172,8 @@ class PushService {
     } catch (_) {}
   }
 
-  Future<void> _register(String token) async {
+  /// Tells the server about this device. Returns null on success, otherwise the reason.
+  Future<String?> _register(String token) async {
     _token = token;
     try {
       await _ref.read(apiProvider).post('/me/devices', {
@@ -144,8 +183,10 @@ class PushService {
         'app_version': AppConfig.appVersion,
         'device_name': Platform.operatingSystem,
       });
+      return null;
     } on ApiException catch (e) {
       debugPrint('Device registration failed: ${e.message}');
+      return 'server ${e.status ?? ''}: ${e.message}';
     }
   }
 
