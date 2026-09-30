@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, Check, CheckCircle2, Clapperboard, Download, FilePlus2, FileUp, Files as Files2, History, Image as ImageIcon, LayoutDashboard, Loader2, MessageSquare, Pencil, Presentation, RefreshCcw, Sparkles, Trash2, UploadCloud, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ChevronDown, ArrowRight, CalendarClock, Check, CheckCircle2, Clapperboard, Download, FilePlus2, FileUp, Files as Files2, History, Image as ImageIcon, LayoutDashboard, Loader2, MessageSquare, Pencil, Presentation, RefreshCcw, Sparkles, Trash2, UploadCloud, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -227,6 +227,8 @@ export default function KitWorkspace() {
       </section>
       )}
 
+      {!focus && <NextUp kit={kit} onDialog={setDialog} onUpload={() => openTab('files')} />}
+
       <div ref={shell} className="scroll-mt-20 overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-glass">
         <KitTabStrip tabs={strip} active={activeId} focus={focus} onSelect={(id) => setWs((cur) => ({ ...cur, active: id }))} onClose={(id) => closeTabs([id])} onReorder={reorder}
           onContextMenu={(id, x, y) => setMenu({ id, x, y })} onToggleFocus={() => setFocus((v) => !v)} />
@@ -234,7 +236,7 @@ export default function KitWorkspace() {
         <div className="bg-ivory">
           {SECTIONS.filter((id) => visited.has(id) || activeId === id).map((id) => (
             <div key={id} hidden={activeId !== id} role="tabpanel" aria-label={t(`kits.workspace.tabs.${id}`)} className="p-4 sm:p-6">
-              {id === 'overview' && <Overview kit={kit} onGo={(x) => openTab(x)} onDialog={setDialog} onUpload={() => openTab('files')} />}
+              {id === 'overview' && <Overview kit={kit} onGo={(x) => openTab(x)} />}
               {id === 'files' && <Files kit={kit} onChanged={refresh} onDialog={setDialog} onOpen={openFile} />}
               {id === 'review' && <ReviewTab kit={kit} onOpenFile={openFile} />}
               {id === 'activity' && <ActivityTab kitId={kit.id} />}
@@ -276,19 +278,53 @@ export default function KitWorkspace() {
   )
 }
 
-function Overview({ kit, onGo, onDialog, onUpload }: { kit: KitDetail; onGo: (t: Section) => void; onDialog: (d: Dialog) => void; onUpload: () => void }) {
+/** Smart next steps, pinned above the tabs so they stay in view on every tab of the kit. */
+function NextUp({ kit, onDialog, onUpload }: { kit: KitDetail; onDialog: (d: Dialog) => void; onUpload: () => void }) {
   const { t, i18n } = useTranslation()
-  const suggestions = useGet<{ data: Suggestion[] }>(kit.can?.edit ? `/admin/kits/${kit.id}/suggestions` : null)
-  const activity = useGet<{ data: Activity[] }>(`/admin/kits/${kit.id}/activity`, { per_page: 6 })
-  const review = kit.review
   const en = i18n.language === 'en'
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem('tedc.kit.next.collapsed') !== '1' } catch { return true } })
+  const suggestions = useGet<{ data: Suggestion[] }>(kit.can?.edit ? `/admin/kits/${kit.id}/suggestions` : null, { v: `${kit.files.length}-${kit.completeness.percent}-${kit.status}` })
+  const list = suggestions.data?.data ?? []
+  if (!kit.can?.edit || !list.length) return null
 
+  const toggle = () => setOpen((v) => { try { localStorage.setItem('tedc.kit.next.collapsed', v ? '1' : '0') } catch { /* storage unavailable */ } return !v })
   const act = (s: Suggestion) => {
     if (s.action === 'generate_deck') onDialog({ type: 'deck', seed: s.params })
     else if (s.action === 'generate_video') onDialog({ type: 'video', seed: s.params })
     else if (s.action === 'generate_image') onDialog({ type: 'image' })
     else onUpload()
   }
+
+  return (
+    <section aria-label={t('kits.workspace.next')} className="mb-5 overflow-hidden rounded-2xl border border-gold-300/70 bg-gradient-to-l from-gold-100/60 via-white to-white shadow-sm">
+      <button type="button" onClick={toggle} aria-expanded={open} className="flex w-full items-center gap-2.5 px-4 py-3 text-start">
+        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-navy-950"><Sparkles className="size-4" /></span>
+        <span className="min-w-0 flex-1"><span className="block font-bold text-navy-900">{t('kits.workspace.next')}</span>{open && <span className="block truncate text-xs text-slate-500">{t('kits.workspace.nextHint')}</span>}</span>
+        <span className="rounded-full bg-navy-900 px-2 py-0.5 text-xs font-bold text-gold-300">{list.length}</span>
+        <ChevronDown className={clsx('size-4 text-slate-400 transition', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="flex gap-3 overflow-x-auto px-4 pb-4 [scrollbar-width:thin]">
+          {list.map((s) => {
+            const Icon = s.action === 'generate_deck' ? Presentation : s.action === 'generate_video' ? Clapperboard : s.action === 'generate_image' ? ImageIcon : FileUp
+            const ai = s.action.startsWith('generate')
+            return (
+              <button key={s.key} type="button" disabled={ai && !kit.can?.generate} onClick={() => act(s)} className="group flex w-72 shrink-0 items-start gap-3 rounded-2xl border border-navy-100 bg-white p-3.5 text-start transition hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-glass disabled:opacity-50">
+                <span className={clsx('grid size-10 shrink-0 place-items-center rounded-xl', ai ? 'bg-gradient-to-br from-gold-400 to-gold-600 text-navy-950' : 'bg-navy-900 text-gold-300')}><Icon className="size-5" /></span>
+                <span className="min-w-0"><span className="flex items-center gap-1.5 font-bold text-navy-900">{en ? s.title_en : s.title_ar}{ai && <Badge color="gold">AI</Badge>}</span><span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-slate-500">{en ? s.hint_en : s.hint_ar}</span></span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function Overview({ kit, onGo }: { kit: KitDetail; onGo: (t: Section) => void }) {
+  const { t } = useTranslation()
+  const activity = useGet<{ data: Activity[] }>(`/admin/kits/${kit.id}/activity`, { per_page: 6 })
+  const review = kit.review
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -305,25 +341,6 @@ function Overview({ kit, onGo, onDialog, onUpload }: { kit: KitDetail; onGo: (t:
             ))}
           </ul>
         </Card>
-
-        {suggestions.data && suggestions.data.data.length > 0 && kit.can?.edit && (
-          <Card>
-            <div className="mb-1 flex items-center gap-2"><Sparkles className="size-5 text-gold-600" /><h3 className="text-lg font-bold text-navy-900">{t('kits.workspace.next')}</h3></div>
-            <p className="mb-4 text-sm text-slate-500">{t('kits.workspace.nextHint')}</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {suggestions.data.data.map((s) => {
-                const Icon = s.action === 'generate_deck' ? Presentation : s.action === 'generate_video' ? Clapperboard : s.action === 'generate_image' ? ImageIcon : FileUp
-                const ai = s.action.startsWith('generate')
-                return (
-                  <button key={s.key} type="button" disabled={ai && !kit.can?.generate} onClick={() => act(s)} className="group flex items-start gap-3 rounded-2xl border border-navy-100 bg-white p-4 text-start transition hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-glass disabled:opacity-50">
-                    <span className={clsx('grid size-11 shrink-0 place-items-center rounded-xl', ai ? 'bg-gradient-to-br from-gold-400 to-gold-600 text-navy-950' : 'bg-navy-900 text-gold-300')}><Icon className="size-5" /></span>
-                    <span className="min-w-0"><span className="flex items-center gap-1.5 font-bold text-navy-900">{en ? s.title_en : s.title_ar}{ai && <Badge color="gold">AI</Badge>}</span><span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{en ? s.hint_en : s.hint_ar}</span></span>
-                  </button>
-                )
-              })}
-            </div>
-          </Card>
-        )}
 
         <Card>
           <h3 className="mb-3 text-lg font-bold text-navy-900">{t('kits.workspace.objectives')}</h3>
