@@ -51,7 +51,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       _refreshBadge();
       if (mounted) _open(route);
     });
-    push.start();
+    // Firebase set-up and the permission prompt are not needed to show the first screen: start them after it.
+    Future<void>.delayed(const Duration(seconds: 4), () {
+      if (mounted) push.start();
+    });
   }
 
   /// Supabase Realtime when configured (RLS restricts rows to the user); polling otherwise.
