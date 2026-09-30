@@ -115,12 +115,14 @@ const ar = {
         },
       },
       android: { channelAr: 'اسم قناة الإشعارات (عربي)', channelEn: 'اسم قناة الإشعارات (English)', color: 'لون الإشعار' },
+      on: 'مفعّل', off: 'متوقف',
       test: {
         title: 'إرسال إشعار تجريبي', subtitle: 'تحقّق من وصول الإشعارات إلى الهاتف', me: 'أنا', user: 'شخص', all: 'الكل',
         group: 'مجموعة', searchPlaceholder: 'ابحث بالاسم أو البريد…', noPeople: 'لا توجد نتائج', noApp: 'لم يثبّت التطبيق', devicesN: '{{count}} جهاز',
         groups: { role: 'الدور', school: 'المدرسة', program: 'البرنامج' }, pickGroup: 'اختر المجموعة…', groupCounts: '{{users}} مستخدم · {{devices}} جهاز',
         noDevicesInGroup: 'لا يوجد أي جهاز مسجّل في هذه المجموعة بعد.', people: '({{with}} من {{total}} لديهم التطبيق)',
         titleLabel: 'العنوان', titlePlaceholder: 'إشعار تجريبي', bodyLabel: 'النص', bodyPlaceholder: 'الإشعارات تعمل بنجاح ✓', send: 'إرسال الآن',
+        enableNow: 'تفعيل الإرسال وحفظه الآن', noDevicesYet: 'لا يوجد أي هاتف مسجّل بعد. سجّل الدخول في التطبيق واسمح بالإشعارات، ثم أرسل من تبويب «شخص».', meHint: '«أنا» يرسل إلى الهواتف المسجّل عليها حسابك أنت. لاختبار هاتف مسجّل بحساب آخر اختر «شخص».',
         notReady: 'أكمل الإعداد وفعّل الإرسال أولاً.', saveFirst: 'احفظ التغييرات قبل الإرسال.', result: 'وصل الإشعار إلى {{delivered}} من {{devices}} جهاز',
       },
       guide: {

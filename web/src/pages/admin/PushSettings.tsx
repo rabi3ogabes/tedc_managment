@@ -44,6 +44,7 @@ export default function PushSettings() {
   const dirty = Object.keys(draft).length > 0
   const hasAccount = draft.remove_service_account ? !!draft.service_account_json : !!(saved.service_account || draft.service_account_json)
   const hasClient = !!(s.client.api_key && s.client.app_id && s.client.messaging_sender_id)
+  const hasClientSaved = !!(saved.client.api_key && saved.client.app_id && saved.client.messaging_sender_id)
 
   const save = async () => {
     setSaving(true)
@@ -88,7 +89,7 @@ export default function PushSettings() {
             <div className="flex items-center gap-3">
               <Switch onDark checked={s.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} label={t('admin.push.enable')} />
               <div>
-                <div className="text-lg font-bold">{t('admin.push.enable')}</div>
+                <div className="text-lg font-bold">{t('admin.push.enable')} <span className={clsx('ms-1 rounded-full px-2 py-0.5 align-middle text-xs font-bold', s.enabled ? 'bg-emerald-400/20 text-emerald-200' : 'bg-white/15 text-white/80')}>{s.enabled ? t('admin.push.on') : t('admin.push.off')}</span></div>
                 <div className="text-sm text-white/70">{saved.ready ? t('admin.push.live') : t('admin.push.notLive')}</div>
               </div>
               <Badge color={saved.ready ? 'green' : 'amber'} className="ms-auto">{saved.ready ? t('admin.push.statusReady') : t('admin.push.statusSetup')}</Badge>
@@ -154,7 +155,7 @@ export default function PushSettings() {
         </div>
 
         <div className="space-y-6">
-          <TestCard ready={saved.ready} dirty={dirty} onSent={refetch} />
+          <TestCard ready={saved.ready} dirty={dirty} onSent={refetch} saved={saved} devices={data.data.stats.devices} hasAccount={!!saved.service_account} hasClient={hasClientSaved} />
           <Guide />
         </div>
       </div>
@@ -362,9 +363,10 @@ type Audience = 'me' | 'user' | 'group' | 'all'
 type GroupType = keyof Recipients['groups']
 
 /** Sends a test push to yourself, one person, a group (role, school, program participants) or every device. */
-function TestCard({ ready, dirty, onSent }: { ready: boolean; dirty: boolean; onSent: () => void }) {
+function TestCard({ ready, dirty, onSent, saved, devices, hasAccount, hasClient }: { ready: boolean; dirty: boolean; onSent: () => void; saved: Settings; devices: number; hasAccount: boolean; hasClient: boolean }) {
   const { t } = useTranslation()
-  const [audience, setAudience] = useState<Audience>('me')
+  const [audience, setAudience] = useState<Audience>('user')
+  const [enabling, setEnabling] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [query, setQuery] = useState('')
@@ -396,7 +398,11 @@ function TestCard({ ready, dirty, onSent }: { ready: boolean; dirty: boolean; on
     }
   }
 
-  const tabs: Audience[] = ['me', 'user', 'group', 'all']
+  const enableNow = async () => {
+    setEnabling(true)
+    try { await api.put('/admin/settings/push', { enabled: true }); await onSent() } catch (e) { setState({ ok: false, text: errorMessage(e) }) } finally { setEnabling(false) }
+  }
+  const tabs: Audience[] = ['user', 'group', 'me', 'all']
   return (
     <Card>
       <div className="mb-4 flex items-center gap-3">
@@ -460,7 +466,19 @@ function TestCard({ ready, dirty, onSent }: { ready: boolean; dirty: boolean; on
       <Field label={t('admin.push.test.titleLabel')}><input className="input" placeholder={t('admin.push.test.titlePlaceholder')} value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
       <Field label={t('admin.push.test.bodyLabel')} className="mt-3"><textarea className="input min-h-20" placeholder={t('admin.push.test.bodyPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} /></Field>
       <Button className="mt-4 w-full" variant="primary" loading={state.busy} disabled={!can} icon={<Send className="size-4" />} onClick={send}>{t('admin.push.test.send')}</Button>
-      {!ready && <p className="mt-2 text-xs text-slate-400">{t('admin.push.test.notReady')}</p>}
+      {!ready && (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <div className="mb-1.5 font-bold">{t('admin.push.test.notReady')}</div>
+          <ul className="space-y-1">
+            <li>{hasAccount ? '✓' : '✗'} {t('admin.push.steps.account')}</li>
+            <li>{hasClient ? '✓' : '✗'} {t('admin.push.steps.app')}</li>
+            <li>{saved.enabled ? '✓' : '✗'} {t('admin.push.steps.enable')}</li>
+          </ul>
+          {hasAccount && hasClient && !saved.enabled && <Button className="mt-3 w-full" size="sm" variant="gold" loading={enabling} onClick={enableNow}>{t('admin.push.test.enableNow')}</Button>}
+        </div>
+      )}
+      {ready && devices === 0 && <p className="mt-3 rounded-xl bg-amber-50 p-2 text-xs text-amber-900">{t('admin.push.test.noDevicesYet')}</p>}
+      {ready && devices > 0 && audience === 'me' && <p className="mt-2 text-xs text-slate-500">{t('admin.push.test.meHint')}</p>}
       {dirty && ready && <p className="mt-2 text-xs text-amber-600">{t('admin.push.test.saveFirst')}</p>}
       {state.text && <p className={clsx('mt-3 rounded-xl p-2 text-sm font-semibold', state.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-danger')}>{state.text}</p>}
     </Card>

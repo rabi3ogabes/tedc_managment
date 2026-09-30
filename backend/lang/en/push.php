@@ -6,5 +6,5 @@ return [
     'auth_failed' => 'Could not sign in to Firebase: :reason',
     'not_ready' => 'Enable push notifications and complete the Firebase setup (service account and Android app settings) first.',
     'no_devices_targeted' => '{0} Nobody matches this selection.|{1} The selected person has not signed in on the mobile app yet (or has not allowed notifications).|[2,*] None of the :count selected people has the mobile app registered yet. They must sign in on the app and allow notifications.',
-    'no_devices' => 'No registered devices. Sign in on the mobile app, allow notifications and try again.',
+    'no_devices' => 'No registered devices for your own account. The phone is probably signed in as someone else: choose “Person” and pick that account. Sign in on the mobile app and allow notifications first.',
 ];

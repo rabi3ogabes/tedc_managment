@@ -117,12 +117,14 @@ const en: Dictionary = {
         },
       },
       android: { channelAr: 'Notification channel name (Arabic)', channelEn: 'Notification channel name (English)', color: 'Notification color' },
+      on: 'On', off: 'Off',
       test: {
         title: 'Send a test notification', subtitle: 'Check that notifications reach the phone', me: 'Me', user: 'Person', all: 'Everyone',
         group: 'Group', searchPlaceholder: 'Search by name or email…', noPeople: 'No matches', noApp: 'App not installed', devicesN: '{{count}} device(s)',
         groups: { role: 'Role', school: 'School', program: 'Program' }, pickGroup: 'Choose a group…', groupCounts: '{{users}} users · {{devices}} devices',
         noDevicesInGroup: 'No device is registered in this group yet.', people: '({{with}} of {{total}} people have the app)',
         titleLabel: 'Title', titlePlaceholder: 'Test notification', bodyLabel: 'Message', bodyPlaceholder: 'Push notifications are working ✓', send: 'Send now',
+        enableNow: 'Enable sending and save now', noDevicesYet: 'No phone is registered yet. Sign in on the app and allow notifications, then send from the “Person” tab.', meHint: '“Me” sends to phones signed in with your own account. To test a phone signed in as someone else, choose “Person”.',
         notReady: 'Complete the setup and enable sending first.', saveFirst: 'Save your changes before sending.', result: 'Delivered to {{delivered}} of {{devices}} devices',
       },
       guide: {
