@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'session_locked' => 'Your session is locked after a period of inactivity. Enter your password to continue.',
+    'wrong_password' => 'The password is incorrect.',
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',

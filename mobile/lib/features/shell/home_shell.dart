@@ -24,19 +24,51 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserver {
   RealtimeChannel? _channel;
   Timer? _poll;
   StreamSubscription<PushMessage>? _pushMessages;
   StreamSubscription<String>? _pushTaps;
   PushMessage? _banner;
   Timer? _bannerTimer;
+  Timer? _presence;
+  bool _foreground = true;
+
+  static const _screens = ['home', 'programs', 'training', 'certificates', 'notifications', 'profile'];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _listenForNotifications();
     _startPush();
+    _startPresence();
+  }
+
+  /// "Who is online now" on the dashboard: a light heartbeat while the app is open on screen.
+  void _startPresence() {
+    Future<void>.delayed(const Duration(seconds: 3), _beat);
+    _presence = Timer.periodic(const Duration(seconds: 45), (_) {
+      if (_foreground) _beat();
+    });
+  }
+
+  void _beat() {
+    if (!mounted) return;
+    final index = widget.shell.currentIndex.clamp(0, _screens.length - 1);
+    ref.read(apiProvider).post('/me/presence', {'platform': 'mobile', 'path': '/app/${_screens[index]}', 'app_version': AppConfig.appVersion}).catchError((_) => null);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) _beat();
+  }
+
+  @override
+  void didUpdateWidget(HomeShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.shell.currentIndex != widget.shell.currentIndex) _beat();
   }
 
   /// Registers the phone for push notifications (when configured on the dashboard) and handles messages.
@@ -91,6 +123,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _presence?.cancel();
     _pushMessages?.cancel();
     _pushTaps?.cancel();
     _bannerTimer?.cancel();

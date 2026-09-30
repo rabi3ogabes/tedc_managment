@@ -14,9 +14,11 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
+use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
+use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
+use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
@@ -69,6 +72,7 @@ Route::prefix('v1')->group(function () {
         Route::get('stats', 'stats');
         Route::get('theme', [ThemeController::class, 'show']);
         Route::get('mobile-config', MobileConfigController::class);
+        Route::get('labels', [LabelController::class, 'publicIndex']);
         Route::get('programs', 'programs');
         Route::get('programs/{idOrCode}', 'program');
         Route::get('categories', 'categories');
@@ -87,6 +91,8 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:api')->group(function () {
             Route::get('me', 'me');
             Route::patch('me', 'updateProfile');
+            Route::post('lock', 'lock');
+            Route::post('unlock', 'unlock')->middleware('throttle:10,1');
         });
     });
 
@@ -98,6 +104,7 @@ Route::prefix('v1')->group(function () {
             Route::get('recommendations', [MeController::class, 'recommendations']);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
+            Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
             Route::get('notifications', [MeController::class, 'notifications']);
@@ -132,11 +139,14 @@ Route::prefix('v1')->group(function () {
         Route::get('certificates/{certificate}/download', [MyOutcomesController::class, 'downloadCertificate'])->name('api.certificates.download');
 
         // Administration --------------------------------------------------------
-        Route::prefix('admin')->group(function () {
+        Route::prefix('admin')->middleware('unlocked')->group(function () {
             Route::get('lookups', [CatalogController::class, 'lookups']);
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
+            Route::get('presence/live', [PresenceController::class, 'live'])->middleware('permission:analytics.view');
+            Route::get('presence/report', [PresenceController::class, 'report'])->middleware('permission:analytics.view');
+            Route::get('presence/export', [PresenceController::class, 'export'])->middleware('permission:analytics.view');
             Route::get('analytics/geographic', [AnalyticsController::class, 'geographic'])->middleware('permission:analytics.view');
 
             // Training calendar (working / off days, vacations, exam days, approvals)
@@ -426,6 +436,11 @@ Route::prefix('v1')->group(function () {
                 Route::post('theme/reset', [ThemeController::class, 'reset']);
                 Route::post('theme/assets', [ThemeController::class, 'upload']);
 
+                // Labels, security and attendance rules
+                Route::get('settings/labels', [LabelController::class, 'show']);
+                Route::put('settings/labels', [LabelController::class, 'update']);
+                Route::get('settings/security', [SecuritySettingsController::class, 'show']);
+                Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
                 Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);
                 Route::put('settings/attendance', [AttendanceSettingsController::class, 'update']);

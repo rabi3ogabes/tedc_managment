@@ -32,6 +32,18 @@ class AuthService
             : $this->localLogin($email, $password);
     }
 
+    /** Confirms the signed-in user's password again (unlocking an idle dashboard), without opening a new session. */
+    public function checkPassword(User $user, string $password): bool
+    {
+        try {
+            $this->usesSupabase() ? $this->supabaseGrant('password', ['email' => strtolower($user->email), 'password' => $password]) : $this->localLogin(strtolower($user->email), $password);
+
+            return true;
+        } catch (ValidationException) {
+            return false;
+        }
+    }
+
     public function refresh(string $refreshToken): array
     {
         if ($this->usesSupabase()) {

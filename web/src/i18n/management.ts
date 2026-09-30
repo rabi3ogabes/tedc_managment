@@ -1,5 +1,39 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  labels: {
+    subtitle: 'غيّر اسم أي قائمة أو زر أو نص في المنصة بالعربية والإنجليزية — تظهر التغييرات فوراً للجميع. اترك الحقل فارغاً لاستخدام النص الافتراضي.',
+    export: 'تصدير', import: 'استيراد', resetAll: 'استعادة كل الأسماء', confirmResetAll: 'سيتم إرجاع كل الأسماء إلى نصوصها الافتراضية. هل تريد المتابعة؟', resetDone: 'تمت استعادة الأسماء الافتراضية',
+    stats: { total: 'إجمالي النصوص', customised: 'نصوص معدَّلة', pending: 'تغييرات غير محفوظة' },
+    search: 'ابحث بالاسم أو النص أو المفتاح…', section: 'القسم', allSections: 'كل الأقسام', results: '{{count}} نتيجة',
+    presets: { all: 'الكل', menus: 'القوائم', buttons: 'الأزرار', modified: 'المعدَّلة' },
+    customised: 'معدَّل', unsaved: 'لم يُحفظ بعد', restore: 'استعادة الافتراضي', useDefault: 'استخدم الافتراضي', default: 'الافتراضي',
+    keepPlaceholder: 'يجب إبقاء {{names}} في النص', empty: 'لا توجد نصوص مطابقة',
+    pending: '{{count}} تغيير بانتظار الحفظ', fixErrors: 'صحّح الحقول المعلَّمة قبل الحفظ', appliesNow: 'يُطبَّق فوراً على الموقع ولوحة التحكم بعد الحفظ', discard: 'تجاهل', save: 'حفظ ونشر',
+    saved: 'تم حفظ {{count}} تغيير وتطبيقه', imported: 'تم تحميل {{count}} اسم من الملف — راجعها ثم احفظ', badFile: 'الملف غير صالح',
+  },
+  security: {
+    subtitle: 'اقفل لوحة التحكم تلقائياً عند ترك الجهاز دون استخدام، ليُطلب من فريق الإدارة إدخال كلمة المرور من جديد.',
+    enable: 'قفل الجلسة عند عدم النشاط', enableHint: 'عند التفعيل يُطلب من فريق الإدارة إدخال كلمة المرور بعد المدة المحددة دون أي استخدام. يُطبَّق القفل في الخادم أيضاً، فلا يمكن لمتصفح متروك أو رمز منسوخ متابعة العمل.',
+    after: 'القفل بعد', minutes: '{{count}} دقيقة', custom: 'مدة أخرى (دقائق)', appliesTo: 'يشمل فريق الإدارة (كل من يستخدم لوحة التحكم). لا يتأثر مستخدمو التطبيق. تظهر رسالة تنبيه قبل القفل بدقيقة.',
+    preview: 'معاينة شاشة القفل', saved: 'تم حفظ إعدادات الأمان',
+  },
+  lock: {
+    title: 'الجلسة مقفلة', subtitle: 'تم القفل بعد {{minutes}} دقيقة من عدم النشاط حمايةً لحسابك.', password: 'كلمة المرور', unlock: 'فتح القفل', signOut: 'تسجيل الخروج', show: 'إظهار', hide: 'إخفاء',
+    warning: 'سيُقفل حسابك خلال {{seconds}} ثانية — حرّك الفأرة للبقاء',
+  },
+  live: {
+    title: 'المتواجدون الآن', subtitle: 'من يستخدم المنصة هذه اللحظة — فريق الإدارة ومستخدمو التطبيق — مع تقرير استخدام قابل للتصدير.',
+    tabs: { live: 'مباشر', report: 'تقرير الاستخدام' }, live: 'مباشر', updating: 'جارٍ التحديث…', updated: 'حُدِّث قبل {{n}} ث', onlineNow: 'متصل الآن', activeNow: 'منهم {{active}} نشِط الآن',
+    team: { staff: 'فريق الإدارة', members: 'مستخدمو التطبيق' }, platform: { web: 'الموقع', mobile: 'التطبيق' }, last30: 'المتصلون خلال آخر 30 دقيقة', minutesAgo: 'قبل {{n}} دقيقة',
+    today: { users: 'مستخدمون اليوم', sessions: 'جلسات اليوم', avg: 'متوسط مدة الجلسة', peak: 'ذروة المتصلين' }, min: 'د',
+    people: 'المتصلون', search: 'ابحث عن مستخدم…', nobody: 'لا أحد متصل الآن', status: { active: 'نشِط', idle: 'خامل', locked: 'مقفل' }, minutesOnline: '{{n}} د متصل',
+    topPages: 'الصفحات الأكثر استخداماً الآن', recent: 'غادروا للتو', ago: { now: 'الآن', sec: 'قبل {{n}} ث', min: 'قبل {{n}} د', hour: 'قبل {{n}} س' },
+    mobileScreens: { home: 'الرئيسية', programs: 'البرامج', training: 'تدريبي', certificates: 'الشهادات', notifications: 'الإشعارات', profile: 'الملف الشخصي' },
+    range: { today: 'اليوم', '7': '7 أيام', '30': '30 يوماً', custom: 'مخصص' }, filterTeam: 'الفريق', filterPlatform: 'المنصة', exportCsv: 'تصدير التقرير (CSV)',
+    report: { users: 'مستخدمون فريدون', sessions: 'جلسات', avg: 'متوسط الجلسة', hours: 'ساعات الاستخدام', hoursHint: 'إجمالي الوقت المتصل', byDay: 'الجلسات حسب اليوم', byHour: 'ساعات الذروة', topUsers: 'الأكثر استخداماً', topPages: 'الصفحات الأكثر زيارة', none: 'لا توجد بيانات', sessionsTitle: 'أحدث الجلسات', latest: 'آخر {{count}} جلسة' },
+    cols: { name: 'المستخدم', team: 'الفريق', platform: 'الجهاز', started: 'البداية', minutes: 'الدقائق', page: 'آخر صفحة' },
+  },
+
   common: {
     save: 'حفظ', saving: 'جارٍ الحفظ…', cancel: 'إلغاء', edit: 'تعديل', delete: 'حذف', add: 'إضافة', search: 'بحث…', all: 'الكل', reset: 'مسح الفلاتر', back: 'رجوع', next: 'التالي',
     active: 'نشط', inactive: 'غير نشط', yes: 'نعم', no: 'لا', optional: 'اختياري', none: '—', close: 'إغلاق', results: '{{count}} نتيجة', loading: 'جارٍ التحميل…',
@@ -56,6 +90,8 @@ export const mgmtAr = {
     sections: {
       appearance: { title: 'الهوية البصرية والمظهر', desc: 'اسم المركز والشعارات والألوان والخطوط والخلفيات — تُطبَّق فوراً على الموقع ولوحة التحكم.' },
       notifications: { title: 'الإشعارات الفورية', desc: 'ربط Firebase وإرسال إشعار تجريبي والتحقق من وصول الإشعارات للهواتف.' },
+      labels: { title: 'أسماء القوائم والأزرار', desc: 'غيّر اسم أي قائمة أو زر أو نص بالعربية والإنجليزية — يظهر فوراً للجميع.' },
+      security: { title: 'الأمان وقفل الجلسة', desc: 'اقفل لوحة التحكم تلقائياً لفريق الإدارة عند عدم النشاط، مع طلب كلمة المرور.' },
       attendance: { title: 'الحضور والتحقق من الموقع', desc: 'يتحقق التطبيق من وجود المتدرب في مكان التدريب قبل تسجيل الحضور.' },
       users: { title: 'المستخدمون والصلاحيات', desc: 'إدارة الحسابات والأدوار وصلاحيات كل دور.' },
       audit: { title: 'سجل التدقيق', desc: 'كل التغييرات المهمة على النظام: من فعلها ومتى.' },
@@ -135,6 +171,40 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  labels: {
+    subtitle: 'Rename any menu, button or text of the platform in Arabic and English — changes appear for everyone at once. Leave a field empty to use the default text.',
+    export: 'Export', import: 'Import', resetAll: 'Restore all names', confirmResetAll: 'Every name will go back to its default text. Continue?', resetDone: 'Default names restored',
+    stats: { total: 'Texts in total', customised: 'Customised', pending: 'Unsaved changes' },
+    search: 'Search by name, text or key…', section: 'Section', allSections: 'All sections', results: '{{count}} results',
+    presets: { all: 'All', menus: 'Menus', buttons: 'Buttons', modified: 'Customised' },
+    customised: 'Customised', unsaved: 'Not saved yet', restore: 'Restore default', useDefault: 'Use default', default: 'Default',
+    keepPlaceholder: 'Keep {{names}} in the text', empty: 'No matching texts',
+    pending: '{{count}} changes waiting to be saved', fixErrors: 'Fix the marked fields before saving', appliesNow: 'Applied instantly to the website and dashboard after saving', discard: 'Discard', save: 'Save & publish',
+    saved: '{{count}} change(s) saved and applied', imported: '{{count}} names loaded from the file — review them, then save', badFile: 'This file is not valid',
+  },
+  security: {
+    subtitle: 'Lock the dashboard automatically when it is left unattended, so the administration team must enter their password again.',
+    enable: 'Lock the session when idle', enableHint: 'When on, the administration team is asked for their password after the chosen time without any use. The lock is enforced on the server too, so a forgotten browser or a copied token cannot keep working.',
+    after: 'Lock after', minutes: '{{count}} min', custom: 'Other (minutes)', appliesTo: 'Applies to the administration team (everyone who uses the dashboard). App users are not affected. A warning appears one minute before locking.',
+    preview: 'Lock screen preview', saved: 'Security settings saved',
+  },
+  lock: {
+    title: 'Session locked', subtitle: 'Locked after {{minutes}} minutes of inactivity to protect your account.', password: 'Password', unlock: 'Unlock', signOut: 'Sign out', show: 'Show', hide: 'Hide',
+    warning: 'Your account locks in {{seconds}} s — move the mouse to stay',
+  },
+  live: {
+    title: 'Live now', subtitle: 'Who is using the platform this moment — the administration team and app users — with an exportable usage report.',
+    tabs: { live: 'Live', report: 'Usage report' }, live: 'Live', updating: 'Updating…', updated: 'Updated {{n}}s ago', onlineNow: 'online now', activeNow: '{{active}} of them active right now',
+    team: { staff: 'Administration team', members: 'App users' }, platform: { web: 'Website', mobile: 'App' }, last30: 'People online in the last 30 minutes', minutesAgo: '{{n}} min ago',
+    today: { users: 'Users today', sessions: 'Sessions today', avg: 'Average session', peak: 'Peak online' }, min: 'min',
+    people: 'People online', search: 'Find a user…', nobody: 'Nobody is online right now', status: { active: 'Active', idle: 'Idle', locked: 'Locked' }, minutesOnline: '{{n}} min online',
+    topPages: 'Top pages right now', recent: 'Just left', ago: { now: 'just now', sec: '{{n}}s ago', min: '{{n}} min ago', hour: '{{n}} h ago' },
+    mobileScreens: { home: 'Home', programs: 'Programs', training: 'My training', certificates: 'Certificates', notifications: 'Notifications', profile: 'Profile' },
+    range: { today: 'Today', '7': '7 days', '30': '30 days', custom: 'Custom' }, filterTeam: 'Team', filterPlatform: 'Platform', exportCsv: 'Export report (CSV)',
+    report: { users: 'Unique users', sessions: 'Sessions', avg: 'Average session', hours: 'Hours of use', hoursHint: 'Total time online', byDay: 'Sessions per day', byHour: 'Busiest hours', topUsers: 'Most active', topPages: 'Most visited pages', none: 'No data', sessionsTitle: 'Latest sessions', latest: 'Latest {{count}} sessions' },
+    cols: { name: 'User', team: 'Team', platform: 'Device', started: 'Started', minutes: 'Minutes', page: 'Last page' },
+  },
+
   common: {
     save: 'Save', saving: 'Saving…', cancel: 'Cancel', edit: 'Edit', delete: 'Delete', add: 'Add', search: 'Search…', all: 'All', reset: 'Clear filters', back: 'Back', next: 'Next',
     active: 'Active', inactive: 'Inactive', yes: 'Yes', no: 'No', optional: 'Optional', none: '—', close: 'Close', results: '{{count}} results', loading: 'Loading…',
@@ -191,6 +261,8 @@ export const mgmtEn: MgmtStrings = {
     sections: {
       appearance: { title: 'Brand & appearance', desc: 'Center name, logos, colors, fonts and backgrounds - applied instantly to the website and dashboard.' },
       notifications: { title: 'Push notifications', desc: 'Connect Firebase, send a test notification and verify delivery to phones.' },
+      labels: { title: 'Menu & button names', desc: 'Rename any menu, button or text in Arabic and English — applied instantly for everyone.' },
+      security: { title: 'Security & session lock', desc: 'Lock the dashboard for the administration team when idle and ask for the password again.' },
       attendance: { title: 'Attendance & location check', desc: 'The app verifies that participants are at the venue before recording attendance.' },
       users: { title: 'Users & permissions', desc: 'Manage accounts, roles and what each role can do.' },
       audit: { title: 'Audit log', desc: 'Every important change in the system: who did it and when.' },

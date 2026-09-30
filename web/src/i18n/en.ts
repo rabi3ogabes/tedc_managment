@@ -185,7 +185,7 @@ const en: Dictionary = {
     },
     menu: {
       settings: 'Settings', kits: 'Training kits', pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
-      certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', impact: 'Impact',
+      certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', live: 'Live now', impact: 'Impact',
       communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', rooms: 'Rooms', calendar: 'Training calendar', users: 'Users & roles',
       audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },
     },

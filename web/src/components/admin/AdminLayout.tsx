@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, PackageOpen, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -65,6 +65,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
         ] },
         { title: m('groups.insights'), items: [
+          { to: '/admin/live', label: m('live'), icon: Radio, permission: 'analytics.view' },
           { to: '/admin/geo', label: m('geo'), icon: Map, permission: 'analytics.view' },
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
           { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage' },

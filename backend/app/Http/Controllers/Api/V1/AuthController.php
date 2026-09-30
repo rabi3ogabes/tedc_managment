@@ -8,6 +8,7 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -20,7 +21,32 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        return $this->session($this->auth->login($data['email'], $data['password']));
+        $session = $this->auth->login($data['email'], $data['password']);
+        // A fresh sign-in is real activity and clears any idle lock.
+        $session['user']->forceFill(['last_active_at' => now(), 'locked_at' => null])->saveQuietly();
+
+        return $this->session($session);
+    }
+
+    /** Locks the dashboard immediately (idle timeout reached in the browser). */
+    public function lock(Request $request): JsonResponse
+    {
+        $request->user()->forceFill(['locked_at' => now()])->saveQuietly();
+
+        return response()->json(['data' => ['locked' => true]]);
+    }
+
+    /** Unlocks after the password is confirmed again. */
+    public function unlock(Request $request): JsonResponse
+    {
+        $data = $request->validate(['password' => ['required', 'string', 'max:255']]);
+
+        if (! $this->auth->checkPassword($request->user(), $data['password'])) {
+            throw ValidationException::withMessages(['password' => __('auth.wrong_password')]);
+        }
+        $request->user()->forceFill(['locked_at' => null, 'last_active_at' => now()])->saveQuietly();
+
+        return response()->json(['data' => ['locked' => false]]);
     }
 
     public function refresh(Request $request): JsonResponse

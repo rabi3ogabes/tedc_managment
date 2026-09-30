@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/lib/ThemeProvider'
 
 import i18n from '@/i18n'
 import { api } from '@/lib/api'
+import { bootLabels } from '@/lib/labels'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, gcTime: 24 * 60 * 60_000, retry: 1, refetchOnWindowFocus: false } },
@@ -29,6 +30,9 @@ const persistOptions = {
       q.state.status === 'success' && String(q.queryKey[0] ?? '').startsWith('/public/'),
   },
 }
+
+// Names of menus and buttons set by the administrators (Settings → Labels).
+bootLabels()
 
 // Start loading the home page data in parallel with the application code (no request waterfall).
 if (window.location.pathname === '/') {

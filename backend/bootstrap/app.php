@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CompactJson;
 use App\Http\Middleware\EdgeCache;
+use App\Http\Middleware\EnforceSessionLock;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -27,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->api(prepend: [CompactJson::class, SetLocale::class]);
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class]);
+        $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class, 'unlocked' => EnforceSessionLock::class]);
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

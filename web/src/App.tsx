@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react'
+import SessionGuard from '@/components/SessionGuard'
 import { TopProgress } from '@/components/ui/TopProgress'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import PublicLayout from '@/components/public/PublicLayout'
@@ -34,6 +35,7 @@ const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
+const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
@@ -74,6 +76,7 @@ export default function App() {
   return (
     <>
     <TopProgress />
+    <SessionGuard />
     <Suspense fallback={<Spinner className="min-h-screen" />}>
       <Routes>
         <Route element={<PublicLayout />}>
@@ -109,6 +112,7 @@ export default function App() {
           <Route path="needs" element={<TrainingNeeds />} />
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
+          <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />
           <Route path="geo" element={<Geographic />} />
           <Route path="ai" element={<AiAssistant />} />
           <Route path="communication" element={<Communication />} />

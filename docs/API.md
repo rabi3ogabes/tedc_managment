@@ -139,6 +139,13 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | POST | `/admin/sessions/{session}/attendance` | `attendance.manage` |
 | GET | `/admin/sessions/{session}/qr` | `attendance.manage` |
 | GET / PUT | `/admin/settings/attendance` | `settings.manage` — location check on/off, range, accuracy |
+| GET | `/public/labels` | public — the names of menus / buttons set by administrators (`{ar: {key: text}, en: {...}}`, plus `version`) |
+| GET / PUT | `/admin/settings/labels` | `settings.manage` — rename menus, buttons and texts; an empty value restores the default, `replace: true` clears everything |
+| GET / PUT | `/admin/settings/security` | `settings.manage` — idle lock of the administration team (`idle_lock_enabled`, `idle_lock_minutes`) |
+| POST | `/me/presence` | authenticated — heartbeat `{platform: web|mobile, path, idle_seconds}`; returns the lock state and, for the administration team, the lock timeout |
+| POST | `/auth/lock`, `/auth/unlock` | authenticated — lock the dashboard now / confirm the password again (`423 session_locked` is returned by `/admin/*` while locked) |
+| GET | `/admin/presence/live` | `analytics.view` — who is online now (administration team vs app users), timeline, top pages |
+| GET | `/admin/presence/report`, `/admin/presence/export` | `analytics.view` — usage summary for a date range (`from`, `to`, `team`, `platform`) and its CSV download |
 | POST | `/admin/skills` | `programs.manage` |
 | GET | `/admin/submissions/{submission}/file` | `tasks.review` |
 | POST | `/admin/submissions/{submission}/review` | `tasks.review` |
