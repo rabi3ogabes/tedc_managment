@@ -37,7 +37,7 @@ function Tool({ label, onClick, active, disabled, children }: { label: string; o
 const Divider = () => <span className="mx-1 h-6 w-px shrink-0 bg-navy-100" />
 
 /** The slide studio: the kit developer and the QA team edit, review and comment on the same deck. */
-export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file: KitFile; onFileChange: (f: KitFile) => void }) {
+export default function DeckEditor({ kit, file, onFileChange, active = true }: { kit: Kit; file: KitFile; onFileChange: (f: KitFile) => void; active?: boolean }) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const ed = useDeckEditor(kit.id, file.id, !!kit.can?.edit, user?.id)
@@ -220,7 +220,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
     })))
     setToast(t('kits.checks.created', { count: findings.length }))
   }
-  const deepLink = params.get('comment')
+  const deepLink = active ? params.get('comment') : null
   useEffect(() => {
     if (!deepLink || !deck) return
     const c = allComments.find((x) => x.id === deepLink)
@@ -229,7 +229,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
     if (a?.slide_id && deck.slides.some((s) => s.id === a.slide_id)) { setActiveId(a.slide_id); setSelectedId(a.element_id ?? null) }
     setActiveComment(c.id)
     setTab('comments')
-    setParams({}, { replace: true })
+    setParams((cur) => { const n = new URLSearchParams(cur); n.delete('comment'); return n }, { replace: true })
   }, [deepLink, deck, allComments, setParams])
   const jumpToComment = (c: KitComment) => {
     const a = c.anchor
@@ -266,6 +266,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
   const kb = useRef({ undo: ed.undo, redo: ed.redo, save: ed.save })
   kb.current = { undo: ed.undo, redo: ed.redo, save: ed.save }
   useEffect(() => {
+    if (!active) return
     const onKey = (e: KeyboardEvent) => {
       const el = e.target instanceof HTMLElement ? e.target : null
       if (el?.closest('input, textarea, select, [contenteditable="true"]')) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); void kb.current.save() } return }

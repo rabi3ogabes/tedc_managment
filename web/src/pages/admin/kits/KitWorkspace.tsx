@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import { AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, Check, CheckCircle2, Clapperboard, Download, FilePlus2, FileUp, Image as ImageIcon, Loader2, MessageSquare, Pencil, Presentation, Sparkles, Trash2, UploadCloud } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { AlertTriangle, ArrowLeft, ArrowRight, CalendarClock, Check, CheckCircle2, Clapperboard, Download, FilePlus2, FileUp, Files as Files2, History, Image as ImageIcon, LayoutDashboard, Loader2, MessageSquare, Pencil, Presentation, RefreshCcw, Sparkles, Trash2, UploadCloud, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Badge, Button, Card, Empty, ErrorState, Progress, Spinner, Tabs } from '@/components/ui'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Avatar, Badge, Button, Card, Empty, ErrorState, Progress, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -13,11 +13,13 @@ import CommentsPanel from './comments/CommentsPanel'
 import { relativeTime, useKitComments } from './comments/api'
 import { KitStatusBadge, categoryIcon, fmtSize, kindIcon, kindTint } from './common'
 import ImagePickerDialog from './deck/ImagePickerDialog'
+import { FileWorkbench } from './FileStudio'
 import KitActions from './KitActions'
+import KitTabStrip, { type KitStripTab } from './KitTabStrip'
 import KitForm from './KitForm'
+import TabErrorBoundary from '../settings/TabErrorBoundary'
 import { FILE_CATEGORIES, type Activity, type Anchor, type FileCategory, type KitDetail, type KitFile, type KitRole, type Suggestion } from './types'
 
-type Tab = 'overview' | 'files' | 'review' | 'activity'
 type Dialog = { type: 'deck' | 'video' | 'image'; seed?: Record<string, unknown> } | null
 
 function ProgressRing({ value }: { value: number }) {
@@ -30,28 +32,171 @@ function ProgressRing({ value }: { value: number }) {
   )
 }
 
+const SECTIONS = ['overview', 'files', 'review', 'activity'] as const
+type Section = (typeof SECTIONS)[number]
+type Workspace = { open: string[]; active: string }
+const fileTab = (id: string) => `f:${id}`
+const isFileTab = (id: string) => id.startsWith('f:')
+const readWorkspace = (kitId: string): Workspace => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(`tedc.kit.tabs.${kitId}`) ?? 'null') as Partial<Workspace> | null
+    return { open: Array.isArray(raw?.open) ? raw.open.filter((x) => typeof x === 'string') : [], active: typeof raw?.active === 'string' ? raw.active : 'overview' }
+  } catch { return { open: [], active: 'overview' } }
+}
+
 export default function KitWorkspace() {
   const { kitId = '' } = useParams()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const kitQuery = useGet<{ data: KitDetail }>(`/admin/kits/${kitId}`)
   const kit = kitQuery.data?.data
-  const [tab, setTab] = useState<Tab>('overview')
+  const [params, setParams] = useSearchParams()
+  const [ws, setWs] = useState<Workspace>(() => {
+    const saved = readWorkspace(kitId)
+    const wanted = new URLSearchParams(window.location.search).get('tab')
+    if (wanted && (SECTIONS as readonly string[]).includes(wanted)) return { ...saved, active: wanted }
+    if (wanted && isFileTab(wanted)) return { open: saved.open.includes(wanted) ? saved.open : [...saved.open, wanted], active: wanted }
+    return saved
+  })
+  const [visited, setVisited] = useState<Set<string>>(() => new Set(['overview']))
+  const [reloads, setReloads] = useState<Record<string, number>>({})
+  const [focus, setFocus] = useState(false)
+  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const [editing, setEditing] = useState(false)
   const [dialog, setDialog] = useState<Dialog>(null)
+  const wsRef = useRef(ws)
+  wsRef.current = ws
+  const asked = useRef<string | null>(null)
+  const shell = useRef<HTMLDivElement>(null)
+  const setParamsRef = useRef(setParams)
+  setParamsRef.current = setParams
   const Back = i18n.dir() === 'rtl' ? ArrowRight : ArrowLeft
+  const rtl = i18n.dir() === 'rtl'
 
   const refresh = useCallback(() => kitQuery.refetch(), [kitQuery])
+  const fileById = useMemo(() => new Map((kit?.files ?? []).map((f) => [f.id, f])), [kit?.files])
+  // Only files that still exist keep a tab (a deleted file silently drops out).
+  const openFiles = useMemo(() => ws.open.filter((id) => !kit || fileById.has(id.slice(2))), [ws.open, fileById, kit])
+  const activeId = isFileTab(ws.active) && kit && !fileById.has(ws.active.slice(2)) ? 'files' : ws.active
+  const [fileOverride, setFileOverride] = useState<Record<string, KitFile>>({})
+
+  const openTab = useCallback((id: string, comment?: string) => {
+    // A comment deep link goes through the URL so the editor that opens can read (and clear) it.
+    if (comment) { setParams({ tab: id, comment }, { replace: true }); return }
+    setWs((cur) => ({ open: isFileTab(id) && !cur.open.includes(id) ? [...cur.open, id] : cur.open, active: id }))
+  }, [setParams])
+  const openFile = useCallback((fileId: string, comment?: string) => openTab(fileTab(fileId), comment), [openTab])
+
+  const closeTabs = useCallback((ids: string[]) => {
+    const targets = ids.filter((id) => isFileTab(id) && wsRef.current.open.includes(id))
+    if (!targets.length) return
+    setWs((cur) => {
+      const open = cur.open.filter((id) => !targets.includes(id))
+      let active = cur.active
+      if (targets.includes(cur.active)) {
+        const at = cur.open.indexOf(cur.active)
+        active = cur.open.slice(at + 1).find((id) => open.includes(id)) ?? [...cur.open.slice(0, at)].reverse().find((id) => open.includes(id)) ?? 'files'
+      }
+      return { open, active }
+    })
+  }, [])
+
+  const reorder = useCallback((from: string, to: string) => {
+    setWs((cur) => {
+      const open = cur.open.filter((id) => id !== from)
+      const at = open.indexOf(to)
+      open.splice(cur.open.indexOf(from) < cur.open.indexOf(to) ? at + 1 : at, 0, from)
+      return { ...cur, open }
+    })
+  }, [])
+
+  // Persist the tabs of this kit and mirror the active tab in the URL (deep links + reload).
+  useEffect(() => {
+    try { localStorage.setItem(`tedc.kit.tabs.${kitId}`, JSON.stringify(ws)) } catch { /* storage unavailable */ }
+    setVisited((cur) => (cur.has(ws.active) ? cur : new Set(cur).add(ws.active)))
+    if (isFileTab(ws.active) && window.innerWidth < 1024) shell.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    const n = new URLSearchParams(window.location.search)
+    if (ws.active === 'overview') n.delete('tab'); else n.set('tab', ws.active)
+    if (n.toString() !== window.location.search.replace(/^\?/, '')) setParamsRef.current(n, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ws, kitId])
+
+  // A link such as /admin/kits/:id?tab=f:<file> opens that tab even when the workspace is already mounted.
+  const wanted = params.get('tab')
+  const pendingComment = params.get('comment')
+  const lastWanted = useRef<string | null>(null)
+  const refreshRef = useRef(refresh)
+  refreshRef.current = refresh
+  useEffect(() => {
+    if (!wanted) { lastWanted.current = null; return }
+    if (wanted === wsRef.current.active) { lastWanted.current = wanted; return }
+    if (lastWanted.current === wanted && !pendingComment && !(isFileTab(wanted) && kit && asked.current === wanted)) return
+    if ((SECTIONS as readonly string[]).includes(wanted)) { lastWanted.current = wanted; setWs((cur) => ({ ...cur, active: wanted })) }
+    else if (isFileTab(wanted)) {
+      if (!kit) return
+      if (fileById.has(wanted.slice(2))) { lastWanted.current = wanted; openTab(wanted) }
+      else if (asked.current !== wanted) { asked.current = wanted; void refreshRef.current() } // a file created a moment ago
+    }
+  }, [wanted, pendingComment, kit, fileById, openTab])
+
+  // Keyboard: Alt+W closes the file tab, Alt+←/→ switches.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return
+      const cur = wsRef.current
+      if (e.code === 'KeyW' && isFileTab(cur.active)) { e.preventDefault(); closeTabs([cur.active]) }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault()
+        const order = [...SECTIONS, ...cur.open]
+        const step = (e.key === 'ArrowRight' ? 1 : -1) * (rtl ? -1 : 1)
+        setWs({ ...cur, active: order[(order.indexOf(cur.active) + step + order.length) % order.length] })
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [closeTabs, rtl])
+
+  useEffect(() => {
+    if (!menu) return
+    const close = () => setMenu(null)
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close()
+    window.addEventListener('click', close)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('click', close); window.removeEventListener('scroll', close, true); window.removeEventListener('keydown', onKey) }
+  }, [menu])
+
   if (kitQuery.isLoading) return <Spinner />
   if (!kit) return <ErrorState message={kitQuery.error ? errorMessage(kitQuery.error) : t('kits.file.notFound')} onRetry={refresh} />
 
   const people = [{ user_id: kit.owner_id, name: kit.owner?.name ?? '', role: 'developer' as KitRole }, ...(kit.members ?? []).map((m) => ({ ...m, name: m.name ?? '' }))]
   const overdue = kit.due_at && new Date(kit.due_at) < new Date() && !['approved', 'published', 'archived'].includes(kit.status)
 
+  const sectionIcon: Record<Section, KitStripTab['icon']> = { overview: LayoutDashboard, files: Files2, review: MessageSquare, activity: History }
+  const strip: KitStripTab[] = [
+    ...SECTIONS.map((id) => ({ id, pinned: true, icon: sectionIcon[id], label: t(`kits.workspace.tabs.${id}`), badge: id === 'review' ? kit.open_comments || undefined : undefined })),
+    ...openFiles.map((id) => {
+      const f = (fileOverride[id.slice(2)] ?? fileById.get(id.slice(2)))!
+      return { id, label: f.name, icon: kindIcon[f.kind], tint: undefined as string | undefined, badge: f.open_comments || undefined }
+    }),
+  ]
+  const menuIndex = menu ? openFiles.indexOf(menu.id) : -1
+  const items = menu ? [
+    { label: t('kits.tabs.close'), run: () => closeTabs([menu.id]) },
+    { label: t('kits.tabs.closeOthers'), run: () => closeTabs(openFiles.filter((id) => id !== menu.id)), disabled: openFiles.length < 2 },
+    { label: t('kits.tabs.closeRight'), run: () => closeTabs(openFiles.slice(menuIndex + 1)), disabled: menuIndex === openFiles.length - 1 },
+    { label: t('kits.tabs.moveStart'), run: () => setWs((cur) => ({ ...cur, open: [menu.id, ...cur.open.filter((id) => id !== menu.id)] })), disabled: menuIndex === 0 },
+    { label: t('kits.tabs.reload'), run: () => setReloads((cur) => ({ ...cur, [menu.id]: (cur[menu.id] ?? 0) + 1 })), icon: RefreshCcw },
+    { label: t('kits.tabs.closeAll'), run: () => closeTabs(openFiles), danger: true },
+  ] : []
+
+  const panelHeight = focus ? 'h-[calc(100vh-6.5rem)]' : 'h-[calc(100vh-11rem)]'
+
   return (
     <>
-      <Link to="/admin/kits" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-navy-900"><Back className="size-4" />{t('kits.workspace.back')}</Link>
+      {!focus && <Link to="/admin/kits" className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-navy-900"><Back className="size-4" />{t('kits.workspace.back')}</Link>}
 
+      {!focus && (
       <section className="relative mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 p-6 text-white shadow-glass sm:p-8">
         <div className="pointer-events-none absolute -end-20 -top-24 size-72 rounded-full bg-gold-500/15 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-6">
@@ -80,16 +225,48 @@ export default function KitWorkspace() {
           </div>
         </div>
       </section>
+      )}
 
-      <Tabs tabs={[
-        { id: 'overview', label: t('kits.workspace.tabs.overview') }, { id: 'files', label: `${t('kits.workspace.tabs.files')} (${kit.files.length})` },
-        { id: 'review', label: `${t('kits.workspace.tabs.review')}${kit.open_comments ? ` (${kit.open_comments})` : ''}` }, { id: 'activity', label: t('kits.workspace.tabs.activity') },
-      ]} value={tab} onChange={setTab} />
+      <div ref={shell} className="scroll-mt-20 overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-glass">
+        <KitTabStrip tabs={strip} active={activeId} focus={focus} onSelect={(id) => setWs((cur) => ({ ...cur, active: id }))} onClose={(id) => closeTabs([id])} onReorder={reorder}
+          onContextMenu={(id, x, y) => setMenu({ id, x, y })} onToggleFocus={() => setFocus((v) => !v)} />
 
-      {tab === 'overview' && <Overview kit={kit} onGo={setTab} onDialog={setDialog} onUpload={() => setTab('files')} />}
-      {tab === 'files' && <Files kit={kit} onChanged={refresh} onDialog={setDialog} />}
-      {tab === 'review' && <ReviewTab kit={kit} />}
-      {tab === 'activity' && <ActivityTab kitId={kit.id} />}
+        <div className="bg-ivory">
+          {SECTIONS.filter((id) => visited.has(id) || activeId === id).map((id) => (
+            <div key={id} hidden={activeId !== id} role="tabpanel" aria-label={t(`kits.workspace.tabs.${id}`)} className="p-4 sm:p-6">
+              {id === 'overview' && <Overview kit={kit} onGo={(x) => openTab(x)} onDialog={setDialog} onUpload={() => openTab('files')} />}
+              {id === 'files' && <Files kit={kit} onChanged={refresh} onDialog={setDialog} onOpen={openFile} />}
+              {id === 'review' && <ReviewTab kit={kit} onOpenFile={openFile} />}
+              {id === 'activity' && <ActivityTab kitId={kit.id} />}
+            </div>
+          ))}
+          {openFiles.map((id) => {
+            const fileId = id.slice(2)
+            const file = fileOverride[fileId] ?? fileById.get(fileId)
+            if (!file) return null
+            const active = activeId === id
+            return (
+              <div key={`${id}-${reloads[id] ?? 0}`} hidden={!active} role="tabpanel" aria-label={file.name} className={clsx('relative', panelHeight)}>
+                <TabErrorBoundary title={t('kits.tabs.failed')} hint={t('kits.tabs.failedHint')} retry={t('kits.common.retry')}>
+                  <FileWorkbench kit={kit} file={file} active={active} onFile={(f) => { setFileOverride((cur) => ({ ...cur, [f.id]: f })); void refresh() }} />
+                </TabErrorBoundary>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {menu && (
+        <ul role="menu" className="fixed z-[70] min-w-52 overflow-hidden rounded-xl border border-navy-100 bg-white py-1.5 text-sm shadow-glass" style={{ top: Math.min(menu.y, window.innerHeight - 260), [rtl ? 'right' : 'left']: Math.max(8, Math.min(rtl ? window.innerWidth - menu.x : menu.x, window.innerWidth - 230)) }}>
+          {items.map((item) => (
+            <li key={item.label} role="none">
+              <button role="menuitem" type="button" disabled={item.disabled} onClick={() => { setMenu(null); item.run() }} className={clsx('flex w-full items-center gap-2 px-4 py-2 text-start transition disabled:opacity-40', item.danger ? 'text-danger hover:bg-red-50' : 'text-navy-900 hover:bg-ivory')}>
+                {item.icon ? <item.icon className="size-4" /> : item.danger ? <X className="size-4" /> : <span className="size-4" />}{item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {editing && <KitForm kit={kit} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); void refresh() }} />}
       {dialog?.type === 'deck' && <GenerateDeckDialog kit={kit} seed={dialog.seed} onClose={() => setDialog(null)} />}
@@ -99,7 +276,7 @@ export default function KitWorkspace() {
   )
 }
 
-function Overview({ kit, onGo, onDialog, onUpload }: { kit: KitDetail; onGo: (t: Tab) => void; onDialog: (d: Dialog) => void; onUpload: () => void }) {
+function Overview({ kit, onGo, onDialog, onUpload }: { kit: KitDetail; onGo: (t: Section) => void; onDialog: (d: Dialog) => void; onUpload: () => void }) {
   const { t, i18n } = useTranslation()
   const suggestions = useGet<{ data: Suggestion[] }>(kit.can?.edit ? `/admin/kits/${kit.id}/suggestions` : null)
   const activity = useGet<{ data: Activity[] }>(`/admin/kits/${kit.id}/activity`, { per_page: 6 })
@@ -216,9 +393,8 @@ function ActivityTab({ kitId }: { kitId: string }) {
 }
 
 /** All comments of the kit across files, plus the review rounds. */
-function ReviewTab({ kit }: { kit: KitDetail }) {
+function ReviewTab({ kit, onOpenFile }: { kit: KitDetail; onOpenFile: (fileId: string, comment?: string) => void }) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const comments = useKitComments(kit.id, null)
   const rounds = useGet<{ data: NonNullable<KitDetail['review']>[] }>(`/admin/kits/${kit.id}/reviews`)
   const all = useMemo(() => comments.data?.data ?? [], [comments.data])
@@ -229,7 +405,7 @@ function ReviewTab({ kit }: { kit: KitDetail }) {
       <Card className="min-h-[32rem]">
         <h3 className="mb-4 text-lg font-bold text-navy-900">{t('kits.workspace.allComments')}</h3>
         <div className="h-[36rem]">
-          <CommentsPanel kit={kit} comments={all} loading={comments.isLoading} anchorLabel={label} onJump={(c) => c.file_id && navigate(`/admin/kits/${kit.id}/files/${c.file_id}?comment=${c.id}`)} />
+          <CommentsPanel kit={kit} comments={all} loading={comments.isLoading} anchorLabel={label} onJump={(c) => c.file_id && onOpenFile(c.file_id, c.id)} />
         </div>
       </Card>
       <Card>
@@ -252,9 +428,8 @@ function ReviewTab({ kit }: { kit: KitDetail }) {
 }
 
 /** Every file of the kit: drag files in, or create / generate new ones. */
-function Files({ kit, onChanged, onDialog }: { kit: KitDetail; onChanged: () => void; onDialog: (d: Dialog) => void }) {
+function Files({ kit, onChanged, onDialog, onOpen }: { kit: KitDetail; onChanged: () => unknown; onDialog: (d: Dialog) => void; onOpen: (fileId: string) => void }) {
   const { t, i18n } = useTranslation()
-  const navigate = useNavigate()
   const input = useRef<HTMLInputElement>(null)
   const [category, setCategory] = useState<FileCategory | ''>('')
   const [uploading, setUploading] = useState<{ name: string; done: boolean }[]>([])
@@ -287,7 +462,8 @@ function Files({ kit, onChanged, onDialog }: { kit: KitDetail; onChanged: () => 
     if (!name) return
     try {
       const res = await api.post<{ data: KitFile }>(`/admin/kits/${kit.id}/files/create`, { name, language: i18n.language === 'en' ? 'en' : 'ar' })
-      navigate(`/admin/kits/${kit.id}/files/${res.data.data.id}`)
+      await onChanged()
+      onOpen(res.data.data.id)
     } catch (e) { setError(errorMessage(e)) }
   }
   const remove = async (f: KitFile) => {
@@ -337,7 +513,7 @@ function Files({ kit, onChanged, onDialog }: { kit: KitDetail; onChanged: () => 
               const CatIcon = categoryIcon[f.category]
               return (
                 <article key={f.id} className="group flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-glass">
-                  <Link to={`/admin/kits/${kit.id}/files/${f.id}`} className="flex items-start gap-3 p-4">
+                  <a href={`/admin/kits/${kit.id}?tab=f:${f.id}`} onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); onOpen(f.id) }} className="flex items-start gap-3 p-4">
                     <span className={clsx('grid size-12 shrink-0 place-items-center rounded-xl', kindTint[f.kind])}><Icon className="size-6" /></span>
                     <div className="min-w-0 flex-1">
                       <h4 className="truncate font-bold text-navy-900 group-hover:text-link" dir="auto">{f.name}</h4>
@@ -347,7 +523,7 @@ function Files({ kit, onChanged, onDialog }: { kit: KitDetail; onChanged: () => 
                       </div>
                     </div>
                     {(f.open_comments ?? 0) > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700"><MessageSquare className="size-3" />{f.open_comments}</span>}
-                  </Link>
+                  </a>
                   <div className="mt-auto flex items-center gap-1 border-t border-navy-100 bg-ivory/50 px-3 py-2">
                     <span className="min-w-0 flex-1 truncate text-[11px] text-slate-400">{f.updated_by ?? f.uploaded_by} · {f.updated_at ? relativeTime(f.updated_at, i18n.language) : ''}</span>
                     {f.has_binary && <button type="button" onClick={() => download(f)} className="grid size-7 place-items-center rounded-lg text-slate-500 hover:bg-white hover:text-navy-900" aria-label={t('kits.file.download')}><Download className="size-4" /></button>}

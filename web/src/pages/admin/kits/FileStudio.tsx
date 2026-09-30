@@ -1,78 +1,38 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Download, FileQuestion, Loader2, MessageSquareDashed, MousePointer2, Presentation } from 'lucide-react'
+import { Download, FileQuestion, Loader2, MessageSquareDashed, MousePointer2, Presentation } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Button, ErrorState, Spinner } from '@/components/ui'
+import { Navigate, useParams, useSearchParams } from 'react-router-dom'
+import { Button, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
-import { useCenterName } from '@/lib/ThemeProvider'
 import CommentsPanel from './comments/CommentsPanel'
 import { useKitComments } from './comments/api'
-import { KitStatusBadge, kindIcon, kindTint } from './common'
 import DeckEditor from './deck/DeckEditor'
 import { importPptx } from './deck/pptx'
-import KitActions from './KitActions'
 import type { Anchor, KitComment, KitDetail, KitFile } from './types'
 import DocxViewer from './viewers/DocxViewer'
 import MediaViewer from './viewers/MediaViewer'
 import PdfViewer from './viewers/PdfViewer'
 
-/** Full-screen studio for one file: the slide editor, or a viewer with a review panel for PDF / Word / media. */
+/** Old file links (notifications, bookmarks) open the file as a tab inside its kit. */
 export default function FileStudio() {
   const { kitId = '', fileId = '' } = useParams()
-  const { t, i18n } = useTranslation()
-  const navigate = useNavigate()
-  const centerName = useCenterName()
-  const kitQuery = useGet<{ data: KitDetail }>(`/admin/kits/${kitId}`)
-  const kit = kitQuery.data?.data
-  const [fileOverride, setFileOverride] = useState<KitFile | null>(null)
-  const file = fileOverride?.id === fileId ? fileOverride : kit?.files.find((f) => f.id === fileId) ?? null
-  const Back = i18n.dir() === 'rtl' ? ArrowRight : ArrowLeft
-
-  useEffect(() => { document.title = file ? `${file.name} · ${centerName}` : centerName }, [file, centerName])
-
-  if (kitQuery.isLoading) return <Spinner className="min-h-screen" />
-  if (!kit || !file) return <ErrorState message={kitQuery.error ? errorMessage(kitQuery.error) : t('kits.file.notFound')} onRetry={() => kitQuery.refetch()} />
-
-  const Icon = kindIcon[file.kind]
-  return (
-    <div className="flex h-screen flex-col bg-ivory">
-      <header className="flex flex-wrap items-center gap-3 border-b border-navy-100 bg-white px-4 py-2.5">
-        <Link to={`/admin/kits/${kit.id}`} className="grid size-9 place-items-center rounded-lg text-navy-800 hover:bg-navy-100/70" aria-label={t('kits.file.back')}><Back className="size-5" /></Link>
-        <span className={clsx('grid size-9 place-items-center rounded-lg', kindTint[file.kind])}><Icon className="size-5" /></span>
-        <div className="min-w-0">
-          <div className="truncate text-sm font-bold text-navy-900" dir="auto">{file.name}</div>
-          <div className="truncate text-xs text-slate-500" dir="auto">{kit.title} · <span dir="ltr">{kit.code}</span></div>
-        </div>
-        <KitStatusBadge status={kit.status} />
-        {kit.status === 'in_review' && <span className="rounded-full bg-gold-100 px-2.5 py-0.5 text-xs font-bold text-gold-700">{t('kits.file.round', { n: kit.review_round })}</span>}
-        <FileSwitcher kit={kit} current={file.id} onOpen={(id) => navigate(`/admin/kits/${kit.id}/files/${id}`)} />
-        <div className="ms-auto"><KitActions kit={kit} size="sm" onDone={() => kitQuery.refetch()} /></div>
-      </header>
-      <div className="min-h-0 flex-1">
-        {file.kind === 'presentation' ? (
-          <PresentationGate key={file.id} kit={kit} file={file} onFile={(f) => { setFileOverride(f); void kitQuery.refetch() }} />
-        ) : (
-          <ViewerStudio key={file.id} kit={kit} file={file} />
-        )}
-      </div>
-    </div>
-  )
+  const [params] = useSearchParams()
+  const next = new URLSearchParams(params)
+  next.set('tab', `f:${fileId}`)
+  return <Navigate to={`/admin/kits/${kitId}?${next.toString()}`} replace />
 }
 
-function FileSwitcher({ kit, current, onOpen }: { kit: KitDetail; current: string; onOpen: (id: string) => void }) {
-  const { t } = useTranslation()
-  if (kit.files.length < 2) return null
-  return (
-    <select className="input !w-auto max-w-[14rem] !py-1.5 text-xs" value={current} onChange={(e) => onOpen(e.target.value)} aria-label={t('kits.file.switch')}>
-      {kit.files.map((f) => <option key={f.id} value={f.id}>{f.name}{f.open_comments ? ` (${f.open_comments})` : ''}</option>)}
-    </select>
-  )
+/** The studio for one file, embedded in a kit tab: the slide editor, or a viewer with a review panel for PDF / Word / media. */
+export function FileWorkbench({ kit, file, active, onFile }: { kit: KitDetail; file: KitFile; active: boolean; onFile: (f: KitFile) => void }) {
+  return file.kind === 'presentation'
+    ? <PresentationGate kit={kit} file={file} active={active} onFile={onFile} />
+    : <ViewerStudio kit={kit} file={file} active={active} />
 }
 
 /** A PPTX that was uploaded is converted into an editable deck the first time it is opened. */
-function PresentationGate({ kit, file, onFile }: { kit: KitDetail; file: KitFile; onFile: (f: KitFile) => void }) {
+function PresentationGate({ kit, file, active, onFile }: { kit: KitDetail; file: KitFile; active: boolean; onFile: (f: KitFile) => void }) {
   const { t } = useTranslation()
   const [state, setState] = useState<'idle' | 'working' | 'error'>('idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -100,9 +60,9 @@ function PresentationGate({ kit, file, onFile }: { kit: KitDetail; file: KitFile
 
   if (file.is_deck) {
     return (
-      <div className="h-full">
+      <div className="relative h-full">
         {warnings.length > 0 && <ImportWarnings warnings={warnings} onClose={() => setWarnings([])} />}
-        <DeckEditor kit={kit} file={file} onFileChange={onFile} />
+        <DeckEditor kit={kit} file={file} active={active} onFileChange={onFile} />
       </div>
     )
   }
@@ -121,14 +81,14 @@ function PresentationGate({ kit, file, onFile }: { kit: KitDetail; file: KitFile
 function ImportWarnings({ warnings, onClose }: { warnings: string[]; onClose: () => void }) {
   const { t } = useTranslation()
   return (
-    <div className="absolute inset-x-0 top-[57px] z-40 mx-auto max-w-2xl rounded-b-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-glass">
+    <div className="absolute inset-x-0 top-0 z-40 mx-auto max-w-2xl rounded-b-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-glass">
       <div className="flex items-start justify-between gap-3"><div><div className="font-bold">{t('kits.file.importNotes')}</div><ul className="mt-1 list-disc ps-5 text-xs">{warnings.slice(0, 8).map((w) => <li key={w}>{w}</li>)}</ul></div><button type="button" onClick={onClose} className="text-xs font-bold underline">{t('kits.common.close')}</button></div>
     </div>
   )
 }
 
 /** PDF, Word, image and video: a viewer plus the anchored review panel. */
-function ViewerStudio({ kit, file }: { kit: KitDetail; file: KitFile }) {
+function ViewerStudio({ kit, file, active: visible }: { kit: KitDetail; file: KitFile; active: boolean }) {
   const { t } = useTranslation()
   const comments = useKitComments(kit.id, file.id)
   const all = useMemo(() => comments.data?.data ?? [], [comments.data])
@@ -159,7 +119,7 @@ function ViewerStudio({ kit, file }: { kit: KitDetail; file: KitFile }) {
   }
   const anchored = all.filter((c) => c.anchor && c.anchor.type !== 'file')
   const [params, setParams] = useSearchParams()
-  const deepLink = params.get('comment')
+  const deepLink = visible ? params.get('comment') : null
   useEffect(() => {
     const c = deepLink ? all.find((x) => x.id === deepLink) : null
     if (!c) return
@@ -168,7 +128,7 @@ function ViewerStudio({ kit, file }: { kit: KitDetail; file: KitFile }) {
     if (c.anchor?.page) setJump({ page: c.anchor.page })
     else if (c.anchor?.paragraph != null) setJump({ paragraph: c.anchor.paragraph })
     else if (c.anchor?.at != null) setJump({ at: c.anchor.at })
-    setParams({}, { replace: true })
+    setParams((cur) => { const n = new URLSearchParams(cur); n.delete('comment'); return n }, { replace: true })
   }, [deepLink, all, setParams])
 
   return (

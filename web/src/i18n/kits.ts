@@ -11,6 +11,7 @@ export const kitsAr = {
     comments: 'ملاحظات', due: 'الموعد', updated: 'آخر تحديث', open: 'فتح', columnEmpty: 'لا توجد حقائب', empty: 'لا توجد حقائب مطابقة.', firstKit: 'ابدأ بأول حقيبة: اختر البرنامج، وسنجهّز لك الأهداف والفريق.', recent: 'آخر النشاطات',
     stats: { total: 'حقائب نشطة', awaiting: 'بانتظار المراجعة', awaitingMine: 'بانتظار مراجعتك', changes: 'مطلوب تعديلها', myComments: 'ملاحظات مسندة إليّ', overdue: 'متأخرة عن الموعد' },
   },
+    tabs: { label: 'تبويبات الحقيبة', close: 'إغلاق', closeOthers: 'إغلاق الأخرى', closeRight: 'إغلاق ما بعده', moveStart: 'نقل إلى البداية', reload: 'إعادة تحميل التبويب', closeAll: 'إغلاق كل الملفات', focus: 'وضع التركيز', exitFocus: 'إنهاء وضع التركيز', unsaved: 'تغييرات غير محفوظة', scrollStart: 'تمرير للبداية', scrollEnd: 'تمرير للنهاية', failed: 'تعذّر عرض هذا التبويب', failedHint: 'بقية التبويبات تعمل بشكل طبيعي. جرّب مرة أخرى.' },
   workspace: {
     back: 'كل الحقائب', readiness: 'جاهزية الحقيبة', readinessHint: 'من قائمة المتطلبات', overdue: 'متأخرة', checklist: 'متطلبات الحقيبة', next: 'ما الذي ننجزه تالياً؟', nextHint: 'اقتراحات ذكية بحسب ما ينقص الحقيبة — كل اقتراح يبدأ بنقرة.',
     objectives: 'الأهداف التدريبية', noObjectives: 'لم تُحدد الأهداف بعد. أضفها من زر «تعديل».', reviewStatus: 'حالة المراجعة', decidedBy: 'القرار', openReview: 'فتح الملاحظات', team: 'فريق الحقيبة',
@@ -127,6 +128,7 @@ export const kitsEn: KitsStrings = {
     comments: 'Comments', due: 'Due', updated: 'Updated', open: 'Open', columnEmpty: 'No kits', empty: 'No kits match.', firstKit: 'Start with your first kit: pick the program and we will prepare the objectives and the team.', recent: 'Recent activity',
     stats: { total: 'Active kits', awaiting: 'Awaiting review', awaitingMine: 'Awaiting your review', changes: 'Need changes', myComments: 'Comments assigned to me', overdue: 'Overdue' },
   },
+    tabs: { label: 'Kit tabs', close: 'Close', closeOthers: 'Close others', closeRight: 'Close tabs to the right', moveStart: 'Move to start', reload: 'Reload tab', closeAll: 'Close all files', focus: 'Focus mode', exitFocus: 'Exit focus mode', unsaved: 'Unsaved changes', scrollStart: 'Scroll to start', scrollEnd: 'Scroll to end', failed: 'This tab could not be displayed', failedHint: 'The other tabs keep working. Try again.' },
   workspace: {
     back: 'All kits', readiness: 'Kit readiness', readinessHint: 'From the requirements list', overdue: 'Overdue', checklist: 'Kit requirements', next: 'What to build next', nextHint: 'Smart suggestions for what the kit is missing - each starts in one click.',
     objectives: 'Learning objectives', noObjectives: 'No objectives yet. Add them with the Edit button.', reviewStatus: 'Review status', decidedBy: 'Decision', openReview: 'Open comments', team: 'Kit team',

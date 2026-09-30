@@ -54,7 +54,7 @@ class ImageGenerator
             $provider = $result ? 'openai' : ($this->ai->enabled() ? 'svg' : 'placeholder');
         }
         if (! $result && $provider === 'svg') {
-            $svg = $this->claudeSvg($full, $aspect);
+            $svg = $this->safely(fn () => $this->claudeSvg($full, $aspect));
             $result = $svg ? ['bytes' => $svg, 'mime' => 'image/svg+xml', 'ext' => 'svg'] : null;
             $provider = $result ? 'svg' : 'placeholder';
         }
@@ -73,6 +73,18 @@ class ImageGenerator
         KitGeneration::create(['kit_id' => $kit->id, 'user_id' => $user?->id, 'type' => 'image', 'prompt' => $prompt, 'params' => $opts, 'result' => ['asset_id' => $asset->id], 'provider' => $provider]);
 
         return $asset;
+    }
+
+    /** Any provider failure must degrade to the built-in illustration, never to a server error. */
+    private function safely(callable $draw): ?string
+    {
+        try {
+            return $draw();
+        } catch (Throwable $e) {
+            Log::warning('SVG image generation failed', ['error' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /** @return array{bytes: string, mime: string, ext: string}|null */
