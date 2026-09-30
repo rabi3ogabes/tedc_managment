@@ -68,7 +68,7 @@ export const SlideView = memo(function SlideView({ slide, theme, width, classNam
   const k = width / W
   return (
     <div className={clsx('relative shrink-0 overflow-hidden', className)} style={{ width, height: H * k }}>
-      <div style={{ width: W, height: H, transform: `scale(${k})`, transformOrigin: '0 0', position: 'relative', overflow: 'hidden', background: slide.background.color }}>
+      <div style={{ width: W, height: H, transform: `scale(${k})`, transformOrigin: '0 0', position: 'absolute', left: 0, top: 0, overflow: 'hidden', background: slide.background.color }}>
         {slide.background.src && <img src={slide.background.src} alt="" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
         {slide.elements.map((el) => <ElementBox key={el.id} el={el} theme={theme} placeholder={placeholder} />)}
       </div>

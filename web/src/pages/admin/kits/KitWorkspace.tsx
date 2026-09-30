@@ -74,7 +74,7 @@ export default function KitWorkspace() {
           <div className="flex flex-col items-end gap-4">
             <div className="flex items-center gap-3"><div className="text-end text-xs text-white/70"><div className="font-bold text-white">{t('kits.workspace.readiness')}</div><div>{t('kits.workspace.readinessHint')}</div></div><ProgressRing value={kit.completeness.percent} /></div>
             <div className="flex flex-wrap justify-end gap-2">
-              <KitActions kit={kit} onDone={refresh} />
+              <KitActions kit={kit} onDone={refresh} onDark />
               {kit.can?.manage && <Button variant="light" icon={<Pencil className="size-4" />} onClick={() => setEditing(true)}>{t('kits.common.edit')}</Button>}
             </div>
           </div>

@@ -65,7 +65,7 @@ export const kitsAr = {
     slides: 'الشرائح', slidesShort: 'شريحة', untitled: 'بدون عنوان', addSlide: 'شريحة جديدة', duplicateSlide: 'تكرار الشريحة', deleteSlide: 'حذف الشريحة', deleteSlideWithComments: 'لهذه الشريحة ملاحظات مفتوحة. حذفها سيترك الملاحظات بلا موضع. المتابعة؟',
     layouts: { title: 'عنوان', content: 'محتوى', two_column: 'عمودان', image_text: 'صورة ونص', section: 'فاصل', blank: 'فارغة' },
     newTitle: 'عنوان الشريحة', newBody: 'النقطة الأولى\nالنقطة الثانية\nالنقطة الثالثة', newLeft: 'العمود الأول', newRight: 'العمود الثاني', newSubtitle: 'العنوان الفرعي', newText: 'نص جديد',
-    undo: 'تراجع', redo: 'إعادة', addText: 'مربع نص', addShape: 'شكل', addImage: 'صورة', modeEdit: 'وضع التحرير', modeReview: 'وضع المراجعة — ثبّت ملاحظة على الشريحة', zoomIn: 'تكبير', zoomOut: 'تصغير', fit: 'ملائم', fitScreen: 'ملاءمة الشاشة',
+    panel: 'اللوحة الجانبية', undo: 'تراجع', redo: 'إعادة', addText: 'مربع نص', addShape: 'شكل', addImage: 'صورة', modeEdit: 'وضع التحرير', modeReview: 'وضع المراجعة — ثبّت ملاحظة على الشريحة', zoomIn: 'تكبير', zoomOut: 'تصغير', fit: 'ملائم', fitScreen: 'ملاءمة الشاشة',
     present: 'عرض', export: 'تصدير PPTX', exported: 'تم التصدير وحُفظ كنسخة في الحقيبة', editingNow: '{{count}} يعمل الآن', readOnly: 'للقراءة والمراجعة', saved: 'محفوظ', unsaved: 'تغييرات غير محفوظة', saving: 'جارٍ الحفظ…', conflict: 'تعارض', saveFailed: 'تعذّر الحفظ', loadFailed: 'تعذّر تحميل العرض',
     conflictTitle: 'عدّل زميل شرائح عملت عليها في الوقت نفسه', changedBy: 'عدّلها {{name}}', takeTheirs: 'اعتماد نسخة الزميل', keepMine: 'الاحتفاظ بنسختي',
     slideN: 'شريحة {{n}}', slideOf: 'شريحة {{n}} من {{total}}', slideRemoved: 'حُذفت', words: '{{count}} كلمة', lastEdit: 'آخر تعديل: {{name}}', thisSlide: 'هذه الشريحة', reviewHint: 'انقر على أي مكان في الشريحة لتثبيت ملاحظة', pinOnSlide: 'تثبيت على الشريحة', commentSlide: 'ملاحظة على الشريحة كاملة',
@@ -105,7 +105,7 @@ export const kitsAr = {
   video: {
     title: 'إنشاء فيديو توضيحي', intro: 'نكتب سيناريو قصيراً من مشاهد، ثم نرسم صورة لكل مشهد، ونصنع الفيديو مباشرة في متصفحك.', scenes: 'عدد المشاهد: {{count}}', seconds: 'المدة: {{count}} ثانية', plan: 'اقتراح السيناريو', sceneTitle: 'عنوان المشهد', secondsShort: 'ثوانٍ', narration: 'النص المكتوب على الشاشة', imagePrompt: 'وصف الصورة (بالإنجليزية)',
     startOver: 'بدء من جديد', draw: 'رسم صور المشاهد', redraw: 'إعادة رسم الصور', drawing: 'رسم الصورة {{done}} من {{total}}…', render: 'صناعة الفيديو ({{seconds}} ثانية)', renderAgain: 'إعادة صناعة الفيديو', rendering: 'جارٍ تسجيل الفيديو ({{seconds}} ثانية)… أبقِ هذه النافذة مفتوحة.', save: 'حفظ في الحقيبة',
-    unsupported: 'المتصفح لا يدعم تسجيل الفيديو. استخدم Chrome أو Edge.', note: 'الفيديو بصيغة WebM بدون صوت، مع ترجمة نصية على الشاشة.',
+    unsupported: 'المتصفح لا يدعم تسجيل الفيديو. استخدم Chrome أو Edge.', empty: 'لم ينتج المتصفح إطارات للفيديو. أبقِ هذه النافذة ظاهرة أثناء الصناعة، وجرّب Chrome أو Edge.', note: 'الفيديو بصيغة WebM بدون صوت، مع ترجمة نصية على الشاشة.',
   },
   viewer: {
     read: 'قراءة', review: 'مراجعة', reviewPanel: 'ملاحظات المراجعة', noPreview: 'لا توجد معاينة لهذا النوع من الملفات.', pageN: 'صفحة {{n}}', paragraphN: 'فقرة {{n}}', text: 'نص', point: 'نقطة', thisPage: 'هذه الصفحة', pdfFailed: 'تعذّر فتح ملف PDF', docFailed: 'تعذّر فتح المستند',
@@ -181,7 +181,7 @@ export const kitsEn: KitsStrings = {
     slides: 'Slides', slidesShort: 'slides', untitled: 'Untitled', addSlide: 'New slide', duplicateSlide: 'Duplicate slide', deleteSlide: 'Delete slide', deleteSlideWithComments: 'This slide has open comments. Deleting it leaves them without a place. Continue?',
     layouts: { title: 'Title', content: 'Content', two_column: 'Two columns', image_text: 'Image & text', section: 'Section', blank: 'Blank' },
     newTitle: 'Slide title', newBody: 'First point\nSecond point\nThird point', newLeft: 'First column', newRight: 'Second column', newSubtitle: 'Subtitle', newText: 'New text',
-    undo: 'Undo', redo: 'Redo', addText: 'Text box', addShape: 'Shape', addImage: 'Image', modeEdit: 'Edit mode', modeReview: 'Review mode - pin a comment on the slide', zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit', fitScreen: 'Fit to screen',
+    panel: 'Side panel', undo: 'Undo', redo: 'Redo', addText: 'Text box', addShape: 'Shape', addImage: 'Image', modeEdit: 'Edit mode', modeReview: 'Review mode - pin a comment on the slide', zoomIn: 'Zoom in', zoomOut: 'Zoom out', fit: 'Fit', fitScreen: 'Fit to screen',
     present: 'Present', export: 'Export PPTX', exported: 'Exported and saved as a version in the kit', editingNow: '{{count}} editing now', readOnly: 'Read & review', saved: 'Saved', unsaved: 'Unsaved changes', saving: 'Saving…', conflict: 'Conflict', saveFailed: 'Save failed', loadFailed: 'The deck could not be loaded',
     conflictTitle: 'A teammate changed slides you were editing at the same time', changedBy: 'changed by {{name}}', takeTheirs: 'Use their version', keepMine: 'Keep mine',
     slideN: 'Slide {{n}}', slideOf: 'Slide {{n}} of {{total}}', slideRemoved: 'deleted', words: '{{count}} words', lastEdit: 'Last edit: {{name}}', thisSlide: 'This slide', reviewHint: 'Click anywhere on the slide to pin a comment', pinOnSlide: 'Pin on the slide', commentSlide: 'Comment on the whole slide',
@@ -221,7 +221,7 @@ export const kitsEn: KitsStrings = {
   video: {
     title: 'Create an explainer video', intro: 'We write a short script of scenes, draw a picture for each scene, and render the video right in your browser.', scenes: 'Scenes: {{count}}', seconds: 'Length: {{count}} s', plan: 'Suggest a script', sceneTitle: 'Scene title', secondsShort: 'Seconds', narration: 'On-screen text', imagePrompt: 'Picture description (English)',
     startOver: 'Start over', draw: 'Draw scene pictures', redraw: 'Redraw pictures', drawing: 'Drawing picture {{done}} of {{total}}…', render: 'Render video ({{seconds}} s)', renderAgain: 'Render again', rendering: 'Recording the video ({{seconds}} s)… keep this window open.', save: 'Save to the kit',
-    unsupported: 'This browser cannot record video. Use Chrome or Edge.', note: 'The video is WebM without sound, with on-screen captions.',
+    unsupported: 'This browser cannot record video. Use Chrome or Edge.', empty: 'The browser produced no video frames. Keep this window visible while it records, and try Chrome or Edge.', note: 'The video is WebM without sound, with on-screen captions.',
   },
   viewer: {
     read: 'Read', review: 'Review', reviewPanel: 'Review comments', noPreview: 'There is no preview for this type of file.', pageN: 'Page {{n}}', paragraphN: 'Paragraph {{n}}', text: 'Text', point: 'Point', thisPage: 'This page', pdfFailed: 'The PDF could not be opened', docFailed: 'The document could not be opened',

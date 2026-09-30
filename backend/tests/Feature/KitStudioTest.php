@@ -111,6 +111,7 @@ class KitStudioTest extends TestCase
             ->assertJsonPath('data.kind', 'presentation')->assertJsonPath('data.is_deck', false)->json('data');
         $this->asUser($this->dev)->post($base, ['file' => UploadedFile::fake()->create('dalil.pdf', 100)], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('data.kind', 'pdf')->assertJsonPath('data.category', 'handout');
         $this->asUser($this->dev)->post($base, ['file' => UploadedFile::fake()->create('virus.exe', 10)], ['Accept' => 'application/json'])->assertUnprocessable();
+        $this->asUser($this->dev)->post($base, ['file' => UploadedFile::fake()->create('empty.webm', 0)], ['Accept' => 'application/json'])->assertUnprocessable();
 
         // The browser extracted the slides from the uploaded PPTX and attaches them (with a data-URI picture).
         $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

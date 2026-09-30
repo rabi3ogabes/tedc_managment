@@ -173,6 +173,35 @@ with the session to approve and schedule in one request.
 | POST | `/admin/calendar/approvals` (`date`, optional `end_date`, `reason`) | `calendar.approve` |
 | DELETE | `/admin/calendar/approvals/{date}` | `calendar.approve` |
 
+## Training Kit Studio (الحقيبة التدريبية)
+
+Permissions: `kits.view`, `kits.manage` (build kits, edit files), `kits.generate` (AI), `kits.review` (QA), `kits.publish`.
+Roles: **Kit Developer** (معد الحقيبة) and **Quality Assurance** (فريق ضمان الجودة); center staff see every kit, the others only kits they are members of.
+
+A kit moves `draft -> in_review -> changes_requested | approved -> published`. Approval is blocked while a major or critical
+comment is not resolved. Comments follow *fix then verify*: the developer marks a comment `addressed`, QA `resolved` (or reopens it).
+Presentations are stored as an editable slide model; the developer and QA edit the same deck and saves merge slide by slide
+(`409` + `conflicts` when the same slide was changed by someone else; resend with `force` to overwrite).
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/admin/kits` `/kits/board` `/kits/stats` `/kits/people` | list, board columns, dashboard counters, assignable people |
+| POST / PUT / DELETE | `/admin/kits`, `/admin/kits/{kit}` | create (from a program), update, delete |
+| PUT | `/admin/kits/{kit}/members` | owner + team (`developer`, `qa`, `reviewer`, `viewer`) |
+| POST | `/admin/kits/{kit}/submit` `request-changes` `approve` `publish` `reopen` `archive` | lifecycle |
+| GET | `/admin/kits/{kit}/activity` `reviews` `suggestions` | feed, review rounds, what to build next |
+| GET / POST | `/admin/kits/{kit}/files`, `files/create` | list, upload (Word, PDF, PPTX, image, video), blank deck |
+| GET / PUT | `/admin/kits/{kit}/files/{file}/deck` | read / save the editable deck |
+| POST | `.../deck/import`, `.../export` | attach the deck extracted from a PPTX, store the exported PPTX |
+| GET / POST | `.../versions`, `.../versions/{v}/restore` | history |
+| POST | `.../heartbeat`, `.../analyze` | who is editing which slide; automatic quality check (`?ai=1` adds a pedagogy review) |
+| GET / POST | `/admin/kits/{kit}/comments`, `comments/bulk`, `comments/{c}/status` | anchored review comments |
+| POST | `/admin/kits/{kit}/ai/deck` `ai/image` `ai/storyboard` `ai/rewrite`, `files/{file}/ai/slides` | generation |
+
+Generation works without keys (built-in template deck, on-brand placeholder pictures). `ANTHROPIC_API_KEY` switches on Claude for
+decks, storyboards, rewriting, reviews and vector illustrations; `OPENAI_API_KEY` adds raster pictures. Videos are rendered in the browser
+from the storyboard (WebM with captions).
+
 ## Brand Studio
 
 | Method | Path | Permission |

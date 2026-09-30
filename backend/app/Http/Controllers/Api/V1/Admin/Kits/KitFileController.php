@@ -47,6 +47,7 @@ class KitFileController extends KitBaseController
             'category' => ['nullable', Rule::in(KitFile::CATEGORIES)],
             'name' => ['nullable', 'string', 'max:255'],
         ]);
+        abort_if($request->file('file')->getSize() < 1, 422, 'The file is empty.');
         $extension = strtolower($request->file('file')->getClientOriginalExtension());
         abort_unless(in_array($extension, ['pptx', 'ppt', 'pdf', 'docx', 'doc', 'odt', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'mp4', 'webm', 'mov', 'xlsx', 'zip'], true), 422, 'Unsupported file type.');
 

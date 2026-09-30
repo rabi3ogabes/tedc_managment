@@ -222,7 +222,7 @@ class DemoKitSeeder extends Seeder
 
     private function handout(TrainingKit $kit, User $user, string $name, string $category): KitFile
     {
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true, 'directionality' => 'rtl']);
         $items = collect($kit->objectives)->map(fn ($o) => '<li style="margin:6px 0">'.e($o).'</li>')->implode('');
         $mpdf->WriteHTML('<html dir="rtl"><body style="font-size:13pt;color:#1a1a1a"><h1 style="color:#8A1538">'.e($name).'</h1><p style="color:#6b7280">'.e($kit->title_ar).'</p><h2 style="color:#A29475">الأهداف التدريبية</h2><ul>'.$items.'</ul>'
             .'<h2 style="color:#A29475">ورقة العمل</h2><p>1. اكتب موقفاً من عملك مرتبطاً بموضوع الحقيبة: ..................................................</p><p>2. ما الخطوة التي ستطبقها الأسبوع القادم؟ ..................................................</p><p>3. ما التحدي المتوقع وكيف ستتعامل معه؟ ..................................................</p></body></html>');

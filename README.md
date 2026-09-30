@@ -38,6 +38,7 @@ Documentation: [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.
 - **Dynamic QR attendance.** HMAC-signed codes rotating every 30 s; check-in / check-out, lateness, attendance %.
 - **Smart Certificate Engine.** Issues only when registration, attendance %, required tasks and evaluation are complete;
   bilingual PDF (mPDF, proper Arabic shaping) with QR verification and a public verification page.
+- **Training Kit Studio.** A workspace for building, reviewing and approving training kits (الحقيبة التدريبية): upload Word / PDF / PowerPoint, edit decks in the browser with the QA team on the same file, pin review comments on slides, pages and text, and generate decks, pictures and explainer videos with AI.
 - **Impact measurement.** Surveys at 30/60/90 days, supervisor evaluation, and a weighted **Training Impact Score**.
 - **AI Training Assistant.** Ask *"What training programs should we create for teachers?"* — the assistant grounds
   Claude in aggregated platform data and returns suggested programs, seats, target groups and rationale.

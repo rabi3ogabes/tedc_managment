@@ -8,7 +8,8 @@ import type { KitDetail } from './types'
 type Action = 'submit' | 'request-changes' | 'approve' | 'publish' | 'reopen' | 'archive'
 
 /** The lifecycle buttons a person is allowed to press right now. */
-export default function KitActions({ kit, onDone, size = 'md' }: { kit: KitDetail; onDone: () => void; size?: 'sm' | 'md' }) {
+export default function KitActions({ kit, onDone, size = 'md', onDark = false }: { kit: KitDetail; onDone: () => void; size?: 'sm' | 'md'; onDark?: boolean }) {
+  const quiet = onDark ? 'light' : 'outline'
   const { t } = useTranslation()
   const [dialog, setDialog] = useState<Action | null>(null)
   const [note, setNote] = useState('')
@@ -42,13 +43,13 @@ export default function KitActions({ kit, onDone, size = 'md' }: { kit: KitDetai
       {can.manage && editable && <Button size={size} variant="gold" icon={<Send className="size-4" />} onClick={() => open('submit')}>{kit.status === 'changes_requested' ? t('kits.actions.resubmit') : t('kits.actions.submit')}</Button>}
       {can.review && kit.status === 'in_review' && (
         <>
-          <Button size={size} variant="outline" icon={<MessageSquareWarning className="size-4" />} onClick={() => open('request-changes')}>{t('kits.actions.requestChanges')}</Button>
+          <Button size={size} variant={quiet} icon={<MessageSquareWarning className="size-4" />} onClick={() => open('request-changes')}>{t('kits.actions.requestChanges')}</Button>
           <Button size={size} variant="gold" icon={<BadgeCheck className="size-4" />} onClick={() => open('approve')}>{t('kits.actions.approve')}</Button>
         </>
       )}
       {can.publish && kit.status === 'approved' && <Button size={size} variant="primary" icon={<Rocket className="size-4" />} loading={busy} onClick={() => run('publish')}>{t('kits.actions.publish')}</Button>}
-      {(can.publish || kit.my_role === 'developer') && ['approved', 'published', 'archived'].includes(kit.status) && <Button size={size} variant="outline" icon={<RotateCcw className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmReopen')) && run('reopen')}>{t('kits.actions.reopen')}</Button>}
-      {can.publish && kit.status !== 'archived' && kit.status !== 'draft' && <Button size={size} variant="ghost" icon={<Archive className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmArchive')) && run('archive')}>{t('kits.actions.archive')}</Button>}
+      {(can.publish || kit.my_role === 'developer') && ['approved', 'published', 'archived'].includes(kit.status) && <Button size={size} variant={quiet} icon={<RotateCcw className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmReopen')) && run('reopen')}>{t('kits.actions.reopen')}</Button>}
+      {can.publish && kit.status !== 'archived' && kit.status !== 'draft' && <Button size={size} variant={onDark ? 'light' : 'ghost'} icon={<Archive className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmArchive')) && run('archive')}>{t('kits.actions.archive')}</Button>}
 
       <Modal open={dialog === 'submit'} onClose={() => setDialog(null)} title={t('kits.actions.submitTitle')}>
         <div className="space-y-4">

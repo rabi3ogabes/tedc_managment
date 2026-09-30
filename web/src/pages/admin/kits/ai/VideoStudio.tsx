@@ -145,28 +145,42 @@ export default function VideoStudio({ kit, seed, onClose }: { kit: Kit; seed?: R
       const ctx = canvas.getContext('2d')
       if (!ctx || typeof MediaRecorder === 'undefined') throw new Error(t('kits.video.unsupported'))
       const mime = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((m) => MediaRecorder.isTypeSupported(m)) ?? ''
-      const recorder = new MediaRecorder(canvas.captureStream(30), mime ? { mimeType: mime, videoBitsPerSecond: 4_000_000 } : undefined)
+      // Frames are pushed by hand so recording does not depend on the tab being in the foreground.
+      // The canvas must be part of the page (but invisible) for the browser to keep producing frames.
+      canvas.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:1.2px;opacity:.02;pointer-events:none;z-index:-1'
+      document.body.appendChild(canvas)
+      const stream = canvas.captureStream(30)
+      const track = stream.getVideoTracks()[0] as (MediaStreamTrack & { requestFrame?: () => void }) | undefined
+      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 4_000_000 } : undefined)
       const chunks: Blob[] = []
       recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data)
       const total = plan.scenes.reduce((s, x) => s + x.seconds, 0)
       const finished = new Promise<Blob>((resolve) => { recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' })) })
+      frame(ctx, plan.scenes, images, 0, rtl)
       recorder.start(500)
+      track?.requestFrame?.()
       const start = performance.now()
       await new Promise<void>((resolve) => {
-        const tick = () => {
+        const timer = setInterval(() => {
           const elapsed = (performance.now() - start) / 1000
-          if (elapsed >= total || stop.current) { resolve(); return }
+          if (elapsed >= total || stop.current) { clearInterval(timer); resolve(); return }
           frame(ctx, plan.scenes, images, elapsed, rtl)
+          track?.requestFrame?.()
           setDone(Math.round((elapsed / total) * 100))
-          requestAnimationFrame(tick)
-        }
-        tick()
+        }, 1000 / 30)
       })
+      frame(ctx, plan.scenes, images, Math.max(0, total - 0.05), rtl)
+      track?.requestFrame?.()
+      recorder.requestData()
       recorder.stop()
       const blob = await finished
+      canvas.remove()
+      // A recording of a few hundred bytes means the browser produced no frames - never save that as a video.
+      if (blob.size < 20_000) throw new Error(t('kits.video.empty'))
       setVideo({ blob, url: URL.createObjectURL(blob) })
       setDone(100)
     } catch (e) {
+      document.querySelectorAll('body > canvas[style*="z-index:-1"]').forEach((c) => c.remove())
       setError(e instanceof Error ? e.message : errorMessage(e))
     } finally {
       setBusy(null)

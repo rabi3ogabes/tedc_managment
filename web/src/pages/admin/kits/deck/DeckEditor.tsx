@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckCircle2, CircleAlert, CloudUpload, Download, Hand, History, Image as ImageIcon, Loader2, MessageSquare, MessageSquareDashed, MousePointer2, Play, Redo2, ScanSearch, Shapes, Sparkles, Square, Type, Undo2, ZoomIn, ZoomOut } from 'lucide-react'
+import { CheckCircle2, CircleAlert, CloudUpload, Download, Hand, History, PanelRight, Image as ImageIcon, Loader2, MessageSquare, MessageSquareDashed, MousePointer2, Play, Redo2, ScanSearch, Shapes, Sparkles, Square, Type, Undo2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -46,7 +46,9 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
   const [activeId, setActiveId] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [mode, setMode] = useState<'edit' | 'review'>('edit')
-  const [tab, setTab] = useState<Tab>('format')
+  const [tab, setTabState] = useState<Tab>('format')
+  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 1180)
+  const setTab = useCallback((t: Tab) => { setTabState(t); setPanelOpen(true) }, [])
   const [zoom, setZoom] = useState<'fit' | number>('fit')
   const [pin, setPin] = useState<PinDraft | null>(null)
   const [slideDraft, setSlideDraft] = useState(false)
@@ -56,7 +58,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
   const [exporting, setExporting] = useState(false)
   const [shapeMenu, setShapeMenu] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const area = useRef<HTMLDivElement>(null)
+  const [area, setArea] = useState<HTMLDivElement | null>(null)
   const [box, setBox] = useState({ w: 900, h: 600 })
   const clipboard = useRef<El | null>(null)
   const [params, setParams] = useSearchParams()
@@ -74,13 +76,13 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
   useEffect(() => { if (toast) { const id = setTimeout(() => setToast(null), 3200); return () => clearTimeout(id) } }, [toast])
 
   useEffect(() => {
-    const el = area.current
+    const el = area
     if (!el) return
     const ro = new ResizeObserver(() => setBox({ w: el.clientWidth, h: el.clientHeight }))
     ro.observe(el)
     setBox({ w: el.clientWidth, h: el.clientHeight })
     return () => ro.disconnect()
-  }, [])
+  }, [area])
 
   const stageWidth = useMemo(() => {
     const fit = Math.max(320, Math.min(box.w - 64, (box.h - 48) * (16 / 9)))
@@ -265,8 +267,8 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
   kb.current = { undo: ed.undo, redo: ed.redo, save: ed.save }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement
-      if (el.closest('input, textarea, select, [contenteditable="true"]')) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); void kb.current.save() } return }
+      const el = e.target instanceof HTMLElement ? e.target : null
+      if (el?.closest('input, textarea, select, [contenteditable="true"]')) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); void kb.current.save() } return }
       const mod = e.ctrlKey || e.metaKey
       const k = e.key.toLowerCase()
       if (mod && k === 's') { e.preventDefault(); void kb.current.save(); return }
@@ -334,6 +336,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
         <button type="button" onClick={() => setZoom('fit')} className="w-12 rounded-md py-1 text-center text-xs font-semibold text-slate-600 hover:bg-navy-100/70" dir="ltr" title={t('kits.editor.fitScreen')}>{zoom === 'fit' ? t('kits.editor.fit') : `${Math.round(zoom * 100)}%`}</button>
         <Tool label={t('kits.editor.zoomIn')} onClick={() => setZoom((z) => Math.min(2, (z === 'fit' ? 1 : z) + 0.25))}><ZoomIn className="size-4" /></Tool>
         <Divider />
+        <Tool label={t('kits.editor.panel')} onClick={() => setPanelOpen(!panelOpen)} active={panelOpen}><PanelRight className="size-4" /></Tool>
         <Button size="sm" variant="outline" icon={<Play className="size-4" />} onClick={() => setPresent(true)}>{t('kits.editor.present')}</Button>
         <Button className="ms-1" size="sm" variant="outline" loading={exporting} icon={<Download className="size-4" />} onClick={doExport}>{t('kits.editor.export')}</Button>
 
@@ -365,16 +368,16 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 flex-1">
         <aside className="hidden w-[228px] shrink-0 border-e border-navy-100 bg-[#F6F2EA] md:block">
           <SlideRail slides={deck.slides} theme={deck.theme} activeId={slide.id} canEdit={canEdit} commentCounts={openCounts} others={ed.others} dirtyIds={dirtyIds}
             onSelect={(id) => { setActiveId(id); setSelectedId(null); setPin(null) }} onAdd={(l) => addSlide(l)} onDuplicate={duplicateSlide} onDelete={deleteSlide} onMove={moveSlide} />
         </aside>
 
         <main className="relative flex min-w-0 flex-1 flex-col">
-          <div ref={area} className="min-h-0 flex-1 overflow-auto p-6">
+          <div ref={setArea} className="min-h-0 flex-1 overflow-auto p-6">
             <div className="mx-auto w-fit">
-              <SlideCanvas slide={slide} theme={deck.theme} width={stageWidth} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); if (id) setTab('format') }} editable={canEdit} mode={mode}
+              <SlideCanvas slide={slide} theme={deck.theme} width={stageWidth} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); if (id) setTabState('format') }} editable={canEdit} mode={mode}
                 onChangeEl={updateEl} onBeginGesture={ed.checkpoint} comments={commentsHere.filter((c) => c.status !== 'resolved' || activeComment === c.id)} activeCommentId={activeComment}
                 onPinClick={(c) => { setActiveComment(c.id); setTab('comments') }} onPlacePin={(p) => { setPin(p); setSlideDraft(false); setTab('comments') }} draftPin={pin} />
               {mode === 'review' && <p className="mt-3 text-center text-xs font-semibold text-gold-700">{t('kits.editor.reviewHint')}</p>}
@@ -386,7 +389,7 @@ export default function DeckEditor({ kit, file, onFileChange }: { kit: Kit; file
           </div>
         </main>
 
-        <aside className="flex w-[368px] shrink-0 flex-col border-s border-navy-100 bg-white">
+        <aside className={clsx('w-[368px] max-w-[94vw] shrink-0 flex-col border-s border-navy-100 bg-white max-[1179px]:absolute max-[1179px]:inset-y-0 max-[1179px]:end-0 max-[1179px]:z-30 max-[1179px]:shadow-2xl', panelOpen ? 'flex' : 'hidden')}>
           <div className="flex border-b border-navy-100 px-1.5" role="tablist">
             {tabs.map((tb) => (
               <button key={tb.id} type="button" role="tab" aria-selected={tab === tb.id} onClick={() => setTab(tb.id)} title={tb.label}
