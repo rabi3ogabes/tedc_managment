@@ -28,6 +28,12 @@ class Role extends Model
 
     public const EXECUTIVE = 'executive';
 
+    /** معد الحقيبة - builds training kits. */
+    public const KIT_DEVELOPER = 'kit_developer';
+
+    /** فريق ضمان الجودة - reviews and signs off training kits. */
+    public const QA_REVIEWER = 'qa_reviewer';
+
     /** Roles that administer the training center as a whole. */
     public const CENTER_STAFF = [self::SUPER_ADMIN, self::CENTER_ADMIN, self::COORDINATOR];
 

@@ -68,6 +68,17 @@ return [
         'nomination_note' => 'Automatic nomination within the program target audience.',
         'publish_first' => 'Publish the program before nominating its audience.',
     ],
+    'kit' => [
+        'cannot_submit' => 'The kit cannot be submitted for review in its current state.',
+        'needs_files' => 'Add at least one file before submitting for review.',
+        'not_in_review' => 'The kit is not under review.',
+        'blocking_comments' => ':count major or critical comments are still open. Resolve them, or ask a publisher to approve as an exception.',
+        'publish_needs_approval' => 'A kit that QA has not approved cannot be published.',
+        'cannot_reopen' => 'Only approved, published or archived kits can be reopened.',
+        'not_a_presentation' => 'This file is not a presentation.',
+        'locked' => 'The kit is locked in its current state. Reopen it for a new version first.',
+        'file_too_large' => 'The file is larger than the allowed size (:max MB).',
+    ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
     'not_found' => 'The requested item was not found.',
 ];

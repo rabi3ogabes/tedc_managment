@@ -85,6 +85,19 @@ return [
         'follow_up' => 15,
     ],
 
+    /*
+    | Training Kit Studio. Image generation providers: "auto" (OpenAI when a key is set, else Claude-drawn
+    | SVG, else an abstract placeholder), "openai", "svg" or "placeholder".
+    */
+    'kits' => [
+        'image_provider' => env('TEDC_IMAGE_PROVIDER', 'auto'),
+        'openai_key' => env('OPENAI_API_KEY'),
+        'openai_image_model' => env('TEDC_OPENAI_IMAGE_MODEL', 'gpt-image-1'),
+        'max_upload_mb' => (int) env('TEDC_KIT_MAX_UPLOAD_MB', 100),
+        'asset_url_ttl' => 4 * 3600,
+        'autosnapshot_minutes' => 10,
+    ],
+
     'ai' => [
         'provider' => env('TEDC_AI_PROVIDER', 'anthropic'),
         'api_key' => env('ANTHROPIC_API_KEY'),

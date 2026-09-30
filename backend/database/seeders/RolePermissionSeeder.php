@@ -47,6 +47,11 @@ class RolePermissionSeeder extends Seeder
         'users.manage' => ['security', 'إدارة المستخدمين', 'Manage users'],
         'roles.manage' => ['security', 'إدارة الأدوار والصلاحيات', 'Manage roles & permissions'],
         'audit.view' => ['security', 'سجل التدقيق', 'Audit log'],
+        'kits.view' => ['kits', 'عرض الحقائب التدريبية', 'View training kits'],
+        'kits.manage' => ['kits', 'إعداد الحقائب وتحرير ملفاتها', 'Build training kits & edit their files'],
+        'kits.generate' => ['kits', 'التوليد الذكي للعروض والصور والفيديو', 'AI generation of decks, images and videos'],
+        'kits.review' => ['kits', 'مراجعة الحقائب (ضمان الجودة)', 'Review training kits (quality assurance)'],
+        'kits.publish' => ['kits', 'نشر الحقائب وأرشفتها', 'Publish & archive training kits'],
         'settings.manage' => ['settings', 'الهوية البصرية والمظهر', 'Brand & appearance'],
     ];
 
@@ -57,7 +62,7 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
-            'announcements.manage', 'ai.assistant', 'reports.view',
+            'announcements.manage', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
@@ -69,6 +74,8 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view',
         ]],
+        Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['programs.view', 'kits.view', 'kits.manage', 'kits.generate']],
+        Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review']],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, []],
     ];
 

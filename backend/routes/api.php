@@ -8,6 +8,11 @@ use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
@@ -144,6 +149,71 @@ Route::prefix('v1')->group(function () {
                 Route::middleware('permission:calendar.approve')->group(function () {
                     Route::post('approvals', 'approve');
                     Route::delete('approvals/{date}', 'revoke');
+                });
+            });
+
+            // Training Kit Studio (الحقيبة التدريبية)
+            Route::prefix('kits')->middleware('permission:kits.view')->scopeBindings()->group(function () {
+                Route::get('/', [KitController::class, 'index']);
+                Route::get('board', [KitController::class, 'board']);
+                Route::get('stats', [KitController::class, 'stats']);
+                Route::get('people', [KitController::class, 'people']);
+                Route::get('ai/status', [KitAiController::class, 'status']);
+                Route::post('/', [KitController::class, 'store']);
+
+                Route::prefix('{kit}')->group(function () {
+                    Route::get('/', [KitController::class, 'show']);
+                    Route::put('/', [KitController::class, 'update']);
+                    Route::delete('/', [KitController::class, 'destroy']);
+                    Route::put('members', [KitController::class, 'updateMembers']);
+                    Route::get('activity', [KitController::class, 'activity']);
+                    Route::get('reviews', [KitController::class, 'reviews']);
+                    Route::get('suggestions', [KitController::class, 'suggestions']);
+                    Route::post('submit', [KitController::class, 'submit']);
+                    Route::post('request-changes', [KitController::class, 'requestChanges']);
+                    Route::post('approve', [KitController::class, 'approve']);
+                    Route::post('publish', [KitController::class, 'publish']);
+                    Route::post('reopen', [KitController::class, 'reopen']);
+                    Route::post('archive', [KitController::class, 'archive']);
+
+                    Route::get('files', [KitFileController::class, 'index']);
+                    Route::post('files', [KitFileController::class, 'store']);
+                    Route::post('files/create', [KitFileController::class, 'create']);
+                    Route::prefix('files/{file}')->group(function () {
+                        Route::get('/', [KitFileController::class, 'show']);
+                        Route::put('/', [KitFileController::class, 'update']);
+                        Route::delete('/', [KitFileController::class, 'destroy']);
+                        Route::get('download', [KitFileController::class, 'download']);
+                        Route::get('deck', [KitFileController::class, 'deck']);
+                        Route::put('deck', [KitFileController::class, 'saveDeck']);
+                        Route::post('deck/import', [KitFileController::class, 'importDeck']);
+                        Route::post('export', [KitFileController::class, 'exportDeck']);
+                        Route::get('versions', [KitFileController::class, 'versions']);
+                        Route::post('versions', [KitFileController::class, 'snapshot']);
+                        Route::get('versions/{version}', [KitFileController::class, 'showVersion']);
+                        Route::post('versions/{version}/restore', [KitFileController::class, 'restore']);
+                        Route::post('heartbeat', [KitFileController::class, 'heartbeat']);
+                        Route::delete('presence', [KitFileController::class, 'leave']);
+                        Route::post('analyze', [KitFileController::class, 'analyze']);
+                        Route::post('ai/slides', [KitAiController::class, 'slides'])->middleware('permission:kits.generate');
+                    });
+
+                    Route::get('comments', [KitCommentController::class, 'index']);
+                    Route::post('comments', [KitCommentController::class, 'store']);
+                    Route::post('comments/bulk', [KitCommentController::class, 'bulk']);
+                    Route::put('comments/{comment}', [KitCommentController::class, 'update']);
+                    Route::post('comments/{comment}/status', [KitCommentController::class, 'setStatus']);
+                    Route::delete('comments/{comment}', [KitCommentController::class, 'destroy']);
+
+                    Route::get('assets', [KitAssetController::class, 'index']);
+                    Route::post('assets', [KitAssetController::class, 'store']);
+
+                    Route::middleware('throttle:ai')->group(function () {
+                        Route::post('ai/deck', [KitAiController::class, 'deck'])->middleware('permission:kits.generate');
+                        Route::post('ai/image', [KitAiController::class, 'image'])->middleware('permission:kits.generate');
+                        Route::post('ai/storyboard', [KitAiController::class, 'storyboard'])->middleware('permission:kits.generate');
+                        Route::post('ai/rewrite', [KitAiController::class, 'rewrite']);
+                    });
                 });
             });
 
