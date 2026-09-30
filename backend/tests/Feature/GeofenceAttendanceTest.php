@@ -4,13 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\AppNotification;
 use App\Models\Attendance;
+use App\Models\JobTitle;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\TrainingRoom;
+use App\Models\User;
 use App\Services\AttendanceService;
 use App\Services\AttendanceSettings;
 use App\Services\GeoFence;
+use Database\Seeders\DemoTrainerTraineeSeeder;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -130,5 +133,24 @@ class GeofenceAttendanceTest extends TestCase
 
         $this->artisan('tedc:attendance-nudges')->assertSuccessful();
         $this->assertSame(1, AppNotification::where('user_id', $user->id)->where('type', 'session.attendance_missed')->count(), 'nudges are sent once per session');
+    }
+
+    public function test_demo_trainer_account_can_be_used_as_a_trainee(): void
+    {
+        $this->makeUser(Role::TRAINER)->update(['email' => 'trainer@tedc.qa']);
+        $this->makeEmployee()->user->update(['email' => 'teacher@tedc.qa']);
+        JobTitle::firstOrCreate(['code' => 'TEACHER'], ['name_ar' => 'معلم', 'name_en' => 'Teacher']);
+
+        $this->seed(DemoTrainerTraineeSeeder::class);
+        $this->seed(DemoTrainerTraineeSeeder::class); // idempotent
+
+        $user = User::where('email', 'trainer@tedc.qa')->first();
+        $this->asUser($user)->getJson('/api/v1/me/home')->assertOk();
+        $this->assertSame(1, Registration::where('employee_id', $user->employee->id)->count());
+        $this->assertSame(15, ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'TEST-APP'))->count());
+
+        $session = ProgramSession::whereDate('starts_at', today())->whereHas('program', fn ($q) => $q->where('code', 'TEST-APP'))->first();
+        $payload = app(AttendanceService::class)->currentQr($session)['payload'];
+        $this->asUser($user)->postJson('/api/v1/me/attendance/scan', ['payload' => $payload])->assertOk()->assertJsonPath('data.action', 'check_in');
     }
 }

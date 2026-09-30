@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Role;
 use Database\Seeders\DemoNeedsSurveySeeder;
+use Database\Seeders\DemoTrainerTraineeSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -24,6 +25,7 @@ class Deploy extends Command
         } elseif (filter_var(env('TEDC_SEED_DEMO', false), FILTER_VALIDATE_BOOL)) {
             // Demo data added by later releases to an existing demo database (each seeder is idempotent).
             $this->call('db:seed', ['--class' => DemoNeedsSurveySeeder::class, '--force' => true]);
+            $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
         }
 
         // Read-only file systems (serverless) cannot hold the public/storage symlink.
