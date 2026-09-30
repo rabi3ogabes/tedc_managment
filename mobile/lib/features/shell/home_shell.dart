@@ -10,8 +10,9 @@ import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
-import '../../core/widgets/push_banner.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/push_banner.dart';
+import '../home/staff_home.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
 class HomeShell extends ConsumerStatefulWidget {
@@ -104,13 +105,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final s = context.s;
+    // Accounts without an employee profile have no training pages: show an explanation instead of errors.
+    final me = ref.watch(authProvider).value;
+    final staff = me != null && me.employee == null;
     final unread = ref.watch(getProvider('/me/notifications?unread=1&per_page=1')).value;
     final meta = unread is Map ? unread['meta'] : null;
     final num count = meta is Map ? (meta['total'] as num? ?? 0) : 0;
 
     return Scaffold(
       body: Stack(children: [
-        widget.shell,
+        staff && widget.shell.currentIndex < 4 ? const StaffHome() : widget.shell,
         PushBanner(
           message: _banner,
           onTap: (route) {

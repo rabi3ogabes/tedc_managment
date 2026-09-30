@@ -21,7 +21,7 @@ class OfficialEmblem extends StatelessWidget {
         border: Border.all(color: AppColors.gold300, width: 2),
         boxShadow: [BoxShadow(color: AppColors.gold500.withValues(alpha: .35), blurRadius: size * .35, spreadRadius: 1)],
       ),
-      child: Image.asset('assets/brand/moe-emblem.png', fit: BoxFit.contain, semanticLabel: 'Ministry of Education and Higher Education'),
+      child: Image.asset('assets/brand/moe-emblem.png', fit: BoxFit.contain, cacheWidth: 320, filterQuality: FilterQuality.medium, semanticLabel: 'Ministry of Education and Higher Education'),
     );
   }
 }

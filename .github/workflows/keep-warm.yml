@@ -1,0 +1,16 @@
+name: Keep API warm
+
+# Serverless functions go cold after a few idle minutes, and the first request after that takes seconds (Laravel
+# has to boot). A tiny public request every 10 minutes keeps the API responsive for the mobile app.
+# Delete this file to stop it.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: curl -sS -o /dev/null -w '%{http_code} %{time_total}s\n' --max-time 30 https://tedc-managment.vercel.app/api/v1/public/mobile-config
