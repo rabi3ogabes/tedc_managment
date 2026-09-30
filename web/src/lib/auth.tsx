@@ -77,5 +77,7 @@ export function useAuth() {
 /** Where a user lands after signing in. */
 export function homeFor(user: Me): string {
   const staff = ['super_admin', 'center_admin', 'program_coordinator', 'executive', 'school_admin', 'trainer']
-  return user.roles.some((r) => staff.includes(r.slug)) ? '/admin' : '/portal'
+  if (user.roles.some((r) => staff.includes(r.slug))) return '/admin'
+  // Kit developers and the QA team work in the Training Kit Studio.
+  return user.roles.some((r) => ['kit_developer', 'qa_reviewer'].includes(r.slug)) ? '/admin/kits' : '/portal'
 }

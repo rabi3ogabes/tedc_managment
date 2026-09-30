@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import ar from './ar'
 import en from './en'
+import { kitsAr, kitsEn } from './kits'
 import { mgmtAr, mgmtEn } from './management'
 import { surveysAr, surveysEn } from './surveys'
 
@@ -24,7 +25,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn } } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },

@@ -24,6 +24,9 @@ const ProgramEditor = lazy(() => import('@/pages/admin/ProgramEditor'))
 const ProgramManage = lazy(() => import('@/pages/admin/ProgramManage'))
 const SessionQr = lazy(() => import('@/pages/admin/SessionQr'))
 const SettingsWorkspace = lazy(() => import('@/pages/admin/settings/SettingsWorkspace'))
+const KitsHome = lazy(() => import('@/pages/admin/kits/KitsHome'))
+const KitWorkspace = lazy(() => import('@/pages/admin/kits/KitWorkspace'))
+const FileStudio = lazy(() => import('@/pages/admin/kits/FileStudio'))
 const ProgramWizard = lazy(() => import('@/pages/admin/smart/ProgramWizard'))
 const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
 const TrainersAdmin = lazy(() => import('@/pages/admin/Trainers'))
@@ -88,11 +91,14 @@ export default function App() {
         </Route>
         <Route path="login" element={<Login />} />
 
+        <Route path="admin/kits/:kitId/files/:fileId" element={<RequireAuth permission="kits.view"><FileStudio /></RequireAuth>} />
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />
           <Route path="programs" element={<ProgramsAdmin />} />
           <Route path="programs/new" element={<ProgramEditor />} />
+          <Route path="kits" element={<RequireAuth permission="kits.view"><KitsHome /></RequireAuth>} />
+          <Route path="kits/:kitId" element={<RequireAuth permission="kits.view"><KitWorkspace /></RequireAuth>} />
           <Route path="programs/smart" element={<RequireAuth permission="programs.manage"><ProgramWizard /></RequireAuth>} />
           <Route path="rooms" element={<RequireAuth permission="programs.view"><RoomsAdmin /></RequireAuth>} />
           <Route path="trainers" element={<RequireAuth permission="programs.view"><TrainersAdmin /></RequireAuth>} />
