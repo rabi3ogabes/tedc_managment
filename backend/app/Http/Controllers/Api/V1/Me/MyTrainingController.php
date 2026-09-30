@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -107,13 +108,19 @@ class MyTrainingController extends MeController
 
     public function scan(Request $request, AttendanceService $attendance): JsonResponse
     {
-        $data = $request->validate(['payload' => ['required', 'string', 'max:200']]);
-        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip());
+        $data = $request->validate([
+            'payload' => ['required', 'string', 'max:200'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'accuracy' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+            'mocked' => ['nullable', 'boolean'],
+        ]);
+        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip(), Arr::only($data, ['latitude', 'longitude', 'accuracy', 'mocked']));
 
         return response()->json(['data' => [
             'action' => $result['action'],
             'message' => $result['message'],
-            'attendance' => $result['attendance']->only(['id', 'status', 'check_in_at', 'check_out_at', 'minutes_attended']),
+            'attendance' => $result['attendance']->only(['id', 'status', 'check_in_at', 'check_out_at', 'minutes_attended', 'location_status', 'distance_m']),
             'session' => $result['attendance']->session->only(['id', 'title_ar', 'title_en', 'starts_at', 'ends_at']),
         ]]);
     }

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Armchair, Building2, CalendarClock, Layers, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
+import { Armchair, Building2, CalendarClock, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
@@ -33,7 +33,9 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
     name_ar: room?.name_ar ?? '', name_en: room?.name_en ?? '', code: room?.code ?? '', office: room?.office ?? '', building: room?.building ?? '', floor: room?.floor ?? '',
     location: room?.location ?? '', area_m2: room?.area_m2 ? String(room.area_m2) : '', layout: room?.layout ?? 'classroom', status: room?.status ?? 'active',
     is_accessible: room?.is_accessible ?? true, notes: room?.notes ?? '',
+    latitude: room?.latitude != null ? String(room.latitude) : '', longitude: room?.longitude != null ? String(room.longitude) : '',
   }))
+  const [locating, setLocating] = useState(false)
   const [layouts, setLayouts] = useState<Record<string, string>>(() => Object.fromEntries((room?.layouts ?? [{ key: 'classroom', capacity: 30 }]).map((l) => [l.key, String(l.capacity)])))
   const [equipment, setEquipment] = useState<Record<string, string>>(() => Object.fromEntries((room?.equipment ?? []).map((e) => [e.key, String(e.qty)])))
   const [saving, setSaving] = useState(false)
@@ -46,10 +48,21 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
     return [...map.entries()]
   }, [options.equipment])
 
+  const coordsValid = (form.latitude === '' && form.longitude === '') || (Number.isFinite(Number(form.latitude)) && Math.abs(Number(form.latitude)) <= 90 && Number.isFinite(Number(form.longitude)) && Math.abs(Number(form.longitude)) <= 180 && form.latitude !== '' && form.longitude !== '')
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return setError(t('mgmt.rooms.geoUnsupported'))
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setForm((f) => ({ ...f, latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) })); setLocating(false) },
+      () => { setError(t('mgmt.rooms.geoDenied')); setLocating(false) },
+      { enableHighAccuracy: true, timeout: 12000 },
+    )
+  }
   const layoutKeys = Object.keys(layouts)
   const capacity = Math.max(0, ...layoutKeys.map((k) => Number(layouts[k]) || 0))
 
   const save = async () => {
+    if (!coordsValid) return setError(t('mgmt.rooms.gpsInvalid'))
     setSaving(true)
     setError(null)
     try {
@@ -57,6 +70,7 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
         ...form,
         code: form.code || null, office: form.office || null, building: form.building || null, floor: form.floor || null, location: form.location || null, notes: form.notes || null,
         area_m2: form.area_m2 ? Number(form.area_m2) : null,
+        latitude: form.latitude.trim() === '' ? null : Number(form.latitude), longitude: form.longitude.trim() === '' ? null : Number(form.longitude),
         layout: layoutKeys.includes(form.layout) ? form.layout : layoutKeys[0],
         capacity: capacity || 1,
         layouts: Object.fromEntries(layoutKeys.map((k) => [k, Math.max(1, Number(layouts[k]) || 1)])),
@@ -83,6 +97,20 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
           <Field label={t('mgmt.rooms.floor')}><input className="input" list="rooms-floors" value={form.floor} onChange={(e) => set('floor', e.target.value)} /><datalist id="rooms-floors">{options.floors.map((o) => <option key={o} value={o} />)}</datalist></Field>
           <Field label={t('mgmt.rooms.code')}><input dir="ltr" className="input" value={form.code} onChange={(e) => set('code', e.target.value)} /></Field>
           <Field label={t('mgmt.rooms.location')} hint={t('mgmt.rooms.locationHint')} className="sm:col-span-2"><input className="input" value={form.location} onChange={(e) => set('location', e.target.value)} /></Field>
+          <div className="rounded-2xl border border-navy-100 bg-ivory/60 p-4 sm:col-span-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm font-bold text-navy-900"><MapPin className="size-4 text-gold-600" />{t('mgmt.rooms.gps')}</div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" type="button" icon={<LocateFixed className="size-4" />} disabled={locating} onClick={useMyLocation}>{t('mgmt.rooms.useMyLocation')}</Button>
+                {coordsValid && form.latitude !== '' && <a className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-link hover:bg-white" target="_blank" rel="noreferrer" href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}><ExternalLink className="size-3.5" />{t('mgmt.rooms.openMap')}</a>}
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label={t('mgmt.rooms.latitude')}><input dir="ltr" inputMode="decimal" className="input" placeholder="25.285400" value={form.latitude} onChange={(e) => set('latitude', e.target.value)} /></Field>
+              <Field label={t('mgmt.rooms.longitude')}><input dir="ltr" inputMode="decimal" className="input" placeholder="51.531000" value={form.longitude} onChange={(e) => set('longitude', e.target.value)} /></Field>
+            </div>
+            <p className={clsx('mt-2 text-xs', coordsValid ? 'text-slate-500' : 'text-danger')}>{coordsValid ? t('mgmt.rooms.gpsHint') : t('mgmt.rooms.gpsInvalid')}</p>
+          </div>
           <Field label={t('mgmt.rooms.area')}><input type="number" min={1} className="input" value={form.area_m2} onChange={(e) => set('area_m2', e.target.value)} /></Field>
           <Field label={t('mgmt.rooms.statusLabel')}>
             <select className="input" value={form.status} onChange={(e) => set('status', e.target.value as Room['status'])}>

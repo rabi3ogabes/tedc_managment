@@ -70,6 +70,12 @@ return [
         'qr_rotation_seconds' => (int) env('TEDC_QR_ROTATION', 30),
         'check_in_opens_minutes_before' => 30,
         'late_after_minutes' => 15,
+        // Location check: a participant must be near the room of the session to check in / out.
+        'geofence' => [
+            'enabled' => (bool) env('TEDC_GEOFENCE', true),
+            'radius_m' => (int) env('TEDC_GEOFENCE_RADIUS', 150),
+            'max_accuracy_m' => (int) env('TEDC_GEOFENCE_MAX_ACCURACY', 150),
+        ],
     ],
 
     'certificates' => [

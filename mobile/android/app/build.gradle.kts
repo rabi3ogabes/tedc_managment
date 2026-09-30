@@ -23,7 +23,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "qa.edu.tedc.tedc_mobile"
+        // Must match the Android app registered in Firebase (google-services.json) — its API key is restricted to it.
+        applicationId = "app.tedcmanagment.vercel"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

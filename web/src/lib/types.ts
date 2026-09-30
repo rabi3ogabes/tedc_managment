@@ -26,7 +26,7 @@ export type Partner = {
 export type Room = {
   id: string; code?: string | null; name: string; name_ar: string; name_en: string; office?: string | null; building?: string | null; location?: string | null; floor?: string | null
   capacity: number; area_m2?: number | null; layout: string; layouts: { key: string; label: string; capacity: number }[]
-  equipment: { key: string; qty: number; label: string }[]; is_accessible: boolean; status: 'active' | 'maintenance' | 'inactive'; notes?: string | null
+  equipment: { key: string; qty: number; label: string }[]; is_accessible: boolean; status: 'active' | 'maintenance' | 'inactive'; notes?: string | null; latitude?: number | null; longitude?: number | null
   sessions_count?: number; upcoming_sessions_count?: number
 }
 

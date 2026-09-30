@@ -12,7 +12,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { ColorField } from './brand/controls'
 
-const PACKAGE = 'qa.edu.tedc.tedc_mobile'
+const PACKAGE = 'app.tedcmanagment.vercel'
 
 type Client = { api_key: string | null; app_id: string | null; messaging_sender_id: string | null; project_id: string | null; storage_bucket: string | null }
 type Settings = {

@@ -34,7 +34,7 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 
 | Method | Path | Permission |
 |---|---|---|
-| POST | `/me/attendance/scan` | authenticated |
+| POST | `/me/attendance/scan` | authenticated — body `payload` plus optional `latitude`, `longitude`, `accuracy`, `mocked`; refused with `location_required`, `outside_venue`, `low_accuracy` or `mock_location` |
 | GET | `/me/calendar` | authenticated |
 | GET | `/me/calendar.ics` | authenticated |
 | GET | `/me/certificates` | authenticated |
@@ -138,6 +138,7 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | GET | `/admin/sessions/{session}/attendance` | `attendance.manage` |
 | POST | `/admin/sessions/{session}/attendance` | `attendance.manage` |
 | GET | `/admin/sessions/{session}/qr` | `attendance.manage` |
+| GET / PUT | `/admin/settings/attendance` | `settings.manage` — location check on/off, range, accuracy |
 | POST | `/admin/skills` | `programs.manage` |
 | GET | `/admin/submissions/{submission}/file` | `tasks.review` |
 | POST | `/admin/submissions/{submission}/review` | `tasks.review` |

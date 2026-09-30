@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
@@ -424,6 +425,10 @@ Route::prefix('v1')->group(function () {
                 Route::put('theme', [ThemeController::class, 'update']);
                 Route::post('theme/reset', [ThemeController::class, 'reset']);
                 Route::post('theme/assets', [ThemeController::class, 'upload']);
+
+                // Attendance rules (location check)
+                Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);
+                Route::put('settings/attendance', [AttendanceSettingsController::class, 'update']);
 
                 // Push notifications (Firebase)
                 Route::get('settings/push', [PushSettingsController::class, 'show']);

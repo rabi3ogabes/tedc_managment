@@ -16,6 +16,10 @@ return [
         'closed' => 'Check-in for this session is closed.',
         'checked_in' => 'Check-in recorded successfully.',
         'checked_out' => 'Check-out recorded successfully.',
+        'location_required' => 'Turn on location to check in — attendance is only recorded at :venue.',
+        'outside_venue' => 'You are about :distance m from :venue. Attendance can only be recorded within :radius m of the venue.',
+        'mock_location' => 'A simulated location was detected. Turn it off and try again.',
+        'low_accuracy' => 'Your location is not precise enough (needs :max m or better). Move to an open area and try again.',
         'already_checked_out' => 'You have already checked out.',
     ],
     'tasks' => [

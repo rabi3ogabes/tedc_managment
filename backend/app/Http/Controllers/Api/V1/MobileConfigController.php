@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\AttendanceSettings;
 use App\Services\Push\PushSettings;
 use App\Services\ThemeService;
 use Illuminate\Http\JsonResponse;
@@ -13,12 +14,13 @@ use Illuminate\Http\JsonResponse;
  */
 class MobileConfigController extends Controller
 {
-    public function __invoke(PushSettings $push, ThemeService $theme): JsonResponse
+    public function __invoke(PushSettings $push, ThemeService $theme, AttendanceSettings $attendance): JsonResponse
     {
         $t = $theme->get();
 
         return response()->json(['data' => [
             'push' => $push->forMobile(),
+            'attendance' => ['geofence' => $attendance->all()['geofence_enabled']],
             'brand' => [
                 'primary' => $t['colors']['primary'],
                 'accent' => $t['colors']['accent'],

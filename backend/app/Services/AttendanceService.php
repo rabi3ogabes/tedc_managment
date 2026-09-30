@@ -22,7 +22,7 @@ class AttendanceService
 {
     private const PREFIX = 'TEDC1';
 
-    public function __construct(private readonly CertificateService $certificates) {}
+    public function __construct(private readonly CertificateService $certificates, private readonly GeoFence $geofence) {}
 
     /** @return array{payload: string, expires_at: string, rotation_seconds: int} */
     public function currentQr(ProgramSession $session, ?int $timestamp = null): array
@@ -62,11 +62,13 @@ class AttendanceService
     }
 
     /**
-     * Employee scans the QR code: first scan checks in, second scan checks out.
+     * Employee scans the QR code: first scan checks in, second scan checks out. Both must happen at the venue
+     * (see GeoFence), so a QR code photographed and shared with someone elsewhere is of no use.
      *
+     * @param  array{latitude?: mixed, longitude?: mixed, accuracy?: mixed, mocked?: mixed}|null  $location
      * @return array{action: string, attendance: Attendance, message: string}
      */
-    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null): array
+    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null, ?array $location = null): array
     {
         $session = $this->resolvePayload($payload);
         $now = now();
@@ -87,6 +89,8 @@ class AttendanceService
             throw new BusinessRuleException(__('messages.attendance.not_registered'), 'not_registered');
         }
 
+        $place = $this->geofence->verify($session, $location);
+
         $attendance = Attendance::firstOrNew([
             'program_session_id' => $session->id,
             'registration_id' => $registration->id,
@@ -101,6 +105,11 @@ class AttendanceService
                 'status' => $late ? 'late' : 'present',
                 'device_info' => $device ? substr($device, 0, 255) : null,
                 'ip_address' => $ip,
+                'latitude' => $place['latitude'],
+                'longitude' => $place['longitude'],
+                'accuracy_m' => $place['accuracy_m'],
+                'distance_m' => $place['distance_m'],
+                'location_status' => $place['status'],
             ])->save();
             $action = 'check_in';
         } elseif (! $attendance->check_out_at) {
@@ -139,6 +148,7 @@ class AttendanceService
                 'employee_id' => $registration->employee_id,
                 'status' => $status,
                 'method' => 'manual',
+                'location_status' => 'manual',
                 'minutes_attended' => min($minutes, $full),
                 'check_in_at' => in_array($status, ['present', 'late'], true) ? $session->starts_at : null,
                 'check_out_at' => in_array($status, ['present', 'late'], true) ? $session->ends_at : null,
@@ -209,6 +219,8 @@ class AttendanceService
             'check_in_at' => $records->get($r->id)?->check_in_at?->toIso8601String(),
             'check_out_at' => $records->get($r->id)?->check_out_at?->toIso8601String(),
             'minutes' => $records->get($r->id)?->minutes_attended ?? 0,
+            'location_status' => $records->get($r->id)?->location_status,
+            'distance_m' => $records->get($r->id)?->distance_m,
         ])->values();
 
         return [

@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['program_session_id', 'registration_id', 'employee_id', 'check_in_at', 'check_out_at', 'method', 'status', 'minutes_attended', 'device_info', 'ip_address', 'recorded_by'])]
+#[Fillable(['program_session_id', 'registration_id', 'employee_id', 'check_in_at', 'check_out_at', 'method', 'status', 'minutes_attended', 'device_info', 'ip_address', 'recorded_by', 'latitude', 'longitude', 'accuracy_m', 'distance_m', 'location_status'])]
 class Attendance extends Model
 {
     use HasUuids;
 
     protected $table = 'attendance';
 
-    protected $casts = ['check_in_at' => 'datetime', 'check_out_at' => 'datetime', 'minutes_attended' => 'integer'];
+    protected $casts = ['check_in_at' => 'datetime', 'check_out_at' => 'datetime', 'minutes_attended' => 'integer', 'latitude' => 'float', 'longitude' => 'float', 'accuracy_m' => 'integer', 'distance_m' => 'integer'];
 
     public function session(): BelongsTo
     {

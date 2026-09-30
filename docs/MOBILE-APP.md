@@ -42,7 +42,7 @@ Push notifications are managed from the web dashboard: **Settings → Notificati
 Firebase project at any time without a new APK.
 
 1. In [Firebase Console](https://console.firebase.google.com/), create a project.
-2. Add an **Android app** with the package name `qa.edu.tedc.tedc_mobile`, download `google-services.json` and
+2. Add an **Android app** with the package name `app.tedcmanagment.vercel`, download `google-services.json` and
    drop it on step 2 of the settings page. The fields fill automatically.
 3. In **Project settings → Service accounts → Generate new private key**, download the JSON key and drop it on
    step 1. It is stored encrypted and never shown again. Then click **Test connection to Google**.
@@ -54,6 +54,25 @@ The pushable categories are registrations, session reminders, tasks, certificate
 announcements and training needs. Each category can be switched on or off. Every in-app notification of an
 enabled category is also pushed, in the language of each device. Tapping a notification opens the related
 screen. Devices that uninstalled the app are removed automatically, and the delivery log shows every send.
+
+The Android package name is `app.tedcmanagment.vercel` and must stay identical to the app registered in Firebase:
+Firebase's auto-generated Android API key is restricted to that package, so any other package cannot register for
+push. From a terminal you can also load the file directly:
+`php artisan tedc:push-import path/to/google-services.json` (this fills the client options; the service-account
+key is still uploaded from the dashboard). If the app has a release signing key, add its SHA-1 to the Firebase app.
+
+Smart nudges: every 5 minutes `tedc:attendance-nudges` tells participants when check-in opens and reminds those who
+have not checked in once the session has started (sent once per session, category "session").
+
+## Location-verified attendance
+
+Scanning the trainer's QR code also sends the phone's position. The server compares it with the room's
+coordinates (Settings → Rooms → location) and refuses check-in / check-out from farther than the allowed range
+(default 150 m, plus a small allowance for GPS accuracy), from an imprecise fix, or from a mock-location app.
+Online sessions and rooms without coordinates are not checked. Administrators switch the check on or off and set
+the range in **Settings → Attendance**; `TEDC_GEOFENCE`, `TEDC_GEOFENCE_RADIUS` and `TEDC_GEOFENCE_MAX_ACCURACY`
+set the defaults. The app asks for location permission when needed and explains how to fix a blocked permission.
+Each attendance record keeps the position, its accuracy, the distance and a verification status.
 
 ## Store-grade signing (optional)
 

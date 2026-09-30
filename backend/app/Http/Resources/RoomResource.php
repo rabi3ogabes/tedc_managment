@@ -34,6 +34,8 @@ class RoomResource extends JsonResource
                 'key' => $f['key'], 'qty' => $f['qty'], 'label' => RoomCatalog::EQUIPMENT[$f['key']][$locale] ?? $f['key'],
             ])->values(),
             'is_accessible' => $this->is_accessible,
+            'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
+            'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
             'status' => $this->status,
             'notes' => $this->notes,
             'latitude' => $this->latitude,
