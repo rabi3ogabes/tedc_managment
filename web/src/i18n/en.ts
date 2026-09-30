@@ -118,7 +118,10 @@ const en: Dictionary = {
       },
       android: { channelAr: 'Notification channel name (Arabic)', channelEn: 'Notification channel name (English)', color: 'Notification color' },
       test: {
-        title: 'Send a test notification', subtitle: 'Check that notifications reach the phone', me: 'My devices', all: 'All devices',
+        title: 'Send a test notification', subtitle: 'Check that notifications reach the phone', me: 'Me', user: 'Person', all: 'Everyone',
+        group: 'Group', searchPlaceholder: 'Search by name or email…', noPeople: 'No matches', noApp: 'App not installed', devicesN: '{{count}} device(s)',
+        groups: { role: 'Role', school: 'School', program: 'Program' }, pickGroup: 'Choose a group…', groupCounts: '{{users}} users · {{devices}} devices',
+        noDevicesInGroup: 'No device is registered in this group yet.', people: '({{with}} of {{total}} people have the app)',
         titleLabel: 'Title', titlePlaceholder: 'Test notification', bodyLabel: 'Message', bodyPlaceholder: 'Push notifications are working ✓', send: 'Send now',
         notReady: 'Complete the setup and enable sending first.', saveFirst: 'Save your changes before sending.', result: 'Delivered to {{delivered}} of {{devices}} devices',
       },

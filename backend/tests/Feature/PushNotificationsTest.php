@@ -140,6 +140,29 @@ class PushNotificationsTest extends TestCase
         $this->asUser($admin)->postJson('/api/v1/admin/settings/push/test')->assertOk()->assertJsonPath('data.delivered', 1);
     }
 
+    public function test_admin_can_send_a_test_to_one_person_or_a_group(): void
+    {
+        $this->configure();
+        $this->fakeGoogle();
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $employee = $this->makeEmployee();
+        $other = $this->makeEmployee();
+        DeviceToken::create(['user_id' => $employee->user->id, 'token' => str_repeat('f', 40), 'platform' => 'android']);
+
+        $this->asUser($admin)->postJson('/api/v1/admin/settings/push/test', ['audience' => 'user', 'user_id' => $employee->user->id])
+            ->assertOk()->assertJsonPath('data.delivered', 1)->assertJsonPath('data.with_devices', 1);
+        // A person who never signed in on the app: a clear message instead of a silent no-op.
+        $this->asUser($admin)->postJson('/api/v1/admin/settings/push/test', ['audience' => 'user', 'user_id' => $other->user->id])->assertStatus(422)->assertJsonValidationErrors('audience');
+
+        $this->asUser($admin)->postJson('/api/v1/admin/settings/push/test', ['audience' => 'group', 'group_type' => 'role', 'group_id' => Role::EMPLOYEE])
+            ->assertOk()->assertJsonPath('data.targeted', 2)->assertJsonPath('data.with_devices', 1);
+        $this->asUser($admin)->postJson('/api/v1/admin/settings/push/test', ['audience' => 'group'])->assertStatus(422)->assertJsonValidationErrors(['group_type', 'group_id']);
+
+        $found = $this->asUser($admin)->getJson('/api/v1/admin/settings/push/recipients?q='.urlencode(substr($employee->user->name, 0, 4)))->assertOk()->json('data');
+        $this->assertContains($employee->user->id, array_column($found['people'], 'id'));
+        $this->assertContains(Role::EMPLOYEE, array_column($found['groups']['role'], 'id'));
+    }
+
     public function test_device_token_moves_to_the_account_that_signs_in(): void
     {
         $first = $this->makeUser(Role::EMPLOYEE);

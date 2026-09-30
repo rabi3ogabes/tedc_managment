@@ -433,6 +433,7 @@ Route::prefix('v1')->group(function () {
                 // Push notifications (Firebase)
                 Route::get('settings/push', [PushSettingsController::class, 'show']);
                 Route::put('settings/push', [PushSettingsController::class, 'update']);
+                Route::get('settings/push/recipients', [PushSettingsController::class, 'recipients']);
                 Route::post('settings/push/verify', [PushSettingsController::class, 'verify']);
                 Route::post('settings/push/test', [PushSettingsController::class, 'test'])->middleware('throttle:10,1');
             });

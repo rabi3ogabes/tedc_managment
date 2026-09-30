@@ -1,9 +1,9 @@
 import clsx from 'clsx'
 import {
   Award, BellRing, BookOpenCheck, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, FileJson, KeyRound, Lightbulb, Loader2, Megaphone,
-  Send, ShieldCheck, Smartphone, Sparkles, Trash2, TrendingUp, UploadCloud, XCircle,
+  Search, Send, ShieldCheck, Smartphone, Sparkles, Trash2, TrendingUp, UploadCloud, XCircle,
 } from 'lucide-react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
 import { DataView } from '@/components/ui/DataView'
@@ -355,25 +355,48 @@ function AndroidAppStep({ client, onChange }: { client: Client; onChange: (c: Pa
   )
 }
 
+type Person = { id: string; name: string; email: string; roles: string[]; devices: number }
+type Group = { id: string; name: string; users: number; devices: number }
+type Recipients = { people: Person[]; groups: { role: Group[]; school: Group[]; program: Group[] } }
+type Audience = 'me' | 'user' | 'group' | 'all'
+type GroupType = keyof Recipients['groups']
+
+/** Sends a test push to yourself, one person, a group (role, school, program participants) or every device. */
 function TestCard({ ready, dirty, onSent }: { ready: boolean; dirty: boolean; onSent: () => void }) {
   const { t } = useTranslation()
-  const [audience, setAudience] = useState<'me' | 'all'>('me')
+  const [audience, setAudience] = useState<Audience>('me')
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [query, setQuery] = useState('')
+  const [person, setPerson] = useState<Person | null>(null)
+  const [groupType, setGroupType] = useState<GroupType>('role')
+  const [groupId, setGroupId] = useState('')
   const [state, setState] = useState<{ busy?: boolean; ok?: boolean; text?: string }>({})
+  const search = useDebounced(query.trim(), 300)
+  const { data } = useGet<{ data: Recipients }>(ready && audience !== 'me' && audience !== 'all' ? '/admin/settings/push/recipients' : null, { q: audience === 'user' ? search : '' })
+  const groups = data?.data.groups[groupType] ?? []
+  const group = groups.find((g) => g.id === groupId)
+
+  const can = ready && !dirty && (audience === 'me' || audience === 'all' || (audience === 'user' && !!person) || (audience === 'group' && !!group))
 
   const send = async () => {
     setState({ busy: true })
     try {
-      const { data } = await api.post('/admin/settings/push/test', { audience, title_ar: title || undefined, title_en: title || undefined, body_ar: body || undefined, body_en: body || undefined })
-      const log = data.data as Log
-      setState({ ok: log.failed === 0, text: t('admin.push.test.result', { delivered: log.delivered, devices: log.devices }) })
+      const { data: res } = await api.post('/admin/settings/push/test', {
+        audience, title_ar: title || undefined, title_en: title || undefined, body_ar: body || undefined, body_en: body || undefined,
+        ...(audience === 'user' && person ? { user_id: person.id } : {}),
+        ...(audience === 'group' ? { group_type: groupType, group_id: groupId } : {}),
+      })
+      const log = res.data as Log & { targeted?: number; with_devices?: number }
+      const people = audience === 'user' || audience === 'group' ? ` ${t('admin.push.test.people', { with: log.with_devices, total: log.targeted })}` : ''
+      setState({ ok: log.failed === 0, text: t('admin.push.test.result', { delivered: log.delivered, devices: log.devices }) + people })
       onSent()
     } catch (e) {
       setState({ ok: false, text: errorMessage(e) })
     }
   }
 
+  const tabs: Audience[] = ['me', 'user', 'group', 'all']
   return (
     <Card>
       <div className="mb-4 flex items-center gap-3">
@@ -383,19 +406,76 @@ function TestCard({ ready, dirty, onSent }: { ready: boolean; dirty: boolean; on
           <p className="text-xs text-slate-500">{t('admin.push.test.subtitle')}</p>
         </div>
       </div>
-      <div className="mb-3 inline-flex w-full rounded-xl border border-navy-100 p-1">
-        {(['me', 'all'] as const).map((a) => (
-          <button key={a} type="button" onClick={() => setAudience(a)} className={clsx('flex-1 rounded-lg px-3 py-1.5 text-xs font-bold transition', audience === a ? 'bg-navy-900 text-white' : 'text-slate-500')}>{t(`admin.push.test.${a}`)}</button>
+      <div role="tablist" className="mb-3 grid grid-cols-4 rounded-xl border border-navy-100 p-1">
+        {tabs.map((a) => (
+          <button key={a} type="button" role="tab" aria-selected={audience === a} onClick={() => { setAudience(a); setState({}) }} className={clsx('rounded-lg px-1 py-1.5 text-xs font-bold transition', audience === a ? 'bg-navy-900 text-white' : 'text-slate-500')}>{t(`admin.push.test.${a}`)}</button>
         ))}
       </div>
+
+      {audience === 'user' && (
+        <div className="mb-3">
+          {person ? (
+            <div className="flex items-center gap-3 rounded-xl border border-gold-300 bg-gold-100/40 p-3">
+              <span className="grid size-9 place-items-center rounded-full bg-navy-900 text-sm font-bold text-gold-300">{person.name.slice(0, 1)}</span>
+              <div className="min-w-0 flex-1"><div className="truncate text-sm font-bold text-navy-900">{person.name}</div><div className="truncate text-xs text-slate-500" dir="ltr">{person.email}</div></div>
+              <DeviceBadge count={person.devices} />
+              <button type="button" onClick={() => setPerson(null)} aria-label={t('admin.brand.remove')} className="text-slate-400 hover:text-danger"><XCircle className="size-4" /></button>
+            </div>
+          ) : (
+            <>
+              <div className="relative"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input className="input !ps-9" placeholder={t('admin.push.test.searchPlaceholder')} value={query} onChange={(e) => setQuery(e.target.value)} /></div>
+              {search.length >= 2 && (
+                <ul className="mt-2 max-h-56 overflow-auto rounded-xl border border-navy-100 bg-white">
+                  {(data?.data.people ?? []).length === 0 && <li className="p-3 text-center text-xs text-slate-400">{t('admin.push.test.noPeople')}</li>}
+                  {(data?.data.people ?? []).map((p) => (
+                    <li key={p.id}>
+                      <button type="button" onClick={() => setPerson(p)} className="flex w-full items-center gap-3 px-3 py-2 text-start hover:bg-ivory">
+                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-navy-900">{p.name}</span><span className="block truncate text-xs text-slate-500">{p.roles.join('، ')} · <span dir="ltr">{p.email}</span></span></span>
+                        <DeviceBadge count={p.devices} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {audience === 'group' && (
+        <div className="mb-3 space-y-2">
+          <div className="grid grid-cols-3 gap-1 rounded-xl bg-navy-100/50 p-1">
+            {(['role', 'school', 'program'] as const).map((g) => (
+              <button key={g} type="button" aria-pressed={groupType === g} onClick={() => { setGroupType(g); setGroupId('') }} className={clsx('rounded-lg px-2 py-1 text-xs font-semibold', groupType === g ? 'bg-white text-navy-900 shadow-sm' : 'text-slate-500')}>{t(`admin.push.test.groups.${g}`)}</button>
+            ))}
+          </div>
+          <select className="input" value={groupId} onChange={(e) => setGroupId(e.target.value)} aria-label={t(`admin.push.test.groups.${groupType}`)}>
+            <option value="">{t('admin.push.test.pickGroup')}</option>
+            {groups.map((g) => <option key={g.id} value={g.id}>{g.name} — {t('admin.push.test.groupCounts', { users: g.users, devices: g.devices })}</option>)}
+          </select>
+          {group && group.devices === 0 && <p className="text-xs text-amber-600">{t('admin.push.test.noDevicesInGroup')}</p>}
+        </div>
+      )}
+
       <Field label={t('admin.push.test.titleLabel')}><input className="input" placeholder={t('admin.push.test.titlePlaceholder')} value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
       <Field label={t('admin.push.test.bodyLabel')} className="mt-3"><textarea className="input min-h-20" placeholder={t('admin.push.test.bodyPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} /></Field>
-      <Button className="mt-4 w-full" variant="primary" loading={state.busy} disabled={!ready || dirty} icon={<Send className="size-4" />} onClick={send}>{t('admin.push.test.send')}</Button>
+      <Button className="mt-4 w-full" variant="primary" loading={state.busy} disabled={!can} icon={<Send className="size-4" />} onClick={send}>{t('admin.push.test.send')}</Button>
       {!ready && <p className="mt-2 text-xs text-slate-400">{t('admin.push.test.notReady')}</p>}
       {dirty && ready && <p className="mt-2 text-xs text-amber-600">{t('admin.push.test.saveFirst')}</p>}
       {state.text && <p className={clsx('mt-3 rounded-xl p-2 text-sm font-semibold', state.ok ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-danger')}>{state.text}</p>}
     </Card>
   )
+}
+
+function DeviceBadge({ count }: { count: number }) {
+  const { t } = useTranslation()
+  return <Badge color={count > 0 ? 'green' : 'gray'}>{count > 0 ? t('admin.push.test.devicesN', { count }) : t('admin.push.test.noApp')}</Badge>
+}
+
+function useDebounced<T>(value: T, ms: number): T {
+  const [v, setV] = useState(value)
+  useEffect(() => { const id = setTimeout(() => setV(value), ms); return () => clearTimeout(id) }, [value, ms])
+  return v
 }
 
 function Guide() {
