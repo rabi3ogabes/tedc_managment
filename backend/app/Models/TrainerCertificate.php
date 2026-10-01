@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** The thank-you certificate of a trainer for a program whose hours they completed. */
-#[Fillable(['certificate_no', 'verification_code', 'trainer_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'meta'])]
+#[Fillable(['certificate_no', 'verification_code', 'trainer_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'meta', 'template_id'])]
 class TrainerCertificate extends Model
 {
     use HasUuids;

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['certificate_no', 'verification_code', 'registration_id', 'employee_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'issued_by', 'meta', 'sent_at', 'sent_count', 'sent_to', 'sent_by', 'send_error', 'available_notified_at'])]
+#[Fillable(['certificate_no', 'verification_code', 'registration_id', 'employee_id', 'program_id', 'issued_at', 'hours', 'file_path', 'status', 'revoked_reason', 'issued_by', 'meta', 'sent_at', 'sent_count', 'sent_to', 'sent_by', 'send_error', 'available_notified_at', 'template_id'])]
 class Certificate extends Model
 {
     use Auditable, HasUuids;

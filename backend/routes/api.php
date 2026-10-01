@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
+use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
 use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
+use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
@@ -142,6 +144,9 @@ Route::prefix('v1')->group(function () {
             Route::get('materials/{material}/download', [MyTrainingController::class, 'downloadMaterial']);
             Route::get('calendar', [MyTrainingController::class, 'calendar']);
             Route::get('calendar.ics', [MyTrainingController::class, 'ics']);
+            Route::get('sessions/{session}', [MyTrainingController::class, 'session']);
+            Route::post('sessions/{session}/join', [MyTrainingController::class, 'joinSession'])->middleware('throttle:scan');
+            Route::post('sessions/{session}/leave', [MyTrainingController::class, 'leaveSession'])->middleware('throttle:scan');
             Route::post('attendance/scan', [MyTrainingController::class, 'scan'])->middleware('throttle:scan');
 
             Route::get('tasks', [MyOutcomesController::class, 'tasks']);
@@ -350,6 +355,9 @@ Route::prefix('v1')->group(function () {
             });
 
             // Attendance (trainers & coordinators)
+            Route::get('programs/{program}/remote-tracking', [RemoteProgramController::class, 'tracking'])->middleware('permission:programs.view');
+            Route::post('program-builder/slots', [RemoteProgramController::class, 'slots'])->middleware('permission:programs.manage');
+            Route::post('sessions/{session}/remind', [RemoteProgramController::class, 'remind'])->middleware('permission:attendance.manage');
             Route::middleware('permission:attendance.manage')->group(function () {
                 Route::get('sessions/{session}/qr', [SessionController::class, 'qr']);
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
@@ -388,6 +396,24 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:certificates.view')->group(function () {
                 Route::get('certificates', [CertificateController::class, 'index']);
                 Route::get('registrations/{registration}/certificate-requirements', [CertificateController::class, 'requirements']);
+            });
+            // Certificate designer (templates made from an uploaded PDF / picture)
+            Route::prefix('certificate-templates')->controller(CertificateTemplateController::class)->group(function () {
+                Route::middleware('permission:certificates.view')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('{template}', 'show');
+                    Route::get('{template}/file/{name}', 'file');
+                    Route::post('preview', 'preview');
+                });
+                Route::middleware('permission:certificates.issue')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{template}', 'update');
+                    Route::delete('{template}', 'destroy');
+                    Route::post('{template}/default', 'makeDefault');
+                    Route::post('{template}/background', 'background');
+                    Route::delete('{template}/background', 'removeBackground');
+                    Route::post('{template}/assets', 'asset');
+                });
             });
             Route::post('registrations/{registration}/certificate', [CertificateController::class, 'issue'])->middleware('permission:certificates.issue');
             Route::post('certificates/send', [CertificateController::class, 'send'])->middleware('permission:certificates.issue');

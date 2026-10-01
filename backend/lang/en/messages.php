@@ -13,6 +13,8 @@ return [
     'account' => ['unknown_field' => 'This field cannot be changed from here.', 'already_pending' => 'You already have a pending request for this field.', 'invalid_value' => 'The value you entered is not valid for this field.', 'already_reviewed' => 'This request was already reviewed.'],
     'survey' => ['closed' => 'The survey of this program is not open yet.'],
     'attendance' => [
+        'not_online' => 'This session is not online.',
+        'joined' => 'Your attendance is recorded. Enjoy the session!',
         'invalid_qr' => 'The attendance code is invalid or has expired.',
         'not_registered' => 'You are not an approved participant of this program.',
         'not_open' => 'Check-in for this session has not opened yet.',
@@ -29,6 +31,8 @@ return [
         'type_not_allowed' => 'This file type is not accepted for this task.',
         'locked' => 'This task was approved and can no longer be changed.',
     ],
+    'template' => ['default_in_use' => 'The default design cannot be deleted. Make another design the default first.'],
+    'remote' => ['remind_wait' => 'A reminder was just sent. Wait a few minutes before sending another.'],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'survey_first' => 'Fill in the program survey first to download your certificate.',

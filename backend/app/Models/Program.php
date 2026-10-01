@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
     'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
+    'remote', 'certificate_template_id', 'trainer_certificate_template_id',
 ])]
 class Program extends Model
 {
@@ -51,6 +52,7 @@ class Program extends Model
         return [
             'objectives' => 'array',
             'audience' => 'array',
+            'remote' => 'array',
             'registration_modes' => 'array',
             'requires_tasks' => 'boolean',
             'requires_evaluation' => 'boolean',

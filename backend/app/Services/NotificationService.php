@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AppNotification;
 use App\Models\User;
+use App\Services\Notifications\NotificationRoute;
 use App\Services\Notifications\NotificationTemplates;
 use App\Services\Push\PushDispatcher;
 use Illuminate\Support\Collection;
@@ -34,6 +35,7 @@ class NotificationService
             return null;
         }
         ['title' => $title, 'body' => $body] = $composed;
+        $data = NotificationRoute::withRoute($type, $data);
 
         $notification = AppNotification::create([
             'user_id' => $userId,
@@ -65,6 +67,7 @@ class NotificationService
             return 0;
         }
         ['title' => $title, 'body' => $body] = $composed;
+        $data = NotificationRoute::withRoute($type, $data);
         // Wording that greets each person by name is rendered per recipient.
         $perUser = $composed['template'] && $this->templates->isCustomised($composed['template']) && str_contains(json_encode($composed['template']), '{{name');
 

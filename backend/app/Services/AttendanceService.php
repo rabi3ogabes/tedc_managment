@@ -130,6 +130,74 @@ class AttendanceService
         ];
     }
 
+    // Remote sessions --------------------------------------------------------------------------------------------
+
+    public function joinOpensAt(ProgramSession $session): Carbon
+    {
+        $minutes = (int) ($session->program->remote['join_opens_minutes'] ?? 15);
+
+        return $session->starts_at->copy()->subMinutes($minutes);
+    }
+
+    /**
+     * A trainee joins an online session: the join is the attendance. Joining opens `join_opens_minutes` before
+     * the start and stays possible until the session ends; a join after the grace period counts as late.
+     * The meeting link and passcode are only handed out here, inside the window.
+     *
+     * @return array{attendance: Attendance, join_url: ?string, passcode: ?string, platform: ?string, message: string}
+     */
+    public function remoteJoin(Employee $employee, ProgramSession $session, ?string $device = null, ?string $ip = null): array
+    {
+        $session->loadMissing('program');
+        if ($session->mode !== 'online' || $session->status === 'cancelled') {
+            throw new BusinessRuleException(__('messages.attendance.not_online'), 'not_online');
+        }
+        $now = now();
+        if ($now->lt($this->joinOpensAt($session))) {
+            throw new BusinessRuleException(__('messages.attendance.not_open'), 'not_open');
+        }
+        if ($now->gt($session->ends_at)) {
+            throw new BusinessRuleException(__('messages.attendance.closed'), 'closed');
+        }
+
+        $registration = Registration::where('program_id', $session->program_id)->where('employee_id', $employee->id)
+            ->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->first();
+        if (! $registration) {
+            throw new BusinessRuleException(__('messages.attendance.not_registered'), 'not_registered');
+        }
+
+        $attendance = Attendance::firstOrNew(['program_session_id' => $session->id, 'registration_id' => $registration->id]);
+        if (! $attendance->exists || ! $attendance->check_in_at) {
+            $late = $now->gt($session->starts_at->copy()->addMinutes(config('tedc.attendance.late_after_minutes')));
+            $attendance->fill([
+                'employee_id' => $employee->id, 'check_in_at' => $now, 'method' => 'remote', 'status' => $late ? 'late' : 'present',
+                'device_info' => $device ? substr($device, 0, 255) : null, 'ip_address' => $ip, 'location_status' => 'remote',
+            ]);
+        }
+        // Coming back after leaving: the participant is attending again.
+        $attendance->fill(['check_out_at' => null, 'join_count' => ($attendance->join_count ?? 0) + 1, 'last_join_at' => $now])->save();
+
+        $this->recalculate($registration);
+
+        return [
+            'attendance' => $attendance->fresh(), 'join_url' => $session->online_url, 'passcode' => $session->online_passcode,
+            'platform' => $session->online_platform, 'message' => __('messages.attendance.joined'),
+        ];
+    }
+
+    /** The trainee leaves the online session: the minutes attended are fixed at this moment. */
+    public function remoteLeave(Employee $employee, ProgramSession $session): Attendance
+    {
+        $attendance = Attendance::where('program_session_id', $session->id)->where('employee_id', $employee->id)->whereNotNull('check_in_at')->first();
+        if (! $attendance) {
+            throw new BusinessRuleException(__('messages.attendance.not_registered'), 'not_joined');
+        }
+        $attendance->update(['check_out_at' => now(), 'minutes_attended' => $this->overlapMinutes($session, $attendance->check_in_at, now())]);
+        $this->recalculate($attendance->registration);
+
+        return $attendance->fresh();
+    }
+
     /**
      * Manual marking by a trainer / coordinator (e.g. device issues, excused absence).
      */

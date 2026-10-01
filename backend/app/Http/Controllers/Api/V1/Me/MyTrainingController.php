@@ -128,6 +128,68 @@ class MyTrainingController extends MeController
         ]]);
     }
 
+    /** One session as the participant sees it: when and where, how to attend (scan or join) and their attendance so far. */
+    public function session(ProgramSession $session, AttendanceService $attendance): JsonResponse
+    {
+        $session->load(['program', 'trainer', 'room']);
+        $registration = $this->sessionRegistration($session);
+        $record = $session->attendance()->where('registration_id', $registration->id)->first();
+        $now = now();
+        $online = $session->mode === 'online';
+        $remote = $session->program->remote ?? [];
+        $opensAt = $online ? $attendance->joinOpensAt($session) : null;
+        $locale = app()->getLocale() === 'en' ? 'en' : 'ar';
+
+        return response()->json(['data' => [
+            'id' => $session->id,
+            'title' => $session->translate('title'),
+            'description' => $session->description,
+            'starts_at' => $session->starts_at->toIso8601String(),
+            'ends_at' => $session->ends_at->toIso8601String(),
+            'duration_minutes' => $session->durationMinutes(),
+            'status' => $session->status,
+            'mode' => $session->mode,
+            'location' => $session->location_text ?? $session->room?->translate('name'),
+            'trainer' => $session->trainer?->translate('name'),
+            'program' => ['id' => $session->program->id, 'code' => $session->program->code, 'title' => $session->program->translate('title')],
+            'registration_id' => $registration->id,
+            'online' => $online ? [
+                'platform' => $session->online_platform,
+                'opens_at' => $opensAt->toIso8601String(),
+                'can_join' => $session->status !== 'cancelled' && $now->between($opensAt, $session->ends_at),
+                'instructions' => $remote['instructions_'.$locale] ?? null,
+                'recording_url' => $session->ends_at->isPast() ? $session->recording_url : null,
+            ] : null,
+            'can_scan' => ! $online && $session->status !== 'cancelled'
+                && $now->between($session->starts_at->copy()->subMinutes((int) config('tedc.attendance.check_in_opens_minutes_before')), $session->ends_at->copy()->addMinutes(30)),
+            'attendance' => $record ? $record->only(['status', 'check_in_at', 'check_out_at', 'minutes_attended', 'join_count', 'method']) : null,
+        ]]);
+    }
+
+    /** Joins an online session; the response carries the meeting link (only available inside the join window). */
+    public function joinSession(Request $request, ProgramSession $session, AttendanceService $attendance): JsonResponse
+    {
+        $result = $attendance->remoteJoin($this->employee(), $session, $request->userAgent(), $request->ip());
+
+        return response()->json(['data' => [
+            'message' => $result['message'], 'join_url' => $result['join_url'], 'passcode' => $result['passcode'], 'platform' => $result['platform'],
+            'attendance' => $result['attendance']->only(['status', 'check_in_at', 'check_out_at', 'minutes_attended', 'join_count']),
+        ]]);
+    }
+
+    public function leaveSession(ProgramSession $session, AttendanceService $attendance): JsonResponse
+    {
+        $this->sessionRegistration($session);
+
+        return response()->json(['data' => $attendance->remoteLeave($this->employee(), $session)->only(['status', 'check_in_at', 'check_out_at', 'minutes_attended'])]);
+    }
+
+    private function sessionRegistration(ProgramSession $session): Registration
+    {
+        return Registration::where('program_id', $session->program_id)->where('employee_id', $this->employee()->id)
+            ->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->firstOr(fn () => abort(403, __('messages.attendance.not_registered')));
+    }
+
     public function materials(Registration $registration): JsonResponse
     {
         $this->own($registration);

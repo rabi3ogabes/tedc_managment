@@ -86,7 +86,7 @@ class ProgramPlanner
      *
      * @param  string[]  $needIds
      */
-    public function draft(array $needIds = [], ?string $skillId = null, ?CarbonImmutable $from = null): array
+    public function draft(array $needIds = [], ?string $skillId = null, ?CarbonImmutable $from = null, bool $remote = false): array
     {
         $needs = TrainingNeed::with(['skill', 'school:id,name_ar,name_en', 'targetJobTitle'])
             ->when($needIds, fn ($q) => $q->whereIn('id', $needIds))
@@ -110,7 +110,7 @@ class ProgramPlanner
             'job_title_ids' => $needs->pluck('target_job_title_id')->filter()->unique()->all(),
         ]);
 
-        $sessions = $this->plan($hours, $from ?? CarbonImmutable::today()->addDays(14), $capacity, $skillModel ? [$skillModel->code] : []);
+        $sessions = $this->plan($hours, $from ?? CarbonImmutable::today()->addDays(14), $capacity, $skillModel ? [$skillModel->code] : [], '09:00', self::SESSION_HOURS, $remote);
         $first = $sessions[0] ?? null;
         $last = $sessions ? end($sessions) : null;
 
@@ -123,7 +123,7 @@ class ProgramPlanner
             'category_id' => $category?->id,
             'objectives' => $needs->pluck('reason')->filter()->unique()->take(4)->map(fn ($r) => Str::limit($r, 200))->values()->all(),
             'skills' => $skillModel ? [['id' => $skillModel->id, 'name' => $skillModel->translate('name'), 'target_level' => 4]] : [],
-            'delivery_mode' => 'in_person',
+            'delivery_mode' => $remote ? 'online' : 'in_person',
             'level' => 'intermediate',
             'total_hours' => $hours,
             'capacity' => $capacity,
@@ -152,7 +152,7 @@ class ProgramPlanner
      * @param  string[]  $specializations
      * @return list<array>
      */
-    public function plan(float $totalHours, CarbonImmutable $from, int $capacity, array $specializations = [], string $startTime = '09:00', int $sessionHours = self::SESSION_HOURS): array
+    public function plan(float $totalHours, CarbonImmutable $from, int $capacity, array $specializations = [], string $startTime = '09:00', int $sessionHours = self::SESSION_HOURS, bool $remote = false): array
     {
         $count = max(1, (int) ceil($totalHours / $sessionHours));
         $window = $this->calendar->range($from, $from->addDays(max(60, $count * 4)), false)['days'];
@@ -165,7 +165,7 @@ class ProgramPlanner
             $remaining -= $hours;
             $start = CarbonImmutable::parse("{$date} {$startTime}");
             $end = $start->addMinutes((int) round($hours * 60));
-            $best = $this->rooms->suggest($start, $end, ['capacity' => $capacity])->first(fn ($r) => $r['available'] && $r['fits_capacity']);
+            $best = $remote ? null : $this->rooms->suggest($start, $end, ['capacity' => $capacity])->first(fn ($r) => $r['available'] && $r['fits_capacity']);
 
             $sessions[] = [
                 'sequence' => $i + 1,
@@ -176,6 +176,7 @@ class ProgramPlanner
                 'training_room_id' => $best['room']->id ?? null,
                 'room' => $best ? $best['room']->translate('name') : null,
                 'trainer_id' => null,
+                'mode' => $remote ? 'online' : 'in_person',
             ];
         }
 
@@ -218,6 +219,7 @@ class ProgramPlanner
                 'code', 'category_id', 'title_ar', 'title_en', 'summary_ar', 'summary_en', 'description_ar', 'description_en', 'objectives', 'delivery_mode', 'level',
                 'total_hours', 'capacity', 'min_attendance_percent', 'requires_tasks', 'requires_evaluation', 'start_date', 'end_date',
                 'registration_opens_at', 'registration_closes_at', 'registration_modes', 'status', 'is_featured',
+                'remote', 'certificate_template_id', 'trainer_certificate_template_id',
             ])->all();
             $needIds = $data['need_ids'] ?? [];
 
@@ -243,7 +245,7 @@ class ProgramPlanner
                     $this->calendar->approveSpan($start, $end, $approvalReason, $actor->id);
                 }
                 $this->calendar->assertTrainingAllowed($start, $end);
-                if (! empty($session['training_room_id'])) {
+                if (! empty($session['training_room_id']) && ! (($data['delivery_mode'] ?? '') === 'online' || ($session['mode'] ?? null) === 'online')) {
                     $this->rooms->assertBookable($session['training_room_id'], $start, $end);
                 }
                 $trainerId = $session['trainer_id'] ?? collect($data['trainers'] ?? [])->firstWhere('role', 'lead')['id'] ?? ($data['trainers'][0]['id'] ?? null);
@@ -251,12 +253,20 @@ class ProgramPlanner
                     $this->trainers->assertAssignable($trainerId, $start, $end);
                 }
 
+                // Remote programs: sessions are online meetings (no room), with the program's link unless one is given.
+                $remote = $data['remote'] ?? [];
+                $online = ($data['delivery_mode'] ?? 'in_person') === 'online' || ($session['mode'] ?? null) === 'online';
+
                 $program->sessions()->create([
+                    'mode' => $online ? 'online' : 'in_person',
+                    'online_url' => $online ? ($session['online_url'] ?? $remote['join_url'] ?? null) : null,
+                    'online_platform' => $online ? ($session['online_platform'] ?? $remote['platform'] ?? null) : null,
+                    'online_passcode' => $online ? ($session['online_passcode'] ?? $remote['passcode'] ?? null) : null,
                     'sequence' => $session['sequence'] ?? $i + 1,
                     'title_ar' => $session['title_ar'] ?? 'الجلسة '.($i + 1),
                     'title_en' => $session['title_en'] ?? 'Session '.($i + 1),
                     'starts_at' => $start, 'ends_at' => $end,
-                    'training_room_id' => $session['training_room_id'] ?? null,
+                    'training_room_id' => $online ? null : ($session['training_room_id'] ?? null),
                     'trainer_id' => $trainerId,
                     'location_text' => $session['location_text'] ?? null,
                 ]);
@@ -279,7 +289,7 @@ class ProgramPlanner
             $userIds, 'program.invite',
             ['ar' => 'برنامج تدريبي جديد يناسبك', 'en' => 'A new training program for you'],
             ['ar' => "«{$program->title_ar}» متاح للتسجيل ضمن الفئة المستهدفة.", 'en' => "\"{$program->title_en}\" is open to your group."],
-            ['program_id' => $program->id],
+            ['program_id' => $program->id, 'program_code' => $program->code],
         );
     }
 

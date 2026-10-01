@@ -12,6 +12,7 @@ use App\Services\CalendarService;
 use App\Services\RoomService;
 use App\Services\TrainerCertificateService;
 use App\Services\TrainerService;
+use App\Support\RemoteProgramRules;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,11 @@ class SessionController extends Controller
         $data = $this->validated($request);
         $this->guardCalendar($request, $data['starts_at'], $data['ends_at']);
         $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null, $data['trainer_id'] ?? null);
+        // A session of a remote program is an online meeting using the program's link unless it has its own.
+        $remote = $program->delivery_mode === 'online' || ($data['mode'] ?? null) === 'online';
+        if ($remote) {
+            $data = ['mode' => 'online', 'online_url' => $program->remote['join_url'] ?? null, 'online_platform' => $program->remote['platform'] ?? null, 'online_passcode' => $program->remote['passcode'] ?? null] + array_filter($data, fn ($v) => $v !== null);
+        }
         $session = $program->sessions()->create(Arr::except($data, 'calendar_approval_reason'));
 
         return (new SessionResource($session->load(['trainer', 'room'])))->response()->setStatusCode(201);
@@ -160,11 +166,10 @@ class SessionController extends Controller
             'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
             'training_room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'],
             'location_text' => ['nullable', 'string', 'max:255'],
-            'online_url' => ['nullable', 'url', 'max:255'],
             'activities' => ['nullable', 'array'],
             'activities.*' => ['string', 'max:255'],
             'status' => ['sometimes', Rule::in(['scheduled', 'live', 'completed', 'cancelled'])],
             'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
-        ]);
+        ] + RemoteProgramRules::sessionRules());
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -136,7 +137,7 @@ class ProgramController extends Controller
             'target_groups.*.school_type' => ['nullable', 'string', 'max:32'],
             'target_groups.*.education_stage' => ['nullable', 'string', 'max:32'],
             'target_groups.*.description' => ['nullable', 'string', 'max:255'],
-        ]);
+        ] + RemoteProgramRules::rules());
     }
 
     private function syncRelations(Program $program, Request $request): void

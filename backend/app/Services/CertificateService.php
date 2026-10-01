@@ -164,6 +164,12 @@ class CertificateService
     {
         $certificate->loadMissing(['employee.user', 'employee.school', 'program']);
 
+        // A design made in the template studio wins over the built-in layout.
+        $templates = app(CertificateTemplateService::class);
+        if ($template = $templates->resolve('trainee', $certificate->program)) {
+            return $templates->renderFor($template, $certificate);
+        }
+
         return $this->renderPdf('certificates.pdf', $certificate->verificationUrl(), $certificate->certificate_no, ['certificate' => $certificate]);
     }
 

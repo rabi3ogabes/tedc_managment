@@ -13,6 +13,7 @@ use App\Models\Skill;
 use App\Services\AudienceRules;
 use App\Services\NeedsSurveys\SurveyAudience;
 use App\Services\ProgramPlanner;
+use App\Support\RemoteProgramRules;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,9 +58,10 @@ class ProgramBuilderController extends Controller
             'need_ids' => ['nullable', 'array', 'max:200'], 'need_ids.*' => ['uuid'],
             'skill_id' => ['nullable', 'uuid', 'exists:skills,id'],
             'from' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'remote' => ['sometimes', 'boolean'],
         ]);
 
-        return response()->json(['data' => $this->planner->draft($data['need_ids'] ?? [], $data['skill_id'] ?? null, isset($data['from']) ? CarbonImmutable::parse($data['from']) : null)]);
+        return response()->json(['data' => $this->planner->draft($data['need_ids'] ?? [], $data['skill_id'] ?? null, isset($data['from']) ? CarbonImmutable::parse($data['from']) : null, (bool) ($data['remote'] ?? false))]);
     }
 
     /** Re-plans the session schedule after hours, start date or capacity change. */
@@ -70,11 +72,11 @@ class ProgramBuilderController extends Controller
             'capacity' => ['required', 'integer', 'min:1', 'max:5000'],
             'from' => ['required', 'date_format:Y-m-d'],
             'start_time' => ['nullable', 'date_format:H:i'],
-            'session_hours' => ['nullable', 'integer', 'min:1', 'max:8'],
+            'session_hours' => ['nullable', 'integer', 'min:1', 'max:8'], 'remote' => ['sometimes', 'boolean'],
             'skill_ids' => ['nullable', 'array'], 'skill_ids.*' => ['uuid'],
         ]);
         $codes = Skill::whereIn('id', $data['skill_ids'] ?? [])->pluck('code')->all();
-        $sessions = $this->planner->plan((float) $data['total_hours'], CarbonImmutable::parse($data['from']), (int) $data['capacity'], $codes, $data['start_time'] ?? '09:00', (int) ($data['session_hours'] ?? ProgramPlanner::SESSION_HOURS));
+        $sessions = $this->planner->plan((float) $data['total_hours'], CarbonImmutable::parse($data['from']), (int) $data['capacity'], $codes, $data['start_time'] ?? '09:00', (int) ($data['session_hours'] ?? ProgramPlanner::SESSION_HOURS), (bool) ($data['remote'] ?? false));
 
         return response()->json(['data' => ['sessions' => $sessions, 'trainers' => $this->planner->trainerSuggestions($codes, $sessions[0] ?? null)]]);
     }
@@ -119,7 +121,10 @@ class ProgramBuilderController extends Controller
             'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
             'invite_audience' => ['sometimes', 'boolean'],
             'nominate_audience' => ['sometimes', 'boolean'],
-        ] + SurveyAudience::rules('audience.'));
+            'sessions.*.mode' => ['nullable', Rule::in(['in_person', 'online'])],
+            'sessions.*.online_url' => ['nullable', 'url:http,https', 'max:500'], 'sessions.*.online_platform' => ['nullable', Rule::in(RemoteProgramRules::PLATFORMS)],
+            'sessions.*.online_passcode' => ['nullable', 'string', 'max:64'],
+        ] + RemoteProgramRules::rules() + SurveyAudience::rules('audience.'));
 
         $reason = $this->user()->hasPermission('calendar.approve') ? ($data['calendar_approval_reason'] ?? null) : null;
         $program = $this->planner->create($data, $this->user(), $reason);

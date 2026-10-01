@@ -108,6 +108,11 @@ class TrainerCertificateService
     {
         $certificate->loadMissing(['trainer.school', 'program']);
 
+        $templates = app(CertificateTemplateService::class);
+        if ($template = $templates->resolve('trainer', $certificate->program)) {
+            return $templates->renderFor($template, $certificate);
+        }
+
         return $this->certificates->renderPdf('certificates.trainer', $certificate->verificationUrl(), $certificate->certificate_no, ['certificate' => $certificate]);
     }
 

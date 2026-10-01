@@ -25,13 +25,30 @@ class SendAttendanceNudges extends Command
 
         $sessions = ProgramSession::with('program', 'room')
             ->where('status', '!=', 'cancelled')
-            ->whereBetween('starts_at', [now()->subMinutes($late + 30), now()->addMinutes($opens)])
+            ->whereBetween('starts_at', [now()->subMinutes($late + 30), now()->addMinutes(max($opens, 240))])
             ->get();
 
         foreach ($sessions as $session) {
-            $venue = $geofence->venue($session);
+            $remote = $session->mode === 'online';
+            $venue = $remote ? null : $geofence->venue($session);
             $where = $venue ? " ({$venue['name']})" : '';
             $minutesToStart = now()->diffInMinutes($session->starts_at, false);
+            $opensFor = $remote ? (int) ($session->program->remote['join_opens_minutes'] ?? 15) : $opens;
+
+            if ($remote) {
+                // Online session: the notification opens the session page, where "Join" records the attendance.
+                if ($minutesToStart > 0 && $minutesToStart <= $opensFor) {
+                    $sent += $this->nudge($notifications, $session, 'open', $this->participants($session, checkedIn: false),
+                        ['ar' => 'الجلسة عن بُعد على وشك البدء', 'en' => 'Your online session is about to start'],
+                        ['ar' => "جلسة «{$session->title_ar}» تبدأ بعد {$minutesToStart} دقيقة. اضغط للانضمام وتسجيل حضورك.", 'en' => "\"{$session->title_en}\" starts in {$minutesToStart} minutes. Tap to join and record your attendance."]);
+                } elseif ($minutesToStart <= -$late && $session->ends_at->isFuture()) {
+                    $sent += $this->nudge($notifications, $session, 'missed', $this->participants($session, checkedIn: false),
+                        ['ar' => 'لم تنضم إلى الجلسة بعد', 'en' => 'You have not joined the session yet'],
+                        ['ar' => "بدأت جلسة «{$session->title_ar}». انضم الآن لتسجيل حضورك.", 'en' => "\"{$session->title_en}\" has started. Join now to record your attendance."]);
+                }
+
+                continue;
+            }
 
             if ($minutesToStart > 0 && $minutesToStart <= $opens) {
                 $sent += $this->nudge($notifications, $session, 'open', $this->participants($session, checkedIn: false),
@@ -56,7 +73,11 @@ class SendAttendanceNudges extends Command
             return 0;
         }
 
-        return $notifications->broadcast($userIds, 'session.attendance_'.$phase, $title, $body, ['session_id' => $session->id, 'program_id' => $session->program_id, 'route' => '/training']);
+        return $notifications->broadcast($userIds, 'session.attendance_'.$phase, $title, $body, [
+            'session_id' => $session->id, 'program_id' => $session->program_id,
+            // Online sessions open the session page; in-person ones open the QR scanner.
+            'route' => $session->mode === 'online' ? '/sessions/'.$session->id : '/scan',
+        ]);
     }
 
     /** Approved participants; optionally only those without a check-in for this session. */

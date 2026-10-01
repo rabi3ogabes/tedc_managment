@@ -34,7 +34,7 @@ class NotificationCampaigns
 
         $count = $this->notifications->broadcast(
             $userIds->unique()->values(), $event, $title, $body,
-            ['program_id' => $program?->id, 'route' => $kind === 'survey' ? '/training' : '/notifications', 'campaign_id' => $campaign->id],
+            ['program_id' => $program?->id, 'route' => $program ? '/my-program/'.$program->id : '/notifications', 'campaign_id' => $campaign->id],
             $campaign->id, force: true, raw: true,
         );
         $campaign->update(['recipients' => $count]);
