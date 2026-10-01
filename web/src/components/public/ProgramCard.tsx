@@ -25,7 +25,7 @@ export function ProgramCover({ program, className = 'h-44', labels = true }: { p
         <path d="M50 2 L61 39 L98 50 L61 61 L50 98 L39 61 L2 50 L39 39 Z" fill="currentColor" />
       </svg>
       {program.cover_url && (
-        <img src={program.cover_url} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={program.cover_url} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-navy-950/70 to-transparent" />
       {labels && <div className="absolute inset-x-4 bottom-3 flex items-end justify-between">
@@ -54,6 +54,16 @@ export default function ProgramCard({ program }: { program: Program }) {
         </div>
         <h3 className="text-lg font-bold leading-snug text-navy-900 transition group-hover:text-link">{program.title}</h3>
         {program.summary && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{program.summary}</p>}
+        {program.capacity > 0 && program.seats_available !== null && program.seats_available !== undefined && (() => {
+          const taken = Math.min(1, Math.max(0, (program.capacity - program.seats_available) / program.capacity))
+          const low = program.seats_available > 0 && program.seats_available / program.capacity <= 0.2
+          return (
+            <div className="mt-4" aria-label={`${program.seats_available} / ${program.capacity}`}>
+              <div className="h-1.5 overflow-hidden rounded-full bg-navy-100/70"><div className={`h-full rounded-full transition-all duration-700 ${low ? 'bg-amber-500' : 'bg-gradient-to-l from-gold-400 to-gold-600'}`} style={{ width: `${taken * 100}%` }} /></div>
+              {low && <div className="mt-1 text-[11px] font-bold text-amber-700">{t('common.fewSeats', { count: program.seats_available })}</div>}
+            </div>
+          )
+        })()}
         <div className="mt-auto grid grid-cols-2 gap-2 pt-5 text-xs text-slate-500">
           <span className="flex items-center gap-1.5"><CalendarDays className="size-4 text-gold-600" />{fmt.date(program.start_date, { day: 'numeric', month: 'short' })}</span>
           <span className="flex items-center gap-1.5"><Clock className="size-4 text-gold-600" />{fmt.number(program.total_hours)} {t('common.hours')}</span>

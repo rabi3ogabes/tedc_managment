@@ -81,7 +81,9 @@ export default function HeroSlider() {
         <div className="container-x flex items-center justify-between">
           <div className="flex items-center gap-2">
             {SLIDES.map((_, i) => (
-              <button key={i} onClick={() => setIndex(i)} aria-label={`slide ${i + 1}`} className={clsx('h-1.5 rounded-full transition-all duration-500', i === index ? 'w-10 bg-gold-400' : 'w-4 bg-white/40 hover:bg-white/70')} />
+              <button key={i} onClick={() => setIndex(i)} aria-label={`slide ${i + 1}`} className={clsx('relative h-1.5 overflow-hidden rounded-full transition-all duration-500', i === index ? 'w-12 bg-white/30' : 'w-4 bg-white/40 hover:bg-white/70')}>
+                {i === index && <span key={`${index}-${paused}`} className="absolute inset-y-0 start-0 w-full origin-left bg-gold-400 rtl:origin-right" style={{ animation: paused ? undefined : 'hero-progress 7s linear forwards', transform: paused ? 'scaleX(1)' : undefined }} />}
+              </button>
             ))}
           </div>
           <div className="flex gap-2">

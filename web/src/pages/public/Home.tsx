@@ -1,7 +1,11 @@
 import { Award, BrainCircuit, ChartNoAxesCombined, Quote, ShieldCheck, Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import CountUp from '@/components/public/CountUp'
+import HeroQuickBar from '@/components/public/HeroQuickBar'
 import HeroSlider from '@/components/public/HeroSlider'
+import Journey from '@/components/public/Journey'
+import Reveal from '@/components/public/Reveal'
 import ProgramCard from '@/components/public/ProgramCard'
 import { SectionTitle } from '@/components/public/Section'
 import { Avatar, Button } from '@/components/ui'
@@ -33,28 +37,32 @@ export default function Home() {
   return (
     <>
       <HeroSlider />
+      <HeroQuickBar />
 
       {/* Introduction */}
       <section className="relative py-24">
         <div className="container-x grid items-center gap-14 lg:grid-cols-2">
-          <div>
+          <Reveal>
             <SectionTitle eyebrow={t('home.introEyebrow')} title={t('home.introTitle')} text={t('home.introText')} />
             <Button to="/about" variant="outline">{t('common.readMore')}</Button>
-          </div>
+          </Reveal>
           <div className="grid gap-4 sm:grid-cols-2">
             {pillars.map((p, i) => {
               const Icon = pillarIcons[i]
               return (
-                <div key={p.title} className="card group p-6 transition hover:-translate-y-1 hover:shadow-glass" style={{ animationDelay: `${i * 80}ms` }}>
+                <Reveal key={p.title} delay={i * 90} className="card group relative overflow-hidden p-6 transition hover:-translate-y-1 hover:border-gold-300 hover:shadow-glass">
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-0.5 origin-center scale-x-0 bg-gradient-to-l from-gold-300 via-gold-500 to-gold-300 transition duration-500 group-hover:scale-x-100" />
                   <div className="grid size-12 place-items-center rounded-2xl bg-navy-900 text-gold-300 transition group-hover:bg-gold-500 group-hover:text-navy-950"><Icon className="size-6" /></div>
                   <h3 className="mt-4 text-lg font-bold text-navy-900">{p.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-500">{p.text}</p>
-                </div>
+                </Reveal>
               )
             })}
           </div>
         </div>
       </section>
+
+      <Journey />
 
       {/* Stats */}
       <section className="relative overflow-hidden bg-navy-900 py-20">
@@ -64,10 +72,11 @@ export default function Home() {
           <SectionTitle title={t('home.statsTitle')} center light />
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             {(['programs', 'participants', 'certificates', 'schools', 'training_hours', 'satisfaction'] as const).map((key) => (
-              <div key={key} className="glass-dark rounded-2xl p-5 text-center">
+              <div key={key} className="glass-dark group rounded-2xl p-5 text-center transition duration-300 hover:-translate-y-1 hover:border-gold-400/50 hover:bg-white/10">
                 <div className="font-display text-3xl font-bold text-gold-300 sm:text-4xl">
-                  {home ? (key === 'satisfaction' ? fmt.percent(home.stats[key]) : fmt.number(home.stats[key])) : '—'}
+                  <CountUp value={home?.stats[key]} format={(n) => (key === 'satisfaction' ? fmt.percent(n) : fmt.number(Math.round(n)))} />
                 </div>
+                <div className="mx-auto mt-2 h-px w-8 bg-gold-400/40 transition-all duration-500 group-hover:w-14" />
                 <div className="mt-2 text-sm text-white/70">{t(`home.stats.${key}`)}</div>
               </div>
             ))}
@@ -84,7 +93,7 @@ export default function Home() {
           </div>
           {isLoading ? <ProgramGridSkeleton count={3} /> : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {home?.featured_programs.map((p) => <ProgramCard key={p.id} program={p} />)}
+              {home?.featured_programs.map((p, i) => <Reveal key={p.id} delay={i * 100} className="flex"><ProgramCard program={p} /></Reveal>)}
             </div>
           )}
         </div>
@@ -149,7 +158,8 @@ export default function Home() {
             <SectionTitle title={t('home.testimonials')} center light />
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {home.testimonials.slice(0, 3).map((tm, i) => (
-                <figure key={i} className="glass-dark flex flex-col rounded-3xl p-7">
+                <figure key={i} className="glass-dark relative flex flex-col overflow-hidden rounded-3xl p-7 transition duration-300 hover:-translate-y-1 hover:border-gold-400/40">
+                  <span aria-hidden className="absolute -end-3 -top-6 font-display text-[8rem] leading-none text-gold-400/10">”</span>
                   <Quote className="size-8 text-gold-400" />
                   <blockquote className="mt-4 flex-1 leading-relaxed text-white/85">{tm.quote}</blockquote>
                   <div className="mt-4 flex gap-0.5 text-gold-400">{Array.from({ length: Math.round(tm.rating) }, (_, s) => <Star key={s} className="size-4 fill-current" />)}</div>

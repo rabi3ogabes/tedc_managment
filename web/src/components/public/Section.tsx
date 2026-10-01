@@ -5,9 +5,9 @@ import { useTheme } from '@/lib/ThemeProvider'
 export function SectionTitle({ eyebrow, title, text, center, light }: { eyebrow?: string; title: string; text?: string; center?: boolean; light?: boolean }) {
   return (
     <div className={clsx('mb-10 max-w-2xl', center && 'mx-auto text-center')}>
-      {eyebrow && <span className={clsx('text-sm font-bold tracking-wide', light ? 'text-gold-300' : 'text-gold-700')}>{eyebrow}</span>}
+      {eyebrow && <span className={clsx('inline-flex items-center gap-2 text-sm font-bold tracking-wide', light ? 'text-gold-300' : 'text-gold-700')}><span aria-hidden className="size-1.5 rotate-45 bg-current" />{eyebrow}</span>}
       <h2 className={clsx('mt-2 text-3xl font-bold sm:text-4xl', light ? 'text-white' : 'text-navy-900')}>{title}</h2>
-      <div className={clsx('gold-line mt-4', center && 'mx-auto')} />
+      <div className={clsx('mt-4 flex items-center gap-2', center && 'justify-center')} aria-hidden><div className="gold-line" /><span className="size-1.5 rotate-45 bg-gold-500" /></div>
       {text && <p className={clsx('mt-4 leading-relaxed', light ? 'text-white/70' : 'text-slate-500')}>{text}</p>}
     </div>
   )

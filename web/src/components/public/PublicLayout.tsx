@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Globe, LayoutDashboard, LogIn, Mail, MapPin, Menu, Phone, Smartphone, X } from 'lucide-react'
+import { ArrowUp, Globe, LayoutDashboard, LogIn, Mail, MapPin, Menu, Phone, Smartphone, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -39,11 +39,18 @@ export default function PublicLayout() {
   const { user } = useAuth()
   const { pathname } = useLocation()
   const [scrolled, setScrolled] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [top, setTop] = useState(false)
   const [open, setOpen] = useState(false)
   const overHero = pathname === '/' && !scrolled
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40)
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0)
+      setTop(window.scrollY > 700)
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -91,6 +98,7 @@ export default function PublicLayout() {
             </button>
           </div>
         </div>
+        <div aria-hidden className={clsx('absolute inset-x-0 bottom-0 h-[2px] origin-left bg-gradient-to-l from-gold-300 via-gold-500 to-gold-600 transition-opacity rtl:origin-right', scrolled ? 'opacity-100' : 'opacity-0')} style={{ transform: `scaleX(${progress})` }} />
         {open && (
           <div className="glass mx-4 mb-4 rounded-2xl p-3 xl:hidden">
             {links.map((l) => (
@@ -108,8 +116,10 @@ export default function PublicLayout() {
       </main>
 
       <ChatWidget />
+      <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label={t('common.backToTop')} className={clsx('fixed bottom-5 start-5 z-40 grid size-11 place-items-center rounded-full border border-gold-300 bg-white/90 text-navy-900 shadow-glass backdrop-blur transition duration-300 hover:bg-gold-500 hover:text-navy-950', top ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0')}><ArrowUp className="size-5" /></button>
 
       <footer className="relative overflow-hidden bg-navy-950 text-white">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-l from-transparent via-gold-400 to-transparent" aria-hidden />
         <div className="pattern-bg absolute inset-0 opacity-20" />
         <div className="container-x relative grid gap-10 py-16 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">

@@ -10,6 +10,7 @@ const en: Dictionary = {
   common: {
     viewTable: 'Table', viewCards: 'Cards', viewMode: 'View mode', results: '{{count}} results',
     loading: 'Loading…', save: 'Save', cancel: 'Cancel', create: 'Create', edit: 'Edit', delete: 'Delete', search: 'Search', filter: 'Filter',
+    backToTop: 'Back to top', fewSeats: 'Only {{count}} seats left',
     all: 'All', view: 'View', details: 'Details', back: 'Back', submit: 'Submit', close: 'Close', yes: 'Yes', no: 'No', hours: 'hours',
     seats: 'seats', seatsAvailable: 'seats left', required: 'Required', optional: 'Optional', actions: 'Actions', status: 'Status', date: 'Date',
     noData: 'Nothing to show yet', error: 'Something went wrong', retry: 'Retry', readMore: 'Read more', viewAll: 'View all',
@@ -43,6 +44,19 @@ const en: Dictionary = {
       { eyebrow: 'Excellence & innovation', title: 'From training needs to measured impact', text: 'A fully digital journey: smart registration, QR attendance, tasks, evaluation, verified certificates and 30/60/90-day impact tracking.' },
       { eyebrow: 'Culture & identity', title: 'Education rooted in identity, looking to the future', text: 'Empowering leaders and teachers with leadership, AI and modern pedagogy skills.' },
     ],
+    quick: {
+      programs: { title: 'Find a program', text: 'Browse open programs and register' }, calendar: { title: 'Training calendar', text: 'Dates of upcoming programs' },
+      verify: { title: 'Verify a certificate', text: 'Enter the verification code' }, chat: { title: 'Ask the assistant', text: 'Instant answers about programs' },
+    },
+    journey: {
+      title: 'Your training journey', text: 'Four clear steps from choosing a program to a verified certificate.',
+      steps: [
+        { title: 'Discover', text: 'Browse programs and recommendations that fit your specialty and school.' },
+        { title: 'Register', text: 'Instant eligibility check and one-tap registration.' },
+        { title: 'Attend & learn', text: 'QR attendance on site, tasks and evaluation in the app.' },
+        { title: 'Get certified', text: 'A certificate with a verification code, and impact follow-up later.' },
+      ],
+    },
     exploreCta: 'Explore programs', verifyCta: 'Verify a certificate',
     introEyebrow: 'About the center', introTitle: 'A smart training ecosystem — not just a registration system',
     introText: 'The center manages the full training lifecycle — from school training needs, program design, smart nomination and registration, to attendance, tasks, evaluation, certificates and impact measurement — on one integrated platform and mobile app.',
