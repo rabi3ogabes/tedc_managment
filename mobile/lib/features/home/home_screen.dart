@@ -39,7 +39,7 @@ class HomeScreen extends ConsumerWidget {
             final recommended = d.list('recommended');
 
             return CustomScrollView(slivers: [
-              SliverToBoxAdapter(child: _Header(name: d.str('greeting_name'), hours: fmt.number(stats.number('training_hours')))),
+              SliverToBoxAdapter(child: _Header(name: d.str('greeting_name'), hours: fmt.number(stats.number('training_hours')), identity: d.obj('identity') ?? const {})),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
@@ -82,10 +82,13 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.name, required this.hours});
+  const _Header({required this.name, required this.hours, this.identity = const {}});
 
   final String name;
   final String hours;
+
+  /// name, position, school, nationality {name, flag}, is_trainee, is_trainer.
+  final Json identity;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +117,18 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 24),
               Text(s.t('home.welcome'), style: const TextStyle(color: Colors.white70)),
               Text(name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+              if (identity.str('position').isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    [identity.str('position'), identity.str('school')].where((e) => e.isNotEmpty).join(' · '),
+                    style: const TextStyle(color: AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
+                  ),
+                ),
+              if (identity.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _IdentityChips(identity: identity),
+              ],
               const SizedBox(height: 16),
               Row(children: [
                 Text(hours, style: const TextStyle(color: AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
@@ -125,6 +140,41 @@ class _Header extends StatelessWidget {
         ),
       ]),
     );
+  }
+}
+
+/// Nationality flag and the person's role(s): a trainee, a trainer, or both.
+class _IdentityChips extends StatelessWidget {
+  const _IdentityChips({required this.identity});
+
+  final Json identity;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final nationality = identity.obj('nationality');
+    final flag = nationality?.str('flag') ?? '';
+    final nation = nationality?.str('name') ?? '';
+
+    Widget chip({required Widget leading, required String label, bool gold = false}) => Container(
+          padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 12, 6),
+          decoration: BoxDecoration(
+            color: gold ? AppColors.gold500 : Colors.white.withValues(alpha: .14),
+            borderRadius: BorderRadius.circular(20),
+            border: gold ? null : Border.all(color: Colors.white.withValues(alpha: .22)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            leading,
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(color: gold ? AppColors.navy950 : Colors.white, fontWeight: FontWeight.w800, fontSize: 12.5)),
+          ]),
+        );
+
+    return Wrap(spacing: 8, runSpacing: 8, children: [
+      if (nation.isNotEmpty) chip(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
+      if (identity.flag('is_trainee')) chip(leading: const Icon(Icons.school_outlined, size: 16, color: Colors.white), label: s.t('home.role.trainee')),
+      if (identity.flag('is_trainer')) chip(leading: const Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
+    ]);
   }
 }
 

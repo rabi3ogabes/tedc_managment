@@ -135,7 +135,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 
   /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
-  void _open(String route) => route.startsWith('/needs-surveys/') || route == '/notifications' ? context.push(route) : context.go(route);
+  void _open(String route) => route.startsWith('/needs-surveys/') || route == '/notifications' || route == '/account' ? context.push(route) : context.go(route);
 
   @override
   Widget build(BuildContext context) {

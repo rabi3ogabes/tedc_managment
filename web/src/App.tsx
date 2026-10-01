@@ -36,6 +36,7 @@ const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
+const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
 const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
@@ -120,6 +121,7 @@ export default function App() {
           <Route path="schools" element={<Schools />} />
           <Route path="employees" element={<Employees />} />
           <Route path="employees/:id" element={<EmployeeProfile />} />
+          <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="settings" element={<SettingsWorkspace />} />

@@ -61,6 +61,8 @@ class ProfileScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const _AccountEntry(),
+              const SizedBox(height: 16),
               if (employee != null)
                 passport.when(
                   loading: () => const LoadingView(),
@@ -107,6 +109,46 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ]),
           ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Opens "My account": all the user's details, read-only, with requests for corrections.
+class _AccountEntry extends ConsumerWidget {
+  const _AccountEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final stats = ref.watch(getProvider('/me/account')).value;
+    final info = stats is Map ? Map<String, dynamic>.from(stats['data'] as Map).obj('stats') : null;
+    final missing = info?.number('missing').toInt() ?? 0;
+    final pending = info?.number('pending').toInt() ?? 0;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: () => context.push('/account'),
+      child: Ink(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(gradient: AppColors.goldGradient, borderRadius: BorderRadius.circular(22)),
+        child: Row(children: [
+          Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.badge_outlined, color: AppColors.gold300, size: 26)),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(s.t('account.title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
+              const SizedBox(height: 2),
+              Text(
+                missing > 0 ? '$missing ${s.t('account.missingCount')}' : pending > 0 ? '$pending ${s.t('account.pendingCount')}' : s.t('account.subtitle'),
+                style: const TextStyle(color: AppColors.navy900, fontSize: 12.5),
+              ),
+            ]),
+          ),
+          if (missing > 0) Badge(label: Text('$missing'), backgroundColor: AppColors.navy900, textColor: AppColors.gold300),
+          const SizedBox(width: 6),
+          const Icon(Icons.chevron_right, color: AppColors.navy950),
         ]),
       ),
     );

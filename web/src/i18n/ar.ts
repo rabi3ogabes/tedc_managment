@@ -183,7 +183,7 @@ const ar = {
     },
     menu: {
       settings: 'الإعدادات', kits: 'الحقائب التدريبية', pushSettings: 'إعدادات الإشعارات', appearance: 'الهوية البصرية', dashboard: 'لوحة القيادة', programs: 'البرامج', registrations: 'التسجيل والترشيح', attendance: 'الحضور', tasks: 'المهام',
-      certificates: 'الشهادات', needs: 'الاحتياجات التدريبية', analytics: 'التحليلات التنفيذية', geo: 'التحليل الجغرافي', live: 'المتواجدون الآن', impact: 'قياس الأثر',
+      certificates: 'الشهادات', needs: 'الاحتياجات التدريبية', analytics: 'التحليلات التنفيذية', geo: 'التحليل الجغرافي', live: 'المتواجدون الآن', profileRequests: 'طلبات تعديل البيانات', impact: 'قياس الأثر',
       communication: 'مركز التواصل', ai: 'المساعد الذكي', schools: 'المدارس', employees: 'الموظفون', trainers: 'المدربون', rooms: 'القاعات', calendar: 'التقويم التدريبي', users: 'المستخدمون والصلاحيات',
       audit: 'سجل التدقيق', reports: 'التقارير', groups: { overview: 'نظرة عامة', lifecycle: 'دورة التدريب', insights: 'التحليلات والذكاء', organization: 'المؤسسة', security: 'الأمان', settings: 'الإعدادات' },
     },

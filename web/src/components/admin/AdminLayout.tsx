@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, Megaphone, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,7 +14,7 @@ import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
 import { useCenterName } from '@/lib/ThemeProvider'
 
-type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean }
+type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number }
 
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t } = useTranslation()
@@ -33,6 +33,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const settingsChildren = SETTINGS_SECTIONS.filter((s) => s.permission.some((p) => can(p)))
   const [open, setOpen] = useState(false)
   const unread = useGet<{ meta?: { total: number } }>('/me/notifications', { unread: 1, per_page: 1 }, { refetchInterval: 60_000 })
+  const requests = useGet<{ data: { pending: number } }>(!portal && can('employees.manage') ? '/admin/profile-requests/summary' : null, undefined, { refetchInterval: 60_000 })
   useRealtimeNotifications()
 
   useEffect(() => setOpen(false), [pathname, search])
@@ -73,6 +74,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         { title: m('groups.organization'), items: [
           { to: '/admin/schools', label: m('schools'), icon: School, permission: 'schools.view' },
           { to: '/admin/employees', label: m('employees'), icon: Users, permission: 'employees.view' },
+          { to: '/admin/profile-requests', label: m('profileRequests'), icon: FilePenLine, permission: 'employees.manage', badge: requests.data?.data.pending },
           { to: '/admin/trainers', label: m('trainers'), icon: GraduationCap, permission: 'programs.view' },
           { to: '/admin/rooms', label: m('rooms'), icon: DoorOpen, permission: 'programs.view' },
         ] },
@@ -142,6 +144,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                     isActive ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 text-gold-300 ring-1 ring-gold-500/30' : 'text-white/70 hover:bg-white/5 hover:text-white')}>
                   <item.icon className="size-5" />
                   {item.label}
+                  {!!item.badge && <span className="ms-auto rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-navy-950">{item.badge}</span>}
                 </NavLink>
               ))}
             </div>

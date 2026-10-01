@@ -48,6 +48,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (!mounted) return;
     if (surveyId.isNotEmpty) {
       context.push('/needs-surveys/$surveyId');
+    } else if (type.startsWith('profile')) {
+      context.push('/account');
     } else if (type.startsWith('certificate')) {
       context.go('/certificates');
     } else if (type.startsWith('registration') || type.startsWith('program') || type.startsWith('survey') || type.startsWith('session') || type.startsWith('task') || type.startsWith('impact')) {
@@ -107,6 +109,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   IconData _icon(String type) {
     if (type.startsWith('certificate')) return Icons.workspace_premium_outlined;
+    if (type.startsWith('profile')) return Icons.badge_outlined;
     if (type.startsWith('registration') || type.startsWith('program')) return Icons.how_to_reg_outlined;
     if (type.startsWith('task')) return Icons.assignment_outlined;
     if (type.startsWith('impact') || type.startsWith('survey')) return Icons.insights;

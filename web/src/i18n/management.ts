@@ -1,5 +1,13 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  profileRequests: {
+    title: 'طلبات تعديل البيانات', subtitle: 'المستخدم لا يعدّل بياناته بنفسه: عند وجود بيان خاطئ أو ناقص يرسل طلباً من «حسابي» في التطبيق، وتراجعه أنت هنا.',
+    tabs: { pending: 'بانتظار المراجعة', resolved: 'تمت مراجعتها' }, kinds: { wrong: 'بيانات خاطئة', missing: 'بيانات ناقصة', update: 'تحديث' }, current: 'الحالية', requested: 'المطلوبة', notRecorded: 'غير مسجّلة',
+    applyNow: 'طبّق التعديل على الملف الشخصي فور الموافقة', manualHint: 'هذا الحقل يُعدَّل يدوياً من ملف الموظف (بيانات وظيفية أو رقم تعريف) — وافق ثم حدّثه.', notePlaceholder: 'ملاحظة للمستخدم (اختيارية)',
+    approve: 'موافقة', approveApply: 'موافقة وتطبيق', reject: 'رفض', confirmReject: 'تأكيد الرفض', openProfile: 'فتح ملف الموظف', applied: 'طُبّق على الملف',
+    statuses: { approved: 'تمت الموافقة', rejected: 'مرفوض', cancelled: 'ألغاه المستخدم' }, emptyPending: 'لا توجد طلبات بانتظار المراجعة 🎉', emptyResolved: 'لا توجد طلبات سابقة',
+  },
+
   testAccounts: {
     subtitle: 'حسابات جاهزة لتجربة التطبيق: 4 متدربين ومدربان و4 برامج، مع بيان واضح لما أُسند لكل حساب.',
     create: 'إنشاء حسابات الاختبار', refresh: 'تحديث الإسنادات', emptyTitle: 'لم تُنشأ حسابات الاختبار بعد', emptyText: 'اضغط «إنشاء حسابات الاختبار» لإضافة 4 متدربين ومدربين و4 برامج مرقّمة مع إسنادها.',
@@ -211,6 +219,14 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  profileRequests: {
+    title: 'Data change requests', subtitle: 'Users cannot edit their own data: when something is wrong or missing they send a request from “My account” in the app, and you review it here.',
+    tabs: { pending: 'Waiting for review', resolved: 'Reviewed' }, kinds: { wrong: 'Wrong data', missing: 'Missing data', update: 'Update' }, current: 'Current', requested: 'Requested', notRecorded: 'Not recorded',
+    applyNow: 'Apply the change to the profile as soon as it is approved', manualHint: 'This field is corrected by hand in the employee file (employment data or an ID number) — approve, then update it.', notePlaceholder: 'Note for the user (optional)',
+    approve: 'Approve', approveApply: 'Approve & apply', reject: 'Reject', confirmReject: 'Confirm rejection', openProfile: 'Open employee file', applied: 'Applied to the profile',
+    statuses: { approved: 'Approved', rejected: 'Rejected', cancelled: 'Withdrawn by the user' }, emptyPending: 'No requests waiting for review 🎉', emptyResolved: 'No earlier requests',
+  },
+
   testAccounts: {
     subtitle: 'Ready-made accounts for trying the app: 4 trainees, 2 trainers and 4 programs, with a clear statement of what each account is assigned to.',
     create: 'Create test accounts', refresh: 'Refresh assignments', emptyTitle: 'Test accounts have not been created yet', emptyText: 'Press “Create test accounts” to add 4 trainees, 2 trainers and 4 numbered programs with their assignments.',
