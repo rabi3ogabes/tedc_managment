@@ -70,6 +70,9 @@ class CertificateService
                 'label' => __('messages.certificate.evaluation'),
             ],
         ];
+        if ($program->has_course) {
+            $checks[] = ['key' => 'course', 'passed' => (bool) $registration->course_completed, 'label' => __('messages.certificate.course', ['percent' => round($registration->course_percent), 'required' => $program->course_completion_percent])];
+        }
 
         return ['eligible' => collect($checks)->every('passed'), 'checks' => $checks];
     }

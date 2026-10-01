@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'program_id', 'employee_id', 'nomination_id', 'source', 'status', 'eligibility_snapshot', 'approved_by', 'approved_at',
-    'completed_at', 'attendance_percent', 'tasks_completed', 'evaluation_completed', 'certificate_status', 'impact_score', 'notes',
+    'completed_at', 'attendance_percent', 'tasks_completed', 'evaluation_completed', 'certificate_status', 'impact_score', 'notes', 'course_percent', 'course_completed',
 ])]
 class Registration extends Model
 {
@@ -52,6 +52,8 @@ class Registration extends Model
             'impact_score' => 'float',
             'tasks_completed' => 'boolean',
             'evaluation_completed' => 'boolean',
+            'course_completed' => 'boolean',
+            'course_percent' => 'float',
         ];
     }
 

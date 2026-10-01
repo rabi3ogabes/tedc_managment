@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
 use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
+use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -46,6 +47,7 @@ use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
+use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
@@ -53,6 +55,7 @@ use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Services\FileStorage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,6 +72,14 @@ Route::prefix('v1')->group(function () {
 
     // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
     Route::get('public/health', HealthController::class);
+
+    // Browser uploads of big course files with the local storage driver (Supabase has its own signed upload URLs).
+    Route::put('uploads/{bucket}/{path}', function (string $bucket, string $path, FileStorage $files) {
+        abort_if(str_contains($path, '..'), 422);
+        $files->putStream($bucket, $path, fopen('php://input', 'rb'));
+
+        return response()->json(['message' => 'ok']);
+    })->where('path', '.*')->middleware('signed')->name('uploads.local');
 
     // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
@@ -144,6 +155,13 @@ Route::prefix('v1')->group(function () {
             Route::get('materials/{material}/download', [MyTrainingController::class, 'downloadMaterial']);
             Route::get('calendar', [MyTrainingController::class, 'calendar']);
             Route::get('calendar.ics', [MyTrainingController::class, 'ics']);
+            Route::get('registrations/{registration}/course', [MyCourseController::class, 'outline']);
+            Route::get('lessons/{lesson}', [MyCourseController::class, 'lesson']);
+            Route::post('lessons/{lesson}/heartbeat', [MyCourseController::class, 'heartbeat'])->middleware('throttle:120,1');
+            Route::post('lessons/{lesson}/slide', [MyCourseController::class, 'slide'])->middleware('throttle:240,1');
+            Route::post('lessons/{lesson}/complete', [MyCourseController::class, 'complete']);
+            Route::post('lessons/{lesson}/quiz', [MyCourseController::class, 'quiz'])->middleware('throttle:30,1');
+            Route::post('lessons/{lesson}/survey', [MyCourseController::class, 'survey']);
             Route::get('sessions/{session}', [MyTrainingController::class, 'session']);
             Route::post('sessions/{session}/join', [MyTrainingController::class, 'joinSession'])->middleware('throttle:scan');
             Route::post('sessions/{session}/leave', [MyTrainingController::class, 'leaveSession'])->middleware('throttle:scan');
@@ -355,6 +373,27 @@ Route::prefix('v1')->group(function () {
             });
 
             // Attendance (trainers & coordinators)
+            // Online course builder (video, presentations, quizzes, surveys, articles) and learning analytics
+            Route::middleware('permission:programs.view')->group(function () {
+                Route::get('programs/{program}/course', [CourseController::class, 'show']);
+                Route::get('programs/{program}/course/analytics', [CourseController::class, 'analytics']);
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::put('programs/{program}/course/settings', [CourseController::class, 'updateSettings']);
+                Route::post('programs/{program}/course/modules', [CourseController::class, 'storeModule']);
+                Route::put('programs/{program}/course/reorder', [CourseController::class, 'reorder']);
+                Route::put('course/modules/{module}', [CourseController::class, 'updateModule']);
+                Route::delete('course/modules/{module}', [CourseController::class, 'destroyModule']);
+                Route::post('course/modules/{module}/lessons', [CourseController::class, 'storeLesson']);
+                Route::put('course/lessons/{lesson}', [CourseController::class, 'updateLesson']);
+                Route::delete('course/lessons/{lesson}', [CourseController::class, 'destroyLesson']);
+                Route::post('course/lessons/{lesson}/upload-url', [CourseController::class, 'uploadUrl'])->middleware('throttle:60,1');
+                Route::post('course/lessons/{lesson}/file', [CourseController::class, 'fileComplete']);
+                Route::put('course/lessons/{lesson}/link', [CourseController::class, 'setLink']);
+                Route::delete('course/lessons/{lesson}/file', [CourseController::class, 'removeFile']);
+                Route::put('course/lessons/{lesson}/questions', [CourseController::class, 'saveQuestions']);
+                Route::put('course/lessons/{lesson}/survey-questions', [CourseController::class, 'saveSurveyQuestions']);
+            });
             Route::get('programs/{program}/remote-tracking', [RemoteProgramController::class, 'tracking'])->middleware('permission:programs.view');
             Route::post('program-builder/slots', [RemoteProgramController::class, 'slots'])->middleware('permission:programs.manage');
             Route::post('sessions/{session}/remind', [RemoteProgramController::class, 'remind'])->middleware('permission:attendance.manage');

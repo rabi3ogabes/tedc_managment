@@ -127,6 +127,52 @@ class FileStorage
         return URL::temporarySignedRoute('files.local', now()->addSeconds($ttl), ['bucket' => $bucketName, 'path' => $path]);
     }
 
+    /**
+     * A one-time place to upload a big file to straight from the browser (the API itself cannot take large bodies
+     * on serverless hosting). Supabase: a signed upload URL; local driver: a signed route of this API.
+     *
+     * @return array{url: string, method: 'PUT', mode: 'form'|'raw', headers: array<string, string>}
+     */
+    public function signedUpload(string $bucket, string $path, string $mime): array
+    {
+        $bucketName = $this->bucket($bucket);
+
+        if ($this->usesSupabase()) {
+            $res = $this->supabase()->withHeaders(['x-upsert' => 'true'])->post($this->endpoint("object/upload/sign/{$bucketName}/{$path}"))->throw()->json();
+
+            return ['url' => rtrim(config('tedc.supabase.url'), '/').'/storage/v1'.$res['url'], 'method' => 'PUT', 'mode' => 'form', 'headers' => ['x-upsert' => 'true']];
+        }
+
+        $signed = URL::temporarySignedRoute('uploads.local', now()->addMinutes(30), ['bucket' => $bucketName, 'path' => $path]);
+        $parts = parse_url($signed);
+
+        return ['url' => $parts['path'].'?'.$parts['query'], 'method' => 'PUT', 'mode' => 'raw', 'headers' => ['Content-Type' => $mime]];
+    }
+
+    /** Stores the body of a signed local upload (development). */
+    public function putStream(string $bucket, string $path, $stream): void
+    {
+        $target = Storage::disk('local')->path("{$bucket}/{$path}");
+        if (! is_dir(dirname($target))) {
+            mkdir(dirname($target), 0775, true);
+        }
+        $out = fopen($target, 'wb');
+        stream_copy_to_stream($stream, $out);
+        fclose($out);
+    }
+
+    public function exists(string $bucket, string $path): bool
+    {
+        $bucketName = $this->bucket($bucket);
+
+        if ($this->usesSupabase()) {
+            return $this->supabase()->head($this->endpoint("object/info/{$bucketName}/{$path}"))->successful()
+                || $this->supabase()->get($this->endpoint("object/info/{$bucketName}/{$path}"))->successful();
+        }
+
+        return Storage::disk('local')->exists("{$bucketName}/{$path}");
+    }
+
     private function bucket(string $key): string
     {
         return config("tedc.supabase.buckets.{$key}") ?? $key;

@@ -23,7 +23,8 @@ Route::get('/files/{bucket}/{path}', function (string $bucket, string $path) {
     // SVGs are served sandboxed so an uploaded or generated image can never run script.
     $headers = str_ends_with(strtolower($path), '.svg') ? ['Content-Security-Policy' => 'sandbox; default-src \'none\'; style-src \'unsafe-inline\''] : [];
 
-    return Storage::disk('local')->response("{$bucket}/{$path}", null, $headers);
+    // A file response supports Range requests, which video seeking needs.
+    return response()->file(Storage::disk('local')->path("{$bucket}/{$path}"), $headers);
 })->where('path', '.*')->middleware('signed')->name('files.local');
 
 Route::fallback(function (Request $request) use ($spa) {

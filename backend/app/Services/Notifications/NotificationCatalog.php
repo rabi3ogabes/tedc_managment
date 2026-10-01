@@ -45,6 +45,12 @@ class NotificationCatalog
                 'body_ar' => 'بدأت جلسة «{{session}}». سجّل حضورك الآن قبل أن يُحتسب تأخير أكبر.', 'body_en' => '"{{session}}" has started. Check in now to avoid being marked late.'],
             'task.approved' => ['group' => 'task', 'name_ar' => 'المهام: اعتماد', 'name_en' => 'Task: approved', 'title_ar' => 'تم اعتماد مهمتك', 'title_en' => 'Your task was approved', 'body_ar' => '{{program}}', 'body_en' => '{{program}}'],
             'task.needs_changes' => ['group' => 'task', 'name_ar' => 'المهام: مطلوب تعديل', 'name_en' => 'Task: changes requested', 'title_ar' => 'مطلوب تعديل على مهمتك', 'title_en' => 'Changes requested on your task', 'body_ar' => '{{program}}', 'body_en' => '{{program}}'],
+            'course.completed' => ['group' => 'course', 'name_ar' => 'إتمام المحتوى التدريبي', 'name_en' => 'Course completed',
+                'title_ar' => 'أتممت المحتوى التدريبي 🎉', 'title_en' => 'You completed the course 🎉',
+                'body_ar' => 'أنهيت كل دروس برنامج «{{program}}».', 'body_en' => 'You finished every lesson of "{{program}}".'],
+            'course.nudge' => ['group' => 'course', 'name_ar' => 'تذكير بمتابعة المحتوى', 'name_en' => 'Course reminder',
+                'title_ar' => 'أكمل من حيث توقفت', 'title_en' => 'Pick up where you left off',
+                'body_ar' => 'محتوى برنامج «{{program}}» ينتظرك — تبقّى لك القليل.', 'body_en' => 'The content of "{{program}}" is waiting for you — you are close.'],
             'certificate.issued' => ['group' => 'certificate', 'name_ar' => 'إصدار الشهادة', 'name_en' => 'Certificate issued',
                 'title_ar' => 'تم إصدار شهادتك', 'title_en' => 'Your certificate is ready',
                 'body_ar' => 'تهانينا! صدرت شهادة إتمام برنامج «{{program}}».', 'body_en' => 'Congratulations! Your certificate for "{{program}}" has been issued.'],
@@ -77,6 +83,6 @@ class NotificationCatalog
     public static function groups(): array
     {
         return ['registration' => ['ar' => 'التسجيل والإسناد', 'en' => 'Registration & assignment'], 'program' => ['ar' => 'البرامج', 'en' => 'Programs'], 'survey' => ['ar' => 'الاستبيانات', 'en' => 'Surveys'],
-            'session' => ['ar' => 'الجلسات والحضور', 'en' => 'Sessions & attendance'], 'task' => ['ar' => 'المهام', 'en' => 'Tasks'], 'certificate' => ['ar' => 'الشهادات', 'en' => 'Certificates'], 'account' => ['ar' => 'الحساب', 'en' => 'Account'], 'custom' => ['ar' => 'قوالب مخصصة', 'en' => 'Custom templates']];
+            'session' => ['ar' => 'الجلسات والحضور', 'en' => 'Sessions & attendance'], 'task' => ['ar' => 'المهام', 'en' => 'Tasks'], 'certificate' => ['ar' => 'الشهادات', 'en' => 'Certificates'], 'course' => ['ar' => 'المحتوى التدريبي', 'en' => 'Online course'], 'account' => ['ar' => 'الحساب', 'en' => 'Account'], 'custom' => ['ar' => 'قوالب مخصصة', 'en' => 'Custom templates']];
     }
 }

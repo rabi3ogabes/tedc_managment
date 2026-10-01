@@ -27,6 +27,7 @@ class NotificationRoute
             $group === 'task' && $id('task_id') !== null => '/tasks/'.$id('task_id'),
             $type === 'impact.survey' && $id('survey_id') !== null => '/surveys/'.$id('survey_id'),
             $group === 'needs_survey' && $id('needs_survey_id') !== null => '/needs-surveys/'.$id('needs_survey_id'),
+            $group === 'course' && $id('registration_id') !== null => '/courses/'.$id('registration_id'),
             $group === 'certificate' => '/certificates',
             $group === 'profile' => '/account',
             $type === 'program.invite' && $id('program_code') !== null => '/programs/'.$id('program_code'),

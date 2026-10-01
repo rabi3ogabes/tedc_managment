@@ -268,7 +268,7 @@ class CertificateTemplateService
             return null;
         }
         try {
-            return $this->storage->get('certificates', $path);
+            return $this->storage->get('documents', $path);
         } catch (Throwable) {
             return null;
         }
@@ -276,6 +276,6 @@ class CertificateTemplateService
 
     public function readFile(string $path): string
     {
-        return $this->storage->get('certificates', $path);
+        return $this->storage->get('documents', $path);
     }
 }

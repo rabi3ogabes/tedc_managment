@@ -103,8 +103,8 @@ class CertificateTemplateController extends Controller
 
         $this->forget($template->background_path);
         $this->forget($template->source_pdf_path);
-        $path = $this->storage->upload($request->file('image'), 'certificates', "templates/{$template->id}");
-        $pdf = $request->file('source_pdf') ? $this->storage->upload($request->file('source_pdf'), 'certificates', "templates/{$template->id}/source") : null;
+        $path = $this->storage->upload($request->file('image'), 'documents', "templates/{$template->id}");
+        $pdf = $request->file('source_pdf') ? $this->storage->upload($request->file('source_pdf'), 'documents', "templates/{$template->id}/source") : null;
 
         $template->update(array_filter([
             'background_path' => $path, 'source_pdf_path' => $pdf,
@@ -128,7 +128,7 @@ class CertificateTemplateController extends Controller
     {
         $request->validate(['image' => ['required', 'file', 'mimes:png,jpg,jpeg,webp', 'max:4096']]);
         $name = Str::uuid().'.'.strtolower($request->file('image')->getClientOriginalExtension() ?: 'png');
-        $this->storage->put('certificates', "templates/{$template->id}/assets/{$name}", (string) file_get_contents($request->file('image')->getRealPath()), $request->file('image')->getMimeType() ?? 'image/png');
+        $this->storage->put('documents', "templates/{$template->id}/assets/{$name}", (string) file_get_contents($request->file('image')->getRealPath()), $request->file('image')->getMimeType() ?? 'image/png');
 
         return response()->json(['data' => ['name' => $name]], 201);
     }
@@ -228,11 +228,11 @@ class CertificateTemplateController extends Controller
             if ($from->background_path) {
                 $name = basename($from->background_path);
                 $path = "templates/{$to->id}/{$name}";
-                $this->storage->put('certificates', $path, $this->templates->readFile($from->background_path), 'image/png');
+                $this->storage->put('documents', $path, $this->templates->readFile($from->background_path), 'image/png');
                 $to->update(['background_path' => $path]);
             }
             foreach (collect($from->elements ?? [])->where('type', 'image')->pluck('src')->filter()->unique() as $src) {
-                $this->storage->put('certificates', "templates/{$to->id}/assets/{$src}", $this->templates->readFile("templates/{$from->id}/assets/{$src}"), 'image/png');
+                $this->storage->put('documents', "templates/{$to->id}/assets/{$src}", $this->templates->readFile("templates/{$from->id}/assets/{$src}"), 'image/png');
             }
         } catch (Throwable $e) {
             report($e);
@@ -243,7 +243,7 @@ class CertificateTemplateController extends Controller
     {
         if ($path) {
             try {
-                $this->storage->delete('certificates', $path);
+                $this->storage->delete('documents', $path);
             } catch (Throwable) {
             }
         }
