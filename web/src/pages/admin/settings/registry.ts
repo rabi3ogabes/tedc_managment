@@ -1,4 +1,4 @@
-import { BellRing, BellPlus, CalendarDays, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { BellRing, BellPlus, CalendarDays, Clock, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -20,6 +20,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'templates', group: 'communication', permission: ['announcements.manage'], icon: BellPlus, component: lazy(() => import('@/pages/admin/notifications/TemplatesManager')), keywords: ['templates', 'notification', 'message', 'wording', 'قوالب', 'إشعار', 'رسالة', 'نص'] },
   { id: 'labels', group: 'identity', permission: ['settings.manage'], icon: Languages, component: lazy(() => import('@/pages/admin/LabelManager')), keywords: ['labels', 'names', 'menu', 'button', 'rename', 'text', 'translation', 'أسماء', 'قائمة', 'زر', 'تسمية', 'نصوص'] },
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
+  { id: 'trainingday', group: 'training', permission: ['settings.manage'], icon: Clock, component: lazy(() => import('@/pages/admin/TrainingDaySettings')), keywords: ['day', 'hours', 'time', 'start', 'end', 'room', 'session', 'يوم', 'ساعات', 'وقت', 'بداية', 'نهاية', 'قاعة', 'جلسة'] },
   { id: 'attendance', group: 'training', permission: ['settings.manage'], icon: MapPinCheck, component: lazy(() => import('@/pages/admin/AttendanceSettings')), keywords: ['attendance', 'location', 'gps', 'geofence', 'presence', 'حضور', 'موقع', 'تحقق'] },
   { id: 'security', group: 'security', permission: ['settings.manage'], icon: LockKeyhole, component: lazy(() => import('@/pages/admin/SessionLockSettings')), keywords: ['security', 'lock', 'idle', 'session', 'password', 'timeout', 'أمان', 'قفل', 'جلسة', 'كلمة المرور'] },
   { id: 'testaccounts', group: 'training', permission: ['users.manage'], icon: FlaskConical, component: lazy(() => import('@/pages/admin/TestAccounts')), keywords: ['test', 'demo', 'trainee', 'trainer', 'accounts', 'app', 'اختبار', 'تجريبي', 'متدرب', 'مدرب', 'حسابات'] },

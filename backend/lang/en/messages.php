@@ -44,6 +44,7 @@ return [
         'bad_file' => 'This file type is not supported for this lesson.',
         'one_correct' => 'Question :n needs a correct answer (exactly one for this type).',
     ],
+    'training_day' => ['outside' => 'A session must fall within the training day (:from to :to).', 'order' => 'The day must end after it starts.'],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'survey_first' => 'Fill in the program survey first to download your certificate.',

@@ -12,6 +12,7 @@ use App\Services\CalendarService;
 use App\Services\RoomService;
 use App\Services\TrainerCertificateService;
 use App\Services\TrainerService;
+use App\Services\TrainingDaySettings;
 use App\Support\RemoteProgramRules;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -132,6 +133,7 @@ class SessionController extends Controller
     {
         $start = Carbon::parse($startsAt);
         $end = Carbon::parse($endsAt);
+        app(TrainingDaySettings::class)->assertWithinDay($start, $end);
         if ($roomId) {
             $this->rooms->assertBookable($roomId, $start, $end, $exceptSessionId);
         }

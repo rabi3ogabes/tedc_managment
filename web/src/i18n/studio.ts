@@ -1,5 +1,12 @@
 /** Certificate designer, remote programs studio and session tracking. */
 export const studioAr = {
+  day: {
+    subtitle: 'ساعات اليوم التدريبي وقاعدة «جلسة واحدة لكل قاعة في اليوم».', saved: 'تم حفظ إعدادات اليوم التدريبي.', hoursTitle: 'ساعات اليوم التدريبي', start: 'بداية اليوم', end: 'نهاية اليوم', hours: 'ساعات',
+    enforce: 'إلزام الجلسات بساعات اليوم', enforceHint: 'لا تُقبل جلسة تبدأ قبل {{from}} أو تنتهي بعد {{to}}. ويبدأ المخطِّط الذكي الجلسات عند بداية اليوم بطول اليوم كاملاً.',
+    oneSession: 'جلسة واحدة لكل قاعة في اليوم', oneSessionHint: 'متى حُجزت قاعة بجلسة في يوم ما فلا تُحجز لجلسة أخرى في اليوم نفسه، وتظهر محجوزة في اقتراحات القاعات.',
+    issuesTitle: 'جلسات قادمة تخالف هذه القواعد', issueOutside: '{{count}} جلسة خارج ساعات اليوم', issueShared: '{{count}} قاعة لديها أكثر من جلسة في اليوم نفسه', issuesHint: 'لا تتأثر الجلسات القائمة، لكن لا يمكن إنشاء جلسات جديدة مخالفة.',
+    applies: 'تُطبَّق القواعد عند إنشاء الجلسات أو تعديلها، وفي المخطِّط الذكي للبرامج.',
+  },
   nav: { templates: 'مصمّم الشهادات', remote: 'برنامج عن بُعد' },
   screen: {
     capacity: 'السعة {{count}} مقعداً', today: 'اليوم', offline: 'انقطع الاتصال — يُعاد المحاولة', updating: 'تحديث مباشر', notFound: 'رابط الشاشة غير صالح',
@@ -77,6 +84,13 @@ export const studioAr = {
 }
 
 export const studioEn: typeof studioAr = {
+  day: {
+    subtitle: 'The hours of the training day and the “one session per room per day” rule.', saved: 'Training day settings saved.', hoursTitle: 'Training day hours', start: 'Day starts', end: 'Day ends', hours: 'hours',
+    enforce: 'Keep sessions within the day hours', enforceHint: 'A session that starts before {{from}} or ends after {{to}} is refused. The smart planner starts sessions at the start of the day and fills the whole day.',
+    oneSession: 'One session per room per day', oneSessionHint: 'Once a room has a session on a day it cannot be booked for another one the same day, and it shows as taken in room suggestions.',
+    issuesTitle: 'Upcoming sessions that break these rules', issueOutside: '{{count}} sessions outside the day hours', issueShared: '{{count}} rooms with more than one session on the same day', issuesHint: 'Existing sessions are not changed, but new ones that break the rules cannot be created.',
+    applies: 'The rules apply when sessions are created or edited and in the smart program planner.',
+  },
   nav: { templates: 'Certificate designer', remote: 'Remote program' },
   screen: {
     capacity: '{{count}} seats', today: 'Today', offline: 'Connection lost — retrying', updating: 'Live', notFound: 'This screen link is not valid',

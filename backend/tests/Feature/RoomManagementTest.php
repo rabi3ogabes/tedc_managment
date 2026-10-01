@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\TrainingRoom;
+use App\Services\TrainingDaySettings;
 use Carbon\CarbonImmutable;
 use Tests\TestCase;
 
@@ -48,6 +49,8 @@ class RoomManagementTest extends TestCase
     public function test_sessions_cannot_double_book_or_use_an_unavailable_room(): void
     {
         $admin = $this->makeUser(Role::CENTER_ADMIN);
+        // This test is about overlapping slots, so the program-day rules are off.
+        app(TrainingDaySettings::class)->update(['enforce_window' => false, 'one_session_per_room_per_day' => false]);
         $room = $this->room();
         $program = $this->makeProgram();
         $url = "/api/v1/admin/programs/{$program->id}/sessions";
@@ -66,6 +69,31 @@ class RoomManagementTest extends TestCase
 
         $room->update(['status' => 'maintenance']);
         $this->asUser($admin)->postJson($url, $payload('2027-03-08 09:00', '2027-03-08 10:00'))->assertUnprocessable()->assertJsonPath('code', 'room_unavailable');
+    }
+
+    public function test_the_program_day_runs_8_to_1_with_one_session_per_room_per_day(): void
+    {
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $room = $this->room();
+        $program = $this->makeProgram();
+        $url = "/api/v1/admin/programs/{$program->id}/sessions";
+        $payload = fn (string $start, string $end) => ['title_ar' => 'ج', 'title_en' => 'S', 'starts_at' => $start, 'ends_at' => $end, 'training_room_id' => $room->id];
+
+        $this->asUser($admin)->getJson('/api/v1/admin/settings/training-day')->assertOk()->assertJsonPath('data.settings.day_start', '08:00')->assertJsonPath('data.settings.day_end', '13:00')->assertJsonPath('data.hours', 5);
+
+        // Outside the program day.
+        $this->asUser($admin)->postJson($url, $payload('2027-03-07 14:00', '2027-03-07 16:00'))->assertUnprocessable()->assertJsonPath('code', 'outside_training_day');
+        $this->asUser($admin)->postJson($url, $payload('2027-03-07 07:00', '2027-03-07 09:00'))->assertUnprocessable()->assertJsonPath('code', 'outside_training_day');
+
+        // One session per room per day, even when the hours do not overlap.
+        $this->asUser($admin)->postJson($url, $payload('2027-03-07 08:00', '2027-03-07 10:00'))->assertCreated();
+        $this->asUser($admin)->postJson($url, $payload('2027-03-07 11:00', '2027-03-07 13:00'))->assertUnprocessable()->assertJsonPath('code', 'room_conflict');
+        $this->asUser($admin)->postJson($url, $payload('2027-03-08 08:00', '2027-03-08 13:00'))->assertCreated();
+
+        // The rules can be changed or switched off.
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/training-day', ['day_start' => '09:00', 'day_end' => '14:00', 'one_session_per_room_per_day' => false])->assertOk();
+        $this->asUser($admin)->postJson($url, $payload('2027-03-07 11:00', '2027-03-07 14:00'))->assertCreated();
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/training-day', ['day_start' => '15:00', 'day_end' => '14:00'])->assertUnprocessable();
     }
 
     public function test_availability_ranks_rooms_by_fit_and_flags_conflicts(): void

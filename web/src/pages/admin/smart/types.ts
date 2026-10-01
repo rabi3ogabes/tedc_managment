@@ -22,6 +22,7 @@ export type BuilderOptions = {
   categories: { id: string; slug: string; name_ar: string; name_en: string }[]
   skills: { id: string; code: string; name_ar: string; name_en: string; category: string }[]
   session_hours: number
+  day: { day_start: string; day_end: string; enforce_window: boolean; one_session_per_room_per_day: boolean }
 }
 
 export type AudiencePreview = {

@@ -110,7 +110,8 @@ class ProgramPlanner
             'job_title_ids' => $needs->pluck('target_job_title_id')->filter()->unique()->all(),
         ]);
 
-        $sessions = $this->plan($hours, $from ?? CarbonImmutable::today()->addDays(14), $capacity, $skillModel ? [$skillModel->code] : [], '09:00', self::SESSION_HOURS, $remote);
+        $day = app(TrainingDaySettings::class);
+        $sessions = $this->plan($hours, $from ?? CarbonImmutable::today()->addDays(14), $capacity, $skillModel ? [$skillModel->code] : [], $day->all()['day_start'], (int) floor($day->hours()), $remote);
         $first = $sessions[0] ?? null;
         $last = $sessions ? end($sessions) : null;
 
@@ -245,6 +246,7 @@ class ProgramPlanner
                     $this->calendar->approveSpan($start, $end, $approvalReason, $actor->id);
                 }
                 $this->calendar->assertTrainingAllowed($start, $end);
+                app(TrainingDaySettings::class)->assertWithinDay($start, $end);
                 if (! empty($session['training_room_id']) && ! (($data['delivery_mode'] ?? '') === 'online' || ($session['mode'] ?? null) === 'online')) {
                     $this->rooms->assertBookable($session['training_room_id'], $start, $end);
                 }

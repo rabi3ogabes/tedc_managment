@@ -16,6 +16,9 @@ class RoomService
     /** Sessions overlapping [start, end) in the room, ignoring cancelled ones and an optional session. */
     public function conflicts(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptSessionId = null): Collection
     {
+        // With "one session per room per day" the whole day of the room is taken, not only the hours of the session.
+        [$start, $end] = $this->span($start, $end);
+
         return ProgramSession::with('program:id,code,title_ar,title_en')
             ->where('training_room_id', $roomId)
             ->where('status', '!=', 'cancelled')
@@ -24,6 +27,18 @@ class RoomService
             ->when($exceptSessionId, fn ($q, $id) => $q->where('id', '!=', $id))
             ->orderBy('starts_at')
             ->get();
+    }
+
+    /** @return array{0: CarbonInterface, 1: CarbonInterface} */
+    private function span(CarbonInterface $start, CarbonInterface $end): array
+    {
+        if (! app(TrainingDaySettings::class)->oneSessionPerRoomPerDay()) {
+            return [$start, $end];
+        }
+        $tz = config('app.timezone');
+        $day = $start->copy()->timezone($tz);
+
+        return [$day->copy()->startOfDay()->utc(), $day->copy()->endOfDay()->utc()];
     }
 
     /**
@@ -59,6 +74,7 @@ class RoomService
         $layout = $need['layout'] ?? null;
         $required = array_values(array_unique($need['equipment'] ?? []));
 
+        [$start, $end] = $this->span($start, $end);
         $booked = ProgramSession::with('program:id,code,title_ar,title_en')
             ->whereNotNull('training_room_id')->where('status', '!=', 'cancelled')
             ->where('starts_at', '<', $end)->where('ends_at', '>', $start)

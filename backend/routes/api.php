@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainerController;
+use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -589,6 +590,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
+                Route::get('settings/training-day', [TrainingDaySettingsController::class, 'show']);
+                Route::put('settings/training-day', [TrainingDaySettingsController::class, 'update']);
                 Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);
                 Route::put('settings/attendance', [AttendanceSettingsController::class, 'update']);
 

@@ -13,6 +13,7 @@ use App\Models\Skill;
 use App\Services\AudienceRules;
 use App\Services\NeedsSurveys\SurveyAudience;
 use App\Services\ProgramPlanner;
+use App\Services\TrainingDaySettings;
 use App\Support\RemoteProgramRules;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -47,7 +48,8 @@ class ProgramBuilderController extends Controller
             ],
             'categories' => ProgramCategory::orderBy('name_ar')->get(['id', 'slug', 'name_ar', 'name_en', 'color']),
             'skills' => Skill::orderBy('name_ar')->get(['id', 'code', 'name_ar', 'name_en', 'category']),
-            'session_hours' => ProgramPlanner::SESSION_HOURS,
+            'session_hours' => (int) floor(app(TrainingDaySettings::class)->hours()),
+            'day' => app(TrainingDaySettings::class)->all(),
         ]]);
     }
 
@@ -76,7 +78,7 @@ class ProgramBuilderController extends Controller
             'skill_ids' => ['nullable', 'array'], 'skill_ids.*' => ['uuid'],
         ]);
         $codes = Skill::whereIn('id', $data['skill_ids'] ?? [])->pluck('code')->all();
-        $sessions = $this->planner->plan((float) $data['total_hours'], CarbonImmutable::parse($data['from']), (int) $data['capacity'], $codes, $data['start_time'] ?? '09:00', (int) ($data['session_hours'] ?? ProgramPlanner::SESSION_HOURS), (bool) ($data['remote'] ?? false));
+        $sessions = $this->planner->plan((float) $data['total_hours'], CarbonImmutable::parse($data['from']), (int) $data['capacity'], $codes, $data['start_time'] ?? app(TrainingDaySettings::class)->all()['day_start'], (int) ($data['session_hours'] ?? floor(app(TrainingDaySettings::class)->hours())), (bool) ($data['remote'] ?? false));
 
         return response()->json(['data' => ['sessions' => $sessions, 'trainers' => $this->planner->trainerSuggestions($codes, $sessions[0] ?? null)]]);
     }

@@ -77,7 +77,8 @@ class ProgramBuilderTest extends TestCase
         $this->assertSame(2, $d['cohorts'], '31 people are split into two cohorts of at most 30');
         $this->assertSame(20, $d['capacity']);
         $this->assertEquals(15, $d['total_hours'], 'urgent needs get the longer format');
-        $this->assertCount(5, $d['sessions']);
+        $this->assertCount(3, $d['sessions'], '15 hours in program days of 5 hours (08:00–13:00)');
+        $this->assertStringContainsString('08:00', $d['sessions'][0]['starts_at']);
         $this->assertSame($room->id, $d['sessions'][0]['training_room_id']);
         $this->assertSame([$school->id], array_slice($d['audience']['school_ids'], 0, 1));
         $this->assertSame('خبير', $d['trainers'][0]['name']);

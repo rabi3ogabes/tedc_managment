@@ -237,14 +237,14 @@ function SessionRow({ session, index, capacity, onChange, onRemove, remote }: { 
 }
 
 /** Step 4 - trainers and the session schedule. */
-function TeamStep({ draft, form, sessions, setSessions, trainers, setTrainers, suggestions, setSuggestions, allTrainers, skillIds, remote, audience }: {
-  remote: boolean; audience: Audience; draft: Draft; form: FormState; sessions: PlannedSession[]; setSessions: (s: PlannedSession[]) => void; trainers: { id: string; role: 'lead' | 'assistant' }[]
+function TeamStep({ draft, form, sessions, setSessions, trainers, setTrainers, suggestions, setSuggestions, allTrainers, skillIds, remote, audience, day }: {
+  day: BuilderOptions['day']; remote: boolean; audience: Audience; draft: Draft; form: FormState; sessions: PlannedSession[]; setSessions: (s: PlannedSession[]) => void; trainers: { id: string; role: 'lead' | 'assistant' }[]
   setTrainers: (t: { id: string; role: 'lead' | 'assistant' }[]) => void; suggestions: TrainerSuggestion[]; setSuggestions: (s: TrainerSuggestion[]) => void; allTrainers: Trainer[]; skillIds: string[]
 }) {
   const { t } = useTranslation()
   const [from, setFrom] = useState(() => (sessions[0]?.starts_at ?? draft.start_date ?? '').slice(0, 10))
-  const [startTime, setStartTime] = useState(() => (sessions[0] ? splitAt(sessions[0].starts_at).time : '09:00'))
-  const [sessionHours, setSessionHours] = useState('3')
+  const [startTime, setStartTime] = useState(() => (sessions[0] ? splitAt(sessions[0].starts_at).time : day.day_start))
+  const [sessionHours, setSessionHours] = useState(String(Math.max(1, Math.floor((Number(day.day_end.slice(0, 2)) * 60 + Number(day.day_end.slice(3)) - Number(day.day_start.slice(0, 2)) * 60 - Number(day.day_start.slice(3))) / 60))))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scheduled = sessions.reduce((sum, s) => sum + Math.max(0, (new Date(s.ends_at.replace(' ', 'T')).getTime() - new Date(s.starts_at.replace(' ', 'T')).getTime()) / 3_600_000), 0)
@@ -277,10 +277,10 @@ function TeamStep({ draft, form, sessions, setSessions, trainers, setTrainers, s
   const newSession = (): PlannedSession => {
     const last = sessions.at(-1)
     const date = last ? splitAt(last.starts_at).date : from || new Date().toISOString().slice(0, 10)
-    const day = new Date(date + 'T00:00:00')
-    day.setDate(day.getDate() + (last ? 1 : 0))
-    const d = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
-    return { sequence: sessions.length + 1, title_ar: `الجلسة ${sessions.length + 1}`, title_en: `Session ${sessions.length + 1}`, starts_at: join(d, startTime), ends_at: join(d, '12:00'), training_room_id: null, room: null, trainer_id: null, ...(remote ? { mode: 'online' as const } : {}) }
+    const dt = new Date(date + 'T00:00:00')
+    dt.setDate(dt.getDate() + (last ? 1 : 0))
+    const d = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+    return { sequence: sessions.length + 1, title_ar: `الجلسة ${sessions.length + 1}`, title_en: `Session ${sessions.length + 1}`, starts_at: join(d, startTime), ends_at: join(d, day.day_end), training_room_id: null, room: null, trainer_id: null, ...(remote ? { mode: 'online' as const } : {}) }
   }
 
   return (
@@ -514,7 +514,7 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
       {step === 'team' && draft && form && (
         <div className="space-y-4">
           <div><h2 className="text-xl font-bold text-navy-900">{t('mgmt.wizard.team.title')}</h2><p className="text-sm text-slate-500">{t('mgmt.wizard.team.hint')}</p></div>
-          <TeamStep remote={remote} audience={audience} draft={draft} form={form} sessions={sessions} setSessions={setSessions} trainers={trainers} setTrainers={setTrainers} suggestions={suggestions} setSuggestions={setSuggestions} allTrainers={trainerList.data?.data ?? []} skillIds={skillIds} />
+          <TeamStep day={opts.day} remote={remote} audience={audience} draft={draft} form={form} sessions={sessions} setSessions={setSessions} trainers={trainers} setTrainers={setTrainers} suggestions={suggestions} setSuggestions={setSuggestions} allTrainers={trainerList.data?.data ?? []} skillIds={skillIds} />
         </div>
       )}
 
