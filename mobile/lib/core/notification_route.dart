@@ -28,6 +28,7 @@ class NotificationRoute {
     if (group == 'profile') return '/account';
     if (id('registration_id').isNotEmpty) return '/registrations/${id('registration_id')}';
     if (['survey', 'program', 'registration'].contains(group) && id('program_id').isNotEmpty) return '/my-program/${id('program_id')}';
+    if (['registration', 'task', 'session', 'survey', 'program', 'impact'].contains(group)) return '/training';
     return route.isNotEmpty && _allowed.contains(route) ? route : '/notifications';
   }
 }

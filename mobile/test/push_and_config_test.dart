@@ -12,6 +12,17 @@ void main() {
       expect(PushService.routeFor({'type': 'announcement'}), '/notifications');
     });
 
+    test('opens the exact page the notification is about', () {
+      expect(PushService.routeFor({'type': 'session.attendance_open', 'route': '/scan', 'session_id': 's1'}), '/scan');
+      expect(PushService.routeFor({'type': 'session.attendance_missed', 'route': '/sessions/s1'}), '/sessions/s1');
+      expect(PushService.routeFor({'type': 'session.reminder', 'session_id': 's1'}), '/sessions/s1');
+      expect(PushService.routeFor({'type': 'task.approved', 'task_id': 't1'}), '/tasks/t1');
+      expect(PushService.routeFor({'type': 'impact.survey', 'survey_id': 'i1'}), '/surveys/i1');
+      expect(PushService.routeFor({'type': 'registration.approved', 'registration_id': 'r1'}), '/registrations/r1');
+      expect(PushService.routeFor({'type': 'survey.open', 'route': '/my-program/p1'}), '/my-program/p1');
+      expect(PushService.routeFor({'type': 'certificate.available'}), '/certificates');
+    });
+
     test('accepts only known routes from the server', () {
       expect(PushService.routeFor({'type': 'test', 'route': '/profile'}), '/profile');
       expect(PushService.routeFor({'type': 'test', 'route': 'https://evil.example'}), '/notifications');
