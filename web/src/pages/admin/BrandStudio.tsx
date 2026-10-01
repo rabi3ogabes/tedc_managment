@@ -259,11 +259,26 @@ export default function BrandStudio() {
                     ))}
                   </div>
                 </Field>
-                {draft.pattern.type === 'custom' && <ImageField kind="pattern" label={t('admin.brand.pattern.custom')} value={draft.pattern.image} aspect="aspect-[4/1]" onChange={(url) => update('pattern', { image: url })} />}
+                {draft.pattern.type === 'custom' && (
+                  <div className="space-y-4 rounded-2xl bg-ivory/70 p-4">
+                    <p className="text-xs leading-relaxed text-slate-500">{t('admin.brand.pattern.customHint')}</p>
+                    <ImageField kind="pattern" label={t('admin.brand.pattern.custom')} value={draft.pattern.image} aspect="aspect-[4/1]" contain onChange={(url) => update('pattern', { image: url })} />
+                    {draft.pattern.image && (
+                      <>
+                        <div className="flex gap-2">
+                          {(['tile', 'cover'] as const).map((r) => <button key={r} type="button" aria-pressed={(draft.pattern.repeat ?? 'tile') === r} onClick={() => update('pattern', { repeat: r })} className={clsx('flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition', (draft.pattern.repeat ?? 'tile') === r ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-800 hover:border-gold-400')}>{t(`admin.brand.pattern.${r}`)}</button>)}
+                        </div>
+                        <label className="flex cursor-pointer items-start gap-3"><input type="checkbox" className="mt-1 size-4 accent-gold-600" checked={!!draft.pattern.tint} onChange={(e) => update('pattern', { tint: e.target.checked ? draft.colors.accent : null })} /><span><span className="block text-sm font-semibold text-navy-900">{t('admin.brand.pattern.tintOn')}</span><span className="block text-xs text-slate-500">{t('admin.brand.pattern.tintHint')}</span></span></label>
+                        {draft.pattern.tint && <ColorField label={t('admin.brand.pattern.tintColor')} value={draft.pattern.tint} onChange={(v) => update('pattern', { tint: v })} />}
+                        <div><div className="mb-1 text-xs font-semibold text-slate-500">{t('admin.brand.pattern.previewTile')}</div><div className="pattern-bg h-24 rounded-xl border border-navy-100 bg-white" /></div>
+                      </>
+                    )}
+                  </div>
+                )}
                 {draft.pattern.type !== 'none' && draft.pattern.type !== 'custom' && <ColorField label={t('admin.brand.pattern.color')} value={draft.pattern.color} onChange={(v) => update('pattern', { color: v })} />}
                 {draft.pattern.type !== 'none' && <>
                   <SliderField label={t('admin.brand.pattern.opacity')} value={draft.pattern.opacity} min={0} max={100} unit="%" onChange={(v) => update('pattern', { opacity: v })} />
-                  <SliderField label={t('admin.brand.pattern.size')} value={draft.pattern.size} min={8} max={120} unit="px" onChange={(v) => update('pattern', { size: v })} />
+                  {!(draft.pattern.type === 'custom' && draft.pattern.repeat === 'cover') && <SliderField label={t('admin.brand.pattern.size')} value={draft.pattern.size} min={8} max={draft.pattern.type === 'custom' ? 400 : 120} unit="px" onChange={(v) => update('pattern', { size: v })} />}
                 </>}
               </Panel>
             )}

@@ -109,7 +109,7 @@ export function ImageField({ label, value, kind, onChange, aspect = 'aspect-vide
             <span className="text-xs font-semibold">{busy ? t('admin.brand.uploading') : t('admin.brand.upload')}</span>
           </button>
         )}
-        <input ref={input} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = '' }} />
+        <input ref={input} type="file" accept={kind === 'pattern' ? 'image/png,image/jpeg,image/webp,image/svg+xml' : 'image/*'} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = '' }} />
       </div>
       <input dir="ltr" className="input mt-2 py-1.5 text-xs" placeholder={t('admin.brand.orUrl')} value={value ?? ''} onChange={(e) => onChange(e.target.value.trim() || null)} />
       {error && <p className="mt-1 text-xs text-danger">{error}</p>}

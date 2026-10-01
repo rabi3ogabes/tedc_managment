@@ -13,7 +13,7 @@ export type Theme = {
   colors: { primary: string; accent: string; background: string; surface: string; text: string; link: string }
   buttons: { style: 'gradient' | 'solid' | 'outline'; radius: number; accent_text: string; uppercase: boolean }
   banners: { overlay_color: string; overlay_opacity: number; hero_images: (string | null)[]; page_banner_image: string | null; cta_style: 'gradient' | 'accent' | 'image' }
-  pattern: { type: PatternType; color: string; opacity: number; size: number; image: string | null }
+  pattern: { type: PatternType; color: string; opacity: number; size: number; image: string | null; tint?: string | null; repeat?: 'tile' | 'cover' }
   shape: { card_radius: number; glass_blur: number }
   identity: { name_ar: string; name_en: string; logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
   typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
@@ -43,7 +43,7 @@ export const DEFAULT_THEME: Theme = {
   colors: { primary: QATAR_GOV.alAdaam, accent: QATAR_GOV.dune, background: '#F8F6F2', surface: '#FFFFFF', text: QATAR_GOV.black, link: QATAR_GOV.alAdaam },
   buttons: { style: 'solid', radius: 10, accent_text: QATAR_GOV.black, uppercase: false },
   banners: { overlay_color: '#3A0918', overlay_opacity: 72, hero_images: [null, null, null, null], page_banner_image: null, cta_style: 'gradient' },
-  pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null },
+  pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null, tint: null, repeat: 'tile' },
   shape: { card_radius: 14, glass_blur: 18 },
   identity: { name_ar: 'مركز التدريب والتطوير', name_en: 'Training & Development Center', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
   typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
@@ -174,7 +174,8 @@ export function themeVariables(theme: Theme): Record<string, string> {
     '--hero-overlay-strong': rgba(overlay, strength),
     '--hero-overlay-soft': rgba(overlay, strength * 0.4),
     '--pattern-image': patternImage(theme.pattern),
-    '--pattern-size': `${theme.pattern.size}px`,
+    '--pattern-size': theme.pattern.type === 'custom' && theme.pattern.repeat === 'cover' ? 'cover' : `${theme.pattern.size}px auto`,
+    '--pattern-repeat': theme.pattern.type === 'custom' && theme.pattern.repeat === 'cover' ? 'no-repeat' : 'repeat',
     '--heading-weight': String(theme.typography.heading_weight),
   }
 }
@@ -220,6 +221,65 @@ export function logoFor(theme: Theme, lang: string, onDark: boolean): { src: str
   return { src: lang === 'en' ? BRAND_FILES.logo_en : BRAND_FILES.logo_ar, invert: false }
 }
 
+const patternCache = new Map<string, Promise<string>>()
+
+/**
+ * An uploaded pattern with the chosen opacity and, optionally, recoloured with one colour: drawn once on a canvas
+ * and used as the tile. Transparent images are recoloured by their shape; opaque ones by how dark each pixel is.
+ */
+export function customPatternTile(p: Theme['pattern']): Promise<string> {
+  const image = p.image
+  if (!image) return Promise.resolve('none')
+  const key = `${image}|${p.opacity}|${p.tint ?? ''}`
+  const hit = patternCache.get(key)
+  if (hit) return hit
+  const job = new Promise<string>((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, 512 / Math.max(img.naturalWidth, img.naturalHeight, 1))
+        const w = Math.max(1, Math.round((img.naturalWidth || 64) * scale))
+        const h = Math.max(1, Math.round((img.naturalHeight || 64) * scale))
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return resolve(`url("${image}")`)
+        ctx.drawImage(img, 0, 0, w, h)
+        if (p.tint) {
+          const data = ctx.getImageData(0, 0, w, h)
+          const px = data.data
+          const r = parseInt(p.tint.slice(1, 3), 16), g = parseInt(p.tint.slice(3, 5), 16), b = parseInt(p.tint.slice(5, 7), 16)
+          let opaque = true
+          for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { opaque = false; break }
+          for (let i = 0; i < px.length; i += 4) {
+            const lum = (0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]) / 255
+            px[i + 3] = opaque ? Math.round((1 - lum) * 255) : px[i + 3]
+            px[i] = r; px[i + 1] = g; px[i + 2] = b
+          }
+          ctx.putImageData(data, 0, 0)
+        }
+        // Apply the opacity by redrawing the tile at that alpha.
+        const out = document.createElement('canvas')
+        out.width = w
+        out.height = h
+        const o = out.getContext('2d')
+        if (!o) return resolve(`url("${image}")`)
+        o.globalAlpha = Math.min(1, Math.max(0, p.opacity / 100))
+        o.drawImage(canvas, 0, 0)
+        resolve(`url("${out.toDataURL('image/png')}")`)
+      } catch {
+        resolve(`url("${image}")`) // a cross-origin image that cannot be read: use it as it is
+      }
+    }
+    img.onerror = () => resolve('none')
+    img.src = image
+  })
+  patternCache.set(key, job)
+  return job
+}
+
 export function applyTheme(theme: Theme, lang: string) {
   const root = document.documentElement
   Object.entries(themeVariables(theme)).forEach(([k, v]) => root.style.setProperty(k, v))
@@ -227,6 +287,8 @@ export function applyTheme(theme: Theme, lang: string) {
   root.style.setProperty('--font-sans', fonts.sans)
   root.style.setProperty('--font-display', fonts.display)
   registerFonts(theme)
+  // An uploaded pattern is processed (opacity, tint) and then replaces the plain image.
+  if (theme.pattern.type === 'custom' && theme.pattern.image) void customPatternTile(theme.pattern).then((tile) => root.style.setProperty('--pattern-image', tile))
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.colors.primary)
 }
 

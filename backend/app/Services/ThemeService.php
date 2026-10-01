@@ -56,6 +56,9 @@ class ThemeService
                 'opacity' => 16,
                 'size' => 40,
                 'image' => null,
+                // An uploaded pattern can be recoloured with one colour (null keeps its own) and tiled or stretched over the background.
+                'tint' => null,
+                'repeat' => 'tile',
             ],
             'shape' => [
                 'card_radius' => 14,

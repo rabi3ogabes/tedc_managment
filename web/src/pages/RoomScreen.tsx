@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom'
 import { BrandMark } from '@/components/public/Logo'
 import { api } from '@/lib/api'
 import { fmt } from '@/lib/format'
-import { useCenterName } from '@/lib/ThemeProvider'
+import { useCenterName, useTheme } from '@/lib/ThemeProvider'
 
 export type Trainee = { name: string; school: string | null; status: 'present' | 'late' | 'expected' | 'absent'; check_in_at: string | null }
 export type Session = {
@@ -63,6 +63,7 @@ type ViewProps = {
 export function RoomScreenView({ day, error, now, date, today, onDate, template: tpl, fullscreen, preview }: ViewProps) {
   const { t, i18n } = useTranslation()
   const centerName = useCenterName()
+  const { active } = useTheme()
   const sessions = useMemo(() => day?.sessions ?? [], [day])
   const featured = useMemo(() => sessions.find((s) => s.state === 'live') ?? sessions.find((s) => s.state === 'next') ?? sessions.find((s) => s.state === 'upcoming') ?? sessions.at(-1) ?? null, [sessions])
   const isToday = date === today
@@ -77,7 +78,7 @@ export function RoomScreenView({ day, error, now, date, today, onDate, template:
 
   return (
     <div dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} style={screenStyle(tpl)} className={clsx('relative overflow-hidden text-white', preview ? 'h-full w-full' : 'min-h-screen')}>
-      <div className="pattern-bg pointer-events-none absolute inset-0 opacity-[.07]" />
+      <div className={clsx("pattern-bg pointer-events-none absolute inset-0", active.pattern.type === 'custom' ? 'opacity-100' : 'opacity-[.07]')} />
       <div className="pointer-events-none absolute -end-40 -top-40 size-[34rem] rounded-full blur-3xl" style={{ background: 'var(--sc-accent)', opacity: 0.16 }} />
 
       <div className={clsx('relative mx-auto flex max-w-[110rem] flex-col gap-6 p-5 sm:p-8', preview ? 'h-full' : 'min-h-screen')}>

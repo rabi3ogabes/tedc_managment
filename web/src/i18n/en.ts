@@ -199,7 +199,7 @@ const en: Dictionary = {
         pageBanner: 'Inner pages banner image', cta: 'Call-to-action banner', ctaGradient: 'Gradient', ctaAccent: 'Accent color', ctaImage: 'Banner image',
       },
       pattern: {
-        type: 'Background pattern', color: 'Pattern color', opacity: 'Pattern opacity', size: 'Pattern scale', custom: 'Custom pattern (image)',
+        type: 'Background pattern', color: 'Pattern color', opacity: 'Pattern opacity', size: 'Pattern scale', custom: 'Custom pattern (image)', customHint: 'Upload an image (PNG, JPG, WebP or SVG) to repeat as a pattern on the website, dashboard and room-screen backgrounds. A small, seamless tile works best.', tintOn: 'Recolour the pattern with one colour', tintHint: 'Uses only the shape of the image and paints it in a brand colour — good for monochrome logos and ornaments.', tintColor: 'Tint colour', repeat: 'Display', tile: 'Repeat', cover: 'Cover', previewTile: 'Tile preview',
         types: { none: 'None', serrated: 'Flag serration', dots: 'Dots', grid: 'Grid', islamic_star: 'Islamic star', arabesque: 'Arabesque', diagonal: 'Diagonal', custom: 'Custom' },
       },
       shape: { card: 'Card corner radius', blur: 'Glass blur' },

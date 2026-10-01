@@ -84,7 +84,9 @@ html[lang="en"] { --font-sans: "Inter", "Tajawal", ui-sans-serif, system-ui, san
   /* Brand Studio controlled background pattern (see src/lib/theme.ts). */
   .pattern-bg {
     background-image: var(--pattern-image, radial-gradient(circle at 1px 1px, rgb(200 162 74 / 0.18) 1px, transparent 0));
-    background-size: var(--pattern-size, 22px) var(--pattern-size, 22px);
+    background-size: var(--pattern-size, 22px auto);
+    background-repeat: var(--pattern-repeat, repeat);
+    background-position: center;
   }
 }
 

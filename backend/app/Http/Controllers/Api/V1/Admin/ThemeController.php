@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Services\FileStorage;
 use App\Services\ThemeService;
+use App\Support\SvgGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -50,8 +52,10 @@ class ThemeController extends Controller
             'pattern.type' => ['required', Rule::in(ThemeService::PATTERNS)],
             'pattern.color' => ['required', self::HEX],
             'pattern.opacity' => ['required', 'integer', 'between:0,100'],
-            'pattern.size' => ['required', 'integer', 'between:8,120'],
+            'pattern.size' => ['required', 'integer', 'between:8,400'],
             'pattern.image' => $asset,
+            'pattern.tint' => ['nullable', self::HEX],
+            'pattern.repeat' => ['nullable', Rule::in(['tile', 'cover'])],
             'shape' => ['required', 'array'],
             'shape.card_radius' => ['required', 'integer', 'between:0,40'],
             'shape.glass_blur' => ['required', 'integer', 'between:0,40'],
@@ -83,11 +87,16 @@ class ThemeController extends Controller
     public function upload(Request $request, FileStorage $storage): JsonResponse
     {
         $request->validate(['kind' => ['required', Rule::in(['hero', 'banner', 'pattern', 'logo', 'font'])]]);
+        $pattern = $request->input('kind') === 'pattern';
         $request->validate([
             'file' => $request->input('kind') === 'font'
                 ? ['required', 'file', 'extensions:woff2,woff,ttf,otf', 'max:4096']
-                : ['required', 'file', 'extensions:jpg,jpeg,png,webp', 'mimes:jpg,jpeg,png,webp', 'max:6144'],
+                // A background pattern can also be an SVG (it stays sharp at any size and can be recoloured).
+                : ['required', 'file', 'extensions:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'mimes:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'max:6144'],
         ]);
+        if ($pattern && strtolower($request->file('file')->getClientOriginalExtension()) === 'svg' && ! SvgGuard::isSafe((string) file_get_contents($request->file('file')->getRealPath()))) {
+            throw new BusinessRuleException(__('messages.theme.unsafe_svg'), 'unsafe_svg');
+        }
 
         $path = $storage->uploadPublic($request->file('file'), 'theme/'.$request->input('kind'));
 

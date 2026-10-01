@@ -105,4 +105,27 @@ class ThemeTest extends TestCase
 
         $this->assertStringContainsString('theme/hero/', $url);
     }
+
+    public function test_an_uploaded_image_becomes_the_background_pattern_with_tint_and_repeat(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $png = UploadedFile::fake()->image('tile.png', 120, 120);
+        $url = $this->asUser($admin)->post('/api/v1/admin/theme/assets', ['kind' => 'pattern', 'file' => $png], ['Accept' => 'application/json'])->assertCreated()->json('data.url');
+
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $this->payload(['pattern' => ['type' => 'custom', 'image' => $url, 'opacity' => 35, 'size' => 80, 'tint' => '#8a1538', 'repeat' => 'cover']]))->assertOk();
+        $this->getJson('/api/v1/public/theme')->assertJsonPath('data.pattern.type', 'custom')->assertJsonPath('data.pattern.tint', '#8a1538')->assertJsonPath('data.pattern.repeat', 'cover');
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $this->payload(['pattern' => ['repeat' => 'spiral']]))->assertStatus(422);
+    }
+
+    public function test_svg_patterns_are_accepted_only_when_they_are_clean(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $svg = fn (string $body) => UploadedFile::fake()->createWithContent('p.svg', '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">'.$body.'</svg>');
+        $send = fn ($file) => $this->asUser($admin)->post('/api/v1/admin/theme/assets', ['kind' => 'pattern', 'file' => $file], ['Accept' => 'application/json']);
+
+        $send($svg('<circle cx="10" cy="10" r="4" fill="#000"/>'))->assertCreated();
+        $send($svg('<script>alert(1)</script>'))->assertStatus(422)->assertJsonPath('code', 'unsafe_svg');
+        $send($svg('<circle cx="1" cy="1" r="1" onload="x()"/>'))->assertStatus(422);
+        $send($svg('<image href="https://evil.example/x.png"/>'))->assertStatus(422);
+    }
 }
