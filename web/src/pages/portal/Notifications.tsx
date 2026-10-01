@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { Bell, CheckCheck } from 'lucide-react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Empty, PageHeader, Spinner } from '@/components/ui'
@@ -11,6 +12,11 @@ import type { NotificationItem, Paginated } from '@/lib/types'
 export default function Notifications() {
   const { t } = useTranslation()
   const { data, isLoading, refetch } = useGet<Paginated<NotificationItem>>('/me/notifications')
+  // Showing the list records that the notifications were seen (tracked by the administrators).
+  useEffect(() => {
+    const ids = (data?.data ?? []).filter((n) => !n.read && !(n as { seen?: boolean }).seen).map((n) => n.id).slice(0, 100)
+    if (ids.length) void api.post('/me/notifications/seen', { ids }).catch(() => undefined)
+  }, [data])
   const readAll = async () => { await api.post('/me/notifications/read-all'); refetch() }
   const navigate = useNavigate()
   const read = async (n: NotificationItem) => {

@@ -144,6 +144,11 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | GET / PUT | `/admin/settings/security` | `settings.manage` — idle lock of the administration team (`idle_lock_enabled`, `idle_lock_minutes`) |
 | POST | `/me/presence` | authenticated — heartbeat `{platform: web|mobile, path, idle_seconds}`; returns the lock state and, for the administration team, the lock timeout |
 | POST | `/auth/lock`, `/auth/unlock` | authenticated — lock the dashboard now / confirm the password again (`423 session_locked` is returned by `/admin/*` while locked) |
+| GET / POST / PUT / DELETE | `/admin/notifications/templates` (+ `/{id}/reset`, `/preview`) | `announcements.manage` — notification templates: each automatic notification has an on/off switch, a push switch and editable Arabic / English wording with `{{placeholders}}` |
+| POST | `/admin/notifications/send` | `announcements.manage` — send a notification to the trainees of a program (`audience`: `trainees` or `pending_survey`) |
+| GET | `/admin/notifications/campaigns`, `/campaigns/{id}`, `/campaigns/{id}/export`, `/tracking` | `announcements.manage` — who received / saw / read a notification |
+| GET / PUT / POST | `/admin/programs/{program}/survey` (+ `open`, `close`, `notify`) | `programs.manage` — the program survey: always available, opened by hand, or opened automatically N hours after the program ends |
+| POST | `/me/notifications/seen` | authenticated — the list was displayed (records the "seen" time) |
 | GET | `/admin/presence/live` | `analytics.view` — who is online now (administration team vs app users), timeline, top pages |
 | GET | `/admin/presence/report`, `/admin/presence/export` | `analytics.view` — usage summary for a date range (`from`, `to`, `team`, `platform`) and its CSV download |
 | POST | `/admin/skills` | `programs.manage` |
