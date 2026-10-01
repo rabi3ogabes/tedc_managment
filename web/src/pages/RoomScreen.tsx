@@ -22,7 +22,7 @@ export type ScreenTemplate = {
   idle_enabled: boolean; idle_show_next: boolean; idle_title_ar: string; idle_title_en: string; idle_text_ar: string; idle_text_en: string
   bg_image: string; bg_mode: 'tile' | 'cover'; bg_opacity: number; bg_size: number; bg_tint: string
 }
-export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '', idle_enabled: true, idle_show_next: true, idle_title_ar: 'القاعة شاغرة الآن', idle_title_en: 'This room is empty', idle_text_ar: 'احجزها الآن لتدريبك القادم', idle_text_en: 'Book it now for your next training', bg_image: '', bg_mode: 'tile', bg_opacity: 25, bg_size: 120, bg_tint: '' }
+export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '', idle_enabled: true, idle_show_next: true, idle_title_ar: 'القاعة شاغرة الآن', idle_title_en: 'This room is empty', idle_text_ar: '', idle_text_en: '', bg_image: '', bg_mode: 'tile', bg_opacity: 25, bg_size: 120, bg_tint: '' }
 export type Day = { template?: ScreenTemplate; room: { name: string; code: string; building: string | null; floor: string | null; capacity: number }; date: string; is_today: boolean; now: string; sessions: Session[] }
 
 const STATUS = {

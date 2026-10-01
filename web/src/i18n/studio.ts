@@ -8,7 +8,7 @@ export const studioAr = {
     applies: 'تُطبَّق القواعد عند إنشاء الجلسات أو تعديلها، وفي المخطِّط الذكي للبرامج.',
   },
   tpl: {
-    idle: { title: 'القاعة الشاغرة', hint: 'حين لا يوجد تدريب جارٍ في القاعة تعرض الشاشة شعار الوزارة ورسالة تدعو إلى حجز القاعة.', enable: 'عرض شاشة «القاعة شاغرة»', titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية', textAr: 'الدعوة للحجز بالعربية', textEn: 'الدعوة للحجز بالإنجليزية', showNext: 'إظهار الجلسة القادمة اليوم', previewBusy: 'أثناء جلسة', previewIdle: 'قاعة شاغرة' },
+    idle: { title: 'القاعة الشاغرة', hint: 'حين لا يوجد تدريب جارٍ في القاعة تعرض الشاشة شعار الوزارة وعبارة «القاعة شاغرة الآن». يمكنك إضافة سطر اختياري تحتها.', enable: 'عرض شاشة «القاعة شاغرة»', titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية', textAr: 'سطر إضافي بالعربية (اختياري)', textEn: 'سطر إضافي بالإنجليزية (اختياري)', showNext: 'إظهار الجلسة القادمة اليوم', previewBusy: 'أثناء جلسة', previewIdle: 'قاعة شاغرة' },
     bg: { title: 'صورة الخلفية', hint: 'ارفع صورة PNG أو JPG أو WebP أو SVG لتكون خلفية الشاشة: تتكرر كنقش أو تغطي الشاشة كلها. تخص هذه الشاشة وحدها ولا تغيّر نقش الهوية.', image: 'صورة الخلفية', tile: 'نقش متكرر', cover: 'تغطية كاملة', opacity: 'الشفافية', size: 'حجم النقش', tint: 'تلوين الصورة بلون واحد' },
     subtitle: 'عدّل تصميم شاشة القاعة واستخدمه قالباً لكل القاعات. الشعار واسم المركز والألوان تأتي من «الهوية البصرية» وتتغير معها تلقائياً.',
     saved: 'تم حفظ قالب الشاشة.', reset: 'استعادة الافتراضي', confirmReset: 'استعادة قالب الشاشة الافتراضي؟', preview: 'معاينة مباشرة', previewHint: 'معاينة بجلسة تجريبية: هكذا تظهر الشاشة على التلفاز.',
@@ -103,7 +103,7 @@ export const studioEn: typeof studioAr = {
     applies: 'The rules apply when sessions are created or edited and in the smart program planner.',
   },
   tpl: {
-    idle: { title: 'Empty room', hint: 'When nothing is running in the room the screen shows the ministry logo and a message inviting people to book it.', enable: 'Show the “room is empty” screen', titleAr: 'Title in Arabic', titleEn: 'Title in English', textAr: 'Booking invitation in Arabic', textEn: 'Booking invitation in English', showNext: 'Show the next session today', previewBusy: 'During a session', previewIdle: 'Empty room' },
+    idle: { title: 'Empty room', hint: 'When nothing is running in the room the screen shows the ministry logo and “This room is empty”. You can add an optional line under it.', enable: 'Show the “room is empty” screen', titleAr: 'Title in Arabic', titleEn: 'Title in English', textAr: 'Extra line in Arabic (optional)', textEn: 'Extra line in English (optional)', showNext: 'Show the next session today', previewBusy: 'During a session', previewIdle: 'Empty room' },
     bg: { title: 'Background picture', hint: 'Upload a PNG, JPG, WebP or SVG as the screen background: repeated as a pattern or covering the whole screen. It belongs to this screen only and does not change the brand pattern.', image: 'Background image', tile: 'Repeating pattern', cover: 'Cover', opacity: 'Opacity', size: 'Pattern size', tint: 'Recolour the image with one colour' },
     subtitle: 'Edit the design of the room screen and use it as the template for every room. The logo, center name and colours come from Brand Studio and change with it.',
     saved: 'Screen template saved.', reset: 'Restore default', confirmReset: 'Restore the default screen template?', preview: 'Live preview', previewHint: 'A preview with a sample session: this is how the screen looks on the TV.',

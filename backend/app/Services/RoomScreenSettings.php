@@ -28,7 +28,7 @@ class RoomScreenSettings
             'footer_ar' => '', 'footer_en' => '',
             // The screen's own background picture (independent of the brand pattern): repeated as a pattern or stretched over the screen.
             // Shown when nothing is running in the room: the logo and an invitation to book it.
-            'idle_enabled' => true, 'idle_title_ar' => 'القاعة شاغرة الآن', 'idle_title_en' => 'This room is empty', 'idle_text_ar' => 'احجزها الآن لتدريبك القادم', 'idle_text_en' => 'Book it now for your next training', 'idle_show_next' => true,
+            'idle_enabled' => true, 'idle_title_ar' => 'القاعة شاغرة الآن', 'idle_title_en' => 'This room is empty', 'idle_text_ar' => '', 'idle_text_en' => '', 'idle_show_next' => true,
             'bg_image' => '', 'bg_mode' => 'tile', 'bg_opacity' => 25, 'bg_size' => 120, 'bg_tint' => '',
         ];
     }
