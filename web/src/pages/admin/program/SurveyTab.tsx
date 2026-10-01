@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BellRing, CalendarClock, ClipboardCheck, Hand, Infinity as InfinityIcon, Lock, LockOpen, Timer } from 'lucide-react'
+import { BellRing, CalendarClock, ChevronDown, ChevronUp, ClipboardCheck, Hand, Infinity as InfinityIcon, Lock, LockOpen, Timer } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -98,12 +98,50 @@ export default function SurveyTab({ program }: { program: Program }) {
         )}
       </Card>
 
-      <div>
-        <h3 className="mb-3 text-lg font-bold text-navy-900">{t('mgmt.notif.survey.sentTitle')}</h3>
-        <CampaignTracking programId={program.id} />
-      </div>
+      <SentBox programId={program.id} />
 
       {sending && <SendNotificationDialog programId={program.id} defaultEvent="survey.open" defaultAudience="pending_survey" onClose={() => setSending(false)} onSent={() => { void refetch(); void refreshSent() }} />}
     </div>
+  )
+}
+
+type Sent = { id: string; title: string; created_at: string; sent: number; seen: number; read: number; read_rate: number }
+
+/** The notifications sent to this program's trainees: a small summary box, expandable into the full list. */
+function SentBox({ programId }: { programId: string }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem('tedc.survey.sent.open') === '1' } catch { return false } })
+  const { data } = useGet<{ data: Sent[] }>('/admin/notifications/campaigns', { program_id: programId })
+  const list = data?.data ?? []
+  const total = list.reduce((n, c) => ({ sent: n.sent + c.sent, seen: n.seen + c.seen, read: n.read + c.read }), { sent: 0, seen: 0, read: 0 })
+  const rate = total.sent ? Math.round((total.read / total.sent) * 100) : 0
+  const toggle = () => setOpen((v) => { try { localStorage.setItem('tedc.survey.sent.open', v ? '0' : '1') } catch { /* storage unavailable */ } return !v })
+  const latest = list[0]
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="grid size-10 place-items-center rounded-xl bg-navy-900 text-gold-300"><BellRing className="size-5" /></span>
+        <div className="min-w-0 flex-1 basis-56">
+          <h3 className="font-bold text-navy-900">{t('mgmt.notif.survey.sentTitle')}</h3>
+          <p className="truncate text-xs text-slate-500">{latest ? t('mgmt.notif.survey.sentBox.latest', { title: latest.title, when: fmt.dateTime(latest.created_at) }) : t('mgmt.notif.survey.sentBox.none')}</p>
+        </div>
+        {list.length > 0 && (
+          <div className="flex items-center gap-4 text-center">
+            {[{ l: t('mgmt.notif.survey.sentBox.campaigns'), v: list.length }, { l: t('mgmt.notif.tracking.sent'), v: total.sent }, { l: t('mgmt.notif.tracking.readRate'), v: `${rate}%`, accent: true }].map((x) => (
+              <div key={x.l}><div className={clsx('text-xl font-extrabold', x.accent ? 'text-emerald-600' : 'text-navy-900')}>{x.v}</div><div className="text-[11px] text-slate-500">{x.l}</div></div>
+            ))}
+          </div>
+        )}
+        <Button size="sm" variant="outline" icon={open ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />} aria-expanded={open} onClick={toggle}>{open ? t('mgmt.notif.survey.sentBox.hide') : t('mgmt.notif.survey.sentBox.show')}</Button>
+      </div>
+      {list.length > 0 && !open && (
+        <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-navy-100/60" role="img" aria-label={`${total.read}/${total.sent}`}>
+          <div className="bg-emerald-500" style={{ width: `${total.sent ? (total.read / total.sent) * 100 : 0}%` }} />
+          <div className="bg-sky-400" style={{ width: `${total.sent ? (Math.max(0, total.seen - total.read) / total.sent) * 100 : 0}%` }} />
+        </div>
+      )}
+      {open && <div className="mt-4"><CampaignTracking programId={programId} /></div>}
+    </Card>
   )
 }
