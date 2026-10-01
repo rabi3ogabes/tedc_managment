@@ -23,7 +23,9 @@ Route::get('/files/{bucket}/{path}', function (string $bucket, string $path) {
     // SVGs are served sandboxed so an uploaded or generated image can never run script.
     $headers = str_ends_with(strtolower($path), '.svg') ? ['Content-Security-Policy' => 'sandbox; default-src \'none\'; style-src \'unsafe-inline\''] : [];
 
-    // A file response supports Range requests, which video seeking needs.
+    // A file response supports Range requests, which video seeking needs; slides are read by script, hence CORS.
+    $headers += ['Access-Control-Allow-Origin' => '*'];
+
     return response()->file(Storage::disk('local')->path("{$bucket}/{$path}"), $headers);
 })->where('path', '.*')->middleware('signed')->name('files.local');
 

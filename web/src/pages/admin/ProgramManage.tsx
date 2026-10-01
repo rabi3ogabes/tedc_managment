@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 import CertificatesTab from './program/CertificatesTab'
+import CourseTab from './program/CourseTab'
 import ImpactTab from './program/ImpactTab'
 import RemoteTab from './program/RemoteTab'
 import MaterialsTab from './program/MaterialsTab'
@@ -18,7 +19,7 @@ import SessionsTab from './program/SessionsTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact'
+type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -55,6 +56,7 @@ export default function ProgramManage() {
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[
         { id: 'participants', label: t('admin.programs.participants') },
         { id: 'sessions', label: t('admin.programs.sessions') },
+        { id: 'course', label: t('course.tab') },
         ...(p.delivery_mode !== 'in_person' ? [{ id: 'remote' as const, label: t('studio.tracking.tab') }] : []),
         { id: 'rules', label: t('admin.programs.rules') },
         { id: 'tasks', label: t('admin.programs.tasks') },
@@ -65,6 +67,7 @@ export default function ProgramManage() {
       ]} />
       {tab === 'participants' && <ParticipantsTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}
+      {tab === 'course' && <CourseTab program={p} />}
       {tab === 'remote' && <RemoteTab program={p} />}
       {tab === 'certificates' && <CertificatesTab program={p} />}
       {tab === 'rules' && <RulesTab program={p} />}

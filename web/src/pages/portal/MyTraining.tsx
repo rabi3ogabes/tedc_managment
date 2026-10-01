@@ -1,4 +1,4 @@
-import { CalendarPlus, Download, FileText, Star } from 'lucide-react'
+import { CalendarPlus, Download, FileText, PlayCircle, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -42,6 +42,7 @@ export default function MyTraining() {
                 <div><div className="mb-1 text-slate-500">{t('admin.registrations.certificate')}</div><StatusBadge status={r.certificate_status} /></div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
+                {['approved', 'completed'].includes(r.status) && r.has_course && <Button size="sm" variant="gold" icon={<PlayCircle className="size-4" />} to={`/portal/learn/${r.id}`}>{t('learn.title')} · {fmt.percent(r.course_percent ?? 0)}</Button>}
                 {['approved', 'completed'].includes(r.status) && <Button size="sm" variant="outline" icon={<FileText className="size-4" />} onClick={() => setMaterialsFor(r)}>{t('admin.programs.materials')}</Button>}
                 {['approved', 'completed'].includes(r.status) && !r.evaluation_completed && <Button size="sm" variant="gold" icon={<Star className="size-4" />} onClick={() => setEvaluating(r)}>{t('portal.evaluate')}</Button>}
                 {r.certificate && <Button size="sm" variant="primary" icon={<Download className="size-4" />} onClick={() => downloadFile(`/certificates/${r.certificate!.id}/download`, 'certificate.pdf', true)}>PDF</Button>}

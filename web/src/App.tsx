@@ -55,6 +55,7 @@ const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
 const PortalHome = lazy(() => import('@/pages/portal/PortalHome'))
 const MyTraining = lazy(() => import('@/pages/portal/MyTraining'))
 const Passport = lazy(() => import('@/pages/portal/Passport'))
+const Learn = lazy(() => import('@/pages/portal/Learn'))
 const Wallet = lazy(() => import('@/pages/portal/Wallet'))
 const MyTasks = lazy(() => import('@/pages/portal/MyTasks'))
 const Surveys = lazy(() => import('@/pages/portal/Surveys'))
@@ -143,6 +144,7 @@ export default function App() {
           <Route path="training" element={<MyTraining />} />
           <Route path="passport" element={<Passport />} />
           <Route path="certificates" element={<Wallet />} />
+          <Route path="learn/:registrationId/:lessonId?" element={<Learn />} />
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
           <Route path="notifications" element={<Notifications />} />

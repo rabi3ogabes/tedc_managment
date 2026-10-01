@@ -86,6 +86,7 @@ export type Registration = {
   id: string; program_id: string; program?: Program; employee_id: string; employee?: Employee; source: string; status: string
   eligibility?: Eligibility | null; attendance_percent: number; tasks_completed: boolean; evaluation_completed: boolean
   certificate_status: string; impact_score?: number | null; completed_at?: string | null; created_at?: string; certificate?: Certificate | null
+  has_course?: boolean; course_percent?: number; course_completed?: boolean
 }
 
 export type Certificate = {
