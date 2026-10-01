@@ -1,5 +1,13 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  testAccounts: {
+    subtitle: 'حسابات جاهزة لتجربة التطبيق: 4 متدربين ومدربان و4 برامج، مع بيان واضح لما أُسند لكل حساب.',
+    create: 'إنشاء حسابات الاختبار', refresh: 'تحديث الإسنادات', emptyTitle: 'لم تُنشأ حسابات الاختبار بعد', emptyText: 'اضغط «إنشاء حسابات الاختبار» لإضافة 4 متدربين ومدربين و4 برامج مرقّمة مع إسنادها.',
+    howTo: 'كيف أجرّب التطبيق؟', howToText: 'افتح التطبيق واضغط زر أحد الحسابات في شاشة الدخول (حسابات اختبار التطبيق) — تسجيل الدخول بنقرة واحدة.', password: 'كلمة المرور',
+    programs: 'البرامج الأربعة', programN: 'برنامج {{n}}', traineesCount: '{{count}} متدرب', trainees: 'المتدربون', trainers: 'المدربان', trainee: 'متدرب', trainer: 'مدرب',
+    assigned: { trainee: 'المتدرب {{n}} مُسند إلى البرامج: {{programs}}', trainer: 'المدرب {{n}} يدرّب البرامج: {{programs}}' }, matrix: 'مصفوفة الإسناد',
+  },
+
   notif: {
     tabs: { announcements: 'الإعلانات والأخبار', tracking: 'تتبع الإشعارات' },
     templates: {
@@ -120,6 +128,7 @@ export const mgmtAr = {
     sections: {
       appearance: { title: 'الهوية البصرية والمظهر', desc: 'اسم المركز والشعارات والألوان والخطوط والخلفيات — تُطبَّق فوراً على الموقع ولوحة التحكم.' },
       notifications: { title: 'الإشعارات الفورية', desc: 'ربط Firebase وإرسال إشعار تجريبي والتحقق من وصول الإشعارات للهواتف.' },
+      testaccounts: { title: 'حسابات الاختبار', desc: 'متدربون ومدربون تجريبيون لتجربة التطبيق، مع بيان البرامج المسندة لكل حساب.' },
       templates: { title: 'قوالب الإشعارات', desc: 'فعّل أو أوقف كل إشعار تلقائي وعدّل صياغته أو أنشئ قوالب خاصة بك.' },
       labels: { title: 'أسماء القوائم والأزرار', desc: 'غيّر اسم أي قائمة أو زر أو نص بالعربية والإنجليزية — يظهر فوراً للجميع.' },
       security: { title: 'الأمان وقفل الجلسة', desc: 'اقفل لوحة التحكم تلقائياً لفريق الإدارة عند عدم النشاط، مع طلب كلمة المرور.' },
@@ -202,6 +211,14 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  testAccounts: {
+    subtitle: 'Ready-made accounts for trying the app: 4 trainees, 2 trainers and 4 programs, with a clear statement of what each account is assigned to.',
+    create: 'Create test accounts', refresh: 'Refresh assignments', emptyTitle: 'Test accounts have not been created yet', emptyText: 'Press “Create test accounts” to add 4 trainees, 2 trainers and 4 numbered programs with their assignments.',
+    howTo: 'How do I try the app?', howToText: 'Open the app and tap one of the accounts on the login screen (App test accounts) — one-tap sign-in.', password: 'Password',
+    programs: 'The four programs', programN: 'Program {{n}}', traineesCount: '{{count}} trainees', trainees: 'Trainees', trainers: 'Trainers', trainee: 'Trainee', trainer: 'Trainer',
+    assigned: { trainee: 'Trainee {{n}} is assigned to programs: {{programs}}', trainer: 'Trainer {{n}} teaches programs: {{programs}}' }, matrix: 'Assignment matrix',
+  },
+
   notif: {
     tabs: { announcements: 'Announcements & news', tracking: 'Notification tracking' },
     templates: {
@@ -322,6 +339,7 @@ export const mgmtEn: MgmtStrings = {
     sections: {
       appearance: { title: 'Brand & appearance', desc: 'Center name, logos, colors, fonts and backgrounds - applied instantly to the website and dashboard.' },
       notifications: { title: 'Push notifications', desc: 'Connect Firebase, send a test notification and verify delivery to phones.' },
+      testaccounts: { title: 'Test accounts', desc: 'Test trainees and trainers for trying the app, with the programs assigned to each account.' },
       templates: { title: 'Notification templates', desc: 'Switch each automatic notification on or off, rewrite it, or create your own templates.' },
       labels: { title: 'Menu & button names', desc: 'Rename any menu, button or text in Arabic and English — applied instantly for everyone.' },
       security: { title: 'Security & session lock', desc: 'Lock the dashboard for the administration team when idle and ask for the password again.' },

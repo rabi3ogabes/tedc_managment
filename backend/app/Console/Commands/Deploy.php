@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Role;
 use Database\Seeders\DemoNeedsSurveySeeder;
+use Database\Seeders\DemoTestAccountsSeeder;
 use Database\Seeders\DemoTrainerTraineeSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -26,6 +27,7 @@ class Deploy extends Command
             // Demo data added by later releases to an existing demo database (each seeder is idempotent).
             $this->call('db:seed', ['--class' => DemoNeedsSurveySeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
+            $this->call('db:seed', ['--class' => DemoTestAccountsSeeder::class, '--force' => true]);
         }
 
         // Read-only file systems (serverless) cannot hold the public/storage symlink.

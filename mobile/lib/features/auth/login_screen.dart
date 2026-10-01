@@ -157,6 +157,16 @@ class _DemoAccounts extends StatelessWidget {
     ('executive@tedc.qa', 'Executive'),
   ];
 
+  /// Four test trainees and two test trainers; the labels are translation keys.
+  static const testAccounts = [
+    ('trainee1@tedc.qa', 'auth.trainee1'),
+    ('trainee2@tedc.qa', 'auth.trainee2'),
+    ('trainee3@tedc.qa', 'auth.trainee3'),
+    ('trainee4@tedc.qa', 'auth.trainee4'),
+    ('trainer1@tedc.qa', 'auth.trainer1'),
+    ('trainer2@tedc.qa', 'auth.trainer2'),
+  ];
+
   final ValueChanged<String> onPick;
 
   @override
@@ -190,6 +200,24 @@ class _DemoAccounts extends StatelessWidget {
               backgroundColor: Colors.white,
               side: BorderSide.none,
               onPressed: () => onPick(email),
+            ),
+        ]),
+        const SizedBox(height: 16),
+        Row(children: [
+          const Icon(Icons.science_outlined, color: AppColors.gold300, size: 18),
+          const SizedBox(width: 6),
+          Expanded(child: Text(s.t('auth.testAccounts'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+        ]),
+        const SizedBox(height: 4),
+        Text(s.t('auth.testAccountsHint'), style: TextStyle(color: Colors.white.withValues(alpha: .75), fontSize: 12.5)),
+        const SizedBox(height: 10),
+        // One tap signs in: trainees 1-4 and trainers 1-2 (see Settings → Test accounts on the dashboard).
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final (email, label) in testAccounts)
+            FilledButton.tonal(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), minimumSize: const Size(0, 40)),
+              onPressed: () => onPick(email),
+              child: Text(s.t(label), style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
         ]),
       ]),

@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
+use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainerController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
@@ -481,6 +482,8 @@ Route::prefix('v1')->group(function () {
 
             // Users, roles, audit
             Route::middleware('permission:users.manage')->group(function () {
+                Route::get('test-accounts', [TestAccountsController::class, 'show']);
+                Route::post('test-accounts', [TestAccountsController::class, 'seed']);
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);

@@ -1,4 +1,4 @@
-import { BellRing, BellPlus, CalendarDays, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { BellRing, BellPlus, CalendarDays, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -22,6 +22,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
   { id: 'attendance', group: 'training', permission: ['settings.manage'], icon: MapPinCheck, component: lazy(() => import('@/pages/admin/AttendanceSettings')), keywords: ['attendance', 'location', 'gps', 'geofence', 'presence', 'حضور', 'موقع', 'تحقق'] },
   { id: 'security', group: 'security', permission: ['settings.manage'], icon: LockKeyhole, component: lazy(() => import('@/pages/admin/SessionLockSettings')), keywords: ['security', 'lock', 'idle', 'session', 'password', 'timeout', 'أمان', 'قفل', 'جلسة', 'كلمة المرور'] },
+  { id: 'testaccounts', group: 'training', permission: ['users.manage'], icon: FlaskConical, component: lazy(() => import('@/pages/admin/TestAccounts')), keywords: ['test', 'demo', 'trainee', 'trainer', 'accounts', 'app', 'اختبار', 'تجريبي', 'متدرب', 'مدرب', 'حسابات'] },
   { id: 'users', group: 'security', permission: ['users.manage'], icon: UserCog, component: lazy(() => import('@/pages/admin/Users')), keywords: ['users', 'user', 'roles', 'permissions', 'accounts', 'مستخدمين', 'صلاحيات', 'أدوار'] },
   { id: 'audit', group: 'security', permission: ['audit.view'], icon: FileSearch, component: lazy(() => import('@/pages/admin/AuditLog')), keywords: ['audit', 'log', 'history', 'سجل', 'تدقيق'] },
   { id: 'calendar', group: 'training', permission: ['calendar.view', 'calendar.manage'], icon: CalendarDays, component: lazy(() => import('@/pages/admin/TrainingCalendar')), keywords: ['calendar', 'vacation', 'holiday', 'exam', 'إجازة', 'اختبارات', 'تقويم'] },

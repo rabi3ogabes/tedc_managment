@@ -82,7 +82,7 @@ const en: Dictionary = {
   },
   auth: {
     title: 'Sign in', subtitle: 'Access the Training Management & Impact Platform', password: 'Password', signIn: 'Sign in',
-    demo: 'Demo accounts', demoHint: 'Password for all accounts:',
+    demo: 'Demo accounts', testAccounts: 'App test accounts (trainees and trainers)', demoHint: 'Password for all accounts:',
   },
   admin: {
     push: {

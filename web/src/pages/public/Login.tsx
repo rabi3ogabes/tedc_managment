@@ -15,6 +15,8 @@ const DEMO = [
   ['school@tedc.qa', 'School Admin'], ['teacher@tedc.qa', 'Employee'], ['supervisor@tedc.qa', 'Supervisor'], ['executive@tedc.qa', 'Executive'],
 ]
 
+const TEST_ACCOUNTS: [string, string][] = [['trainee1@tedc.qa', 'متدرب 1'], ['trainee2@tedc.qa', 'متدرب 2'], ['trainee3@tedc.qa', 'متدرب 3'], ['trainee4@tedc.qa', 'متدرب 4'], ['trainer1@tedc.qa', 'مدرب 1'], ['trainer2@tedc.qa', 'مدرب 2']]
+
 // Demo accounts panel: shown by default (also on the live site); build with VITE_SHOW_DEMO_ACCOUNTS=false to hide it.
 const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
 const DEMO_PASSWORD = 'Tedc@2026!'
@@ -70,6 +72,12 @@ export default function Login() {
               <div className="flex flex-wrap gap-2">
                 {DEMO.map(([mail, role]) => (
                   <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword(DEMO_PASSWORD) }} className="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-navy-800 ring-1 ring-navy-100 hover:ring-gold-400">{role}</button>
+                ))}
+              </div>
+              <p className="mb-2 mt-4 text-xs font-bold text-navy-900">{t('auth.testAccounts')}</p>
+              <div className="flex flex-wrap gap-2">
+                {TEST_ACCOUNTS.map(([mail, label]) => (
+                  <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword(DEMO_PASSWORD) }} className="rounded-lg bg-navy-900 px-2.5 py-1 text-xs font-semibold text-gold-300 hover:bg-navy-800">{label}</button>
                 ))}
               </div>
             </div>
