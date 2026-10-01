@@ -66,9 +66,10 @@ class Program extends Model
         ];
     }
 
+    /** Programs shown on the public website (the internal TEST-* programs used to try the mobile app are never listed). */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->whereIn('status', self::VISIBLE);
+        return $query->whereIn('status', self::VISIBLE)->where('code', 'not like', 'TEST-%');
     }
 
     public function category(): BelongsTo

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
+use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -47,6 +48,7 @@ use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
+use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SystemController;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +72,14 @@ Route::prefix('v1')->group(function () {
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
         Route::get('cron', 'cron');
         Route::post('setup', 'setup');
+    });
+
+    // Website chat assistant (never cached; the visitor's secret token is the credential) --------
+    Route::prefix('public/chat')->middleware('throttle:40,1')->group(function () {
+        Route::post('/', [PublicChatController::class, 'start']);
+        Route::get('{conversation}', [PublicChatController::class, 'show']);
+        Route::post('{conversation}/messages', [PublicChatController::class, 'send']);
+        Route::post('{conversation}/human', [PublicChatController::class, 'human']);
     });
 
     // Public website ----------------------------------------------------------
@@ -156,6 +166,17 @@ Route::prefix('v1')->group(function () {
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
+            // Chat inbox (conversations with the website assistant)
+            Route::middleware('permission:announcements.manage')->prefix('chats')->group(function () {
+                Route::get('/', [AdminChatController::class, 'index']);
+                Route::get('badge', [AdminChatController::class, 'badge']);
+                Route::get('{conversation}', [AdminChatController::class, 'show']);
+                Route::post('{conversation}/messages', [AdminChatController::class, 'reply']);
+                Route::post('{conversation}/mode', [AdminChatController::class, 'mode']);
+                Route::post('{conversation}/status', [AdminChatController::class, 'status']);
+                Route::get('{conversation}/export', [AdminChatController::class, 'export']);
+            });
+
             // Data-change requests from users
             Route::middleware('permission:employees.manage')->prefix('profile-requests')->group(function () {
                 Route::get('/', [ProfileRequestController::class, 'index']);
