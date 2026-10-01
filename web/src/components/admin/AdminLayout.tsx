@@ -1,12 +1,13 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import AppErrorBoundary from '@/components/AppErrorBoundary'
 import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
-import { BrandMark } from '@/components/public/Logo'
+import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { Avatar } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -32,6 +33,20 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   }
   const settingsChildren = SETTINGS_SECTIONS.filter((s) => s.permission.some((p) => can(p)))
   const [open, setOpen] = useState(false)
+  // Menu size: pinned = full size; unpinned = small rail that (optionally) grows while the pointer is on it.
+  const flag = (key: string, fallback: boolean) => { try { const v = localStorage.getItem(key); return v === null ? fallback : v === '1' } catch { return fallback } }
+  const [pinned, setPinned] = useState(() => flag('tedc.nav.pinned', true))
+  const [hoverOpen, setHoverOpen] = useState(() => flag('tedc.nav.hover', true))
+  const [hovering, setHovering] = useState(false)
+  const save = (key: string, v: boolean) => { try { localStorage.setItem(key, v ? '1' : '0') } catch { /* storage unavailable */ } }
+  const togglePin = () => setPinned((v) => { save('tedc.nav.pinned', !v); if (v) setHovering(false); return !v })
+  const toggleHover = () => setHoverOpen((v) => { save('tedc.nav.hover', !v); return !v })
+  const expanded = pinned || (hoverOpen && hovering)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'b') { e.preventDefault(); togglePin() } }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   const unread = useGet<{ meta?: { total: number } }>('/me/notifications', { unread: 1, per_page: 1 }, { refetchInterval: 60_000 })
   const requests = useGet<{ data: { pending: number } }>(!portal && can('employees.manage') ? '/admin/profile-requests/summary' : null, undefined, { refetchInterval: 60_000 })
   const chats = useGet<{ data: { unread: number; needs_human: number } }>(!portal && can('announcements.manage') ? '/admin/chats/badge' : null, undefined, { refetchInterval: 20_000 })
@@ -92,21 +107,31 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || can(i.permission)) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
 
-  const sidebar = (
-    <aside className="flex h-full w-72 flex-col bg-navy-950 text-white">
-      <div className="relative flex items-center gap-3 px-6 py-6">
-        <BrandMark onDark className="h-11 max-w-[120px]" />
-        <div className="leading-tight">
-          <div className="font-display text-sm font-bold">{centerName}</div>
-          <div className="text-[11px] text-gold-300">{portal ? t('nav.portal') : t('nav.dashboard')}</div>
-        </div>
+  const renderSidebar = (compact: boolean, drawer: boolean) => (
+    <aside className={clsx('flex h-full flex-col bg-navy-950 text-white transition-[width,box-shadow] duration-300 ease-out', compact ? 'w-[4.75rem]' : 'w-72', !drawer && !pinned && expanded && 'shadow-[12px_0_40px_-8px_rgba(0,0,0,.45)]')}>
+      <div className={clsx('relative flex items-center gap-3 py-6', compact ? 'justify-center px-2' : 'px-6')}>
+        {compact ? <LogoMark className="size-10" /> : (
+          <>
+            <BrandMark onDark className="h-11 max-w-[120px]" />
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="truncate font-display text-sm font-bold">{centerName}</div>
+              <div className="text-[11px] text-gold-300">{portal ? t('nav.portal') : t('nav.dashboard')}</div>
+            </div>
+            {!drawer && (
+              <button type="button" onClick={togglePin} aria-pressed={pinned} title={`${pinned ? t('nav.unpin') : t('nav.pin')} (Ctrl+B)`} aria-label={pinned ? t('nav.unpin') : t('nav.pin')}
+                className={clsx('grid size-9 shrink-0 place-items-center rounded-xl transition', pinned ? 'bg-gold-500/20 text-gold-300 hover:bg-gold-500/30' : 'text-white/60 hover:bg-white/10 hover:text-white')}>
+                {pinned ? <Pin className="size-4 -rotate-45" /> : <PinOff className="size-4" />}
+              </button>
+            )}
+          </>
+        )}
       </div>
-      <nav className="flex-1 space-y-6 overflow-y-auto px-4 pb-6">
+      <nav className={clsx('flex-1 overflow-y-auto pb-6', compact ? 'space-y-4 px-3 [scrollbar-width:none]' : 'space-y-6 px-4')}>
         {visible.map((group) => (
           <div key={group.title}>
-            <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-white/35">{group.title}</div>
+            {compact ? <div className="mx-2 mb-2 h-px bg-white/10" aria-hidden /> : <div className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-white/35">{group.title}</div>}
             <div className="space-y-1">
-              {group.items.map((item) => item.to === '/admin/settings' && settingsChildren.length > 0 ? (
+              {group.items.map((item) => item.to === '/admin/settings' && settingsChildren.length > 0 && !compact ? (
                 <div key={item.to}>
                   <div className={clsx('flex items-stretch rounded-xl transition', onSettings ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 ring-1 ring-gold-500/30' : 'hover:bg-white/5')}>
                     <Link to="/admin/settings?tab=home" onClick={() => !settingsOpen && toggleSettings(true)}
@@ -141,40 +166,51 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                   </div>
                 </div>
               ) : (
-                <NavLink key={item.to} to={item.to} end={item.end}
-                  className={({ isActive }) => clsx('flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
+                <NavLink key={item.to} to={item.to} end={item.end} title={compact ? item.label : undefined} aria-label={compact ? item.label : undefined}
+                  className={({ isActive }) => clsx('relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition', compact ? 'justify-center px-0' : 'px-3',
                     isActive ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 text-gold-300 ring-1 ring-gold-500/30' : 'text-white/70 hover:bg-white/5 hover:text-white')}>
-                  <item.icon className="size-5" />
-                  {item.label}
-                  {!!item.badge && <span className="ms-auto rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-navy-950">{item.badge}</span>}
+                  <item.icon className="size-5 shrink-0" />
+                  {!compact && <span className="truncate">{item.label}</span>}
+                  {!!item.badge && (compact
+                    ? <span className="absolute end-2 top-1.5 size-2.5 rounded-full bg-gold-500 ring-2 ring-navy-950" aria-hidden />
+                    : <span className="ms-auto rounded-full bg-gold-500 px-2 py-0.5 text-[11px] font-bold text-navy-950">{item.badge}</span>)}
                 </NavLink>
               ))}
             </div>
           </div>
         ))}
       </nav>
-      <div className="border-t border-white/10 p-4">
-        {portal ? (can('dashboard.view') || can('programs.view')) && <SideLink to="/admin" icon={Shield}>{t('nav.dashboard')}</SideLink>
-          : user?.employee && <SideLink to="/portal" icon={GraduationCap}>{t('nav.portal')}</SideLink>}
-        <SideLink to="/" icon={Home}>{t('nav.home')}</SideLink>
-        <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white"><LogOut className="size-5" />{t('nav.logout')}</button>
+      <div className={clsx('border-t border-white/10', compact ? 'p-3' : 'p-4')}>
+        {portal ? (can('dashboard.view') || can('programs.view')) && <SideLink to="/admin" icon={Shield} compact={compact}>{t('nav.dashboard')}</SideLink>
+          : user?.employee && <SideLink to="/portal" icon={GraduationCap} compact={compact}>{t('nav.portal')}</SideLink>}
+        <SideLink to="/" icon={Home} compact={compact}>{t('nav.home')}</SideLink>
+        <button onClick={logout} title={compact ? t('nav.logout') : undefined} aria-label={t('nav.logout')} className={clsx('flex w-full items-center gap-3 rounded-xl py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white', compact ? 'justify-center px-0' : 'px-3')}><LogOut className="size-5 shrink-0" />{!compact && t('nav.logout')}</button>
+        {!compact && !drawer && !pinned && (
+          <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs text-white/70">
+            <span>{t('nav.autoExpand')}</span>
+            <button type="button" role="switch" aria-checked={hoverOpen} onClick={toggleHover} className={clsx('relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors', hoverOpen ? 'justify-end bg-gold-500' : 'justify-start bg-white/20')}><span className="inline-block size-4 rounded-full bg-white shadow" /></button>
+          </label>
+        )}
       </div>
     </aside>
   )
 
   return (
     <div className="flex min-h-screen bg-ivory">
-      <div className="fixed inset-y-0 start-0 z-30 hidden lg:block">{sidebar}</div>
+      <div className="fixed inset-y-0 start-0 z-30 hidden lg:block" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHovering(false) }}>{renderSidebar(!expanded, false)}</div>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setOpen(false)}>
           <div className="absolute inset-0 bg-navy-950/50" />
-          <div className="absolute inset-y-0 start-0" onClick={(e) => e.stopPropagation()}>{sidebar}</div>
+          <div className="absolute inset-y-0 start-0" onClick={(e) => e.stopPropagation()}>{renderSidebar(false, true)}</div>
         </div>
       )}
-      <div className="flex min-w-0 flex-1 flex-col lg:ms-72">
+      <div className={clsx('flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out', pinned ? 'lg:ms-72' : 'lg:ms-[4.75rem]')}>
         <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-8">
             <button className="rounded-lg p-2 text-navy-900 lg:hidden" onClick={() => setOpen(true)} aria-label="menu">{open ? <X /> : <Menu />}</button>
+            <button type="button" onClick={togglePin} aria-pressed={pinned} title={`${pinned ? t('nav.collapse') : t('nav.expand')} (Ctrl+B)`} aria-label={pinned ? t('nav.collapse') : t('nav.expand')} className="hidden rounded-xl p-2 text-navy-800 transition hover:bg-navy-100/60 lg:block">
+              {pinned ? <PanelLeftClose className="size-5 rtl:-scale-x-100" /> : <PanelLeftOpen className="size-5 rtl:-scale-x-100" />}
+            </button>
             <div className="hidden text-sm text-slate-500 lg:block">{t('brand.tagline')}</div>
             <div className="flex items-center gap-2">
               <LanguageToggle />
@@ -193,13 +229,13 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           </div>
         </header>
         <main className="flex-1 px-4 py-8 sm:px-8">
-          <Outlet />
+          <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
         </main>
       </div>
     </div>
   )
 }
 
-function SideLink({ to, icon: Icon, children }: { to: string; icon: ComponentType<{ className?: string }>; children: React.ReactNode }) {
-  return <Link to={to} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white"><Icon className="size-5" />{children}</Link>
+function SideLink({ to, icon: Icon, children, compact }: { to: string; icon: ComponentType<{ className?: string }>; children: React.ReactNode; compact?: boolean }) {
+  return <Link to={to} title={compact ? String(children) : undefined} aria-label={compact ? String(children) : undefined} className={clsx('flex items-center gap-3 rounded-xl py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white', compact ? 'justify-center px-0' : 'px-3')}><Icon className="size-5 shrink-0" />{!compact && children}</Link>
 }

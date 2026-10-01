@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/lib/ThemeProvider'
 
 import i18n from '@/i18n'
 import { api } from '@/lib/api'
+import AppErrorBoundary, { installStaleCodeRecovery } from '@/components/AppErrorBoundary'
 import { bootLabels } from '@/lib/labels'
 
 const queryClient = new QueryClient({
@@ -31,6 +32,9 @@ const persistOptions = {
   },
 }
 
+// A tab opened before a new release can hold stale code: recover instead of showing a white screen.
+installStaleCodeRecovery()
+
 // Names of menus and buttons set by the administrators (Settings → Labels).
 bootLabels()
 
@@ -46,7 +50,7 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <App />
+            <AppErrorBoundary><App /></AppErrorBoundary>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

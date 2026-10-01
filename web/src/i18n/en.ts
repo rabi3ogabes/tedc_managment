@@ -3,6 +3,7 @@ import type { Dictionary } from './ar'
 const en: Dictionary = {
   brand: { name: 'Training & Development Center', short: 'TEDC', tagline: 'Creating lasting impact in education' },
   nav: {
+    pin: 'Pin the menu at full size', unpin: 'Unpin and shrink the menu', collapse: 'Shrink the menu', expand: 'Expand the menu', autoExpand: 'Expand on hover',
     home: 'Home', about: 'About', programs: 'Programs', trainers: 'Trainers', calendar: 'Training Calendar',
     verify: 'Verify Certificate', news: 'News', contact: 'Contact', login: 'Sign in', dashboard: 'Dashboard',
     portal: 'My Training', logout: 'Sign out', language: 'العربية',
@@ -31,6 +32,10 @@ const en: Dictionary = {
   stages: { kindergarten: 'Kindergarten', primary: 'Primary', preparatory: 'Preparatory', secondary: 'Secondary', multi: 'Multi-stage' },
   schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International' },
 
+  errorPage: {
+    title: 'Something went wrong', text: 'This page could not be displayed. Reload to continue, and tell the support team if it keeps happening.', updatedTitle: 'The platform was updated', updatedText: 'A new version was released while you were using it. Reload to get the latest version.',
+    reload: 'Reload the page', retry: 'Try again', details: 'Technical details',
+  },
   chat: {
     title: 'Center assistant', subtitle: 'Answers questions about training and programs', teamMode: 'The team is with you now', open: 'Open chat', close: 'Close', send: 'Send', newChat: 'New chat', typing: 'Typing…',
     greeting: "Hello! I'm the training center's assistant. Ask me about our programs, dates, registration, attendance or certificates.",
