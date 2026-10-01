@@ -22,7 +22,7 @@ export type Lesson = {
 export type Module = { id: string; title_ar: string; title_en: string; description_ar: string | null; description_en: string | null; sort_order: number; lessons: Lesson[] }
 
 export type Course = {
-  settings: { has_course: boolean; sequential: boolean; completion_percent: number }
+  settings: { has_course: boolean; sequential: boolean; completion_percent: number; auto_certificate: boolean }
   modules: Module[]
   totals: { modules: number; lessons: number; published: number; video_seconds: number; by_type: Record<string, number> }
 }

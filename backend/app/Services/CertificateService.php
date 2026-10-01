@@ -56,7 +56,8 @@ class CertificateService
             ],
             [
                 'key' => 'attendance',
-                'passed' => $registration->attendance_percent >= $program->min_attendance_percent,
+                // A self-paced online program has no sessions to attend.
+                'passed' => ! $program->sessions()->where('status', '!=', 'cancelled')->exists() || $registration->attendance_percent >= $program->min_attendance_percent,
                 'label' => __('messages.certificate.attendance', ['actual' => round($registration->attendance_percent), 'required' => $program->min_attendance_percent]),
             ],
             [

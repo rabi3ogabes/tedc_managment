@@ -6,6 +6,7 @@ export const courseAr = {
   types: { video: 'فيديو', presentation: 'عرض تقديمي', quiz: 'اختبار', survey: 'استبيان', article: 'مقال' },
   typeHint: { video: 'ارفع فيديو أو أضف رابطاً مع تتبّع المشاهدة', presentation: 'PDF أو PowerPoint مع تتبّع الشرائح', quiz: 'أسئلة اختيار من متعدد بتصحيح تلقائي', survey: 'تقييم وآراء المتدربين', article: 'نص تعليمي للقراءة' },
   defaultTitle: { video: 'فيديو', presentation: 'عرض تقديمي', quiz: 'اختبار', survey: 'استبيان', article: 'مقال' },
+  autoCert: 'إصدار الشهادة تلقائياً', autoCertHint: 'تصدر الشهادة فور إتمام المحتوى واستيفاء بقية الشروط، ويصل المتدرب إشعار.',
   sequential: 'فتح الدروس بالترتيب', sequentialHint: 'لا يفتح الدرس التالي قبل إنهاء الدرس المطلوب السابق.',
   gate: 'شرط الشهادة', gateHint: 'تُشترط نسبة من الدروس المطلوبة قبل إتاحة الشهادة.', completionPercent: 'نسبة الإتمام المطلوبة',
   empty: 'لم يُبنَ المحتوى بعد. ابدأ بوحدة وأضف إليها فيديو وعروضاً واختبارات.', quickStart: 'ابدأ بهيكل جاهز', quickStartHint: 'ينشئ وحدة تمهيدية بفيديو وعرض واختبار واستبيان كمسودات تعدّلها.',
@@ -46,6 +47,7 @@ export const courseAr = {
   },
   learn: {
     title: 'المحتوى التدريبي', back: 'العودة للمحتوى', outline: 'محتوى البرنامج', progress: 'تقدمك', lessonsDone: '{{done}} من {{total}} دروس', resume: 'تابع من حيث توقفت', start: 'ابدأ التعلّم', next: 'الدرس التالي', previous: 'السابق',
+    cert: { issued: 'صدرت شهادتك 🎓', pending: 'الشهادة بانتظار استيفاء المتطلبات', ready: 'يمكنك تحميلها الآن من محفظة الشهادات.', needSurvey: 'عبّئ استبيان البرنامج لتتمكن من تحميلها.', open: 'محفظة الشهادات' },
     locked: 'مقفل', lockedHint: 'أكمل الدرس السابق لفتح هذا الدرس.', done: 'مكتمل', optional: 'اختياري', allDone: 'أحسنت! أتممت كل الدروس', allDoneHint: 'يمكنك الآن متابعة بقية متطلبات الشهادة.',
     watched: 'شاهدت {{percent}}٪', needWatch: 'تُحتسب مشاهدتك لحظة بلحظة — أكمل {{percent}}٪ على الأقل لإتمام الدرس.', noSeek: 'التقديم غير مسموح في هذا الفيديو.', speed: 'السرعة', fullscreen: 'ملء الشاشة',
     hiddenPause: 'توقف الفيديو لأنك غادرت الصفحة.', resumeAt: 'استأنفنا من {{time}}', lessonDone: 'تم إتمام الدرس ✓', link: 'افتح الرابط', mediaMissing: 'لم يُضَف ملف لهذا الدرس بعد.',
@@ -62,6 +64,7 @@ export const courseEn: typeof courseAr = {
   types: { video: 'Video', presentation: 'Presentation', quiz: 'Quiz', survey: 'Survey', article: 'Article' },
   typeHint: { video: 'Upload a video or add a link, with watch tracking', presentation: 'PDF or PowerPoint with slide tracking', quiz: 'Multiple-choice questions, graded automatically', survey: 'Ratings and feedback from learners', article: 'Reading material' },
   defaultTitle: { video: 'Video', presentation: 'Presentation', quiz: 'Quiz', survey: 'Survey', article: 'Article' },
+  autoCert: 'Issue the certificate automatically', autoCertHint: 'The certificate is issued as soon as the course is completed and the other requirements are met, and the learner is notified.',
   sequential: 'Unlock lessons in order', sequentialHint: 'The next lesson stays locked until the previous required one is done.',
   gate: 'Certificate requirement', gateHint: 'A share of the required lessons must be completed before the certificate is available.', completionPercent: 'Completion required',
   empty: 'The course has no content yet. Start with a module and add videos, presentations and quizzes.', quickStart: 'Start with a ready structure', quickStartHint: 'Creates an introduction module with a video, a presentation, a quiz and a survey as drafts to edit.',
@@ -102,6 +105,7 @@ export const courseEn: typeof courseAr = {
   },
   learn: {
     title: 'Online course', back: 'Back to the course', outline: 'Course content', progress: 'Your progress', lessonsDone: '{{done}} of {{total}} lessons', resume: 'Resume where you left off', start: 'Start learning', next: 'Next lesson', previous: 'Previous',
+    cert: { issued: 'Your certificate is issued 🎓', pending: 'The certificate is waiting for the remaining requirements', ready: 'You can download it now from the certificate wallet.', needSurvey: 'Fill in the program survey to download it.', open: 'Certificate wallet' },
     locked: 'Locked', lockedHint: 'Finish the previous lesson to unlock this one.', done: 'Done', optional: 'Optional', allDone: 'Well done! You finished every lesson', allDoneHint: 'You can now continue with the remaining certificate requirements.',
     watched: 'Watched {{percent}}%', needWatch: 'Your viewing is tracked moment by moment — watch at least {{percent}}% to complete the lesson.', noSeek: 'Skipping ahead is not allowed in this video.', speed: 'Speed', fullscreen: 'Full screen',
     hiddenPause: 'The video paused because you left the page.', resumeAt: 'Resumed from {{time}}', lessonDone: 'Lesson completed ✓', link: 'Open link', mediaMissing: 'No file has been added to this lesson yet.',

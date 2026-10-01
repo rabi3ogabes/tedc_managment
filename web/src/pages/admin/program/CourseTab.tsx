@@ -102,7 +102,10 @@ export default function CourseTab({ program }: { program: Program }) {
                 <span className={clsx('mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition', course.settings.sequential ? 'bg-emerald-500' : 'bg-slate-300')}><span className={clsx('size-4 rounded-full bg-white shadow transition', course.settings.sequential && 'ltr:translate-x-4 rtl:-translate-x-4')} /></span>
                 <span><span className="block text-sm font-semibold text-navy-900">{t('course.sequential')}</span><span className="block text-xs text-slate-500">{t('course.sequentialHint')}</span></span>
               </button>
-              <div className="text-sm"><span className="font-semibold text-navy-900">{t('course.gate')}</span><p className="text-xs text-slate-500">{t('course.gateHint')}</p></div>
+              <button type="button" role="switch" aria-checked={course.settings.auto_certificate} onClick={() => setting({ course_auto_certificate: !course.settings.auto_certificate })} className="flex items-start gap-3 text-start">
+                <span className={clsx('mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition', course.settings.auto_certificate ? 'bg-emerald-500' : 'bg-slate-300')}><span className={clsx('size-4 rounded-full bg-white shadow transition', course.settings.auto_certificate && 'ltr:translate-x-4 rtl:-translate-x-4')} /></span>
+                <span><span className="block text-sm font-semibold text-navy-900">{t('course.autoCert')}</span><span className="block text-xs text-slate-500">{t('course.autoCertHint')}</span></span>
+              </button>
               <Field label={t('course.completionPercent')}><div className="flex items-center gap-2"><input type="number" min={1} max={100} dir="ltr" className="input !py-1.5 text-sm" defaultValue={course.settings.completion_percent} onBlur={(e) => Number(e.target.value) !== course.settings.completion_percent && setting({ course_completion_percent: Math.min(100, Math.max(1, Number(e.target.value))) })} /><span className="text-xs text-slate-500">%</span></div></Field>
             </Card>
           )}

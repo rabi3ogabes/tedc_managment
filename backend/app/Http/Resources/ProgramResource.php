@@ -62,6 +62,7 @@ class ProgramResource extends JsonResource
             'remote' => $this->remote,
             'has_course' => $this->has_course,
             'course_sequential' => $this->course_sequential,
+            'course_auto_certificate' => $this->course_auto_certificate,
             'course_completion_percent' => $this->course_completion_percent,
             'certificate_template_id' => $this->certificate_template_id,
             'trainer_certificate_template_id' => $this->trainer_certificate_template_id,

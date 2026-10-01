@@ -42,7 +42,7 @@ class CourseController extends Controller
         $lessons = $modules->flatMap->lessons;
 
         return response()->json(['data' => [
-            'settings' => ['has_course' => $program->has_course, 'sequential' => $program->course_sequential, 'completion_percent' => $program->course_completion_percent],
+            'settings' => ['has_course' => $program->has_course, 'sequential' => $program->course_sequential, 'completion_percent' => $program->course_completion_percent, 'auto_certificate' => $program->course_auto_certificate],
             'modules' => $modules->map(fn (CourseModule $m) => [
                 'id' => $m->id, 'title_ar' => $m->title_ar, 'title_en' => $m->title_en, 'description_ar' => $m->description_ar, 'description_en' => $m->description_en, 'sort_order' => $m->sort_order,
                 'lessons' => $m->lessons->map(fn (CourseLesson $l) => $this->present($l))->values(),
@@ -57,7 +57,7 @@ class CourseController extends Controller
     public function updateSettings(Request $request, Program $program): JsonResponse
     {
         $program->update($request->validate([
-            'has_course' => ['sometimes', 'boolean'], 'course_sequential' => ['sometimes', 'boolean'], 'course_completion_percent' => ['sometimes', 'integer', 'between:1,100'],
+            'has_course' => ['sometimes', 'boolean'], 'course_sequential' => ['sometimes', 'boolean'], 'course_completion_percent' => ['sometimes', 'integer', 'between:1,100'], 'course_auto_certificate' => ['sometimes', 'boolean'],
         ]));
 
         return $this->show($program->refresh());

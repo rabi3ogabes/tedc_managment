@@ -66,7 +66,10 @@ class OnlineCourseTest extends TestCase
         $registration->refresh();
         $this->assertTrue($registration->course_completed);
         $this->assertDatabaseHas('notifications', ['user_id' => $user->id, 'type' => 'course.completed']);
-        $this->assertSame('eligible', $registration->certificate_status);
+        // Completing the course issues the certificate by itself.
+        $this->assertSame('issued', $registration->certificate_status);
+        $this->assertDatabaseHas('certificates', ['registration_id' => $registration->id, 'status' => 'valid']);
+        $this->asUser($user)->getJson("/api/v1/me/registrations/{$registration->id}/course")->assertJsonPath('data.summary.certificate.issued', true);
     }
 
     public function test_media_uploads_are_signed_and_attached_only_to_their_own_lesson(): void

@@ -5,7 +5,7 @@ export type OutlineLesson = {
 export type Outline = {
   registration_id: string; program: { id: string; code: string; title: string }
   modules: { id: string; title: string; description: string | null; lessons: OutlineLesson[] }[]
-  summary: { lessons: number; required: number; completed: number; percent: number; completed_course: boolean; required_percent: number; sequential: boolean; duration_seconds: number; next_lesson_id: string | null; resume_lesson_id: string | null }
+  summary: { lessons: number; required: number; completed: number; percent: number; completed_course: boolean; required_percent: number; sequential: boolean; duration_seconds: number; certificate: { issued: boolean; downloadable: boolean; eligible: boolean; missing: string[] }; next_lesson_id: string | null; resume_lesson_id: string | null }
 }
 
 export type QuizQuestion = { id: string; type: 'single' | 'multiple' | 'true_false'; text: string; points: number; options: { id: string; text: string }[] }

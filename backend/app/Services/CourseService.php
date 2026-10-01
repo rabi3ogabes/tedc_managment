@@ -74,8 +74,22 @@ class CourseService
                 'sequential' => $program->course_sequential,
                 'duration_seconds' => (int) $flat->sum('duration_seconds'),
                 'next_lesson_id' => $next['id'] ?? null,
+                'certificate' => $this->certificateInfo($registration),
                 'resume_lesson_id' => $flat->sortByDesc('last_activity_at')->first(fn ($l) => $l['last_activity_at'] && $l['status'] !== 'completed' && ! $l['locked'])['id'] ?? null,
             ],
+        ];
+    }
+
+    /** Where the learner stands on the certificate: issued, ready, or what is still missing. */
+    private function certificateInfo(Registration $registration): array
+    {
+        $certificates = app(CertificateService::class);
+        $issued = $registration->certificate()->first();
+        $check = $certificates->requirements($registration);
+
+        return [
+            'issued' => (bool) $issued, 'downloadable' => $issued ? $certificates->downloadable($issued) : false, 'eligible' => $check['eligible'],
+            'missing' => collect($check['checks'])->where('passed', false)->pluck('label')->values(),
         ];
     }
 
@@ -306,7 +320,17 @@ class CourseService
                 ['registration_id' => $registration->id, 'program_id' => $program->id, 'route' => '/courses/'.$registration->id],
             );
         }
-        app(CertificateService::class)->refreshStatus($registration->refresh());
+        $certificates = app(CertificateService::class);
+        $certificates->refreshStatus($registration->refresh());
+
+        // Completing the course (with every other requirement met) issues the certificate by itself.
+        if ($completed && $program->course_auto_certificate && ! $registration->certificate()->exists()) {
+            try {
+                $certificates->issue($registration->load('program', 'employee.user'));
+            } catch (BusinessRuleException) {
+                // Something else is still missing (a task, the survey ...): it is issued once that is done.
+            }
+        }
 
         return $registration;
     }

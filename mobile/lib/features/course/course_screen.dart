@@ -72,6 +72,16 @@ class CourseScreen extends ConsumerWidget {
                       label: Text(summary.str('resume_lesson_id').isNotEmpty ? s.t('course.resume') : s.t('course.start')),
                     ),
                   ],
+                  if ((summary.obj('certificate')?['issued'] == true)) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => context.go('/certificates'),
+                      style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
+                      icon: const Icon(Icons.workspace_premium_outlined),
+                      label: Text(s.t('course.certIssued')),
+                    ),
+                  ] else if (summary['completed_course'] == true && summary.obj('certificate') != null && (summary.obj('certificate')!['missing'] as List).isNotEmpty)
+                    Padding(padding: const EdgeInsets.only(top: 10), child: Text('${s.t('course.certPending')}: ${(summary.obj('certificate')!['missing'] as List).join(' · ')}', style: const TextStyle(color: AppColors.gold300, fontSize: 12.5))),
                   if (summary['completed_course'] == true) Padding(padding: const EdgeInsets.only(top: 12), child: Text('🎉 ${s.t('course.allDone')}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
                 ]),
               ),

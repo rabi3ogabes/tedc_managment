@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardList, FileText, ListChecks, Lock, PartyPopper, Play, Presentation, Video } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, CheckCircle2, ClipboardList, FileText, ListChecks, Lock, PartyPopper, Play, Presentation, Video } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -89,6 +89,17 @@ export default function Learn() {
           {!lessonId && (s.resume_lesson_id || s.next_lesson_id) && <Button variant="gold" size="lg" icon={<Play className="size-5" />} onClick={() => navigate(`/portal/learn/${registrationId}/${s.resume_lesson_id ?? s.next_lesson_id}`)}>{s.resume_lesson_id ? t('learn.resume') : t('learn.start')}</Button>}
         </div>
       </div>
+
+      {s.certificate && (s.completed_course || s.certificate.issued) && (
+        <Card className={clsx('flex flex-wrap items-center gap-4', s.certificate.issued ? 'border-gold-400 bg-gold-100/40' : 'border-navy-100')}>
+          <Award className="size-10 shrink-0 text-gold-600" />
+          <div className="min-w-0 flex-1">
+            <div className="font-bold text-navy-900">{s.certificate.issued ? t('learn.cert.issued') : t('learn.cert.pending')}</div>
+            <div className="text-sm text-slate-600">{s.certificate.issued ? (s.certificate.downloadable ? t('learn.cert.ready') : t('learn.cert.needSurvey')) : s.certificate.missing.join(' · ')}</div>
+          </div>
+          {s.certificate.issued && <Button variant="gold" to="/portal/certificates">{t('learn.cert.open')}</Button>}
+        </Card>
+      )}
 
       {s.completed_course && !lessonId && (
         <Card className="flex items-center gap-4 border-emerald-300 bg-emerald-50/60"><PartyPopper className="size-10 shrink-0 text-emerald-600" /><div><div className="font-bold text-emerald-900">{t('learn.allDone')}</div><div className="text-sm text-emerald-800">{t('learn.allDoneHint')}</div></div></Card>
