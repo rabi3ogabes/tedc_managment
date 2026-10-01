@@ -22,6 +22,7 @@ class Me {
   List<String> get roles => json.list('roles').map((r) => r.str('slug')).toList();
   List<String> get permissions => (json['permissions'] as List? ?? const []).map((e) => e.toString()).toList();
   Json? get employee => json.obj('employee');
+  bool get isTrainer => json.str('trainer_id').isNotEmpty;
 
   bool can(String permission) => permissions.contains('*') || permissions.contains(permission);
   bool hasRole(String role) => roles.contains(role);

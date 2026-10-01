@@ -77,6 +77,11 @@ class Trainer extends Model
         return $this->belongsToMany(Program::class)->withPivot('role');
     }
 
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(TrainerCertificate::class);
+    }
+
     public function sessions(): HasMany
     {
         return $this->hasMany(ProgramSession::class);

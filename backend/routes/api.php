@@ -148,6 +148,7 @@ Route::prefix('v1')->group(function () {
             Route::post('tasks/{task}/submit', [MyOutcomesController::class, 'submitTask']);
             Route::post('registrations/{registration}/evaluation', [MyOutcomesController::class, 'submitEvaluation']);
             Route::get('certificates', [MyOutcomesController::class, 'certificates']);
+            Route::get('trainer-certificates', [MyOutcomesController::class, 'trainerCertificates']);
             Route::get('surveys', [MyOutcomesController::class, 'surveys']);
             Route::post('surveys/{survey}', [MyOutcomesController::class, 'submitSurvey']);
             Route::get('needs-surveys', [MyNeedsSurveyController::class, 'index']);
@@ -159,6 +160,7 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::get('certificates/{certificate}/download', [MyOutcomesController::class, 'downloadCertificate'])->name('api.certificates.download');
+        Route::get('trainer-certificates/{certificate}/download', [MyOutcomesController::class, 'downloadTrainerCertificate'])->name('api.trainer-certificates.download');
 
         // Administration --------------------------------------------------------
         Route::prefix('admin')->middleware('unlocked')->group(function () {

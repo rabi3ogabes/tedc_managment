@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Services\CertificateService;
+use App\Services\TrainerCertificateService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -13,7 +14,7 @@ use Illuminate\Console\Command;
 #[Description('Advance program statuses by date and refresh certificate eligibility of ended programs')]
 class AdvanceProgramLifecycle extends Command
 {
-    public function handle(CertificateService $certificates): int
+    public function handle(CertificateService $certificates, TrainerCertificateService $trainerCertificates): int
     {
         $opened = Program::where('status', Program::STATUS_PUBLISHED)
             ->whereNotNull('registration_opens_at')->where('registration_opens_at', '<=', now())
@@ -32,6 +33,8 @@ class AdvanceProgramLifecycle extends Command
             $program->update(['status' => Program::STATUS_COMPLETED]);
             $program->registrations()->where('status', Registration::STATUS_APPROVED)->each(fn ($r) => $certificates->refreshStatus($r));
         }
+
+        $trainerCertificates->sync();
 
         $this->info("Opened {$opened}, started {$started}, completed {$ended->count()} programs.");
 

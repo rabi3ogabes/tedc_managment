@@ -292,7 +292,7 @@ const ar = {
     impact: { title: 'قياس الأثر', score: 'مؤشر الأثر', applied: 'نسبة التطبيق', needsSupport: 'بحاجة لدعم', byStage: 'حسب مرحلة المتابعة', skillsImproved: 'المهارات التي تحسنت', days: 'يوم' },
   },
   portal: {
-    welcome: 'أهلاً بك،', recommended: 'برامج موصى بها لك', why: 'لماذا نوصي به؟', myTraining: 'تدريبي', passport: 'جواز التدريب', certificates: 'محفظة الشهادات',
+    welcome: 'أهلاً بك،', recommended: 'برامج موصى بها لك', why: 'لماذا نوصي به؟', myTraining: 'تدريبي', passport: 'جواز التدريب', certificates: 'محفظة الشهادات', trainerCert: 'شهادة شكر وتقدير', traineeCert: 'شهادة إتمام', sessionsDone: 'جلسات منجزة', trainerLocked: 'تُفتح شهادة الشكر بعد إكمال جميع ساعاتك في البرنامج.', traineeLocked: 'تُفتح الشهادة بعد تعبئة استبيان البرنامج.', fillSurvey: 'تعبئة الاستبيان', 
     tasks: 'مهامي', surveys: 'استبيانات الأثر', notifications: 'الإشعارات', nextSession: 'جلستك القادمة', activePrograms: 'برامج نشطة', completed: 'برامج مكتملة',
     totalHours: 'إجمالي الساعات', skills: 'المهارات', growthPath: 'مسار النمو المهني', hoursByCategory: 'الساعات حسب المجال', submitTask: 'تسليم المهمة',
     textResponse: 'الإجابة النصية', attachFile: 'إرفاق ملف', evaluate: 'تقييم البرنامج', survey: { applied: 'هل طبّقت ما تعلمته؟', changes: 'ما التغييرات التي حدثت؟', skills: 'ما المهارات التي تحسنت؟', support: 'هل تحتاج إلى دعم؟', supportDetails: 'تفاصيل الدعم المطلوب', yes: 'نعم', partially: 'جزئياً', no: 'لا' },

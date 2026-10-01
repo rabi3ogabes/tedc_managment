@@ -294,7 +294,7 @@ const en: Dictionary = {
     impact: { title: 'Impact', score: 'Impact score', applied: 'Application rate', needsSupport: 'Need support', byStage: 'By follow-up stage', skillsImproved: 'Skills improved', days: 'days' },
   },
   portal: {
-    welcome: 'Welcome,', recommended: 'Recommended training for you', why: 'Why this?', myTraining: 'My training', passport: 'Training passport', certificates: 'Certificate wallet',
+    welcome: 'Welcome,', recommended: 'Recommended training for you', why: 'Why this?', myTraining: 'My training', passport: 'Training passport', certificates: 'Certificate wallet', trainerCert: 'Thank-you certificate', traineeCert: 'Completion certificate', sessionsDone: 'Sessions delivered', trainerLocked: 'Unlocks once you complete all your hours in the program.', traineeLocked: 'Unlocks after you fill in the program survey.', fillSurvey: 'Fill in the survey', 
     tasks: 'My tasks', surveys: 'Impact surveys', notifications: 'Notifications', nextSession: 'Your next session', activePrograms: 'Active programs', completed: 'Completed',
     totalHours: 'Total hours', skills: 'Skills', growthPath: 'Professional growth path', hoursByCategory: 'Hours by category', submitTask: 'Submit task',
     textResponse: 'Text response', attachFile: 'Attach file', evaluate: 'Evaluate program', survey: { applied: 'Did you apply the learning?', changes: 'What changes happened?', skills: 'What skills improved?', support: 'Do you need support?', supportDetails: 'Support details', yes: 'Yes', partially: 'Partially', no: 'No' },

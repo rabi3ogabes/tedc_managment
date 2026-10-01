@@ -142,16 +142,20 @@ class CertificateService
 
         app(ImpactService::class)->scheduleFollowUps($registration);
 
-        $this->notifications->send(
-            $registration->employee->user_id,
-            'certificate.issued',
-            ['ar' => 'تم إصدار شهادتك', 'en' => 'Your certificate is ready'],
-            [
-                'ar' => "تهانينا! صدرت شهادة إتمام برنامج «{$registration->program->title_ar}».",
-                'en' => "Congratulations! Your certificate for \"{$registration->program->title_en}\" has been issued.",
-            ],
-            ['certificate_id' => $certificate->id],
-        );
+        if ($this->downloadable($certificate)) {
+            $this->announce($certificate);
+        } else {
+            $this->notifications->send(
+                $registration->employee->user_id,
+                'certificate.survey_needed',
+                ['ar' => 'شهادتك بانتظار تعبئة الاستبيان', 'en' => 'Your certificate is waiting for the survey'],
+                [
+                    'ar' => "صدرت شهادة برنامج «{$registration->program->title_ar}». عبّئ استبيان البرنامج لتتمكن من تحميلها.",
+                    'en' => "Your certificate for \"{$registration->program->title_en}\" is issued. Fill in the program survey to download it.",
+                ],
+                ['certificate_id' => $certificate->id, 'program_id' => $certificate->program_id],
+            );
+        }
 
         return $certificate;
     }
@@ -160,21 +164,23 @@ class CertificateService
     {
         $certificate->loadMissing(['employee.user', 'employee.school', 'program']);
 
+        return $this->renderPdf('certificates.pdf', $certificate->verificationUrl(), $certificate->certificate_no, ['certificate' => $certificate]);
+    }
+
+    /** Renders a certificate view (shared by trainee and trainer certificates) to PDF bytes. */
+    public function renderPdf(string $view, string $verificationUrl, string $title, array $data): string
+    {
         $qr = (new QRCode(new QROptions([
             'outputBase64' => true,
             'eccLevel' => EccLevel::M,
             'scale' => 6,
-        ])))->render($certificate->verificationUrl());
+        ])))->render($verificationUrl);
 
         $theme = app(ThemeService::class)->get();
 
-        $html = view('certificates.pdf', [
-            'certificate' => $certificate,
+        $html = view($view, $data + [
             'qr' => $qr,
             'center' => app(ThemeService::class)->centerName(),
-            'primary' => $theme['colors']['primary'],
-            'accent' => $theme['colors']['accent'],
-            'text' => $theme['colors']['text'],
             'logo' => $theme['identity']['logo_ar'] ?? null,
         ])->render();
 
@@ -187,10 +193,43 @@ class CertificateService
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
-        $mpdf->SetTitle($certificate->certificate_no);
+        $mpdf->SetTitle($title);
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');
+    }
+
+    /** The trainee may download the certificate only after filling in the program survey. */
+    public function downloadable(Certificate $certificate): bool
+    {
+        return $certificate->status === 'valid' && $certificate->registration()->first()?->evaluation()->exists() === true;
+    }
+
+    /**
+     * Tells the trainee the certificate can be downloaded — once, as soon as the survey is filled in.
+     * Without the survey they are told it is waiting for it.
+     */
+    public function announce(Certificate $certificate): void
+    {
+        $certificate->loadMissing(['registration', 'employee', 'program']);
+        if ($certificate->status !== 'valid' || $certificate->available_notified_at || ! $certificate->employee->user_id) {
+            return;
+        }
+        if (! $this->downloadable($certificate)) {
+            return;
+        }
+
+        $certificate->update(['available_notified_at' => now()]);
+        $this->notifications->send(
+            $certificate->employee->user_id,
+            'certificate.available',
+            ['ar' => 'شهادتك جاهزة للتحميل', 'en' => 'Your certificate is ready to download'],
+            [
+                'ar' => "شكرًا لتعبئة الاستبيان. يمكنك الآن تحميل شهادة برنامج «{$certificate->program->title_ar}» من تطبيقك.",
+                'en' => "Thank you for the survey. You can now download your certificate for \"{$certificate->program->title_en}\" in the app.",
+            ],
+            ['certificate_id' => $certificate->id, 'program_id' => $certificate->program_id],
+        );
     }
 
     /** The stored PDF, or a fresh render when the stored file is missing. */

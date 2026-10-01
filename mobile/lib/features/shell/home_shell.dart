@@ -143,10 +143,12 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // Accounts without an employee profile have no training pages: show an explanation instead of errors.
     final me = ref.watch(authProvider).value;
     final staff = me != null && me.employee == null;
+    // A trainer without a trainee profile still reaches the certificate wallet (their thank-you certificates).
+    final showStaffHome = staff && widget.shell.currentIndex < 4 && !(me.isTrainer && widget.shell.currentIndex == 3);
 
     return Scaffold(
       body: Stack(children: [
-        staff && widget.shell.currentIndex < 4 ? const StaffHome() : widget.shell,
+        showStaffHome ? const StaffHome() : widget.shell,
         // The notifications button lives at the left of the home screen (physical left in both languages).
         if (widget.shell.currentIndex == 0)
           Positioned(left: 14, top: MediaQuery.paddingOf(context).top + 10, child: NotificationBell(onDark: !staff)),

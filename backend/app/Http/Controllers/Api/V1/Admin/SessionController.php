@@ -10,6 +10,7 @@ use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
 use App\Services\RoomService;
+use App\Services\TrainerCertificateService;
 use App\Services\TrainerService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -54,6 +55,10 @@ class SessionController extends Controller
             $this->guardResources($start, $end, $roomId, $trainerId, $session->id);
         }
         $session->update(Arr::except($data, 'calendar_approval_reason'));
+        // Marking a session delivered can complete a trainer's hours: issue their certificate straight away.
+        if (($data['status'] ?? null) === 'completed') {
+            app(TrainerCertificateService::class)->sync($session->program);
+        }
 
         return new SessionResource($session->load(['trainer', 'room']));
     }

@@ -8,12 +8,16 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\Certificate;
 use App\Models\Evaluation;
 use App\Models\ImpactSurvey;
+use App\Models\Program;
+use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Task;
 use App\Models\TaskSubmission;
+use App\Models\TrainerCertificate;
 use App\Services\CertificateService;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Services\TrainerCertificateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -142,15 +146,71 @@ class MyOutcomesController extends MyTrainingController
 
         $certificates->refreshStatus($registration);
         $impact->score($registration);
+        // The survey unlocks an already issued certificate: tell the trainee it can be downloaded.
+        if ($certificate = $registration->certificate) {
+            $certificates->announce($certificate);
+        }
 
         return response()->json(['data' => $evaluation], 201);
     }
 
-    public function certificates(): JsonResponse
+    public function certificates(CertificateService $service): JsonResponse
     {
-        return response()->json(['data' => CertificateResource::collection(
-            Certificate::with('program')->where('employee_id', $this->employee()->id)->latest('issued_at')->get()
-        )]);
+        $items = Certificate::with(['program', 'registration.evaluation'])->where('employee_id', $this->employee()->id)->latest('issued_at')->get();
+
+        return response()->json(['data' => $items->map(fn (Certificate $c) => (new CertificateResource($c))->resolve() + [
+            'kind' => 'trainee',
+            // The certificate is downloadable once the program survey has been filled in.
+            'downloadable' => $service->downloadable($c),
+            'survey_required' => $c->status === 'valid' && ! $service->downloadable($c),
+            'registration_id' => $c->registration_id,
+        ])]);
+    }
+
+    /** The trainer's thank-you certificates, with their progress towards the ones not yet earned. */
+    public function trainerCertificates(TrainerCertificateService $service): JsonResponse
+    {
+        $trainer = $this->user()->trainer;
+        if (! $trainer) {
+            return response()->json(['data' => []]);
+        }
+
+        $issued = TrainerCertificate::with('program')->where('trainer_id', $trainer->id)->latest('issued_at')->get();
+        $earned = $issued->map(fn (TrainerCertificate $c) => [
+            'id' => $c->id, 'kind' => 'trainer', 'certificate_no' => $c->certificate_no, 'verification_code' => $c->verification_code,
+            'verification_url' => $c->verificationUrl(), 'issued_at' => $c->issued_at->toIso8601String(), 'hours' => $c->hours,
+            'status' => $c->status, 'downloadable' => $c->status === 'valid', 'survey_required' => false,
+            'program' => ['id' => $c->program->id, 'code' => $c->program->code, 'title' => $c->program->translate('title')],
+            'download_url' => route('api.trainer-certificates.download', $c->id),
+        ]);
+
+        // Programs where the trainer still has hours to deliver: shown as locked, with the hours so far.
+        $pending = Program::whereIn('id', ProgramSession::where('trainer_id', $trainer->id)->where('status', '!=', 'cancelled')->select('program_id'))
+            ->whereNotIn('id', $issued->pluck('program_id'))->get()
+            ->map(function (Program $p) use ($trainer, $service) {
+                $progress = $service->progress($trainer, $p);
+
+                return [
+                    'id' => 'pending-'.$p->id, 'kind' => 'trainer', 'status' => 'pending', 'downloadable' => false, 'survey_required' => false,
+                    'program' => ['id' => $p->id, 'code' => $p->code, 'title' => $p->translate('title')],
+                    'hours' => $progress['hours'], 'sessions_done' => $progress['delivered'], 'sessions_total' => $progress['planned'],
+                ];
+            });
+
+        return response()->json(['data' => $earned->concat($pending)->values()]);
+    }
+
+    public function downloadTrainerCertificate(TrainerCertificate $certificate, TrainerCertificateService $service): Response
+    {
+        $user = $this->user();
+        $owner = $user->trainer?->id === $certificate->trainer_id;
+        abort_unless($owner || $user->hasPermission('certificates.view'), 403);
+        abort_unless($certificate->status === 'valid', 403, __('messages.certificate.blocked'));
+
+        return response($service->pdf($certificate), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$certificate->certificate_no.'.pdf"',
+        ]);
     }
 
     /**
@@ -163,6 +223,10 @@ class MyOutcomesController extends MyTrainingController
         $schoolScope = $this->schoolScope();
         $staff = $user->hasPermission('certificates.view') && (! $schoolScope || $certificate->employee->school_id === $schoolScope);
         abort_unless($owner || $staff, 403);
+        // A trainee gets the PDF only after completing the program survey (staff are not held to it).
+        if (! $staff && ! $service->downloadable($certificate)) {
+            throw new BusinessRuleException(__('messages.certificate.survey_first'), 'survey_required');
+        }
 
         try {
             $pdf = $certificate->file_path ? $storage->get('certificates', $certificate->file_path) : $service->render($certificate);

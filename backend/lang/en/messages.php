@@ -31,6 +31,7 @@ return [
     ],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
+        'survey_first' => 'Fill in the program survey first to download your certificate.',
         'blocked' => 'The certificate cannot be issued because requirements are not met.',
         'registration' => 'Approved program registration',
         'attendance' => 'Attendance :actual% (required :required%)',

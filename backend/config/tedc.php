@@ -80,6 +80,11 @@ return [
 
     'certificates' => [
         'prefix' => env('TEDC_CERT_PREFIX', 'TEDC'),
+        // Signatories printed at the foot of the certificates (name / title).
+        'signers' => [
+            ['name_ar' => env('TEDC_SIGNER1_NAME_AR', 'إيمان سلمان المهندي'), 'title_ar' => env('TEDC_SIGNER1_TITLE_AR', 'مدير مركز التدريب والتطوير')],
+            ['name_ar' => env('TEDC_SIGNER2_NAME_AR', 'عبد الرحمن جاسم الباكر'), 'title_ar' => env('TEDC_SIGNER2_TITLE_AR', 'رئيس قسم التدريب التربوي')],
+        ],
     ],
 
     // Weights (sum = 100) used for the Training Impact Score.
