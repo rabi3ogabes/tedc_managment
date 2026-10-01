@@ -17,10 +17,13 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
+use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
+use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
+use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
@@ -109,6 +112,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('devices', [DeviceController::class, 'destroy']);
             Route::get('notifications', [MeController::class, 'notifications']);
             Route::post('notifications/read-all', [MeController::class, 'readAllNotifications']);
+            Route::post('notifications/seen', [MeController::class, 'seenNotifications']);
             Route::post('notifications/{notification}/read', [MeController::class, 'readNotification']);
 
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -144,6 +148,28 @@ Route::prefix('v1')->group(function () {
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
+            // Notification templates, sending to a program's trainees, tracking
+            Route::middleware('permission:announcements.manage')->prefix('notifications')->group(function () {
+                Route::get('templates', [NotificationTemplateController::class, 'index']);
+                Route::post('templates', [NotificationTemplateController::class, 'store']);
+                Route::post('templates/preview', [NotificationTemplateController::class, 'preview']);
+                Route::put('templates/{template}', [NotificationTemplateController::class, 'update']);
+                Route::delete('templates/{template}', [NotificationTemplateController::class, 'destroy']);
+                Route::post('templates/{template}/reset', [NotificationTemplateController::class, 'reset']);
+                Route::post('send', [NotificationTrackingController::class, 'send']);
+                Route::get('audience', [NotificationTrackingController::class, 'audience']);
+                Route::get('campaigns', [NotificationTrackingController::class, 'campaigns']);
+                Route::get('campaigns/{campaign}', [NotificationTrackingController::class, 'campaign']);
+                Route::get('campaigns/{campaign}/export', [NotificationTrackingController::class, 'exportCampaign']);
+                Route::get('tracking', [NotificationTrackingController::class, 'tracking']);
+            });
+            Route::middleware('permission:programs.manage')->prefix('programs/{program}/survey')->group(function () {
+                Route::get('/', [ProgramSurveyController::class, 'show']);
+                Route::put('/', [ProgramSurveyController::class, 'update']);
+                Route::post('open', [ProgramSurveyController::class, 'open']);
+                Route::post('close', [ProgramSurveyController::class, 'close']);
+                Route::post('notify', [ProgramSurveyController::class, 'notify']);
+            });
             Route::get('presence/live', [PresenceController::class, 'live'])->middleware('permission:analytics.view');
             Route::get('presence/report', [PresenceController::class, 'report'])->middleware('permission:analytics.view');
             Route::get('presence/export', [PresenceController::class, 'export'])->middleware('permission:analytics.view');

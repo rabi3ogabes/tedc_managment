@@ -65,11 +65,22 @@ class RegistrationScreen extends ConsumerWidget {
               SectionTitle(s.t('training.materials')),
               _Materials(registrationId: id),
               const SizedBox(height: 20),
-              if (r['evaluation_submitted'] != true)
+              if (r['evaluation_submitted'] != true && r['survey_open'] != false)
                 FilledButton.icon(
                   onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => _EvaluationSheet(registrationId: id)),
                   icon: const Icon(Icons.star_outline),
                   label: Text(s.t('training.evaluate')),
+                ),
+              // The program survey is opened by the administrators (by hand, or automatically some hours after the program).
+              if (r['evaluation_submitted'] != true && r['survey_open'] == false)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: AppColors.gold100.withValues(alpha: .5), borderRadius: BorderRadius.circular(16)),
+                  child: Row(children: [
+                    const Icon(Icons.lock_clock_outlined, color: AppColors.gold700),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(r.str('survey_opens_at').isNotEmpty ? '${s.t('training.surveyOpensAt')} ${Fmt(s.languageCode).dateTime(r.date('survey_opens_at'))}' : s.t('training.surveyClosed'), style: const TextStyle(fontWeight: FontWeight.w600))),
+                  ]),
                 ),
             ],
             if (['pending', 'approved', 'waitlisted'].contains(r.str('status'))) ...[

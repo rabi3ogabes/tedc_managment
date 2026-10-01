@@ -11,6 +11,7 @@ use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\Eligibility\EligibilityEngine;
 use App\Services\FileStorage;
+use App\Services\Notifications\ProgramSurvey;
 use App\Services\RegistrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -70,6 +71,8 @@ class MyTrainingController extends MeController
             'sessions' => SessionResource::collection($registration->program->sessions)->resolve(),
             'attendance' => $registration->attendance->map->only(['program_session_id', 'status', 'check_in_at', 'check_out_at', 'minutes_attended']),
             'evaluation_submitted' => $registration->evaluation !== null,
+            'survey_open' => $registration->program->surveyIsOpen(),
+            'survey_opens_at' => $registration->program->survey_mode === 'auto' && ! $registration->program->survey_opened_at ? app(ProgramSurvey::class)->autoOpensAt($registration->program)?->toIso8601String() : null,
         ]]);
     }
 

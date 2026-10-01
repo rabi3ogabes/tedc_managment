@@ -195,10 +195,12 @@ class RegistrationService
             Registration::STATUS_COMPLETED => ['ar' => 'مكتمل', 'en' => 'completed'],
         ][$registration->status];
 
+        // A program assigned to a trainee (by the center, a school or a bulk import) has its own switchable action.
+        $assigned = $registration->status === Registration::STATUS_APPROVED && $registration->source !== Registration::SOURCE_SELF;
         $this->notifications->send(
             $registration->employee->user_id,
-            'registration.'.$registration->status,
-            ['ar' => 'تحديث حالة التسجيل', 'en' => 'Registration update'],
+            $assigned ? 'program.assigned' : 'registration.'.$registration->status,
+            $assigned ? ['ar' => 'تم إسنادك إلى برنامج تدريبي', 'en' => 'You have been assigned to a program'] : ['ar' => 'تحديث حالة التسجيل', 'en' => 'Registration update'],
             [
                 'ar' => "تسجيلك في برنامج «{$program->title_ar}» {$labels['ar']}.",
                 'en' => "Your registration for \"{$program->title_en}\" is {$labels['en']}.",

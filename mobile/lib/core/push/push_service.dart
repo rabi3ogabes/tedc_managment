@@ -53,7 +53,7 @@ class PushService {
     final surveyId = (data['needs_survey_id'] ?? '').toString();
     if (type.startsWith('needs_survey') && surveyId.isNotEmpty) return '/needs-surveys/$surveyId';
     if (type.startsWith('certificate')) return '/certificates';
-    if (type.startsWith('registration') || type.startsWith('task') || type.startsWith('impact') || type.startsWith('session')) return '/training';
+    if (type.startsWith('registration') || type.startsWith('task') || type.startsWith('impact') || type.startsWith('session') || type.startsWith('survey') || type.startsWith('program')) return '/training';
     final route = (data['route'] ?? '').toString();
     const known = ['/home', '/programs', '/training', '/certificates', '/notifications', '/profile'];
     return known.contains(route) ? route : '/notifications';

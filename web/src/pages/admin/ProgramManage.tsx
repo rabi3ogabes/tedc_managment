@@ -13,9 +13,10 @@ import MaterialsTab from './program/MaterialsTab'
 import ParticipantsTab from './program/ParticipantsTab'
 import RulesTab from './program/RulesTab'
 import SessionsTab from './program/SessionsTab'
+import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'rules' | 'tasks' | 'materials' | 'impact'
+type Tab = 'participants' | 'sessions' | 'rules' | 'tasks' | 'materials' | 'survey' | 'impact'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -55,6 +56,7 @@ export default function ProgramManage() {
         { id: 'rules', label: t('admin.programs.rules') },
         { id: 'tasks', label: t('admin.programs.tasks') },
         { id: 'materials', label: t('admin.programs.materials') },
+        { id: 'survey', label: t('mgmt.notif.survey.tab') },
         { id: 'impact', label: t('admin.programs.impact') },
       ]} />
       {tab === 'participants' && <ParticipantsTab program={p} />}
@@ -62,6 +64,7 @@ export default function ProgramManage() {
       {tab === 'rules' && <RulesTab program={p} />}
       {tab === 'tasks' && <TasksTab program={p} />}
       {tab === 'materials' && <MaterialsTab program={p} />}
+      {tab === 'survey' && <SurveyTab program={p} />}
       {tab === 'impact' && <ImpactTab program={p} />}
     </>
   )

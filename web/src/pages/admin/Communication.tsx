@@ -1,7 +1,8 @@
 import { Globe, Link2, Megaphone, Plus, Send, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
+import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
+import CampaignTracking from './notifications/CampaignTracking'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -16,6 +17,7 @@ export default function Communication() {
   const { data, isLoading, refetch } = useGet<LaravelPage<Announcement>>('/admin/announcements')
   const lookups = useGet<{ data: { schools: { id: string; name_ar: string; name_en: string }[] } }>('/admin/lookups')
   const programs = useGet<Paginated<Program>>('/admin/programs', { per_page: 100 })
+  const [tab, setTab] = useState<'announcements' | 'tracking'>('announcements')
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(blank)
   const [file, setFile] = useState<File | null>(null)
@@ -59,8 +61,9 @@ export default function Communication() {
   return (
     <>
       <PageHeader title={t('admin.communication.title')} actions={<Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('admin.communication.new')}</Button>} />
+      <Tabs value={tab} onChange={setTab} tabs={[{ id: 'announcements', label: t('mgmt.notif.tabs.announcements') }, { id: 'tracking', label: t('mgmt.notif.tabs.tracking') }]} />
       {notice && <div className="mb-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</div>}
-      {isLoading ? <Spinner /> : !data?.data.length ? <Card><Empty /></Card> : (
+      {tab === 'tracking' ? <CampaignTracking /> : isLoading ? <Spinner /> : !data?.data.length ? <Card><Empty /></Card> : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {data.data.map((a) => (
             <Card key={a.id}>

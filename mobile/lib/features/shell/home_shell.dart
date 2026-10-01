@@ -13,6 +13,7 @@ import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../home/staff_home.dart';
+import '../notifications/notification_bell.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
 class HomeShell extends ConsumerStatefulWidget {
@@ -34,7 +35,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   Timer? _presence;
   bool _foreground = true;
 
-  static const _screens = ['home', 'programs', 'training', 'certificates', 'notifications', 'profile'];
+  static const _screens = ['home', 'programs', 'training', 'certificates', 'profile'];
 
   @override
   void initState() {
@@ -134,7 +135,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 
   /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
-  void _open(String route) => route.startsWith('/needs-surveys/') ? context.push(route) : context.go(route);
+  void _open(String route) => route.startsWith('/needs-surveys/') || route == '/notifications' ? context.push(route) : context.go(route);
 
   @override
   Widget build(BuildContext context) {
@@ -142,13 +143,13 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // Accounts without an employee profile have no training pages: show an explanation instead of errors.
     final me = ref.watch(authProvider).value;
     final staff = me != null && me.employee == null;
-    final unread = ref.watch(getProvider('/me/notifications?unread=1&per_page=1')).value;
-    final meta = unread is Map ? unread['meta'] : null;
-    final num count = meta is Map ? (meta['total'] as num? ?? 0) : 0;
 
     return Scaffold(
       body: Stack(children: [
         staff && widget.shell.currentIndex < 4 ? const StaffHome() : widget.shell,
+        // The notifications button lives at the left of the home screen (physical left in both languages).
+        if (widget.shell.currentIndex == 0)
+          Positioned(left: 14, top: MediaQuery.paddingOf(context).top + 10, child: NotificationBell(onDark: !staff)),
         PushBanner(
           message: _banner,
           onTap: (route) {
@@ -170,11 +171,6 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
             NavigationDestination(icon: const Icon(Icons.menu_book_outlined), selectedIcon: const Icon(Icons.menu_book), label: s.t('nav.programs')),
             NavigationDestination(icon: const Icon(Icons.school_outlined), selectedIcon: const Icon(Icons.school), label: s.t('nav.training')),
             NavigationDestination(icon: const Icon(Icons.workspace_premium_outlined), selectedIcon: const Icon(Icons.workspace_premium), label: s.t('nav.certificates')),
-            NavigationDestination(
-              icon: Badge(isLabelVisible: count > 0, label: Text('$count'), backgroundColor: AppColors.gold500, textColor: AppColors.navy950, child: const Icon(Icons.notifications_outlined)),
-              selectedIcon: const Icon(Icons.notifications),
-              label: s.t('nav.notifications'),
-            ),
             NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: s.t('nav.profile')),
           ],
         ),

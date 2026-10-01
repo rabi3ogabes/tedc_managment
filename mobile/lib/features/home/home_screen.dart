@@ -102,11 +102,15 @@ class _Header extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                const OfficialEmblem(size: 46),
-                const SizedBox(width: 12),
-                Expanded(child: Text(s.t('app.name'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13))),
-              ]),
+              // The notifications button sits at the left corner (see HomeShell), so keep that corner free.
+              Padding(
+                padding: const EdgeInsets.only(left: 58),
+                child: Row(children: [
+                  const OfficialEmblem(size: 46),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(s.t('app.name'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13))),
+                ]),
+              ),
               const SizedBox(height: 24),
               Text(s.t('home.welcome'), style: const TextStyle(color: Colors.white70)),
               Text(name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),

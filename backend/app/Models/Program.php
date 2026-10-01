@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'requires_tasks',
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
+    'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
 ])]
 class Program extends Model
 {
@@ -54,6 +55,9 @@ class Program extends Model
             'requires_tasks' => 'boolean',
             'requires_evaluation' => 'boolean',
             'is_featured' => 'boolean',
+            'survey_auto_hours' => 'integer',
+            'survey_opened_at' => 'datetime',
+            'survey_closed_at' => 'datetime',
             'start_date' => 'date',
             'end_date' => 'date',
             'registration_opens_at' => 'datetime',
@@ -141,5 +145,15 @@ class Program extends Model
     public function seatsAvailable(): int
     {
         return max(0, $this->capacity - $this->seatsTaken());
+    }
+
+    /** Whether trainees can fill in the program survey (evaluation) right now. */
+    public function surveyIsOpen(): bool
+    {
+        if (! in_array($this->survey_mode, ['manual', 'auto'], true)) {
+            return true; // legacy behaviour: always available
+        }
+
+        return $this->survey_opened_at !== null && (! $this->survey_closed_at || $this->survey_closed_at->lt($this->survey_opened_at));
     }
 }

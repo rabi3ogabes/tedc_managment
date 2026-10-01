@@ -1,5 +1,35 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  notif: {
+    tabs: { announcements: 'الإعلانات والأخبار', tracking: 'تتبع الإشعارات' },
+    templates: {
+      subtitle: 'لكل إجراء في المنصة قالب إشعار: فعّله أو أوقفه، عدّل صياغته بالعربية والإنجليزية، أو أنشئ قوالب خاصة بك.',
+      new: 'قالب جديد', edit: 'تعديل القالب', search: 'ابحث في القوالب…', stats: { on: 'إشعارات مفعّلة', off: 'إشعارات موقوفة', custom: 'قوالب معدّلة أو مخصصة' },
+      customised: 'معدَّل', custom: 'مخصص', enabled: 'مفعّل', push: 'إشعار الهاتف', nameAr: 'اسم القالب (عربي)', nameEn: 'اسم القالب (إنجليزي)',
+      titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية', bodyAr: 'النص بالعربية', bodyEn: 'النص بالإنجليزية', variables: 'متغيرات تُملأ تلقائياً — اضغط للإدراج',
+      variablesHint: 'مثال: {{program}} اسم البرنامج، {{name}} اسم المتدرب، {{date}} تاريخ البدء. تُستبدل عند الإرسال.', preview: 'هكذا سيظهر الإشعار على الهاتف', reset: 'استعادة الصياغة الافتراضية', confirmDelete: 'حذف هذا القالب نهائياً؟',
+    },
+    send: {
+      title: 'إرسال إشعار للمتدربين', program: 'البرنامج', pickProgram: 'اختر البرنامج…', audience: 'المستلمون', template: 'القالب', custom: 'رسالة مخصصة',
+      audiences: { trainees: 'كل المتدربين', traineesHint: 'كل المعتمدين في البرنامج', pending_survey: 'من لم يعبّئ الاستبيان', pending_surveyHint: 'المتدربون الذين لم يرسلوا تقييمهم بعد' },
+      willReach: 'متدرب سيصلهم الإشعار', send: 'إرسال ({{count}})', sent: 'تم إرسال الإشعار إلى {{count}} متدرب', trackHint: 'يمكنك متابعة من استلم وشاهد وقرأ الإشعار من تبويب «تتبع الإشعارات».',
+    },
+    tracking: {
+      allPrograms: 'كل البرامج', modes: { campaigns: 'الحملات المرسلة', all: 'كل الإشعارات' }, empty: 'لا توجد إشعارات مرسلة بعد.', survey: 'استبيان', readRate: 'نسبة القراءة',
+      read: 'قرأ', seenOnly: 'شاهد ولم يقرأ', unseen: 'لم يشاهد', sentTo: 'أُرسل إلى {{count}}', sent: 'المرسَل', seenCount: 'شاهدوا',
+      filters: { all: 'الكل', read: 'قرأوا', unread: 'لم يقرأوا', unseen: 'لم يشاهدوا' }, cols: { name: 'المتدرب', school: 'المدرسة', sent: 'الإرسال', seen: 'المشاهدة', read: 'القراءة', notification: 'الإشعار' },
+      summary: '{{sent}} مرسل · {{seen}} شوهد · {{read}} قُرئ',
+    },
+    survey: {
+      tab: 'الاستبيان والإشعارات', title: 'استبيان البرنامج', subtitle: 'تحكّم في موعد إتاحة استبيان تقييم البرنامج للمتدربين، وأبلغهم بإشعار عند فتحه.',
+      status: { always: 'متاح دائماً', open: 'مفتوح', closed: 'مغلق', scheduled: 'سيُفتح تلقائياً' }, opensAt: 'يُفتح تلقائياً في {{when}}', answered: 'أجابوا', openNow: 'فتح الاستبيان الآن', close: 'إغلاق الاستبيان',
+      notify: 'إشعار المتدربين', notifyOnOpen: 'أبلغ من لم يجب عند الفتح', availability: 'متى يظهر الاستبيان للمتدربين؟', availabilityHint: 'اختر طريقة إتاحة الاستبيان في هذا البرنامج.',
+      modes: { always: 'متاح دائماً', alwaysHint: 'يستطيع المتدرب تعبئته في أي وقت (الوضع الحالي).', manual: 'أفتحه يدوياً', manualHint: 'يبقى مغلقاً حتى تضغط «فتح الاستبيان».', auto: 'يُفتح تلقائياً', autoHint: 'يُفتح بعد انتهاء البرنامج بعدد ساعات تحدده.' },
+      afterHours: 'يُفتح بعد انتهاء البرنامج بـ', hours: 'ساعة', hoursShort: 'س', rightAway: 'فور الانتهاء', autoExplain: 'ينتهي البرنامج في {{end}}، ويُفتح الاستبيان بعد {{hours}} ساعة ويُرسل إشعار للمتدربين تلقائياً.',
+      saved: 'تم حفظ الإعداد', opened: 'تم فتح الاستبيان', closedMsg: 'تم إغلاق الاستبيان', sentTitle: 'الإشعارات المرسلة لمتدربي هذا البرنامج',
+    },
+  },
+
   labels: {
     subtitle: 'غيّر اسم أي قائمة أو زر أو نص في المنصة بالعربية والإنجليزية — تظهر التغييرات فوراً للجميع. اترك الحقل فارغاً لاستخدام النص الافتراضي.',
     export: 'تصدير', import: 'استيراد', resetAll: 'استعادة كل الأسماء', confirmResetAll: 'سيتم إرجاع كل الأسماء إلى نصوصها الافتراضية. هل تريد المتابعة؟', resetDone: 'تمت استعادة الأسماء الافتراضية',
@@ -90,6 +120,7 @@ export const mgmtAr = {
     sections: {
       appearance: { title: 'الهوية البصرية والمظهر', desc: 'اسم المركز والشعارات والألوان والخطوط والخلفيات — تُطبَّق فوراً على الموقع ولوحة التحكم.' },
       notifications: { title: 'الإشعارات الفورية', desc: 'ربط Firebase وإرسال إشعار تجريبي والتحقق من وصول الإشعارات للهواتف.' },
+      templates: { title: 'قوالب الإشعارات', desc: 'فعّل أو أوقف كل إشعار تلقائي وعدّل صياغته أو أنشئ قوالب خاصة بك.' },
       labels: { title: 'أسماء القوائم والأزرار', desc: 'غيّر اسم أي قائمة أو زر أو نص بالعربية والإنجليزية — يظهر فوراً للجميع.' },
       security: { title: 'الأمان وقفل الجلسة', desc: 'اقفل لوحة التحكم تلقائياً لفريق الإدارة عند عدم النشاط، مع طلب كلمة المرور.' },
       attendance: { title: 'الحضور والتحقق من الموقع', desc: 'يتحقق التطبيق من وجود المتدرب في مكان التدريب قبل تسجيل الحضور.' },
@@ -171,6 +202,36 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  notif: {
+    tabs: { announcements: 'Announcements & news', tracking: 'Notification tracking' },
+    templates: {
+      subtitle: 'Every action in the platform has a notification template: switch it on or off, rewrite it in Arabic and English, or create your own.',
+      new: 'New template', edit: 'Edit template', search: 'Search templates…', stats: { on: 'Notifications on', off: 'Notifications off', custom: 'Customised or custom templates' },
+      customised: 'Customised', custom: 'Custom', enabled: 'Enabled', push: 'Phone push', nameAr: 'Template name (Arabic)', nameEn: 'Template name (English)',
+      titleAr: 'Title in Arabic', titleEn: 'Title in English', bodyAr: 'Text in Arabic', bodyEn: 'Text in English', variables: 'Filled in automatically — click to insert',
+      variablesHint: 'For example {{program}} is the program name, {{name}} the trainee, {{date}} the start date. They are replaced when the notification is sent.', preview: 'This is how it appears on the phone', reset: 'Restore the default wording', confirmDelete: 'Delete this template for good?',
+    },
+    send: {
+      title: 'Send a notification to trainees', program: 'Program', pickProgram: 'Choose a program…', audience: 'Recipients', template: 'Template', custom: 'Custom message',
+      audiences: { trainees: 'All trainees', traineesHint: 'Everyone approved in the program', pending_survey: 'Who has not filled the survey', pending_surveyHint: 'Trainees who have not sent their evaluation yet' },
+      willReach: 'trainees will receive it', send: 'Send ({{count}})', sent: 'Notification sent to {{count}} trainees', trackHint: 'Follow who received, saw and read it in the “Notification tracking” tab.',
+    },
+    tracking: {
+      allPrograms: 'All programs', modes: { campaigns: 'Sent campaigns', all: 'All notifications' }, empty: 'No notifications sent yet.', survey: 'Survey', readRate: 'Read rate',
+      read: 'Read', seenOnly: 'Seen, not read', unseen: 'Not seen', sentTo: 'Sent to {{count}}', sent: 'Sent', seenCount: 'Seen',
+      filters: { all: 'All', read: 'Read', unread: 'Not read', unseen: 'Not seen' }, cols: { name: 'Trainee', school: 'School', sent: 'Sent', seen: 'Seen', read: 'Read', notification: 'Notification' },
+      summary: '{{sent}} sent · {{seen}} seen · {{read}} read',
+    },
+    survey: {
+      tab: 'Survey & notifications', title: 'Program survey', subtitle: 'Control when the program evaluation survey is available to trainees, and notify them when it opens.',
+      status: { always: 'Always available', open: 'Open', closed: 'Closed', scheduled: 'Opens automatically' }, opensAt: 'Opens automatically on {{when}}', answered: 'Answered', openNow: 'Open the survey now', close: 'Close the survey',
+      notify: 'Notify trainees', notifyOnOpen: 'Notify those who have not answered when it opens', availability: 'When do trainees see the survey?', availabilityHint: 'Choose how the survey is made available for this program.',
+      modes: { always: 'Always available', alwaysHint: 'Trainees can fill it in at any time (current behaviour).', manual: 'I open it manually', manualHint: 'Stays closed until you press “Open the survey”.', auto: 'Opens automatically', autoHint: 'Opens a number of hours you choose after the program ends.' },
+      afterHours: 'Opens after the program ends by', hours: 'hours', hoursShort: 'h', rightAway: 'Right away', autoExplain: 'The program ends {{end}}; the survey opens {{hours}} hours later and the trainees are notified automatically.',
+      saved: 'Setting saved', opened: 'The survey is open', closedMsg: 'The survey is closed', sentTitle: 'Notifications sent to this program’s trainees',
+    },
+  },
+
   labels: {
     subtitle: 'Rename any menu, button or text of the platform in Arabic and English — changes appear for everyone at once. Leave a field empty to use the default text.',
     export: 'Export', import: 'Import', resetAll: 'Restore all names', confirmResetAll: 'Every name will go back to its default text. Continue?', resetDone: 'Default names restored',
@@ -261,6 +322,7 @@ export const mgmtEn: MgmtStrings = {
     sections: {
       appearance: { title: 'Brand & appearance', desc: 'Center name, logos, colors, fonts and backgrounds - applied instantly to the website and dashboard.' },
       notifications: { title: 'Push notifications', desc: 'Connect Firebase, send a test notification and verify delivery to phones.' },
+      templates: { title: 'Notification templates', desc: 'Switch each automatic notification on or off, rewrite it, or create your own templates.' },
       labels: { title: 'Menu & button names', desc: 'Rename any menu, button or text in Arabic and English — applied instantly for everyone.' },
       security: { title: 'Security & session lock', desc: 'Lock the dashboard for the administration team when idle and ask for the password again.' },
       attendance: { title: 'Attendance & location check', desc: 'The app verifies that participants are at the venue before recording attendance.' },

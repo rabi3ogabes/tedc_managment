@@ -9,6 +9,7 @@ return [
         'invalid_transition' => 'Cannot change registration status from :from to :to.',
         'outside_school' => 'You can only nominate employees of your own school.',
     ],
+    'survey' => ['closed' => 'The survey of this program is not open yet.'],
     'attendance' => [
         'invalid_qr' => 'The attendance code is invalid or has expired.',
         'not_registered' => 'You are not an approved participant of this program.',

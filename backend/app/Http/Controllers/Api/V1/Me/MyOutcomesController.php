@@ -118,6 +118,9 @@ class MyOutcomesController extends MyTrainingController
     {
         $this->own($registration);
         abort_unless(in_array($registration->status, [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED], true), 422);
+        if (! $registration->program->surveyIsOpen()) {
+            throw new BusinessRuleException(__('messages.survey.closed'), 'survey_closed');
+        }
 
         $data = $request->validate([
             'ratings' => ['required', 'array', 'min:1'],

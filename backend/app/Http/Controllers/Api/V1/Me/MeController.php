@@ -108,14 +108,23 @@ class MeController extends Controller
     public function readNotification(AppNotification $notification): NotificationResource
     {
         abort_unless($notification->user_id === $this->user()->id, 404);
-        $notification->update(['read_at' => $notification->read_at ?? now()]);
+        $notification->update(['read_at' => $notification->read_at ?? now(), 'seen_at' => $notification->seen_at ?? now()]);
 
         return new NotificationResource($notification);
     }
 
+    /** The list was displayed: records the "seen" time that administrators track (before a notification is opened). */
+    public function seenNotifications(Request $request): JsonResponse
+    {
+        $ids = $request->validate(['ids' => ['required', 'array', 'max:100'], 'ids.*' => ['uuid']])['ids'];
+        $count = $this->user()->appNotifications()->whereIn('id', $ids)->whereNull('seen_at')->update(['seen_at' => now()]);
+
+        return response()->json(['data' => ['updated' => $count]]);
+    }
+
     public function readAllNotifications(): JsonResponse
     {
-        $count = $this->user()->appNotifications()->whereNull('read_at')->update(['read_at' => now()]);
+        $count = $this->user()->appNotifications()->whereNull('read_at')->update(['read_at' => now(), 'seen_at' => now()]);
 
         return response()->json(['data' => ['updated' => $count]]);
     }
