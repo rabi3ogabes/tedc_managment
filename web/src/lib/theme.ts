@@ -273,7 +273,13 @@ export function customPatternTile(p: Theme['pattern']): Promise<string> {
         resolve(`url("${image}")`) // a cross-origin image that cannot be read: use it as it is
       }
     }
-    img.onerror = () => resolve('none')
+    // A host that does not allow reading the picture (no CORS headers) cannot be recoloured: it is used as it is.
+    img.onerror = () => {
+      const plain = new Image()
+      plain.onload = () => resolve(`url("${image}")`)
+      plain.onerror = () => resolve('none')
+      plain.src = image
+    }
     img.src = image
   })
   patternCache.set(key, job)

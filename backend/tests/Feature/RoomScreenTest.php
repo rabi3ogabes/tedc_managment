@@ -48,10 +48,14 @@ class RoomScreenTest extends TestCase
 
         $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['layout' => 'spotlight', 'theme' => 'custom', 'background' => '#112233', 'accent' => '#ffcc00', 'show_trainees' => false, 'footer_ar' => 'مرحباً بكم'])
             ->assertOk()->assertJsonPath('data.layout', 'spotlight')->assertJsonPath('data.show_trainees', false);
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['bg_image' => 'https://cdn.example.qa/tile.png', 'bg_mode' => 'cover', 'bg_opacity' => 40, 'bg_tint' => '#112233'])->assertOk()->assertJsonPath('data.bg_image', 'https://cdn.example.qa/tile.png')->assertJsonPath('data.bg_mode', 'cover');
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['bg_image' => 'javascript:alert(1)'])->assertOk()->assertJsonPath('data.bg_image', '');
         $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['accent' => 'red'])->assertOk()->assertJsonPath('data.accent', '');
         $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['layout' => 'nope'])->assertStatus(422);
 
         $this->getJson('/api/v1/public/room-screen/'.$token)->assertOk()->assertJsonPath('data.template.layout', 'spotlight')->assertJsonPath('data.template.footer_ar', 'مرحباً بكم');
+        $this->getJson('/api/v1/public/room-screen/'.$token)->assertJsonPath('data.template.idle_enabled', true)->assertJsonPath('data.template.idle_title_ar', 'القاعة شاغرة الآن');
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['idle_title_en' => 'Free right now', 'idle_enabled' => false])->assertOk()->assertJsonPath('data.idle_title_en', 'Free right now')->assertJsonPath('data.idle_enabled', false);
         $this->asUser($admin)->postJson('/api/v1/admin/settings/room-screen/reset')->assertOk()->assertJsonPath('data.layout', 'classic');
     }
 }

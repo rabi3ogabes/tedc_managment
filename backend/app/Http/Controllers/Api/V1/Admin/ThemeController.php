@@ -92,7 +92,7 @@ class ThemeController extends Controller
             'file' => $request->input('kind') === 'font'
                 ? ['required', 'file', 'extensions:woff2,woff,ttf,otf', 'max:4096']
                 // A background pattern can also be an SVG (it stays sharp at any size and can be recoloured).
-                : ['required', 'file', 'extensions:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'mimes:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'max:6144'],
+                : ['required', 'file', 'extensions:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'mimes:'.($pattern ? 'jpg,jpeg,png,webp,svg' : 'jpg,jpeg,png,webp'), 'max:5120'],
         ]);
         if ($pattern && strtolower($request->file('file')->getClientOriginalExtension()) === 'svg' && ! SvgGuard::isSafe((string) file_get_contents($request->file('file')->getRealPath()))) {
             throw new BusinessRuleException(__('messages.theme.unsafe_svg'), 'unsafe_svg');

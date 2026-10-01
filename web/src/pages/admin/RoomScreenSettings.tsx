@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
+import { ImageField } from './brand/controls'
 import { DEFAULT_TEMPLATE, RoomScreenView, todayIso, type Day, type ScreenTemplate } from '../RoomScreen'
 
 /** A believable live session so the template can be judged without waiting for a real class. */
@@ -44,6 +45,7 @@ export default function RoomScreenSettings() {
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
   const [now, setNow] = useState(new Date())
+  const [previewIdle, setPreviewIdle] = useState(false)
   const frame = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(0.5)
   const day = useMemo(() => sampleDay(now), [now])
@@ -107,6 +109,33 @@ export default function RoomScreenSettings() {
             <Field label={t('studio.tpl.accent')} hint={t('studio.tpl.accentHint')}><div className="flex items-center gap-2"><input type="color" className="h-10 w-14 cursor-pointer rounded-lg border border-navy-100 bg-white p-1" value={tpl.accent || '#a29475'} onChange={(e) => set('accent', e.target.value)} />{tpl.accent ? <button type="button" className="text-xs font-semibold text-link" onClick={() => set('accent', '')}>{t('studio.tpl.useBrand')}</button> : <span className="text-xs text-slate-500">{t('studio.tpl.fromBrand')}</span>}</div></Field>
           </Section>
 
+          <Section title={t('studio.tpl.idle.title')}>
+            <p className="text-xs leading-relaxed text-slate-500">{t('studio.tpl.idle.hint')}</p>
+            <Switch on={tpl.idle_enabled} onChange={(v) => { set('idle_enabled', v); if (v) setPreviewIdle(true) }} label={t('studio.tpl.idle.enable')} />
+            {tpl.idle_enabled && (
+              <>
+                <Field label={t('studio.tpl.idle.titleAr')}><input dir="rtl" className="input" maxLength={160} value={tpl.idle_title_ar} onChange={(e) => set('idle_title_ar', e.target.value)} /></Field>
+                <Field label={t('studio.tpl.idle.titleEn')}><input dir="ltr" className="input" maxLength={160} value={tpl.idle_title_en} onChange={(e) => set('idle_title_en', e.target.value)} /></Field>
+                <Field label={t('studio.tpl.idle.textAr')}><input dir="rtl" className="input" maxLength={160} value={tpl.idle_text_ar} onChange={(e) => set('idle_text_ar', e.target.value)} /></Field>
+                <Field label={t('studio.tpl.idle.textEn')}><input dir="ltr" className="input" maxLength={160} value={tpl.idle_text_en} onChange={(e) => set('idle_text_en', e.target.value)} /></Field>
+                <Switch on={tpl.idle_show_next} onChange={(v) => set('idle_show_next', v)} label={t('studio.tpl.idle.showNext')} />
+              </>
+            )}
+          </Section>
+
+          <Section title={t('studio.tpl.bg.title')}>
+            <p className="text-xs leading-relaxed text-slate-500">{t('studio.tpl.bg.hint')}</p>
+            <ImageField kind="pattern" label={t('studio.tpl.bg.image')} value={tpl.bg_image || null} aspect="aspect-[3/1]" contain onChange={(url) => set('bg_image', url ?? '')} />
+            {tpl.bg_image && (
+              <>
+                <div className="flex gap-2">{(['tile', 'cover'] as const).map((m) => <button key={m} type="button" aria-pressed={tpl.bg_mode === m} onClick={() => set('bg_mode', m)} className={clsx('flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition', tpl.bg_mode === m ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 text-navy-800 hover:border-gold-400')}>{t(`studio.tpl.bg.${m}`)}</button>)}</div>
+                <Field label={`${t('studio.tpl.bg.opacity')} · ${tpl.bg_opacity}%`}><input type="range" min={0} max={100} className="w-full accent-gold-600" value={tpl.bg_opacity} onChange={(e) => set('bg_opacity', Number(e.target.value))} /></Field>
+                {tpl.bg_mode === 'tile' && <Field label={`${t('studio.tpl.bg.size')} · ${tpl.bg_size}px`}><input type="range" min={16} max={400} className="w-full accent-gold-600" value={tpl.bg_size} onChange={(e) => set('bg_size', Number(e.target.value))} /></Field>}
+                <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-navy-900"><input type="checkbox" className="size-4 accent-gold-600" checked={!!tpl.bg_tint} onChange={(e) => set('bg_tint', e.target.checked ? '#ffffff' : '')} />{t('studio.tpl.bg.tint')}{tpl.bg_tint && <input type="color" className="h-8 w-12 cursor-pointer rounded border border-navy-100 bg-white p-0.5" value={tpl.bg_tint} onChange={(e) => set('bg_tint', e.target.value)} />}</label>
+              </>
+            )}
+          </Section>
+
           <Section title={t('studio.tpl.show')}>
             <div className="grid gap-2">
               <Switch on={tpl.show_logo} onChange={(v) => set('show_logo', v)} label={t('studio.tpl.logo')} />
@@ -128,10 +157,11 @@ export default function RoomScreenSettings() {
         </div>
 
         <div className="min-w-0 space-y-3 xl:sticky xl:top-4 xl:self-start">
-          <div className="flex items-center gap-2 text-sm font-bold text-navy-900"><MonitorPlay className="size-5 text-gold-600" />{t('studio.tpl.preview')}</div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-center gap-2 text-sm font-bold text-navy-900"><MonitorPlay className="size-5 text-gold-600" />{t('studio.tpl.preview')}</div>
+            <div className="flex gap-1 rounded-xl border border-navy-100 bg-white p-1">{([[false, t('studio.tpl.idle.previewBusy')], [true, t('studio.tpl.idle.previewIdle')]] as const).map(([v, label]) => <button key={String(v)} type="button" aria-pressed={previewIdle === v} onClick={() => setPreviewIdle(v)} className={clsx('rounded-lg px-3 py-1 text-xs font-bold transition', previewIdle === v ? 'bg-navy-900 text-white' : 'text-slate-600 hover:bg-ivory')}>{label}</button>)}</div></div>
           <div ref={frame} className="relative w-full overflow-hidden rounded-2xl border border-navy-100 shadow-glass" style={{ aspectRatio: '16 / 10' }}>
             <div className="pointer-events-none absolute start-0 top-0 origin-top-left rtl:origin-top-right" style={{ width: 1440, height: 900, transform: `scale(${scale})` }}>
-              <RoomScreenView preview day={day} now={now} date={todayIso()} today={todayIso()} template={tpl} />
+              <RoomScreenView preview forceIdle={previewIdle} day={day} now={now} date={todayIso()} today={todayIso()} template={tpl} />
             </div>
           </div>
           <p className="text-xs text-slate-500">{t('studio.tpl.previewHint')}</p>

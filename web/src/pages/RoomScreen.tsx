@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { BrandMark } from '@/components/public/Logo'
 import { api } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { customPatternTile } from '@/lib/theme'
 import { useCenterName, useTheme } from '@/lib/ThemeProvider'
 
 export type Trainee = { name: string; school: string | null; status: 'present' | 'late' | 'expected' | 'absent'; check_in_at: string | null }
@@ -18,8 +19,10 @@ export type ScreenTemplate = {
   layout: 'classic' | 'spotlight' | 'minimal'; theme: 'brand' | 'midnight' | 'custom'; background: string; accent: string
   show_logo: boolean; show_center_name: boolean; show_clock: boolean; show_trainer: boolean; show_trainees: boolean; show_school: boolean; show_progress: boolean; show_attendance_ring: boolean
   footer_ar: string; footer_en: string
+  idle_enabled: boolean; idle_show_next: boolean; idle_title_ar: string; idle_title_en: string; idle_text_ar: string; idle_text_en: string
+  bg_image: string; bg_mode: 'tile' | 'cover'; bg_opacity: number; bg_size: number; bg_tint: string
 }
-export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '' }
+export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '', idle_enabled: true, idle_show_next: true, idle_title_ar: 'القاعة شاغرة الآن', idle_title_en: 'This room is empty', idle_text_ar: 'احجزها الآن لتدريبك القادم', idle_text_en: 'Book it now for your next training', bg_image: '', bg_mode: 'tile', bg_opacity: 25, bg_size: 120, bg_tint: '' }
 export type Day = { template?: ScreenTemplate; room: { name: string; code: string; building: string | null; floor: string | null; capacity: number }; date: string; is_today: boolean; now: string; sessions: Session[] }
 
 const STATUS = {
@@ -32,6 +35,19 @@ const STATUS = {
 const clock = (d: Date) => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 const addDays = (iso: string, n: number) => { const d = new Date(`${iso}T12:00:00`); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10) }
 export const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+
+/** The screen's own picture, with its opacity and optional tint, drawn behind everything. */
+function ScreenBackground({ tpl }: { tpl: ScreenTemplate }) {
+  const [tile, setTile] = useState<string>('none')
+  useEffect(() => {
+    let alive = true
+    if (!tpl.bg_image) { setTile('none'); return }
+    void customPatternTile({ type: 'custom', image: tpl.bg_image, opacity: tpl.bg_opacity, tint: tpl.bg_tint || null, size: tpl.bg_size, color: '#000' }).then((u) => alive && setTile(u))
+    return () => { alive = false }
+  }, [tpl.bg_image, tpl.bg_opacity, tpl.bg_tint, tpl.bg_size])
+  if (!tpl.bg_image || tile === 'none') return null
+  return <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: tile, backgroundSize: tpl.bg_mode === 'cover' ? 'cover' : `${tpl.bg_size}px auto`, backgroundRepeat: tpl.bg_mode === 'cover' ? 'no-repeat' : 'repeat', backgroundPosition: 'center', opacity: tile.startsWith('url("data:') ? 1 : tpl.bg_opacity / 100 }} />
+}
 
 /** Background and accent of the template; "brand" follows the colours set in Brand Studio. */
 export function screenStyle(t: ScreenTemplate): CSSProperties {
@@ -54,13 +70,42 @@ function Ring({ value, total }: { value: number; total: number }) {
   )
 }
 
+/** Nothing is running: the ministry logo and an invitation to book the room, with what comes next today. */
+function IdleScreen({ day, now, tpl, next }: { day: Day; now: Date; tpl: ScreenTemplate; next: Session | null }) {
+  const { t, i18n } = useTranslation()
+  const ar = i18n.language === 'ar'
+  const title = (ar ? tpl.idle_title_ar : tpl.idle_title_en) || (ar ? 'القاعة شاغرة الآن' : 'This room is empty')
+  const text = ar ? tpl.idle_text_ar : tpl.idle_text_en
+  const minutes = next ? Math.max(0, Math.ceil((new Date(next.starts_at).getTime() - now.getTime()) / 60000)) : 0
+  return (
+    <div className="grid flex-1 place-items-center py-6 text-center">
+      <div className="mx-auto flex max-w-3xl flex-col items-center gap-7">
+        <div className="rounded-[2.5rem] border border-white/15 bg-white/[.07] p-8 shadow-2xl backdrop-blur"><BrandMark onDark className="h-32 max-w-[22rem] sm:h-44" markClassName="size-36" /></div>
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-5 py-1.5 text-sm font-bold"><span className="relative flex size-2.5"><span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-70" /><span className="relative inline-flex size-2.5 rounded-full bg-white" /></span>{t('studio.screen.available')}</div>
+          <h2 className="mt-5 text-5xl font-extrabold leading-tight sm:text-7xl">{title}</h2>
+          {text && <p className="mt-3 text-2xl font-semibold sm:text-3xl" style={{ color: 'var(--sc-accent-soft)' }}>{text}</p>}
+        </div>
+        <p className="text-lg text-white/70">{day.room.name}{day.room.capacity ? ` · ${t('studio.screen.capacity', { count: day.room.capacity })}` : ''}</p>
+        {tpl.idle_show_next && next && (
+          <div className="rounded-2xl border border-white/15 bg-white/[.06] px-6 py-4 text-start backdrop-blur">
+            <div className="text-xs font-semibold text-white/55">{t('studio.screen.nextToday')}</div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1"><span className="text-3xl font-extrabold tabular-nums" dir="ltr">{clock(new Date(next.starts_at))}</span><span className="text-lg font-semibold">{next.program.title}</span></div>
+            <div className="mt-1 text-sm text-white/65">{t('studio.screen.freeFor', { time: minutes >= 60 ? t('studio.screen.hm', { h: Math.floor(minutes / 60), m: minutes % 60 }) : t('studio.screen.minutes', { m: minutes }) })}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 type ViewProps = {
   day: Day | null; error?: boolean; now: Date; date: string; today: string; onDate?: (iso: string) => void; template: ScreenTemplate
-  fullscreen?: { active: boolean; toggle: () => void }; preview?: boolean
+  fullscreen?: { active: boolean; toggle: () => void }; preview?: boolean; forceIdle?: boolean
 }
 
 /** The screen itself: shared by the live screen and by the settings preview. */
-export function RoomScreenView({ day, error, now, date, today, onDate, template: tpl, fullscreen, preview }: ViewProps) {
+export function RoomScreenView({ day, error, now, date, today, onDate, template: tpl, fullscreen, preview, forceIdle }: ViewProps) {
   const { t, i18n } = useTranslation()
   const centerName = useCenterName()
   const { active } = useTheme()
@@ -72,13 +117,17 @@ export function RoomScreenView({ day, error, now, date, today, onDate, template:
   const progress = featured && start && end ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0
   const minutesLeft = end ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / 60000)) : 0
   const minutesTo = start ? Math.max(0, Math.ceil((start.getTime() - now.getTime()) / 60000)) : 0
+  // Today with nothing in progress: the room is free.
+  const idle = !!day && tpl.idle_enabled && isToday && (forceIdle || !sessions.some((s) => s.state === 'live'))
+  const upcoming = sessions.find((s) => s.state === 'next' || s.state === 'upcoming') ?? null
   const minimal = tpl.layout === 'minimal'
   const spotlight = tpl.layout === 'spotlight'
   const footer = i18n.language === 'ar' ? tpl.footer_ar : tpl.footer_en
 
   return (
     <div dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} style={screenStyle(tpl)} className={clsx('relative overflow-hidden text-white', preview ? 'h-full w-full' : 'min-h-screen')}>
-      <div className={clsx("pattern-bg pointer-events-none absolute inset-0", active.pattern.type === 'custom' ? 'opacity-100' : 'opacity-[.07]')} />
+      {tpl.bg_image ? <ScreenBackground tpl={tpl} /> : null}
+      <div className={clsx("pattern-bg pointer-events-none absolute inset-0", tpl.bg_image ? 'hidden' : '', active.pattern.type === 'custom' ? 'opacity-100' : 'opacity-[.07]')} />
       <div className="pointer-events-none absolute -end-40 -top-40 size-[34rem] rounded-full blur-3xl" style={{ background: 'var(--sc-accent)', opacity: 0.16 }} />
 
       <div className={clsx('relative mx-auto flex max-w-[110rem] flex-col gap-6 p-5 sm:p-8', preview ? 'h-full' : 'min-h-screen')}>
@@ -117,7 +166,7 @@ export function RoomScreenView({ day, error, now, date, today, onDate, template:
           </div>
         )}
 
-        {!day ? <div className="grid flex-1 place-items-center text-white/60">{error ? t('studio.screen.notFound') : '…'}</div> : sessions.length === 0 ? (
+        {idle && day ? <IdleScreen day={day} now={now} tpl={tpl} next={upcoming} /> : !day ? <div className="grid flex-1 place-items-center text-white/60">{error ? t('studio.screen.notFound') : '…'}</div> : sessions.length === 0 ? (
           <div className="grid flex-1 place-items-center text-center"><div><CalendarDays className="mx-auto size-16" style={{ color: 'var(--sc-accent-soft)' }} /><p className="mt-4 text-3xl font-extrabold">{t('studio.screen.none')}</p><p className="mt-1 text-white/60">{t('studio.screen.noneHint')}</p></div></div>
         ) : featured && (
           <div className="grid flex-1 gap-6">
