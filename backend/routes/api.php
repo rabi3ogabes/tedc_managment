@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
+use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
@@ -607,6 +608,8 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:users.manage')->group(function () {
                 Route::get('test-accounts', [TestAccountsController::class, 'show']);
                 Route::post('test-accounts', [TestAccountsController::class, 'seed']);
+                Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware('throttle:20,1');
+                Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop']);
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);

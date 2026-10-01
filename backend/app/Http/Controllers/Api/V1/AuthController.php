@@ -82,7 +82,7 @@ class AuthController extends Controller
         ]);
     }
 
-    private function profile(User $user): array
+    public function profile(User $user): array
     {
         $user->loadMissing(['roles', 'employee.school', 'employee.jobTitle', 'employee.department', 'trainer']);
 

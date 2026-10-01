@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react'
+import { ShieldCheck, UserCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Badge, Button, Card, CardTitle, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
@@ -6,6 +6,7 @@ import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import { impersonation } from '@/lib/impersonation'
 import { fmt } from '@/lib/format'
 import type { LaravelPage } from '@/lib/types'
 
@@ -15,7 +16,7 @@ type User = { id: string; name: string; name_ar?: string; email: string; status:
 
 export default function Users() {
   const { t, i18n } = useTranslation()
-  const { can } = useAuth()
+  const { can, hasRole } = useAuth()
   const [tab, setTab] = useState<'users' | 'roles'>('users')
   const [q, setQ] = useState('')
   const users = useGet<LaravelPage<User>>('/admin/users', { q: q || undefined })
@@ -34,6 +35,10 @@ export default function Users() {
       roles.refetch()
     } catch (e) { setMessage(errorMessage(e)) }
   }
+  const signInAs = async (u: User) => {
+    if (!window.confirm(t('impersonation.confirm', { name: u.name, email: u.email }))) return
+    try { const { landing } = await impersonation.start(u.id); window.location.href = landing === 'admin' ? '/admin' : '/portal' } catch (e) { setMessage(errorMessage(e)) }
+  }
   const toggleStatus = async (u: User) => { await api.put(`/admin/users/${u.id}`, { status: u.status === 'active' ? 'suspended' : 'active' }); users.refetch() }
 
   return (
@@ -50,7 +55,7 @@ export default function Users() {
             { key: 'roles', header: t('admin.users.role'), cell: (u) => <div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.slug} color="navy">{nm(r)}</Badge>)}</div> },
             { key: 'login', header: t('admin.users.lastLogin'), cell: (u) => <span className="text-xs">{fmt.dateTime(u.last_login_at)}</span> },
             { key: 'status', header: t('common.status'), role: 'badge', cell: (u) => <StatusBadge status={u.status === 'active' ? 'approved' : 'blocked'} label={u.status} /> },
-            { key: 'toggle', header: '', role: 'actions', cell: (u) => <Button size="sm" variant="ghost" onClick={() => toggleStatus(u)}>{u.status === 'active' ? '⏸' : '▶'}</Button> },
+            { key: 'toggle', header: '', role: 'actions', cell: (u) => <div className="flex gap-1">{hasRole('super_admin') && !u.roles.some((r) => r.slug === 'super_admin') && u.status === 'active' && <Button size="sm" variant="outline" icon={<UserCheck className="size-4" />} onClick={() => signInAs(u)}>{t('impersonation.signInAs')}</Button>}<Button size="sm" variant="ghost" onClick={() => toggleStatus(u)}>{u.status === 'active' ? '⏸' : '▶'}</Button></div> },
           ]} />
         </Card>
       )}

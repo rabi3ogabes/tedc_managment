@@ -45,6 +45,7 @@ return [
         'one_correct' => 'Question :n needs a correct answer (exactly one for this type).',
     ],
     'training_day' => ['outside' => 'A session must fall within the training day (:from to :to).', 'order' => 'The day must end after it starts.'],
+    'impersonation' => ['self' => 'You are already signed in with this account.', 'admin' => 'You cannot sign in as another system administrator.', 'inactive' => 'The account is suspended: activate it first.'],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'survey_first' => 'Fill in the program survey first to download your certificate.',
