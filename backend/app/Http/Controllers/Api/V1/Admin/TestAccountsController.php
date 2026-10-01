@@ -50,12 +50,12 @@ class TestAccountsController extends Controller
         $accounts = [];
         foreach (array_keys(DemoTestAccountsSeeder::TRAINEE_PROGRAMS) as $n) {
             $u = $users->get("trainee{$n}@tedc.qa");
-            $mine = $u?->employee ? $byNumber->filter(fn (Program $p) => $enrolled->get($p->id, collect())->contains(fn ($r) => $r->employee_id === $u->employee->id))->keys()->values() : collect();
+            $mine = $u?->employee ? $byNumber->sortKeys()->filter(fn (Program $p) => $enrolled->get($p->id, collect())->contains(fn ($r) => $r->employee_id === $u->employee->id))->keys()->values() : collect();
             $accounts[] = ['kind' => 'trainee', 'n' => $n, 'name' => $u?->displayName(), 'email' => "trainee{$n}@tedc.qa", 'programs' => $mine->all()];
         }
         foreach (array_keys(DemoTestAccountsSeeder::TRAINER_PROGRAMS) as $n) {
             $u = $users->get("trainer{$n}@tedc.qa");
-            $mine = $byNumber->filter(fn (Program $p) => $p->trainers->contains(fn ($t) => $t->user_id === $u?->id))->keys()->values();
+            $mine = $byNumber->sortKeys()->filter(fn (Program $p) => $p->trainers->contains(fn ($t) => $t->user_id === $u?->id))->keys()->values();
             $accounts[] = ['kind' => 'trainer', 'n' => $n, 'name' => $u?->displayName(), 'email' => "trainer{$n}@tedc.qa", 'programs' => $mine->all()];
         }
 

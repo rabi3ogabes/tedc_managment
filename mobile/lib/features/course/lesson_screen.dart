@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,6 +128,7 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   double _percent = 0;
   String? _notice;
   bool _failed = false;
+  String _noSeekText = '';
 
   Json get _rules => widget.lesson.obj('rules') ?? {};
   bool get _allowSeek => _rules['allow_seeking'] != false;
@@ -193,7 +193,7 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
       if (!_allowSeek && c.value.position.inSeconds > r.number('position') + 8) {
         await c.seekTo(Duration(seconds: r.number('position').floor()));
         _sent = r.number('position').toDouble();
-        _notice = context.s.t('course.noSeek');
+        _notice = _noSeekText;
       }
       setState(() {});
       widget.onProgress(r['completed'] == true);
@@ -217,6 +217,12 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     } catch (_) {
       _wall = from;
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _noSeekText = context.s.t('course.noSeek'); // cached: reports can fire while the screen is closing
   }
 
   @override
