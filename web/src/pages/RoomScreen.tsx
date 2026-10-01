@@ -48,8 +48,7 @@ export default function RoomScreen({ admin = false }: { admin?: boolean }) {
   const [day, setDay] = useState<Day | null>(null)
   const [error, setError] = useState(false)
   const [now, setNow] = useState(new Date())
-  const [picked, setPicked] = useState<string | null>(null)
-  const [full, setFull] = useState(false)
+    const [full, setFull] = useState(false)
   const root = useRef<HTMLDivElement>(null)
   const url = admin ? `/admin/rooms/${id}/screen` : `/public/room-screen/${token}`
 
@@ -69,7 +68,7 @@ export default function RoomScreen({ admin = false }: { admin?: boolean }) {
   useEffect(() => { const f = () => setFull(!!document.fullscreenElement); document.addEventListener('fullscreenchange', f); return () => document.removeEventListener('fullscreenchange', f) }, [])
 
   const sessions = useMemo(() => day?.sessions ?? [], [day])
-  const featured = useMemo(() => sessions.find((s) => s.id === picked) ?? sessions.find((s) => s.state === 'live') ?? sessions.find((s) => s.state === 'next') ?? sessions.find((s) => s.state === 'upcoming') ?? sessions.at(-1) ?? null, [sessions, picked])
+  const featured = useMemo(() => sessions.find((s) => s.state === 'live') ?? sessions.find((s) => s.state === 'next') ?? sessions.find((s) => s.state === 'upcoming') ?? sessions.at(-1) ?? null, [sessions])
   const isToday = date === today
   const start = featured ? new Date(featured.starts_at) : null
   const end = featured ? new Date(featured.ends_at) : null
@@ -113,7 +112,7 @@ export default function RoomScreen({ admin = false }: { admin?: boolean }) {
         {!day ? <div className="grid flex-1 place-items-center text-white/60">{error ? t('studio.screen.notFound') : '…'}</div> : sessions.length === 0 ? (
           <div className="grid flex-1 place-items-center text-center"><div><CalendarDays className="mx-auto size-16 text-gold-300/70" /><p className="mt-4 text-3xl font-extrabold">{t('studio.screen.none')}</p><p className="mt-1 text-white/60">{t('studio.screen.noneHint')}</p></div></div>
         ) : featured && (
-          <div className="grid flex-1 gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+          <div className="grid flex-1 gap-6">
             <main className="flex min-w-0 flex-col gap-6">
               {/* The session */}
               <section className="rounded-3xl border border-white/10 bg-white/[.06] p-6 shadow-2xl backdrop-blur sm:p-8">
@@ -173,22 +172,6 @@ export default function RoomScreen({ admin = false }: { admin?: boolean }) {
               </section>
             </main>
 
-            {/* The day */}
-            <aside className="space-y-3">
-              <h3 className="text-lg font-bold">{t('studio.screen.day')}</h3>
-              <ol className="relative space-y-3 ps-6 before:absolute before:inset-y-2 before:start-2 before:w-px before:bg-white/15">
-                {sessions.map((s) => (
-                  <li key={s.id}>
-                    <button type="button" onClick={() => setPicked(s.id === picked ? null : s.id)} className={clsx('relative w-full rounded-2xl border p-4 text-start transition', s.id === featured.id ? 'border-gold-400/70 bg-white/10' : 'border-white/10 bg-white/[.04] hover:bg-white/[.08]', s.state === 'ended' && 'opacity-60')}>
-                      <span className={clsx('absolute -start-[1.65rem] top-5 size-3 rounded-full ring-4 ring-navy-900', s.state === 'live' ? 'bg-emerald-400' : s.state === 'next' ? 'bg-gold-400' : 'bg-white/30')} />
-                      <div className="flex items-center justify-between gap-2"><span className="text-xl font-extrabold tabular-nums" dir="ltr">{clock(new Date(s.starts_at))} – {clock(new Date(s.ends_at))}</span>{s.state === 'live' && <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold">{t('studio.screen.live')}</span>}</div>
-                      <div className="mt-1 truncate font-semibold">{s.program.title}</div>
-                      <div className="mt-0.5 flex items-center justify-between text-xs text-white/60"><span className="truncate">{s.trainer?.name ?? '—'}</span><span>{s.counts.present}/{s.counts.expected}</span></div>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            </aside>
           </div>
         )}
       </div>
