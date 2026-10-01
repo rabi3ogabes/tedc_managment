@@ -21,6 +21,8 @@ void main() {
       expect(PushService.routeFor({'type': 'registration.approved', 'registration_id': 'r1'}), '/registrations/r1');
       expect(PushService.routeFor({'type': 'survey.open', 'route': '/my-program/p1'}), '/my-program/p1');
       expect(PushService.routeFor({'type': 'certificate.available'}), '/certificates');
+      expect(PushService.routeFor({'type': 'course.nudge', 'registration_id': 'r1', 'route': '/courses/r1'}), '/courses/r1');
+      expect(PushService.routeFor({'type': 'course.completed', 'registration_id': 'r9'}), '/courses/r9');
     });
 
     test('accepts only known routes from the server', () {

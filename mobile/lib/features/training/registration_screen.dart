@@ -50,6 +50,32 @@ class RegistrationScreen extends ConsumerWidget {
                 ]),
               ),
             ),
+            if (r['has_course'] == true && active)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: () => context.push('/courses/$id'),
+                  child: Ink(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.circular(22)),
+                    child: Row(children: [
+                      const Icon(Icons.play_circle_fill, color: AppColors.gold300, size: 40),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(s.t('course.title'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                          const SizedBox(height: 6),
+                          ProgressBar(r.number('course_percent').toDouble(), color: AppColors.gold300),
+                          const SizedBox(height: 4),
+                          Text('${r.number('course_percent').round()}%', style: const TextStyle(color: AppColors.gold300, fontSize: 12)),
+                        ]),
+                      ),
+                      const Icon(Icons.chevron_right, color: Colors.white),
+                    ]),
+                  ),
+                ),
+              ),
             SectionTitle(s.t('programs.sessions')),
             for (final session in r.list('sessions'))
               Card(

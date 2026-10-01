@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/providers.dart';
+import 'features/course/course_screen.dart';
+import 'features/course/lesson_screen.dart';
 import 'features/needs/needs_survey_screen.dart';
 import 'features/attendance/scan_screen.dart';
 import 'features/auth/login_screen.dart';
@@ -47,6 +49,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
       GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
       GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),
+      GoRoute(path: '/courses/:id', builder: (_, s) => CourseScreen(registrationId: s.pathParameters['id']!)),
+      GoRoute(path: '/lessons/:id', builder: (_, s) => LessonScreen(id: s.pathParameters['id']!, registrationId: s.uri.queryParameters['registration'])),
       GoRoute(path: '/sessions/:id', builder: (_, s) => SessionScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/my-program/:programId', builder: (_, s) => MyProgramRedirect(programId: s.pathParameters['programId']!)),
       GoRoute(path: '/registrations/:id', builder: (_, s) => RegistrationScreen(id: s.pathParameters['id']!)),

@@ -8,7 +8,7 @@ class NotificationRoute {
 
   static const _allowed = [
     '/home', '/programs', '/training', '/certificates', '/profile', '/notifications', '/account', '/scan', '/school',
-    '/sessions/', '/registrations/', '/tasks/', '/surveys/', '/needs-surveys', '/my-program/',
+    '/sessions/', '/courses/', '/lessons/', '/registrations/', '/tasks/', '/surveys/', '/needs-surveys', '/my-program/',
   ];
 
   static bool isTab(String route) => tabs.contains(route);
@@ -24,6 +24,7 @@ class NotificationRoute {
     if (group == 'task' && id('task_id').isNotEmpty) return '/tasks/${id('task_id')}';
     if (type == 'impact.survey' && id('survey_id').isNotEmpty) return '/surveys/${id('survey_id')}';
     if (group == 'needs_survey' && id('needs_survey_id').isNotEmpty) return '/needs-surveys/${id('needs_survey_id')}';
+    if (group == 'course' && id('registration_id').isNotEmpty) return '/courses/${id('registration_id')}';
     if (group == 'certificate') return '/certificates';
     if (group == 'profile') return '/account';
     if (id('registration_id').isNotEmpty) return '/registrations/${id('registration_id')}';
