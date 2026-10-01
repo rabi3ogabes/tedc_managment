@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
+use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
@@ -45,6 +46,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
@@ -93,6 +95,9 @@ Route::prefix('v1')->group(function () {
 
         return response()->json(['message' => 'ok']);
     })->where('path', '.*')->middleware('signed')->name('uploads.local');
+
+    // Errors reported by the website and the app themselves.
+    Route::post('client-errors', [ClientErrorController::class, 'store'])->middleware('throttle:30,1');
 
     // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
@@ -602,6 +607,19 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/push/recipients', [PushSettingsController::class, 'recipients']);
                 Route::post('settings/push/verify', [PushSettingsController::class, 'verify']);
                 Route::post('settings/push/test', [PushSettingsController::class, 'test'])->middleware('throttle:10,1');
+            });
+
+            // Error log — system administrator only (the permission is held by no role but the super admin's all-access)
+            Route::middleware('permission:logs.manage')->prefix('error-logs')->controller(ErrorLogController::class)->group(function () {
+                Route::get('/', 'index');
+                Route::get('badge', 'badge');
+                Route::get('settings', 'settings');
+                Route::put('settings', 'updateSettings');
+                Route::post('bulk', 'bulk');
+                Route::get('{log}', 'show');
+                Route::put('{log}', 'update');
+                Route::post('{log}/fix', 'fix');
+                Route::delete('{log}', 'destroy');
             });
 
             // Users, roles, audit

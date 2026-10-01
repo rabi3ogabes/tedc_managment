@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import i18n from '@/i18n'
+import { reportError } from './errorReporter'
 
 export const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
 
@@ -57,6 +58,9 @@ async function refreshToken(): Promise<string | null> {
 api.interceptors.response.use(undefined, async (error: AxiosError) => {
   // The administration team's idle lock: the dashboard asks for the password again.
   if (error.response?.status === 423 && (error.response.data as { code?: string } | undefined)?.code === 'session_locked') window.dispatchEvent(new Event('tedc:locked'))
+  const status = error.response?.status
+  // Failed server calls are reported (not the reporter's own, not expected 4xx).
+  if (status && status >= 500 && !String(error.config?.url ?? '').includes('client-errors')) reportError(new Error(`${error.config?.method?.toUpperCase()} ${error.config?.url} → ${status}`), { status_code: status, context: { response: String(JSON.stringify(error.response?.data ?? '')).slice(0, 300) } })
   const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined
   if (error.response?.status === 401 && original && !original._retried && sessionStore.get()) {
     original._retried = true

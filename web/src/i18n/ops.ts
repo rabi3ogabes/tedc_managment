@@ -1,5 +1,17 @@
 /** System administration: signing in as a user, the error log and the room-screen template. */
 export const opsAr = {
+  logs: {
+    nav: 'سجل الأخطاء', title: 'سجل الأخطاء', subtitle: 'كل ما تعثّر في النظام أو الموقع أو التطبيق، مجمّعاً بحسب السبب — يظهر لمدير النظام فقط. تُعالَج المشكلات المعروفة تلقائياً.',
+    stats: { open: 'مفتوحة', critical: 'حرجة', today: 'اليوم', auto: 'عولجت تلقائياً', trend: 'آخر 14 يوماً' },
+    status: { open: 'مفتوحة', fixed: 'تم إصلاحها', ignored: 'متجاهَلة', all: 'الكل' }, source: { all: 'كل المصادر', server: 'النظام', web: 'الموقع', app: 'التطبيق' },
+    level: { all: 'كل المستويات', critical: 'حرج', error: 'خطأ', warning: 'تحذير' }, anyTime: 'أي وقت', lastDays: 'آخر {{count}} يوم', sort: { recent: 'الأحدث', frequent: 'الأكثر تكراراً', users: 'الأكثر تأثيراً' },
+    search: 'ابحث في الرسالة أو المكان أو البريد…', total: '{{count}} مجموعة أخطاء', selected: '{{count}} محدد', emptyOpen: 'لا أخطاء مفتوحة. كل شيء يعمل 👌', empty: 'لا توجد نتائج.',
+    markFixed: 'تم الإصلاح', ignore: 'تجاهل', reopen: 'إعادة فتح', tryFix: 'إصلاح تلقائي الآن', fixable: 'قابل للإصلاح تلقائياً', auto: 'تلقائي', autoFixed: 'عولج هذا الخطأ تلقائياً.', clearFixed: 'حذف المُصلَحة',
+    confirmDelete: 'حذف هذا الخطأ نهائياً؟', confirmDeleteMany: 'حذف الأخطاء المحددة نهائياً؟', prev: 'السابق', next: 'التالي',
+    occurrences: 'مرات الحدوث', usersAffected: '{{count}} مستخدم', lastSeen: 'آخر حدوث', firstSeen: 'أول حدوث', location: 'المكان', request: 'الطلب', statusCode: 'رمز الحالة', user: 'المستخدم', version: 'إصدار التطبيق', exception: 'نوع الخطأ', ip: 'العنوان',
+    device: 'الجهاز', context: 'السياق', stack: 'تفاصيل الخطأ', copy: 'نسخ', note: 'ملاحظة',
+    settings: { button: 'الإعدادات', title: 'إعدادات سجل الأخطاء', enabled: 'تسجيل الأخطاء', enabledHint: 'إيقافه يوقف حفظ أي خطأ جديد.', autoFix: 'الإصلاح التلقائي', autoFixHint: 'تنفيذ العلاج المعروف للمشكلة (ترحيل قاعدة البيانات، مسح الذاكرة المؤقتة، تنظيف رموز الإشعارات القديمة).', clients: 'أخطاء الموقع والتطبيق', clientsHint: 'استقبال ما يبلّغ به الموقع والتطبيق عن أنفسهما.', retention: 'مدة الاحتفاظ بالمُصلَح (يوم)', retentionHint: 'تُحذف الأخطاء المُصلَحة أو المتجاهَلة الأقدم من ذلك تلقائياً.' },
+  },
   impersonation: {
     signInAs: 'الدخول بحسابه', confirm: 'ستفتح حساب «{{name}}» ({{email}}) وتتصرف باسمه لمدة ساعة. تُسجَّل البداية والنهاية في سجل التدقيق. متابعة؟',
     banner: 'أنت داخل حساب {{name}} ({{email}})', left: 'متبقٍ {{minutes}} د', stop: 'العودة إلى حسابي',
@@ -7,6 +19,18 @@ export const opsAr = {
 }
 
 export const opsEn: typeof opsAr = {
+  logs: {
+    nav: 'Error log', title: 'Error log', subtitle: 'Everything that failed in the system, the website or the app, grouped by cause — visible to the system administrator only. Known problems are fixed automatically.',
+    stats: { open: 'Open', critical: 'Critical', today: 'Today', auto: 'Fixed automatically', trend: 'Last 14 days' },
+    status: { open: 'Open', fixed: 'Fixed', ignored: 'Ignored', all: 'All' }, source: { all: 'All sources', server: 'System', web: 'Website', app: 'App' },
+    level: { all: 'All levels', critical: 'Critical', error: 'Error', warning: 'Warning' }, anyTime: 'Any time', lastDays: 'Last {{count}} days', sort: { recent: 'Most recent', frequent: 'Most frequent', users: 'Most users affected' },
+    search: 'Search the message, place or e-mail…', total: '{{count}} error groups', selected: '{{count}} selected', emptyOpen: 'No open errors. All is well 👌', empty: 'No results.',
+    markFixed: 'Mark fixed', ignore: 'Ignore', reopen: 'Reopen', tryFix: 'Fix automatically now', fixable: 'Can be fixed automatically', auto: 'Auto', autoFixed: 'This error was fixed automatically.', clearFixed: 'Delete fixed',
+    confirmDelete: 'Delete this error permanently?', confirmDeleteMany: 'Delete the selected errors permanently?', prev: 'Previous', next: 'Next',
+    occurrences: 'Occurrences', usersAffected: '{{count}} users', lastSeen: 'Last seen', firstSeen: 'First seen', location: 'Where', request: 'Request', statusCode: 'Status code', user: 'User', version: 'App version', exception: 'Error type', ip: 'Address',
+    device: 'Device', context: 'Context', stack: 'Details', copy: 'Copy', note: 'Note',
+    settings: { button: 'Settings', title: 'Error log settings', enabled: 'Record errors', enabledHint: 'Switching it off stops saving any new error.', autoFix: 'Automatic fixing', autoFixHint: 'Apply the known remedy of a problem (database migration, clearing caches, removing stale push tokens).', clients: 'Website and app errors', clientsHint: 'Accept what the website and the app report about themselves.', retention: 'Keep fixed entries for (days)', retentionHint: 'Fixed or ignored errors older than this are deleted automatically.' },
+  },
   impersonation: {
     signInAs: 'Sign in as', confirm: 'You will open the account of “{{name}}” ({{email}}) and act as them for one hour. The start and the end are written to the audit log. Continue?',
     banner: 'You are inside the account of {{name}} ({{email}})', left: '{{minutes}} min left', stop: 'Return to my account',

@@ -6,6 +6,7 @@ use App\Http\Middleware\EnforceSessionLock;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Services\ErrorLogService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -32,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Every server exception worth a look goes to the error log (grouped, scrubbed and, when a remedy is known, fixed).
+        $exceptions->report(function (Throwable $e) {
+            app(ErrorLogService::class)->recordThrowable($e);
+        });
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

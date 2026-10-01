@@ -55,6 +55,7 @@ const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
 const PortalHome = lazy(() => import('@/pages/portal/PortalHome'))
 const MyTraining = lazy(() => import('@/pages/portal/MyTraining'))
 const Passport = lazy(() => import('@/pages/portal/Passport'))
+const ErrorLog = lazy(() => import('@/pages/admin/ErrorLog'))
 const RoomScreen = lazy(() => import('@/pages/RoomScreen'))
 const Learn = lazy(() => import('@/pages/portal/Learn'))
 const Wallet = lazy(() => import('@/pages/portal/Wallet'))
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="communication" element={<Communication />} />
           <Route path="chats" element={<RequireAuth permission="announcements.manage"><ChatInbox /></RequireAuth>} />
           <Route path="certificates" element={<Certificates />} />
+          <Route path="error-log" element={<RequireAuth permission="logs.manage"><ErrorLog /></RequireAuth>} />
           <Route path="certificate-templates" element={<RequireAuth permission="certificates.view"><CertificateTemplates /></RequireAuth>} />
           <Route path="certificate-templates/:id" element={<RequireAuth permission="certificates.issue"><CertificateDesigner /></RequireAuth>} />
           <Route path="schools" element={<Schools />} />

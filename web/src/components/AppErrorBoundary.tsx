@@ -1,6 +1,7 @@
 import { RotateCw, TriangleAlert } from 'lucide-react'
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import i18n from '@/i18n'
+import { reportError } from '@/lib/errorReporter'
 
 const STALE = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|ChunkLoadError|Loading chunk .* failed|Unable to preload CSS/i
 
@@ -40,6 +41,7 @@ export default class AppErrorBoundary extends Component<Props, { error: Error | 
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('The page crashed', error, info.componentStack)
+    reportError(error, { level: 'critical', context: { componentStack: String(info.componentStack ?? '').slice(0, 1500) } })
     if (isStaleCodeError(error)) reloadOnce()
   }
 

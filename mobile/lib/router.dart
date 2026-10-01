@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/error_reporter.dart';
 import 'core/providers.dart';
 import 'features/course/course_screen.dart';
 import 'features/course/lesson_screen.dart';
@@ -30,7 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen(authProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/home',
     refreshListenable: refresh,
     redirect: (context, state) {
@@ -76,4 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  // The error log records which screen an error happened on.
+  router.routeInformationProvider.addListener(() => ErrorReporter.route(router.routeInformationProvider.value.uri.path));
+  return router;
 });

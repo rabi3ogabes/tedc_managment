@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../auth/session_store.dart';
 import '../config.dart';
+import '../error_reporter.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.code, this.details, this.status});
@@ -65,6 +66,11 @@ class ApiClient {
           } on DioException catch (e) {
             return handler.next(e);
           }
+        }
+        // A server failure (5xx) is reported to the administrator's error log.
+        final status = error.response?.statusCode ?? 0;
+        if (status >= 500 && !error.requestOptions.path.contains('client-errors')) {
+          ErrorReporter.report('${error.requestOptions.method} ${error.requestOptions.path} → $status', error.stackTrace, statusCode: status);
         }
         handler.next(error);
       },
