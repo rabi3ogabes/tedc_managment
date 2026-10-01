@@ -11,6 +11,7 @@ import type { Program } from '@/lib/types'
 import { fmtDuration, type Course, type Lesson, type LessonType, type Module } from './course/api'
 import CourseAnalytics from './course/CourseAnalytics'
 import LessonEditor from './course/LessonEditor'
+import ContentStep, { applyContentPlan, emptyPlan, type ContentPlan } from '../smart/ContentStep'
 
 const ICONS: Record<LessonType, ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText }
 const TYPES: LessonType[] = ['video', 'presentation', 'quiz', 'survey', 'article']
@@ -24,6 +25,7 @@ export default function CourseTab({ program }: { program: Program }) {
   const [view, setView] = useState<'build' | 'analytics'>('build')
   const [selected, setSelected] = useState<string | null>(null)
   const [menu, setMenu] = useState<string | null>(null)
+  const [starter, setStarter] = useState<ContentPlan | null>(null)
   const [moduleForm, setModuleForm] = useState<{ id?: string; title_ar: string; title_en: string } | null>(null)
   const [drag, setDrag] = useState<{ lesson: string } | null>(null)
   const [over, setOver] = useState<string | null>(null)
@@ -72,6 +74,7 @@ export default function CourseTab({ program }: { program: Program }) {
     setOver(null)
     void persist(next)
   }
+  const applyStarter = () => starter && run(async () => { await applyContentPlan(program.id, starter); setStarter(null) })
   const setting = (patch: Record<string, unknown>) => run(() => api.put(`/admin/programs/${program.id}/course/settings`, patch))
 
   const quickStart = () => run(async () => {
@@ -114,7 +117,7 @@ export default function CourseTab({ program }: { program: Program }) {
           {course.modules.length === 0 ? (
             <Card className="py-10 text-center">
               <Empty icon={<BookOpenText className="size-8" />} text={t('course.empty')} />
-              {manage && <div className="mt-4 flex flex-wrap justify-center gap-3"><Button variant="gold" icon={<Rocket className="size-4" />} loading={busy} onClick={quickStart}>{t('course.quickStart')}</Button><Button variant="outline" icon={<Plus className="size-4" />} onClick={() => setModuleForm({ title_ar: '', title_en: '' })}>{t('course.addModule')}</Button></div>}
+              {manage && <div className="mt-4 flex flex-wrap justify-center gap-3"><Button variant="gold" icon={<Rocket className="size-4" />} onClick={() => setStarter({ ...emptyPlan, sequential: course.settings.sequential, completion: course.settings.completion_percent, autoCert: course.settings.auto_certificate })}>{t('studio.content.starter')}</Button><Button variant="outline" icon={<Rocket className="size-4" />} loading={busy} onClick={quickStart}>{t('course.quickStart')}</Button><Button variant="outline" icon={<Plus className="size-4" />} onClick={() => setModuleForm({ title_ar: '', title_en: '' })}>{t('course.addModule')}</Button></div>}
               <p className="mt-3 text-xs text-slate-500">{t('course.quickStartHint')}</p>
             </Card>
           ) : (
@@ -161,6 +164,7 @@ export default function CourseTab({ program }: { program: Program }) {
                   </div>
                 ))}
                 {manage && <Button variant="outline" className="w-full" icon={<Plus className="size-4" />} onClick={() => setModuleForm({ title_ar: '', title_en: '' })}>{t('course.addModule')}</Button>}
+                {manage && <Button variant="ghost" className="w-full" icon={<Rocket className="size-4" />} onClick={() => setStarter({ ...emptyPlan, blueprint: null, sequential: course.settings.sequential, completion: course.settings.completion_percent, autoCert: course.settings.auto_certificate })}>{t('studio.content.fromKit')}</Button>}
               </div>
 
               <div className="min-w-0">
@@ -171,6 +175,15 @@ export default function CourseTab({ program }: { program: Program }) {
           )}
         </>
       )}
+
+      <Modal open={!!starter} onClose={() => setStarter(null)} title={t('studio.content.title')} wide>
+        {starter && (
+          <div className="space-y-5">
+            <ContentStep plan={starter} onChange={setStarter} programId={program.id} />
+            <div className="flex justify-end gap-2 border-t border-navy-100 pt-4"><Button variant="ghost" onClick={() => setStarter(null)}>{t('common.cancel')}</Button><Button variant="gold" loading={busy} onClick={applyStarter}>{t('studio.content.apply')}</Button></div>
+          </div>
+        )}
+      </Modal>
 
       <Modal open={!!moduleForm} onClose={() => setModuleForm(null)} title={t(moduleForm?.id ? 'course.editModule' : 'course.addModule')}>
         {moduleForm && (

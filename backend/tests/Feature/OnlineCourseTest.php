@@ -6,7 +6,9 @@ use App\Models\CourseLesson;
 use App\Models\QuizQuestion;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\TrainingKit;
 use App\Services\CourseService;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class OnlineCourseTest extends TestCase
@@ -85,5 +87,37 @@ class OnlineCourseTest extends TestCase
             ->assertOk()->assertJsonPath('data.duration_seconds', 312)->assertJsonPath('data.has_file', true);
 
         $this->asUser($admin)->getJson('/api/v1/admin/programs/'.CourseLesson::find($video['id'])->program_id.'/course/analytics')->assertOk()->assertJsonPath('data.summary.learners', 1);
+    }
+
+    public function test_a_blueprint_and_a_training_kit_prepare_the_course(): void
+    {
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $program = $this->makeProgram(['delivery_mode' => 'online']);
+
+        $starters = $this->asUser($admin)->getJson("/api/v1/admin/programs/{$program->id}/course/starters")->assertOk()->json('data');
+        $this->assertCount(3, $starters['blueprints']);
+
+        $this->asUser($admin)->postJson("/api/v1/admin/programs/{$program->id}/course/blueprint", ['blueprint' => 'micro', 'watch' => 'strict'])->assertCreated()->assertJsonPath('data.created', 6);
+        $course = $this->asUser($admin)->getJson("/api/v1/admin/programs/{$program->id}/course")->json('data');
+        $this->assertTrue($course['settings']['has_course']);
+        $this->assertFalse($course['modules'][0]['lessons'][0]['settings']['allow_seeking']);
+
+        // A kit's video and slides become lessons; its other files are not importable.
+        Storage::disk('local')->put('documents/kits/k/files/a.mp4', 'video');
+        Storage::disk('local')->put('documents/kits/k/files/b.pdf', 'pdf');
+        $kit = TrainingKit::create(['code' => 'K-1', 'title_ar' => 'حقيبة', 'title_en' => 'Kit', 'status' => 'approved', 'owner_id' => $admin->id, 'program_id' => $program->id]);
+        $video = $kit->files()->create(['name' => 'Intro', 'original_name' => 'a.mp4', 'kind' => 'video', 'category' => 'media', 'source' => 'upload', 'mime' => 'video/mp4', 'size' => 5, 'storage_path' => 'kits/k/files/a.mp4']);
+        $slides = $kit->files()->create(['name' => 'Slides', 'original_name' => 'b.pdf', 'kind' => 'pdf', 'category' => 'presentation', 'source' => 'upload', 'mime' => 'application/pdf', 'size' => 3, 'storage_path' => 'kits/k/files/b.pdf']);
+        $doc = $kit->files()->create(['name' => 'Guide', 'original_name' => 'g.docx', 'kind' => 'document', 'category' => 'trainer_guide', 'source' => 'upload', 'mime' => 'x', 'size' => 1, 'storage_path' => 'kits/k/files/g.docx']);
+
+        $kits = $this->asUser($admin)->getJson("/api/v1/admin/programs/{$program->id}/course/starters")->json('data.kits');
+        $this->assertTrue($kits[0]['linked']);
+        $this->asUser($admin)->postJson("/api/v1/admin/programs/{$program->id}/course/import-kit", ['kit_id' => $kit->id, 'files' => [$doc->id]])->assertStatus(422);
+        $this->asUser($admin)->postJson("/api/v1/admin/programs/{$program->id}/course/import-kit", ['kit_id' => $kit->id, 'files' => [$video->id, $slides->id, $doc->id]])->assertCreated()->assertJsonPath('data.created', 2);
+
+        $lesson = CourseLesson::where('type', 'video')->where('title_ar', 'Intro')->first();
+        $this->assertSame('upload', $lesson->source);
+        $this->assertTrue(Storage::disk('local')->exists('materials/'.$lesson->file_path));
+        $this->assertTrue(Storage::disk('local')->exists('documents/kits/k/files/a.mp4')); // the kit keeps its file
     }
 }

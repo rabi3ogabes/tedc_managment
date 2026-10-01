@@ -11,6 +11,8 @@ use App\Models\Program;
 use App\Models\QuizAttempt;
 use App\Models\Registration;
 use App\Models\SurveyResponse;
+use App\Models\TrainingKit;
+use App\Services\CourseBlueprints;
 use App\Services\FileStorage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -32,7 +34,7 @@ class CourseController extends Controller
 
     private const SLIDE_MIMES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-powerpoint'];
 
-    public function __construct(private readonly FileStorage $storage) {}
+    public function __construct(private readonly FileStorage $storage, private readonly CourseBlueprints $blueprints) {}
 
     // Whole course ----------------------------------------------------------------------------------------------
 
@@ -61,6 +63,39 @@ class CourseController extends Controller
         ]));
 
         return $this->show($program->refresh());
+    }
+
+    // Starting points -------------------------------------------------------------------------------------------
+
+    /** Ready-made structures, the watch-control presets and the training kits that can be imported. */
+    public function starters(?Program $program = null): JsonResponse
+    {
+        return response()->json(['data' => [
+            'blueprints' => collect($this->blueprints->all())->map(fn ($b, $key) => [
+                'key' => $key, 'title' => app()->getLocale() === 'en' ? $b['en'] : $b['ar'], 'text' => app()->getLocale() === 'en' ? $b['en_text'] : $b['ar_text'],
+                'modules' => collect($b['modules'])->map(fn ($m) => ['title' => app()->getLocale() === 'en' ? $m['en'] : $m['ar'], 'lessons' => collect($m['lessons'])->map(fn ($l) => ['type' => $l[0], 'title' => app()->getLocale() === 'en' ? $l[2] : $l[1]])->values()])->values(),
+            ])->values(),
+            'watch' => array_keys(CourseBlueprints::WATCH),
+            'kits' => $this->blueprints->kits($program),
+        ]]);
+    }
+
+    public function applyBlueprint(Request $request, Program $program): JsonResponse
+    {
+        $data = $request->validate(['blueprint' => ['required', Rule::in(array_keys($this->blueprints->all()))], 'watch' => ['nullable', Rule::in(array_keys(CourseBlueprints::WATCH))]]);
+
+        return response()->json(['data' => ['created' => $this->blueprints->apply($program, $data['blueprint'], $data['watch'] ?? 'standard')]], 201);
+    }
+
+    public function importKit(Request $request, Program $program): JsonResponse
+    {
+        $data = $request->validate(['kit_id' => ['required', 'uuid', 'exists:training_kits,id'], 'files' => ['required', 'array', 'min:1', 'max:60'], 'files.*' => ['uuid'], 'watch' => ['nullable', Rule::in(array_keys(CourseBlueprints::WATCH))]]);
+        $created = $this->blueprints->importKit($program, TrainingKit::findOrFail($data['kit_id']), $data['files'], $data['watch'] ?? 'standard');
+        if ($created === 0) {
+            throw new BusinessRuleException(__('messages.course.nothing_to_import'), 'nothing_to_import');
+        }
+
+        return response()->json(['data' => ['created' => $created]], 201);
     }
 
     // Modules ---------------------------------------------------------------------------------------------------

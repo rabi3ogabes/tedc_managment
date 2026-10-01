@@ -1,7 +1,17 @@
 /** Certificate designer, remote programs studio and session tracking. */
 export const studioAr = {
   nav: { templates: 'مصمّم الشهادات', remote: 'برنامج عن بُعد' },
-  steps: { delivery: 'التقديم عن بُعد', certificates: 'الشهادات' },
+  steps: { delivery: 'التقديم عن بُعد', content: 'المحتوى والحقيبة', certificates: 'الشهادات' },
+  content: {
+    title: 'المحتوى والحقيبة التدريبية', subtitle: 'جهّز محتوى البرنامج عن بُعد: هيكل الدورة، قواعد المشاهدة، والملفات من الحقيبة التدريبية. تعدّل كل شيء لاحقاً وترفع الفيديوهات والعروض من منشئ المحتوى.',
+    structure: 'هيكل الدورة', structureHint: 'نبدأ بوحدات ودروس جاهزة كمسودات (فيديو، عرض، اختبار، استبيان ومقال).', empty: 'ابدأ فارغاً', emptyHint: 'تبني الوحدات والدروس بنفسك.',
+    watch: 'التحكم في مشاهدة الفيديو', watchHint: 'يُطبَّق على فيديوهات الدورة، ويمكن تعديله لكل فيديو.',
+    watchModes: { strict: 'صارم', strictHint: 'بلا تقديم، وإتمام عند 90٪ من المشاهدة الفعلية.', standard: 'متوازن', standardHint: 'التقديم مسموح، وإتمام عند 80٪.', free: 'مرن', freeHint: 'تقديم وسرعة حرّة، وإتمام عند 50٪.' },
+    kit: 'من الحقيبة التدريبية', kitHint: 'استورد فيديوهات وعروض حقيبة جاهزة كدروس. تُنسخ الملفات وتبقى الحقيبة كما هي.', noKits: 'لا توجد حقائب تدريبية بعد. أنشئها من «الحقائب التدريبية».',
+    noKit: 'بدون حقيبة', linked: 'مرتبطة بالبرنامج', files: 'ملف', pick: 'اختر الملفات المراد استيرادها ({{count}} محدد)', notImportable: 'غير قابل للاستيراد', kitPick: 'اختر حقيبة لعرض ملفاتها.',
+    after: 'بعد إنشاء البرنامج تُنشأ الدروس كمسودات، ثم ترفع الفيديوهات وتكتب الأسئلة وتنشر.', prepared: 'تم تجهيز {{count}} درساً كمسودات. افتح منشئ المحتوى لرفع الفيديوهات وكتابة الاختبارات ثم النشر.',
+    openBuilder: 'افتح منشئ المحتوى', starter: 'ابدأ بهيكل وحقيبة', fromKit: 'إضافة من حقيبة أو هيكل', apply: 'إضافة إلى الدورة',
+  },
   kind: { all: 'الكل', trainee: 'شهادة المتدرب', trainer: 'شهادة المدرب', traineeHint: 'شهادة إتمام البرنامج — تُتاح بعد تعبئة الاستبيان.', trainerHint: 'شهادة شكر وتقدير — تُتاح بعد إكمال ساعات البرنامج.' },
   list: {
     title: 'مصمّم الشهادات', subtitle: 'ارفع ملف PDF أو صورة كخلفية، ثم أضف الأسماء والنصوص والباركود والتواقيع واحفظ التصميم كقالب يُسنَد إلى البرامج.',
@@ -61,7 +71,17 @@ export const studioAr = {
 
 export const studioEn: typeof studioAr = {
   nav: { templates: 'Certificate designer', remote: 'Remote program' },
-  steps: { delivery: 'Remote delivery', certificates: 'Certificates' },
+  steps: { delivery: 'Remote delivery', content: 'Content & kit', certificates: 'Certificates' },
+  content: {
+    title: 'Content & training kit', subtitle: 'Prepare the online program: the course structure, the watch rules and the files from a training kit. Everything can be edited later, and videos and slides are uploaded in the content builder.',
+    structure: 'Course structure', structureHint: 'Starts with modules and lessons ready as drafts (video, slides, quiz, survey and article).', empty: 'Start empty', emptyHint: 'You build the modules and lessons yourself.',
+    watch: 'Video watch control', watchHint: 'Applied to the course videos, and adjustable per video.',
+    watchModes: { strict: 'Strict', strictHint: 'No skipping; complete at 90% really watched.', standard: 'Balanced', standardHint: 'Skipping allowed; complete at 80%.', free: 'Flexible', freeHint: 'Free skipping and speed; complete at 50%.' },
+    kit: 'From a training kit', kitHint: 'Import the videos and presentations of a ready kit as lessons. Files are copied and the kit stays as it is.', noKits: 'There are no training kits yet. Create one in “Training kits”.',
+    noKit: 'No kit', linked: 'Linked to the program', files: 'files', pick: 'Choose the files to import ({{count}} selected)', notImportable: 'Cannot be imported', kitPick: 'Pick a kit to see its files.',
+    after: 'After the program is created the lessons are made as drafts; then upload the videos, write the questions and publish.', prepared: '{{count}} lessons were prepared as drafts. Open the content builder to upload videos, write the quizzes and publish.',
+    openBuilder: 'Open the content builder', starter: 'Start with a structure and kit', fromKit: 'Add from a kit or structure', apply: 'Add to the course',
+  },
   kind: { all: 'All', trainee: 'Trainee certificate', trainer: 'Trainer certificate', traineeHint: 'Program completion — available once the survey is filled in.', trainerHint: 'Thank-you certificate — available once the program hours are done.' },
   list: {
     title: 'Certificate designer', subtitle: 'Upload a PDF or picture as the background, add names, text, the QR code and signatures, and save the design as a template programs can use.',

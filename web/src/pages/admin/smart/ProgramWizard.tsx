@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AlertTriangle, ArrowLeft, ArrowRight, BookOpenCheck, Check, CheckCircle2, ClipboardList, FileEdit, GraduationCap, Layers, Plus, RefreshCcw, Rocket, Sparkles, Trash2, Users2, Wand2 } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ArrowRight, BookOpenCheck, Check, CheckCircle2, ClipboardList, FileEdit, GraduationCap, Layers, Plus, RefreshCcw, Rocket, Sparkles, Trash2, Users2, Video, Wand2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -11,11 +11,12 @@ import { fmt } from '@/lib/format'
 import type { Paginated, Program, Room, Trainer } from '@/lib/types'
 import AudienceBuilder from './AudienceBuilder'
 import { activeFilters } from './filters'
+import ContentStep, { applyContentPlan, emptyPlan, type ContentPlan } from './ContentStep'
 import { CertificatesStep, DeliveryStep, emptyRemote, SmartSlots, TargetCategories, type RemoteSettings } from './RemoteParts'
 import type { Audience, AudiencePreview, BuilderOptions, Draft, NeedTopic, PlannedSession, TrainerSuggestion } from './types'
 
-type Step = 'source' | 'audience' | 'details' | 'team' | 'delivery' | 'certificates' | 'review'
-const stepsFor = (remote: boolean): Step[] => (remote ? ['source', 'audience', 'details', 'team', 'delivery', 'certificates', 'review'] : ['source', 'audience', 'details', 'team', 'certificates', 'review'])
+type Step = 'source' | 'audience' | 'details' | 'team' | 'delivery' | 'content' | 'certificates' | 'review'
+const stepsFor = (remote: boolean): Step[] => (remote ? ['source', 'audience', 'details', 'team', 'delivery', 'content', 'certificates', 'review'] : ['source', 'audience', 'details', 'team', 'certificates', 'review'])
 type Mode = 'needs' | 'manual'
 type RoomChoice = { room: Room; available: boolean; fits_capacity: boolean; score: number }
 
@@ -36,7 +37,7 @@ function Stepper({ steps, step, reached, onGo, remote }: { steps: Step[]; step: 
             <button type="button" disabled={i > reached} onClick={() => onGo(s)} aria-current={active ? 'step' : undefined}
               className={clsx('flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start transition', active ? 'bg-navy-900 text-white shadow' : done ? 'text-navy-800 hover:bg-ivory' : 'text-slate-400', i > reached && 'cursor-not-allowed')}>
               <span className={clsx('grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold', active ? 'bg-gold-500 text-navy-950' : done ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-500')}>{done ? <Check className="size-4" /> : fmt.number(i + 1)}</span>
-              <span className="hidden truncate text-sm font-semibold sm:block">{remote && ['delivery'].includes(s) ? t('studio.steps.delivery') : s === 'certificates' ? t('studio.steps.certificates') : t(`mgmt.wizard.steps.${s}`)}</span>
+              <span className="hidden truncate text-sm font-semibold sm:block">{remote && s === 'delivery' ? t('studio.steps.delivery') : s === 'content' ? t('studio.steps.content') : s === 'certificates' ? t('studio.steps.certificates') : t(`mgmt.wizard.steps.${s}`)}</span>
             </button>
           </li>
         )
@@ -357,6 +358,8 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
   const STEPS = useMemo(() => stepsFor(remote), [remote])
   const [step, setStep] = useState<Step>('source')
   const [remoteSettings, setRemoteSettings] = useState<RemoteSettings>(emptyRemote)
+  const [content, setContent] = useState<ContentPlan>(emptyPlan)
+  const [prepared, setPrepared] = useState<number | null>(null)
   const [traineeTemplate, setTraineeTemplate] = useState('')
   const [trainerTemplate, setTrainerTemplate] = useState('')
   const [reached, setReached] = useState(0)
@@ -445,6 +448,10 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
         sessions: ordered.map((s, i) => ({ sequence: i + 1, title_ar: s.title_ar, title_en: s.title_en, starts_at: s.starts_at, ends_at: s.ends_at, training_room_id: remote ? null : s.training_room_id, trainer_id: lead ?? null, ...(remote ? { mode: 'online', online_url: s.online_url || null } : {}) })),
         calendar_approval_reason: approval.trim() || undefined, invite_audience: publish === 'open' && invite, nominate_audience: publish === 'open' && nominate,
       })
+      // The online program starts with its course: structure, rules and the imported kit.
+      if (remote) {
+        try { setPrepared((await applyContentPlan(res.data.data.id, content)).lessons) } catch (e) { setError(errorMessage(e)); setPrepared(0) }
+      }
       setCreated({ program: res.data.data, meta: res.data.meta ?? {} })
     } catch (e) {
       setError(errorMessage(e))
@@ -453,7 +460,7 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
     }
   }
 
-  const reset = () => { setCreated(null); setDraft(null); setForm(null); setSelected([]); setSkillId(''); setAudience({}); setSessions([]); setTrainers([]); setSuggestions([]); setPublish('draft'); setInvite(false); setNominate(false); setApproval(''); setReached(0); setStep('source'); setRemoteSettings(emptyRemote); setTraineeTemplate(''); setTrainerTemplate(''); options.refetch() }
+  const reset = () => { setCreated(null); setDraft(null); setForm(null); setSelected([]); setSkillId(''); setAudience({}); setSessions([]); setTrainers([]); setSuggestions([]); setPublish('draft'); setInvite(false); setNominate(false); setApproval(''); setReached(0); setStep('source'); setRemoteSettings(emptyRemote); setContent(emptyPlan); setPrepared(null); setTraineeTemplate(''); setTrainerTemplate(''); options.refetch() }
 
   if (options.isLoading || !opts) return <Spinner />
 
@@ -465,7 +472,8 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
         <p className="mt-1 text-lg font-semibold text-navy-800">{created.program.title}</p>
         <p className="font-mono text-sm text-slate-400" dir="ltr">{created.program.code}</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2"><StatusBadge status={created.program.status} />{created.meta.invited != null && <Badge color="blue">{t('mgmt.wizard.review.invited', { count: created.meta.invited })}</Badge>}{created.meta.nomination && <Badge color="green">{t('mgmt.wizard.review.nominated', { count: created.meta.nomination.nominated })}</Badge>}</div>
-        <div className="mt-6 flex flex-wrap justify-center gap-3"><Button variant="gold" to={`/admin/programs/${created.program.id}`} icon={<BookOpenCheck className="size-4" />}>{t('mgmt.wizard.review.openProgram')}</Button><Button variant="outline" onClick={reset}>{t('mgmt.wizard.review.another')}</Button></div>
+        {remote && prepared != null && <p className="mt-4 rounded-xl bg-gold-100/50 p-3 text-sm text-navy-900">{t('studio.content.prepared', { count: prepared })}</p>}
+        <div className="mt-6 flex flex-wrap justify-center gap-3">{remote && <Button variant="gold" to={`/admin/programs/${created.program.id}?tab=course`} icon={<Video className="size-4" />}>{t('studio.content.openBuilder')}</Button>}<Button variant="outline" to={`/admin/programs/${created.program.id}`} icon={<BookOpenCheck className="size-4" />}>{t('mgmt.wizard.review.openProgram')}</Button><Button variant="outline" onClick={reset}>{t('mgmt.wizard.review.another')}</Button></div>
       </Card>
     )
   }
@@ -514,6 +522,13 @@ export default function ProgramWizard({ remote = false }: { remote?: boolean }) 
         <div className="space-y-4">
           <div><h2 className="text-xl font-bold text-navy-900">{t('studio.delivery.title')}</h2><p className="text-sm text-slate-500">{t('studio.delivery.subtitle')}</p></div>
           <DeliveryStep value={remoteSettings} onChange={setRemoteSettings} />
+        </div>
+      )}
+
+      {step === 'content' && (
+        <div className="space-y-4">
+          <div><h2 className="text-xl font-bold text-navy-900">{t('studio.content.title')}</h2><p className="text-sm text-slate-500">{t('studio.content.subtitle')}</p></div>
+          <ContentStep plan={content} onChange={setContent} />
         </div>
       )}
 

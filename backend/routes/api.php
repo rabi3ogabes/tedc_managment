@@ -377,9 +377,13 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:programs.view')->group(function () {
                 Route::get('programs/{program}/course', [CourseController::class, 'show']);
                 Route::get('programs/{program}/course/analytics', [CourseController::class, 'analytics']);
+                Route::get('programs/{program}/course/starters', [CourseController::class, 'starters']);
+                Route::get('course-starters', [CourseController::class, 'starters']);
             });
             Route::middleware('permission:programs.manage')->group(function () {
                 Route::put('programs/{program}/course/settings', [CourseController::class, 'updateSettings']);
+                Route::post('programs/{program}/course/blueprint', [CourseController::class, 'applyBlueprint']);
+                Route::post('programs/{program}/course/import-kit', [CourseController::class, 'importKit']);
                 Route::post('programs/{program}/course/modules', [CourseController::class, 'storeModule']);
                 Route::put('programs/{program}/course/reorder', [CourseController::class, 'reorder']);
                 Route::put('course/modules/{module}', [CourseController::class, 'updateModule']);

@@ -161,6 +161,25 @@ class FileStorage
         fclose($out);
     }
 
+    /** Copies an object between buckets without pulling it through the application (videos can be large). */
+    public function copy(string $fromBucket, string $from, string $toBucket, string $to): void
+    {
+        $source = $this->bucket($fromBucket);
+        $target = $this->bucket($toBucket);
+
+        if ($this->usesSupabase()) {
+            $this->supabase()->post($this->endpoint('object/copy'), ['bucketId' => $source, 'sourceKey' => $from, 'destinationBucket' => $target, 'destinationKey' => $to])->throw();
+
+            return;
+        }
+
+        $dest = Storage::disk('local')->path("{$target}/{$to}");
+        if (! is_dir(dirname($dest))) {
+            mkdir(dirname($dest), 0775, true);
+        }
+        copy(Storage::disk('local')->path("{$source}/{$from}"), $dest);
+    }
+
     public function exists(string $bucket, string $path): bool
     {
         $bucketName = $this->bucket($bucket);

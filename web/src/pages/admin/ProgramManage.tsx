@@ -1,7 +1,7 @@
 import { Award, FileSpreadsheet, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Badge, Button, ErrorState, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
@@ -25,7 +25,8 @@ export default function ProgramManage() {
   const { id } = useParams()
   const { t } = useTranslation()
   const { can } = useAuth()
-  const [tab, setTab] = useState<Tab>('participants')
+  const [search] = useSearchParams()
+  const [tab, setTab] = useState<Tab>((search.get('tab') as Tab | null) ?? 'participants')
   const [notice, setNotice] = useState<string | null>(null)
   const { data, isLoading, error, refetch } = useGet<{ data: Program }>(`/admin/programs/${id}`)
   if (isLoading) return <Spinner />
