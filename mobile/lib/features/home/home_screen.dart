@@ -221,7 +221,10 @@ class _NextSession extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: session.str('id').isEmpty ? null : () => context.push('/sessions/${session.str('id')}'),
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(children: [
           Container(
@@ -247,6 +250,7 @@ class _NextSession extends StatelessWidget {
             ]),
           ),
         ]),
+      ),
       ),
     );
   }

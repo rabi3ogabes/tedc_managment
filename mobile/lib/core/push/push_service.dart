@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/api_client.dart';
 import '../config.dart';
+import '../notification_route.dart';
 import '../providers.dart';
 
 enum PushStatus { unsupported, notConfigured, denied, enabled, error }
@@ -47,18 +48,8 @@ class PushService {
   /// Why the last attempt failed (which step, and the error), for the profile screen.
   ValueListenable<String?> get detail => _detail;
 
-  /// Where a tap on a notification should lead, from its type (server-provided route as fallback).
-  static String routeFor(Map<String, dynamic> data) {
-    final type = (data['type'] ?? '').toString();
-    final surveyId = (data['needs_survey_id'] ?? '').toString();
-    if (type.startsWith('needs_survey') && surveyId.isNotEmpty) return '/needs-surveys/$surveyId';
-    if (type.startsWith('certificate')) return '/certificates';
-    if (type.startsWith('profile')) return '/account';
-    if (type.startsWith('registration') || type.startsWith('task') || type.startsWith('impact') || type.startsWith('session') || type.startsWith('survey') || type.startsWith('program')) return '/training';
-    final route = (data['route'] ?? '').toString();
-    const known = ['/home', '/programs', '/training', '/certificates', '/notifications', '/profile', '/account'];
-    return known.contains(route) ? route : '/notifications';
-  }
+  /// Where a tap on a notification should lead (the server sends the page in `route`).
+  static String routeFor(Map<String, dynamic> data) => NotificationRoute.resolve((data['type'] ?? '').toString(), data);
 
   bool get _supported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 

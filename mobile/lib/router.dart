@@ -15,6 +15,8 @@ import 'features/programs/program_detail_screen.dart';
 import 'features/profile/account_screen.dart';
 import 'features/programs/programs_screen.dart';
 import 'features/school/school_screen.dart';
+import 'features/training/my_program_redirect.dart';
+import 'features/training/session_screen.dart';
 import 'features/shell/home_shell.dart';
 import 'features/training/my_training_screen.dart';
 import 'features/training/registration_screen.dart';
@@ -45,6 +47,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
       GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
       GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),
+      GoRoute(path: '/sessions/:id', builder: (_, s) => SessionScreen(id: s.pathParameters['id']!)),
+      GoRoute(path: '/my-program/:programId', builder: (_, s) => MyProgramRedirect(programId: s.pathParameters['programId']!)),
       GoRoute(path: '/registrations/:id', builder: (_, s) => RegistrationScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/tasks/:id', builder: (_, s) => TaskScreen(taskId: s.pathParameters['id']!)),
       GoRoute(path: '/surveys/:id', builder: (_, s) => SurveyScreen(surveyId: s.pathParameters['id']!)),

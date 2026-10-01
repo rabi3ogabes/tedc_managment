@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide Session;
 import '../../core/auth/session_store.dart';
 import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
+import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -135,7 +136,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 
   /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
-  void _open(String route) => route.startsWith('/needs-surveys/') || route == '/notifications' || route == '/account' ? context.push(route) : context.go(route);
+  void _open(String route) => NotificationRoute.isTab(route) ? context.go(route) : context.push(route);
 
   @override
   Widget build(BuildContext context) {

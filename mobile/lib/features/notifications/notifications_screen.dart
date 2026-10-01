@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
@@ -38,23 +39,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     });
   }
 
+  /// Marks the notification read and opens the page it is about (attendance → the session, a task → the task ...).
   Future<void> _open(Map<String, dynamic> n) async {
-    final type = n.str('type');
-    final surveyId = n.obj('data')?.str('needs_survey_id') ?? '';
+    final data = n.obj('data') ?? <String, dynamic>{};
+    final route = NotificationRoute.resolve(n.str('type'), {...data, 'type': n.str('type')});
     if (!n.flag('read')) {
       await ref.read(apiProvider).post('/me/notifications/${n.str('id')}/read');
       _refresh();
     }
-    if (!mounted) return;
-    if (surveyId.isNotEmpty) {
-      context.push('/needs-surveys/$surveyId');
-    } else if (type.startsWith('profile')) {
-      context.push('/account');
-    } else if (type.startsWith('certificate')) {
-      context.go('/certificates');
-    } else if (type.startsWith('registration') || type.startsWith('program') || type.startsWith('survey') || type.startsWith('session') || type.startsWith('task') || type.startsWith('impact')) {
-      context.go('/training');
-    }
+    if (!mounted || route == '/notifications') return;
+    NotificationRoute.isTab(route) ? context.go(route) : context.push(route);
   }
 
   @override

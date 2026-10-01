@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api/api_client.dart';
@@ -54,6 +55,8 @@ class RegistrationScreen extends ConsumerWidget {
               Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
+                  onTap: () => context.push('/sessions/${session.str('id')}'),
+                  leading: Icon(session.str('mode') == 'online' ? Icons.videocam_outlined : Icons.place_outlined, color: AppColors.gold700),
                   title: Text(session.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                   subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}'),
                   trailing: attendance[session.str('id')] != null
