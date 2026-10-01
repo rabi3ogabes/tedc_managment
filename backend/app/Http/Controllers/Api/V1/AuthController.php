@@ -63,12 +63,8 @@ class AuthController extends Controller
 
     public function updateProfile(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => ['sometimes', 'string', 'max:120'],
-            'name_ar' => ['sometimes', 'nullable', 'string', 'max:120'],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:32'],
-            'locale' => ['sometimes', 'in:ar,en'],
-        ]);
+        // Personal data is read-only: corrections go through change requests (My account). Only the language is a preference.
+        $data = $request->validate(['locale' => ['sometimes', 'in:ar,en']]);
 
         $request->user()->update($data);
 

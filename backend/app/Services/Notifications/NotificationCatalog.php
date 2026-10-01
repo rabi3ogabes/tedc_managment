@@ -54,6 +54,10 @@ class NotificationCatalog
             'impact.survey' => ['group' => 'survey', 'name_ar' => 'استبيان قياس الأثر', 'name_en' => 'Impact survey',
                 'title_ar' => 'استبيان أثر التدريب', 'title_en' => 'Training impact survey',
                 'body_ar' => 'شاركنا كيف طبّقت ما تعلمته في برنامج «{{program}}».', 'body_en' => 'Tell us how you applied what you learned in "{{program}}".'],
+            'profile.request_approved' => ['group' => 'account', 'name_ar' => 'الموافقة على طلب تعديل بيانات', 'name_en' => 'Data change request approved',
+                'title_ar' => 'تمت الموافقة على طلب تعديل بياناتك', 'title_en' => 'Your change request was approved', 'body_ar' => 'راجع بياناتك في «حسابي».', 'body_en' => 'Check your details in "My account".'],
+            'profile.request_rejected' => ['group' => 'account', 'name_ar' => 'رفض طلب تعديل بيانات', 'name_en' => 'Data change request rejected',
+                'title_ar' => 'لم تتم الموافقة على طلب التعديل', 'title_en' => 'Your change request was not approved', 'body_ar' => 'راجع التفاصيل في «حسابي».', 'body_en' => 'See the details in "My account".'],
             'needs_survey.invite' => ['group' => 'survey', 'name_ar' => 'دعوة إلى استبانة الاحتياجات', 'name_en' => 'Needs survey invitation',
                 'title_ar' => 'استبانة جديدة', 'title_en' => 'New survey', 'body_ar' => 'شاركنا احتياجاتك التدريبية — تستغرق دقائق قليلة.', 'body_en' => 'Share your training needs — it only takes a few minutes.'],
             'needs_survey.reminder' => ['group' => 'survey', 'name_ar' => 'تذكير باستبانة الاحتياجات', 'name_en' => 'Needs survey reminder',
@@ -64,6 +68,6 @@ class NotificationCatalog
     public static function groups(): array
     {
         return ['registration' => ['ar' => 'التسجيل والإسناد', 'en' => 'Registration & assignment'], 'program' => ['ar' => 'البرامج', 'en' => 'Programs'], 'survey' => ['ar' => 'الاستبيانات', 'en' => 'Surveys'],
-            'session' => ['ar' => 'الجلسات والحضور', 'en' => 'Sessions & attendance'], 'task' => ['ar' => 'المهام', 'en' => 'Tasks'], 'certificate' => ['ar' => 'الشهادات', 'en' => 'Certificates'], 'custom' => ['ar' => 'قوالب مخصصة', 'en' => 'Custom templates']];
+            'session' => ['ar' => 'الجلسات والحضور', 'en' => 'Sessions & attendance'], 'task' => ['ar' => 'المهام', 'en' => 'Tasks'], 'certificate' => ['ar' => 'الشهادات', 'en' => 'Certificates'], 'account' => ['ar' => 'الحساب', 'en' => 'Account'], 'custom' => ['ar' => 'قوالب مخصصة', 'en' => 'Custom templates']];
     }
 }

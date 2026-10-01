@@ -9,6 +9,7 @@ return [
         'invalid_transition' => 'Cannot change registration status from :from to :to.',
         'outside_school' => 'You can only nominate employees of your own school.',
     ],
+    'account' => ['unknown_field' => 'This field cannot be changed from here.', 'already_pending' => 'You already have a pending request for this field.', 'invalid_value' => 'The value you entered is not valid for this field.', 'already_reviewed' => 'This request was already reviewed.'],
     'survey' => ['closed' => 'The survey of this program is not open yet.'],
     'attendance' => [
         'invalid_qr' => 'The attendance code is invalid or has expired.',

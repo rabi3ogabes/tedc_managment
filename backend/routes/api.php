@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
+use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
@@ -109,6 +111,11 @@ Route::prefix('v1')->group(function () {
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
+            // My account: read-only profile + change requests
+            Route::get('account', [AccountController::class, 'show']);
+            Route::get('account/requests', [AccountController::class, 'requests']);
+            Route::post('account/requests', [AccountController::class, 'store'])->middleware('throttle:20,1');
+            Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
             Route::get('notifications', [MeController::class, 'notifications']);
@@ -149,6 +156,14 @@ Route::prefix('v1')->group(function () {
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
+            // Data-change requests from users
+            Route::middleware('permission:employees.manage')->prefix('profile-requests')->group(function () {
+                Route::get('/', [ProfileRequestController::class, 'index']);
+                Route::get('summary', [ProfileRequestController::class, 'summary']);
+                Route::post('{changeRequest}/approve', [ProfileRequestController::class, 'approve']);
+                Route::post('{changeRequest}/reject', [ProfileRequestController::class, 'reject']);
+            });
+
             // Notification templates, sending to a program's trainees, tracking
             Route::middleware('permission:announcements.manage')->prefix('notifications')->group(function () {
                 Route::get('templates', [NotificationTemplateController::class, 'index']);

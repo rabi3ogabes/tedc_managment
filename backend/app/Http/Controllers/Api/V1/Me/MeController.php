@@ -13,6 +13,7 @@ use App\Models\Registration;
 use App\Models\TaskSubmission;
 use App\Services\PassportService;
 use App\Services\RecommendationEngine;
+use App\Support\Nationalities;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -45,6 +46,7 @@ class MeController extends Controller
 
         return response()->json(['data' => [
             'greeting_name' => $this->user()->displayName(),
+            'identity' => Nationalities::identity($this->user()),
             'stats' => [
                 'active_programs' => (clone $active)->count(),
                 'completed_programs' => Registration::where('employee_id', $employee->id)->where('status', Registration::STATUS_COMPLETED)->count(),
