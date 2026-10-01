@@ -164,8 +164,11 @@ class CertificateTemplateService
 
         $html = '<html><head><meta charset="utf-8"><style>body{margin:0;font-family:xbriyaz,dejavusans;}div,table,img{box-sizing:border-box;} td{padding:0;}</style></head><body>';
 
-        if ($background = $this->backgroundData($template)) {
-            $html .= '<div style="position:absolute;left:0;top:0;width:'.$w.'mm;height:'.$h.'mm;"><img src="'.$background.'" style="width:'.$w.'mm;height:'.$h.'mm;"></div>';
+        // Pictures are handed to mPDF as image variables: inlining them as data URIs would blow past the regex limit.
+        $images = [];
+        if ($background = $this->fileBytes($template->background_path)) {
+            $images['background'] = $background;
+            $html .= '<div style="position:absolute;left:0;top:0;width:'.$w.'mm;height:'.$h.'mm;"><img src="var:background" style="width:'.$w.'mm;height:'.$h.'mm;"></div>';
         }
 
         $qr = null;
@@ -189,8 +192,10 @@ class CertificateTemplateService
                     $html .= '<div style="'.$box.'"><img src="'.$qr.'" style="width:'.$ew.'mm;height:'.$eh.'mm;"></div>';
                     break;
                 case 'image':
-                    if ($data = $this->assetData($template, (string) ($el['src'] ?? ''))) {
-                        $html .= '<div style="'.$box.'"><img src="'.$data.'" style="width:'.$ew.'mm;height:'.$eh.'mm;"></div>';
+                    $name = (string) ($el['src'] ?? '');
+                    if (($bytes = $this->assetBytes($template, $name)) !== null) {
+                        $images['asset_'.md5($name)] = $bytes;
+                        $html .= '<div style="'.$box.'"><img src="var:asset_'.md5($name).'" style="width:'.$ew.'mm;height:'.$eh.'mm;"></div>';
                     }
                     break;
                 case 'text':
@@ -210,6 +215,9 @@ class CertificateTemplateService
             'autoLangToFont' => true,
         ]);
         $mpdf->SetTitle($title);
+        foreach ($images as $key => $bytes) {
+            $mpdf->imageVars[$key] = $bytes;
+        }
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');
@@ -244,31 +252,26 @@ class CertificateTemplateService
 
     // Files -----------------------------------------------------------------------------------------------------
 
-    private function backgroundData(CertificateTemplate $template): ?string
-    {
-        return $template->background_path ? $this->fileData($template->background_path) : null;
-    }
-
-    private function assetData(CertificateTemplate $template, string $name): ?string
+    private function assetBytes(CertificateTemplate $template, string $name): ?string
     {
         // Assets live under the template's own folder; never accept a path that leaves it.
         if ($name === '' || str_contains($name, '..') || str_contains($name, '/')) {
             return null;
         }
 
-        return $this->fileData("templates/{$template->id}/assets/{$name}");
+        return $this->fileBytes("templates/{$template->id}/assets/{$name}");
     }
 
-    private function fileData(string $path): ?string
+    private function fileBytes(?string $path): ?string
     {
+        if (! $path) {
+            return null;
+        }
         try {
-            $bytes = $this->storage->get('certificates', $path);
+            return $this->storage->get('certificates', $path);
         } catch (Throwable) {
             return null;
         }
-        $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes) ?: 'image/png';
-
-        return 'data:'.$mime.';base64,'.base64_encode($bytes);
     }
 
     public function readFile(string $path): string

@@ -4,6 +4,7 @@ import ar from './ar'
 import en from './en'
 import { kitsAr, kitsEn } from './kits'
 import { mgmtAr, mgmtEn } from './management'
+import { studioAr, studioEn } from './studio'
 import { surveysAr, surveysEn } from './surveys'
 
 export type Locale = 'ar' | 'en'
@@ -25,7 +26,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn } } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },

@@ -43,6 +43,7 @@ export type CalendarSummary = { total: number; working: number; off: number; vac
 export type Session = {
   id: string; program_id: string; sequence: number; title: string; title_ar: string; title_en: string; description?: string | null
   starts_at: string; ends_at: string; duration_minutes: number; location?: string | null; location_text?: string | null; online_url?: string | null
+  mode?: 'in_person' | 'online'; online_platform?: string | null; online_passcode?: string | null; recording_url?: string | null
   activities: string[]; status: string; trainer_id?: string | null; trainer?: { id: string; name: string } | null; training_room_id?: string | null
   room?: { id: string; name: string; building?: string } | null; program?: { id: string; code: string; title: string; capacity: number; status: string }
   attendance_count?: number
@@ -56,6 +57,8 @@ export type Program = {
   seats_taken?: number | null; seats_available?: number | null; min_attendance_percent: number; requires_tasks: boolean; requires_evaluation: boolean
   start_date?: string | null; end_date?: string | null; registration_opens_at?: string | null; registration_closes_at?: string | null
   registration_open: boolean; registration_modes: string[]; status: string; is_featured: boolean; cover_url?: string | null
+  remote?: { platform?: string; join_url?: string | null; passcode?: string | null; join_opens_minutes?: number; instructions_ar?: string | null; instructions_en?: string | null } | null
+  certificate_template_id?: string | null; trainer_certificate_template_id?: string | null
   skills?: Skill[]; trainers?: Trainer[]; sessions?: Session[]
   target_groups?: { id: string; job_title_id?: string | null; job_title?: string | null; school_type?: string | null; education_stage?: string | null; description?: string | null }[]
   eligibility_rules?: EligibilityRule[]

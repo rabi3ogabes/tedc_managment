@@ -8,7 +8,9 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
+import CertificatesTab from './program/CertificatesTab'
 import ImpactTab from './program/ImpactTab'
+import RemoteTab from './program/RemoteTab'
 import MaterialsTab from './program/MaterialsTab'
 import ParticipantsTab from './program/ParticipantsTab'
 import RulesTab from './program/RulesTab'
@@ -16,7 +18,7 @@ import SessionsTab from './program/SessionsTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'rules' | 'tasks' | 'materials' | 'survey' | 'impact'
+type Tab = 'participants' | 'sessions' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -53,14 +55,18 @@ export default function ProgramManage() {
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[
         { id: 'participants', label: t('admin.programs.participants') },
         { id: 'sessions', label: t('admin.programs.sessions') },
+        ...(p.delivery_mode !== 'in_person' ? [{ id: 'remote' as const, label: t('studio.tracking.tab') }] : []),
         { id: 'rules', label: t('admin.programs.rules') },
         { id: 'tasks', label: t('admin.programs.tasks') },
         { id: 'materials', label: t('admin.programs.materials') },
         { id: 'survey', label: t('mgmt.notif.survey.tab') },
+        { id: 'certificates', label: t('studio.certs.tab') },
         { id: 'impact', label: t('admin.programs.impact') },
       ]} />
       {tab === 'participants' && <ParticipantsTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}
+      {tab === 'remote' && <RemoteTab program={p} />}
+      {tab === 'certificates' && <CertificatesTab program={p} />}
       {tab === 'rules' && <RulesTab program={p} />}
       {tab === 'tasks' && <TasksTab program={p} />}
       {tab === 'materials' && <MaterialsTab program={p} />}

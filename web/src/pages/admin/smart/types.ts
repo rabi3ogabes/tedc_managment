@@ -33,6 +33,7 @@ export type AudiencePreview = {
 
 export type PlannedSession = {
   sequence: number; title_ar: string; title_en: string; starts_at: string; ends_at: string; training_room_id: string | null; room: string | null; trainer_id: string | null
+  mode?: 'in_person' | 'online'; online_url?: string
 }
 
 export type TrainerSuggestion = { id: string; name: string; source: string; source_label: string; organization: string | null; rating: number; score: number; available: boolean; matched: string[] }

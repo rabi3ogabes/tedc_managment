@@ -44,6 +44,8 @@ const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
 const Communication = lazy(() => import('@/pages/admin/Communication'))
 const Certificates = lazy(() => import('@/pages/admin/Certificates'))
+const CertificateTemplates = lazy(() => import('@/pages/admin/certificates/Templates'))
+const CertificateDesigner = lazy(() => import('@/pages/admin/certificates/Designer'))
 const Schools = lazy(() => import('@/pages/admin/Schools'))
 const Employees = lazy(() => import('@/pages/admin/Employees'))
 const EmployeeProfile = lazy(() => import('@/pages/admin/EmployeeProfile'))
@@ -105,6 +107,7 @@ export default function App() {
           <Route path="programs/new" element={<ProgramEditor />} />
           <Route path="kits" element={<RequireAuth permission="kits.view"><KitsHome /></RequireAuth>} />
           <Route path="kits/:kitId" element={<RequireAuth permission="kits.view"><KitWorkspace /></RequireAuth>} />
+          <Route path="programs/remote" element={<RequireAuth permission="programs.manage"><ProgramWizard remote /></RequireAuth>} />
           <Route path="programs/smart" element={<RequireAuth permission="programs.manage"><ProgramWizard /></RequireAuth>} />
           <Route path="rooms" element={<RequireAuth permission="programs.view"><RoomsAdmin /></RequireAuth>} />
           <Route path="trainers" element={<RequireAuth permission="programs.view"><TrainersAdmin /></RequireAuth>} />
@@ -121,6 +124,8 @@ export default function App() {
           <Route path="communication" element={<Communication />} />
           <Route path="chats" element={<RequireAuth permission="announcements.manage"><ChatInbox /></RequireAuth>} />
           <Route path="certificates" element={<Certificates />} />
+          <Route path="certificate-templates" element={<RequireAuth permission="certificates.view"><CertificateTemplates /></RequireAuth>} />
+          <Route path="certificate-templates/:id" element={<RequireAuth permission="certificates.issue"><CertificateDesigner /></RequireAuth>} />
           <Route path="schools" element={<Schools />} />
           <Route path="employees" element={<Employees />} />
           <Route path="employees/:id" element={<EmployeeProfile />} />

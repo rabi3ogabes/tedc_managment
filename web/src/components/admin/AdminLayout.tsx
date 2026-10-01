@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -76,10 +76,12 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         { title: m('groups.lifecycle'), items: [
           { to: '/admin/needs', label: m('needs'), icon: Notebook, permission: 'needs.view' },
           { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
+          { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
           { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
           { to: '/admin/calendar', label: m('calendar'), icon: CalendarDays, permission: 'calendar.view' },
           { to: '/admin/registrations', label: m('registrations'), icon: ClipboardList, permission: 'registrations.view' },
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
+          { to: '/admin/certificate-templates', label: t('studio.nav.templates'), icon: Palette, permission: 'certificates.view' },
         ] },
         { title: m('groups.insights'), items: [
           { to: '/admin/live', label: m('live'), icon: Radio, permission: 'analytics.view' },
