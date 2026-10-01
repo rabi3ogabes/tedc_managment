@@ -48,9 +48,10 @@ export default function LabelManager() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1])
   }, [])
 
-  // What each field shows: the pending edit, else the saved name, else nothing (= the built-in text).
-  const value = (key: string, lng: Lng) => (draft[key] && lng in draft[key]! ? draft[key]![lng]! : saved[lng][key] ?? '')
-  const modified = (key: string) => (['ar', 'en'] as const).some((l) => value(key, l).trim() !== '' && value(key, l) !== baseLabels[l][key])
+  // What each field shows: the pending edit, else the saved custom name, else the actual built-in text.
+  const current = (key: string, lng: Lng) => saved[lng][key] ?? baseLabels[lng][key] ?? ''
+  const value = (key: string, lng: Lng) => (draft[key] && lng in draft[key]! ? draft[key]![lng]! : current(key, lng))
+  const modified = (key: string) => (['ar', 'en'] as const).some((l) => baseLabels[l][key] !== undefined && value(key, l).trim() !== '' && value(key, l) !== baseLabels[l][key])
   const problem = (key: string, lng: Lng) => {
     const v = value(key, lng).trim()
     if (!v) return null
@@ -73,12 +74,12 @@ export default function LabelManager() {
   const pages = Math.max(1, Math.ceil(rows.length / PAGE))
   const visible = rows.slice((Math.min(page, pages) - 1) * PAGE, Math.min(page, pages) * PAGE)
   const changes = Object.entries(draft).flatMap(([key, langs]) => (Object.keys(langs) as Lng[]).map((lng) => ({ key, lng, value: (langs[lng] ?? '').trim() })))
-    .filter((c) => c.value !== (saved[c.lng][c.key] ?? ''))
+    .filter((c) => c.value !== current(c.key, c.lng).trim())
   const invalid = changes.some((c) => problem(c.key, c.lng))
   const customised = KEYS.filter(modified).length
 
   const set = (key: string, lng: Lng, v: string) => setDraft((d) => ({ ...d, [key]: { ...d[key], [lng]: v } }))
-  const reset = (key: string, lng?: Lng) => setDraft((d) => ({ ...d, [key]: { ...d[key], ...(lng ? { [lng]: '' } : { ar: '', en: '' }) } }))
+  const reset = (key: string, lng?: Lng) => setDraft((d) => ({ ...d, [key]: { ...d[key], ...(lng ? { [lng]: baseLabels[lng][key] ?? '' } : { ar: baseLabels.ar[key] ?? '', en: baseLabels.en[key] ?? '' }) } }))
 
   const save = async () => {
     setSaving(true)
@@ -220,10 +221,10 @@ export default function LabelManager() {
                     return (
                       <label key={lng} className="block">
                         <span className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">{lng === 'ar' ? 'العربية' : 'English'}
-                          {value(key, lng) && value(key, lng) !== base && <button type="button" onClick={() => reset(key, lng)} className="text-[11px] font-medium text-link hover:underline">{t('mgmt.labels.useDefault')}</button>}
+                          {value(key, lng) !== base && <button type="button" onClick={() => reset(key, lng)} className="text-[11px] font-medium text-link hover:underline">{t('mgmt.labels.useDefault')}</button>}
                         </span>
-                        <input dir={lng === 'ar' ? 'rtl' : 'ltr'} maxLength={200} className={clsx('input', err && '!border-danger')} value={value(key, lng)} placeholder={base} onChange={(e) => set(key, lng, e.target.value)} />
-                        <span className="mt-1 block truncate text-[11px] text-slate-400" dir={lng === 'ar' ? 'rtl' : 'ltr'}>{err ? <span className="text-danger">{err}</span> : `${t('mgmt.labels.default')}: ${base}`}</span>
+                        <input dir={lng === 'ar' ? 'rtl' : 'ltr'} maxLength={200} className={clsx('input', err && '!border-danger', value(key, lng) !== base && 'border-gold-400 bg-gold-100/30 font-semibold')} value={value(key, lng)} placeholder={base} onChange={(e) => set(key, lng, e.target.value)} />
+                        <span className="mt-1 block min-h-4 truncate text-[11px] text-slate-400" dir={lng === 'ar' ? 'rtl' : 'ltr'}>{err ? <span className="text-danger">{err}</span> : value(key, lng) !== base ? `${t('mgmt.labels.default')}: ${base}` : ''}</span>
                       </label>
                     )
                   })}

@@ -31,7 +31,7 @@ export const mgmtAr = {
   },
 
   labels: {
-    subtitle: 'غيّر اسم أي قائمة أو زر أو نص في المنصة بالعربية والإنجليزية — تظهر التغييرات فوراً للجميع. اترك الحقل فارغاً لاستخدام النص الافتراضي.',
+    subtitle: 'غيّر اسم أي قائمة أو زر أو نص في المنصة بالعربية والإنجليزية — تظهر التغييرات فوراً للجميع. تعرض الحقول النص الحالي؛ استخدم «استخدم الافتراضي» لاستعادة النص الأصلي.',
     export: 'تصدير', import: 'استيراد', resetAll: 'استعادة كل الأسماء', confirmResetAll: 'سيتم إرجاع كل الأسماء إلى نصوصها الافتراضية. هل تريد المتابعة؟', resetDone: 'تمت استعادة الأسماء الافتراضية',
     stats: { total: 'إجمالي النصوص', customised: 'نصوص معدَّلة', pending: 'تغييرات غير محفوظة' },
     search: 'ابحث بالاسم أو النص أو المفتاح…', section: 'القسم', allSections: 'كل الأقسام', results: '{{count}} نتيجة',
@@ -233,7 +233,7 @@ export const mgmtEn: MgmtStrings = {
   },
 
   labels: {
-    subtitle: 'Rename any menu, button or text of the platform in Arabic and English — changes appear for everyone at once. Leave a field empty to use the default text.',
+    subtitle: 'Rename any menu, button or text of the platform in Arabic and English — changes appear for everyone at once. The fields show the current text; use “Use default” to restore the original.',
     export: 'Export', import: 'Import', resetAll: 'Restore all names', confirmResetAll: 'Every name will go back to its default text. Continue?', resetDone: 'Default names restored',
     stats: { total: 'Texts in total', customised: 'Customised', pending: 'Unsaved changes' },
     search: 'Search by name, text or key…', section: 'Section', allSections: 'All sections', results: '{{count}} results',
