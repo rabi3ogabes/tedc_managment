@@ -1,5 +1,15 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  chat: {
+    title: 'محادثات الموقع', subtitle: 'كل محادثات زوار الموقع مع المساعد الذكي بسجلّها الكامل — يمكنك تولّي أي محادثة والرد يدوياً، أو إعادتها للمساعد.',
+    stats: { needs: 'تنتظر الفريق', unread: 'رسائل غير مقروءة', open: 'محادثات مفتوحة', total: 'إجمالي المحادثات' }, search: 'ابحث في الأسماء والرسائل…',
+    filters: { all: 'الكل', needs_human: 'تنتظر الفريق', unread: 'غير مقروءة', open: 'مفتوحة', closed: 'مغلقة' }, empty: 'لا توجد محادثات', pick: 'اختر محادثة لعرض سجلّها والرد عليها',
+    visitor: 'زائر', you: 'أنت', needsTeam: 'تنتظر الفريق', teamHandling: 'يتولاها الفريق', closed: 'مغلقة', member: 'عضو', assistant: 'المساعد الذكي', team: 'فريق المركز', refused: 'خارج نطاق التدريب',
+    handling: 'من يجيب؟', modes: { bot: 'المساعد', human: 'أنا' }, close: 'إغلاق المحادثة', reopen: 'إعادة الفتح', reply: 'اكتب ردّك للزائر…', send: 'إرسال',
+    takeoverHint: 'عند إرسال ردّك يتولّى الفريق المحادثة ويتوقف المساعد', humanHint: 'المساعد متوقف في هذه المحادثة — اضغط «المساعد» لإعادته',
+    quick: ['شكراً لتواصلك معنا.', 'سنوافيك بالتفاصيل قريباً.', 'يمكنك التسجيل من صفحة البرنامج.', 'هل هناك ما يمكننا مساعدتك فيه أيضاً؟'],
+  },
+
   profileRequests: {
     title: 'طلبات تعديل البيانات', subtitle: 'المستخدم لا يعدّل بياناته بنفسه: عند وجود بيان خاطئ أو ناقص يرسل طلباً من «حسابي» في التطبيق، وتراجعه أنت هنا.',
     tabs: { pending: 'بانتظار المراجعة', resolved: 'تمت مراجعتها' }, kinds: { wrong: 'بيانات خاطئة', missing: 'بيانات ناقصة', update: 'تحديث' }, current: 'الحالية', requested: 'المطلوبة', notRecorded: 'غير مسجّلة',
@@ -220,6 +230,16 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  chat: {
+    title: 'Website chats', subtitle: 'Every conversation visitors have with the AI assistant, with its full history — take over any conversation and reply manually, or hand it back to the assistant.',
+    stats: { needs: 'Waiting for the team', unread: 'Unread messages', open: 'Open chats', total: 'All chats' }, search: 'Search names and messages…',
+    filters: { all: 'All', needs_human: 'Needs team', unread: 'Unread', open: 'Open', closed: 'Closed' }, empty: 'No conversations', pick: 'Pick a conversation to see its history and reply',
+    visitor: 'Visitor', you: 'You', needsTeam: 'Needs the team', teamHandling: 'Team is handling', closed: 'Closed', member: 'Member', assistant: 'AI assistant', team: 'The team', refused: 'Outside training topics',
+    handling: 'Who answers?', modes: { bot: 'Assistant', human: 'Me' }, close: 'Close chat', reopen: 'Reopen', reply: 'Write your reply to the visitor…', send: 'Send',
+    takeoverHint: 'Sending your reply takes the conversation over and pauses the assistant', humanHint: 'The assistant is paused here — press “Assistant” to bring it back',
+    quick: ['Thank you for contacting us.', 'We will get back to you with the details shortly.', 'You can register from the program page.', 'Is there anything else we can help you with?'],
+  },
+
   profileRequests: {
     title: 'Data change requests', subtitle: 'Users cannot edit their own data: when something is wrong or missing they send a request from “My account” in the app, and you review it here.',
     tabs: { pending: 'Waiting for review', resolved: 'Reviewed' }, kinds: { wrong: 'Wrong data', missing: 'Missing data', update: 'Update' }, current: 'Current', requested: 'Requested', notRecorded: 'Not recorded',

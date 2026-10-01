@@ -30,6 +30,12 @@ const en: Dictionary = {
   stages: { kindergarten: 'Kindergarten', primary: 'Primary', preparatory: 'Preparatory', secondary: 'Secondary', multi: 'Multi-stage' },
   schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International' },
 
+  chat: {
+    title: 'Center assistant', subtitle: 'Answers questions about training and programs', teamMode: 'The team is with you now', open: 'Open chat', close: 'Close', send: 'Send', newChat: 'New chat', typing: 'Typing…',
+    greeting: "Hello! I'm the training center's assistant. Ask me about our programs, dates, registration, attendance or certificates.",
+    suggestions: ['What programs are available?', 'How do I register for a program?', 'How do I verify a certificate?', 'How is attendance recorded?'],
+    placeholder: 'Ask about training…', disclaimer: 'Answers training questions only', human: 'Talk to the team', teamHandling: 'The team is handling this', team: 'The team', closed: 'This conversation is closed.',
+  },
   home: {
     slides: [
       { eyebrow: 'State of Qatar', title: 'Building educator capability for Qatar’s future', text: 'An integrated smart training ecosystem aligned with Qatar National Vision 2030, creating real impact in schools.' },
@@ -185,7 +191,7 @@ const en: Dictionary = {
     },
     menu: {
       settings: 'Settings', kits: 'Training kits', pushSettings: 'Notifications', appearance: 'Brand Studio', dashboard: 'Dashboard', programs: 'Programs', registrations: 'Registration & nomination', attendance: 'Attendance', tasks: 'Tasks',
-      certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', live: 'Live now', profileRequests: 'Data change requests', impact: 'Impact',
+      certificates: 'Certificates', needs: 'Training needs', analytics: 'Executive analytics', geo: 'Geographic analytics', live: 'Live now', chats: 'Website chats', profileRequests: 'Data change requests', impact: 'Impact',
       communication: 'Communication center', ai: 'AI assistant', schools: 'Schools', employees: 'Employees', trainers: 'Trainers', rooms: 'Rooms', calendar: 'Training calendar', users: 'Users & roles',
       audit: 'Audit log', reports: 'Reports', groups: { overview: 'Overview', lifecycle: 'Training lifecycle', insights: 'Insights & AI', organization: 'Organization', security: 'Security', settings: 'Settings' },
     },

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import {
-  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -34,6 +34,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const [open, setOpen] = useState(false)
   const unread = useGet<{ meta?: { total: number } }>('/me/notifications', { unread: 1, per_page: 1 }, { refetchInterval: 60_000 })
   const requests = useGet<{ data: { pending: number } }>(!portal && can('employees.manage') ? '/admin/profile-requests/summary' : null, undefined, { refetchInterval: 60_000 })
+  const chats = useGet<{ data: { unread: number; needs_human: number } }>(!portal && can('announcements.manage') ? '/admin/chats/badge' : null, undefined, { refetchInterval: 20_000 })
   useRealtimeNotifications()
 
   useEffect(() => setOpen(false), [pathname, search])
@@ -70,6 +71,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/geo', label: m('geo'), icon: Map, permission: 'analytics.view' },
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
           { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage' },
+          { to: '/admin/chats', label: m('chats'), icon: MessagesSquare, permission: 'announcements.manage', badge: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined },
         ] },
         { title: m('groups.organization'), items: [
           { to: '/admin/schools', label: m('schools'), icon: School, permission: 'schools.view' },

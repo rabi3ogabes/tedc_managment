@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import { homeFor, useAuth } from '@/lib/auth'
+import ChatWidget from './ChatWidget'
 import Logo from './Logo'
 import { useCenterName } from '@/lib/ThemeProvider'
 
@@ -105,6 +106,8 @@ export default function PublicLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+
+      <ChatWidget />
 
       <footer className="relative overflow-hidden bg-navy-950 text-white">
         <div className="pattern-bg absolute inset-0 opacity-20" />

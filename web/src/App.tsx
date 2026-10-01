@@ -37,6 +37,7 @@ const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
+const ChatInbox = lazy(() => import('@/pages/admin/ChatInbox'))
 const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
@@ -117,6 +118,7 @@ export default function App() {
           <Route path="geo" element={<Geographic />} />
           <Route path="ai" element={<AiAssistant />} />
           <Route path="communication" element={<Communication />} />
+          <Route path="chats" element={<RequireAuth permission="announcements.manage"><ChatInbox /></RequireAuth>} />
           <Route path="certificates" element={<Certificates />} />
           <Route path="schools" element={<Schools />} />
           <Route path="employees" element={<Employees />} />

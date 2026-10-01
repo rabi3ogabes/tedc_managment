@@ -29,6 +29,10 @@ class ChatAssistantTest extends TestCase
         $c = $this->start();
         $this->assertSame('bot', $this->lastBot($c['messages'])['sender'], 'a greeting opens the conversation');
 
+        // Clients ask only for what is newer than the last message they hold (ISO time, same-second included).
+        $newer = $this->say($c, 'ما هي البرامج المتاحة؟', ['after' => $c['messages'][0]['created_at']])->assertOk()->json('data.messages');
+        $this->assertGreaterThanOrEqual(2, count($newer));
+
         $list = $this->lastBot($this->say($c, 'ما هي البرامج المتاحة؟')->assertOk()->json('data.messages'));
         $this->assertContains($program->code, $list['program_codes']);
 

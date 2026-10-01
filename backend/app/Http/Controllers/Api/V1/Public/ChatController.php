@@ -8,6 +8,7 @@ use App\Models\ChatMessage;
 use App\Services\Chat\ChatBot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /** The website chat: visitors talk to the AI assistant, and to the administration team once it takes over. */
@@ -92,7 +93,9 @@ class ChatController extends Controller
     /** @return array<string, mixed> */
     private function state(ChatConversation $c, ?string $after = null): array
     {
-        $messages = $c->messages()->with('admin:id,name,name_ar')->when($after, fn ($q) => $q->where('created_at', '>', $after))->get();
+        // The client sends the time of the last message it has; the same second is included and de-duplicated by id there.
+        $since = $after ? rescue(fn () => Carbon::parse($after), null, false) : null;
+        $messages = $c->messages()->with('admin:id,name,name_ar')->when($since, fn ($q) => $q->where('created_at', '>=', $since->copy()->subSecond()))->get();
 
         return [
             'mode' => $c->mode, 'status' => $c->status, 'needs_human' => $c->needs_human,
