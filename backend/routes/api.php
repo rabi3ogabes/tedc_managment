@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
+use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
@@ -596,6 +597,9 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
+                Route::get('settings/room-screen', [RoomScreenSettingsController::class, 'show']);
+                Route::put('settings/room-screen', [RoomScreenSettingsController::class, 'update']);
+                Route::post('settings/room-screen/reset', [RoomScreenSettingsController::class, 'reset']);
                 Route::get('settings/training-day', [TrainingDaySettingsController::class, 'show']);
                 Route::put('settings/training-day', [TrainingDaySettingsController::class, 'update']);
                 Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);

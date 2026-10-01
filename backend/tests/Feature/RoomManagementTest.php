@@ -138,4 +138,24 @@ class RoomManagementTest extends TestCase
         $this->asUser($admin)->deleteJson("/api/v1/admin/rooms/{$unused->id}")->assertNoContent();
         $this->assertNull(TrainingRoom::find($unused->id));
     }
+
+    public function test_rooms_show_what_they_are_doing_today(): void
+    {
+        $this->travelTo(now()->setTimezone(config('app.timezone'))->setTime(10, 0)); // mid-morning, so "an hour ago / in an hour" stay on the same day
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $busy = $this->room(['name_ar' => 'مشغولة', 'name_en' => 'Busy']);
+        $soon = $this->room(['name_ar' => 'قريباً', 'name_en' => 'Soon']);
+        $free = $this->room(['name_ar' => 'فارغة', 'name_en' => 'Free']);
+        $program = $this->makeProgram();
+        $this->makeSession($program, now()->subHour(), 3)->update(['training_room_id' => $busy->id]);
+        $this->makeSession($program, now()->addHour(), 1)->update(['training_room_id' => $soon->id]);
+
+        $rows = collect($this->asUser($admin)->getJson('/api/v1/admin/rooms')->assertOk()->json('data'))->keyBy('name_en');
+        $this->assertNotNull($rows['Busy']['activity']['live']);
+        $this->assertSame(1, $rows['Busy']['activity']['today']);
+        $this->assertNull($rows['Soon']['activity']['live']);
+        $this->assertTrue($rows['Soon']['activity']['soon']);
+        $this->assertGreaterThan(0, $rows['Soon']['activity']['next']['in_minutes']);
+        $this->assertSame(0, $rows['Free']['activity']['today']);
+    }
 }

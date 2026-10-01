@@ -39,4 +39,19 @@ class RoomScreenTest extends TestCase
         $this->assertNotSame($link['token'], $new);
         $this->getJson('/api/v1/public/room-screen/'.$link['token'])->assertNotFound();
     }
+
+    public function test_the_screen_template_is_edited_by_the_admin_and_served_with_the_screen(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $room = TrainingRoom::create(['code' => 'R-2', 'name_ar' => 'قاعة 2', 'name_en' => 'Hall 2', 'capacity' => 10, 'status' => 'active']);
+        $token = $this->asUser($admin)->postJson("/api/v1/admin/rooms/{$room->id}/screen-link")->json('data.token');
+
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['layout' => 'spotlight', 'theme' => 'custom', 'background' => '#112233', 'accent' => '#ffcc00', 'show_trainees' => false, 'footer_ar' => 'مرحباً بكم'])
+            ->assertOk()->assertJsonPath('data.layout', 'spotlight')->assertJsonPath('data.show_trainees', false);
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['accent' => 'red'])->assertOk()->assertJsonPath('data.accent', '');
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['layout' => 'nope'])->assertStatus(422);
+
+        $this->getJson('/api/v1/public/room-screen/'.$token)->assertOk()->assertJsonPath('data.template.layout', 'spotlight')->assertJsonPath('data.template.footer_ar', 'مرحباً بكم');
+        $this->asUser($admin)->postJson('/api/v1/admin/settings/room-screen/reset')->assertOk()->assertJsonPath('data.layout', 'classic');
+    }
 }

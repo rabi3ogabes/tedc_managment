@@ -7,6 +7,14 @@ export const studioAr = {
     issuesTitle: 'جلسات قادمة تخالف هذه القواعد', issueOutside: '{{count}} جلسة خارج ساعات اليوم', issueShared: '{{count}} قاعة لديها أكثر من جلسة في اليوم نفسه', issuesHint: 'لا تتأثر الجلسات القائمة، لكن لا يمكن إنشاء جلسات جديدة مخالفة.',
     applies: 'تُطبَّق القواعد عند إنشاء الجلسات أو تعديلها، وفي المخطِّط الذكي للبرامج.',
   },
+  tpl: {
+    subtitle: 'عدّل تصميم شاشة القاعة واستخدمه قالباً لكل القاعات. الشعار واسم المركز والألوان تأتي من «الهوية البصرية» وتتغير معها تلقائياً.',
+    saved: 'تم حفظ قالب الشاشة.', reset: 'استعادة الافتراضي', confirmReset: 'استعادة قالب الشاشة الافتراضي؟', preview: 'معاينة مباشرة', previewHint: 'معاينة بجلسة تجريبية: هكذا تظهر الشاشة على التلفاز.',
+    layout: 'التخطيط', layouts: { classic: 'كلاسيكي', classicHint: 'الجلسة والمدرب والحضور وقائمة المتدربين.', spotlight: 'تركيز', spotlightHint: 'عنوان ووقت بخط ضخم يُقرأ من بعيد.', minimal: 'مبسّط', minimalHint: 'البرنامج والمدرب والوقت فقط.' },
+    look: 'المظهر', themes: { brand: 'ألوان الهوية', midnight: 'ليلي', custom: 'لون مخصص' }, brandHint: 'الخلفية من لون الهوية الأساسي المضبوط في «الهوية البصرية».', background: 'لون الخلفية', accent: 'لون التمييز', accentHint: 'يُستخدم للوقت والشريط والأيقونات.', useBrand: 'استخدام لون الهوية', fromBrand: 'من الهوية',
+    show: 'ما يظهر على الشاشة', logo: 'الشعار', centerName: 'اسم المركز', clock: 'الساعة والتاريخ', trainer: 'المدرب', progress: 'شريط التقدم', ring: 'حلقة الحضور', trainees: 'قائمة المتدربين', school: 'مدرسة المتدرب',
+    footer: 'رسالة أسفل الشاشة', footerAr: 'الرسالة بالعربية', footerEn: 'الرسالة بالإنجليزية', footerHint: 'مثل: «نتمنى لكم يوماً تدريبياً مثمراً». اتركها فارغة لإخفائها.',
+  },
   nav: { templates: 'مصمّم الشهادات', remote: 'برنامج عن بُعد' },
   screen: {
     capacity: 'السعة {{count}} مقعداً', today: 'اليوم', offline: 'انقطع الاتصال — يُعاد المحاولة', updating: 'تحديث مباشر', notFound: 'رابط الشاشة غير صالح',
@@ -90,6 +98,14 @@ export const studioEn: typeof studioAr = {
     oneSession: 'One session per room per day', oneSessionHint: 'Once a room has a session on a day it cannot be booked for another one the same day, and it shows as taken in room suggestions.',
     issuesTitle: 'Upcoming sessions that break these rules', issueOutside: '{{count}} sessions outside the day hours', issueShared: '{{count}} rooms with more than one session on the same day', issuesHint: 'Existing sessions are not changed, but new ones that break the rules cannot be created.',
     applies: 'The rules apply when sessions are created or edited and in the smart program planner.',
+  },
+  tpl: {
+    subtitle: 'Edit the design of the room screen and use it as the template for every room. The logo, center name and colours come from Brand Studio and change with it.',
+    saved: 'Screen template saved.', reset: 'Restore default', confirmReset: 'Restore the default screen template?', preview: 'Live preview', previewHint: 'A preview with a sample session: this is how the screen looks on the TV.',
+    layout: 'Layout', layouts: { classic: 'Classic', classicHint: 'Session, trainer, attendance and the trainee list.', spotlight: 'Spotlight', spotlightHint: 'A huge title and time that read from far away.', minimal: 'Minimal', minimalHint: 'Program, trainer and time only.' },
+    look: 'Look', themes: { brand: 'Brand colours', midnight: 'Midnight', custom: 'Custom colour' }, brandHint: 'The background comes from the primary colour set in Brand Studio.', background: 'Background colour', accent: 'Accent colour', accentHint: 'Used for the time, the bar and the icons.', useBrand: 'Use the brand colour', fromBrand: 'From the brand',
+    show: 'What the screen shows', logo: 'Logo', centerName: 'Center name', clock: 'Clock and date', trainer: 'Trainer', progress: 'Progress bar', ring: 'Attendance ring', trainees: 'Trainee list', school: 'Trainee’s school',
+    footer: 'Message at the bottom', footerAr: 'Message in Arabic', footerEn: 'Message in English', footerHint: 'For example “Have a productive training day”. Leave empty to hide it.',
   },
   nav: { templates: 'Certificate designer', remote: 'Remote program' },
   screen: {

@@ -64,6 +64,7 @@ class RoomScreenService
 
         return [
             'room' => ['name' => $room->translate('name'), 'code' => $room->code, 'building' => $room->building, 'floor' => $room->floor, 'capacity' => $room->capacity],
+            'template' => app(RoomScreenSettings::class)->all(),
             'date' => $day->toDateString(), 'is_today' => $day->isSameDay($now), 'now' => $now->toIso8601String(), 'sessions' => $rows,
         ];
     }

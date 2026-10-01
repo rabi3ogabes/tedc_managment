@@ -28,6 +28,7 @@ export type Room = {
   capacity: number; area_m2?: number | null; layout: string; layouts: { key: string; label: string; capacity: number }[]
   equipment: { key: string; qty: number; label: string }[]; is_accessible: boolean; status: 'active' | 'maintenance' | 'inactive'; notes?: string | null; latitude?: number | null; longitude?: number | null
   sessions_count?: number; upcoming_sessions_count?: number
+  activity?: { today: number; soon: boolean; live: { program: string; title: string; starts_at: string; ends_at: string } | null; next: { program: string; title: string; starts_at: string; in_minutes: number } | null }
 }
 
 export type CalendarKind = 'workday' | 'weekend' | 'vacation' | 'exam' | 'normal'

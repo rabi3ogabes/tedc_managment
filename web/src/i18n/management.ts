@@ -98,6 +98,7 @@ export const mgmtAr = {
     hours: 'ساعة', people: 'شخص', from: 'من', to: 'إلى', date: 'التاريخ', notes: 'ملاحظات', name: 'الاسم', status: 'الحالة', actions: 'إجراءات',
   },
   rooms: {
+    activity: { title: 'النشاط اليوم', live: 'جلسة جارية الآن', today: '{{count}} اليوم', todayHint: '{{count}} برنامج/جلسة في هذه القاعة اليوم', inMinutes: 'بعد {{m}} د', inHours: 'بعد {{h}} س {{m}} د', free: 'فارغة اليوم', freeHint: 'لا جلسات في هذه القاعة اليوم' },
     title: 'القاعات التدريبية', subtitle: 'المكاتب والطوابق وتنسيقات الجلوس والتجهيزات، مع البحث الذكي عن القاعة المناسبة',
     tabs: { list: 'القاعات', find: 'البحث الذكي عن قاعة' }, new: 'قاعة جديدة', edit: 'تعديل القاعة', empty: 'لا توجد قاعات مطابقة.',
     nameAr: 'اسم القاعة (بالعربية)', nameEn: 'اسم القاعة (بالإنجليزية)', code: 'رمز القاعة', office: 'المكتب / المقر', building: 'المبنى', floor: 'الطابق', location: 'الموقع / الوصف',
@@ -151,6 +152,7 @@ export const mgmtAr = {
       templates: { title: 'قوالب الإشعارات', desc: 'فعّل أو أوقف كل إشعار تلقائي وعدّل صياغته أو أنشئ قوالب خاصة بك.' },
       labels: { title: 'أسماء القوائم والأزرار', desc: 'غيّر اسم أي قائمة أو زر أو نص بالعربية والإنجليزية — يظهر فوراً للجميع.' },
       security: { title: 'الأمان وقفل الجلسة', desc: 'اقفل لوحة التحكم تلقائياً لفريق الإدارة عند عدم النشاط، مع طلب كلمة المرور.' },
+      roomscreen: { title: 'شاشة القاعة', desc: 'قالب الشاشة عند باب القاعة: الهوية والألوان وما يظهر عليها، مع معاينة مباشرة.' },
       trainingday: { title: 'اليوم التدريبي', desc: 'ساعات اليوم التدريبي (من 8 صباحاً إلى 1 ظهراً) وجلسة واحدة لكل قاعة في اليوم.' },
       attendance: { title: 'الحضور والتحقق من الموقع', desc: 'يتحقق التطبيق من وجود المتدرب في مكان التدريب قبل تسجيل الحضور.' },
       users: { title: 'المستخدمون والصلاحيات', desc: 'إدارة الحسابات والأدوار وصلاحيات كل دور.' },
@@ -329,6 +331,7 @@ export const mgmtEn: MgmtStrings = {
     hours: 'hours', people: 'people', from: 'From', to: 'To', date: 'Date', notes: 'Notes', name: 'Name', status: 'Status', actions: 'Actions',
   },
   rooms: {
+    activity: { title: 'Today', live: 'Live now', today: '{{count}} today', todayHint: '{{count}} program sessions in this room today', inMinutes: 'In {{m}} min', inHours: 'In {{h}}h {{m}}m', free: 'Free today', freeHint: 'No sessions in this room today' },
     title: 'Training rooms', subtitle: 'Offices, floors, seating layouts and equipment - with a smart search for the right room',
     tabs: { list: 'Rooms', find: 'Smart room finder' }, new: 'New room', edit: 'Edit room', empty: 'No rooms match.',
     nameAr: 'Room name (Arabic)', nameEn: 'Room name (English)', code: 'Room code', office: 'Office / site', building: 'Building', floor: 'Floor', location: 'Location / directions',
@@ -382,6 +385,7 @@ export const mgmtEn: MgmtStrings = {
       templates: { title: 'Notification templates', desc: 'Switch each automatic notification on or off, rewrite it, or create your own templates.' },
       labels: { title: 'Menu & button names', desc: 'Rename any menu, button or text in Arabic and English — applied instantly for everyone.' },
       security: { title: 'Security & session lock', desc: 'Lock the dashboard for the administration team when idle and ask for the password again.' },
+      roomscreen: { title: 'Room screen', desc: 'The template of the screen at the classroom door: brand, colours and what it shows, with a live preview.' },
       trainingday: { title: 'Training day', desc: 'The hours of the training day (8 am to 1 pm) and one session per room per day.' },
       attendance: { title: 'Attendance & location check', desc: 'The app verifies that participants are at the venue before recording attendance.' },
       users: { title: 'Users & permissions', desc: 'Manage accounts, roles and what each role can do.' },

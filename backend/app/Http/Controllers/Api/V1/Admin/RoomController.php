@@ -35,7 +35,33 @@ class RoomController extends Controller
             ->orderBy('office')->orderBy('floor')->orderBy('name_ar')
             ->paginate($this->perPage($request, 50));
 
+        $this->attachActivity($rooms->getCollection());
+
         return RoomResource::collection($rooms);
+    }
+
+    /** What each room is doing today: a session in progress, one starting within the next hours, or sessions later today. */
+    private function attachActivity($rooms): void
+    {
+        $tz = config('app.timezone');
+        $now = now();
+        $sessions = ProgramSession::with('program:id,code,title_ar,title_en')
+            ->whereIn('training_room_id', $rooms->pluck('id'))->where('status', '!=', 'cancelled')
+            ->whereBetween('starts_at', [Carbon::now($tz)->startOfDay()->utc(), Carbon::now($tz)->endOfDay()->utc()])
+            ->orderBy('starts_at')->get()->groupBy('training_room_id');
+
+        $brief = fn (ProgramSession $s) => ['program' => $s->program->translate('title'), 'title' => $s->translate('title'), 'starts_at' => $s->starts_at->toIso8601String(), 'ends_at' => $s->ends_at->toIso8601String()];
+        foreach ($rooms as $room) {
+            $today = $sessions->get($room->id, collect());
+            $live = $today->first(fn ($s) => $s->starts_at->lte($now) && $s->ends_at->gt($now));
+            $next = $today->first(fn ($s) => $s->starts_at->gt($now));
+            $room->setAttribute('activity', [
+                'today' => $today->count(),
+                'live' => $live ? $brief($live) : null,
+                'next' => $next ? $brief($next) + ['in_minutes' => (int) $now->diffInMinutes($next->starts_at)] : null,
+                'soon' => $next !== null && $now->diffInMinutes($next->starts_at) <= 240,
+            ]);
+        }
     }
 
     public function show(TrainingRoom $room): RoomResource

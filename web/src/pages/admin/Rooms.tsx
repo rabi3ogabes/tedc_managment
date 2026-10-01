@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Armchair, Building2, CalendarClock, Copy, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
+import { Armchair, Building2, CalendarCheck, CalendarClock, CalendarOff, Copy, Hourglass, Radio, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
@@ -19,6 +19,26 @@ type Ranked = {
 }
 
 const statusTone = { active: 'green', maintenance: 'amber', inactive: 'gray' } as const
+
+const hm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+
+/** Three signals at a glance: a session in progress now, one starting within the next hours, sessions later today. */
+function Activity({ room }: { room: Room }) {
+  const { t } = useTranslation()
+  const a = room.activity
+  if (!a) return null
+  const mins = a.next?.in_minutes ?? 0
+  const inText = mins >= 60 ? t('mgmt.rooms.activity.inHours', { h: Math.floor(mins / 60), m: mins % 60 }) : t('mgmt.rooms.activity.inMinutes', { m: mins })
+  const chip = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold'
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {a.live && <span title={`${a.live.program} · ${a.live.title} (${hm(a.live.starts_at)}–${hm(a.live.ends_at)})`} className={clsx(chip, 'bg-emerald-100 text-emerald-800')}><span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-70" /><span className="relative inline-flex size-2 rounded-full bg-emerald-600" /></span><Radio className="size-3.5" />{t('mgmt.rooms.activity.live')}</span>}
+      {a.soon && a.next && <span title={`${a.next.program} · ${hm(a.next.starts_at)}`} className={clsx(chip, 'bg-amber-100 text-amber-800')}><Hourglass className="size-3.5" />{inText}</span>}
+      {a.today > 0 ? <span title={t('mgmt.rooms.activity.todayHint', { count: a.today })} className={clsx(chip, 'bg-sky-100 text-sky-800')}><CalendarCheck className="size-3.5" />{t('mgmt.rooms.activity.today', { count: a.today })}</span>
+        : <span title={t('mgmt.rooms.activity.freeHint')} className={clsx(chip, 'bg-slate-100 text-slate-500')}><CalendarOff className="size-3.5" />{t('mgmt.rooms.activity.free')}</span>}
+    </div>
+  )
+}
 
 function useLabel() {
   const { i18n } = useTranslation()
@@ -348,7 +368,7 @@ export default function Rooms() {
   const [notice, setNotice] = useState<string | null>(null)
   const options = useGet<{ data: Options }>('/admin/rooms/options')
   const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
-  const rooms = useGet<Paginated<Room>>('/admin/rooms', { ...params, page })
+  const rooms = useGet<Paginated<Room>>('/admin/rooms', { ...params, page }, { refetchInterval: 60_000 })
   const opts = options.data?.data
   const label = useLabel()
   const setFilter = (k: keyof typeof filters, v: string) => { setFilters((f) => ({ ...f, [k]: v })); setPage(1) }
@@ -388,6 +408,7 @@ export default function Rooms() {
             { key: 'layouts', header: t('mgmt.rooms.layouts'), cell: (r) => <div className="flex max-w-xs flex-wrap gap-1">{r.layouts.map((l) => <span key={l.key} className="inline-flex items-center gap-1 rounded-full bg-navy-100/70 px-2 py-0.5 text-[11px] font-semibold text-navy-800"><Armchair className="size-3" />{l.label} {fmt.number(l.capacity)}</span>)}</div> },
             { key: 'equipment', header: t('mgmt.rooms.equipment'), hideInCards: false, cell: (r) => <div className="flex max-w-sm flex-wrap gap-1">{r.equipment.slice(0, 6).map((e) => <span key={e.key} className="rounded-full bg-gold-100/60 px-2 py-0.5 text-[11px] font-semibold text-gold-700">{e.label}{e.qty > 1 && ` ×${fmt.number(e.qty)}`}</span>)}{r.equipment.length > 6 && <span className="text-[11px] text-slate-400">+{r.equipment.length - 6}</span>}</div> },
             { key: 'usage', header: t('mgmt.rooms.sessions'), cell: (r) => <span className="inline-flex items-center gap-1.5 text-slate-600"><Layers className="size-4 text-slate-400" />{fmt.number(r.sessions_count ?? 0)} <span className="text-xs text-slate-400">({fmt.number(r.upcoming_sessions_count ?? 0)} {t('mgmt.rooms.upcoming')})</span></span> },
+            { key: 'activity', header: t('mgmt.rooms.activity.title'), cell: (r) => <Activity room={r} /> },
             { key: 'status', header: t('mgmt.common.status'), role: 'badge', cell: (r) => <Badge color={statusTone[r.status]}>{t(`mgmt.rooms.statuses.${r.status}`)}</Badge> },
             { key: 'actions', header: '', role: 'actions', cell: (r) => (
               <div className="flex flex-wrap gap-1">

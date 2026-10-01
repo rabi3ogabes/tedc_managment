@@ -37,6 +37,7 @@ class RoomResource extends JsonResource
             'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
             'status' => $this->status,
+            'activity' => $this->when(array_key_exists('activity', $this->resource->getAttributes()) || $this->resource->offsetExists('activity'), fn () => $this->resource->getAttribute('activity')),
             'notes' => $this->notes,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
