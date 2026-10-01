@@ -32,6 +32,15 @@ const en: Dictionary = {
   stages: { kindergarten: 'Kindergarten', primary: 'Primary', preparatory: 'Preparatory', secondary: 'Secondary', multi: 'Multi-stage' },
   schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International' },
 
+  userMenu: { account: 'Account menu', profile: 'My profile', lock: 'Lock screen' },
+  profile: {
+    title: 'My profile', subtitle: 'All the details of your account in one place — view only.', protected: 'Protected data', lockedTitle: 'Your details are protected', lockedText: 'Details are not edited directly, to keep them accurate. If something is wrong or missing, press “Request change” and the administration team will review it.',
+    missing: '{{count}} missing details', pending: '{{count}} requests under review', notRecorded: 'Not recorded', underReview: 'Under review', complete: 'Complete', requestChange: 'Request change',
+    session: 'Session & account', lastLogin: 'Last sign-in', memberSince: 'Member since', lockHint: 'The screen locks automatically when idle and asks for your password; you can also lock it yourself from the account menu or with Ctrl+Shift+L.',
+    skills: 'Skills', requests: 'My requests', noRequests: 'You have not sent any change request yet.', withdraw: 'Withdraw request', applied: 'Applied to your profile', sent: 'Request sent — we will notify you when it is reviewed.',
+    statuses: { pending: 'Under review', approved: 'Approved', rejected: 'Rejected', cancelled: 'Withdrawn' }, kinds: { wrong: 'Wrong', missing: 'Missing', update: 'Update' },
+    sheetHint: 'Enter the correct value; the administration team will review it before it is accepted.', currentValue: 'Current value (locked)', correctValue: 'Correct value', noteOptional: 'Note (optional)', send: 'Send request',
+  },
   errorPage: {
     title: 'Something went wrong', text: 'This page could not be displayed. Reload to continue, and tell the support team if it keeps happening.', updatedTitle: 'The platform was updated', updatedText: 'A new version was released while you were using it. Reload to get the latest version.',
     reload: 'Reload the page', retry: 'Try again', details: 'Technical details',

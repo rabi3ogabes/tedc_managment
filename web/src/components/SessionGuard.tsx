@@ -92,9 +92,14 @@ function Guard() {
   useEffect(() => {
     const onLocked = () => lockNow(false)
     const onStorage = (e: StorageEvent) => { if (e.key === LOCK_KEY) setLocked(e.newValue === '1') }
+    const onLockNow = () => lockNow(true)
+    // Ctrl/⌘ + Shift + L locks the screen at once.
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'l') { e.preventDefault(); lockNow(true) } }
     window.addEventListener('tedc:locked', onLocked)
+    window.addEventListener('tedc:lock-now', onLockNow)
+    window.addEventListener('keydown', onKey)
     window.addEventListener('storage', onStorage)
-    return () => { window.removeEventListener('tedc:locked', onLocked); window.removeEventListener('storage', onStorage) }
+    return () => { window.removeEventListener('tedc:locked', onLocked); window.removeEventListener('tedc:lock-now', onLockNow); window.removeEventListener('keydown', onKey); window.removeEventListener('storage', onStorage) }
   }, [lockNow])
 
   const unlocked = useCallback(() => {

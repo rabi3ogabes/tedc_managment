@@ -6,10 +6,10 @@ import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
+import UserMenu from './UserMenu'
 import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
-import { Avatar } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
@@ -218,13 +218,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                 <Bell className="size-5" />
                 {unreadCount > 0 && <span className="absolute -end-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-navy-950">{unreadCount}</span>}
               </Link>
-              <div className="flex items-center gap-3 border-s border-navy-100 ps-3">
-                <Avatar name={user?.name ?? ''} size={36} />
-                <div className="hidden leading-tight sm:block">
-                  <div className="text-sm font-bold text-navy-900">{user?.name}</div>
-                  <div className="text-xs text-slate-400">{user?.roles.map((r) => r.name).join('، ')}</div>
-                </div>
-              </div>
+              <UserMenu portal={portal} />
             </div>
           </div>
         </header>

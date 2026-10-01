@@ -30,6 +30,15 @@ const ar = {
   stages: { kindergarten: 'رياض الأطفال', primary: 'ابتدائي', preparatory: 'إعدادي', secondary: 'ثانوي', multi: 'متعدد المراحل' },
   schoolTypes: { government: 'حكومية', private: 'خاصة', community: 'مجتمعية', international: 'دولية' },
 
+  userMenu: { account: 'قائمة الحساب', profile: 'ملفي الشخصي', lock: 'قفل الشاشة' },
+  profile: {
+    title: 'ملفي الشخصي', subtitle: 'كل بيانات حسابك في مكان واحد — للعرض فقط.', protected: 'بيانات محمية', lockedTitle: 'بياناتك محمية', lockedText: 'لا تُعدَّل البيانات مباشرةً حفاظاً على دقتها. إن وجدت بياناً خاطئاً أو ناقصاً فاضغط «طلب تعديل» ليراجعه فريق الإدارة.',
+    missing: '{{count}} بيانات ناقصة', pending: '{{count}} طلبات قيد المراجعة', notRecorded: 'غير مسجّل', underReview: 'قيد المراجعة', complete: 'استكمال', requestChange: 'طلب تعديل',
+    session: 'الجلسة والحساب', lastLogin: 'آخر دخول', memberSince: 'عضو منذ', lockHint: 'تُقفل الشاشة تلقائياً عند عدم النشاط ويُطلب منك إدخال كلمة المرور، ويمكنك قفلها يدوياً من قائمة الحساب أو بالاختصار Ctrl+Shift+L.',
+    skills: 'المهارات', requests: 'طلباتي', noRequests: 'لم ترسل أي طلب تعديل بعد.', withdraw: 'سحب الطلب', applied: 'طُبّق على ملفك', sent: 'تم إرسال الطلب — سنبلغك عند مراجعته.',
+    statuses: { pending: 'قيد المراجعة', approved: 'تمت الموافقة', rejected: 'مرفوض', cancelled: 'مسحوب' }, kinds: { wrong: 'خاطئ', missing: 'ناقص', update: 'تحديث' },
+    sheetHint: 'اكتب القيمة الصحيحة، وسيراجعها فريق الإدارة قبل اعتمادها.', currentValue: 'القيمة الحالية (مقفلة)', correctValue: 'القيمة الصحيحة', noteOptional: 'ملاحظة (اختياري)', send: 'إرسال الطلب',
+  },
   errorPage: {
     title: 'حدث خطأ غير متوقع', text: 'تعذّر عرض هذه الصفحة. أعد التحميل للمتابعة، وإن تكرر الأمر فأبلغ فريق الدعم.', updatedTitle: 'تم تحديث المنصة', updatedText: 'صدر إصدار جديد من المنصة أثناء استخدامك لها. أعد التحميل للحصول على أحدث نسخة.',
     reload: 'إعادة تحميل الصفحة', retry: 'حاول مرة أخرى', details: 'تفاصيل تقنية',

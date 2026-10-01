@@ -38,6 +38,7 @@ const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
 const ChatInbox = lazy(() => import('@/pages/admin/ChatInbox'))
+const Profile = lazy(() => import('@/pages/Profile'))
 const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
@@ -123,6 +124,7 @@ export default function App() {
           <Route path="schools" element={<Schools />} />
           <Route path="employees" element={<Employees />} />
           <Route path="employees/:id" element={<EmployeeProfile />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
@@ -139,6 +141,7 @@ export default function App() {
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
