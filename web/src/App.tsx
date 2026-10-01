@@ -55,6 +55,7 @@ const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
 const PortalHome = lazy(() => import('@/pages/portal/PortalHome'))
 const MyTraining = lazy(() => import('@/pages/portal/MyTraining'))
 const Passport = lazy(() => import('@/pages/portal/Passport'))
+const RoomScreen = lazy(() => import('@/pages/RoomScreen'))
 const Learn = lazy(() => import('@/pages/portal/Learn'))
 const Wallet = lazy(() => import('@/pages/portal/Wallet'))
 const MyTasks = lazy(() => import('@/pages/portal/MyTasks'))
@@ -101,6 +102,8 @@ export default function App() {
         <Route path="login" element={<Login />} />
 
         <Route path="admin/kits/:kitId/files/:fileId" element={<RequireAuth permission="kits.view"><FileStudio /></RequireAuth>} />
+        <Route path="room-screen/:token" element={<RoomScreen />} />
+        <Route path="admin/rooms/:id/screen" element={<RequireAuth permission="programs.view"><RoomScreen admin /></RequireAuth>} />
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\RoomResource;
 use App\Models\ProgramSession;
 use App\Models\TrainingRoom;
+use App\Services\RoomScreenService;
 use App\Services\RoomService;
 use App\Support\RoomCatalog;
 use Carbon\Carbon;
@@ -159,5 +160,21 @@ class RoomController extends Controller
         }
 
         return $data;
+    }
+
+    /** The room screen for one day (signed-in staff). */
+    public function screen(Request $request, TrainingRoom $room, RoomScreenService $screen): JsonResponse
+    {
+        $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+
+        return response()->json(['data' => $screen->day($room, $data['date'] ?? null)]);
+    }
+
+    /** The secret address of the TV at the room's door; `regenerate` invalidates the old one. */
+    public function screenLink(Request $request, TrainingRoom $room, RoomScreenService $screen): JsonResponse
+    {
+        $token = $screen->token($room, $request->boolean('regenerate'));
+
+        return response()->json(['data' => ['token' => $token, 'url' => rtrim(config('tedc.web_url'), '/').'/room-screen/'.$token]]);
     }
 }

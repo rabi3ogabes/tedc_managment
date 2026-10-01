@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['code', 'name_en', 'name_ar', 'office', 'building', 'location', 'floor', 'capacity', 'area_m2', 'layout', 'layouts', 'facilities', 'is_accessible', 'status', 'notes', 'latitude', 'longitude'])]
+#[Fillable(['code', 'name_en', 'name_ar', 'office', 'building', 'location', 'floor', 'capacity', 'area_m2', 'layout', 'layouts', 'facilities', 'is_accessible', 'status', 'notes', 'latitude', 'longitude', 'display_token'])]
 class TrainingRoom extends Model
 {
     use Auditable, HasTranslations, HasUuids;

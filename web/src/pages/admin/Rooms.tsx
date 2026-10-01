@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { Armchair, Building2, CalendarClock, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Armchair, Building2, CalendarClock, Copy, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
 import { DataView } from '@/components/ui/DataView'
@@ -193,6 +193,39 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
   )
 }
 
+/** The secret address of the screen at the room's door: copy it, open it, or replace it. */
+function ScreenLinkModal({ room, onClose }: { room: Room; onClose: () => void }) {
+  const { t } = useTranslation()
+  const [link, setLink] = useState<{ token: string; url: string } | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = async (regenerate = false) => {
+    setBusy(true)
+    setError(null)
+    try { setLink((await api.post<{ data: { token: string; url: string } }>(`/admin/rooms/${room.id}/screen-link`, null, { params: regenerate ? { regenerate: 1 } : undefined })).data.data) } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
+  }
+  useEffect(() => { void load() }, [])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Modal open onClose={onClose} title={`${t('studio.screen.link')} · ${room.name}`}>
+      <p className="mb-4 text-sm text-slate-600">{t('studio.screen.linkHint')}</p>
+      {link && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-xl border border-navy-100 bg-ivory p-2"><input readOnly dir="ltr" className="min-w-0 flex-1 bg-transparent px-2 font-mono text-xs text-navy-900 outline-none" value={link.url} onFocus={(e) => e.currentTarget.select()} />
+            <Button size="sm" variant="gold" icon={<Copy className="size-4" />} onClick={() => { void navigator.clipboard.writeText(link.url); setCopied(true); setTimeout(() => setCopied(false), 2000) }}>{copied ? t('studio.screen.copied') : t('studio.screen.copy')}</Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button variant="primary" icon={<Monitor className="size-4" />} onClick={() => window.open(link.url, '_blank', 'noopener')}>{t('studio.screen.open')}</Button>
+            <Button variant="ghost" loading={busy} icon={<RefreshCw className="size-4" />} onClick={() => window.confirm(t('studio.screen.regenerateHint')) && load(true)}>{t('studio.screen.regenerate')}</Button>
+          </div>
+        </div>
+      )}
+      {error && <p className="mt-3 text-sm text-danger">{error}</p>}
+    </Modal>
+  )
+}
+
 function ScheduleModal({ room, onClose }: { room: Room; onClose: () => void }) {
   const { t } = useTranslation()
   const [{ from, to }] = useState(() => ({ from: new Date().toISOString().slice(0, 10), to: new Date(Date.now() + 60 * 86_400_000).toISOString().slice(0, 10) }))
@@ -311,6 +344,7 @@ export default function Rooms() {
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<Room | null | 'new'>(null)
   const [schedule, setSchedule] = useState<Room | null>(null)
+  const [screenLink, setScreenLink] = useState<Room | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const options = useGet<{ data: Options }>('/admin/rooms/options')
   const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
@@ -358,6 +392,8 @@ export default function Rooms() {
             { key: 'actions', header: '', role: 'actions', cell: (r) => (
               <div className="flex flex-wrap gap-1">
                 <Button size="sm" variant="outline" icon={<CalendarClock className="size-4" />} onClick={() => setSchedule(r)}>{t('mgmt.rooms.schedule')}</Button>
+                <Button size="sm" variant="gold" icon={<Monitor className="size-4" />} onClick={() => window.open(`/admin/rooms/${r.id}/screen`, '_blank', 'noopener')}>{t('studio.screen.open')}</Button>
+                {canManage && <Button size="sm" variant="ghost" aria-label={t('studio.screen.link')} title={t('studio.screen.link')} icon={<Copy className="size-4" />} onClick={() => setScreenLink(r)} />}
                 {canManage && <Button size="sm" variant="ghost" icon={<Pencil className="size-4" />} onClick={() => setEditing(r)}>{t('mgmt.common.edit')}</Button>}
                 {canManage && <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" />} onClick={() => remove(r)} aria-label={t('mgmt.common.delete')} />}
               </div>
@@ -369,6 +405,7 @@ export default function Rooms() {
 
       {editing && opts && <RoomForm room={editing === 'new' ? null : editing} options={opts} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); rooms.refetch(); options.refetch() }} />}
       {schedule && <ScheduleModal room={schedule} onClose={() => setSchedule(null)} />}
+      {screenLink && <ScreenLinkModal room={screenLink} onClose={() => setScreenLink(null)} />}
     </>
   )
 }

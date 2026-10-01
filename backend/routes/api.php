@@ -55,7 +55,10 @@ use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Models\TrainingRoom;
 use App\Services\FileStorage;
+use App\Services\RoomScreenService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -72,6 +75,14 @@ Route::prefix('v1')->group(function () {
 
     // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
     Route::get('public/health', HealthController::class);
+
+    // The screen at a classroom door: reached by its secret token, no sign-in.
+    Route::get('public/room-screen/{token}', function (string $token, Request $request, RoomScreenService $screen) {
+        $room = TrainingRoom::where('display_token', $token)->firstOrFail();
+        $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+
+        return response()->json(['data' => $screen->day($room, $data['date'] ?? null)]);
+    })->middleware('throttle:120,1');
 
     // Browser uploads of big course files with the local storage driver (Supabase has its own signed upload URLs).
     Route::put('uploads/{bucket}/{path}', function (string $bucket, string $path, FileStorage $files) {
@@ -336,10 +347,12 @@ Route::prefix('v1')->group(function () {
                     Route::get('availability', 'availability');
                     Route::get('{room}', 'show');
                     Route::get('{room}/schedule', 'schedule');
+                    Route::get('{room}/screen', 'screen');
                 });
                 Route::middleware('permission:rooms.manage')->group(function () {
                     Route::post('/', 'store');
                     Route::put('{room}', 'update');
+                    Route::post('{room}/screen-link', 'screenLink');
                     Route::delete('{room}', 'destroy');
                 });
             });

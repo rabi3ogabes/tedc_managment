@@ -1,6 +1,13 @@
 /** Certificate designer, remote programs studio and session tracking. */
 export const studioAr = {
   nav: { templates: 'مصمّم الشهادات', remote: 'برنامج عن بُعد' },
+  screen: {
+    capacity: 'السعة {{count}} مقعداً', today: 'اليوم', offline: 'انقطع الاتصال — يُعاد المحاولة', updating: 'تحديث مباشر', notFound: 'رابط الشاشة غير صالح',
+    none: 'لا جلسات في هذا اليوم', noneHint: 'القاعة متاحة طوال اليوم.', live: 'جارية الآن', next: 'الجلسة القادمة', ended: 'انتهت', online: 'عن بُعد', trainer: 'المدرب',
+    remaining: 'متبقٍ {{minutes}} دقيقة', startsIn: 'تبدأ بعد {{minutes}} دقيقة', min: 'دقيقة', present: 'حاضر', late: 'متأخر', expected: 'لم يصل بعد', absent: 'غائب',
+    trainees: 'المتدربون', noTrainees: 'لا يوجد متدربون مسجلون في هذا البرنامج.', day: 'جلسات اليوم',
+    open: 'شاشة القاعة', link: 'رابط الشاشة (للتلفاز)', copy: 'نسخ الرابط', copied: 'تم النسخ', regenerate: 'إنشاء رابط جديد', regenerateHint: 'يبطل الرابط القديم فتتوقف الشاشات التي تستخدمه.', linkHint: 'افتح هذا الرابط على شاشة القاعة: لا يحتاج تسجيل دخول ويُحدَّث مباشرة.',
+  },
   steps: { delivery: 'التقديم عن بُعد', content: 'المحتوى والحقيبة', certificates: 'الشهادات' },
   content: {
     title: 'المحتوى والحقيبة التدريبية', subtitle: 'جهّز محتوى البرنامج عن بُعد: هيكل الدورة، قواعد المشاهدة، والملفات من الحقيبة التدريبية. تعدّل كل شيء لاحقاً وترفع الفيديوهات والعروض من منشئ المحتوى.',
@@ -71,6 +78,13 @@ export const studioAr = {
 
 export const studioEn: typeof studioAr = {
   nav: { templates: 'Certificate designer', remote: 'Remote program' },
+  screen: {
+    capacity: '{{count}} seats', today: 'Today', offline: 'Connection lost — retrying', updating: 'Live', notFound: 'This screen link is not valid',
+    none: 'No sessions on this day', noneHint: 'The room is free all day.', live: 'Live now', next: 'Next session', ended: 'Ended', online: 'Online', trainer: 'Trainer',
+    remaining: '{{minutes}} min left', startsIn: 'Starts in {{minutes}} min', min: 'min', present: 'Present', late: 'Late', expected: 'Not here yet', absent: 'Absent',
+    trainees: 'Trainees', noTrainees: 'No trainees are registered in this program.', day: 'Today’s sessions',
+    open: 'Room screen', link: 'Screen link (for the TV)', copy: 'Copy link', copied: 'Copied', regenerate: 'Create a new link', regenerateHint: 'This invalidates the old link, so screens using it stop working.', linkHint: 'Open this link on the room’s screen: no sign-in needed and it updates live.',
+  },
   steps: { delivery: 'Remote delivery', content: 'Content & kit', certificates: 'Certificates' },
   content: {
     title: 'Content & training kit', subtitle: 'Prepare the online program: the course structure, the watch rules and the files from a training kit. Everything can be edited later, and videos and slides are uploaded in the content builder.',
