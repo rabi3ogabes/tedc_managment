@@ -5,8 +5,9 @@ export const kitsAr = {
   roles: { developer: 'معد الحقيبة', qa: 'ضمان الجودة', reviewer: 'مراجع', viewer: 'مطّلع' },
   kinds: { presentation: 'عرض تقديمي', document: 'مستند', pdf: 'PDF', image: 'صورة', video: 'فيديو', other: 'ملف' },
   categories: { presentation: 'العرض التقديمي', trainer_guide: 'دليل المدرب', handout: 'دليل المتدرب', assessment: 'التقويم', activity: 'الأنشطة', media: 'وسائط', other: 'أخرى' },
+  delivery: { label: 'نوع الحقيبة', standard: 'حقائب البرامج العادية', standardHint: 'للبرامج الحضورية والمدمجة', online: 'حقائب البرامج الإلكترونية', onlineHint: 'للدورات عبر الإنترنت (فيديو، عروض، اختبارات)', badge: 'إلكترونية' },
   home: {
-    title: 'استوديو الحقائب التدريبية', subtitle: 'أعدّ الحقيبة، راجعها مع فريق ضمان الجودة، واعتمدها — في مكان واحد', new: 'حقيبة جديدة', search: 'ابحث بالاسم أو الرمز…', mine: 'حقائبي',
+    title: 'استوديو الحقائب التدريبية', subtitle: 'أعدّ الحقيبة، راجعها مع فريق ضمان الجودة، واعتمدها — في مكان واحد', newOnline: 'حقيبة إلكترونية جديدة', new: 'حقيبة جديدة', search: 'ابحث بالاسم أو الرمز…', mine: 'حقائبي',
     views: { board: 'لوحة', cards: 'بطاقات', table: 'جدول' }, files: 'ملف', round: 'الجولة {{n}}', code: 'الرمز', kit: 'الحقيبة', program: 'البرنامج', status: 'الحالة', team: 'الفريق', progress: 'الجاهزية',
     comments: 'ملاحظات', due: 'الموعد', updated: 'آخر تحديث', open: 'فتح', columnEmpty: 'لا توجد حقائب', empty: 'لا توجد حقائب مطابقة.', firstKit: 'ابدأ بأول حقيبة: اختر البرنامج، وسنجهّز لك الأهداف والفريق.', recent: 'آخر النشاطات',
     stats: { total: 'حقائب نشطة', awaiting: 'بانتظار المراجعة', awaitingMine: 'بانتظار مراجعتك', changes: 'مطلوب تعديلها', myComments: 'ملاحظات مسندة إليّ', overdue: 'متأخرة عن الموعد' },
@@ -122,8 +123,9 @@ export const kitsEn: KitsStrings = {
   roles: { developer: 'Kit developer', qa: 'Quality assurance', reviewer: 'Reviewer', viewer: 'Viewer' },
   kinds: { presentation: 'Presentation', document: 'Document', pdf: 'PDF', image: 'Image', video: 'Video', other: 'File' },
   categories: { presentation: 'Presentation', trainer_guide: 'Trainer guide', handout: 'Trainee handout', assessment: 'Assessment', activity: 'Activities', media: 'Media', other: 'Other' },
+  delivery: { label: 'Kit type', standard: 'Regular program kits', standardHint: 'For in-person and blended programs', online: 'Online program kits', onlineHint: 'For online courses (video, slides, quizzes)', badge: 'Online' },
   home: {
-    title: 'Training Kit Studio', subtitle: 'Build the kit, review it with the QA team and approve it - all in one place', new: 'New kit', search: 'Search by name or code…', mine: 'My kits',
+    title: 'Training Kit Studio', subtitle: 'Build the kit, review it with the QA team and approve it - all in one place', newOnline: 'New online kit', new: 'New kit', search: 'Search by name or code…', mine: 'My kits',
     views: { board: 'Board', cards: 'Cards', table: 'Table' }, files: 'files', round: 'Round {{n}}', code: 'Code', kit: 'Kit', program: 'Program', status: 'Status', team: 'Team', progress: 'Readiness',
     comments: 'Comments', due: 'Due', updated: 'Updated', open: 'Open', columnEmpty: 'No kits', empty: 'No kits match.', firstKit: 'Start with your first kit: pick the program and we will prepare the objectives and the team.', recent: 'Recent activity',
     stats: { total: 'Active kits', awaiting: 'Awaiting review', awaitingMine: 'Awaiting your review', changes: 'Need changes', myComments: 'Comments assigned to me', overdue: 'Overdue' },

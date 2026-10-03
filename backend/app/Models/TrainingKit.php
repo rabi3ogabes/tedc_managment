@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** A training kit (الحقيبة التدريبية): everything a trainer needs to deliver a program. */
-#[Fillable(['code', 'title_ar', 'title_en', 'description_ar', 'description_en', 'program_id', 'category_id', 'status', 'audience', 'duration_hours', 'objectives', 'tags', 'cover_path',
+#[Fillable(['code', 'title_ar', 'title_en', 'description_ar', 'description_en', 'program_id', 'category_id', 'delivery', 'status', 'audience', 'duration_hours', 'objectives', 'tags', 'cover_path',
     'version', 'review_round', 'owner_id', 'due_at', 'submitted_at', 'approved_at', 'published_at', 'approved_by', 'created_by'])]
 class TrainingKit extends Model
 {
@@ -30,6 +30,8 @@ class TrainingKit extends Model
     public const PUBLISHED = 'published';
 
     public const ARCHIVED = 'archived';
+
+    public const DELIVERIES = ['standard', 'online'];
 
     public const STATUSES = [self::DRAFT, self::IN_DEVELOPMENT, self::IN_REVIEW, self::CHANGES_REQUESTED, self::APPROVED, self::PUBLISHED, self::ARCHIVED];
 

@@ -7,8 +7,11 @@ use App\Models\JobTitle;
 use App\Models\Program;
 use App\Models\ProgramCategory;
 use App\Models\Registration;
+use App\Models\Role;
 use App\Models\TargetGroup;
 use App\Models\Trainer;
+use App\Models\TrainingKit;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
@@ -56,6 +59,17 @@ class DemoOnlineCoursesSeeder extends Seeder
             TargetGroup::firstOrCreate(['program_id' => $program->id, 'description' => 'مجموعة الاختبار'], ['job_title_id' => $jobTitle, 'education_stage' => 'primary']);
             if ($trainer) {
                 $program->trainers()->syncWithoutDetaching([$trainer->id => ['role' => 'lead']]);
+            }
+
+            // The matching training kit, so the «online» tab of the kits page is not empty.
+            $owner = User::whereHas('roles', fn ($q) => $q->where('slug', Role::SUPER_ADMIN))->first();
+            if ($owner && $n <= 3) {
+                TrainingKit::firstOrCreate(['code' => "KIT-OL-{$n}"], [
+                    'title_ar' => 'حقيبة '.$c['title_ar'], 'title_en' => 'Kit — '.$c['title_en'], 'program_id' => $program->id, 'category_id' => $program->category_id, 'delivery' => 'online',
+                    'status' => TrainingKit::IN_DEVELOPMENT, 'audience' => 'معلمو المرحلة الابتدائية', 'duration_hours' => $c['hours'], 'objectives' => $c['objectives'],
+                    'owner_id' => $owner->id, 'created_by' => $owner->id, 'due_at' => now()->addDays(14 * $n),
+                    'description_ar' => 'مواد الدورة الإلكترونية: العروض والفيديوهات وأدوات التقويم.',
+                ]);
             }
 
             if (! $program->courseModules()->exists()) {

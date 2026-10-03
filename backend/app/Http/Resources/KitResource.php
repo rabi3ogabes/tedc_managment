@@ -26,6 +26,7 @@ class KitResource extends JsonResource
             'description_ar' => $this->description_ar,
             'description_en' => $this->description_en,
             'status' => $this->status,
+            'delivery' => $this->delivery ?? 'standard',
             'audience' => $this->audience,
             'duration_hours' => $this->duration_hours,
             'objectives' => $this->objectives ?? [],

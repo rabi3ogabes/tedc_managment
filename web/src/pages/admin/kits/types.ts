@@ -8,9 +8,11 @@ export const FILE_CATEGORIES: FileCategory[] = ['presentation', 'trainer_guide',
 
 export type KitMember = { user_id: string; name: string | null; email?: string | null; role: KitRole }
 
+export type KitDelivery = 'standard' | 'online'
+
 export type Kit = {
   id: string; code: string; title: string; title_ar: string; title_en: string; description?: string | null; description_ar?: string | null; description_en?: string | null
-  status: KitStatus; audience?: string | null; duration_hours: number; objectives: string[]; tags: string[]; version: number; review_round: number
+  status: KitStatus; delivery?: KitDelivery; audience?: string | null; duration_hours: number; objectives: string[]; tags: string[]; version: number; review_round: number
   program?: { id: string; code: string; title: string } | null; program_id?: string | null; category?: { id: string; name: string; color?: string } | null; category_id?: string | null
   owner?: { id: string; name: string } | null; owner_id: string; members?: KitMember[]; due_at?: string | null; submitted_at?: string | null; approved_at?: string | null; published_at?: string | null
   files_count?: number; open_comments?: number; blocking_comments?: number; progress?: number; my_role: KitRole | null
@@ -54,7 +56,7 @@ export type Activity = { id: string; kit_id: string; action: string; subject_typ
 export type Person = { id: string; name: string; email: string; suggested_role: KitRole; roles: string[] }
 
 export type KitStats = {
-  total: number; by_status: Record<string, number>; awaiting_review: number; awaiting_my_review: number; needs_my_changes: number; my_open_comments: number; overdue: number; open_comments: number; recent: Activity[]
+  total: number; by_delivery: Record<KitDelivery, number>; by_status: Record<string, number>; awaiting_review: number; awaiting_my_review: number; needs_my_changes: number; my_open_comments: number; overdue: number; open_comments: number; recent: Activity[]
 }
 
 export type Suggestion = { key: string; action: 'generate_deck' | 'generate_video' | 'generate_image' | 'upload'; title_ar: string; title_en: string; hint_ar: string; hint_en: string; params: Record<string, unknown> }

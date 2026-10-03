@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AlarmClock, CalendarClock, FilePlus2, FolderKanban, LayoutGrid, MessageSquareWarning, PackageCheck, Rows3, Search, ShieldCheck, Table2, UserCheck } from 'lucide-react'
+import { AlarmClock, CalendarClock, FilePlus2, FolderKanban, LayoutGrid, MessageSquareWarning, MonitorPlay, PackageCheck, Presentation, Rows3, Search, ShieldCheck, Table2, UserCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -12,7 +12,7 @@ import type { Paginated } from '@/lib/types'
 import { relativeTime } from './comments/api'
 import { KitStatusBadge, statusTone } from './common'
 import KitForm from './KitForm'
-import { KIT_STATUSES, type Kit, type KitStats, type KitStatus } from './types'
+import { KIT_STATUSES, type Kit, type KitDelivery, type KitStats, type KitStatus } from './types'
 import { Pager } from '../shared'
 
 type Column = { status: KitStatus; count: number; items: Kit[] }
@@ -36,6 +36,7 @@ function KitCard({ kit }: { kit: Kit }) {
       <span className={clsx('absolute inset-x-0 top-0 h-1 bg-gradient-to-l to-transparent', statusTone[kit.status].column)} />
       <div className="flex items-start justify-between gap-2">
         <span className="rounded-md bg-navy-900 px-1.5 py-0.5 font-mono text-[10px] font-bold text-gold-300" dir="ltr">{kit.code}</span>
+        {kit.delivery === 'online' && <span className="inline-flex items-center gap-1 rounded-md bg-gold-100 px-1.5 py-0.5 text-[10px] font-bold text-gold-700"><MonitorPlay className="size-3" />{t('kits.delivery.badge')}</span>}
         {kit.category && <span className="truncate text-[11px] font-semibold text-slate-400">{kit.category.name}</span>}
       </div>
       <h3 className="mt-2 line-clamp-2 min-h-[2.5rem] font-bold leading-snug text-navy-900 group-hover:text-link" dir="auto">{kit.title}</h3>
@@ -80,16 +81,32 @@ export default function KitsHome() {
   const [overdue, setOverdue] = useState(false)
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
-  const filters = { q: q || undefined, mine: mine ? 1 : undefined, overdue: overdue ? 1 : undefined }
-  const stats = useGet<{ data: KitStats }>('/admin/kits/stats')
+  const [delivery, setDelivery] = useState<KitDelivery>(() => (localStorage.getItem('tedc.kits.delivery') === 'online' ? 'online' : 'standard'))
+  const filters = { q: q || undefined, mine: mine ? 1 : undefined, overdue: overdue ? 1 : undefined, delivery }
+  const stats = useGet<{ data: KitStats }>('/admin/kits/stats', { delivery })
   const board = useGet<{ data: Column[] }>(view === 'board' ? '/admin/kits/board' : null, filters)
   const list = useGet<Paginated<Kit>>(view !== 'board' ? '/admin/kits' : null, { ...filters, status: status || undefined, page })
   const s = stats.data?.data
+  const changeDelivery = (d: KitDelivery) => { setDelivery(d); setStatus(''); setPage(1); try { localStorage.setItem('tedc.kits.delivery', d) } catch { /* storage unavailable */ } }
   const changeView = (v: View) => { setView(v); setPage(1); try { localStorage.setItem('tedc.kits.view', v) } catch { /* storage unavailable */ } }
 
   return (
     <>
-      <PageHeader title={t('kits.home.title')} subtitle={t('kits.home.subtitle')} actions={can('kits.manage') && <Button variant="gold" icon={<FilePlus2 className="size-4" />} onClick={() => setCreating(true)}>{t('kits.home.new')}</Button>} />
+      <PageHeader title={t('kits.home.title')} subtitle={t('kits.home.subtitle')} actions={can('kits.manage') && <Button variant="gold" icon={<FilePlus2 className="size-4" />} onClick={() => setCreating(true)}>{t(delivery === 'online' ? 'kits.home.newOnline' : 'kits.home.new')}</Button>} />
+
+      {/* The two kinds of kits */}
+      <div role="tablist" aria-label={t('kits.delivery.label')} className="mb-6 grid gap-3 sm:grid-cols-2">
+        {([['standard', Presentation], ['online', MonitorPlay]] as const).map(([id, Icon]) => {
+          const active = delivery === id
+          return (
+            <button key={id} type="button" role="tab" aria-selected={active} onClick={() => changeDelivery(id)} className={clsx('group flex items-center gap-4 rounded-2xl border p-4 text-start transition', active ? 'border-navy-900 bg-navy-900 text-white shadow-glass' : 'border-navy-100 bg-white hover:border-gold-400')}>
+              <span className={clsx('grid size-12 shrink-0 place-items-center rounded-xl', active ? 'bg-gold-500 text-navy-950' : 'bg-navy-100/70 text-navy-800')}><Icon className="size-6" /></span>
+              <span className="min-w-0 flex-1"><span className="block font-extrabold">{t(`kits.delivery.${id}`)}</span><span className={clsx('mt-0.5 block text-xs', active ? 'text-white/70' : 'text-slate-500')}>{t(`kits.delivery.${id}Hint`)}</span></span>
+              <span className={clsx('rounded-full px-3 py-1 text-lg font-black tabular-nums', active ? 'bg-white/15 text-gold-300' : 'bg-navy-100/70 text-navy-900')}>{fmt.number(s?.by_delivery?.[id] ?? 0)}</span>
+            </button>
+          )
+        })}
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat icon={PackageCheck} label={t('kits.home.stats.total')} value={s?.total ?? 0} onClick={() => { setStatus(''); setMine(false); setOverdue(false) }} />
@@ -167,7 +184,7 @@ export default function KitsHome() {
         </section>
       )}
 
-      {creating && <KitForm onClose={() => setCreating(false)} onSaved={(id) => navigate(`/admin/kits/${id}`)} />}
+      {creating && <KitForm defaultDelivery={delivery} onClose={() => setCreating(false)} onSaved={(id) => navigate(`/admin/kits/${id}`)} />}
     </>
   )
 }

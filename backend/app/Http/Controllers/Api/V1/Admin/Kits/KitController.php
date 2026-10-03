@@ -54,16 +54,20 @@ class KitController extends KitBaseController
         return response()->json(['data' => $columns]);
     }
 
-    public function stats(): JsonResponse
+    public function stats(Request $request): JsonResponse
     {
         $user = $this->user();
-        $kits = KitAccess::scope(TrainingKit::query(), $user);
+        $all = KitAccess::scope(TrainingKit::query(), $user)->where('status', '!=', TrainingKit::ARCHIVED);
+        $byDelivery = (clone $all)->select('delivery', DB::raw('count(*) as n'))->groupBy('delivery')->pluck('n', 'delivery');
+        $kits = KitAccess::scope(TrainingKit::query(), $user)
+            ->when(in_array($request->query('delivery'), TrainingKit::DELIVERIES, true), fn ($q) => $q->where('delivery', $request->query('delivery')));
         $ids = (clone $kits)->pluck('id');
 
         $byStatus = (clone $kits)->select('status', DB::raw('count(*) as n'))->groupBy('status')->pluck('n', 'status');
         $mine = KitComment::whereIn('kit_id', $ids)->whereNull('parent_id')->where('assignee_id', $user->id)->whereIn('status', ['open', 'addressed']);
 
         return response()->json(['data' => [
+            'by_delivery' => ['standard' => (int) ($byDelivery['standard'] ?? 0), 'online' => (int) ($byDelivery['online'] ?? 0)],
             'total' => (int) $byStatus->except(TrainingKit::ARCHIVED)->sum(),
             'by_status' => $byStatus,
             'awaiting_review' => (clone $kits)->where('status', TrainingKit::IN_REVIEW)->count(),
@@ -115,6 +119,7 @@ class KitController extends KitBaseController
         $kit = DB::transaction(function () use ($data, $user) {
             $program = ! empty($data['program_id']) ? Program::find($data['program_id']) : null;
             $kit = TrainingKit::create($data + [
+                'delivery' => $program && $program->delivery_mode === 'online' ? 'online' : 'standard',
                 'code' => $this->nextCode(),
                 'status' => TrainingKit::DRAFT,
                 'owner_id' => $data['owner_id'] ?? $user->id,
@@ -268,6 +273,7 @@ class KitController extends KitBaseController
             ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$t}%")->orWhere('title_en', 'like', "%{$t}%")->orWhere('code', 'like', "%{$t}%")))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->when($request->boolean('mine'), fn ($q) => $q->where(fn ($w) => $w->where('owner_id', $user->id)->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id))))
+            ->when(in_array($request->query('delivery'), TrainingKit::DELIVERIES, true), fn ($q) => $q->where('delivery', $request->query('delivery')))
             ->when($request->query('program_id'), fn ($q, $id) => $q->where('program_id', $id))
             ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
             ->when($request->boolean('overdue'), fn ($q) => $q->whereNotNull('due_at')->where('due_at', '<', now())->whereNotIn('status', [TrainingKit::APPROVED, TrainingKit::PUBLISHED, TrainingKit::ARCHIVED]))
@@ -296,6 +302,7 @@ class KitController extends KitBaseController
             'title_en' => [$partial ? 'sometimes' : 'required_without:program_id', 'string', 'max:255'],
             'description_ar' => ['nullable', 'string', 'max:5000'], 'description_en' => ['nullable', 'string', 'max:5000'],
             'program_id' => ['nullable', 'uuid', 'exists:programs,id'],
+            'delivery' => ['sometimes', Rule::in(TrainingKit::DELIVERIES)],
             'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],
             'audience' => ['nullable', 'string', 'max:255'],
             'duration_hours' => ['nullable', 'numeric', 'min:0', 'max:1000'],

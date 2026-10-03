@@ -42,6 +42,27 @@ class KitStudioTest extends TestCase
         return $this->asUser($this->dev)->postJson("/api/v1/admin/kits/$kitId/ai/deck", ['topic' => 'إدارة الصف', 'slide_count' => 10])->assertCreated()->assertJsonPath('data.provider', 'template')->json('data.file.id');
     }
 
+    public function test_kits_are_either_regular_or_online_and_the_studio_filters_by_type(): void
+    {
+        $regular = $this->kit();
+        $online = $this->kit(['title_ar' => 'حقيبة إلكترونية', 'title_en' => 'Online Kit', 'delivery' => 'online']);
+        $program = $this->makeProgram(['delivery_mode' => 'online']);
+        $fromProgram = $this->kit(['program_id' => $program->id, 'title_ar' => 'من برنامج', 'title_en' => 'From program']);
+
+        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$regular}")->assertJsonPath('data.delivery', 'standard');
+        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$fromProgram}")->assertJsonPath('data.delivery', 'online');
+
+        $ids = fn (string $type) => collect($this->asUser($this->admin)->getJson("/api/v1/admin/kits?delivery={$type}")->json('data'))->pluck('id')->all();
+        $this->assertSame([$regular], $ids('standard'));
+        $this->assertEqualsCanonicalizing([$online, $fromProgram], $ids('online'));
+
+        $stats = $this->asUser($this->admin)->getJson('/api/v1/admin/kits/stats?delivery=online')->assertOk();
+        $this->assertSame(['standard' => 1, 'online' => 2], $stats->json('data.by_delivery'), 'both tabs show their own count');
+        $this->assertSame(2, $stats->json('data.total'));
+        $this->asUser($this->admin)->putJson("/api/v1/admin/kits/{$regular}", ['delivery' => 'online'])->assertOk()->assertJsonPath('data.delivery', 'online');
+        $this->asUser($this->admin)->postJson('/api/v1/admin/kits', ['title_ar' => 'x', 'title_en' => 'x', 'delivery' => 'nonsense'])->assertUnprocessable();
+    }
+
     public function test_access_follows_membership_and_roles(): void
     {
         $id = $this->kit();
