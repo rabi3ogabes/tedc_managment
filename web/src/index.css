@@ -122,3 +122,10 @@ html { scrollbar-width: thin; scrollbar-color: var(--color-navy-700) transparent
 :focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 3px; border-radius: 6px; }
 body { text-rendering: optimizeLegibility; }
 @media (prefers-reduced-motion: reduce) { [style*="hero-progress"] { animation: none !important; } }
+
+/* Live map bubbles */
+.live-bubble { position: relative; display: grid; place-items: center; border-radius: 9999px; color: #fff; font-size: 13px; background: conic-gradient(var(--color-gold-500) var(--share), var(--color-navy-700) 0); box-shadow: 0 6px 20px -4px rgb(0 0 0 / .45); border: 3px solid #fff; }
+.live-bubble b { display: grid; place-items: center; inset: 4px; position: absolute; border-radius: 9999px; background: var(--color-navy-900); font-weight: 800; }
+.live-bubble-ring { position: absolute; inset: -6px; border-radius: 9999px; border: 2px solid var(--color-gold-500); opacity: .7; animation: live-bubble-ping 2.2s ease-out infinite; }
+@keyframes live-bubble-ping { 0% { transform: scale(.8); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .live-bubble-ring { animation: none; } }

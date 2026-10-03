@@ -124,4 +124,29 @@ class PresenceAndLockTest extends TestCase
         $this->assertSame([], $this->getJson('/api/v1/public/labels')->json('data.en'));
         $this->asUser($this->makeEmployee()->user)->putJson('/api/v1/admin/settings/labels', ['ar' => ['nav.home' => 'x']])->assertForbidden();
     }
+
+    public function test_online_users_show_where_they_are_and_what_they_use_and_the_admin_can_switch_it_off(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $member = $this->makeEmployee()->user;
+        $geo = ['x-vercel-ip-country' => 'QA', 'x-vercel-ip-city' => rawurlencode('Al Wakrah'), 'x-vercel-ip-latitude' => '25.1715', 'x-vercel-ip-longitude' => '51.6034'];
+
+        $this->asUser($member)->withHeaders($geo + ['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0) Chrome/120 Safari/537'])->postJson('/api/v1/me/presence', ['platform' => 'web', 'path' => '/portal'])->assertOk();
+        $this->asUser($admin)->withHeaders($geo + ['User-Agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17) Safari/604'])->postJson('/api/v1/me/presence', ['platform' => 'web', 'path' => '/admin'])->assertOk();
+
+        $live = $this->asUser($admin)->getJson('/api/v1/admin/presence/live')->assertOk()->assertJsonPath('data.enabled', true)->json('data');
+        $this->assertSame(1, $live['by_source']['desktop']);
+        $this->assertSame(1, $live['by_source']['mobile_web']);
+        $this->assertSame('Al Wakrah', $live['places'][0]['city']);
+        $this->assertSame(2, $live['places'][0]['count']);
+        $this->assertSame('QA', $live['by_country'][0]['country']);
+
+        // Switched off: nothing new is recorded and the page is told so.
+        $this->asUser($admin)->putJson('/api/v1/admin/presence/settings', ['enabled' => false])->assertOk()->assertJsonPath('data.enabled', false);
+        $other = $this->makeEmployee()->user;
+        $this->asUser($other)->postJson('/api/v1/me/presence', ['platform' => 'mobile'])->assertOk();
+        $this->assertSame(0, PresenceSession::where('user_id', $other->id)->count());
+        $this->asUser($admin)->getJson('/api/v1/admin/presence/live')->assertOk()->assertJsonPath('data.enabled', false);
+        $this->asUser($this->makeUser(Role::COORDINATOR))->putJson('/api/v1/admin/presence/settings', ['enabled' => true])->assertForbidden();
+    }
 }

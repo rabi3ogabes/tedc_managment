@@ -1,5 +1,12 @@
 /** System administration: signing in as a user, the error log and the room-screen template. */
 export const opsAr = {
+  liveGeo: {
+    mapTitle: 'خريطة المتصلين الآن', mapHint: 'تُحدَّد المواقع من شبكة المستخدم (المدينة والدولة) دون تخزين العنوان الدقيق.', people: '{{count}} متصل', unknown: 'موقع غير معروف', unlocated: '{{count}} بلا موقع',
+    sources: { app: 'تطبيق الجوال', desktop: 'حاسوب', mobile_web: 'متصفح الجوال', tablet: 'جهاز لوحي' }, sourceTitle: 'من أين يدخلون', countries: 'الدول',
+    toggle: 'التتبع المباشر', on: 'يعمل', off: 'متوقف', offTitle: 'التتبع المباشر متوقف', offText: 'لا تُسجَّل الجلسات ولا المواقع حالياً. فعّله لترى من يتصل الآن وأين.', turnOn: 'تفعيل التتبع',
+    turnOff: 'إيقاف التتبع المباشر؟ تتوقف الخريطة وقائمة المتصلين عن التحديث ولا تُسجَّل جلسات جديدة.', locations: 'جمع المواقع', locationsHint: 'عند الإيقاف يبقى التتبع لكن بلا خريطة.',
+    joined: 'دخل', left: 'غادر', feed: 'آخر الأحداث', feedEmpty: 'ستظهر هنا حركة الدخول والخروج لحظة بلحظة.', noMap: 'لا مواقع متاحة بعد — تظهر المواقع حين يدخل المستخدمون عبر الإنترنت.', auto: 'يتحدث تلقائياً كل 5 ثوانٍ',
+  },
   logs: {
     nav: 'سجل الأخطاء', title: 'سجل الأخطاء', subtitle: 'كل ما تعثّر في النظام أو الموقع أو التطبيق، مجمّعاً بحسب السبب — يظهر لمدير النظام فقط. تُعالَج المشكلات المعروفة تلقائياً.',
     stats: { open: 'مفتوحة', critical: 'حرجة', today: 'اليوم', auto: 'عولجت تلقائياً', trend: 'آخر 14 يوماً' },
@@ -19,6 +26,13 @@ export const opsAr = {
 }
 
 export const opsEn: typeof opsAr = {
+  liveGeo: {
+    mapTitle: 'Who is online, on the map', mapHint: 'Places come from the user’s network (city and country); the exact address is never stored.', people: '{{count}} online', unknown: 'Unknown place', unlocated: '{{count}} without a location',
+    sources: { app: 'Mobile app', desktop: 'Desktop', mobile_web: 'Phone browser', tablet: 'Tablet' }, sourceTitle: 'Where they come in from', countries: 'Countries',
+    toggle: 'Live tracking', on: 'On', off: 'Off', offTitle: 'Live tracking is off', offText: 'Sessions and locations are not being recorded. Turn it on to see who is online and where.', turnOn: 'Turn tracking on',
+    turnOff: 'Turn live tracking off? The map and the online list stop updating and no new sessions are recorded.', locations: 'Collect locations', locationsHint: 'When off, tracking continues but without the map.',
+    joined: 'joined', left: 'left', feed: 'Latest activity', feedEmpty: 'Arrivals and departures show up here as they happen.', noMap: 'No locations yet — they appear as users connect over the internet.', auto: 'Updates automatically every 5 seconds',
+  },
   logs: {
     nav: 'Error log', title: 'Error log', subtitle: 'Everything that failed in the system, the website or the app, grouped by cause — visible to the system administrator only. Known problems are fixed automatically.',
     stats: { open: 'Open', critical: 'Critical', today: 'Today', auto: 'Fixed automatically', trend: 'Last 14 days' },

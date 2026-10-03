@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'platform', 'team', 'role_label', 'started_at', 'last_seen_at', 'hits', 'idle_seconds', 'last_path', 'device', 'app_version'])]
+#[Fillable(['user_id', 'platform', 'team', 'role_label', 'started_at', 'last_seen_at', 'hits', 'idle_seconds', 'last_path', 'device', 'app_version', 'source', 'country', 'region', 'city', 'lat', 'lng'])]
 class PresenceSession extends Model
 {
     use HasUuids;

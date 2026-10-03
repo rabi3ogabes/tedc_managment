@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PresenceSession;
 use App\Services\PresenceService;
+use App\Services\PresenceSettings;
 use App\Services\SecuritySettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class PresenceController extends Controller
             'idle_seconds' => ['nullable', 'integer', 'min:0', 'max:604800'],
             'app_version' => ['nullable', 'string', 'max:24'],
         ]);
-        $this->presence->heartbeat($request->user(), $data, $request->userAgent());
+        $this->presence->heartbeat($request->user(), $data, $request->userAgent(), $request);
 
         $user = $request->user();
         $security = app(SecuritySettings::class);
@@ -40,7 +41,20 @@ class PresenceController extends Controller
 
     public function live(): JsonResponse
     {
+        $settings = app(PresenceSettings::class);
+        if (! $settings->enabled()) {
+            return response()->json(['data' => ['enabled' => false, 'settings' => $settings->all()]]);
+        }
+
         return response()->json(['data' => $this->presence->live()]);
+    }
+
+    /** Switch live presence (or the collection of locations) on or off. */
+    public function updateSettings(Request $request): JsonResponse
+    {
+        $data = $request->validate(['enabled' => ['sometimes', 'boolean'], 'locations' => ['sometimes', 'boolean']]);
+
+        return response()->json(['data' => app(PresenceSettings::class)->update($data, $request->user())]);
     }
 
     public function report(Request $request): JsonResponse

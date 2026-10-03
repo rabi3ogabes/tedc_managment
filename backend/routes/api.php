@@ -252,6 +252,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('notify', [ProgramSurveyController::class, 'notify']);
             });
             Route::get('presence/live', [PresenceController::class, 'live'])->middleware('permission:analytics.view');
+            Route::put('presence/settings', [PresenceController::class, 'updateSettings'])->middleware('permission:settings.manage');
             Route::get('presence/report', [PresenceController::class, 'report'])->middleware('permission:analytics.view');
             Route::get('presence/export', [PresenceController::class, 'export'])->middleware('permission:analytics.view');
             Route::get('analytics/geographic', [AnalyticsController::class, 'geographic'])->middleware('permission:analytics.view');

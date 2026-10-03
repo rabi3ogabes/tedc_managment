@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\PresenceSession;
 use App\Models\User;
+use App\Support\GeoLocator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -28,9 +30,11 @@ class PresenceService
     }
 
     /** @param  array{platform: string, path?: ?string, idle_seconds?: ?int, app_version?: ?string}  $data */
-    public function heartbeat(User $user, array $data, ?string $userAgent = null): PresenceSession
+    public function heartbeat(User $user, array $data, ?string $userAgent = null, ?Request $request = null): ?PresenceSession
     {
         $now = now();
+        $settings = app(PresenceSettings::class);
+        $geo = $request && $settings->all()['locations'] ? GeoLocator::fromRequest($request) : null;
         $platform = $data['platform'];
         $idle = max(0, (int) ($data['idle_seconds'] ?? 0));
         $path = isset($data['path']) ? mb_substr($data['path'], 0, 191) : null;
@@ -38,8 +42,17 @@ class PresenceService
         $session = PresenceSession::where('user_id', $user->id)->where('platform', $platform)
             ->where('last_seen_at', '>=', $now->copy()->subMinutes(self::SESSION_GAP_MINUTES))->latest('last_seen_at')->first();
 
+        // The administrator switched live presence off: nothing is recorded (the idle lock below still works).
+        if (! $settings->enabled()) {
+            if (! $user->locked_at) {
+                $user->forceFill(['last_active_at' => $now->copy()->subSeconds($idle)])->saveQuietly();
+            }
+
+            return null;
+        }
+
         if ($session) {
-            $session->update(['last_seen_at' => $now, 'hits' => $session->hits + 1, 'idle_seconds' => $idle, 'last_path' => $path ?? $session->last_path]);
+            $session->update(['last_seen_at' => $now, 'hits' => $session->hits + 1, 'idle_seconds' => $idle, 'last_path' => $path ?? $session->last_path] + ($geo && $geo['country'] ? $geo : []));
         } else {
             $user->loadMissing('roles');
             $session = PresenceSession::create([
@@ -47,7 +60,8 @@ class PresenceService
                 'role_label' => $user->roles->map(fn ($r) => app()->getLocale() === 'en' ? $r->name_en : $r->name_ar)->take(2)->implode('، ') ?: null,
                 'started_at' => $now, 'last_seen_at' => $now, 'idle_seconds' => $idle, 'last_path' => $path,
                 'device' => $platform === 'web' ? self::browser($userAgent) : self::phone($userAgent), 'app_version' => $data['app_version'] ?? null,
-            ]);
+                'source' => GeoLocator::source($platform, $userAgent),
+            ] + ($geo ?? []));
         }
 
         // Real user activity (not the polling of an open tab) feeds the idle lock of the administration team.
@@ -70,7 +84,8 @@ class PresenceService
             'role' => $s->role_label, 'team' => $s->team, 'platform' => $s->platform, 'device' => $s->device, 'path' => $s->last_path,
             'started_at' => $s->started_at->toIso8601String(), 'last_seen_at' => $s->last_seen_at->toIso8601String(), 'minutes' => $s->minutes(),
             'status' => $s->user?->locked_at ? 'locked' : ($s->idle_seconds <= self::ACTIVE_WITHIN_SECONDS ? 'active' : 'idle'),
-            'hits' => $s->hits,
+            'hits' => $s->hits, 'source' => $s->source ?? ($s->platform === 'mobile' ? 'app' : 'desktop'),
+            'country' => $s->country, 'region' => $s->region, 'city' => $s->city, 'lat' => $s->lat !== null ? (float) $s->lat : null, 'lng' => $s->lng !== null ? (float) $s->lng : null,
         ])->values();
 
         $distinct = fn (Collection $rows) => $rows->pluck('user_id')->unique()->count();
@@ -83,8 +98,21 @@ class PresenceService
 
         $todayRows = PresenceSession::where('started_at', '>=', $now->copy()->startOfDay())->get();
 
+        $placed = $users->filter(fn ($u) => $u['lat'] !== null && $u['lng'] !== null);
+
         return [
+            'enabled' => true,
+            'settings' => app(PresenceSettings::class)->all(),
             'generated_at' => $now->toIso8601String(),
+            // People grouped by place (a city, or the same coordinates), for the map.
+            'places' => $placed->groupBy(fn ($u) => $u['lat'].','.$u['lng'])->map(fn ($g) => [
+                'lat' => $g->first()['lat'], 'lng' => $g->first()['lng'], 'country' => $g->first()['country'], 'city' => $g->first()['city'], 'count' => $g->pluck('user_id')->unique()->count(),
+                'staff' => $g->where('team', 'staff')->pluck('user_id')->unique()->count(), 'sources' => $g->countBy('source'),
+                'users' => $g->take(6)->map(fn ($u) => ['name' => $u['name'], 'team' => $u['team'], 'source' => $u['source']])->values(),
+            ])->values(),
+            'by_source' => collect(['app', 'desktop', 'mobile_web', 'tablet'])->mapWithKeys(fn ($k) => [$k => $users->where('source', $k)->pluck('user_id')->unique()->count()]),
+            'by_country' => $users->whereNotNull('country')->groupBy('country')->map(fn ($g, $c) => ['country' => $c, 'count' => $g->pluck('user_id')->unique()->count()])->sortByDesc('count')->values(),
+            'unlocated' => $users->whereNull('lat')->pluck('user_id')->unique()->count(),
             'online' => [
                 'total' => $distinct($online), 'staff' => $distinct($online->where('team', 'staff')), 'members' => $distinct($online->where('team', 'members')),
                 'web' => $distinct($online->where('platform', 'web')), 'mobile' => $distinct($online->where('platform', 'mobile')),

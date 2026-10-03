@@ -1,19 +1,24 @@
 import clsx from 'clsx'
-import { Activity, CalendarDays, Clock, Download, FileBarChart, Globe2, Lock, Monitor, MoonStar, Radio, Search, ShieldCheck, Smartphone, Timer, TrendingUp, Users, UsersRound } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Activity, CalendarDays, Clock, Download, Laptop, MapPinned, Power, Tablet, TabletSmartphone, LogIn, LogOut, FileBarChart, Globe2, Lock, Monitor, MoonStar, Radio, Search, ShieldCheck, Smartphone, Timer, TrendingUp, Users, UsersRound } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Badge, Button, Card, Empty, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { api } from '@/lib/api'
+import LiveMap, { flag, type Place } from './live/LiveMap'
 
 type Team = 'staff' | 'members'
 type Online = {
   session_id: string; user_id: string; name: string; email: string | null; role: string | null; team: Team; platform: 'web' | 'mobile'; device: string | null
   path: string | null; started_at: string; last_seen_at: string; minutes: number; status: 'active' | 'idle' | 'locked'; hits: number
+  source?: 'app' | 'desktop' | 'mobile_web' | 'tablet'; country?: string | null; region?: string | null; city?: string | null; lat?: number | null; lng?: number | null
 }
 type Point = { t: string; staff: number; members: number }
 type Live = {
+  enabled?: boolean; settings?: { enabled: boolean; locations: boolean }
+  places?: Place[]; by_source?: Record<string, number>; by_country?: { country: string; count: number }[]; unlocated?: number
   generated_at: string
   online: { total: number; staff: number; members: number; web: number; mobile: number; active: number }
   users: Online[]
@@ -89,7 +94,11 @@ function LiveTab() {
   const { t } = useTranslation()
   const pageLabel = usePageLabel()
   const ago = useAgo()
-  const { data, isLoading, isFetching, dataUpdatedAt, error } = useGet<{ data: Live }>('/admin/presence/live', undefined, { refetchInterval: 10_000, staleTime: 0 })
+  const i18nLang = useTranslation().i18n.language
+  const { data, isLoading, isFetching, dataUpdatedAt, error, refetch } = useGet<{ data: Live }>('/admin/presence/live', undefined, { refetchInterval: 5_000, staleTime: 0 })
+  const [switching, setSwitching] = useState(false)
+  const [feed, setFeed] = useState<{ id: string; name: string; kind: 'joined' | 'left'; at: number }[]>([])
+  const known = useRef<Map<string, string> | null>(null)
   const [filter, setFilter] = useState<'all' | Team>('all')
   const [q, setQ] = useState('')
   const [, tick] = useState(0)
@@ -98,14 +107,55 @@ function LiveTab() {
   const live = data?.data
   const users = useMemo(() => (live?.users ?? []).filter((u) => (filter === 'all' || u.team === filter) && (!q || `${u.name} ${u.email} ${u.role}`.toLowerCase().includes(q.toLowerCase()))), [live, filter, q])
 
+  // Arrivals and departures, found by comparing each refresh with the one before.
+  useEffect(() => {
+    if (!live?.users) return
+    const now = new Map(live.users.map((u) => [u.user_id, u.name]))
+    if (known.current) {
+      const events: { id: string; name: string; kind: 'joined' | 'left'; at: number }[] = []
+      now.forEach((name, id) => { if (!known.current!.has(id)) events.push({ id: `j${id}${Date.now()}`, name, kind: 'joined', at: Date.now() }) })
+      known.current.forEach((name, id) => { if (!now.has(id)) events.push({ id: `l${id}${Date.now()}`, name, kind: 'left', at: Date.now() }) })
+      if (events.length) setFeed((f) => [...events, ...f].slice(0, 12))
+    }
+    known.current = now
+  }, [live])
+
+  const setEnabled = async (patch: { enabled?: boolean; locations?: boolean }) => {
+    setSwitching(true)
+    try { await api.put('/admin/presence/settings', patch); await refetch() } finally { setSwitching(false) }
+  }
+
   if (isLoading) return <Spinner />
   if (error || !live) return <Card><p className="py-10 text-center text-slate-500">{errorMessage(error)}</p></Card>
+  if (live.enabled === false) {
+    return (
+      <Card className="mx-auto max-w-xl py-12 text-center">
+        <span className="mx-auto grid size-16 place-items-center rounded-full bg-slate-100 text-slate-400"><Power className="size-8" /></span>
+        <h2 className="mt-4 text-xl font-bold text-navy-900">{t('liveGeo.offTitle')}</h2>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">{t('liveGeo.offText')}</p>
+        <Button className="mt-5" variant="gold" loading={switching} icon={<Power className="size-4" />} onClick={() => setEnabled({ enabled: true })}>{t('liveGeo.turnOn')}</Button>
+      </Card>
+    )
+  }
   const { online } = live
+  const places = live.places ?? []
   const staffShare = online.total ? Math.round((online.staff / Math.max(online.staff + online.members, 1)) * 100) : 0
   const updated = Math.max(0, Math.round((Date.now() - dataUpdatedAt) / 1000))
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-navy-100 bg-white px-4 py-3">
+        <button type="button" role="switch" aria-checked onClick={() => window.confirm(t('liveGeo.turnOff')) && setEnabled({ enabled: false })} disabled={switching} className="flex items-center gap-3">
+          <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-emerald-500 p-0.5"><span className="size-5 rounded-full bg-white shadow ltr:translate-x-5 rtl:-translate-x-5" /></span>
+          <span className="text-sm font-bold text-navy-900">{t('liveGeo.toggle')} · <span className="text-emerald-700">{t('liveGeo.on')}</span></span>
+        </button>
+        <button type="button" role="switch" aria-checked={live.settings?.locations ?? true} onClick={() => setEnabled({ locations: !(live.settings?.locations ?? true) })} disabled={switching} className="flex items-center gap-3">
+          <span className={clsx('relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition', (live.settings?.locations ?? true) ? 'bg-emerald-500' : 'bg-slate-300')}><span className={clsx('size-5 rounded-full bg-white shadow transition', (live.settings?.locations ?? true) && 'ltr:translate-x-5 rtl:-translate-x-5')} /></span>
+          <span><span className="block text-sm font-bold text-navy-900">{t('liveGeo.locations')}</span><span className="block text-[11px] text-slate-500">{t('liveGeo.locationsHint')}</span></span>
+        </button>
+        <span className="ms-auto text-xs text-slate-400">{t('liveGeo.auto')}</span>
+      </div>
+
       {/* Realtime hero */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 p-6 text-white shadow-glass sm:p-8">
         <div className="pointer-events-none absolute -end-24 -top-28 size-80 rounded-full bg-gold-500/15 blur-3xl" />
@@ -160,6 +210,43 @@ function LiveTab() {
         ))}
       </div>
 
+      {(live.settings?.locations ?? true) && (
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <Card padded={false} className="overflow-hidden">
+            <div className="flex items-center gap-3 p-5 pb-3"><MapPinned className="size-5 text-gold-600" /><div><h2 className="text-lg font-bold text-navy-900">{t('liveGeo.mapTitle')}</h2><p className="text-xs text-slate-500">{t('liveGeo.mapHint')}</p></div></div>
+            <div className="relative h-[26rem]">
+              <LiveMap places={places} />
+              {places.length === 0 && <div className="pointer-events-none absolute inset-0 z-[500] grid place-items-center bg-white/55 p-6 text-center text-sm font-semibold text-slate-600 backdrop-blur-[1px]">{t('liveGeo.noMap')}</div>}
+            </div>
+            {(live.unlocated ?? 0) > 0 && <div className="px-5 py-2 text-xs text-slate-500">{t('liveGeo.unlocated', { count: live.unlocated })}</div>}
+          </Card>
+          <div className="space-y-6">
+            <Card>
+              <h3 className="mb-3 font-bold text-navy-900">{t('liveGeo.sourceTitle')}</h3>
+              <ul className="space-y-3">
+                {([['app', Smartphone], ['desktop', Laptop], ['mobile_web', TabletSmartphone], ['tablet', Tablet]] as const).map(([k, Icon]) => {
+                  const n = live.by_source?.[k] ?? 0
+                  const total = Math.max(1, online.total)
+                  return <li key={k}><div className="flex items-center justify-between text-sm"><span className="inline-flex items-center gap-2 font-semibold text-navy-900"><Icon className="size-4 text-gold-600" />{t(`liveGeo.sources.${k}`)}</span><span className="font-bold tabular-nums">{n}</span></div><div className="mt-1 h-1.5 overflow-hidden rounded-full bg-navy-100/60"><div className="h-full rounded-full bg-gradient-to-r from-gold-500 to-gold-300 transition-all duration-700" style={{ width: `${(n / total) * 100}%` }} /></div></li>
+                })}
+              </ul>
+            </Card>
+            <Card>
+              <h3 className="mb-3 font-bold text-navy-900">{t('liveGeo.countries')}</h3>
+              {(live.by_country ?? []).length === 0 ? <p className="text-sm text-slate-400">—</p> : (
+                <ul className="space-y-2">{(live.by_country ?? []).slice(0, 6).map((c) => <li key={c.country} className="flex items-center justify-between text-sm"><span className="font-semibold text-navy-900">{flag(c.country)} {new Intl.DisplayNames([i18nLang], { type: 'region' }).of(c.country)}</span><span className="font-bold tabular-nums">{c.count}</span></li>)}</ul>
+              )}
+            </Card>
+            <Card>
+              <h3 className="mb-3 font-bold text-navy-900">{t('liveGeo.feed')}</h3>
+              {feed.length === 0 ? <p className="text-sm text-slate-400">{t('liveGeo.feedEmpty')}</p> : (
+                <ul className="space-y-2">{feed.map((e) => <li key={e.id} className="flex items-center gap-2 text-sm"><span className={clsx('grid size-6 place-items-center rounded-full', e.kind === 'joined' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500')}>{e.kind === 'joined' ? <LogIn className="size-3.5" /> : <LogOut className="size-3.5" />}</span><span className="min-w-0 flex-1 truncate font-semibold text-navy-900">{e.name}</span><span className="text-xs text-slate-400">{t(`liveGeo.${e.kind}`)}</span></li>)}</ul>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <Card padded={false}>
           <div className="flex flex-wrap items-center gap-3 p-5 pb-3">
@@ -184,7 +271,7 @@ function LiveTab() {
                     <div className="truncate text-xs text-slate-500">{u.role ?? '—'}{u.email && <> · <span dir="ltr">{u.email}</span></>}</div>
                   </div>
                   <div className="flex min-w-36 items-center gap-2 text-sm text-navy-800">{u.platform === 'web' ? <Monitor className="size-4 text-slate-400" /> : <Smartphone className="size-4 text-slate-400" />}
-                    <div><div className="font-semibold">{pageLabel(u.path)}</div><div className="text-[11px] text-slate-400">{u.device ?? t(`mgmt.live.platform.${u.platform}`)}</div></div></div>
+                    <div><div className="font-semibold">{pageLabel(u.path)}</div>{u.country && <div className="text-[11px] text-slate-500">{flag(u.country)} {u.city ?? new Intl.DisplayNames([i18nLang], { type: 'region' }).of(u.country)}</div>}<div className="text-[11px] text-slate-400">{u.device ?? t(`mgmt.live.platform.${u.platform}`)}</div></div></div>
                   <StatusPill status={u.status} />
                   <div className="w-24 text-end text-xs text-slate-500"><div className="inline-flex items-center gap-1"><Timer className="size-3" />{t('mgmt.live.minutesOnline', { n: u.minutes })}</div><div>{ago(u.last_seen_at)}</div></div>
                 </li>
