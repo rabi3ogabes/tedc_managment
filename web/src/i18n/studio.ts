@@ -17,6 +17,18 @@ export const studioAr = {
     show: 'ما يظهر على الشاشة', logo: 'الشعار', centerName: 'اسم المركز', clock: 'الساعة والتاريخ', trainer: 'المدرب', progress: 'شريط التقدم', ring: 'حلقة الحضور', trainees: 'قائمة المتدربين', school: 'مدرسة المتدرب',
     footer: 'رسالة أسفل الشاشة', footerAr: 'الرسالة بالعربية', footerEn: 'الرسالة بالإنجليزية', footerHint: 'مثل: «نتمنى لكم يوماً تدريبياً مثمراً». اتركها فارغة لإخفائها.',
   },
+  designer2: {
+    modeTemplate: 'قالب جاهز', modeTemplateHint: 'اختر تخطيطاً من ثلاثة وعدّل الألوان وما يظهر.', modeFree: 'تصميم حر بالسحب والإفلات', modeFreeHint: 'ضع الشعار والنصوص والساعة وقائمة المتدربين أينما تريد، وغيّر الألوان والخلفية والتدرج والصورة.',
+    tabs: { live: 'أثناء الجلسة', idle: 'القاعة شاغرة' }, types: { text: 'نص', logo: 'الشعار', clock: 'الساعة', date: 'التاريخ', status: 'الحالة', progress: 'شريط التقدم', ring: 'حلقة الحضور', trainees: 'المتدربون', image: 'صورة', shape: 'شكل' },
+    reset: 'البدء من القالب', confirmReset: 'استبدال التصميم الحالي بتصميم يشبه القالب الجاهز؟', tips: 'اسحب أي عنصر لتحريكه · اسحب زواياه لتغيير حجمه · Alt لإيقاف المغناطيس · النصوص تقبل رموزاً مثل {{program}} تُملأ تلقائياً.',
+    background: 'الخلفية', bg: { brand: 'ألوان الهوية', solid: 'لون واحد', gradient: 'تدرج', image: 'صورة', brandHint: 'تتبع لون الهوية المضبوط في «الهوية البصرية».', color: 'اللون', from: 'من', to: 'إلى', angle: 'زاوية التدرج', imageLabel: 'صورة الخلفية', cover: 'تغطية', tile: 'تكرار' },
+    overlay: 'طبقة فوق الخلفية', overlayStrength: 'قوة الطبقة', selectHint: 'اختر عنصراً على الشاشة لتعديل خصائصه.', textStyle: 'النص', logoLight: 'نسخة الشعار الفاتحة (للخلفيات الداكنة)', listStyle: 'القائمة', columns: 'عدد الأعمدة', accent: 'اللون',
+    box: 'الصندوق', fill2: 'اللون الثاني (تدرج)', border: 'لون الحد', borderWidth: 'سمك الحد',
+  },
+  wall: {
+    nav: 'شاشات القاعات', title: 'شاشات القاعات مباشرة', subtitle: 'كل شاشات القاعات في صفحة واحدة، تتحدث لحظة بلحظة: من يتدرب في أي قاعة وأي القاعات شاغرة.', wallMode: 'ملء الشاشة', live: 'يتحدث كل 10 ثوانٍ',
+    filters: { all: 'الكل', live: 'جارية الآن', soon: 'قريباً', free: 'شاغرة' }, states: { live: 'جلسة جارية', soon: 'جلسة قريبة', free: 'شاغرة' }, open: 'فتح الشاشة', empty: 'لا توجد قاعات في هذا التصنيف.',
+  },
   nav: { templates: 'مصمّم الشهادات', remote: 'برنامج عن بُعد' },
   screen: {
     available: 'متاحة للحجز', nextToday: 'الجلسة القادمة اليوم', freeFor: 'القاعة متاحة {{time}} قبل بدايتها', hm: '{{h}} س و{{m}} د', minutes: '{{m}} دقيقة',
@@ -111,6 +123,18 @@ export const studioEn: typeof studioAr = {
     look: 'Look', themes: { brand: 'Brand colours', midnight: 'Midnight', custom: 'Custom colour' }, brandHint: 'The background comes from the primary colour set in Brand Studio.', background: 'Background colour', accent: 'Accent colour', accentHint: 'Used for the time, the bar and the icons.', useBrand: 'Use the brand colour', fromBrand: 'From the brand',
     show: 'What the screen shows', logo: 'Logo', centerName: 'Center name', clock: 'Clock and date', trainer: 'Trainer', progress: 'Progress bar', ring: 'Attendance ring', trainees: 'Trainee list', school: 'Trainee’s school',
     footer: 'Message at the bottom', footerAr: 'Message in Arabic', footerEn: 'Message in English', footerHint: 'For example “Have a productive training day”. Leave empty to hide it.',
+  },
+  designer2: {
+    modeTemplate: 'Ready template', modeTemplateHint: 'Pick one of three layouts and adjust the colours and what shows.', modeFree: 'Free design — drag and drop', modeFreeHint: 'Place the logo, texts, clock and trainee list anywhere you like, and change the colours, background, gradient and picture.',
+    tabs: { live: 'During a session', idle: 'Empty room' }, types: { text: 'Text', logo: 'Logo', clock: 'Clock', date: 'Date', status: 'Status', progress: 'Progress bar', ring: 'Attendance ring', trainees: 'Trainees', image: 'Image', shape: 'Shape' },
+    reset: 'Start from the template', confirmReset: 'Replace the current design with one that looks like the ready template?', tips: 'Drag an element to move it · drag its corners to resize · hold Alt to stop snapping · texts accept tokens such as {{program}} that fill in by themselves.',
+    background: 'Background', bg: { brand: 'Brand colours', solid: 'One colour', gradient: 'Gradient', image: 'Picture', brandHint: 'Follows the colour set in Brand Studio.', color: 'Colour', from: 'From', to: 'To', angle: 'Gradient angle', imageLabel: 'Background image', cover: 'Cover', tile: 'Repeat' },
+    overlay: 'Layer over the background', overlayStrength: 'Layer strength', selectHint: 'Select an element on the screen to edit its properties.', textStyle: 'Text', logoLight: 'Light logo variant (for dark backgrounds)', listStyle: 'List', columns: 'Columns', accent: 'Colour',
+    box: 'Box', fill2: 'Second colour (gradient)', border: 'Border colour', borderWidth: 'Border width',
+  },
+  wall: {
+    nav: 'Room screens', title: 'Room screens, live', subtitle: 'Every classroom screen on one page, updating moment by moment: who is training in which room and which rooms are free.', wallMode: 'Full screen', live: 'Updates every 10 seconds',
+    filters: { all: 'All', live: 'Live now', soon: 'Soon', free: 'Free' }, states: { live: 'In session', soon: 'Starting soon', free: 'Free' }, open: 'Open screen', empty: 'No rooms in this group.',
   },
   nav: { templates: 'Certificate designer', remote: 'Remote program' },
   screen: {

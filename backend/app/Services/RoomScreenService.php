@@ -68,4 +68,11 @@ class RoomScreenService
             'date' => $day->toDateString(), 'is_today' => $day->isSameDay($now), 'now' => $now->toIso8601String(), 'sessions' => $rows,
         ];
     }
+
+    /** Every active room's screen for one day, for the wall that shows them all at once. @return list<array<string, mixed>> */
+    public function wall(?string $date = null): array
+    {
+        return TrainingRoom::where('status', 'active')->orderBy('office')->orderBy('floor')->orderBy('name_ar')->get()
+            ->map(fn (TrainingRoom $room) => ['id' => $room->id] + $this->day($room, $date))->all();
+    }
 }

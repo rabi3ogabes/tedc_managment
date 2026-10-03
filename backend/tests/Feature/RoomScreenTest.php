@@ -58,4 +58,33 @@ class RoomScreenTest extends TestCase
         $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['idle_title_en' => 'Free right now', 'idle_enabled' => false])->assertOk()->assertJsonPath('data.idle_title_en', 'Free right now')->assertJsonPath('data.idle_enabled', false);
         $this->asUser($admin)->postJson('/api/v1/admin/settings/room-screen/reset')->assertOk()->assertJsonPath('data.layout', 'classic');
     }
+
+    public function test_the_designer_layout_is_saved_cleaned_and_served_and_the_wall_lists_every_room(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        TrainingRoom::query()->delete(); // the seeded reference rooms
+        $a = TrainingRoom::create(['code' => 'W-1', 'name_ar' => 'أ', 'name_en' => 'A', 'capacity' => 10, 'status' => 'active']);
+        TrainingRoom::create(['code' => 'W-2', 'name_ar' => 'ب', 'name_en' => 'B', 'capacity' => 10, 'status' => 'maintenance']);
+        $token = $this->asUser($admin)->postJson("/api/v1/admin/rooms/{$a->id}/screen-link")->json('data.token');
+
+        $design = ['enabled' => true, 'background' => ['type' => 'gradient', 'color' => '#112233', 'color2' => 'red', 'angle' => 999, 'overlay_opacity' => 40],
+            'live' => [['id' => 'a1', 'type' => 'text', 'x' => 10, 'y' => 20, 'w' => 50, 'h' => 10, 'text' => '{{program}}', 'color' => '#ffcc00', 'size' => 64], ['id' => 'bad', 'type' => 'script'], ['id' => 'l', 'type' => 'logo', 'x' => 2, 'y' => 2, 'w' => 10, 'h' => 10]],
+            'idle' => [['id' => 'i1', 'type' => 'image', 'x' => 0, 'y' => 0, 'w' => 100, 'h' => 100, 'src' => 'javascript:alert(1)']]];
+        $saved = $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['design' => $design])->assertOk()->json('data.design');
+        $this->assertTrue($saved['enabled']);
+        $this->assertCount(2, $saved['live'], 'unknown element types are dropped');
+        $this->assertSame('#ffcc00', $saved['live'][0]['color']);
+        $this->assertSame('#3a0918', $saved['background']['color2'], 'an invalid colour falls back');
+        $this->assertSame(360.0, (float) $saved['background']['angle']);
+        $this->assertSame('', $saved['idle'][0]['src'], 'unsafe image addresses are removed');
+
+        $this->getJson('/api/v1/public/room-screen/'.$token)->assertOk()->assertJsonPath('data.template.design.enabled', true)->assertJsonPath('data.template.design.live.0.text', '{{program}}');
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/room-screen', ['layout' => 'minimal'])->assertOk();
+        $this->getJson('/api/v1/public/room-screen/'.$token)->assertJsonPath('data.template.design.enabled', true); // an unrelated save keeps the layout
+
+        $wall = $this->asUser($admin)->getJson('/api/v1/admin/rooms/wall')->assertOk()->json('data');
+        $this->assertCount(1, $wall, 'only active rooms are on the wall');
+        $this->assertSame($a->id, $wall[0]['id']);
+        $this->asUser($this->makeUser(Role::EMPLOYEE))->getJson('/api/v1/admin/rooms/wall')->assertForbidden();
+    }
 }

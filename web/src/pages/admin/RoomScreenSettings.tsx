@@ -6,23 +6,10 @@ import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { ImageField } from './brand/controls'
-import { DEFAULT_TEMPLATE, RoomScreenView, todayIso, type Day, type ScreenTemplate } from '../RoomScreen'
-
-/** A believable live session so the template can be judged without waiting for a real class. */
-function sampleDay(now: Date): Day {
-  const at = (h: number, m = 0) => { const d = new Date(now); d.setHours(h, m, 0, 0); return d.toISOString() }
-  const hour = now.getHours()
-  const startH = Math.min(Math.max(hour - 1, 7), 11)
-  const names = ['سارة المنصوري', 'خالد الكواري', 'منى النعيمي', 'أحمد الهاجري', 'نورة الكعبي', 'يوسف المري', 'هند الدوسري', 'ناصر العبيدلي']
-  return {
-    room: { name: 'قاعة الابتكار', code: 'R-01', building: 'المبنى الرئيسي', floor: 'الطابق الثاني', capacity: 40 }, date: todayIso(), is_today: true, now: now.toISOString(),
-    sessions: [{
-      id: 'sample', title: 'الجلسة الأولى', sequence: 1, mode: 'in_person', program: { code: 'LDR-101', title: 'القيادة التربوية الفعّالة' }, trainer: { name: 'د. نورة المهندي', photo: null },
-      starts_at: at(startH), ends_at: at(startH + 5), minutes: 300, state: 'live', counts: { expected: names.length, present: 5, late: 1, absent: 0 },
-      trainees: names.map((name, i) => ({ name, school: 'مدرسة الريان الابتدائية للبنات', status: i < 4 ? 'present' : i === 4 ? 'late' : 'expected', check_in_at: i < 5 ? at(startH, 5 + i) : null })),
-    }],
-  }
-}
+import { presetDesign } from '@/components/screen/design'
+import { sampleDay } from '@/components/screen/sample'
+import ScreenDesigner from './screen/ScreenDesigner'
+import { DEFAULT_TEMPLATE, RoomScreenView, todayIso, type ScreenTemplate } from '../RoomScreen'
 
 function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -87,6 +74,19 @@ export default function RoomScreenSettings() {
       </>} />
       {notice && <div className={clsx('rounded-xl p-3 text-sm', notice.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{notice.text}</div>}
 
+      <div className="grid gap-3 sm:grid-cols-2">
+        {([[false, t('studio.designer2.modeTemplate'), t('studio.designer2.modeTemplateHint')], [true, t('studio.designer2.modeFree'), t('studio.designer2.modeFreeHint')]] as const).map(([free, label, hint]) => {
+          const on = !!tpl.design?.enabled === free
+          return (
+            <button key={String(free)} type="button" aria-pressed={on} onClick={() => setTpl({ ...tpl, design: free ? { ...(tpl.design ?? presetDesign(tpl)), enabled: true } : tpl.design ? { ...tpl.design, enabled: false } : null })} className={clsx('flex items-start gap-3 rounded-2xl border p-4 text-start transition', on ? 'border-navy-900 bg-navy-900 text-white shadow-glass' : 'border-navy-100 bg-white hover:border-gold-400')}>
+              <span className={clsx('mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2', on ? 'border-gold-300 bg-gold-300 text-navy-950' : 'border-navy-200')}>{on && <Check className="size-3" />}</span>
+              <span><span className="block font-bold">{label}</span><span className={clsx('block text-xs', on ? 'text-white/70' : 'text-slate-500')}>{hint}</span></span>
+            </button>
+          )
+        })}
+      </div>
+
+      {tpl.design?.enabled ? <ScreenDesigner template={tpl} design={tpl.design} onChange={(d) => setTpl({ ...tpl, design: d })} /> : (
       <div className="grid gap-6 xl:grid-cols-[22rem_minmax(0,1fr)]">
         <div className="space-y-4">
           <Section title={t('studio.tpl.layout')}>
@@ -167,6 +167,7 @@ export default function RoomScreenSettings() {
           <p className="text-xs text-slate-500">{t('studio.tpl.previewHint')}</p>
         </div>
       </div>
+      )}
     </div>
   )
 }

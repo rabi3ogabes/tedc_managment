@@ -7,6 +7,7 @@ use App\Http\Resources\RoomResource;
 use App\Models\ProgramSession;
 use App\Models\TrainingRoom;
 use App\Services\RoomScreenService;
+use App\Services\RoomScreenSettings;
 use App\Services\RoomService;
 use App\Support\RoomCatalog;
 use Carbon\Carbon;
@@ -186,6 +187,15 @@ class RoomController extends Controller
         }
 
         return $data;
+    }
+
+    /** All the room screens at once (the wall). */
+    public function wall(Request $request, RoomScreenService $screen): JsonResponse
+    {
+        $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+        $rooms = $screen->wall($data['date'] ?? null);
+
+        return response()->json(['data' => $rooms, 'template' => app(RoomScreenSettings::class)->all()]);
     }
 
     /** The room screen for one day (signed-in staff). */

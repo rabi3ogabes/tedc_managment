@@ -27,6 +27,7 @@ class RoomScreenSettingsController extends Controller
             'show_trainees' => ['sometimes', 'boolean'], 'show_school' => ['sometimes', 'boolean'], 'show_progress' => ['sometimes', 'boolean'], 'show_attendance_ring' => ['sometimes', 'boolean'],
             'footer_ar' => ['nullable', 'string', 'max:200'], 'footer_en' => ['nullable', 'string', 'max:200'],
             'idle_enabled' => ['sometimes', 'boolean'], 'idle_show_next' => ['sometimes', 'boolean'], 'idle_title_ar' => ['nullable', 'string', 'max:160'], 'idle_title_en' => ['nullable', 'string', 'max:160'], 'idle_text_ar' => ['nullable', 'string', 'max:160'], 'idle_text_en' => ['nullable', 'string', 'max:160'],
+            'design' => ['nullable', 'array'], 'design.enabled' => ['sometimes', 'boolean'], 'design.live' => ['nullable', 'array', 'max:60'], 'design.idle' => ['nullable', 'array', 'max:60'], 'design.background' => ['nullable', 'array'],
             'bg_image' => ['nullable', 'string', 'max:500'], 'bg_mode' => ['sometimes', Rule::in(['tile', 'cover'])], 'bg_opacity' => ['sometimes', 'integer', 'between:0,100'],
             'bg_size' => ['sometimes', 'integer', 'between:16,600'], 'bg_tint' => ['nullable', 'string', 'max:7'],
         ]);

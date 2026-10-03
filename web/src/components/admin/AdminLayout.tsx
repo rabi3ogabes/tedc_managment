@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
+  Award, Bug, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -83,6 +83,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/calendar', label: m('calendar'), icon: CalendarDays, permission: 'calendar.view' },
           { to: '/admin/registrations', label: m('registrations'), icon: ClipboardList, permission: 'registrations.view' },
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
+          { to: '/admin/room-screens', label: t('studio.wall.nav'), icon: Monitor, permission: 'programs.view' },
           { to: '/admin/certificate-templates', label: t('studio.nav.templates'), icon: Palette, permission: 'certificates.view' },
         ] },
         { title: m('groups.insights'), items: [

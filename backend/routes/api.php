@@ -354,6 +354,7 @@ Route::prefix('v1')->group(function () {
                     Route::get('/', 'index');
                     Route::get('options', 'options');
                     Route::get('availability', 'availability');
+                    Route::get('wall', 'wall');
                     Route::get('{room}', 'show');
                     Route::get('{room}/schedule', 'schedule');
                     Route::get('{room}/screen', 'screen');

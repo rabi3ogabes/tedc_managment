@@ -387,7 +387,7 @@ export default function Rooms() {
 
   return (
     <>
-      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>} />
+      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={<><Button to="/admin/room-screens" variant="outline" icon={<Monitor className="size-4" />}>{t('studio.wall.nav')}</Button>{canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>}</>} />
       <Tabs tabs={[{ id: 'list', label: t('mgmt.rooms.tabs.list') }, { id: 'find', label: t('mgmt.rooms.tabs.find') }]} value={tab} onChange={setTab} />
       {notice && <div className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{notice}</div>}
 

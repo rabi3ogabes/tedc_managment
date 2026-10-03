@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { BrandMark } from '@/components/public/Logo'
+import DesignCanvas from '@/components/screen/DesignCanvas'
+import { buildContext, type ScreenDesign } from '@/components/screen/design'
 import { api } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { customPatternTile } from '@/lib/theme'
@@ -21,8 +23,9 @@ export type ScreenTemplate = {
   footer_ar: string; footer_en: string
   idle_enabled: boolean; idle_show_next: boolean; idle_title_ar: string; idle_title_en: string; idle_text_ar: string; idle_text_en: string
   bg_image: string; bg_mode: 'tile' | 'cover'; bg_opacity: number; bg_size: number; bg_tint: string
+  design?: ScreenDesign | null
 }
-export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '', idle_enabled: true, idle_show_next: true, idle_title_ar: 'القاعة شاغرة الآن', idle_title_en: 'This room is empty', idle_text_ar: '', idle_text_en: '', bg_image: '', bg_mode: 'tile', bg_opacity: 25, bg_size: 120, bg_tint: '' }
+export const DEFAULT_TEMPLATE: ScreenTemplate = { layout: 'classic', theme: 'brand', background: '', accent: '', show_logo: true, show_center_name: true, show_clock: true, show_trainer: true, show_trainees: true, show_school: true, show_progress: true, show_attendance_ring: true, footer_ar: '', footer_en: '', idle_enabled: true, idle_show_next: true, idle_title_ar: 'القاعة شاغرة الآن', idle_title_en: 'This room is empty', idle_text_ar: '', idle_text_en: '', bg_image: '', bg_mode: 'tile', bg_opacity: 25, bg_size: 120, bg_tint: '', design: null }
 export type Day = { template?: ScreenTemplate; room: { name: string; code: string; building: string | null; floor: string | null; capacity: number }; date: string; is_today: boolean; now: string; sessions: Session[] }
 
 const STATUS = {
@@ -123,6 +126,25 @@ export function RoomScreenView({ day, error, now, date, today, onDate, template:
   const minimal = tpl.layout === 'minimal'
   const spotlight = tpl.layout === 'spotlight'
   const footer = i18n.language === 'ar' ? tpl.footer_ar : tpl.footer_en
+
+  // A layout made in the designer replaces the built-in one.
+  if (tpl.design?.enabled) {
+    const ctx = buildContext(day, now, isToday, i18n.language, centerName, tpl, forceIdle)
+    const canvas = <DesignCanvas design={tpl.design} ctx={ctx} fill={!preview && !onDate} />
+    if (preview || !onDate) return canvas
+    return (
+      <div className="min-h-screen bg-black">
+        <div className="flex flex-wrap items-center gap-2 bg-navy-950 px-4 py-2 text-white">
+          <button type="button" aria-label="previous day" onClick={() => onDate(addDays(date, -1))} className="grid size-9 place-items-center rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"><ChevronRight className="size-4 ltr:rotate-180" /></button>
+          <label className="relative inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-sm font-semibold"><CalendarDays className="size-4" />{fmt.date(`${date}T12:00:00`, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}<input type="date" value={date} onChange={(e) => e.target.value && onDate(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" aria-label="date" /></label>
+          <button type="button" aria-label="next day" onClick={() => onDate(addDays(date, 1))} className="grid size-9 place-items-center rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"><ChevronLeft className="size-4 ltr:rotate-180" /></button>
+          {!isToday && <button type="button" onClick={() => onDate(today)} className="rounded-lg bg-gold-500 px-3 py-1.5 text-sm font-bold text-navy-950">{t('studio.screen.today')}</button>}
+          {fullscreen && <button type="button" aria-label="fullscreen" onClick={fullscreen.toggle} className="ms-auto grid size-9 place-items-center rounded-lg border border-white/15 bg-white/5 hover:bg-white/10">{fullscreen.active ? <Shrink className="size-4" /> : <Expand className="size-4" />}</button>}
+        </div>
+        {canvas}
+      </div>
+    )
+  }
 
   return (
     <div dir={i18n.language === 'ar' ? 'rtl' : 'ltr'} style={screenStyle(tpl)} className={clsx('relative overflow-hidden text-white', preview ? 'h-full w-full' : 'min-h-screen')}>
