@@ -2,12 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Program;
 use App\Models\Role;
 use App\Models\School;
 use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
-use Database\Seeders\DemoScenarioSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
 use Database\Seeders\DemoTrainerTraineeSeeder;
 use Illuminate\Console\Attributes\Description;
@@ -33,10 +31,6 @@ class Deploy extends Command
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTestAccountsSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoOnlineCoursesSeeder::class, '--force' => true]);
-            // The presentation scenario is built once; the Test accounts page rebuilds it on demand.
-            if (! Program::where('code', 'SC-1')->exists()) {
-                $this->call('db:seed', ['--class' => DemoScenarioSeeder::class, '--force' => true]);
-            }
         }
 
         // The national school list (government, private, specialised) with map positions, from the copy shipped with the code.

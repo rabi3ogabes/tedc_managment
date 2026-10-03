@@ -64,19 +64,23 @@ class QatarSchools
         return json_decode((string) file_get_contents(self::bundledPath()), true) ?: [];
     }
 
-    /** Creates or updates schools by code. @return array{created: int, updated: int, total: int} */
+    /** Creates or updates schools by code, in a handful of bulk statements (a row-by-row import is far too slow on a remote database). @return array{created: int, updated: int, total: int} */
     public function import(array $rows): array
     {
-        $created = $updated = 0;
+        $existing = [];
+        foreach (array_chunk(array_column($rows, 'code'), 500) as $codes) {
+            $existing += School::whereIn('code', $codes)->pluck('id', 'code')->all();
+        }
         $now = now();
-        foreach ($rows as $row) {
-            $school = School::firstOrNew(['code' => $row['code']]);
-            $school->exists ? $updated++ : $created++;
-            // Keep what the center added by hand (partner flag, logo, status); the official facts are refreshed.
-            $school->fill($row + ['synced_at' => $now])->save();
+        $payload = array_map(fn (array $r) => $r + ['id' => $existing[$r['code']] ?? (string) Str::uuid(), 'synced_at' => $now, 'created_at' => $now, 'updated_at' => $now], $rows);
+
+        // Keep what the center added by hand (partner flag, logo, status): only the official facts are refreshed.
+        $refresh = ['moe_no', 'source', 'name_ar', 'name_en', 'type', 'gender', 'stage', 'region', 'district', 'latitude', 'longitude', 'phone', 'email', 'address', 'website', 'curriculum', 'synced_at', 'updated_at'];
+        foreach (array_chunk($payload, 150) as $chunk) {
+            School::upsert($chunk, ['code'], $refresh);
         }
 
-        return ['created' => $created, 'updated' => $updated, 'total' => count($rows)];
+        return ['created' => count($rows) - count($existing), 'updated' => count($existing), 'total' => count($rows)];
     }
 
     // Mapping ---------------------------------------------------------------------------------------------------
