@@ -19,6 +19,7 @@ class SchoolController extends Controller
             ->when($this->schoolScope(), fn ($q, $id) => $q->whereKey($id))
             ->when($request->query('region'), fn ($q, $r) => $q->where('region', $r))
             ->when($request->query('type'), fn ($q, $t) => $q->where('type', $t))
+            ->when($request->boolean('official'), fn ($q) => $q->where('source', 'like', 'moe_%'))
             ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")->orWhere('code', 'like', "%{$t}%")))
             ->orderBy('name_ar')
             ->paginate($this->perPage($request, 25));
@@ -29,7 +30,7 @@ class SchoolController extends Controller
     /** Every school that has a position, in a compact shape for the national map. */
     public function map(): JsonResponse
     {
-        $schools = School::withCount('employees')->whereNotNull('latitude')->whereNotNull('longitude')->where('status', 'active')
+        $schools = School::withCount('employees')->where('source', 'like', 'moe_%')->whereNotNull('latitude')->whereNotNull('longitude')->where('status', 'active')
             ->when($this->schoolScope(), fn ($q, $id) => $q->whereKey($id))->orderBy('name_ar')->get();
 
         return response()->json(['data' => [

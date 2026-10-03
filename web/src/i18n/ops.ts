@@ -1,9 +1,9 @@
 /** System administration: signing in as a user, the error log and the room-screen template. */
 export const opsAr = {
   schoolsMap: {
-    title: 'المدارس', subtitle: 'جميع مدارس دولة قطر على الخريطة — الحكومية والخاصة والمتخصصة — من قائمة وزارة التربية والتعليم «أين مدرستي».',
+    title: 'المدارس', subtitle: 'جميع مدارس دولة قطر على الخريطة — الحكومية والخاصة — من قائمة وزارة التربية والتعليم «أين مدرستي».',
     tabs: { map: 'الخريطة', list: 'القائمة' }, searchPlaceholder: 'ابحث باسم المدرسة أو الحي…', all: 'الكل', gender: { boys: 'بنين', girls: 'بنات', mixed: 'مختلط' }, genderLabel: 'الفئة',
-    kinds: { moe_gov: 'حكومية', moe_private: 'خاصة', moe_special: 'متخصصة', manual: 'مضافة يدويًا' }, total: '{{count}} مدرسة', shown: 'المعروضة', noResult: 'لا توجد مدارس بهذه المعايير.',
+    kinds: { government: 'حكومية', private: 'خاصة' }, total: '{{count}} مدرسة', shown: 'المعروضة', noResult: 'لا توجد مدارس بهذه المعايير.',
     basemap: { street: 'خريطة', satellite: 'قمر صناعي' }, fit: 'عرض الكل', reset: 'مسح التصفية',
     details: { directions: 'الاتجاهات', copy: 'نسخ الإحداثيات', copied: 'تم النسخ', phone: 'الهاتف', email: 'البريد', website: 'الموقع', address: 'العنوان', curriculum: 'المنهج', staff: 'موظفو المركز في هذه المدرسة', partner: 'مدرسة شريكة', code: 'الرمز', close: 'إغلاق', pick: 'اختر مدرسة من الخريطة لعرض تفاصيلها.' },
     sync: { button: 'تحديث القائمة من الوزارة', last: 'آخر تحديث: {{date}}', never: 'لم تُحدَّث بعد', done: 'اكتمل التحديث: {{created}} جديدة و{{updated}} محدَّثة.', fromMinistry: 'من موقع الوزارة مباشرة', fromBundled: 'من النسخة المرفقة (تعذّر الاتصال بالوزارة)', confirm: 'سيُحدَّث سجل المدارس من «أين مدرستي». تبقى بياناتك الخاصة (الشريك، الشعار، الحالة). متابعة؟' },
@@ -35,9 +35,9 @@ export const opsAr = {
 
 export const opsEn: typeof opsAr = {
   schoolsMap: {
-    title: 'Schools', subtitle: 'Every school in Qatar on one map — government, private and specialised — from the Ministry of Education “Where is my school” list.',
+    title: 'Schools', subtitle: 'Every school in Qatar on one map — government and private — from the Ministry of Education “Where is my school” list.',
     tabs: { map: 'Map', list: 'List' }, searchPlaceholder: 'Search by school or district…', all: 'All', gender: { boys: 'Boys', girls: 'Girls', mixed: 'Mixed' }, genderLabel: 'Gender',
-    kinds: { moe_gov: 'Government', moe_private: 'Private', moe_special: 'Specialised', manual: 'Added manually' }, total: '{{count}} schools', shown: 'shown', noResult: 'No schools match these filters.',
+    kinds: { government: 'Government', private: 'Private' }, total: '{{count}} schools', shown: 'shown', noResult: 'No schools match these filters.',
     basemap: { street: 'Map', satellite: 'Satellite' }, fit: 'Show all', reset: 'Clear filters',
     details: { directions: 'Directions', copy: 'Copy coordinates', copied: 'Copied', phone: 'Phone', email: 'Email', website: 'Website', address: 'Address', curriculum: 'Curriculum', staff: 'Center staff at this school', partner: 'Partner school', code: 'Code', close: 'Close', pick: 'Pick a school on the map to see its details.' },
     sync: { button: 'Update list from the Ministry', last: 'Last update: {{date}}', never: 'Not updated yet', done: 'Update complete: {{created}} new and {{updated}} refreshed.', fromMinistry: 'straight from the Ministry site', fromBundled: 'from the bundled copy (the Ministry could not be reached)', confirm: 'The school register will be refreshed from “Where is my school”. Your own data (partner, logo, status) is kept. Continue?' },

@@ -21,7 +21,7 @@ export default function Schools() {
   const [region, setRegion] = useState('')
   const [syncing, setSyncing] = useState(false)
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
-  const list = useGet<LaravelPage<School>>('/admin/schools', { q: q || undefined, region: region || undefined, per_page: 50 }, { enabled: tab === 'list' })
+  const list = useGet<LaravelPage<School>>('/admin/schools', { q: q || undefined, region: region || undefined, official: 1, per_page: 50 }, { enabled: tab === 'list' })
   const map = useGet<{ data: SchoolsMapData }>('/admin/schools/map')
   const regions = ['doha', 'al_rayyan', 'al_wakrah', 'al_khor', 'al_shamal', 'umm_salal', 'al_daayen', 'al_shahaniya']
   const synced = map.data?.data.synced_at

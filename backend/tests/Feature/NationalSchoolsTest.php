@@ -29,6 +29,7 @@ class NationalSchoolsTest extends TestCase
     public function test_the_map_lists_schools_for_administrators_and_the_sync_falls_back_to_the_bundled_copy(): void
     {
         $this->artisan('tedc:schools-sync');
+        School::create(['code' => 'DEMO-1', 'name_ar' => 'تجريبية', 'name_en' => 'Demo', 'type' => 'government', 'stage' => 'primary', 'region' => 'doha', 'latitude' => 25.3, 'longitude' => 51.5]);
         $admin = $this->makeUser(Role::CENTER_ADMIN);
         $member = $this->makeEmployee()->user;
         $partner = School::where('source', 'moe_gov')->first();
@@ -37,6 +38,8 @@ class NationalSchoolsTest extends TestCase
         $map = $this->asUser($admin)->getJson('/api/v1/admin/schools/map')->assertOk()->json('data');
         $this->assertGreaterThan(700, count($map['schools']));
         $this->assertNotNull($map['synced_at']);
+        $this->assertSame([], array_diff(array_column($map['schools'], 'source'), ['moe_gov', 'moe_private', 'moe_special']), 'only the real national schools are on the map');
+        $this->assertSame([], array_diff(array_column($map['schools'], 'type'), ['government', 'private']));
         $this->assertEqualsCanonicalizing(['id', 'code', 'name_ar', 'name_en', 'type', 'stage', 'gender', 'region', 'district', 'lat', 'lng', 'phone', 'email', 'address', 'website', 'curriculum', 'partner', 'staff', 'source'], array_keys($map['schools'][0]));
         $this->asUser($member)->getJson('/api/v1/admin/schools/map')->assertForbidden();
 

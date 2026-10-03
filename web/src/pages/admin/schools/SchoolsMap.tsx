@@ -15,8 +15,8 @@ export type MapSchool = {
 export type SchoolsMapData = { schools: MapSchool[]; synced_at: string | null }
 
 /** Marker colour by where the record comes from. */
-export const KIND_COLOR: Record<string, string> = { moe_gov: '#1e3a5f', moe_private: '#c9a227', moe_special: '#0f9d78', manual: '#8b5cf6' }
-const kindOf = (s: MapSchool) => (s.source && KIND_COLOR[s.source] ? s.source : 'manual')
+export const KIND_COLOR: Record<string, string> = { government: '#1e3a5f', private: '#c9a227' }
+const kindOf = (s: MapSchool) => (s.type === 'private' ? 'private' : 'government')
 
 const TILES = {
   street: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
@@ -72,6 +72,15 @@ export default function SchoolsMap({ data, loading }: { data?: SchoolsMapData; l
 
   return (
     <div className="space-y-4">
+      {/* Government / private */}
+      <div role="tablist" className="inline-flex rounded-2xl border border-navy-100 bg-white p-1">
+        {([['', all.length], ['government', all.filter((s) => kindOf(s) === 'government').length], ['private', all.filter((s) => kindOf(s) === 'private').length]] as const).map(([k, n]) => (
+          <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)} className={clsx('inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition', kind === k ? 'bg-navy-900 text-white shadow' : 'text-slate-600 hover:text-navy-900')}>
+            {k && <span className="size-2.5 rounded-full" style={{ background: KIND_COLOR[k] }} />}{k ? t(`schoolsMap.kinds.${k}`) : t('schoolsMap.all')}<span className="tabular-nums opacity-60">{n}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-64 flex-1">
@@ -90,7 +99,6 @@ export default function SchoolsMap({ data, loading }: { data?: SchoolsMapData; l
           )}
         </div>
         <select className="input w-auto" value={region} onChange={(e) => setRegion(e.target.value)} aria-label={t('admin.schools.region')}><option value="">{t('admin.schools.region')}</option>{['doha', 'al_rayyan', 'al_wakrah', 'al_khor', 'al_shamal', 'umm_salal', 'al_daayen', 'al_shahaniya'].map((r) => <option key={r} value={r}>{t(`regions.${r}`)}</option>)}</select>
-        <select className="input w-auto" value={kind} onChange={(e) => setKind(e.target.value)} aria-label={t('admin.schools.type')}><option value="">{t('admin.schools.type')}</option>{Object.keys(KIND_COLOR).map((k) => <option key={k} value={k}>{t(`schoolsMap.kinds.${k}`)}</option>)}</select>
         <select className="input w-auto" value={stage} onChange={(e) => setStage(e.target.value)} aria-label={t('admin.schools.stage')}><option value="">{t('admin.schools.stage')}</option>{['kindergarten', 'primary', 'preparatory', 'secondary', 'multi'].map((s) => <option key={s} value={s}>{t(`stages.${s}`)}</option>)}</select>
         <select className="input w-auto" value={gender} onChange={(e) => setGender(e.target.value)} aria-label={t('schoolsMap.genderLabel')}><option value="">{t('schoolsMap.genderLabel')}</option>{['boys', 'girls', 'mixed'].map((g) => <option key={g} value={g}>{t(`schoolsMap.gender.${g}`)}</option>)}</select>
         {filtered && <button type="button" className="text-sm font-bold text-gold-700 hover:underline" onClick={() => { setQ(''); setRegion(''); setKind(''); setStage(''); setGender('') }}>{t('schoolsMap.reset')}</button>}
