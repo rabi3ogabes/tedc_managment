@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
+use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
@@ -209,6 +210,7 @@ Route::prefix('v1')->group(function () {
             Route::get('lookups', [CatalogController::class, 'lookups']);
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
+            Route::get('process', ProcessController::class)->middleware('permission:dashboard.view');
             Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
             // Chat inbox (conversations with the website assistant)
             Route::middleware('permission:announcements.manage')->prefix('chats')->group(function () {
@@ -634,6 +636,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:users.manage')->group(function () {
                 Route::get('test-accounts', [TestAccountsController::class, 'show']);
                 Route::post('test-accounts', [TestAccountsController::class, 'seed']);
+                Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware('throttle:6,1');
                 Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware('throttle:20,1');
                 Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop']);
                 Route::get('users', [UserController::class, 'index']);

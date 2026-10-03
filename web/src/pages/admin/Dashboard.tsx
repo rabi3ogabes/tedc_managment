@@ -6,6 +6,7 @@ import { Card, CardTitle, ErrorState, PageHeader, Spinner, StatCard } from '@/co
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
+import JourneyTracker from './dashboard/JourneyTracker'
 
 type DashboardData = {
   kpis: Record<string, number>
@@ -29,6 +30,8 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader title={<>{t('admin.dashboard.welcome')} {user?.name}</>} subtitle={t('admin.dashboard.subtitle')} />
+
+      <JourneyTracker />
 
       <div className="grid gap-4 lg:grid-cols-4">
         <div className="relative overflow-hidden rounded-3xl bg-navy-900 p-6 text-white shadow-glass lg:row-span-2">

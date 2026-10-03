@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Nomination;
 use App\Models\Program;
 use App\Models\Registration;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\WaitingList;
 use App\Services\Eligibility\EligibilityEngine;
@@ -207,5 +208,14 @@ class RegistrationService
             ],
             ['registration_id' => $registration->id, 'program_id' => $program->id],
         );
+
+        // A request that needs a decision is announced to the center's team (the people who approve registrations).
+        if ($registration->status === Registration::STATUS_PENDING) {
+            $name = $registration->employee->user?->displayName('ar') ?? '—';
+            $staff = User::whereHas('roles', fn ($q) => $q->whereIn('slug', Role::CENTER_STAFF))->where('status', 'active')->pluck('id');
+            $this->notifications->broadcast($staff, 'registration.new_pending', ['ar' => 'تسجيل جديد بانتظار اعتمادك', 'en' => 'A new registration awaits your approval'],
+                ['ar' => "سجّل {$name} في برنامج «{$program->title_ar}». راجع الطلب واعتمده أو ارفضه.", 'en' => "{$name} registered for \"{$program->title_en}\". Review and approve or reject."],
+                ['registration_id' => $registration->id, 'program_id' => $program->id, 'name' => $name, 'program' => $program->title_ar, 'route' => '/admin/registrations']);
+        }
     }
 }

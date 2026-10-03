@@ -7,6 +7,7 @@ use App\Models\Program;
 use App\Models\Registration;
 use App\Models\User;
 use Database\Seeders\DemoOnlineCoursesSeeder;
+use Database\Seeders\DemoScenarioSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Artisan;
@@ -37,12 +38,21 @@ class TestAccountsController extends Controller
         return response()->json(['data' => $this->payload()]);
     }
 
+    /** Builds (or rebuilds from today) the presentation scenario: five programs with every step of the journey. */
+    public function scenario(): JsonResponse
+    {
+        app(DemoTestAccountsSeeder::class)->run();
+        app(DemoScenarioSeeder::class)->run();
+
+        return response()->json(['data' => ['programs' => Program::whereIn('code', DemoScenarioSeeder::CODES)->orderBy('code')->get(['id', 'code', 'delivery_mode', 'status'])->map(fn (Program $p) => ['id' => $p->id, 'code' => $p->code, 'mode' => $p->delivery_mode, 'status' => $p->status, 'title' => $p->translate('title')])]]);
+    }
+
     private function payload(): array
     {
         $programs = Program::whereIn('code', array_map(fn ($n) => "TEST-P{$n}", range(1, 4)))->with('trainers:id,name_ar,name_en,user_id')->get()->keyBy('code');
         $users = User::whereIn('email', DemoTestAccountsSeeder::emails())->with('employee')->get()->keyBy('email');
         if ($programs->isEmpty() || $users->isEmpty()) {
-            return ['seeded' => false, 'password' => DemoTestAccountsSeeder::PASSWORD, 'programs' => [], 'accounts' => []];
+            return ['seeded' => false, 'password' => DemoTestAccountsSeeder::PASSWORD, 'programs' => [], 'accounts' => [], 'scenario' => []];
         }
 
         $number = fn (Program $p) => (int) substr($p->code, -1);
@@ -61,10 +71,12 @@ class TestAccountsController extends Controller
             $accounts[] = ['kind' => 'trainer', 'n' => $n, 'name' => $u?->displayName(), 'email' => "trainer{$n}@tedc.qa", 'programs' => $mine->all()];
         }
 
+        $scenario = Program::whereIn('code', DemoScenarioSeeder::CODES)->orderBy('code')->get();
         $courses = Program::where('code', 'like', 'TEST-OL%')->orderBy('code')->withCount(['courseLessons as lessons' => fn ($q) => $q->where('status', 'published')])->get();
 
         return [
             'seeded' => true, 'password' => DemoTestAccountsSeeder::PASSWORD, 'accounts' => $accounts,
+            'scenario' => $scenario->map(fn (Program $p) => ['id' => $p->id, 'code' => $p->code, 'mode' => $p->delivery_mode, 'status' => $p->status, 'title' => $p->translate('title')])->values(),
             'courses' => $courses->map(fn (Program $p) => [
                 'id' => $p->id, 'code' => $p->code, 'title' => $p->translate('title'), 'lessons' => $p->lessons,
                 'trainees' => Registration::where('program_id', $p->id)->count(),

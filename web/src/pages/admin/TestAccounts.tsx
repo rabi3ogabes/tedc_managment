@@ -6,11 +6,12 @@ import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
+import ScenarioGuide from './ScenarioGuide'
 
 type Account = { kind: 'trainee' | 'trainer'; n: number; name: string | null; email: string; programs: number[] }
 type Program = { n: number; id: string; code: string; title: string; trainers: string[]; trainees: number }
 type Course = { id: string; code: string; title: string; lessons: number; trainees: number }
-type Payload = { seeded: boolean; password: string; accounts: Account[]; programs: Program[]; courses?: Course[] }
+type Payload = { scenario?: { id: string; code: string; mode: 'in_person' | 'online' | 'hybrid'; status: string; title: string }[]; seeded: boolean; password: string; accounts: Account[]; programs: Program[]; courses?: Course[] }
 
 const PROGRAM_TONE = ['bg-navy-900 text-gold-300', 'bg-gold-500 text-navy-950', 'bg-emerald-600 text-white', 'bg-sky-600 text-white']
 
@@ -40,6 +41,8 @@ export default function TestAccounts() {
         actions={<Button variant="gold" icon={<RefreshCcw className="size-4" />} loading={busy} onClick={seed}>{d.seeded ? t('mgmt.testAccounts.refresh') : t('mgmt.testAccounts.create')}</Button>}
       />
       {error && <div className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-danger">{error}</div>}
+
+      <ScenarioGuide programs={d.scenario ?? []} onBuilt={() => void refetch()} />
 
       {!d.seeded ? (
         <Card><div className="py-10 text-center"><FlaskConical className="mx-auto size-10 text-gold-500" /><h2 className="mt-3 text-xl font-bold text-navy-900">{t('mgmt.testAccounts.emptyTitle')}</h2><p className="mx-auto mt-1 max-w-md text-sm text-slate-500">{t('mgmt.testAccounts.emptyText')}</p></div></Card>
