@@ -79,10 +79,10 @@ class PresenceController extends Controller
         return response()->streamDownload(function () use ($sessions) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Name', 'Email', 'Team', 'Role', 'Platform', 'Device', 'Started', 'Last seen', 'Minutes', 'Requests', 'Last page', 'App version']);
+            fputcsv($out, ['Name', 'Email', 'Team', 'Role', 'Platform', 'Device', 'Started', 'Last seen', 'Minutes', 'Requests', 'Last page', 'App version', 'Source', 'Country', 'City']);
             foreach ($sessions as $s) {
                 $r = $this->row($s);
-                fputcsv($out, [$r['name'], $r['email'], $r['team'], $r['role'], $r['platform'], $r['device'], $r['started_at'], $r['last_seen_at'], $r['minutes'], $r['hits'], $r['path'], $r['app_version']]);
+                fputcsv($out, [$r['name'], $r['email'], $r['team'], $r['role'], $r['platform'], $r['device'], $r['started_at'], $r['last_seen_at'], $r['minutes'], $r['hits'], $r['path'], $r['app_version'], $r['source'], $r['country'], $r['city']]);
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -115,6 +115,7 @@ class PresenceController extends Controller
             'name' => $s->user?->displayName() ?? '—', 'email' => $s->user?->email, 'team' => $s->team, 'role' => $s->role_label, 'platform' => $s->platform,
             'device' => $s->device, 'started_at' => $s->started_at->timezone($tz)->format('Y-m-d H:i'), 'last_seen_at' => $s->last_seen_at->timezone($tz)->format('Y-m-d H:i'),
             'minutes' => $s->minutes(), 'hits' => $s->hits, 'path' => $s->last_path, 'app_version' => $s->app_version,
+            'source' => $s->source ?? ($s->platform === 'mobile' ? 'app' : 'desktop'), 'country' => $s->country, 'city' => $s->city,
         ];
     }
 }

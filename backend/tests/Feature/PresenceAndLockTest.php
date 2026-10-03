@@ -41,6 +41,17 @@ class PresenceAndLockTest extends TestCase
         $this->assertSame(1, $this->asUser($this->makeUser(Role::SUPER_ADMIN))->getJson('/api/v1/admin/presence/live')->json('data.online.total'));
     }
 
+    public function test_todays_peak_covers_the_whole_day_not_only_the_last_minutes(): void
+    {
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $this->travelTo(now()->startOfDay()->setHour(14));
+        PresenceSession::create(['user_id' => $admin->id, 'platform' => 'web', 'team' => 'staff', 'started_at' => now()->subHours(5), 'last_seen_at' => now()->subHours(4)->subMinutes(30)]);
+        $this->beat($admin)->assertOk();
+
+        $this->assertGreaterThanOrEqual(1, $this->asUser($admin)->getJson('/api/v1/admin/presence/live')->json('data.today.peak'));
+        $this->assertSame(2, $this->asUser($admin)->getJson('/api/v1/admin/presence/live')->json('data.today.sessions'));
+    }
+
     public function test_report_summary_and_csv_export_are_restricted_to_analytics_viewers(): void
     {
         $admin = $this->makeUser(Role::CENTER_ADMIN);

@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
 class PresenceService
 {
     /** A user counts as online while their last heartbeat is younger than this. */
-    public const ONLINE_SECONDS = 90;
+    public const ONLINE_SECONDS = 120;
 
     /** A visit continues while heartbeats arrive less than this far apart. */
     public const SESSION_GAP_MINUTES = 10;
@@ -125,7 +125,7 @@ class PresenceService
             'today' => [
                 'unique_users' => $todayRows->pluck('user_id')->unique()->count(), 'sessions' => $todayRows->count(),
                 'avg_minutes' => $todayRows->isEmpty() ? 0 : round($todayRows->avg(fn (PresenceSession $s) => $s->minutes()), 1),
-                'peak' => collect($this->timeline($now, (int) max(1, $now->diffInMinutes($now->copy()->startOfDay()) / 10), 10))->max(fn ($p) => $p['staff'] + $p['members']) ?? 0,
+                'peak' => collect($this->timeline($now, (int) min(144, max(1, ceil($now->copy()->startOfDay()->diffInMinutes($now) / 10))), 10))->max(fn ($p) => $p['staff'] + $p['members']) ?? 0,
             ],
         ];
     }

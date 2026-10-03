@@ -19,6 +19,7 @@ export const mgmtAr = {
   },
 
   testAccounts: {
+    courses: 'الدورات الإلكترونية التجريبية', coursesHint: 'خمس دورات بميزات مختلفة (مشاهدة صارمة، اختبارات، استبيانات، عرض تقديمي، يوتيوب، دروس اختيارية ومسودة). الدورة 5 بلا مسجّلين لتجربة التسجيل الذاتي.', lessonsCount: '{{count}} درس', openCourse: 'فتح الدورة',
     subtitle: 'حسابات جاهزة لتجربة التطبيق: 4 متدربين ومدربان و4 برامج، مع بيان واضح لما أُسند لكل حساب.',
     create: 'إنشاء حسابات الاختبار', refresh: 'تحديث الإسنادات', emptyTitle: 'لم تُنشأ حسابات الاختبار بعد', emptyText: 'اضغط «إنشاء حسابات الاختبار» لإضافة 4 متدربين ومدربين و4 برامج مرقّمة مع إسنادها.',
     howTo: 'كيف أجرّب التطبيق؟', howToText: 'افتح التطبيق واضغط زر أحد الحسابات في شاشة الدخول (حسابات اختبار التطبيق) — تسجيل الدخول بنقرة واحدة.', password: 'كلمة المرور',
@@ -85,7 +86,7 @@ export const mgmtAr = {
     today: { users: 'مستخدمون اليوم', sessions: 'جلسات اليوم', avg: 'متوسط مدة الجلسة', peak: 'ذروة المتصلين' }, min: 'د',
     people: 'المتصلون', search: 'ابحث عن مستخدم…', nobody: 'لا أحد متصل الآن', status: { active: 'نشِط', idle: 'خامل', locked: 'مقفل' }, minutesOnline: '{{n}} د متصل',
     topPages: 'الصفحات الأكثر استخداماً الآن', recent: 'غادروا للتو', ago: { now: 'الآن', sec: 'قبل {{n}} ث', min: 'قبل {{n}} د', hour: 'قبل {{n}} س' },
-    mobileScreens: { home: 'الرئيسية', programs: 'البرامج', training: 'تدريبي', certificates: 'الشهادات', notifications: 'الإشعارات', profile: 'الملف الشخصي' },
+    mobileScreens: { home: 'الرئيسية', programs: 'البرامج', training: 'تدريبي', certificates: 'الشهادات', notifications: 'الإشعارات', profile: 'الملف الشخصي', courses: 'دورة عبر الإنترنت', lessons: 'درس', sessions: 'جلسة تدريبية', scan: 'مسح رمز الحضور', surveys: 'استبيان', tasks: 'مهمة', registrations: 'تسجيلي', account: 'الحساب', 'needs-surveys': 'استبيان الاحتياج', school: 'مدرستي' },
     range: { today: 'اليوم', '7': '7 أيام', '30': '30 يوماً', custom: 'مخصص' }, filterTeam: 'الفريق', filterPlatform: 'المنصة', exportCsv: 'تصدير التقرير (CSV)',
     report: { users: 'مستخدمون فريدون', sessions: 'جلسات', avg: 'متوسط الجلسة', hours: 'ساعات الاستخدام', hoursHint: 'إجمالي الوقت المتصل', byDay: 'الجلسات حسب اليوم', byHour: 'ساعات الذروة', topUsers: 'الأكثر استخداماً', topPages: 'الصفحات الأكثر زيارة', none: 'لا توجد بيانات', sessionsTitle: 'أحدث الجلسات', latest: 'آخر {{count}} جلسة' },
     cols: { name: 'المستخدم', team: 'الفريق', platform: 'الجهاز', started: 'البداية', minutes: 'الدقائق', page: 'آخر صفحة' },
@@ -252,6 +253,7 @@ export const mgmtEn: MgmtStrings = {
   },
 
   testAccounts: {
+    courses: 'Test online courses', coursesHint: 'Five courses with different features (strict watching, quizzes, surveys, slides, YouTube, optional and draft lessons). Course 5 has nobody enrolled so self-registration can be tried.', lessonsCount: '{{count}} lessons', openCourse: 'Open course',
     subtitle: 'Ready-made accounts for trying the app: 4 trainees, 2 trainers and 4 programs, with a clear statement of what each account is assigned to.',
     create: 'Create test accounts', refresh: 'Refresh assignments', emptyTitle: 'Test accounts have not been created yet', emptyText: 'Press “Create test accounts” to add 4 trainees, 2 trainers and 4 numbered programs with their assignments.',
     howTo: 'How do I try the app?', howToText: 'Open the app and tap one of the accounts on the login screen (App test accounts) — one-tap sign-in.', password: 'Password',
@@ -318,7 +320,7 @@ export const mgmtEn: MgmtStrings = {
     today: { users: 'Users today', sessions: 'Sessions today', avg: 'Average session', peak: 'Peak online' }, min: 'min',
     people: 'People online', search: 'Find a user…', nobody: 'Nobody is online right now', status: { active: 'Active', idle: 'Idle', locked: 'Locked' }, minutesOnline: '{{n}} min online',
     topPages: 'Top pages right now', recent: 'Just left', ago: { now: 'just now', sec: '{{n}}s ago', min: '{{n}} min ago', hour: '{{n}} h ago' },
-    mobileScreens: { home: 'Home', programs: 'Programs', training: 'My training', certificates: 'Certificates', notifications: 'Notifications', profile: 'Profile' },
+    mobileScreens: { home: 'Home', programs: 'Programs', training: 'My training', certificates: 'Certificates', notifications: 'Notifications', profile: 'Profile', courses: 'Online course', lessons: 'Lesson', sessions: 'Training session', scan: 'Scanning attendance', surveys: 'Survey', tasks: 'Task', registrations: 'My registration', account: 'Account', 'needs-surveys': 'Needs survey', school: 'My school' },
     range: { today: 'Today', '7': '7 days', '30': '30 days', custom: 'Custom' }, filterTeam: 'Team', filterPlatform: 'Platform', exportCsv: 'Export report (CSV)',
     report: { users: 'Unique users', sessions: 'Sessions', avg: 'Average session', hours: 'Hours of use', hoursHint: 'Total time online', byDay: 'Sessions per day', byHour: 'Busiest hours', topUsers: 'Most active', topPages: 'Most visited pages', none: 'No data', sessionsTitle: 'Latest sessions', latest: 'Latest {{count}} sessions' },
     cols: { name: 'User', team: 'Team', platform: 'Device', started: 'Started', minutes: 'Minutes', page: 'Last page' },

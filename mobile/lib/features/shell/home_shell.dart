@@ -50,7 +50,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   /// "Who is online now" on the dashboard: a light heartbeat while the app is open on screen.
   void _startPresence() {
     Future<void>.delayed(const Duration(seconds: 3), _beat);
-    _presence = Timer.periodic(const Duration(seconds: 45), (_) {
+    _presence = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_foreground) _beat();
     });
   }
@@ -58,7 +58,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   void _beat() {
     if (!mounted) return;
     final index = widget.shell.currentIndex.clamp(0, _screens.length - 1);
-    ref.read(apiProvider).post('/me/presence', {'platform': 'mobile', 'path': '/app/${_screens[index]}', 'app_version': AppConfig.appVersion}).catchError((_) => null);
+    // The screen in front (course, lesson, scan…) — its first segment only, never ids.
+    final segments = GoRouter.of(context).routeInformationProvider.value.uri.pathSegments;
+    final screen = segments.isEmpty ? _screens[index] : segments.first;
+    ref.read(apiProvider).post('/me/presence', {'platform': 'mobile', 'path': '/app/$screen', 'app_version': AppConfig.appVersion}).catchError((_) => null);
   }
 
   @override

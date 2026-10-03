@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import { Check, Copy, FlaskConical, GraduationCap, Presentation, RefreshCcw, UserRound } from 'lucide-react'
+import { BookOpenCheck, Check, Copy, FlaskConical, GraduationCap, Presentation, RefreshCcw, UserRound } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -8,7 +9,8 @@ import { api, errorMessage } from '@/lib/api'
 
 type Account = { kind: 'trainee' | 'trainer'; n: number; name: string | null; email: string; programs: number[] }
 type Program = { n: number; id: string; code: string; title: string; trainers: string[]; trainees: number }
-type Payload = { seeded: boolean; password: string; accounts: Account[]; programs: Program[] }
+type Course = { id: string; code: string; title: string; lessons: number; trainees: number }
+type Payload = { seeded: boolean; password: string; accounts: Account[]; programs: Program[]; courses?: Course[] }
 
 const PROGRAM_TONE = ['bg-navy-900 text-gold-300', 'bg-gold-500 text-navy-950', 'bg-emerald-600 text-white', 'bg-sky-600 text-white']
 
@@ -67,6 +69,23 @@ export default function TestAccounts() {
               ))}
             </div>
           </section>
+
+          {/* Online courses to try the learning experience */}
+          {(d.courses?.length ?? 0) > 0 && (
+            <section>
+              <h2 className="flex items-center gap-2 text-lg font-bold text-navy-900"><BookOpenCheck className="size-5 text-gold-600" />{t('mgmt.testAccounts.courses')}</h2>
+              <p className="mb-3 mt-0.5 text-sm text-slate-500">{t('mgmt.testAccounts.coursesHint')}</p>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {d.courses!.map((c, i) => (
+                  <Link key={c.id} to={`/admin/programs/${c.id}`} className="flex gap-3 rounded-2xl border border-navy-100 bg-white p-4 shadow-sm transition hover:border-gold-400">
+                    <span className={clsx('grid size-14 shrink-0 place-items-center rounded-2xl text-3xl font-black', PROGRAM_TONE[i % 4])}>{i + 1}</span>
+                    <div className="min-w-0"><div className="font-bold leading-snug text-navy-900">{c.title}</div>
+                      <div className="mt-1 text-xs text-slate-500">{t('mgmt.testAccounts.lessonsCount', { count: c.lessons })} · {t('mgmt.testAccounts.traineesCount', { count: c.trainees })}</div></div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Who is assigned to what, in plain words */}
           {(['trainee', 'trainer'] as const).map((kind) => (
