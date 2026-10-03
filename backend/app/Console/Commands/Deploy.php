@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Role;
+use App\Models\School;
 use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
@@ -30,6 +31,11 @@ class Deploy extends Command
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTestAccountsSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoOnlineCoursesSeeder::class, '--force' => true]);
+        }
+
+        // The national school list (government, private, specialised) with map positions, from the copy shipped with the code.
+        if (Schema::hasColumn('schools', 'source') && School::where('source', 'like', 'moe_%')->count() < 700) {
+            $this->call('tedc:schools-sync');
         }
 
         // Read-only file systems (serverless) cannot hold the public/storage symlink.

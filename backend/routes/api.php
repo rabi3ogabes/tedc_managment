@@ -488,10 +488,12 @@ Route::prefix('v1')->group(function () {
 
             // Organization
             Route::middleware('permission:schools.view|schools.manage')->group(function () {
+                Route::get('schools/map', [SchoolController::class, 'map']);
                 Route::get('schools', [SchoolController::class, 'index']);
                 Route::get('schools/{school}', [SchoolController::class, 'show']);
             });
             Route::middleware('permission:schools.manage')->group(function () {
+                Route::post('schools/sync', [SchoolController::class, 'sync'])->middleware('throttle:6,1');
                 Route::post('schools', [SchoolController::class, 'store']);
                 Route::put('schools/{school}', [SchoolController::class, 'update']);
                 Route::post('schools/{school}/logo', [SchoolController::class, 'logo']);

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\School;
 use App\Services\FileStorage;
+use App\Services\QatarSchools;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class SchoolController extends Controller
 {
@@ -22,6 +24,37 @@ class SchoolController extends Controller
             ->paginate($this->perPage($request, 25));
 
         return response()->json($schools);
+    }
+
+    /** Every school that has a position, in a compact shape for the national map. */
+    public function map(): JsonResponse
+    {
+        $schools = School::withCount('employees')->whereNotNull('latitude')->whereNotNull('longitude')->where('status', 'active')
+            ->when($this->schoolScope(), fn ($q, $id) => $q->whereKey($id))->orderBy('name_ar')->get();
+
+        return response()->json(['data' => [
+            'schools' => $schools->map(fn (School $s) => [
+                'id' => $s->id, 'code' => $s->code, 'name_ar' => $s->name_ar, 'name_en' => $s->name_en, 'type' => $s->type, 'stage' => $s->stage, 'gender' => $s->gender,
+                'region' => $s->region, 'district' => $s->district, 'lat' => $s->latitude, 'lng' => $s->longitude, 'phone' => $s->phone, 'email' => $s->email,
+                'address' => $s->address, 'website' => $s->website, 'curriculum' => $s->curriculum, 'partner' => $s->is_partner, 'staff' => $s->employees_count, 'source' => $s->source,
+            ])->values(),
+            'synced_at' => School::whereNotNull('synced_at')->max('synced_at'),
+        ]]);
+    }
+
+    /** Refreshes the national list: from the ministry service when reachable, from the copy shipped with the platform otherwise. */
+    public function sync(QatarSchools $national): JsonResponse
+    {
+        try {
+            $rows = $national->fetchLive();
+            $from = 'ministry';
+        } catch (Throwable $e) {
+            report($e);
+            $rows = $national->bundled();
+            $from = 'bundled';
+        }
+
+        return response()->json(['data' => $national->import($rows) + ['from' => $from]]);
     }
 
     public function show(School $school): JsonResponse
@@ -68,6 +101,7 @@ class SchoolController extends Controller
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email'],
+            'address' => ['nullable', 'string', 'max:255'], 'website' => ['nullable', 'string', 'max:255'], 'curriculum' => ['nullable', 'string', 'max:80'],
             'is_partner' => ['sometimes', 'boolean'],
             'status' => ['sometimes', Rule::in(['active', 'inactive'])],
         ]);
