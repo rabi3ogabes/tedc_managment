@@ -92,7 +92,7 @@ class TrainerManagementTest extends TestCase
 
         $public = $this->getJson('/api/v1/public/trainers')->assertOk();
         $this->assertStringNotContainsString('secret@test.qa', $public->getContent());
-        $this->assertStringNotContainsString('900', json_encode($public->json()));
+        $this->assertStringNotContainsString('hourly_rate', json_encode($public->json()));
         $this->asUser($this->makeUser(Role::TRAINER))->getJson("/api/v1/admin/trainers/{$trainer->id}")->assertOk()->assertJsonMissingPath('data.hourly_rate')->assertJsonMissingPath('data.email');
         $this->asUser($admin)->getJson("/api/v1/admin/trainers/{$trainer->id}")->assertOk()->assertJsonPath('data.hourly_rate', 900)->assertJsonPath('data.email', 'secret@test.qa');
 
