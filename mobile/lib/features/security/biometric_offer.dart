@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/biometric.dart';
 import '../../core/l10n/strings.dart';
-import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Turns fingerprint sign-in on after the phone confirms it is the owner. Returns whether it is on.

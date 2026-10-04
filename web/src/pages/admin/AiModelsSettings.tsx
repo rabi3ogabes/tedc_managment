@@ -34,6 +34,7 @@ export default function AiModelsSettings() {
   const [tests, setTests] = useState<Record<string, { ok: boolean; text: string }>>({})
 
   useEffect(() => { if (data && !state) setState(data.data) }, [data, state])
+  const shown = useMemo(() => (catalog ?? []).filter((m) => (only === 'all' || m.tasks.includes(only)) && (`${m.id} ${m.name}`.toLowerCase().includes(query.toLowerCase()))).slice(0, 60), [catalog, query, only])
   if (isLoading || !state) return <Spinner />
 
   const run = async (key: string, job: () => Promise<unknown>, ok?: string) => {
@@ -65,7 +66,6 @@ export default function AiModelsSettings() {
     setPicker(id); setCatalog(null); setQuery(''); setOnly('all')
     void run('catalog', async () => setCatalog((await api.get(`/admin/settings/ai-models/connections/${id}/catalog`)).data.data))
   }
-  const shown = useMemo(() => (catalog ?? []).filter((m) => (only === 'all' || m.tasks.includes(only)) && (`${m.id} ${m.name}`.toLowerCase().includes(query.toLowerCase()))).slice(0, 60), [catalog, query, only])
   const have = (c: string, id: string) => state.models.some((m) => m.connection_id === c && m.model === id)
 
   return (

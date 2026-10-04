@@ -12,7 +12,6 @@ import '../../core/l10n/strings.dart';
 import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
@@ -169,7 +168,6 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    final s = context.s;
     // Accounts without an employee profile have no training pages: show an explanation instead of errors.
     final me = ref.watch(authProvider).value;
     final staff = me != null && me.employee == null;
