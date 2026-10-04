@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 
 export type Template = {
   id: string; event: string; is_system: boolean; name_ar: string; name_en: string; title_ar: string; title_en: string; body_ar: string | null; body_en: string | null
-  enabled: boolean; push: boolean; group: string; customised: boolean; default: { title_ar: string; title_en: string; body_ar: string; body_en: string } | null
+  enabled: boolean; push: boolean; email: boolean; sms: boolean; group: string; customised: boolean; default: { title_ar: string; title_en: string; body_ar: string; body_en: string } | null
 }
 export type TemplateData = { groups: Record<string, { ar: string; en: string }>; variables: string[]; templates: Template[] }
 export type Rendered = { title_ar: string; title_en: string; body_ar: string; body_en: string }

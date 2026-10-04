@@ -63,13 +63,13 @@ class NotificationTemplates
     {
         $tpl = $this->all()[$event] ?? null;
         if (! $tpl) {
-            return ['title' => $title, 'body' => $body, 'push' => true, 'template' => null];
+            return ['title' => $title, 'body' => $body, 'push' => true, 'email' => true, 'sms' => true, 'template' => null];
         }
         if (! $tpl['enabled'] && ! $force) {
             return null;
         }
         if (! $this->isCustomised($tpl)) {
-            return ['title' => $title, 'body' => $body, 'push' => (bool) $tpl['push'], 'template' => $tpl];
+            return ['title' => $title, 'body' => $body, 'push' => (bool) $tpl['push'], 'email' => (bool) ($tpl['email'] ?? true), 'sms' => (bool) ($tpl['sms'] ?? true), 'template' => $tpl];
         }
 
         $vars = $this->variables($event, $data, $userId);
@@ -78,7 +78,7 @@ class NotificationTemplates
             'title' => ['ar' => $this->render($tpl['title_ar'], $vars['ar']), 'en' => $this->render($tpl['title_en'], $vars['en'])],
             'body' => ($tpl['body_ar'] ?? '') !== '' || ($tpl['body_en'] ?? '') !== ''
                 ? ['ar' => $this->render((string) $tpl['body_ar'], $vars['ar']), 'en' => $this->render((string) $tpl['body_en'], $vars['en'])] : $body,
-            'push' => (bool) $tpl['push'],
+            'push' => (bool) $tpl['push'], 'email' => (bool) ($tpl['email'] ?? true), 'sms' => (bool) ($tpl['sms'] ?? true),
             'template' => $tpl,
         ];
     }

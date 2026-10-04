@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useCenterName } from '@/lib/ThemeProvider'
 import type { Paginated, Program } from '@/lib/types'
+import ChannelPicker, { type Channel } from './ChannelPicker'
 import { PhoneNotification, usePreview, VariableChips, type TemplateData } from './shared'
 
 type Audience = 'trainees' | 'pending_survey'
@@ -26,6 +27,7 @@ export default function SendNotificationDialog({ programId, defaultEvent, defaul
   const [templateId, setTemplateId] = useState('')
   const [form, setForm] = useState({ title_ar: '', title_en: '', body_ar: '', body_en: '' })
   const [previewLang, setPreviewLang] = useState<'ar' | 'en'>(lang)
+  const [channels, setChannels] = useState<Channel[] | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<Sent | null>(null)
@@ -60,7 +62,7 @@ export default function SendNotificationDialog({ programId, defaultEvent, defaul
     setSending(true)
     setError(null)
     try {
-      const { data } = await api.post('/admin/notifications/send', { program_id: program, audience, template_id: templateId || undefined, ...form })
+      const { data } = await api.post('/admin/notifications/send', { program_id: program, audience, template_id: templateId || undefined, ...form, notify_channels: channels ?? undefined })
       setDone({ id: data.data.id, recipients: data.data.recipients, title: data.data.title })
       onSent?.(data.data)
     } catch (e) { setError(errorMessage(e)) } finally { setSending(false) }
@@ -120,6 +122,7 @@ export default function SendNotificationDialog({ programId, defaultEvent, defaul
             <div className="space-y-3">{input('title_en', t('mgmt.notif.templates.titleEn'), false, 'ltr')}{input('body_en', t('mgmt.notif.templates.bodyEn'), true, 'ltr')}</div>
           </div>
           <VariableChips variables={(templates.data?.data.variables ?? []).filter((v) => v !== 'name')} onInsert={insert} />
+          <ChannelPicker value={channels} onChange={setChannels} />
         </div>
         <div>
           <div role="tablist" className="mb-3 inline-flex rounded-xl border border-navy-100 p-1 text-xs font-bold">

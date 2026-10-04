@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\AppNotification;
 use App\Models\User;
+use App\Services\Channels\NotificationChannels;
 use App\Services\Notifications\NotificationRoute;
 use App\Services\Notifications\NotificationTemplates;
 use App\Services\Push\PushDispatcher;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,7 +20,7 @@ use Illuminate\Support\Str;
  */
 class NotificationService
 {
-    public function __construct(private readonly PushDispatcher $push, private readonly NotificationTemplates $templates) {}
+    public function __construct(private readonly PushDispatcher $push, private readonly NotificationTemplates $templates, private readonly NotificationChannels $channels) {}
 
     /**
      * @param  User|string  $user  user model or id
@@ -30,11 +32,12 @@ class NotificationService
         $userId = $user instanceof User ? $user->id : $user;
 
         // An administrator can switch an action off, or rewrite its wording (Settings → Notification templates).
-        $composed = $raw ? ['title' => $title, 'body' => $body, 'push' => true, 'template' => null] : $this->templates->compose($type, $title, $body, $data, $userId, $force);
+        $composed = $raw ? ['title' => $title, 'body' => $body, 'push' => true, 'email' => true, 'sms' => true, 'template' => null] : $this->templates->compose($type, $title, $body, $data, $userId, $force);
         if ($composed === null) {
             return null;
         }
         ['title' => $title, 'body' => $body] = $composed;
+        $channels = $this->channels->resolve(Arr::only($composed, ['push', 'email', 'sms']));
         $data = NotificationRoute::withRoute($type, $data);
 
         $notification = AppNotification::create([
@@ -48,9 +51,10 @@ class NotificationService
             'campaign_id' => $campaignId,
         ]);
 
-        if ($composed['push']) {
+        if (in_array('push', $channels, true)) {
             $this->push->dispatch([$userId], $type, $title, $body, $data + ['notification_id' => $notification->id], force: $force);
         }
+        $this->channels->enqueue([$userId => $notification->id], $type, $channels);
 
         return $notification;
     }
@@ -62,11 +66,13 @@ class NotificationService
      */
     public function broadcast(Collection|array $userIds, string $type, array $title, ?array $body = null, array $data = [], ?string $campaignId = null, bool $force = false, bool $raw = false): int
     {
-        $composed = $raw ? ['title' => $title, 'body' => $body, 'push' => true, 'template' => null] : $this->templates->compose($type, $title, $body, $data, null, $force);
+        $composed = $raw ? ['title' => $title, 'body' => $body, 'push' => true, 'email' => true, 'sms' => true, 'template' => null] : $this->templates->compose($type, $title, $body, $data, null, $force);
         if ($composed === null) {
             return 0;
         }
         ['title' => $title, 'body' => $body] = $composed;
+        $channels = $this->channels->resolve(Arr::only($composed, ['push', 'email', 'sms']));
+        $created = [];
         $data = NotificationRoute::withRoute($type, $data);
         // Wording that greets each person by name is rendered per recipient.
         $perUser = $composed['template'] && $this->templates->isCustomised($composed['template']) && str_contains(json_encode($composed['template']), '{{name');
@@ -74,14 +80,16 @@ class NotificationService
         $now = now();
         $count = 0;
 
-        collect($userIds)->unique()->chunk(500)->each(function (Collection $chunk) use ($type, $title, $body, $data, $now, $campaignId, $perUser, $force, &$count) {
+        collect($userIds)->unique()->chunk(500)->each(function (Collection $chunk) use ($type, $title, $body, $data, $now, $campaignId, $perUser, $force, &$count, &$created) {
             $rows = $chunk->map(function ($id) use ($type, $title, $body, $data, $now, $campaignId, $perUser, $force) {
                 if ($perUser) {
                     ['title' => $title, 'body' => $body] = $this->templates->compose($type, $title, $body, $data, $id, $force) ?? ['title' => $title, 'body' => $body];
                 }
 
+                $created[$id] = $notificationId = (string) Str::uuid();
+
                 return [
-                    'id' => (string) Str::uuid(),
+                    'id' => $notificationId,
                     'user_id' => $id,
                     'type' => $type,
                     'title_ar' => $title['ar'],
@@ -99,9 +107,10 @@ class NotificationService
             $count += count($rows);
         });
 
-        if ($composed['push']) {
+        if (in_array('push', $channels, true)) {
             $this->push->dispatch($userIds, $type, $title, $body, $data, force: $force);
         }
+        $this->channels->enqueue($created, $type, $channels);
 
         return $count;
     }

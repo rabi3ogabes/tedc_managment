@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ChooseNotifyChannels;
 use App\Http\Middleware\CompactJson;
 use App\Http\Middleware\EdgeCache;
 use App\Http\Middleware\EnforceSessionLock;
@@ -27,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.
         $middleware->trustProxies(at: '*');
-        $middleware->api(prepend: [CompactJson::class, SetLocale::class]);
+        $middleware->api(prepend: [CompactJson::class, SetLocale::class, ChooseNotifyChannels::class]);
         $middleware->append(SecurityHeaders::class);
         $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class, 'unlocked' => EnforceSessionLock::class]);
         $middleware->redirectGuestsTo(fn () => null);

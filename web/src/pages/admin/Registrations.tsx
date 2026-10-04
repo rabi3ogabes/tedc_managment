@@ -7,6 +7,7 @@ import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import ChannelPicker, { type Channel } from './notifications/ChannelPicker'
 import { fmt } from '@/lib/format'
 import type { Paginated, Program, Registration } from '@/lib/types'
 import { Pager } from './shared'
@@ -18,17 +19,19 @@ export default function Registrations() {
   const [page, setPage] = useState(1)
   const [viewing, setViewing] = useState<Registration | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [channels, setChannels] = useState<Channel[] | null>(null)
   const programs = useGet<Paginated<Program>>('/admin/programs', { per_page: 100 })
   const { data, isLoading, refetch } = useGet<Paginated<Registration>>('/admin/registrations', { ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)), page })
 
   const act = async (id: string, status: string) => {
     setError(null)
-    try { await api.patch(`/admin/registrations/${id}/status`, { status }); refetch() } catch (e) { setError(errorMessage(e)) }
+    try { await api.patch(`/admin/registrations/${id}/status`, { status, notify_channels: channels ?? undefined }); refetch() } catch (e) { setError(errorMessage(e)) }
   }
 
   return (
     <>
       <PageHeader title={t('admin.registrations.title')} />
+      {can('registrations.manage') && <div className="mb-4 max-w-xl"><ChannelPicker compact value={channels} onChange={setChannels} /></div>}
       <Card padded={false}>
         <div className="grid gap-3 border-b border-navy-100 p-4 md:grid-cols-4">
           <div className="relative"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={filters.q} onChange={(e) => setFilters({ ...filters, q: e.target.value })} /></div>

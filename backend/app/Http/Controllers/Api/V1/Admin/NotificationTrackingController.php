@@ -10,6 +10,7 @@ use App\Models\Program;
 use App\Services\Notifications\NotificationCampaigns;
 use App\Services\Notifications\NotificationTemplates;
 use App\Services\Notifications\ProgramSurvey;
+use App\Services\Notifications\UpcomingNotifications;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class NotificationTrackingController extends Controller
 {
     public function __construct(private readonly NotificationCampaigns $campaigns, private readonly ProgramSurvey $survey, private readonly NotificationTemplates $templates) {}
+
+    /** The automatic notifications still to come, as a timeline. */
+    public function upcoming(Request $request, UpcomingNotifications $upcoming): JsonResponse
+    {
+        $data = $request->validate(['days' => ['nullable', 'integer', 'between:1,60'], 'type' => ['nullable', 'string', 'max:64'], 'program_id' => ['nullable', 'uuid']]);
+
+        return response()->json(['data' => $upcoming->build((int) ($data['days'] ?? 14), $data['type'] ?? null, $data['program_id'] ?? null)]);
+    }
 
     /** Sends a notification to the trainees of a program. */
     public function send(Request $request): JsonResponse

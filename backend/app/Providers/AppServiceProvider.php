@@ -9,6 +9,8 @@ use App\Models\NeedsSurvey;
 use App\Models\ProgramSession;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
+use App\Services\Channels\ChannelSettings;
+use App\Services\Channels\NotificationChannels;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +22,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // One instance per request: it remembers the channels the administrator picked for the task in progress.
+        $this->app->singleton(NotificationChannels::class);
+        $this->app->singleton(ChannelSettings::class);
     }
 
     public function boot(): void

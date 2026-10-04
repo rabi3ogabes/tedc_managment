@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BellOff, BellRing, Check, FilePlus2, Pencil, RotateCcw, Search, Smartphone, Trash2 } from 'lucide-react'
+import { BellOff, BellRing, Check, FilePlus2, Mail, MessageSquareText, Pencil, RotateCcw, Search, Smartphone, Trash2 } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Field, Modal, PageHeader, Spinner } from '@/components/ui'
@@ -29,7 +29,7 @@ export default function TemplatesManager() {
   if (isLoading || !data) return <Spinner />
   const stats = { on: templates.filter((x) => x.enabled).length, off: templates.filter((x) => !x.enabled).length, custom: templates.filter((x) => x.customised || !x.is_system).length }
 
-  const toggle = async (tpl: Template, patch: Partial<Pick<Template, 'enabled' | 'push'>>) => {
+  const toggle = async (tpl: Template, patch: Partial<Pick<Template, 'enabled' | 'push' | 'email' | 'sms'>>) => {
     setBusy(tpl.id)
     try { await api.put(`/admin/notifications/templates/${tpl.id}`, patch); await refetch() } catch (e) { setNotice(errorMessage(e)) } finally { setBusy(null) }
   }
@@ -74,6 +74,8 @@ export default function TemplatesManager() {
                     <div className="flex items-center gap-5">
                       <label className="flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-500">{t('mgmt.notif.templates.enabled')}<Switch checked={tpl.enabled} label={t('mgmt.notif.templates.enabled')} onChange={(v) => void toggle(tpl, { enabled: v })} /></label>
                       <label className={clsx('flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-500', !tpl.enabled && 'opacity-40')}><span className="flex items-center gap-1"><Smartphone className="size-3" />{t('mgmt.notif.templates.push')}</span><Switch small checked={tpl.push} label={t('mgmt.notif.templates.push')} onChange={(v) => void toggle(tpl, { push: v })} /></label>
+                      <label className={clsx('flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-500', !tpl.enabled && 'opacity-40')}><span className="flex items-center gap-1"><Mail className="size-3" />{t('channels.email')}</span><Switch small checked={tpl.email} label={t('channels.email')} onChange={(v) => void toggle(tpl, { email: v })} /></label>
+                      <label className={clsx('flex flex-col items-center gap-1 text-[11px] font-semibold text-slate-500', !tpl.enabled && 'opacity-40')}><span className="flex items-center gap-1"><MessageSquareText className="size-3" />{t('channels.sms')}</span><Switch small checked={tpl.sms} label={t('channels.sms')} onChange={(v) => void toggle(tpl, { sms: v })} /></label>
                       <Button size="sm" variant="outline" icon={<Pencil className="size-4" />} loading={busy === tpl.id} onClick={() => setEditing(tpl)}>{t('common.edit')}</Button>
                     </div>
                   </div>

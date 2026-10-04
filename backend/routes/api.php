@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
+use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
@@ -232,6 +233,13 @@ Route::prefix('v1')->group(function () {
             });
 
             // Notification templates, sending to a program's trainees, tracking
+            // E-mail / SMS channels: anyone who sends notifications may see what is usable; only settings managers change it.
+            Route::get('notification-channels/status', [NotificationChannelsController::class, 'status'])->middleware('permission:announcements.manage|registrations.manage|programs.manage');
+            Route::middleware('permission:settings.manage')->prefix('notification-channels')->group(function () {
+                Route::get('/', [NotificationChannelsController::class, 'show']);
+                Route::put('/', [NotificationChannelsController::class, 'update']);
+                Route::post('test', [NotificationChannelsController::class, 'test'])->middleware('throttle:10,1');
+            });
             Route::middleware('permission:announcements.manage')->prefix('notifications')->group(function () {
                 Route::get('templates', [NotificationTemplateController::class, 'index']);
                 Route::post('templates', [NotificationTemplateController::class, 'store']);
@@ -245,6 +253,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('campaigns/{campaign}', [NotificationTrackingController::class, 'campaign']);
                 Route::get('campaigns/{campaign}/export', [NotificationTrackingController::class, 'exportCampaign']);
                 Route::get('tracking', [NotificationTrackingController::class, 'tracking']);
+                Route::get('upcoming', [NotificationTrackingController::class, 'upcoming']);
             });
             Route::middleware('permission:programs.manage')->prefix('programs/{program}/survey')->group(function () {
                 Route::get('/', [ProgramSurveyController::class, 'show']);

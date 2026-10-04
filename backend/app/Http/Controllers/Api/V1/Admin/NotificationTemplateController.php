@@ -87,13 +87,13 @@ class NotificationTemplateController extends Controller
             'name_ar' => [$rule, 'string', 'max:120'], 'name_en' => [$rule, 'string', 'max:120'],
             'title_ar' => [$rule, 'string', 'max:200'], 'title_en' => [$rule, 'string', 'max:200'],
             'body_ar' => ['sometimes', 'nullable', 'string', 'max:1000'], 'body_en' => ['sometimes', 'nullable', 'string', 'max:1000'],
-            'enabled' => ['sometimes', 'boolean'], 'push' => ['sometimes', 'boolean'],
+            'enabled' => ['sometimes', 'boolean'], 'push' => ['sometimes', 'boolean'], 'email' => ['sometimes', 'boolean'], 'sms' => ['sometimes', 'boolean'],
         ]);
     }
 
     private function row(NotificationTemplate $t, array $catalog): array
     {
-        return $t->only(['id', 'event', 'is_system', 'name_ar', 'name_en', 'title_ar', 'title_en', 'body_ar', 'body_en', 'enabled', 'push']) + [
+        return $t->only(['id', 'event', 'is_system', 'name_ar', 'name_en', 'title_ar', 'title_en', 'body_ar', 'body_en', 'enabled', 'push', 'email', 'sms']) + [
             'group' => $t->is_system ? ($catalog[$t->event]['group'] ?? 'custom') : 'custom',
             'customised' => $t->is_system && $this->templates->isCustomised($t->toArray()),
             'default' => $t->is_system && isset($catalog[$t->event]) ? collect($catalog[$t->event])->only(['title_ar', 'title_en', 'body_ar', 'body_en']) : null,

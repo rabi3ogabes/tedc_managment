@@ -1,4 +1,4 @@
-import { BellRing, BellPlus, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -20,6 +20,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'templates', group: 'communication', permission: ['announcements.manage'], icon: BellPlus, component: lazy(() => import('@/pages/admin/notifications/TemplatesManager')), keywords: ['templates', 'notification', 'message', 'wording', 'قوالب', 'إشعار', 'رسالة', 'نص'] },
   { id: 'labels', group: 'identity', permission: ['settings.manage'], icon: Languages, component: lazy(() => import('@/pages/admin/LabelManager')), keywords: ['labels', 'names', 'menu', 'button', 'rename', 'text', 'translation', 'أسماء', 'قائمة', 'زر', 'تسمية', 'نصوص'] },
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
+  { id: 'channels', group: 'communication', permission: ['settings.manage'], icon: Mail, component: lazy(() => import('@/pages/admin/ChannelsSettings')), keywords: ['channels', 'email', 'sms', 'mail', 'smtp', 'قنوات', 'بريد', 'رسائل', 'نصية'] },
   { id: 'roomscreen', group: 'training', permission: ['settings.manage'], icon: MonitorPlay, component: lazy(() => import('@/pages/admin/RoomScreenSettings')), keywords: ['room', 'screen', 'tv', 'display', 'template', 'brand', 'logo', 'شاشة', 'قاعة', 'قالب', 'عرض', 'هوية'] },
   { id: 'trainingday', group: 'training', permission: ['settings.manage'], icon: Clock, component: lazy(() => import('@/pages/admin/TrainingDaySettings')), keywords: ['day', 'hours', 'time', 'start', 'end', 'room', 'session', 'يوم', 'ساعات', 'وقت', 'بداية', 'نهاية', 'قاعة', 'جلسة'] },
   { id: 'attendance', group: 'training', permission: ['settings.manage'], icon: MapPinCheck, component: lazy(() => import('@/pages/admin/AttendanceSettings')), keywords: ['attendance', 'location', 'gps', 'geofence', 'presence', 'حضور', 'موقع', 'تحقق'] },
