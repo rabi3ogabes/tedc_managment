@@ -103,6 +103,8 @@ return [
         'publish_needs_approval' => 'A kit that QA has not approved cannot be published.',
         'cannot_reopen' => 'Only approved, published or archived kits can be reopened.',
         'not_a_presentation' => 'This file is not a presentation.',
+        'audio_unavailable' => 'AI sound generation is not switched on yet: an OpenAI key is needed. You can upload a sound or take one from the library.',
+        'audio_failed' => 'The sound could not be generated now. Please try again in a moment.',
         'locked' => 'The kit is locked in its current state. Reopen it for a new version first.',
         'file_too_large' => 'The file is larger than the allowed size (:max MB).',
     ],

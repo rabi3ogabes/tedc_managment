@@ -50,6 +50,17 @@ async function rasterizeSvg(blob: Blob, box: { w: number; h: number }): Promise<
   }
 }
 
+/** The file as a data URI, unless it is bigger than the limit (then null: the slide links to it instead). */
+async function toDataUriLimited(url: string, limit: number): Promise<string | null> {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const blob = await res.blob()
+    if (blob.size > limit) return null
+    return await new Promise<string>((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.onerror = reject; r.readAsDataURL(blob) })
+  } catch { return null }
+}
+
 export async function exportPptx(deck: Deck, title: string): Promise<Blob> {
   const PptxGenJS = (await import('pptxgenjs')).default
   const pptx = new PptxGenJS()
@@ -78,6 +89,17 @@ export async function exportPptx(deck: Deck, title: string): Promise<Blob> {
           line: el.stroke && el.strokeWidth > 0 ? { color: hex(el.stroke), width: el.strokeWidth * PT } : { type: 'none' },
           rectRadius: el.shape === 'round' ? Math.min(0.5, (el.radius || 16) * IN) : undefined,
         })
+      } else if (el.type === 'video' || el.type === 'audio') {
+        // Embedded when the file is a reasonable size; otherwise a labelled tile that links to it.
+        if (!el.src) continue
+        const media = await toDataUriLimited(el.src, 25 * 1024 * 1024)
+        const options = { ...pos, rotate: el.rotation || undefined }
+        if (media) {
+          ;(s as unknown as { addMedia: (o: Record<string, unknown>) => void }).addMedia({ type: el.type, data: media, ...options })
+        } else {
+          s.addShape('roundRect', { ...options, fill: { color: '8A1538' }, line: { type: 'none' }, rectRadius: 0.1 })
+          s.addText([{ text: `${el.type === 'video' ? '▶ ' : '♪ '}${el.alt || ''}`, options: { color: 'FFFFFF', fontSize: 16, hyperlink: { url: el.src } } }], { ...options, align: 'center', valign: 'middle' })
+        }
       } else if (el.type === 'image') {
         if (!el.src) continue
         const data = await toDataUri(el.src, { w: el.w, h: el.h })

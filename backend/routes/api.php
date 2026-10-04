@@ -340,10 +340,14 @@ Route::prefix('v1')->group(function () {
 
                     Route::get('assets', [KitAssetController::class, 'index']);
                     Route::post('assets', [KitAssetController::class, 'store']);
+                    Route::post('assets/upload-url', [KitAssetController::class, 'uploadUrl'])->middleware('throttle:60,1');
+                    Route::post('assets/complete', [KitAssetController::class, 'complete']);
+                    Route::post('assets/from-file', [KitAssetController::class, 'fromFile']);
 
                     Route::middleware('throttle:ai')->group(function () {
                         Route::post('ai/deck', [KitAiController::class, 'deck'])->middleware('permission:kits.generate');
                         Route::post('ai/image', [KitAiController::class, 'image'])->middleware('permission:kits.generate');
+                        Route::post('ai/audio', [KitAiController::class, 'audio'])->middleware(['permission:kits.generate', 'throttle:20,1']);
                         Route::post('ai/storyboard', [KitAiController::class, 'storyboard'])->middleware('permission:kits.generate');
                         Route::post('ai/rewrite', [KitAiController::class, 'rewrite']);
                     });

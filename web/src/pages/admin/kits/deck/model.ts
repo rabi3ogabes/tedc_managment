@@ -8,8 +8,11 @@ export type TextStyle = { fontFamily?: string | null; valign: 'top' | 'middle' |
 type Base = { id: string; x: number; y: number; w: number; h: number; rotation: number }
 export type TextEl = Base & { type: 'text'; paragraphs: Paragraph[]; style: TextStyle }
 export type ImageEl = Base & { type: 'image'; asset_id: string | null; src?: string | null; alt: string; prompt: string; fit: 'cover' | 'contain'; radius: number }
+export type VideoEl = Base & { type: 'video'; asset_id: string | null; src?: string | null; alt: string; prompt: string; autoplay: boolean; loop: boolean; radius: number }
+export type AudioEl = Base & { type: 'audio'; asset_id: string | null; src?: string | null; alt: string; prompt: string; autoplay: boolean; loop: boolean; radius: number }
 export type ShapeEl = Base & { type: 'shape'; shape: 'rect' | 'round' | 'ellipse' | 'line'; fill: string | null; stroke: string | null; strokeWidth: number; radius: number; opacity: number }
-export type El = TextEl | ImageEl | ShapeEl
+export type MediaEl = ImageEl | VideoEl | AudioEl
+export type El = TextEl | ImageEl | VideoEl | AudioEl | ShapeEl
 
 export type Slide = {
   id: string; rev: number; layout: string; background: { color: string; asset_id: string | null; src?: string | null }; notes: string; elements: El[]
@@ -37,6 +40,14 @@ export const shapeEl = (shape: ShapeEl['shape'], x: number, y: number, w: number
 export const imageEl = (x: number, y: number, w: number, h: number, o: Partial<ImageEl> = {}): ImageEl => ({
   id: uid('e'), type: 'image', x, y, w, h, rotation: 0, asset_id: null, alt: '', prompt: '', fit: 'cover', radius: 0, ...o,
 })
+
+export const videoEl = (x: number, y: number, w: number, h: number, o: Partial<VideoEl> = {}): VideoEl => ({
+  id: uid('e'), type: 'video', x, y, w, h, rotation: 0, asset_id: null, alt: '', prompt: '', autoplay: false, loop: false, radius: 12, ...o,
+})
+export const audioEl = (x: number, y: number, w: number, h: number, o: Partial<AudioEl> = {}): AudioEl => ({
+  id: uid('e'), type: 'audio', x, y, w, h, rotation: 0, asset_id: null, alt: '', prompt: '', autoplay: false, loop: false, radius: 16, ...o,
+})
+export const isMedia = (e: El | null | undefined): e is MediaEl => !!e && (e.type === 'image' || e.type === 'video' || e.type === 'audio')
 
 export type LayoutId = 'blank' | 'title' | 'content' | 'two_column' | 'image_text' | 'section'
 export const LAYOUTS: LayoutId[] = ['title', 'content', 'two_column', 'image_text', 'section', 'blank']
@@ -94,7 +105,7 @@ export const slideTitle = (s: Slide): string => {
 export const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T
 
 /** JSON without volatile fields; used to detect what changed. */
-export const slideSignature = (s: Slide) => JSON.stringify({ ...s, rev: 0, by: 0, by_name: 0, at: 0, background: { ...s.background, src: null }, elements: s.elements.map((e) => (e.type === 'image' ? { ...e, src: null } : e)) })
+export const slideSignature = (s: Slide) => JSON.stringify({ ...s, rev: 0, by: 0, by_name: 0, at: 0, background: { ...s.background, src: null }, elements: s.elements.map((e) => (e.type === 'image' || e.type === 'video' || e.type === 'audio' ? { ...e, src: null } : e)) })
 
 export function textParagraphsFromString(value: string, previous: Paragraph[]): Paragraph[] {
   const lines = value.split('\n')

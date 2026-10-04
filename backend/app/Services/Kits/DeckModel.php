@@ -97,7 +97,7 @@ final class DeckModel
     private static function normalizeElement(array $el): ?array
     {
         $type = $el['type'] ?? null;
-        if (! in_array($type, ['text', 'image', 'shape'], true)) {
+        if (! in_array($type, ['text', 'image', 'video', 'audio', 'shape'], true)) {
             return null;
         }
         $base = [
@@ -135,6 +135,14 @@ final class DeckModel
                 'fit' => ($el['fit'] ?? 'cover') === 'contain' ? 'contain' : 'cover', 'radius' => self::num($el['radius'] ?? 0, 0, 400),
                 // Pasted / imported images arrive as data URIs and are converted to assets by ingestDataUris().
                 'src' => isset($el['src']) && str_starts_with((string) $el['src'], 'data:image/') ? (string) $el['src'] : null,
+            ];
+        }
+
+        if ($type === 'video' || $type === 'audio') {
+            // A clip or a sound placed on the slide: the file is a kit asset; `src` is only added when the deck is served.
+            return $base + [
+                'asset_id' => self::str($el['asset_id'] ?? null, 40), 'alt' => mb_substr((string) ($el['alt'] ?? ''), 0, 500), 'prompt' => mb_substr((string) ($el['prompt'] ?? ''), 0, 1000),
+                'autoplay' => (bool) ($el['autoplay'] ?? false), 'loop' => (bool) ($el['loop'] ?? false), 'radius' => self::num($el['radius'] ?? 0, 0, 400),
             ];
         }
 
@@ -209,19 +217,19 @@ final class DeckModel
                 $ids[] = $slide['background']['asset_id'];
             }
             foreach ($slide['elements'] as $el) {
-                if (($el['type'] ?? null) === 'image' && ! empty($el['asset_id'])) {
+                if (in_array($el['type'] ?? null, ['image', 'video', 'audio'], true) && ! empty($el['asset_id'])) {
                     $ids[] = $el['asset_id'];
                 }
             }
         }
         $assets = KitAsset::whereIn('id', array_unique($ids))->get()->keyBy('id');
         $ttl = (int) config('tedc.kits.asset_url_ttl');
-        $url = fn (?string $id) => $id && $assets->has($id) ? $storage->temporaryUrl('documents', $assets[$id]->storage_path, $ttl) : null;
+        $url = fn (?string $id) => $id && $assets->has($id) ? $storage->temporaryUrl($assets[$id]->bucket(), $assets[$id]->storage_path, $ttl) : null;
 
         foreach ($deck['slides'] as &$slide) {
             $slide['background']['src'] = $url($slide['background']['asset_id'] ?? null);
             foreach ($slide['elements'] as &$el) {
-                if (($el['type'] ?? null) === 'image') {
+                if (in_array($el['type'] ?? null, ['image', 'video', 'audio'], true)) {
                     $el['src'] = $url($el['asset_id'] ?? null);
                 }
             }
@@ -238,7 +246,7 @@ final class DeckModel
         foreach ($deck['slides'] ?? [] as $i => $slide) {
             unset($deck['slides'][$i]['background']['src']);
             foreach ($slide['elements'] as $j => $el) {
-                if (($el['type'] ?? null) === 'image' && ! empty($el['asset_id'])) {
+                if (in_array($el['type'] ?? null, ['image', 'video', 'audio'], true) && ! empty($el['asset_id'])) {
                     unset($deck['slides'][$i]['elements'][$j]['src']);
                 }
             }

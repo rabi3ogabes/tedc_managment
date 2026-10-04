@@ -46,7 +46,7 @@ type Props = {
   onDuplicate: () => void
   onDelete: () => void
   onOrder: (to: 'front' | 'back') => void
-  onPickImage: (mode: 'upload' | 'library' | 'ai') => void
+  onPickImage: (mode: 'upload' | 'library' | 'ai', kind?: 'image' | 'video' | 'audio') => void
   onClearSlideImage: () => void
 }
 
@@ -82,6 +82,18 @@ export default function Inspector({ slide, theme, selected, canEdit, onChange, o
 
       {selected.type === 'text' && <TextControls el={selected} theme={theme} set={set} />}
       {selected.type === 'shape' && <ShapeControls el={selected} set={set} />}
+      {(selected.type === 'video' || selected.type === 'audio') && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-1.5">
+            <Button size="sm" variant="outline" icon={<Upload className="size-3.5" />} onClick={() => onPickImage('upload', selected.type as 'video' | 'audio')}>{t('kits.editor.upload')}</Button>
+            <Button size="sm" variant="outline" icon={<ImageIcon className="size-3.5" />} onClick={() => onPickImage('library', selected.type as 'video' | 'audio')}>{t('kits.editor.library')}</Button>
+            <Button size="sm" variant="gold" icon={<Sparkles className="size-3.5" />} onClick={() => onPickImage('ai', selected.type as 'video' | 'audio')}>AI</Button>
+          </div>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={selected.autoplay} onChange={(e) => set({ autoplay: e.target.checked })} />{t('kits.media.autoplay')}</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={selected.loop} onChange={(e) => set({ loop: e.target.checked })} />{t('kits.media.loop')}</label>
+          <Field label={t('kits.editor.alt')} hint={t('kits.media.altHint')}><input className="input !py-1.5 text-sm" dir="auto" value={selected.alt} onChange={(e) => set({ alt: e.target.value }, 'alt')} /></Field>
+        </div>
+      )}
       {selected.type === 'image' && (
         <div className="space-y-3">
           <div className="grid grid-cols-3 gap-1.5">

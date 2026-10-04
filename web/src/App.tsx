@@ -25,8 +25,7 @@ const ProgramEditor = lazy(() => import('@/pages/admin/ProgramEditor'))
 const ProgramManage = lazy(() => import('@/pages/admin/ProgramManage'))
 const SessionQr = lazy(() => import('@/pages/admin/SessionQr'))
 const SettingsWorkspace = lazy(() => import('@/pages/admin/settings/SettingsWorkspace'))
-const KitsHome = lazy(() => import('@/pages/admin/kits/KitsHome'))
-const KitWorkspace = lazy(() => import('@/pages/admin/kits/KitWorkspace'))
+const KitsWorkbench = lazy(() => import('@/pages/admin/kits/KitsWorkbench'))
 const FileStudio = lazy(() => import('@/pages/admin/kits/FileStudio'))
 const ProgramWizard = lazy(() => import('@/pages/admin/smart/ProgramWizard'))
 const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
@@ -111,8 +110,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="programs" element={<ProgramsAdmin />} />
           <Route path="programs/new" element={<ProgramEditor />} />
-          <Route path="kits" element={<RequireAuth permission="kits.view"><KitsHome /></RequireAuth>} />
-          <Route path="kits/:kitId" element={<RequireAuth permission="kits.view"><KitWorkspace /></RequireAuth>} />
+          <Route path="kits/*" element={<RequireAuth permission="kits.view"><KitsWorkbench /></RequireAuth>} />
           <Route path="programs/remote" element={<RequireAuth permission="programs.manage"><ProgramWizard remote /></RequireAuth>} />
           <Route path="programs/smart" element={<RequireAuth permission="programs.manage"><ProgramWizard /></RequireAuth>} />
           <Route path="rooms" element={<RequireAuth permission="programs.view"><RoomsAdmin /></RequireAuth>} />

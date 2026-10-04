@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckCircle2, CircleAlert, CloudUpload, Download, Hand, History, PanelRight, Image as ImageIcon, Loader2, MessageSquare, MessageSquareDashed, MousePointer2, Play, Redo2, ScanSearch, Shapes, Sparkles, Square, Type, Undo2, ZoomIn, ZoomOut } from 'lucide-react'
+import { AudioLines, CheckCircle2, CircleAlert, CloudUpload, Download, Hand, History, PanelRight, Image as ImageIcon, Loader2, MessageSquare, MessageSquareDashed, MousePointer2, Play, Redo2, ScanSearch, Shapes, Sparkles, Square, Type, Undo2, Video, ZoomIn, ZoomOut } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -8,10 +8,11 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import CommentsPanel from '../comments/CommentsPanel'
 import { useCommentActions, useKitComments } from '../comments/api'
-import type { Anchor, Asset, Finding, Kit, KitComment, KitFile } from '../types'
-import ImagePickerDialog from './ImagePickerDialog'
+import type { Anchor, Asset, Finding, Kit, KitComment, KitFile, MediaKind } from '../types'
+import VideoStudio from '../ai/VideoStudio'
+import MediaPickerDialog from './MediaPickerDialog'
 import Inspector from './Inspector'
-import { clone, imageEl, newSlide, para, shapeEl, slideText, slideTitle, textEl, textParagraphsFromString, uid, type Deck, type El, type LayoutId, type Slide } from './model'
+import { audioEl, clone, imageEl, isMedia, newSlide, para, shapeEl, slideText, slideTitle, textEl, textParagraphsFromString, uid, videoEl, type Deck, type El, type LayoutId, type Slide } from './model'
 import { exportPptx } from './pptx'
 import Presenter from './Presenter'
 import SlideCanvas, { type PinDraft } from './SlideCanvas'
@@ -20,7 +21,7 @@ import { AiPanel, ChecksPanel, VersionsPanel } from './SidePanels'
 import { useDeckEditor } from './useDeckEditor'
 
 type Tab = 'format' | 'comments' | 'ai' | 'checks' | 'history'
-type PickerState = { mode: 'ai' | 'library' | 'upload'; target: 'element' | 'new' | 'background' } | null
+type PickerState = { mode: 'ai' | 'library' | 'upload'; target: 'element' | 'new' | 'background'; kind?: MediaKind } | null
 
 const mapSlide = (d: Deck, id: string, fn: (s: Slide) => Slide): Deck => ({ ...d, slides: d.slides.map((s) => (s.id === id ? fn(s) : s)) })
 const mapEl = (s: Slide, id: string, fn: (e: El) => El): Slide => ({ ...s, elements: s.elements.map((e) => (e.id === id ? fn(e) : e)) })
@@ -54,6 +55,7 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
   const [slideDraft, setSlideDraft] = useState(false)
   const [activeComment, setActiveComment] = useState<string | null>(null)
   const [picker, setPicker] = useState<PickerState>(null)
+  const [studio, setStudio] = useState(false)
   const [present, setPresent] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [shapeMenu, setShapeMenu] = useState(false)
@@ -65,6 +67,7 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
   const { deck, apply } = ed
 
   const canEdit = ed.canEdit && !!kit.can?.edit
+  const canGenerate = !!kit.can?.generate
   const slide = deck?.slides.find((s) => s.id === activeId) ?? deck?.slides[0] ?? null
   const selected = slide?.elements.find((e) => e.id === selectedId) ?? null
   const allComments = useMemo(() => comments.data?.data ?? [], [comments.data])
@@ -190,11 +193,21 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
   // Pictures ------------------------------------------------------------------------------------
   const onAsset = (asset: Asset) => {
     if (!slide || !picker) return
+    const kind = picker.kind ?? 'image'
     if (picker.target === 'background') updateSlide({ background: { ...slide.background, asset_id: asset.id, src: asset.url } })
-    else if (picker.target === 'element' && selected?.type === 'image') updateEl(selected.id, { asset_id: asset.id, src: asset.url, alt: selected.alt || asset.prompt || asset.name || '' })
+    else if (picker.target === 'element' && isMedia(selected) && selected.type === kind) updateEl(selected.id, { asset_id: asset.id, src: asset.url, alt: selected.alt || asset.prompt || asset.name || '' })
+    else if (kind === 'video') addElement(videoEl(240, 120, 800, 450, { asset_id: asset.id, src: asset.url, alt: asset.name ?? '' }))
+    else if (kind === 'audio') addElement(audioEl(340, 560, 600, 84, { asset_id: asset.id, src: asset.url, alt: asset.prompt ?? asset.name ?? '' }))
     else addElement(imageEl(340, 160, 600, asset.width && asset.height ? Math.round(600 * (asset.height / asset.width)) : 400, { asset_id: asset.id, src: asset.url, alt: asset.prompt ?? asset.name ?? '', fit: 'contain' }))
     setPicker(null)
   }
+
+  /** A picture, video or sound on the slide was pressed: open the chooser for it (AI first when the user may generate). */
+  const activate = (el: El) => {
+    if (!isMedia(el)) return
+    setPicker({ mode: el.asset_id || !canGenerate ? 'library' : 'ai', target: 'element', kind: el.type })
+  }
+  const addMedia = (kind: 'video' | 'audio') => setPicker({ mode: canGenerate ? 'ai' : 'library', target: 'new', kind })
 
   // AI ------------------------------------------------------------------------------------------
   const insertSlides = (incoming: Slide[]) => {
@@ -328,7 +341,9 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
             </div>
           )}
         </div>
-        <Tool label={t('kits.editor.addImage')} onClick={() => setPicker({ mode: 'library', target: selected?.type === 'image' ? 'element' : 'new' })} disabled={!canEdit}><ImageIcon className="size-4" /></Tool>
+        <Tool label={t('kits.editor.addImage')} onClick={() => setPicker({ mode: 'library', target: selected?.type === 'image' ? 'element' : 'new', kind: 'image' })} disabled={!canEdit}><ImageIcon className="size-4" /></Tool>
+        <Tool label={t('kits.media.addVideo')} onClick={() => addMedia('video')} disabled={!canEdit}><Video className="size-4" /></Tool>
+        <Tool label={t('kits.media.addAudio')} onClick={() => addMedia('audio')} disabled={!canEdit}><AudioLines className="size-4" /></Tool>
         <Divider />
         <Tool label={t('kits.editor.modeEdit')} onClick={() => setMode('edit')} active={mode === 'edit'}><MousePointer2 className="size-4" /></Tool>
         <Tool label={t('kits.editor.modeReview')} onClick={() => { setMode('review'); setTab('comments') }} active={mode === 'review'}><MessageSquareDashed className="size-4" /></Tool>
@@ -380,7 +395,7 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
             <div className="mx-auto w-fit">
               <SlideCanvas slide={slide} theme={deck.theme} width={stageWidth} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); if (id) setTabState('format') }} editable={canEdit} mode={mode}
                 onChangeEl={updateEl} onBeginGesture={ed.checkpoint} comments={commentsHere.filter((c) => c.status !== 'resolved' || activeComment === c.id)} activeCommentId={activeComment}
-                onPinClick={(c) => { setActiveComment(c.id); setTab('comments') }} onPlacePin={(p) => { setPin(p); setSlideDraft(false); setTab('comments') }} draftPin={pin} />
+                onPinClick={(c) => { setActiveComment(c.id); setTab('comments') }} onPlacePin={(p) => { setPin(p); setSlideDraft(false); setTab('comments') }} draftPin={pin} onActivate={activate} activateLabel={t('kits.media.change')} />
               {mode === 'review' && <p className="mt-3 text-center text-xs font-semibold text-gold-700">{t('kits.editor.reviewHint')}</p>}
             </div>
           </div>
@@ -405,7 +420,7 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
             {tab === 'format' && (
               <Inspector slide={slide} theme={deck.theme} selected={selected} canEdit={canEdit}
                 onChange={(patch, o) => selected && updateEl(selected.id, patch, o)} onSlide={(p) => updateSlide(p)} onDuplicate={duplicateSelected} onDelete={deleteSelected} onOrder={reorder}
-                onPickImage={(m) => setPicker({ mode: m, target: 'element' })} onClearSlideImage={() => updateSlide({ background: { ...slide.background, asset_id: null, src: null } })} />
+                onPickImage={(m, k) => setPicker({ mode: m, target: 'element', kind: k ?? 'image' })} onClearSlideImage={() => updateSlide({ background: { ...slide.background, asset_id: null, src: null } })} />
             )}
             {tab === 'comments' && (
               <div className="flex h-full min-h-[24rem] flex-col gap-2">
@@ -424,7 +439,7 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
             )}
             {tab === 'ai' && (
               <AiPanel kit={kit} fileId={file.id} hasTextSelection={selected?.type === 'text'} onInsertSlides={insertSlides} onRewrite={rewrite}
-                onImage={() => setPicker({ mode: 'ai', target: selected?.type === 'image' ? 'element' : 'new' })} />
+                onImage={() => setPicker({ mode: 'ai', target: selected?.type === 'image' ? 'element' : 'new', kind: 'image' })} />
             )}
             {tab === 'checks' && <ChecksPanel kit={kit} fileId={file.id} canComment={!!kit.can?.comment} onComment={createFromFindings} onJump={(f) => { if (f.slide_id) { setActiveId(f.slide_id); setSelectedId(f.element_id) } }} />}
             {tab === 'history' && <VersionsPanel kit={kit} fileId={file.id} canEdit={canEdit} onSaved={() => ed.save()} onRestored={(d, rev) => { ed.replaceDeck(d, rev); setActiveId(d.slides[0]?.id ?? null); setToast(t('kits.versions.restored')) }} />}
@@ -432,7 +447,8 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
         </aside>
       </div>
 
-      {picker && <ImagePickerDialog kitId={kit.id} initial={picker.mode} prompt={selected?.type === 'image' ? selected.prompt || selected.alt : slideTitle(slide)} canGenerate={!!kit.can?.generate} onPick={onAsset} onClose={() => setPicker(null)} />}
+      {picker && !studio && <MediaPickerDialog kitId={kit.id} kind={picker.kind ?? 'image'} initial={picker.mode} prompt={isMedia(selected) && selected.type === (picker.kind ?? 'image') ? selected.prompt || selected.alt : slideTitle(slide)} canGenerate={!!kit.can?.generate} onPick={onAsset} onClose={() => setPicker(null)} onVideoStudio={() => setStudio(true)} />}
+      {studio && <VideoStudio kit={kit as never} onClose={() => { setStudio(false); setPicker(null) }} onSaved={(asset) => { setStudio(false); onAsset(asset) }} />}
       {present && <Presenter deck={deck} start={deck.slides.findIndex((s) => s.id === slide.id)} onClose={() => setPresent(false)} />}
       {toast && <div className="fixed bottom-6 start-1/2 z-[90] -translate-x-1/2 rounded-full bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white shadow-glass rtl:translate-x-1/2">{toast}</div>}
       <span className="sr-only" aria-live="polite">{statusBadge.text}</span>

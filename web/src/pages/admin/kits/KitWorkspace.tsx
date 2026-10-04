@@ -44,8 +44,10 @@ const readWorkspace = (kitId: string): Workspace => {
   } catch { return { open: [], active: 'overview' } }
 }
 
-export default function KitWorkspace() {
-  const { kitId = '' } = useParams()
+/** One kit. Several can be open at once (see KitsWorkbench): only the pane on screen reads or writes the address bar and listens to the keyboard. */
+export default function KitWorkspace({ kitId: kitProp, active: paneActive = true }: { kitId?: string; active?: boolean } = {}) {
+  const { kitId: routeKit = '' } = useParams()
+  const kitId = kitProp ?? routeKit
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const kitQuery = useGet<{ data: KitDetail }>(`/admin/kits/${kitId}`)
@@ -53,7 +55,7 @@ export default function KitWorkspace() {
   const [params, setParams] = useSearchParams()
   const [ws, setWs] = useState<Workspace>(() => {
     const saved = readWorkspace(kitId)
-    const wanted = new URLSearchParams(window.location.search).get('tab')
+    const wanted = paneActive ? new URLSearchParams(window.location.search).get('tab') : null
     if (wanted && (SECTIONS as readonly string[]).includes(wanted)) return { ...saved, active: wanted }
     if (wanted && isFileTab(wanted)) return { open: saved.open.includes(wanted) ? saved.open : [...saved.open, wanted], active: wanted }
     return saved
@@ -115,11 +117,12 @@ export default function KitWorkspace() {
     try { localStorage.setItem(`tedc.kit.tabs.${kitId}`, JSON.stringify(ws)) } catch { /* storage unavailable */ }
     setVisited((cur) => (cur.has(ws.active) ? cur : new Set(cur).add(ws.active)))
     if (isFileTab(ws.active) && window.innerWidth < 1024) shell.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    if (!paneActive) return
     const n = new URLSearchParams(window.location.search)
     if (ws.active === 'overview') n.delete('tab'); else n.set('tab', ws.active)
     if (n.toString() !== window.location.search.replace(/^\?/, '')) setParamsRef.current(n, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ws, kitId])
+  }, [ws, kitId, paneActive])
 
   // A link such as /admin/kits/:id?tab=f:<file> opens that tab even when the workspace is already mounted.
   const wanted = params.get('tab')
@@ -128,6 +131,7 @@ export default function KitWorkspace() {
   const refreshRef = useRef(refresh)
   refreshRef.current = refresh
   useEffect(() => {
+    if (!paneActive) return
     if (!wanted) { lastWanted.current = null; return }
     if (wanted === wsRef.current.active) { lastWanted.current = wanted; return }
     if (lastWanted.current === wanted && !pendingComment && !(isFileTab(wanted) && kit && asked.current === wanted)) return
@@ -137,10 +141,11 @@ export default function KitWorkspace() {
       if (fileById.has(wanted.slice(2))) { lastWanted.current = wanted; openTab(wanted) }
       else if (asked.current !== wanted) { asked.current = wanted; void refreshRef.current() } // a file created a moment ago
     }
-  }, [wanted, pendingComment, kit, fileById, openTab])
+  }, [wanted, pendingComment, kit, fileById, openTab, paneActive])
 
   // Keyboard: Alt+W closes the file tab, Alt+←/→ switches.
   useEffect(() => {
+    if (!paneActive) return
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey) return
       const cur = wsRef.current
@@ -154,7 +159,7 @@ export default function KitWorkspace() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [closeTabs, rtl])
+  }, [closeTabs, rtl, paneActive])
 
   useEffect(() => {
     if (!menu) return
@@ -250,7 +255,7 @@ export default function KitWorkspace() {
             return (
               <div key={`${id}-${reloads[id] ?? 0}`} hidden={!active} role="tabpanel" aria-label={file.name} className={clsx('relative', panelHeight)}>
                 <TabErrorBoundary title={t('kits.tabs.failed')} hint={t('kits.tabs.failedHint')} retry={t('kits.common.retry')}>
-                  <FileWorkbench kit={kit} file={file} active={active} onFile={(f) => { setFileOverride((cur) => ({ ...cur, [f.id]: f })); void refresh() }} />
+                  <FileWorkbench kit={kit} file={file} active={active && paneActive} onFile={(f) => { setFileOverride((cur) => ({ ...cur, [f.id]: f })); void refresh() }} />
                 </TabErrorBoundary>
               </div>
             )

@@ -104,6 +104,7 @@ return [
         'image_provider' => env('TEDC_IMAGE_PROVIDER', 'auto'),
         'openai_key' => env('OPENAI_API_KEY'),
         'openai_image_model' => env('TEDC_OPENAI_IMAGE_MODEL', 'gpt-image-1'),
+        'openai_tts_model' => env('TEDC_OPENAI_TTS_MODEL', 'tts-1'),
         'max_upload_mb' => (int) env('TEDC_KIT_MAX_UPLOAD_MB', 100),
         'asset_url_ttl' => 4 * 3600,
         'autosnapshot_minutes' => 10,

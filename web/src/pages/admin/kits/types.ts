@@ -66,4 +66,5 @@ export type Analysis = { score: number; findings: Finding[]; ai: boolean; stats:
 
 export type VersionRow = { id: string; version: number; source: string; note: string | null; size: number; slides: number | null; has_binary: boolean; author: string | null; created_at: string }
 
-export type Asset = { id: string; name?: string | null; mime: string; width?: number | null; height?: number | null; prompt?: string | null; source: string; provider?: string | null; url: string }
+export type MediaKind = 'image' | 'video' | 'audio'
+export type Asset = { id: string; name?: string | null; mime: string; kind?: MediaKind; size?: number; duration?: number | null; width?: number | null; height?: number | null; prompt?: string | null; source: string; provider?: string | null; url: string }

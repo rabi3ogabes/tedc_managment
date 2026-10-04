@@ -37,7 +37,7 @@ export default function Presenter({ deck, start = 0, onClose }: { deck: Deck; st
   const width = Math.min(size.w, (size.h - reserved) * (16 / 9))
   return (
     <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-black" onClick={() => go(1)}>
-      <SlideView slide={slide} theme={deck.theme} width={width} placeholder />
+      <SlideView slide={slide} theme={deck.theme} width={width} placeholder playable />
       {notes && <div className="mt-3 max-h-32 w-full max-w-4xl overflow-y-auto rounded-xl bg-white/10 p-3 text-sm leading-relaxed text-white" dir="auto" onClick={(e) => e.stopPropagation()}>{slide.notes || t('kits.editor.noNotes')}</div>}
       <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-2 opacity-0 transition hover:opacity-100 focus-within:opacity-100" onClick={(e) => e.stopPropagation()}>
         <button type="button" onClick={() => go(rtl ? 1 : -1)} className="grid size-10 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25" aria-label={t('kits.common.previous')}><ChevronLeft className="size-5" /></button>

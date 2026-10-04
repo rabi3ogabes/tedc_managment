@@ -84,6 +84,19 @@ export const kitsAr = {
     textColor: 'لون النص', fill: 'التعبئة', noFill: 'بدون تعبئة', valign: 'المحاذاة الرأسية', valigns: { top: 'أعلى', middle: 'وسط', bottom: 'أسفل' }, lineHeight: 'تباعد الأسطر', padding: 'الحشو', shape: 'الشكل', stroke: 'الإطار', strokeWidth: 'سماكة الإطار', radius: 'الاستدارة', opacity: 'الشفافية',
     upload: 'رفع', library: 'المكتبة', fitCover: 'ملء الإطار', fitContain: 'احتواء كامل', alt: 'النص البديل', altHint: 'يصف الصورة لقارئات الشاشة.', arrange: 'الموضع والحجم', width: 'العرض', height: 'الارتفاع', rotation: 'الدوران',
   },
+  media: {
+    title: { image: 'اختيار صورة', video: 'اختيار فيديو', audio: 'اختيار صوت' }, tabUpload: { image: 'رفع صورة', video: 'رفع فيديو', audio: 'رفع ملف صوتي' }, use: 'استخدام', change: 'تغيير / توليد', addVideo: 'فيديو', addAudio: 'صوت',
+    describeAudio: 'النص الذي سيُقرأ بصوت المعلّق', audioPlaceholder: 'اكتب نص التعليق الصوتي لهذه الشريحة…', generateAudio: 'توليد الصوت', audioUnavailable: 'توليد الصوت بالذكاء الاصطناعي غير مفعّل بعد (يلزم إضافة مفتاح OpenAI). يمكنك رفع ملف صوتي أو اختياره من المكتبة.',
+    videoAi: 'يُنشأ الفيديو بالذكاء الاصطناعي في استوديو الفيديو: مشاهد بصور مولّدة وتعليق نصي، ثم يُحفظ في مكتبة الحقيبة ويوضع على الشريحة مباشرة.', openVideoStudio: 'فتح استوديو الفيديو',
+    libraryEmpty: { image: 'لا صور في مكتبة الحقيبة بعد.', video: 'لا فيديوهات في مكتبة الحقيبة بعد — ارفع فيديو أو أنشئه بالذكاء الاصطناعي.', audio: 'لا ملفات صوتية في مكتبة الحقيبة بعد — ارفع صوتاً أو ولّده من نص.' },
+    drop: { image: 'اسحب الصورة هنا أو اختر من جهازك', video: 'اسحب الفيديو هنا أو اختر من جهازك', audio: 'اسحب الملف الصوتي هنا أو اختر من جهازك' },
+    formats: { image: 'PNG · JPG · WEBP · SVG · حتى 8 ميجابايت', video: 'MP4 · WEBM · MOV · حتى 100 ميجابايت', audio: 'MP3 · M4A · WAV · حتى 100 ميجابايت' },
+    autoplay: 'تشغيل تلقائي عند العرض', loop: 'تكرار', altHint: 'يصف الوسيط لقارئات الشاشة.',
+  },
+  workbench: {
+    studio: 'الاستوديو', tabs: 'الحقائب المفتوحة', close: 'إغلاق', closeOthers: 'إغلاق الباقي', closeAll: 'إغلاق كل الحقائب', closeRight: 'إغلاق ما بعدها', openNew: 'فتح الاستوديو', moveStart: 'نقل إلى البداية',
+    limit: 'بلغت الحد الأقصى للحقائب المفتوحة معاً ({{n}}) فأُغلقت أقدم حقيبة غير نشطة.', loading: 'جارٍ التحميل…', hint: 'افتح أكثر من حقيبة في تبويبات واعمل عليها معاً — حضوري أو عن بُعد أو مدمج.',
+  },
   image: {
     title: 'اختيار صورة', tabAi: 'إنشاء بالذكاء الاصطناعي', tabLibrary: 'مكتبة الحقيبة', tabUpload: 'رفع صورة', describe: 'صف الصورة المطلوبة', placeholder: 'مثال: معلمة تشرح لمجموعة طلاب باستخدام لوح تفاعلي', aspect: 'النسبة',
     styles: { flat: 'رسم مسطح حديث', watercolor: 'ألوان مائية', realistic: 'واقعي', infographic: 'إنفوجرافيك', minimal: 'بسيط' }, generate: 'إنشاء الصورة', again: 'إنشاء نسخة أخرى', working: 'جارٍ إنشاء الصورة…', results: 'النتائج — انقر لاستخدام الصورة',
@@ -206,6 +219,19 @@ export const kitsEn: KitsStrings = {
     toFront: 'Bring to front', toBack: 'Send to back', duplicate: 'Duplicate', font: 'Font', default: 'default', size: 'Size', bold: 'Bold', italic: 'Italic', alignLeft: 'Align left', alignCenter: 'Center', alignRight: 'Align right', bullets: 'Bullets',
     textColor: 'Text color', fill: 'Fill', noFill: 'No fill', valign: 'Vertical align', valigns: { top: 'Top', middle: 'Middle', bottom: 'Bottom' }, lineHeight: 'Line spacing', padding: 'Padding', shape: 'Shape', stroke: 'Outline', strokeWidth: 'Outline width', radius: 'Corner radius', opacity: 'Opacity',
     upload: 'Upload', library: 'Library', fitCover: 'Fill frame', fitContain: 'Fit whole image', alt: 'Alt text', altHint: 'Describes the image for screen readers.', arrange: 'Position & size', width: 'Width', height: 'Height', rotation: 'Rotation',
+  },
+  media: {
+    title: { image: 'Choose a picture', video: 'Choose a video', audio: 'Choose a sound' }, tabUpload: { image: 'Upload a picture', video: 'Upload a video', audio: 'Upload a sound file' }, use: 'Use', change: 'Change / generate', addVideo: 'Video', addAudio: 'Sound',
+    describeAudio: 'The text the narrator will read', audioPlaceholder: 'Write the narration for this slide…', generateAudio: 'Generate sound', audioUnavailable: 'AI sound generation is not switched on yet (an OpenAI key is needed). You can upload a sound or take one from the library.',
+    videoAi: 'AI videos are made in the Video Studio: scenes with generated pictures and a narration text. The result is saved in the kit library and placed on the slide for you.', openVideoStudio: 'Open the Video Studio',
+    libraryEmpty: { image: 'No pictures in the kit library yet.', video: 'No videos in the kit library yet — upload one or make one with AI.', audio: 'No sounds in the kit library yet — upload one or generate it from a text.' },
+    drop: { image: 'Drop the picture here or choose from your computer', video: 'Drop the video here or choose from your computer', audio: 'Drop the sound file here or choose from your computer' },
+    formats: { image: 'PNG · JPG · WEBP · SVG · up to 8 MB', video: 'MP4 · WEBM · MOV · up to 100 MB', audio: 'MP3 · M4A · WAV · up to 100 MB' },
+    autoplay: 'Play automatically in the slideshow', loop: 'Loop', altHint: 'Describes the media for screen readers.',
+  },
+  workbench: {
+    studio: 'Studio', tabs: 'Open kits', close: 'Close', closeOthers: 'Close others', closeAll: 'Close all kits', closeRight: 'Close those to the right', openNew: 'Open the studio', moveStart: 'Move to start',
+    limit: 'You reached the limit of kits open at once ({{n}}); the oldest inactive one was closed.', loading: 'Loading…', hint: 'Open several kits in tabs and work on them together — in person, online or hybrid.',
   },
   image: {
     title: 'Choose a picture', tabAi: 'Generate with AI', tabLibrary: 'Kit library', tabUpload: 'Upload', describe: 'Describe the picture you need', placeholder: 'e.g. A teacher explaining to a group of students with an interactive board', aspect: 'Aspect',

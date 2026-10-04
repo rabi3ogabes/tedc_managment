@@ -1,7 +1,7 @@
 import clsx from 'clsx'
-import { Check, MessageSquare } from 'lucide-react'
+import { Check, ImagePlus, MessageSquare } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { H, W, textParagraphsFromString, type El, type Slide, type TextEl, type Theme } from './model'
+import { H, W, isMedia, textParagraphsFromString, type El, type Slide, type TextEl, type Theme } from './model'
 import { ElementBox } from './SlideView'
 import type { KitComment } from '../types'
 import { severityTone } from '../comments/api'
@@ -24,6 +24,9 @@ type Props = {
   onPinClick: (c: KitComment) => void
   onPlacePin: (draft: PinDraft) => void
   draftPin: PinDraft | null
+  /** A picture, video or sound was pressed (an empty one, or double-click on a filled one): let the user choose it. */
+  onActivate?: (el: El) => void
+  activateLabel?: string
 }
 
 type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
@@ -44,7 +47,7 @@ export function pinPosition(c: KitComment, slide: Slide): { x: number; y: number
 }
 
 /** The interactive stage: select, move, resize, rotate, edit text in place, pin comments. */
-export default function SlideCanvas({ slide, theme, width, selectedId, onSelect, editable, mode, onChangeEl, onBeginGesture, comments, activeCommentId, onPinClick, onPlacePin, draftPin }: Props) {
+export default function SlideCanvas({ slide, theme, width, selectedId, onSelect, editable, mode, onChangeEl, onBeginGesture, comments, activeCommentId, onPinClick, onPlacePin, draftPin, onActivate, activateLabel }: Props) {
   const k = width / W
   const stage = useRef<HTMLDivElement>(null)
   const [editing, setEditing] = useState<string | null>(null)
@@ -100,7 +103,11 @@ export default function SlideCanvas({ slide, theme, width, selectedId, onSelect,
       setGuides({ v: snapped.v, h: snapped.h })
       onChangeEl(el.id, { x: Math.round(snapped.x), y: Math.round(snapped.y) }, { live: true })
     }
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); setGuides({ v: [], h: [] }) }
+    const up = () => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); setGuides({ v: [], h: [] })
+      // Pressing an empty picture / video / sound (without dragging it) opens the chooser straight away.
+      if (!began && isMedia(el) && !el.asset_id && !el.src) onActivate?.(el)
+    }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
   }
@@ -112,7 +119,7 @@ export default function SlideCanvas({ slide, theme, width, selectedId, onSelect,
     const start = point(e)
     const o = { x: el.x, y: el.y, w: el.w, h: el.h }
     const ratio = o.w / Math.max(o.h, 1)
-    const keep = el.type === 'image'
+    const keep = el.type === 'image' || el.type === 'video'
     const move = (ev: PointerEvent) => {
       const p = point(ev)
       let dx = p.x - start.x, dy = p.y - start.y
@@ -172,7 +179,7 @@ export default function SlideCanvas({ slide, theme, width, selectedId, onSelect,
           <ElementBox key={el.id} el={el} theme={theme}
             onPointerDown={(e) => { if (reviewing) return; startDrag(e, el) }}
             onPointerEnter={() => setHover(el.id)} onPointerLeave={() => setHover((h) => (h === el.id ? null : h))}
-            onDoubleClick={() => { if (editable && !reviewing && el.type === 'text') { onSelect(el.id); setEditing(el.id) } }}
+            onDoubleClick={() => { if (!editable || reviewing) return; if (el.type === 'text') { onSelect(el.id); setEditing(el.id) } else if (isMedia(el)) { onSelect(el.id); onActivate?.(el) } }}
             style={{ cursor: reviewing ? 'crosshair' : editable ? (editing === el.id ? 'text' : 'move') : 'default', outline: reviewing && hover === el.id ? '3px dashed rgba(162,148,117,.9)' : undefined, visibility: editing === el.id ? 'hidden' : undefined }} />
         ))}
         {editing && selected?.type === 'text' && editing === selected.id && (
@@ -192,6 +199,12 @@ export default function SlideCanvas({ slide, theme, width, selectedId, onSelect,
               <span key={h.id} onPointerDown={(e) => startResize(e, selected, h.id)} className="pointer-events-auto absolute size-3 rounded-sm border-2 border-sky-500 bg-white"
                 style={{ left: `calc(${h.x * 100}% - 6px)`, top: `calc(${h.y * 100}% - 6px)`, cursor: h.cursor }} />
             ))}
+            {isMedia(selected) && onActivate && (
+              <button type="button" onPointerDown={(e) => e.stopPropagation()} onClick={() => onActivate(selected)}
+                className="pointer-events-auto absolute -bottom-11 start-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-navy-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg ring-2 ring-white transition hover:bg-navy-800 rtl:translate-x-1/2">
+                <ImagePlus className="size-3.5 text-gold-300" />{activateLabel}
+              </button>
+            )}
             <span onPointerDown={(e) => startRotate(e, selected)} className="pointer-events-auto absolute -top-7 left-1/2 size-3.5 -translate-x-1/2 cursor-grab rounded-full border-2 border-sky-500 bg-white" />
             <span className="absolute -top-7 left-1/2 h-4 w-px -translate-x-1/2 translate-y-3.5 bg-sky-500" />
           </div>

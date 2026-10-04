@@ -8,6 +8,7 @@ use App\Models\KitFile;
 use App\Models\KitGeneration;
 use App\Models\TrainingKit;
 use App\Services\FileStorage;
+use App\Services\Kits\AudioGenerator;
 use App\Services\Kits\DeckGenerator;
 use App\Services\Kits\ImageGenerator;
 use App\Services\Kits\KitAccess;
@@ -31,7 +32,7 @@ class KitAiController extends KitBaseController
 
     public function status(): JsonResponse
     {
-        return response()->json(['data' => ['ai' => $this->ai->enabled(), 'image_provider' => $this->images->provider(), 'video' => 'browser']]);
+        return response()->json(['data' => ['ai' => $this->ai->enabled(), 'image_provider' => $this->images->provider(), 'audio_provider' => app(AudioGenerator::class)->provider(), 'voices' => AudioGenerator::VOICES, 'video' => 'browser']]);
     }
 
     /** Builds a complete deck from a prompt and saves it as a new editable presentation. */
@@ -83,6 +84,16 @@ class KitAiController extends KitBaseController
         $this->generatable($kit);
         $data = $request->validate(['prompt' => ['required', 'string', 'min:3', 'max:1000'], 'aspect' => ['nullable', Rule::in(['16:9', '4:3', '1:1'])], 'style' => ['nullable', 'string', 'max:200']]);
         $asset = $this->images->generate($data['prompt'], $kit, $this->user(), $data);
+
+        return response()->json(['data' => $this->assetRow($asset)], 201);
+    }
+
+    /** Speaks a text: a narration sound for a slide. */
+    public function audio(Request $request, TrainingKit $kit, AudioGenerator $audio): JsonResponse
+    {
+        $this->generatable($kit);
+        $data = $request->validate(['text' => ['required', 'string', 'min:3', 'max:4000'], 'voice' => ['nullable', Rule::in(AudioGenerator::VOICES)]]);
+        $asset = $audio->generate($data['text'], $kit, $this->user(), $data['voice'] ?? 'nova');
 
         return response()->json(['data' => $this->assetRow($asset)], 201);
     }
@@ -140,9 +151,6 @@ class KitAiController extends KitBaseController
 
     public function assetRow(KitAsset $asset): array
     {
-        return [
-            'id' => $asset->id, 'name' => $asset->name, 'mime' => $asset->mime, 'width' => $asset->width, 'height' => $asset->height, 'prompt' => $asset->prompt, 'source' => $asset->source,
-            'provider' => $asset->meta['provider'] ?? null, 'url' => $this->storage->temporaryUrl('documents', $asset->storage_path, (int) config('tedc.kits.asset_url_ttl')),
-        ];
+        return $asset->present($this->storage);
     }
 }

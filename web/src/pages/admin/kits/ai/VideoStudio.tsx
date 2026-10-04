@@ -83,7 +83,7 @@ function frame(ctx: CanvasRenderingContext2D, scenes: Scene[], images: (HTMLImag
 }
 
 /** Plan a short explainer video, draw a picture per scene, and render it to a video file in the browser. */
-export default function VideoStudio({ kit, seed, onClose }: { kit: Kit; seed?: Record<string, unknown>; onClose: () => void }) {
+export default function VideoStudio({ kit, seed, onClose, onSaved }: { kit: Kit; seed?: Record<string, unknown>; onClose: () => void; onSaved?: (asset: Asset) => void }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [form, setForm] = useState({ topic: String(seed?.topic ?? (i18n.language === 'en' ? kit.title_en : kit.title_ar)), audience: String(seed?.audience ?? kit.audience ?? ''), scenes: 5, seconds: Number(seed?.seconds ?? 45), language: (i18n.language === 'en' ? 'en' : 'ar') as 'ar' | 'en' })
@@ -196,6 +196,12 @@ export default function VideoStudio({ kit, seed, onClose }: { kit: Kit; seed?: R
       body.append('category', 'media')
       body.append('name', plan.title)
       const res = await api.post<{ data: KitFile }>(`/admin/kits/${kit.id}/files`, body)
+      if (onSaved) {
+        // Opened from a slide: the video joins the media library and goes straight onto the slide.
+        const asset = (await api.post<{ data: Asset }>(`/admin/kits/${kit.id}/assets/from-file`, { file_id: res.data.data.id })).data.data
+        onSaved(asset)
+        return
+      }
       navigate(`/admin/kits/${kit.id}/files/${res.data.data.id}`)
     } catch (e) {
       setError(errorMessage(e))
