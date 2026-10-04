@@ -1,8 +1,8 @@
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight, Download, Languages, MousePointerClick, PanelLeft, PencilLine, RotateCcw, Save, Search, Trash2, Undo2, Upload } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, Languages, MousePointerClick, PanelLeft, PencilLine, RotateCcw, Search, Trash2, Undo2, Upload } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Badge, Button, Card, PageHeader, Spinner } from '@/components/ui'
+import { Badge, Button, Card, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -252,7 +252,7 @@ export default function LabelManager() {
               <div className="text-xs text-slate-500">{invalid ? t('mgmt.labels.fixErrors') : t('mgmt.labels.appliesNow')}</div>
             </div>
             <Button variant="ghost" icon={<Trash2 className="size-4" />} onClick={() => setDraft({})}>{t('mgmt.labels.discard')}</Button>
-            <Button variant="gold" icon={<Save className="size-4" />} loading={saving} disabled={invalid} onClick={save}>{t('mgmt.labels.save')}</Button>
+            <SaveDock label={t('mgmt.labels.save')} loading={saving} disabled={invalid} onClick={save} />
           </div>
         </div>
       )}

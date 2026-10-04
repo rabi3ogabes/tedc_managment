@@ -1,8 +1,8 @@
 import clsx from 'clsx'
-import { CheckCircle2, Clock, Eye, LockKeyhole, Save, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Clock, Eye, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, PageHeader, Spinner } from '@/components/ui'
+import { Card, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 
@@ -75,7 +75,7 @@ export default function SessionLockSettings() {
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button variant="primary" icon={<Save className="size-4" />} loading={saving} disabled={!dirty} onClick={save}>{t('kits.common.save')}</Button>
+            <SaveDock label={t('kits.common.save')} loading={saving} disabled={!dirty} onClick={save} />
             {notice && <span className={clsx('text-sm font-semibold', notice.ok ? 'text-emerald-700' : 'text-danger')}>{notice.ok && <CheckCircle2 className="me-1 inline size-4" />}{notice.text}</span>}
           </div>
         </Card>

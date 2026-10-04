@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import { Check, Mail, MessageSquareText, Save, Send, Smartphone, TriangleAlert } from 'lucide-react'
+import { Check, Mail, MessageSquareText, Send, Smartphone, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
+import { Button, Card, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -131,7 +131,8 @@ export default function ChannelsSettings() {
 
   return (
     <div className="space-y-6 pb-6">
-      <PageHeader title={t('channels.title')} subtitle={t('channels.subtitle')} actions={<Button variant="gold" icon={<Save className="size-4" />} loading={busy} onClick={save}>{t('channels.save')}</Button>} />
+      <PageHeader title={t('channels.title')} subtitle={t('channels.subtitle')} />
+      <SaveDock label={t('channels.save')} loading={busy} onClick={save} />
       {note && <div role="status" className={clsx('flex items-center gap-2 rounded-2xl p-3 text-sm font-semibold', note.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{note.ok ? <Check className="size-4" /> : <TriangleAlert className="size-4" />}{note.text}</div>}
 
       {/* Push is the core; the defaults decide which channels every notification uses */}

@@ -1,8 +1,8 @@
 import clsx from 'clsx'
-import { ArrowDown, ArrowUp, Check, CalendarClock, Copy, ExternalLink, GripVertical, ImagePlus, Loader2, Pause, Play, RefreshCcw, Save, Trash2, Tv } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check, CalendarClock, Copy, ExternalLink, GripVertical, ImagePlus, Loader2, Pause, Play, RefreshCcw, Trash2, Tv } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
+import { Button, Card, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { Switch } from './notifications/shared'
 import LobbyView, { STAGE, type LobbyData, type LobbySettings, type Transition } from '@/components/lobby/LobbyView'
 import { useGet } from '@/hooks/useApi'
@@ -113,7 +113,7 @@ export default function LobbyScreenSettings() {
                 <label key={k} className="flex items-center justify-between gap-3 rounded-xl border border-navy-100 p-3 text-sm font-semibold text-navy-900">{t(label)}<Switch small checked={draft[k]} label={t(label)} onChange={(v) => set(k, v)} /></label>
               ))}
             </div>
-            <div className="flex justify-end"><Button variant="gold" icon={<Save className="size-4" />} loading={busy === 'save'} onClick={saveSettings}>{t('lobby.save')}</Button></div>
+            <SaveDock label={t('lobby.save')} loading={busy === 'save'} onClick={saveSettings} />
           </Card>
 
           {/* The slides */}

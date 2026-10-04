@@ -3,7 +3,7 @@ import { Fingerprint, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, CardTitle, Field, PageHeader, Spinner } from '@/components/ui'
+import { Button, Card, CardTitle, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { Switch } from './notifications/shared'
 import { api, errorMessage } from '@/lib/api'
@@ -81,7 +81,8 @@ export default function ProgramEditor() {
 
   return (
     <>
-      <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} actions={<Button variant="gold" loading={saving} onClick={save}>{t('common.save')}</Button>} />
+      <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} />
+      <SaveDock label={t('common.save')} loading={saving} onClick={save} />
       {error && <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</div>}
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">

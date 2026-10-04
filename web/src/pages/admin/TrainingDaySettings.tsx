@@ -1,8 +1,8 @@
 import clsx from 'clsx'
-import { AlertTriangle, CheckCircle2, Clock, DoorOpen, Save } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, DoorOpen } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
+import { Card, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -55,7 +55,8 @@ export default function TrainingDaySettings() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t('mgmt.settings.sections.trainingday.title')} subtitle={t('studio.day.subtitle')} actions={<Button variant="gold" loading={saving} disabled={!dirty || !valid} icon={<Save className="size-4" />} onClick={save}>{t('common.save')}</Button>} />
+      <PageHeader title={t('mgmt.settings.sections.trainingday.title')} subtitle={t('studio.day.subtitle')} />
+      <SaveDock label={t('common.save')} loading={saving} disabled={!dirty || !valid} onClick={save} />
       {notice && <div className={clsx('rounded-xl p-3 text-sm', notice.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{notice.text}</div>}
 
       <Card className="space-y-5">

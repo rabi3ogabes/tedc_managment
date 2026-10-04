@@ -1,8 +1,8 @@
 import clsx from 'clsx'
-import { Check, MonitorPlay, RotateCcw, Save } from 'lucide-react'
+import { Check, MonitorPlay, RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
+import { Button, Card, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { ImageField } from './brand/controls'
@@ -70,7 +70,7 @@ export default function RoomScreenSettings() {
     <div className="space-y-6">
       <PageHeader title={t('mgmt.settings.sections.roomscreen.title')} subtitle={t('studio.tpl.subtitle')} actions={<>
         <Button variant="ghost" icon={<RotateCcw className="size-4" />} onClick={reset}>{t('studio.tpl.reset')}</Button>
-        <Button variant="gold" loading={saving} disabled={!dirty} icon={<Save className="size-4" />} onClick={save}>{t('common.save')}</Button>
+        <SaveDock label={t('common.save')} loading={saving} disabled={!dirty} onClick={save} />
       </>} />
       {notice && <div className={clsx('rounded-xl p-3 text-sm', notice.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{notice.text}</div>}
 
