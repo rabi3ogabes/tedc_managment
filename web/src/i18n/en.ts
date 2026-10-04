@@ -236,6 +236,7 @@ const en: Dictionary = {
       sessions: 'Sessions', materials: 'Materials', tasks: 'Tasks', participants: 'Participants', code: 'Code', titleAr: 'Title (Arabic)', titleEn: 'Title (English)',
       summaryAr: 'Summary (Arabic)', summaryEn: 'Summary (English)', descriptionAr: 'Description (Arabic)', descriptionEn: 'Description (English)', hours: 'Hours', capacity: 'Capacity',
       minAttendance: 'Minimum attendance %', startDate: 'Start date', endDate: 'End date', opensAt: 'Registration opens', closesAt: 'Registration closes',
+      biometric: 'Fingerprint check before attendance', biometricHint: 'The app opens the attendance QR scan only after the trainee confirms with fingerprint, face or the phone lock.',
       modes: 'Registration channels', featured: 'Featured', requiresTasks: 'Requires tasks', requiresEvaluation: 'Requires evaluation', skills: 'Target skills',
       trainers: 'Trainers', addSession: 'Add session', addRule: 'Add rule', addTask: 'Add task', addMaterial: 'Upload material', issueAll: 'Issue eligible certificates',
       exportReport: 'Excel report', qr: 'Attendance QR', changeStatus: 'Change status', impact: 'Program impact',

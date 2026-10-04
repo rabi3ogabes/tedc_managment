@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/biometric.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
@@ -11,6 +12,7 @@ import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
+import '../security/biometric_offer.dart';
 
 /// Profile with the Training Passport: hours, completed programs, certificates, skills and growth path.
 class ProfileScreen extends ConsumerWidget {
@@ -93,6 +95,8 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                   const Divider(height: 1),
                   const _PushTile(),
+                  const Divider(height: 1),
+                  const _BiometricTile(),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.info_outline, color: AppColors.gold700),
@@ -257,5 +261,49 @@ class _PushTile extends ConsumerWidget {
         );
       },
     );
+  }
+}
+
+/// Fingerprint sign-in switch (only offered when the phone has a fingerprint, face or lock set up).
+class _BiometricTile extends ConsumerStatefulWidget {
+  const _BiometricTile();
+
+  @override
+  ConsumerState<_BiometricTile> createState() => _BiometricTileState();
+}
+
+class _BiometricTileState extends ConsumerState<_BiometricTile> {
+  bool? _available;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(biometricServiceProvider).available().then((v) {
+      if (mounted) setState(() => _available = v);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_available != true) return const SizedBox.shrink();
+    final s = context.s;
+    final on = ref.read(appLockProvider.notifier).enabled;
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      SwitchListTile(
+        secondary: const Icon(Icons.fingerprint, color: AppColors.gold700),
+        title: Text(s.t('bio.title')),
+        subtitle: Text(s.t('bio.subtitle')),
+        value: on,
+        onChanged: (v) async {
+          if (v) {
+            await enableBiometricLogin(context, ref);
+          } else {
+            await ref.read(appLockProvider.notifier).setEnabled(false);
+          }
+          if (mounted) setState(() {});
+        },
+      ),
+      const Divider(height: 1),
+    ]);
   }
 }

@@ -117,8 +117,9 @@ class MyTrainingController extends MeController
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'accuracy' => ['nullable', 'numeric', 'min:0', 'max:100000'],
             'mocked' => ['nullable', 'boolean'],
+            'biometric' => ['nullable', 'boolean'],
         ]);
-        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip(), Arr::only($data, ['latitude', 'longitude', 'accuracy', 'mocked']));
+        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip(), Arr::only($data, ['latitude', 'longitude', 'accuracy', 'mocked']), (bool) ($data['biometric'] ?? false));
 
         return response()->json(['data' => [
             'action' => $result['action'],
@@ -160,6 +161,7 @@ class MyTrainingController extends MeController
                 'instructions' => $remote['instructions_'.$locale] ?? null,
                 'recording_url' => $session->ends_at->isPast() ? $session->recording_url : null,
             ] : null,
+            'biometric_required' => (bool) $session->program->require_biometric,
             'can_scan' => ! $online && $session->status !== 'cancelled'
                 && $now->between($session->starts_at->copy()->subMinutes((int) config('tedc.attendance.check_in_opens_minutes_before')), $session->ends_at->copy()->addMinutes(30)),
             'attendance' => $record ? $record->only(['status', 'check_in_at', 'check_out_at', 'minutes_attended', 'join_count', 'method']) : null,

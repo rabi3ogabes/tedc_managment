@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
 use App\Models\Certificate;
 use App\Models\ImpactSurvey;
 use App\Models\Registration;
@@ -45,6 +46,21 @@ class AttendanceAndCertificateTest extends TestCase
             ->assertOk()->assertJsonPath('data.action', 'check_out');
 
         $this->assertEqualsWithDelta(50.0, $registration->fresh()->attendance_percent, 5.0);
+    }
+
+    public function test_a_program_that_requires_biometrics_refuses_a_scan_without_it(): void
+    {
+        $registration = $this->approvedRegistration(['require_biometric' => true]);
+        $session = $this->makeSession($registration->program, now()->subMinutes(5));
+        $payload = app(AttendanceService::class)->currentQr($session)['payload'];
+        $user = $registration->employee->user;
+
+        $this->asUser($user)->postJson('/api/v1/me/attendance/scan', ['payload' => $payload])->assertStatus(422)->assertJsonPath('code', 'biometric_required');
+        $this->assertSame(0, Attendance::count());
+
+        $this->asUser($user)->postJson('/api/v1/me/attendance/scan', ['payload' => $payload, 'biometric' => true])->assertOk()->assertJsonPath('data.action', 'check_in');
+        $this->assertTrue((bool) Attendance::first()->biometric_verified);
+        $this->asUser($user)->getJson("/api/v1/me/sessions/{$session->id}")->assertJsonPath('data.biometric_required', true);
     }
 
     public function test_expired_or_forged_qr_is_rejected(): void

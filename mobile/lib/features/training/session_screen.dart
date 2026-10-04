@@ -149,7 +149,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                 if (online && onlineInfo != null) _OnlineCard(info: onlineInfo, joined: joined && !left, busy: _busy, join: _join, fmt: fmt, onJoin: _joinSession, onLeave: _leave, onOpen: _openLink)
                 else if (!online && d.flag('can_scan'))
                   FilledButton.icon(
-                    onPressed: () => context.push('/scan'),
+                    onPressed: () => context.push(d.flag('biometric_required') ? '/scan?biometric=1' : '/scan'),
                     style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
                     icon: const Icon(Icons.qr_code_scanner),
                     label: Text(s.t('session.scan')),

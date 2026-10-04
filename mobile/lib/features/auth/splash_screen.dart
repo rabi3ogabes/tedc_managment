@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/biometric.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -56,6 +57,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     if (_waiting) setState(() => _waiting = false);
     _finished = true;
     await _c.animateTo(1, duration: _total * (1 - _holdAt), curve: Curves.easeIn);
+    // Fingerprint sign-in: decide whether the app opens locked before it opens.
+    if (mounted) await ref.read(appLockProvider.notifier).init();
     if (mounted) ref.read(introDoneProvider.notifier).finish();
   }
 

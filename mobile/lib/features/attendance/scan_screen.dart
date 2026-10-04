@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/biometric.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/location/location_service.dart';
 import '../../core/providers.dart';
@@ -12,7 +13,10 @@ import '../../core/theme/app_theme.dart';
 /// or out (second scan). The server validates the time-window signature, and the phone's position is sent
 /// with the code so attendance is only recorded at the training venue.
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key});
+  const ScanScreen({super.key, this.biometric = false});
+
+  /// The program asks for the phone's security check before the camera opens.
+  final bool biometric;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -21,13 +25,46 @@ class ScanScreen extends ConsumerStatefulWidget {
 class _ScanScreenState extends ConsumerState<ScanScreen> {
   final _controller = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates, formats: const [BarcodeFormat.qrCode]);
   bool _busy = false;
+  late bool _verified = !widget.biometric;   // true once the phone's security check passed (or none is needed)
+  bool _passed = false;   // the security check passed during this visit: the server is told
+  bool _verifying = false;
+  String? _verifyMessage;
   bool _locating = false;
   LocationIssue? _issue;
   ({bool ok, String message})? _result;
 
+  @override
+  void initState() {
+    super.initState();
+    if (!_verified) WidgetsBinding.instance.addPostFrameCallback((_) => _verify());
+  }
+
+  /// Fingerprint / face / phone lock. The camera opens only after it succeeds.
+  Future<bool> _verify() async {
+    if (_verifying || !mounted) return _verified;
+    final s = context.s;
+    setState(() {
+      _verifying = true;
+      _verifyMessage = null;
+    });
+    final result = await ref.read(biometricServiceProvider).authenticate(s.t('bio.checkinReason'));
+    if (!mounted) return false;
+    setState(() {
+      _verifying = false;
+      _verified = result == BiometricResult.success;
+      if (_verified) _passed = true;
+      _verifyMessage = _verified ? null : s.t(result == BiometricResult.unavailable ? 'bio.unavailable' : result == BiometricResult.lockedOut ? 'lock.lockedOut' : 'lock.failed');
+    });
+    return _verified;
+  }
+
   Future<void> _onDetect(BarcodeCapture capture) async {
     final value = capture.barcodes.firstOrNull?.rawValue;
     if (_busy || value == null || !value.startsWith('TEDC1.')) return;
+    await _submit(value);
+  }
+
+  Future<void> _submit(String value, {bool retried = false}) async {
     setState(() {
       _busy = true;
       _locating = true;
@@ -41,7 +78,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         _locating = false;
         _issue = place.issue;
       });
-      final res = await ref.read(apiProvider).post('/me/attendance/scan', {'payload': value, ...?place.fix?.toJson()});
+      final res = await ref.read(apiProvider).post('/me/attendance/scan', {'payload': value, if (_passed) 'biometric': true, ...?place.fix?.toJson()});
       if (!mounted) return;
       final verified = res['data']['attendance']?['location_status'] == 'verified';
       final message = res['data']['message'].toString();
@@ -51,6 +88,12 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     } catch (e) {
       if (!mounted) return;
       final error = ApiException.from(e);
+      // The program asks for the phone's security check and the code was scanned before it: verify now, then send the same code again.
+      if (error.code == 'biometric_required' && !retried) {
+        setState(() => _busy = false);
+        if (await _verify() && mounted) return _submit(value, retried: true);
+        return;
+      }
       // The phone knows exactly why the position is missing, which is more useful than the generic server text.
       final issue = error.code == 'location_required' ? _issue : null;
       setState(() => _result = (ok: false, message: issue != null ? context.s.t('scan.location.${issue.name}') : error.message));
@@ -84,15 +127,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: Text(s.t('scan.title'), style: const TextStyle(color: Colors.white))),
       body: Stack(children: [
-        MobileScanner(controller: _controller, onDetect: _onDetect),
-        Center(
+        if (_verified) MobileScanner(controller: _controller, onDetect: _onDetect),
+        if (!_verified) _BiometricGate(verifying: _verifying, message: _verifyMessage, onRetry: _verify),
+        if (_verified) Center(
           child: Container(
             width: 250,
             height: 250,
             decoration: BoxDecoration(border: Border.all(color: AppColors.gold500, width: 3), borderRadius: BorderRadius.circular(28)),
           ),
         ),
-        PositionedDirectional(
+        if (_verified) PositionedDirectional(
           start: 24,
           end: 24,
           bottom: 40,
@@ -133,6 +177,41 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   ]),
                 ),
         ),
+      ]),
+    );
+  }
+}
+
+/// Shown before the camera when the program asks for fingerprint / face / phone-lock verification.
+class _BiometricGate extends StatelessWidget {
+  const _BiometricGate({required this.verifying, required this.message, required this.onRetry});
+
+  final bool verifying;
+  final String? message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.navyGradient),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 96,
+          height: 96,
+          decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.goldGradient),
+          child: verifying
+              ? const Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.navy950))
+              : const Icon(Icons.fingerprint, size: 56, color: AppColors.navy950),
+        ),
+        const SizedBox(height: 22),
+        Text(s.t('bio.checkinTitle'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 8),
+        Text(message ?? s.t('bio.checkinHint'), textAlign: TextAlign.center, style: TextStyle(color: message == null ? Colors.white70 : AppColors.gold300, height: 1.5)),
+        const SizedBox(height: 22),
+        if (!verifying) FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.fingerprint), label: Text(s.t('bio.checkinRetry'))),
       ]),
     );
   }

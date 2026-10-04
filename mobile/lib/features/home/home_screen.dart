@@ -56,7 +56,7 @@ class HomeScreen extends ConsumerWidget {
                   ]),
                   const SizedBox(height: 16),
                   // Check-in only exists for the session happening now (or about to start), never as a permanent button.
-                  if (current != null) _ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push('/scan')),
+                  if (current != null) _ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push(current.flag('biometric_required') ? '/scan?biometric=1' : '/scan')),
                   const PendingNeedsBanner(),
                   if (stats.number('pending_surveys') > 0) ...[
                     const SizedBox(height: 12),

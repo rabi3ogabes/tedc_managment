@@ -47,6 +47,18 @@ class SessionStore {
     }
   }
 
+  static const _bioKey = 'tedc.biometric_login';
+  static const _bioOfferedKey = 'tedc.biometric_offered';
+
+  Future<bool> readBiometricLogin() async => (await _storage.read(key: _bioKey)) == '1';
+
+  Future<void> writeBiometricLogin(bool on) => _storage.write(key: _bioKey, value: on ? '1' : '0');
+
+  /// The offer to switch it on is made once.
+  Future<bool> biometricOffered() async => (await _storage.read(key: _bioOfferedKey)) == '1';
+
+  Future<void> markBiometricOffered() => _storage.write(key: _bioOfferedKey, value: '1');
+
   Future<String?> readLocale() => _storage.read(key: _localeKey);
 
   Future<void> writeLocale(String code) => _storage.write(key: _localeKey, value: code);

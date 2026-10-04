@@ -116,6 +116,7 @@ class ProgramController extends Controller
             'total_hours' => ['sometimes', 'numeric', 'min:0', 'max:1000'],
             'capacity' => ['sometimes', 'integer', 'min:1', 'max:5000'],
             'min_attendance_percent' => ['sometimes', 'integer', 'min:0', 'max:100'],
+            'require_biometric' => ['sometimes', 'boolean'],
             'requires_tasks' => ['sometimes', 'boolean'],
             'requires_evaluation' => ['sometimes', 'boolean'],
             'start_date' => ['nullable', 'date'],

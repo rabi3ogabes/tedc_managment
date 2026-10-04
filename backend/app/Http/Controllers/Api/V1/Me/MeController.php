@@ -36,7 +36,7 @@ class MeController extends Controller
         $employee = $this->employee();
         $active = Registration::where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_PENDING]);
 
-        $upcoming = ProgramSession::with(['program:id,title_ar,title_en', 'room'])
+        $upcoming = ProgramSession::with(['program:id,title_ar,title_en,require_biometric', 'room'])
             ->whereIn('program_id', (clone $active)->where('status', Registration::STATUS_APPROVED)->select('program_id'))
             ->where('ends_at', '>=', now())->where('status', '!=', 'cancelled')
             ->orderBy('starts_at')
@@ -48,7 +48,7 @@ class MeController extends Controller
         $current = $upcoming->first(fn (ProgramSession $x) => $x->mode !== 'online' && now()->between($x->starts_at->copy()->subMinutes($opens), $x->ends_at->copy()->addMinutes(30)));
         $card = fn (ProgramSession $x) => [
             'id' => $x->id, 'title' => $x->translate('title'), 'program' => $x->program->translate('title'), 'starts_at' => $x->starts_at->toIso8601String(), 'ends_at' => $x->ends_at->toIso8601String(),
-            'location' => $x->location_text ?? $x->room?->translate('name'), 'mode' => $x->mode,
+            'location' => $x->location_text ?? $x->room?->translate('name'), 'mode' => $x->mode, 'biometric_required' => (bool) $x->program->require_biometric,
         ];
 
         $openTasks = TaskSubmission::query()->whereIn('registration_id', (clone $active)->select('id'))->where('status', TaskSubmission::STATUS_CHANGES)->count();

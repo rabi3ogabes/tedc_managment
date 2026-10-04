@@ -234,6 +234,7 @@ const ar = {
       sessions: 'الجلسات', materials: 'المواد التدريبية', tasks: 'المهام', participants: 'المشاركون', code: 'رمز البرنامج', titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية',
       summaryAr: 'نبذة بالعربية', summaryEn: 'نبذة بالإنجليزية', descriptionAr: 'الوصف بالعربية', descriptionEn: 'الوصف بالإنجليزية', hours: 'عدد الساعات', capacity: 'السعة',
       minAttendance: 'الحد الأدنى للحضور %', startDate: 'تاريخ البدء', endDate: 'تاريخ الانتهاء', opensAt: 'بدء التسجيل', closesAt: 'نهاية التسجيل',
+      biometric: 'التحقق بالبصمة عند تسجيل الحضور', biometricHint: 'يفتح التطبيق مسح رمز الحضور فقط بعد أن يؤكد المتدرب هويته ببصمة الإصبع أو الوجه أو قفل الهاتف.',
       modes: 'طرق التسجيل المتاحة', featured: 'برنامج مميز', requiresTasks: 'يتطلب مهام', requiresEvaluation: 'يتطلب تقييماً', skills: 'المهارات المستهدفة',
       trainers: 'المدربون', addSession: 'إضافة جلسة', addRule: 'إضافة شرط', addTask: 'إضافة مهمة', addMaterial: 'رفع مادة', issueAll: 'إصدار الشهادات المستحقة',
       exportReport: 'تقرير Excel', qr: 'رمز الحضور', changeStatus: 'تغيير الحالة', impact: 'أثر البرنامج',

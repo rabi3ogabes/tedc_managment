@@ -17,6 +17,7 @@ return [
         'joined' => 'Your attendance is recorded. Enjoy the session!',
         'invalid_qr' => 'The attendance code is invalid or has expired.',
         'not_registered' => 'You are not an approved participant of this program.',
+        'biometric_required' => 'This program needs fingerprint, face or phone-lock verification before attendance is recorded.',
         'not_open' => 'Check-in for this session has not opened yet.',
         'closed' => 'Check-in for this session is closed.',
         'checked_in' => 'Check-in recorded successfully.',

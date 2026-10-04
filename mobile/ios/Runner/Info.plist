@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>يُستخدم للتحقق من هويتك عند فتح التطبيق وتسجيل الحضور. Used to confirm it is you when opening the app and checking in.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>يستخدم التطبيق الكاميرا لمسح رمز الحضور في الجلسات التدريبية. The camera is used to scan attendance QR codes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
 import 'api/api_client.dart';
+import 'biometric.dart';
 import 'api/response_cache.dart';
 import 'auth/session_store.dart';
 import 'models.dart';
@@ -105,6 +106,10 @@ class AuthController extends AsyncNotifier<Me?> {
   }
 
   Future<void> logout() async {
+    // The next person to sign in on this phone starts without fingerprint sign-in.
+    try {
+      await ref.read(appLockProvider.notifier).setEnabled(false);
+    } catch (_) {}
     await ref.read(pushServiceProvider).stop();
     await ref.read(sessionStoreProvider).write(null);
     await ResponseCache.instance.clear();

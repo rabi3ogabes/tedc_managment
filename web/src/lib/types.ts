@@ -55,7 +55,7 @@ export type Program = {
   description?: string | null; description_ar?: string | null; description_en?: string | null; objectives: string[]
   category?: { id: string; slug: string; name: string; color?: string; icon?: string } | null; category_id?: string | null
   delivery_mode: 'in_person' | 'online' | 'hybrid'; level: 'beginner' | 'intermediate' | 'advanced'; total_hours: number; capacity: number
-  seats_taken?: number | null; seats_available?: number | null; min_attendance_percent: number; requires_tasks: boolean; requires_evaluation: boolean
+  seats_taken?: number | null; seats_available?: number | null; min_attendance_percent: number; require_biometric?: boolean; requires_tasks: boolean; requires_evaluation: boolean
   start_date?: string | null; end_date?: string | null; registration_opens_at?: string | null; registration_closes_at?: string | null
   registration_open: boolean; registration_modes: string[]; status: string; is_featured: boolean; cover_url?: string | null
   remote?: { platform?: string; join_url?: string | null; passcode?: string | null; join_opens_minutes?: number; instructions_ar?: string | null; instructions_en?: string | null } | null

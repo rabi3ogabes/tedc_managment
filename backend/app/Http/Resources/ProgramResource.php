@@ -73,6 +73,7 @@ class ProgramResource extends JsonResource
             'seats_taken' => $seatsTaken,
             'seats_available' => $seatsTaken !== null ? max(0, $this->capacity - $seatsTaken) : null,
             'min_attendance_percent' => $this->min_attendance_percent,
+            'require_biometric' => (bool) $this->require_biometric,
             'requires_tasks' => $this->requires_tasks,
             'requires_evaluation' => $this->requires_evaluation,
             'start_date' => $this->start_date?->toDateString(),

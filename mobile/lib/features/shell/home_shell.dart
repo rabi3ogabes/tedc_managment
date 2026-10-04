@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Session;
 
 import '../../core/auth/session_store.dart';
+import '../../core/biometric.dart';
 import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/notification_route.dart';
@@ -15,6 +16,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
+import '../security/biometric_offer.dart';
+import 'app_nav_bar.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
 class HomeShell extends ConsumerStatefulWidget {
@@ -45,6 +48,23 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     _listenForNotifications();
     _startPush();
     _startPresence();
+    Future<void>.delayed(const Duration(milliseconds: 2500), _offerBiometric);
+  }
+
+  /// Once, on the first visit to the home screen: offer fingerprint sign-in if the phone has a lock.
+  Future<void> _offerBiometric() async {
+    if (!mounted) return;
+    try {
+      final store = ref.read(sessionStoreProvider);
+      if (await store.biometricOffered() || ref.read(appLockProvider.notifier).enabled) return;
+      if (!await ref.read(biometricServiceProvider).available() || !mounted) return;
+      await store.markBiometricOffered();
+      if (!mounted) return;
+      final yes = await showModalBottomSheet<bool>(context: context, showDragHandle: true, builder: (_) => const BiometricOfferSheet());
+      if (yes == true && mounted) await enableBiometricLogin(context, ref);
+    } catch (_) {
+      // Storage or the phone's security service is unavailable: the offer is simply skipped.
+    }
   }
 
   /// "Who is online now" on the dashboard: a light heartbeat while the app is open on screen.
@@ -67,7 +87,13 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
-    if (_foreground) _beat();
+    // Fingerprint sign-in: note when the app went away and lock it if it was away long enough.
+    final lock = ref.read(appLockProvider.notifier);
+    if (state == AppLifecycleState.paused) lock.left();
+    if (_foreground) {
+      lock.returned();
+      _beat();
+    }
   }
 
   @override
@@ -165,21 +191,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
           onDismiss: () => setState(() => _banner = null),
         ),
       ]),
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.navy100))),
-        child: NavigationBar(
-          selectedIndex: widget.shell.currentIndex,
-          height: 68,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          onDestinationSelected: (i) => widget.shell.goBranch(i, initialLocation: i == widget.shell.currentIndex),
-          destinations: [
-            NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: s.t('nav.home')),
-            NavigationDestination(icon: const Icon(Icons.menu_book_outlined), selectedIcon: const Icon(Icons.menu_book), label: s.t('nav.programs')),
-            NavigationDestination(icon: const Icon(Icons.school_outlined), selectedIcon: const Icon(Icons.school), label: s.t('nav.training')),
-            NavigationDestination(icon: const Icon(Icons.workspace_premium_outlined), selectedIcon: const Icon(Icons.workspace_premium), label: s.t('nav.certificates')),
-            NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: s.t('nav.profile')),
-          ],
-        ),
+      bottomNavigationBar: AppNavBar(
+        selectedIndex: widget.shell.currentIndex,
+        onSelected: (i) => widget.shell.goBranch(i, initialLocation: i == widget.shell.currentIndex),
       ),
     );
   }

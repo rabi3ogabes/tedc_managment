@@ -68,7 +68,7 @@ class AttendanceService
      * @param  array{latitude?: mixed, longitude?: mixed, accuracy?: mixed, mocked?: mixed}|null  $location
      * @return array{action: string, attendance: Attendance, message: string}
      */
-    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null, ?array $location = null): array
+    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null, ?array $location = null, bool $biometric = false): array
     {
         $session = $this->resolvePayload($payload);
         $now = now();
@@ -89,6 +89,11 @@ class AttendanceService
             throw new BusinessRuleException(__('messages.attendance.not_registered'), 'not_registered');
         }
 
+        // A program may ask for the phone's own unlock (fingerprint, face or passcode) before attendance counts.
+        if ($session->program->require_biometric && ! $biometric) {
+            throw new BusinessRuleException(__('messages.attendance.biometric_required'), 'biometric_required');
+        }
+
         $place = $this->geofence->verify($session, $location);
 
         $attendance = Attendance::firstOrNew([
@@ -102,6 +107,7 @@ class AttendanceService
                 'employee_id' => $employee->id,
                 'check_in_at' => $now,
                 'method' => 'qr',
+                'biometric_verified' => $biometric,
                 'status' => $late ? 'late' : 'present',
                 'device_info' => $device ? substr($device, 0, 255) : null,
                 'ip_address' => $ip,

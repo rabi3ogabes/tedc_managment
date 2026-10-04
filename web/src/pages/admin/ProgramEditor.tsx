@@ -1,9 +1,11 @@
-import { Plus, Trash2 } from 'lucide-react'
+import clsx from 'clsx'
+import { Fingerprint, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, CardTitle, Field, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { Switch } from './notifications/shared'
 import { api, errorMessage } from '@/lib/api'
 import { toDateInput, toDateTimeInput } from '@/lib/format'
 import type { Program } from '@/lib/types'
@@ -22,7 +24,7 @@ const MODES = ['self', 'school_nomination', 'center_nomination', 'bulk_import']
 
 const empty = {
   code: '', category_id: '', coordinator_id: '', title_ar: '', title_en: '', summary_ar: '', summary_en: '', description_ar: '', description_en: '',
-  objectives: [] as string[], delivery_mode: 'in_person', level: 'intermediate', total_hours: 12, capacity: 30, min_attendance_percent: 80,
+  objectives: [] as string[], delivery_mode: 'in_person', level: 'intermediate', total_hours: 12, capacity: 30, min_attendance_percent: 80, require_biometric: false,
   requires_tasks: true, requires_evaluation: true, start_date: '', end_date: '', registration_opens_at: '', registration_closes_at: '',
   registration_modes: MODES, status: 'draft', is_featured: false,
   skills: [] as { id: string; target_level: number }[], trainers: [] as { id: string; role: string }[],
@@ -123,6 +125,11 @@ export default function ProgramEditor() {
               <div />
               <Field label={t('admin.programs.opensAt')}>{input('registration_opens_at', 'datetime-local')}</Field>
               <Field label={t('admin.programs.closesAt')}>{input('registration_closes_at', 'datetime-local')}</Field>
+            </div>
+            <div className={clsx('mt-5 flex items-center gap-4 rounded-2xl border p-4', form.require_biometric ? 'border-gold-300 bg-gold-50' : 'border-navy-100 bg-ivory')}>
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-navy-900 text-gold-300"><Fingerprint className="size-5" /></span>
+              <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{t('admin.programs.biometric')}</div><p className="text-xs text-slate-500">{t('admin.programs.biometricHint')}</p></div>
+              <Switch checked={form.require_biometric} label={t('admin.programs.biometric')} onChange={(v) => set('require_biometric', v)} />
             </div>
             <div className="mt-5 flex flex-wrap gap-5">
               {(['requires_tasks', 'requires_evaluation', 'is_featured'] as const).map((k) => (

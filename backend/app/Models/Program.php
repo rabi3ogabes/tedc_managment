@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'code', 'category_id', 'title_en', 'title_ar', 'summary_en', 'summary_ar', 'description_en', 'description_ar',
-    'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'requires_tasks',
+    'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'require_biometric', 'requires_tasks',
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
     'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
@@ -67,6 +67,7 @@ class Program extends Model
             'course_sequential' => 'boolean',
             'course_auto_certificate' => 'boolean',
             'registration_modes' => 'array',
+            'require_biometric' => 'boolean',
             'requires_tasks' => 'boolean',
             'requires_evaluation' => 'boolean',
             'is_featured' => 'boolean',
