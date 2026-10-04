@@ -35,7 +35,11 @@ class HomeScreen extends ConsumerWidget {
           builder: (raw) {
             final d = Map<String, dynamic>.from(raw['data'] as Map);
             final stats = d.obj('stats') ?? {};
-            final next = d.obj('next_session');
+            final current = d.obj('current_session');
+            // Older servers only send the single next session.
+            final upcoming = d.list('upcoming_sessions').isNotEmpty || d.obj('current_session') != null
+                ? d.list('upcoming_sessions')
+                : [if (d.obj('next_session') != null) d.obj('next_session')!];
             final recommended = d.list('recommended');
 
             return CustomScrollView(slivers: [
@@ -51,7 +55,8 @@ class HomeScreen extends ConsumerWidget {
                     Expanded(child: StatTile(label: s.t('home.certificates'), value: fmt.number(stats.number('certificates')), icon: Icons.workspace_premium_outlined)),
                   ]),
                   const SizedBox(height: 16),
-                  _ScanCard(onTap: () => context.push('/scan')),
+                  // Check-in only exists for the session happening now (or about to start), never as a permanent button.
+                  if (current != null) _ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push('/scan')),
                   const PendingNeedsBanner(),
                   if (stats.number('pending_surveys') > 0) ...[
                     const SizedBox(height: 12),
@@ -64,9 +69,9 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  if (next != null) ...[
-                    SectionTitle(s.t('home.nextSession')),
-                    _NextSession(session: next, fmt: fmt),
+                  if (upcoming.isNotEmpty) ...[
+                    SectionTitle(s.t(current != null ? 'home.upcomingSessions' : 'home.nextSession')),
+                    for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),
                   ],
                   SectionTitle(s.t('home.recommended'), action: TextButton(onPressed: () => context.go('/programs'), child: Text(s.t('common.viewAll')))),
                   if (recommended.isEmpty) const EmptyView(),
@@ -179,9 +184,11 @@ class _IdentityChips extends StatelessWidget {
 }
 
 class _ScanCard extends StatelessWidget {
-  const _ScanCard({required this.onTap});
+  const _ScanCard({required this.onTap, this.program = '', this.live = false});
 
   final VoidCallback onTap;
+  final String program;
+  final bool live;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +209,7 @@ class _ScanCard extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(s.t('home.scan'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
-              Text(s.t('home.scanHint'), style: const TextStyle(color: AppColors.navy800, fontSize: 12.5)),
+              Text(program.isNotEmpty ? program : s.t('home.scanHint'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.navy800, fontSize: 12.5)),
             ]),
           ),
           const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.navy900),

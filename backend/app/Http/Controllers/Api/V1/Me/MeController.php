@@ -36,11 +36,20 @@ class MeController extends Controller
         $employee = $this->employee();
         $active = Registration::where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_PENDING]);
 
-        $nextSession = ProgramSession::with('program:id,title_ar,title_en')
+        $upcoming = ProgramSession::with(['program:id,title_ar,title_en', 'room'])
             ->whereIn('program_id', (clone $active)->where('status', Registration::STATUS_APPROVED)->select('program_id'))
-            ->where('ends_at', '>=', now())
+            ->where('ends_at', '>=', now())->where('status', '!=', 'cancelled')
             ->orderBy('starts_at')
-            ->first();
+            ->limit(8)
+            ->get();
+        $nextSession = $upcoming->first();
+        // The check-in button is for the session happening now (or about to start): the same window the session screen uses.
+        $opens = (int) config('tedc.attendance.check_in_opens_minutes_before');
+        $current = $upcoming->first(fn (ProgramSession $x) => $x->mode !== 'online' && now()->between($x->starts_at->copy()->subMinutes($opens), $x->ends_at->copy()->addMinutes(30)));
+        $card = fn (ProgramSession $x) => [
+            'id' => $x->id, 'title' => $x->translate('title'), 'program' => $x->program->translate('title'), 'starts_at' => $x->starts_at->toIso8601String(), 'ends_at' => $x->ends_at->toIso8601String(),
+            'location' => $x->location_text ?? $x->room?->translate('name'), 'mode' => $x->mode,
+        ];
 
         $openTasks = TaskSubmission::query()->whereIn('registration_id', (clone $active)->select('id'))->where('status', TaskSubmission::STATUS_CHANGES)->count();
 
@@ -56,14 +65,9 @@ class MeController extends Controller
                 'tasks_needing_changes' => $openTasks,
                 'unread_notifications' => $this->user()->appNotifications()->whereNull('read_at')->count(),
             ],
-            'next_session' => $nextSession ? [
-                'id' => $nextSession->id,
-                'title' => $nextSession->translate('title'),
-                'program' => $nextSession->program->translate('title'),
-                'starts_at' => $nextSession->starts_at->toIso8601String(),
-                'ends_at' => $nextSession->ends_at->toIso8601String(),
-                'location' => $nextSession->location_text,
-            ] : null,
+            'next_session' => $nextSession ? $card($nextSession) : null,
+            'current_session' => $current ? $card($current) + ['live' => now()->gte($current->starts_at)] : null,
+            'upcoming_sessions' => $upcoming->reject(fn ($x) => $x->id === $current?->id)->take(5)->map($card)->values(),
             'recommended' => $this->recommendationPayload($engine->forEmployee($employee, 4)),
         ]]);
     }
