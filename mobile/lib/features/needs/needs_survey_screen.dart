@@ -271,12 +271,13 @@ class _NeedsSurveyScreenState extends ConsumerState<NeedsSurveyScreen> {
       });
       ref.invalidate(getProvider(needsListPath));
       ref.invalidate(getProvider(_path));
+      if (!mounted) return;
       setState(() {
         _thanks = (res as Map)['message']?.toString();
         _stage = _Stage.done;
       });
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted) setState(() => _error = e.message);
     } finally {
       if (mounted) setState(() => _sending = false);
     }

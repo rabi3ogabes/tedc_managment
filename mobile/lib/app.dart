@@ -15,7 +15,7 @@ class TedcApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'TEDC',
+      title: 'مركز التدريب والتطوير',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(locale),
       locale: locale,

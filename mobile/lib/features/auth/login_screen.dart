@@ -40,7 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
     } catch (e) {
-      setState(() => _error = ApiException.from(e).message);
+      if (mounted) setState(() => _error = ApiException.from(e).message);
     } finally {
       if (mounted) setState(() => _loading = false);
     }

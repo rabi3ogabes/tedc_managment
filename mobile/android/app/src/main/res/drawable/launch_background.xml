@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launch screen: white background with the Ministry of Education emblem. -->
+<!-- Launch screen: deep maroon with the white Ministry of Education emblem; the animated intro continues from here. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
+    <item android:drawable="@color/splash_background" />
     <item>
         <bitmap android:gravity="center" android:src="@drawable/splash_logo" />
     </item>

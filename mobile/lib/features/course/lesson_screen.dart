@@ -125,6 +125,7 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   double _sent = 0;
   double _furthest = 0;
   double _lastTick = 0;
+  bool _endReported = false;
   double _percent = 0;
   String? _notice;
   bool _failed = false;
@@ -153,10 +154,14 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     try {
       await c.initialize();
     } catch (_) {
+      await c.dispose();
       if (mounted) setState(() => _failed = true);
       return;
     }
-    if (!mounted) return;
+    if (!mounted) {
+      await c.dispose();
+      return;
+    }
     if (!completed && resumeAt > 5 && resumeAt < c.value.duration.inSeconds - 5) {
       await c.seekTo(Duration(seconds: resumeAt.floor()));
       _sent = resumeAt;
@@ -173,6 +178,17 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     if (c.value.isPlaying && now >= _lastTick && now - _lastTick < 2) _furthest = _furthest < now ? now : _furthest;
     if (!_allowSeek && c.value.isPlaying && now > _furthest + 2) c.seekTo(Duration(milliseconds: (_furthest * 1000).round()));
     _lastTick = now;
+    // The last seconds of a video are sent when it ends, not only when the 10-second timer happens to fire: short
+    // videos would otherwise never reach the required share while the learner is still looking at them.
+    final total = c.value.duration.inMilliseconds / 1000;
+    if (total > 0 && now >= total - 0.4) {
+      if (!_endReported) {
+        _endReported = true;
+        _beat(force: true);
+      }
+    } else if (now < total - 2) {
+      _endReported = false;
+    }
     setState(() {});
   }
 
@@ -357,14 +373,97 @@ class _ArticleLesson extends StatelessWidget {
     final s = context.s;
     final blocks = lesson.str('body').split(RegExp(r'\n{2,}')).map((b) => b.trim()).where((b) => b.isNotEmpty);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      for (final b in blocks)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: b.startsWith('# ')
-              ? Text(b.substring(2), style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.navy900))
-              : Text(b.split('\n').map((l) => l.trimLeft().startsWith('- ') ? '• ${l.trimLeft().substring(2)}' : l).join('\n'), style: const TextStyle(fontSize: 16, height: 1.8)),
-        ),
+      for (final b in blocks) Padding(padding: const EdgeInsets.only(bottom: 14), child: ArticleBlock(text: b)),
       if (!done) FilledButton.icon(onPressed: onDone, icon: const Icon(Icons.check), label: Text(s.t('course.markDone'))),
+    ]);
+  }
+}
+
+/// One paragraph-sized block of an article, written in a light Markdown: headings (#, ##, ###), bullet and numbered
+/// lists, quotes (>), simple tables and **bold**.
+class ArticleBlock extends StatelessWidget {
+  const ArticleBlock({required this.text});
+
+  final String text;
+
+  static const _body = TextStyle(fontSize: 16, height: 1.8, color: AppColors.ink);
+
+  /// Text with **bold** parts.
+  static TextSpan inline(String value, TextStyle base) {
+    final spans = <TextSpan>[];
+    var last = 0;
+    for (final m in RegExp(r'\*\*(.+?)\*\*').allMatches(value)) {
+      if (m.start > last) spans.add(TextSpan(text: value.substring(last, m.start)));
+      spans.add(TextSpan(text: m.group(1), style: const TextStyle(fontWeight: FontWeight.w800)));
+      last = m.end;
+    }
+    if (last < value.length) spans.add(TextSpan(text: value.substring(last)));
+    return TextSpan(style: base, children: spans);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = text.split('\n').map((l) => l.trimRight()).where((l) => l.trim().isNotEmpty).toList();
+    if (lines.isEmpty) return const SizedBox.shrink();
+
+    final heading = RegExp(r'^(#{1,4})\s+(.*)$').firstMatch(lines.first);
+    if (heading != null && lines.length == 1) {
+      final level = heading.group(1)!.length;
+      return Text.rich(inline(heading.group(2)!, TextStyle(fontSize: level == 1 ? 21 : level == 2 ? 19 : 17, fontWeight: FontWeight.w800, color: AppColors.navy900, height: 1.4)));
+    }
+
+    // A table: a header row, a separator row (|---|---|) and the rest.
+    if (lines.length >= 2 && lines.first.contains('|') && RegExp(r'^[\s|:\-]+$').hasMatch(lines[1])) {
+      List<String> cells(String row) {
+        final parts = row.split('|').map((c) => c.trim()).toList();
+        if (parts.isNotEmpty && parts.first.isEmpty) parts.removeAt(0);
+        if (parts.isNotEmpty && parts.last.isEmpty) parts.removeLast();
+        return parts;
+      }
+
+      final rows = [cells(lines.first), for (final l in lines.skip(2)) cells(l)];
+      return Container(
+        decoration: BoxDecoration(border: Border.all(color: AppColors.navy100), borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: [
+          for (var r = 0; r < rows.length; r++)
+            Container(
+              color: r == 0 ? AppColors.navy100.withValues(alpha: .6) : null,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                for (final cell in rows[r]) Expanded(child: Text.rich(inline(cell, _body.copyWith(fontSize: 14.5, height: 1.5, fontWeight: r == 0 ? FontWeight.w800 : FontWeight.w400)))),
+              ]),
+            ),
+        ]),
+      );
+    }
+
+    // A quote.
+    if (lines.every((l) => l.trimLeft().startsWith('>'))) {
+      return Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
+        decoration: const BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.all(Radius.circular(12)), border: BorderDirectional(start: BorderSide(color: AppColors.gold500, width: 4))),
+        child: Text.rich(inline(lines.map((l) => l.trimLeft().replaceFirst(RegExp(r'^>\s?'), '')).join('\n'), _body.copyWith(fontStyle: FontStyle.italic))),
+      );
+    }
+
+    // Lists and plain lines.
+    final bullet = RegExp(r'^\s*[-*]\s+(.*)$');
+    final numbered = RegExp(r'^\s*(\d+)[.)]\s+(.*)$');
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      for (final l in lines)
+        Builder(builder: (context) {
+          final b = bullet.firstMatch(l);
+          final n = numbered.firstMatch(l);
+          if (b == null && n == null) return Text.rich(inline(l, _body));
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(width: 26, child: Text(b != null ? '•' : '${n!.group(1)}.', style: _body.copyWith(fontWeight: FontWeight.w800, color: AppColors.navy900))),
+              Expanded(child: Text.rich(inline(b != null ? b.group(1)! : n!.group(2)!, _body))),
+            ]),
+          );
+        }),
     ]);
   }
 }
@@ -388,15 +487,27 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
   bool _busy = false;
   String? _error;
   late DateTime _startedAt;
+  Timer? _timer;
+  int _left = 0; // seconds left when the quiz has a time limit
+  bool _timeUp = false;
 
   Json get _quiz => widget.lesson.obj('quiz') ?? {};
 
-  Future<void> _submit() async {
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// [force] sends what has been answered so far (used when the time is up).
+  Future<void> _submit({bool force = false}) async {
+    if (_busy) return;
     final questions = _quiz.list('questions');
-    if (questions.any((q) => (_answers[q.str('id')] ?? {}).isEmpty)) {
+    if (!force && questions.any((q) => (_answers[q.str('id')] ?? {}).isEmpty)) {
       setState(() => _error = context.s.t('course.answerAll'));
       return;
     }
+    _timer?.cancel();
     setState(() {
       _busy = true;
       _error = null;
@@ -407,13 +518,14 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
         'seconds': DateTime.now().difference(_startedAt).inSeconds,
       });
       final r = Map<String, dynamic>.from(res['data'] as Map);
+      if (!mounted) return;
       setState(() {
         _result = r;
         _started = false;
       });
       widget.onProgress(r['status'] == 'completed');
     } catch (e) {
-      setState(() => _error = ApiException.from(e).message);
+      if (mounted) setState(() => _error = ApiException.from(e).message);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -438,6 +550,7 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
           child: Column(children: [
             Text('${r.number('score_percent').round()}%', style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: AppColors.navy900)),
             Text(passed ? s.t('course.passed') : s.t('course.failed'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: passed ? AppColors.success : AppColors.warning)),
+            if (_timeUp) Padding(padding: const EdgeInsets.only(top: 6), child: Text(s.t('course.timeUp'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted))),
             if (!passed && r['attempts_left'] != 0) Padding(padding: const EdgeInsets.only(top: 12), child: FilledButton.icon(onPressed: _begin, icon: const Icon(Icons.refresh), label: Text(s.t('course.retry')))),
           ]),
         ),
@@ -454,6 +567,7 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
             const Text('📝', style: TextStyle(fontSize: 40)),
             const SizedBox(height: 8),
             Text('${questions.length} ${s.t('course.questions')} · ${s.t('course.passMark')} ${_quiz.number('pass_percent')}%', style: const TextStyle(fontWeight: FontWeight.w700)),
+            if (_quiz['time_limit_minutes'] != null) Text('${s.t('course.timeLimit')}: ${_quiz.number('time_limit_minutes').toInt()} ${s.t('course.minutesShort')}', style: const TextStyle(color: AppColors.muted)),
             Text(maxAttempts == null ? s.t('course.unlimited') : '${s.t('course.attempts')} $used / $maxAttempts', style: const TextStyle(color: AppColors.muted)),
             const SizedBox(height: 14),
             FilledButton(onPressed: exhausted || questions.isEmpty ? null : _begin, child: Text(exhausted ? s.t('course.noAttempts') : s.t('course.startQuiz'))),
@@ -462,7 +576,21 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
       );
     }
 
+    final clock = '${(_left ~/ 60).toString().padLeft(2, '0')}:${(_left % 60).toString().padLeft(2, '0')}';
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (_timer != null)
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(color: _left <= 60 ? const Color(0xFFFBEAEA) : AppColors.gold100, borderRadius: BorderRadius.circular(14)),
+          child: Row(children: [
+            Icon(Icons.timer_outlined, color: _left <= 60 ? AppColors.danger : AppColors.gold700),
+            const SizedBox(width: 8),
+            Text(s.t('course.timeLeft'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            const Spacer(),
+            Text(clock, textDirection: TextDirection.ltr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _left <= 60 ? AppColors.danger : AppColors.navy900, fontFeatures: const [FontFeature.tabularFigures()])),
+          ]),
+        ),
       for (var i = 0; i < questions.length; i++)
         Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -497,13 +625,34 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
     ]);
   }
 
-  void _begin() => setState(() {
-        _answers.clear();
-        _result = null;
-        _error = null;
-        _started = true;
-        _startedAt = DateTime.now();
+  void _begin() {
+    _timer?.cancel();
+    _timer = null;
+    final limit = (_quiz['time_limit_minutes'] as num?)?.toInt() ?? 0;
+    setState(() {
+      _answers.clear();
+      _result = null;
+      _error = null;
+      _timeUp = false;
+      _started = true;
+      _startedAt = DateTime.now();
+      _left = limit > 0 ? limit * 60 : 0;
+    });
+    if (limit > 0) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        setState(() => _left--);
+        if (_left <= 0) {
+          t.cancel();
+          _timeUp = true;
+          _submit(force: true);
+        }
       });
+    }
+  }
 }
 
 class _OptionTile extends StatelessWidget {
@@ -600,10 +749,11 @@ class _SurveyLessonState extends ConsumerState<_SurveyLesson> {
     });
     try {
       await ref.read(apiProvider).post('/me/lessons/${widget.lesson.str('id')}/survey', {'answers': _answers});
+      if (!mounted) return;
       setState(() => _done = true);
       widget.onProgress(true);
     } catch (e) {
-      setState(() => _error = ApiException.from(e).message);
+      if (mounted) setState(() => _error = ApiException.from(e).message);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

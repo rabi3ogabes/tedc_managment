@@ -29,6 +29,7 @@ import 'features/training/task_screen.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(authProvider, (_, _) => refresh.value++);
+  ref.listen(introDoneProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   final router = GoRouter(
@@ -37,7 +38,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final auth = ref.read(authProvider);
       final location = state.matchedLocation;
-      if (auth.isLoading && !auth.hasValue) return location == '/splash' ? null : '/splash';
+      // Every launch starts with the animated intro; the app opens once it has finished and the session is known.
+      if (!ref.read(introDoneProvider) || (auth.isLoading && !auth.hasValue)) return location == '/splash' ? null : '/splash';
       final loggedIn = auth.value != null;
       if (!loggedIn) return location == '/login' ? null : '/login';
       if (location == '/login' || location == '/splash') return '/home';

@@ -31,7 +31,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
   Future<void> _pick(List<String> types) async {
     final allowed = types.expand((t) => _extensions[t] ?? const <String>[]).toList();
     final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: allowed);
-    if (files.isNotEmpty) setState(() => _file = files.first);
+    if (mounted && files.isNotEmpty) setState(() => _file = files.first);
   }
 
   Future<void> _submit() async {

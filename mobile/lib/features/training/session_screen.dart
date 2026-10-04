@@ -53,6 +53,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     try {
       final res = await ref.read(apiProvider).post('$_path/join');
       final data = Map<String, dynamic>.from(res['data'] as Map);
+      if (!mounted) return;
       setState(() => _join = data);
       ref.invalidate(getProvider(_path));
       ref.invalidate(getProvider('/me/registrations'));

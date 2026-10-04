@@ -32,6 +32,17 @@ class LocaleController extends Notifier<Locale> {
 
 final localeProvider = NotifierProvider<LocaleController, Locale>(LocaleController.new);
 
+/// Whether the animated intro (logo animation shown on every launch) has finished. The router keeps the intro on
+/// screen until it has, then continues to the home screen or the sign-in page.
+class IntroController extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void finish() => state = true;
+}
+
+final introDoneProvider = NotifierProvider<IntroController, bool>(IntroController.new);
+
 final apiProvider = Provider<ApiClient>((ref) => ApiClient(
       ref.read(sessionStoreProvider),
       locale: () => ref.read(localeProvider).languageCode,

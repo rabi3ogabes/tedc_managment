@@ -42,6 +42,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         _issue = place.issue;
       });
       final res = await ref.read(apiProvider).post('/me/attendance/scan', {'payload': value, ...?place.fix?.toJson()});
+      if (!mounted) return;
       final verified = res['data']['attendance']?['location_status'] == 'verified';
       final message = res['data']['message'].toString();
       setState(() => _result = (ok: true, message: verified ? '$message\n${context.s.t('scan.verifiedHere')}' : message));
@@ -54,7 +55,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       final issue = error.code == 'location_required' ? _issue : null;
       setState(() => _result = (ok: false, message: issue != null ? context.s.t('scan.location.${issue.name}') : error.message));
     } finally {
-      await _controller.stop();
+      if (mounted) {
+        try {
+          await _controller.stop();
+        } catch (_) {
+          // The camera was already released.
+        }
+      }
       if (mounted) {
         setState(() {
           _busy = false;

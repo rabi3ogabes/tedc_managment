@@ -90,7 +90,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       if (mounted) _open(route);
     });
     // Firebase set-up and the permission prompt are not needed to show the first screen: start them after it.
-    Future<void>.delayed(const Duration(seconds: 4), () {
+    Future<void>.delayed(const Duration(seconds: 2), () {
       if (mounted) push.start();
     });
   }

@@ -409,7 +409,7 @@ class _RequestSheetState extends ConsumerState<_RequestSheet> {
           onPressed: () async {
             final now = DateTime.now();
             final picked = await showDatePicker(context: context, initialDate: _date ?? DateTime(now.year - 30), firstDate: DateTime(1940), lastDate: now);
-            if (picked != null) setState(() => _date = picked);
+            if (picked != null && mounted) setState(() => _date = picked);
           },
           icon: const Icon(Icons.calendar_month_outlined),
           label: Text(_date == null ? s.t('account.pickDate') : Fmt(s.languageCode).date(_date)),

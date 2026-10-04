@@ -43,6 +43,8 @@ flutter:
 
   assets:
     - assets/brand/moe-emblem.png
+    - assets/brand/emblem-white.png
+    - assets/brand/ministry-lockup.webp
 
   # Tajawal (SIL Open Font License, see assets/fonts/OFL.txt) — Arabic + Latin in one family.
   fonts:
@@ -58,14 +60,15 @@ flutter:
           weight: 800
 
 
-# App icon: the Ministry of Education and Higher Education emblem (assets/brand). Regenerate with:
-#   dart run flutter_launcher_icons
+# App icon: the white Ministry of Education and Higher Education emblem on maroon. The icons are committed; regenerate every size with:
+#   swift tool/generate_brand_assets.swift
+# (the flutter_launcher_icons settings below are kept for reference and use the same master images)
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   remove_alpha_ios: true
   image_path: "assets/brand/app-icon.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#8A1538"
   adaptive_icon_foreground: "assets/brand/app-icon-foreground.png"
   adaptive_icon_monochrome: "assets/brand/app-icon-monochrome.png"
   min_sdk_android: 23

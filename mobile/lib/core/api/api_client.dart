@@ -21,7 +21,8 @@ class ApiException implements Exception {
       final data = error.response?.data;
       if (data is Map<String, dynamic>) {
         final errors = data['errors'];
-        final first = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first.toString() : null;
+        final firstError = errors is Map && errors.isNotEmpty ? errors.values.first : null;
+        final first = firstError is List ? (firstError.isEmpty ? null : firstError.first.toString()) : firstError?.toString();
         return ApiException(
           first ?? data['message']?.toString() ?? 'Error',
           code: data['code']?.toString(),
@@ -29,6 +30,10 @@ class ApiException implements Exception {
           status: error.response?.statusCode,
         );
       }
+      // No answer from the server at all: say so plainly, in both languages, instead of the library's technical text.
+      final offline = error.response == null &&
+          const {DioExceptionType.connectionTimeout, DioExceptionType.sendTimeout, DioExceptionType.receiveTimeout, DioExceptionType.connectionError}.contains(error.type);
+      if (offline) return ApiException('تعذّر الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى.\nCould not reach the server. Check your connection and try again.', code: 'network');
       return ApiException(error.message ?? 'Network error', status: error.response?.statusCode);
     }
     return ApiException(error.toString());
@@ -57,10 +62,15 @@ class ApiClient {
       },
       onError: (error, handler) async {
         final retried = error.requestOptions.extra['retried'] == true;
-        if (error.response?.statusCode == 401 && !retried && await _refresh()) {
+        // Another request may already have renewed the tokens while this one was waiting in the queue: just retry it.
+        final used = error.requestOptions.headers['Authorization'];
+        final current = await _store.read();
+        final renewed = current != null && used != 'Bearer ${current.accessToken}';
+        if (error.response?.statusCode == 401 && !retried && (renewed || await _refresh())) {
           final options = error.requestOptions..extra['retried'] = true;
           final session = await _store.read();
-          options.headers['Authorization'] = 'Bearer ${session!.accessToken}';
+          if (session == null) return handler.next(error);
+          options.headers['Authorization'] = 'Bearer ${session.accessToken}';
           try {
             return handler.resolve(await dio.fetch(options));
           } on DioException catch (e) {
@@ -89,9 +99,16 @@ class ApiClient {
       final response = await Dio(BaseOptions(baseUrl: AppConfig.apiUrl)).post('/auth/refresh', data: {'refresh_token': session.refreshToken});
       await _store.write(sessionFromResponse(response.data as Map<String, dynamic>));
       return true;
+    } on DioException catch (e) {
+      // Only an answer from the server that refuses the token ends the session. Being offline, a timeout or a server
+      // hiccup must never sign the user out.
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 401 || status == 403 || status == 422) {
+        await _store.write(null);
+        onSessionExpired();
+      }
+      return false;
     } catch (_) {
-      await _store.write(null);
-      onSessionExpired();
       return false;
     }
   }
