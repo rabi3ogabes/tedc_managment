@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide Session;
 import '../../core/auth/session_store.dart';
 import '../../core/biometric.dart';
 import '../../core/config.dart';
-import '../../core/l10n/strings.dart';
 import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
