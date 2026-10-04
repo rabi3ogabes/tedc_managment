@@ -3,15 +3,19 @@
 namespace App\Services\Kits;
 
 use Anthropic\Client;
+use App\Services\Ai\AiGateway;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /** Thin structured-output wrapper around Claude for the Training Kit Studio. */
 class KitAi
 {
+    public function __construct(private readonly AiGateway $gateway) {}
+
+    /** A content model chosen in Settings → AI models, or the Anthropic key from the environment. */
     public function enabled(): bool
     {
-        return filled(config('tedc.ai.api_key'));
+        return $this->gateway->has('text') || filled(config('tedc.ai.api_key'));
     }
 
     /**
@@ -22,6 +26,12 @@ class KitAi
     {
         if (! $this->enabled()) {
             return null;
+        }
+        if ($this->gateway->has('text')) {
+            $data = $this->gateway->json($system, $prompt, $schema, $maxTokens);
+            if ($data !== null || blank(config('tedc.ai.api_key'))) {
+                return $data;
+            }
         }
 
         try {

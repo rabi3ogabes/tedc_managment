@@ -6,6 +6,7 @@ use App\Models\KitAsset;
 use App\Models\KitGeneration;
 use App\Models\TrainingKit;
 use App\Models\User;
+use App\Services\Ai\AiGateway;
 use App\Services\FileStorage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -20,10 +21,13 @@ use Throwable;
  */
 class ImageGenerator
 {
-    public function __construct(private readonly KitAi $ai, private readonly FileStorage $storage) {}
+    public function __construct(private readonly KitAi $ai, private readonly FileStorage $storage, private readonly AiGateway $gateway) {}
 
     public function provider(): string
     {
+        if ($this->gateway->has('image')) {
+            return 'model';
+        }
         $configured = config('tedc.kits.image_provider');
         $order = $configured === 'auto' ? ['openai', 'svg', 'placeholder'] : [$configured, 'svg', 'placeholder'];
         foreach ($order as $candidate) {
@@ -49,7 +53,11 @@ class ImageGenerator
         $provider = $this->provider();
         $result = null;
 
-        if ($provider === 'openai') {
+        if ($provider === 'model') {
+            $result = $this->gateway->image($full, $aspect);
+            $provider = $result ? 'model' : ($this->fallbackProvider());
+        }
+        if (! $result && $provider === 'openai') {
             $result = $this->openai($full, $aspect);
             $provider = $result ? 'openai' : ($this->ai->enabled() ? 'svg' : 'placeholder');
         }
@@ -73,6 +81,16 @@ class ImageGenerator
         KitGeneration::create(['kit_id' => $kit->id, 'user_id' => $user?->id, 'type' => 'image', 'prompt' => $prompt, 'params' => $opts, 'result' => ['asset_id' => $asset->id], 'provider' => $provider]);
 
         return $asset;
+    }
+
+    /** What to try when the chosen model gave nothing: the old providers, then the built-in illustration. */
+    private function fallbackProvider(): string
+    {
+        if (filled(config('tedc.kits.openai_key')) && in_array(config('tedc.kits.image_provider'), ['auto', 'openai'], true)) {
+            return 'openai';
+        }
+
+        return $this->ai->enabled() ? 'svg' : 'placeholder';
     }
 
     /** Any provider failure must degrade to the built-in illustration, never to a server error. */

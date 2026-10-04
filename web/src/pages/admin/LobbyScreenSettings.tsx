@@ -97,7 +97,7 @@ export default function LobbyScreenSettings() {
             <h2 className="font-bold text-navy-900">{t('lobby.settings')}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t('lobby.language')}><select className="input" value={draft.language} onChange={(e) => set('language', e.target.value as 'ar' | 'en')}><option value="ar">{t('lobby.ar')}</option><option value="en">{t('lobby.en')}</option></select></Field>
-              <Field label={t('lobby.perSlide')}><input type="number" min={1} max={8} className="input" value={draft.programs_per_slide} onChange={(e) => set('programs_per_slide', Number(e.target.value))} /></Field>
+              <p className="rounded-xl bg-ivory px-3 py-2 text-xs text-slate-500 sm:col-span-2">{t('lobby.autoLayout')}</p>
               <Field label={t('lobby.programsSeconds')}><input type="number" min={5} max={300} className="input" value={draft.programs_seconds} onChange={(e) => set('programs_seconds', Number(e.target.value))} /></Field>
               <Field label={t('lobby.slideSeconds')}><input type="number" min={3} max={600} className="input" value={draft.slide_seconds} onChange={(e) => set('slide_seconds', Number(e.target.value))} /></Field>
             </div>

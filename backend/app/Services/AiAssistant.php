@@ -12,6 +12,7 @@ use App\Models\Report;
 use App\Models\Skill;
 use App\Models\TrainingNeed;
 use App\Models\User;
+use App\Services\Ai\AiGateway;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -43,11 +44,11 @@ Answer in the language of the question (Arabic by default; Modern Standard Arabi
 The `answer` field is concise Markdown for display in a dashboard. Program titles are always given in both Arabic and English.
 PROMPT;
 
-    public function __construct(private readonly AnalyticsService $analytics) {}
+    public function __construct(private readonly AnalyticsService $analytics, private readonly AiGateway $gateway) {}
 
     public function enabled(): bool
     {
-        return filled(config('tedc.ai.api_key'));
+        return $this->gateway->has('text') || filled(config('tedc.ai.api_key'));
     }
 
     /**
@@ -141,6 +142,24 @@ PROMPT;
 
     private function askClaude(string $question, array $snapshot, array $history): ?array
     {
+        if ($this->gateway->has('text')) {
+            $messages = [];
+            foreach (array_slice($history, -6) as $turn) {
+                if (in_array($turn['role'] ?? null, ['user', 'assistant'], true) && filled($turn['content'] ?? null)) {
+                    $messages[] = ['role' => $turn['role'], 'content' => (string) $turn['content']];
+                }
+            }
+            $messages[] = ['role' => 'user', 'content' => "DATA SNAPSHOT (JSON):\n".json_encode($snapshot, JSON_UNESCAPED_UNICODE)."\n\nQUESTION:\n".$question];
+            $system = self::SYSTEM_PROMPT."\n\nReply with ONE JSON object only, no code fences, matching this JSON Schema:\n".json_encode($this->schema(), JSON_UNESCAPED_UNICODE);
+            $data = AiGateway::decode((string) $this->gateway->text($system, $messages, 6000));
+            if ($data !== null) {
+                return $data + ['source' => 'ai'];
+            }
+            if (blank(config('tedc.ai.api_key'))) {
+                return null;
+            }
+        }
+
         $client = new Client(apiKey: config('tedc.ai.api_key'), requestOptions: ['timeout' => (float) config('tedc.ai.timeout')]);
 
         $messages = [];

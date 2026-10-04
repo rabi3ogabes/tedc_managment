@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
+use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
@@ -629,6 +630,16 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
+                Route::get('settings/ai-models', [AiModelsController::class, 'show']);
+                Route::post('settings/ai-models/connections', [AiModelsController::class, 'saveConnection']);
+                Route::put('settings/ai-models/connections/{id}', [AiModelsController::class, 'saveConnection']);
+                Route::delete('settings/ai-models/connections/{id}', [AiModelsController::class, 'deleteConnection']);
+                Route::get('settings/ai-models/connections/{id}/catalog', [AiModelsController::class, 'catalog'])->middleware('throttle:20,1');
+                Route::post('settings/ai-models/models', [AiModelsController::class, 'saveModel']);
+                Route::put('settings/ai-models/models/{id}', [AiModelsController::class, 'saveModel']);
+                Route::delete('settings/ai-models/models/{id}', [AiModelsController::class, 'deleteModel']);
+                Route::put('settings/ai-models/assignments', [AiModelsController::class, 'assign']);
+                Route::post('settings/ai-models/models/{id}/test', [AiModelsController::class, 'test'])->middleware('throttle:20,1');
                 Route::get('settings/lobby-screen', [LobbyScreenController::class, 'show']);
                 Route::put('settings/lobby-screen', [LobbyScreenController::class, 'update']);
                 Route::post('settings/lobby-screen/slides', [LobbyScreenController::class, 'addSlide'])->middleware('throttle:30,1');
