@@ -35,6 +35,7 @@ const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
+const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
 const ChatInbox = lazy(() => import('@/pages/admin/ChatInbox'))
 const Profile = lazy(() => import('@/pages/Profile'))
@@ -125,6 +126,7 @@ export default function App() {
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
           <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />
+          <Route path="attendance-attempts" element={<RequireAuth permission="attendance.manage"><AttendanceAttempts /></RequireAuth>} />
           <Route path="geo" element={<Geographic />} />
           <Route path="ai" element={<AiAssistant />} />
           <Route path="communication" element={<Communication />} />

@@ -22,17 +22,25 @@ class ProgramController extends Controller
     {
         $user = $this->user();
 
-        $programs = Program::with(['category', 'trainers'])
-            ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)])
+        // Everything except the delivery type, so the three type tabs can show how many programs each one holds.
+        $scope = fn () => Program::query()
             // Trainers only see programs they deliver.
             ->when($user->hasRole(Role::TRAINER) && ! $this->isCenterStaff($user), fn ($q) => $q->whereHas('trainers', fn ($t) => $t->where('trainers.user_id', $user->id)))
             ->when($request->query('status'), fn ($q, $status) => $q->whereIn('status', explode(',', $status)))
             ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
-            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$term}%")->orWhere('title_en', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%")))
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$term}%")->orWhere('title_en', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%")));
+
+        $programs = $scope()->with(['category', 'trainers'])
+            ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)])
+            ->when(in_array($request->query('delivery_mode'), ['in_person', 'online', 'hybrid'], true), fn ($q) => $q->where('delivery_mode', $request->query('delivery_mode')))
             ->latest()
             ->paginate($this->perPage($request));
 
-        return ProgramResource::collection($programs);
+        $counts = $scope()->selectRaw('delivery_mode, count(*) as total')->groupBy('delivery_mode')->pluck('total', 'delivery_mode');
+
+        return ProgramResource::collection($programs)->additional(['types' => [
+            'in_person' => (int) ($counts['in_person'] ?? 0), 'online' => (int) ($counts['online'] ?? 0), 'hybrid' => (int) ($counts['hybrid'] ?? 0),
+        ]]);
     }
 
     public function show(Program $program): ProgramResource

@@ -79,6 +79,10 @@ export const opsAr = {
     manualId: 'أو أضف معرّف النموذج يدويًا', modelAdded: 'أُضيف النموذج', assigned: 'تم الحفظ', noModels: 'لا توجد نماذج بعد. اضغط «إضافة نموذج».', toggleTask: 'تفعيل أو إيقاف هذا العمل لهذا النموذج',
     test: 'اختبار', secure: 'المفاتيح مشفّرة في الخادم ولا تُرسل إلى المتصفح. عند فشل النموذج تستمر المنصة بإعدادها الافتراضي دون أن تتعطل.',
   },
+  attempts: {
+    nav: 'محاولات الحضور', title: 'محاولات تسجيل الحضور', subtitle: 'كل مسح لم يُسجَّل به حضور مع السبب: برنامج غير مُسند، حاضر بالفعل، رمز منتهٍ وغيرها.', last7: 'آخر ٧ أيام', empty: 'لا توجد محاولات مرفوضة. كل شيء يسير جيداً.',
+    codes: { not_registered: 'برنامج غير مُسند', already_present: 'حاضر بالفعل', already_checked_out: 'خرج بالفعل', not_checked_in: 'خروج قبل الحضور', invalid_qr: 'رمز غير صالح', not_open: 'قبل الموعد', closed: 'بعد الإغلاق', biometric_required: 'بدون تحقق بالبصمة', location_required: 'بدون موقع', outside_venue: 'خارج مكان التدريب' },
+  },
   lobby: {
     title: 'شاشة برامج اليوم', subtitle: 'شاشة رأسية (1080 × 1920) في الردهة: تعرض برامج اليوم تلقائياً (البرنامج والقاعة والطابق والمنسق) ثم الصور التي تضيفها أنت، بالتوقيت والانتقال الذي تختاره.',
     link: 'رابط الشاشة', linkHint: 'افتحه على شاشة العرض (متصفح ملء الشاشة). يتحدّث وحده كل دقيقة.', copy: 'نسخ الرابط', copied: 'تم النسخ', open: 'فتح الشاشة', regenerate: 'رابط جديد', regenerateConfirm: 'سيتوقف الرابط الحالي عن العمل وعليك فتح الرابط الجديد على الشاشة. متابعة؟',
@@ -194,6 +198,10 @@ export const opsEn: typeof opsAr = {
     addModel: 'Add a model', search: 'Search models', all: 'All', close: 'Close', add: 'Add', free: 'Free', noResults: 'No results.', catalogFailed: 'Could not load the model list. Check the key or add the model id by hand.',
     manualId: 'Or add a model id by hand', modelAdded: 'Model added', assigned: 'Saved', noModels: 'No models yet. Press “Add a model”.', toggleTask: 'Turn this job on or off for this model',
     test: 'Test', secure: 'Keys are encrypted on the server and never sent to the browser. If a model fails, the platform carries on with its default instead of breaking.',
+  },
+  attempts: {
+    nav: 'Attendance attempts', title: 'Attendance attempts', subtitle: 'Every scan that did not record attendance, with the reason: program not assigned, already present, expired code and more.', last7: 'Last 7 days', empty: 'No refused attempts. All is well.',
+    codes: { not_registered: 'Program not assigned', already_present: 'Already present', already_checked_out: 'Already left', not_checked_in: 'Exit before entry', invalid_qr: 'Invalid code', not_open: 'Too early', closed: 'Closed', biometric_required: 'No fingerprint check', location_required: 'No location', outside_venue: 'Outside the venue' },
   },
   lobby: {
     title: "Today's programs screen", subtitle: "A portrait screen (1080 × 1920) in the lobby: today's programs shown automatically (program, room, floor, coordinator), then the images you add, with the timing and transition you choose.",

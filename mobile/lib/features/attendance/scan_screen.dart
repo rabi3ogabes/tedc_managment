@@ -31,7 +31,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   String? _verifyMessage;
   bool _locating = false;
   LocationIssue? _issue;
-  ({bool ok, String message})? _result;
+  ({bool ok, String message, bool already})? _result;
+  bool _exiting = false;   // the participant is already present: the next scan (or the exit button) records the exit
+  String? _lastCode;
 
   @override
   void initState() {
@@ -64,7 +66,16 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     await _submit(value);
   }
 
-  Future<void> _submit(String value, {bool retried = false}) async {
+  Future<void> _exit() {
+    final code = _lastCode;
+    if (code == null) return Future.value();
+    setState(() => _result = null);
+    return _submit(code, intent: 'check_out');
+  }
+
+  Future<void> _submit(String value, {bool retried = false, String? intent}) async {
+    _lastCode = value;
+    intent ??= _exiting ? 'check_out' : 'check_in';
     setState(() {
       _busy = true;
       _locating = true;
@@ -78,11 +89,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         _locating = false;
         _issue = place.issue;
       });
-      final res = await ref.read(apiProvider).post('/me/attendance/scan', {'payload': value, if (_passed) 'biometric': true, ...?place.fix?.toJson()});
+      final res = await ref.read(apiProvider).post('/me/attendance/scan', {'payload': value, 'intent': intent, if (_passed) 'biometric': true, ...?place.fix?.toJson()});
       if (!mounted) return;
+      final already = res['data']['action'] == 'already_present';
       final verified = res['data']['attendance']?['location_status'] == 'verified';
       final message = res['data']['message'].toString();
-      setState(() => _result = (ok: true, message: verified ? '$message\n${context.s.t('scan.verifiedHere')}' : message));
+      // Already present: nothing was recorded; from now on the only thing left to do is to leave.
+      _exiting = already;
+      setState(() => _result = (ok: true, message: !already && verified ? '$message\n${context.s.t('scan.verifiedHere')}' : message, already: already));
       ref.invalidate(getProvider('/me/registrations'));
       ref.invalidate(getProvider('/me/home'));
     } catch (e) {
@@ -96,7 +110,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       }
       // The phone knows exactly why the position is missing, which is more useful than the generic server text.
       final issue = error.code == 'location_required' ? _issue : null;
-      setState(() => _result = (ok: false, message: issue != null ? context.s.t('scan.location.${issue.name}') : error.message));
+      setState(() => _result = (ok: false, message: issue != null ? context.s.t('scan.location.${issue.name}') : error.message, already: false));
     } finally {
       if (mounted) {
         try {
@@ -146,7 +160,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(22)),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(_result!.ok ? Icons.verified : Icons.error_outline, size: 48, color: _result!.ok ? AppColors.success : AppColors.danger),
+                    Icon(_result!.already ? Icons.info_outline : _result!.ok ? Icons.verified : Icons.error_outline, size: 48, color: _result!.already ? AppColors.warning : _result!.ok ? AppColors.success : AppColors.danger),
                     const SizedBox(height: 8),
                     Text(_result!.message, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 12),
@@ -158,6 +172,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
                           icon: const Icon(Icons.settings_outlined),
                           label: Text(s.t('scan.openSettings')),
                         ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                    if (_result!.already) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(onPressed: _exit, icon: const Icon(Icons.logout), label: Text(s.t('scan.exit'))),
                       ),
                       const SizedBox(height: 10),
                     ],

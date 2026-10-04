@@ -19,6 +19,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 /**
  * Self-registration, my programs, calendar, QR attendance and materials.
@@ -118,8 +119,9 @@ class MyTrainingController extends MeController
             'accuracy' => ['nullable', 'numeric', 'min:0', 'max:100000'],
             'mocked' => ['nullable', 'boolean'],
             'biometric' => ['nullable', 'boolean'],
+            'intent' => ['nullable', Rule::in(['check_in', 'check_out'])],
         ]);
-        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip(), Arr::only($data, ['latitude', 'longitude', 'accuracy', 'mocked']), (bool) ($data['biometric'] ?? false));
+        $result = $attendance->scan($this->employee(), $data['payload'], $request->userAgent(), $request->ip(), Arr::only($data, ['latitude', 'longitude', 'accuracy', 'mocked']), (bool) ($data['biometric'] ?? false), $data['intent'] ?? null);
 
         return response()->json(['data' => [
             'action' => $result['action'],

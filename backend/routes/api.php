@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
@@ -456,6 +457,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:attendance.manage')->group(function () {
                 Route::get('sessions/{session}/qr', [SessionController::class, 'qr']);
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
+                Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
                 Route::post('sessions/{session}/attendance', [SessionController::class, 'mark']);
             });
 

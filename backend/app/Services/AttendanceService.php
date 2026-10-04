@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\Attendance;
+use App\Models\AttendanceAttempt;
 use App\Models\Employee;
 use App\Models\ProgramSession;
 use App\Models\Registration;
@@ -68,7 +69,41 @@ class AttendanceService
      * @param  array{latitude?: mixed, longitude?: mixed, accuracy?: mixed, mocked?: mixed}|null  $location
      * @return array{action: string, attendance: Attendance, message: string}
      */
-    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null, ?array $location = null, bool $biometric = false): array
+    public function scan(Employee $employee, string $payload, ?string $device = null, ?string $ip = null, ?array $location = null, bool $biometric = false, ?string $intent = null): array
+    {
+        try {
+            $result = $this->performScan($employee, $payload, $device, $ip, $location, $biometric, $intent);
+        } catch (BusinessRuleException $e) {
+            $this->logAttempt($employee, $payload, 'rejected', $e->errorCode, $e->getMessage(), $device, $ip);
+
+            throw $e;
+        }
+        if ($result['action'] === 'already_present') {
+            $this->logAttempt($employee, $payload, 'already_present', 'already_present', $result['message'], $device, $ip);
+        }
+
+        return $result;
+    }
+
+    /** What the administrator sees under Attendance attempts; never allowed to break the scan itself. */
+    private function logAttempt(Employee $employee, string $payload, string $outcome, string $code, string $message, ?string $device, ?string $ip): void
+    {
+        try {
+            $session = null;
+            $parts = explode('.', trim($payload));
+            if (count($parts) === 4 && $parts[0] === self::PREFIX) {
+                $session = ProgramSession::find($parts[1]);
+            }
+            AttendanceAttempt::create([
+                'employee_id' => $employee->id, 'program_id' => $session?->program_id, 'program_session_id' => $session?->id,
+                'outcome' => $outcome, 'code' => $code, 'message' => mb_substr($message, 0, 500), 'device_info' => $device ? substr($device, 0, 255) : null, 'ip_address' => $ip,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function performScan(Employee $employee, string $payload, ?string $device, ?string $ip, ?array $location, bool $biometric, ?string $intent): array
     {
         $session = $this->resolvePayload($payload);
         $now = now();
@@ -94,12 +129,21 @@ class AttendanceService
             throw new BusinessRuleException(__('messages.attendance.biometric_required'), 'biometric_required');
         }
 
-        $place = $this->geofence->verify($session, $location);
-
         $attendance = Attendance::firstOrNew([
             'program_session_id' => $session->id,
             'registration_id' => $registration->id,
         ]);
+        $isIn = $attendance->exists && $attendance->check_in_at;
+
+        // Already present: scanning to enter again changes nothing. The participant is told, and can only leave (exit).
+        if ($isIn && ! $attendance->check_out_at && $intent === 'check_in') {
+            return ['action' => 'already_present', 'attendance' => $attendance, 'message' => __('messages.attendance.already_present')];
+        }
+        if (! $isIn && $intent === 'check_out') {
+            throw new BusinessRuleException(__('messages.attendance.not_checked_in'), 'not_checked_in');
+        }
+
+        $place = $this->geofence->verify($session, $location);
 
         if (! $attendance->exists || ! $attendance->check_in_at) {
             $late = $now->gt($session->starts_at->copy()->addMinutes(config('tedc.attendance.late_after_minutes')));

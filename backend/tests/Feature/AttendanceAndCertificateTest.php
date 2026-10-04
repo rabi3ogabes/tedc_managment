@@ -63,6 +63,51 @@ class AttendanceAndCertificateTest extends TestCase
         $this->asUser($user)->getJson("/api/v1/me/sessions/{$session->id}")->assertJsonPath('data.biometric_required', true);
     }
 
+    public function test_scanning_again_while_present_only_offers_exit_and_the_administrator_sees_every_refusal(): void
+    {
+        $registration = $this->approvedRegistration();
+        $session = $this->makeSession($registration->program, now()->subMinutes(5));
+        $qr = fn () => app(AttendanceService::class)->currentQr($session)['payload'];
+        $user = $registration->employee->user;
+        $scan = fn (array $extra = []) => $this->asUser($user)->postJson('/api/v1/me/attendance/scan', ['payload' => $qr()] + $extra);
+
+        // Cannot exit before entering.
+        $scan(['intent' => 'check_out'])->assertStatus(422)->assertJsonPath('code', 'not_checked_in');
+        $scan(['intent' => 'check_in'])->assertOk()->assertJsonPath('data.action', 'check_in');
+
+        // Already present: nothing changes, the answer says so.
+        $res = $scan(['intent' => 'check_in'])->assertOk()->assertJsonPath('data.action', 'already_present');
+        $this->assertStringContainsString('الخروج', $res->json('data.message'));
+        $this->assertNull(Attendance::first()->check_out_at);
+
+        // The exit button.
+        $scan(['intent' => 'check_out'])->assertOk()->assertJsonPath('data.action', 'check_out');
+        $scan(['intent' => 'check_in'])->assertStatus(422)->assertJsonPath('code', 'already_checked_out');
+
+        // A participant of another program is refused.
+        $other = $this->makeEmployee();
+        $this->asUser($other->user)->postJson('/api/v1/me/attendance/scan', ['payload' => $qr(), 'intent' => 'check_in'])->assertStatus(422)->assertJsonPath('code', 'not_registered');
+
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $rows = collect($this->asUser($admin)->getJson('/api/v1/admin/attendance-attempts')->assertOk()->json('data'));
+        $this->assertEqualsCanonicalizing(['not_checked_in', 'already_present', 'already_checked_out', 'not_registered'], $rows->pluck('code')->all());
+        $this->assertSame($session->id, $rows->firstWhere('code', 'not_registered')['session']['id']);
+        $this->asUser($this->makeEmployee()->user)->getJson('/api/v1/admin/attendance-attempts')->assertForbidden();
+    }
+
+    public function test_the_programs_list_filters_by_delivery_type_and_counts_each_type(): void
+    {
+        $this->makeProgram(['delivery_mode' => 'online']);
+        $this->makeProgram(['delivery_mode' => 'online']);
+        $this->makeProgram(['delivery_mode' => 'hybrid']);
+        $this->makeProgram(['delivery_mode' => 'in_person']);
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+
+        $res = $this->asUser($admin)->getJson('/api/v1/admin/programs?delivery_mode=online')->assertOk();
+        $this->assertCount(2, $res->json('data'));
+        $this->assertSame(['in_person' => 1, 'online' => 2, 'hybrid' => 1], $res->json('types'));
+    }
+
     public function test_expired_or_forged_qr_is_rejected(): void
     {
         $registration = $this->approvedRegistration();

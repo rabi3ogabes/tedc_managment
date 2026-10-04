@@ -1,4 +1,5 @@
-import { Plus, Search, Video, Wand2 } from 'lucide-react'
+import clsx from 'clsx'
+import { Building2, Layers, LayoutGrid, MonitorPlay, Plus, Search, Video, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -15,8 +16,9 @@ export default function ProgramsAdmin() {
   const { can } = useAuth()
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('')
+  const [type, setType] = useState<'' | 'in_person' | 'online' | 'hybrid'>('')
   const [page, setPage] = useState(1)
-  const { data, isLoading } = useGet<Paginated<Program>>('/admin/programs', { q: q || undefined, status: status || undefined, page })
+  const { data, isLoading } = useGet<Paginated<Program> & { types?: Record<'in_person' | 'online' | 'hybrid', number> }>('/admin/programs', { q: q || undefined, status: status || undefined, delivery_mode: type || undefined, page })
 
   const columns: Column<Program>[] = [
     { key: 'code', header: t('admin.programs.code'), role: 'media', cell: (p) => <span className="inline-block rounded-lg bg-navy-900 px-2 py-1 font-mono text-[11px] font-bold text-gold-300" dir="ltr">{p.code}</span> },
@@ -32,6 +34,20 @@ export default function ProgramsAdmin() {
   return (
     <>
       <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <div className="flex flex-wrap gap-2"><Button to="/admin/programs/smart" variant="gold" icon={<Wand2 className="size-4" />}>{t('mgmt.wizard.smartCreate')}</Button><Button to="/admin/programs/remote" variant="primary" icon={<Video className="size-4" />}>{t('studio.nav.remote')}</Button><Button to="/admin/programs/new" variant="outline" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button></div>} />
+      {/* The three kinds of program: choose one to see only those */}
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" role="tablist" aria-label={t('programs.mode')}>
+        {([['', LayoutGrid], ['in_person', Building2], ['online', MonitorPlay], ['hybrid', Layers]] as const).map(([k, Icon]) => {
+          const count = k === '' ? Object.values(data?.types ?? {}).reduce((a, b) => a + b, 0) : data?.types?.[k]
+          const on = type === k
+          return (
+            <button key={k || 'all'} type="button" role="tab" aria-selected={on} onClick={() => { setType(k); setPage(1) }}
+              className={clsx('flex items-center gap-3 rounded-2xl border p-3.5 text-start transition', on ? 'border-gold-400 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white text-navy-900 hover:border-gold-300')}>
+              <span className={clsx('grid size-10 shrink-0 place-items-center rounded-xl', on ? 'bg-gold-400 text-navy-950' : 'bg-navy-50 text-navy-700')}><Icon className="size-5" /></span>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold">{k === '' ? t('common.all') : t(`modes.${k}`)}</span><span className={clsx('block text-xl font-extrabold tabular-nums', on ? 'text-gold-300' : 'text-navy-900')}>{count === undefined ? '—' : fmt.number(count)}</span></span>
+            </button>
+          )
+        })}
+      </div>
       <Card padded={false}>
         <div className="flex flex-wrap gap-3 border-b border-navy-100 p-4">
           <div className="relative min-w-60 flex-1"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} /></div>
