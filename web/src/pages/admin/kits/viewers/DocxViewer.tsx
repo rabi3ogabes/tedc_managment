@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import mammoth from 'mammoth'
+import { safeHtml } from '@/lib/safeHtml'
 import { MessageSquarePlus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,7 +25,7 @@ export default function DocxViewer({ url, reviewing, comments, activeId, onPlace
       try {
         const buffer = await (await fetch(url)).arrayBuffer()
         const res = await mammoth.convertToHtml({ arrayBuffer: buffer }, { styleMap: ['p[style-name="Title"] => h1.title:fresh'] })
-        if (!cancelled) setHtml(res.value)
+        if (!cancelled) setHtml(safeHtml(res.value))
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'error')
       }

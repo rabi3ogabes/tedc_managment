@@ -134,7 +134,7 @@ export default function BrandStudio() {
                       <div className="flex items-center justify-between p-3" style={{ background: p.colors.background }}>
                         <span className="text-sm font-bold" style={{ color: p.colors.text }}>{p.name[lang]}</span>
                         <span className="flex -space-x-1.5 rtl:space-x-reverse">
-                          {[p.colors.primary, p.colors.accent, p.colors.link, p.colors.background].map((c) => <span key={c} className="size-5 rounded-full ring-2 ring-white" style={{ background: c }} />)}
+                          {[p.colors.primary, p.colors.accent, p.colors.link, p.colors.background].map((c, i) => <span key={`${i}-${c}`} className="size-5 rounded-full ring-2 ring-white" style={{ background: c }} />)}
                         </span>
                       </div>
                     </button>

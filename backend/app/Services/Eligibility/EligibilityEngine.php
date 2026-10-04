@@ -23,7 +23,8 @@ use App\Models\TargetGroup;
  */
 class EligibilityEngine
 {
-    public function evaluate(Program $program, ?Employee $employee): EligibilityResult
+    /** Pass `$context` when checking one employee against many programs, so the employee's data is read once, not once per program. */
+    public function evaluate(Program $program, ?Employee $employee, ?EmployeeContext $context = null): EligibilityResult
     {
         if (! $employee) {
             return new EligibilityResult(false, [[
@@ -32,7 +33,7 @@ class EligibilityEngine
             ]]);
         }
 
-        $context = EmployeeContext::fromEmployee($employee);
+        $context ??= EmployeeContext::fromEmployee($employee);
         $program->loadMissing(['eligibilityRules', 'targetGroups']);
 
         $checks = [];

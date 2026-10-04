@@ -221,7 +221,8 @@ Route::prefix('v1')->group(function () {
 
         // Administration --------------------------------------------------------
         Route::prefix('admin')->middleware('unlocked')->group(function () {
-            Route::get('lookups', [CatalogController::class, 'lookups']);
+            // Reference lists for the admin forms (schools, trainers, coordinators): staff only, never an ordinary trainee.
+            Route::get('lookups', [CatalogController::class, 'lookups'])->middleware('permission:programs.view|schools.view|employees.view|registrations.view|kits.view|announcements.manage|settings.manage|reports.view');
 
             Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
             Route::get('process', ProcessController::class)->middleware('permission:dashboard.view');

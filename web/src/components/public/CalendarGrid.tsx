@@ -9,7 +9,7 @@ import type { Session } from '@/lib/types'
 export default function CalendarGrid({ month, onMonth, sessions, onSelect, selected }: {
   month: Date; onMonth: (d: Date) => void; sessions: Session[]; onSelect: (d: Date) => void; selected: Date | null
 }) {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const locale = intlLocale()
   const rtl = i18n.language === 'ar'
 
@@ -37,9 +37,9 @@ export default function CalendarGrid({ month, onMonth, sessions, onSelect, selec
   return (
     <div className="card p-4 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <IconBtn onClick={() => nav(-1)}><Prev className="size-5" /></IconBtn>
+        <IconBtn label={t('common.previous')} onClick={() => nav(-1)}><Prev className="size-5" /></IconBtn>
         <h3 className="font-display text-xl font-bold text-navy-900">{new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(month)}</h3>
-        <IconBtn onClick={() => nav(1)}><Next className="size-5" /></IconBtn>
+        <IconBtn label={t('common.next')} onClick={() => nav(1)}><Next className="size-5" /></IconBtn>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400">{weekdays.map((w) => <div key={w} className="py-2">{w}</div>)}</div>
       <div className="grid grid-cols-7 gap-1">
@@ -65,6 +65,6 @@ export default function CalendarGrid({ month, onMonth, sessions, onSelect, selec
   )
 }
 
-function IconBtn({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return <button onClick={onClick} className="grid size-10 place-items-center rounded-full border border-navy-100 text-navy-800 hover:border-gold-400">{children}</button>
+function IconBtn({ onClick, label, children }: { onClick: () => void; label: string; children: ReactNode }) {
+  return <button type="button" aria-label={label} title={label} onClick={onClick} className="grid size-10 place-items-center rounded-full border border-navy-100 text-navy-800 hover:border-gold-400">{children}</button>
 }

@@ -8,6 +8,7 @@ use App\Models\Program;
 use App\Models\Registration;
 use App\Models\TrainingNeed;
 use App\Services\Eligibility\EligibilityEngine;
+use App\Services\Eligibility\EmployeeContext;
 use Illuminate\Support\Collection;
 
 /**
@@ -50,9 +51,11 @@ class RecommendationEngine
             ->groupBy('program_id')
             ->pluck('score', 'program_id');
 
+        $context = EmployeeContext::fromEmployee($employee);
+
         return $programs
-            ->map(function (Program $program) use ($employee, $skillLevels, $schoolNeeds, $ratings) {
-                $eligibility = $this->eligibility->evaluate($program, $employee);
+            ->map(function (Program $program) use ($employee, $skillLevels, $schoolNeeds, $ratings, $context) {
+                $eligibility = $this->eligibility->evaluate($program, $employee, $context);
                 if (! $eligibility->eligible) {
                     return null;
                 }

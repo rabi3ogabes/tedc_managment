@@ -9,12 +9,14 @@ use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Services\ErrorLogService;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -42,6 +44,10 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
         $exceptions->render(fn (AuthenticationException $e, Request $request) => response()->json(['message' => __('auth.unauthenticated')], 401));
+        // "No query results for model [App\Models\X]" names an internal class: say only that it was not found.
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => $e->getPrevious() instanceof ModelNotFoundException
+            ? response()->json(['message' => __('messages.not_found')], 404)
+            : null);
         // PostgreSQL rejects malformed UUIDs (SQLSTATE 22P02): a bad id in a URL is "not found", not a server error.
         $exceptions->render(fn (QueryException $e, Request $request) => ($e->errorInfo[0] ?? null) === '22P02'
             ? response()->json(['message' => __('messages.not_found')], 404)

@@ -79,7 +79,9 @@ html[lang="en"] { --font-sans: "Inter", "Tajawal", ui-sans-serif, system-ui, san
   .hero-overlay { background: linear-gradient(to top, var(--hero-overlay-strong, rgb(6 18 42 / 0.7)), var(--hero-overlay-soft, rgb(6 18 42 / 0.28)) 55%, transparent); }
   .container-x { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
   .gold-line { @apply h-0.5 w-16 bg-gradient-to-l from-gold-300 via-gold-500 to-gold-600 rounded-full; }
+  /* 16px on phones: smaller text makes iOS Safari zoom into the page when a field is focused */
   .input { @apply w-full rounded-xl border border-navy-100 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:border-gold-500 focus:outline-none focus:ring-4 focus:ring-gold-100 transition; }
+  @media (max-width: 640px) { .input { font-size: 16px; } }
   .label { @apply mb-1.5 block text-sm font-medium text-navy-800; }
   /* Brand Studio controlled background pattern (see src/lib/theme.ts). */
   .pattern-bg {
