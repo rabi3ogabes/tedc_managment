@@ -11,6 +11,7 @@ use App\Models\Program;
 use App\Models\ProgramCategory;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\SiteSetting;
 use App\Models\TargetGroup;
 use App\Models\Trainer;
 use App\Models\TrainingKit;
@@ -39,6 +40,8 @@ use Throwable;
 class DemoScenarioSeeder extends Seeder
 {
     public const CODES = ['SC-1', 'SC-2', 'SC-3', 'SC-4', 'SC-5'];
+
+    public const ANCHOR_KEY = 'demo_scenario';
 
     private User $admin;
 
@@ -83,6 +86,8 @@ class DemoScenarioSeeder extends Seeder
         $sc4 = $this->finished($rooms[1], $trainers[0], $jobTitleId);
         $this->draft($jobTitleId);
         $this->kits($kits, [$sc1, $sc2, $sc3]);
+        $this->invitations($sc3);
+        SiteSetting::updateOrCreate(['key' => self::ANCHOR_KEY], ['value' => ['anchor' => today()->toDateString()]]);
 
         unset($sc4);
     }
@@ -372,6 +377,55 @@ class DemoScenarioSeeder extends Seeder
             ['ar' => "جلسة «{$session->title_ar}» من برنامج «{$program->title_ar}» تبدأ غداً الساعة 8:00 صباحاً في {$session->location_text}.", 'en' => 'Your session starts tomorrow at 8:00 am.'], $data));
         $this->at(0, 7, fn () => $this->notes->broadcast($users, 'session.attendance_open', ['ar' => 'بدأ تسجيل الحضور', 'en' => 'Check-in is open'],
             ['ar' => "افتح التطبيق وامسح رمز الحضور لجلسة «{$session->title_ar}». يتطلب التسجيل وجودك في مكان التدريب.", 'en' => 'Open the app and scan the code.'], $data));
+    }
+
+    /** The school principal, the executive and the kit developer hear about the journey too. */
+    private function invitations(Program $hybrid): void
+    {
+        $data = ['program_id' => $hybrid->id, 'program_code' => $hybrid->code];
+        foreach (['school@tedc.qa', 'executive@tedc.qa'] as $email) {
+            $user = User::where('email', $email)->first();
+            $user && $this->at(-3, 10, fn () => $this->notes->send($user, 'program.invite', ['ar' => 'برنامج تدريبي جديد يناسبك', 'en' => 'A new training program for you'],
+                ['ar' => "«{$hybrid->title_ar}» متاح للتسجيل — مدمج: لقاءات حضورية وأخرى عن بُعد من 8 صباحاً إلى 1 ظهراً.", 'en' => "\"{$hybrid->title_en}\" is open for registration."], $data));
+        }
+        $dev = User::where('email', 'kits@tedc.qa')->first();
+        $kit = TrainingKit::where('code', 'KIT-SC-2')->first();
+        if ($dev && $kit) {
+            $this->at(-1, 13, fn () => $this->notes->send($dev, 'kit.comment', ['ar' => 'ملاحظة جديدة على حقيبتك', 'en' => 'New comment on your kit'],
+                ['ar' => "مراجع الجودة علّق على «{$kit->title_ar}»: أضف اختباراً قصيراً بعد كل فيديو.", 'en' => 'The QA reviewer commented on your kit.'], ['kit_id' => $kit->id, 'program_id' => $kit->program_id]));
+        }
+    }
+
+    /**
+     * Keeps the story current: every day the scenario moves forward with the calendar (sessions, program and kit dates and
+     * the notification dates), so "today's session" is always today. Nothing is deleted and nobody's progress is lost.
+     */
+    public static function advance(): int
+    {
+        $anchor = SiteSetting::find(self::ANCHOR_KEY)?->value['anchor'] ?? null;
+        $delta = $anchor ? (int) Carbon::parse($anchor)->startOfDay()->diffInDays(today(), false) : 0;
+        if ($delta <= 0) {
+            return 0;
+        }
+        $programs = Program::whereIn('code', self::CODES)->get();
+        foreach ($programs as $program) {
+            $program->forceFill(array_filter([
+                'start_date' => $program->start_date?->copy()->addDays($delta), 'end_date' => $program->end_date?->copy()->addDays($delta),
+                'registration_opens_at' => $program->registration_opens_at?->copy()->addDays($delta), 'registration_closes_at' => $program->registration_closes_at?->copy()->addDays($delta),
+            ]))->saveQuietly();
+            $program->sessions->each(fn (ProgramSession $s) => $s->forceFill(['starts_at' => $s->starts_at->copy()->addDays($delta), 'ends_at' => $s->ends_at->copy()->addDays($delta)])->saveQuietly());
+        }
+        $kits = TrainingKit::whereIn('code', ['KIT-SC-1', 'KIT-SC-2', 'KIT-SC-3'])->get();
+        $kits->each(fn (TrainingKit $k) => $k->forceFill(['due_at' => $k->due_at?->copy()->addDays($delta)])->saveQuietly());
+
+        $notifications = AppNotification::query()->where(fn ($q) => $q->whereIn('data->program_id', $programs->pluck('id'))->orWhereIn('data->kit_id', $kits->pluck('id')))->get();
+        $notifications->each(function (AppNotification $n) use ($delta) {
+            $at = min(now(), $n->created_at->copy()->addDays($delta));
+            DB::table('notifications')->where('id', $n->id)->update(['created_at' => $at, 'updated_at' => $at]);
+        });
+        SiteSetting::where('key', self::ANCHOR_KEY)->update(['value' => ['anchor' => today()->toDateString()]]);
+
+        return $delta;
     }
 
     // Plumbing -----------------------------------------------------------------------------------------------------

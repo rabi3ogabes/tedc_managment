@@ -10,3 +10,4 @@ Schedule::command('tedc:open-surveys')->everyFifteenMinutes()->withoutOverlappin
 Schedule::command('tedc:trainer-certificates')->everyThirtyMinutes()->withoutOverlapping();
 Schedule::command('tedc:self-heal')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('tedc:course-nudges')->dailyAt('10:00')->withoutOverlapping();
+Schedule::command('tedc:scenario-advance')->dailyAt('00:10')->withoutOverlapping();

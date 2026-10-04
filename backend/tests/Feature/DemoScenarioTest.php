@@ -21,6 +21,10 @@ class DemoScenarioTest extends TestCase
         ProgramCategory::create(['name_ar' => 'عام', 'name_en' => 'General', 'slug' => 'general']);
         $this->makeEmployee([], $this->makeUser(Role::EMPLOYEE, ['email' => 'teacher@tedc.qa']));
         $this->makeUser(Role::CENTER_ADMIN, ['email' => 'center@tedc.qa']);
+        $this->makeUser(Role::SCHOOL_ADMIN, ['email' => 'school@tedc.qa']);
+        $this->makeUser(Role::EXECUTIVE, ['email' => 'executive@tedc.qa']);
+        $this->makeUser(Role::KIT_DEVELOPER, ['email' => 'kits@tedc.qa']);
+        $this->makeUser(Role::QA_REVIEWER, ['email' => 'qa@tedc.qa']);
         $this->seed(DemoTestAccountsSeeder::class);
         $this->seed(DemoScenarioSeeder::class);
     }
@@ -65,6 +69,30 @@ class DemoScenarioTest extends TestCase
 
         $this->assertSame(5, Program::whereIn('code', DemoScenarioSeeder::CODES)->count());
         $this->assertSame($first, ProgramSession::count());
+    }
+
+    public function test_the_scenario_moves_forward_with_the_calendar_without_losing_anything(): void
+    {
+        $this->seedScenario();
+        $today = fn () => ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'SC-1'))->whereDate('starts_at', today())->count();
+        $this->assertSame(1, $today());
+        $regs = Registration::count();
+        $oldest = AppNotification::min('created_at');
+
+        $this->travel(3)->days();
+        $this->assertSame(0, $today());
+        $this->assertSame(3, DemoScenarioSeeder::advance());
+
+        $this->assertSame(1, $today(), "today's session is today again");
+        $this->assertSame($regs, Registration::count());
+        $this->assertSame(0, DemoScenarioSeeder::advance(), 'a second run the same day changes nothing');
+        $this->assertTrue(AppNotification::min('created_at') > $oldest, 'notification dates moved with the story');
+        foreach (ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'like', 'SC-%'))->get() as $s) {
+            $this->assertSame(['08:00', '13:00'], [$s->starts_at->format('H:i'), $s->ends_at->format('H:i')]);
+        }
+        foreach (['school@tedc.qa', 'executive@tedc.qa', 'kits@tedc.qa'] as $email) {
+            $this->assertGreaterThan(0, AppNotification::where('user_id', User::where('email', $email)->value('id'))->count(), $email);
+        }
     }
 
     public function test_the_dashboard_tracker_lists_the_eight_steps_with_their_latest_notifications(): void
