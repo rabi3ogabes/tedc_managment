@@ -29,10 +29,10 @@ const TEXT = {
 export type Density = { variant: 'rich' | 'row'; k: number; per: number; compactHeader: boolean; clamp: 1 | 2; showRoomName: boolean }
 export function densityFor(n: number): Density {
   if (n <= 2) return { variant: 'rich', k: 1, per: 2, compactHeader: false, clamp: 2, showRoomName: true }
-  if (n === 3) return { variant: 'rich', k: 0.86, per: 3, compactHeader: false, clamp: 2, showRoomName: false }
-  if (n <= 5) return { variant: 'rich', k: 0.66, per: 5, compactHeader: true, clamp: 1, showRoomName: false }
-  if (n <= 10) return { variant: 'row', k: 1, per: 10, compactHeader: true, clamp: 1, showRoomName: false }
-  return { variant: 'row', k: 0.76, per: 14, compactHeader: true, clamp: 1, showRoomName: false }
+  if (n === 3) return { variant: 'rich', k: 0.76, per: 3, compactHeader: false, clamp: 2, showRoomName: false }
+  if (n <= 5) return { variant: 'rich', k: 0.6, per: 5, compactHeader: true, clamp: 1, showRoomName: false }
+  if (n <= 10) return { variant: 'row', k: 0.9, per: 10, compactHeader: true, clamp: 1, showRoomName: false }
+  return { variant: 'row', k: 0.64, per: 14, compactHeader: true, clamp: 1, showRoomName: false }
 }
 /** Pages are balanced, so a long day never ends with a page holding a single program. */
 export function pagesFor(n: number) {
@@ -166,7 +166,7 @@ function ProgramsSlide({ data, page, pages, now }: { data: LobbyData; page: numb
       </header>
 
       {/* The programs */}
-      <main className={clsx('relative flex flex-1 flex-col justify-center px-[72px]', d.variant === 'row' ? (d.k < 1 ? 'gap-2.5 pb-16' : 'gap-3 pb-20') : d.k < 0.8 ? 'gap-4 pb-16' : 'gap-7 pb-24')}>
+      <main className={clsx('relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden px-[72px]', d.variant === 'row' ? (d.k < 0.8 ? 'gap-2.5 pb-16' : 'gap-3 pb-20') : d.k < 0.8 ? 'gap-4 pb-16' : 'gap-7 pb-24')}>
         {rows.length === 0 ? (
           <div className="grid flex-1 place-items-center text-center">
             <div><Layers className="mx-auto size-40 text-gold-300/70" strokeWidth={1.2} /><p className="mt-10 text-[64px] font-extrabold leading-tight">{x.none}</p><p className="mt-5 text-[34px] text-white/60">{x.noneHint}</p></div>
@@ -200,7 +200,7 @@ function ProgramCard({ row, lang, d }: { row: LobbyRow; lang: 'ar' | 'en'; d: De
   const coordinator = row.coordinator ? (lang === 'ar' ? row.coordinator.name_ar : row.coordinator.name_en) : null
 
   return (
-    <article style={{ fontSize: `${d.k * 10}px` }} className={clsx('relative overflow-hidden rounded-[4.4em] border p-[4.4em] backdrop-blur-sm', live ? 'border-gold-300/70 bg-white/[0.16] shadow-[0_0_80px_rgba(201,185,141,.25)]' : 'border-white/15 bg-white/[0.09]', ended && 'opacity-55')}>
+    <article style={{ fontSize: `${d.k * 10}px` }} className={clsx('relative shrink-0 overflow-hidden rounded-[4.4em] border p-[4.4em] backdrop-blur-sm', live ? 'border-gold-300/70 bg-white/[0.16] shadow-[0_0_80px_rgba(201,185,141,.25)]' : 'border-white/15 bg-white/[0.09]', ended && 'opacity-55')}>
       <span className={clsx('absolute inset-y-0 start-0 w-[1.2em]', live ? 'bg-gold-300' : 'bg-white/25')} />
       <div className="flex items-center justify-between gap-[2.4em]">
         <span className="inline-flex items-center gap-[1.2em] text-[4em] font-extrabold tabular-nums text-gold-200" dir="ltr"><Clock className="size-[0.9em]" strokeWidth={1.8} />{hhmm(row.starts_at)} – {hhmm(row.ends_at)}</span>
@@ -233,7 +233,7 @@ function ProgramRow({ row, lang, d }: { row: LobbyRow; lang: 'ar' | 'en'; d: Den
   const where = online ? `${x.online}${row.platform ? ` · ${row.platform}` : ''}` : `${x.room} ${row.room!.code}${row.room!.floor ? ` · ${x.floor} ${row.room!.floor}` : ''}`
 
   return (
-    <article style={{ fontSize: `${d.k * 10}px` }} className={clsx('relative overflow-hidden rounded-[2.6em] border px-[3em] py-[1.5em]', live ? 'border-gold-300/70 bg-white/[0.16] shadow-[0_0_50px_rgba(201,185,141,.22)]' : 'border-white/15 bg-white/[0.08]', ended && 'opacity-55')}>
+    <article style={{ fontSize: `${d.k * 10}px` }} className={clsx('relative shrink-0 overflow-hidden rounded-[2.6em] border px-[3em] py-[1.5em]', live ? 'border-gold-300/70 bg-white/[0.16] shadow-[0_0_50px_rgba(201,185,141,.22)]' : 'border-white/15 bg-white/[0.08]', ended && 'opacity-55')}>
       <span className={clsx('absolute inset-y-0 start-0 w-[0.8em]', live ? 'bg-gold-300' : 'bg-white/25')} />
       <div className="flex items-center gap-[2em]">
         <span className="shrink-0 text-[3.4em] font-extrabold tabular-nums text-gold-200" dir="ltr">{hhmm(row.starts_at)}–{hhmm(row.ends_at)}</span>
