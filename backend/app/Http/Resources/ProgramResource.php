@@ -40,6 +40,8 @@ class ProgramResource extends JsonResource
             'id' => $this->id,
             'code' => $this->code,
             'title' => $this->translate('title'),
+            'coordinator_id' => $this->coordinator_id,
+            'coordinator' => $this->whenLoaded('coordinator', fn () => $this->coordinator ? ['id' => $this->coordinator->id, 'name' => $this->coordinator->displayName()] : null),
             'title_ar' => $this->title_ar,
             'title_en' => $this->title_en,
             'summary' => $this->translate('summary'),

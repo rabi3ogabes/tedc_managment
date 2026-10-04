@@ -37,7 +37,7 @@ class ProgramController extends Controller
 
     public function show(Program $program): ProgramResource
     {
-        $program->load(['category', 'skills', 'trainers', 'sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'eligibilityRules'])
+        $program->load(['category', 'coordinator:id,name,name_ar', 'skills', 'trainers', 'sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'eligibilityRules'])
             ->loadCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)]);
 
         return new ProgramResource($program);
@@ -102,6 +102,7 @@ class ProgramController extends Controller
         return $request->validate([
             'code' => [$required, 'string', 'max:32', Rule::unique('programs', 'code')->ignore($program?->id)],
             'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],
+            'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'],
             'title_ar' => [$required, 'string', 'max:255'],
             'title_en' => [$required, 'string', 'max:255'],
             'summary_ar' => ['nullable', 'string', 'max:500'],

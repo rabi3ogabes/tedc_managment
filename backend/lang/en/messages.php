@@ -95,6 +95,7 @@ return [
         'nomination_note' => 'Automatic nomination within the program target audience.',
         'publish_first' => 'Publish the program before nominating its audience.',
     ],
+    'lobby' => ['too_many' => 'You reached the limit of 40 slides. Remove one before adding another.'],
     'kit' => [
         'cannot_submit' => 'The kit cannot be submitted for review in its current state.',
         'needs_files' => 'Add at least one file before submitting for review.',

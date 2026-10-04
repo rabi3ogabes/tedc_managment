@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
+use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
 use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
@@ -65,6 +66,8 @@ use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SystemController;
 use App\Models\TrainingRoom;
 use App\Services\FileStorage;
+use App\Services\LobbyScreenService;
+use App\Services\LobbyScreenSettings;
 use App\Services\RoomScreenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +93,13 @@ Route::prefix('v1')->group(function () {
         $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
 
         return response()->json(['data' => $screen->day($room, $data['date'] ?? null)]);
+    })->middleware('throttle:120,1');
+
+    // The portrait lobby screen: today's programs and the administrator's slides, reached by a secret token.
+    Route::get('public/lobby-screen/{token}', function (string $token, LobbyScreenSettings $settings, LobbyScreenService $screen) {
+        abort_unless($settings->validToken($token) && $settings->all()['enabled'], 404);
+
+        return response()->json(['data' => $screen->payload()]);
     })->middleware('throttle:120,1');
 
     // Browser uploads of big course files with the local storage driver (Supabase has its own signed upload URLs).
@@ -619,6 +629,13 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
+                Route::get('settings/lobby-screen', [LobbyScreenController::class, 'show']);
+                Route::put('settings/lobby-screen', [LobbyScreenController::class, 'update']);
+                Route::post('settings/lobby-screen/slides', [LobbyScreenController::class, 'addSlide'])->middleware('throttle:30,1');
+                Route::put('settings/lobby-screen/slides/order', [LobbyScreenController::class, 'order']);
+                Route::put('settings/lobby-screen/slides/{slide}', [LobbyScreenController::class, 'updateSlide']);
+                Route::delete('settings/lobby-screen/slides/{slide}', [LobbyScreenController::class, 'destroySlide']);
+                Route::post('settings/lobby-screen/token', [LobbyScreenController::class, 'regenerateToken']);
                 Route::get('settings/room-screen', [RoomScreenSettingsController::class, 'show']);
                 Route::put('settings/room-screen', [RoomScreenSettingsController::class, 'update']);
                 Route::post('settings/room-screen/reset', [RoomScreenSettingsController::class, 'reset']);

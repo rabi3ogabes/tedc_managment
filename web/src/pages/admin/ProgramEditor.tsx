@@ -10,6 +10,7 @@ import type { Program } from '@/lib/types'
 
 type Lookups = {
   categories: { id: string; name_ar: string; name_en: string }[]
+  coordinators?: { id: string; name: string; name_ar: string | null }[]
   skills: { id: string; name_ar: string; name_en: string; category: string }[]
   job_titles: { id: string; name_ar: string; name_en: string }[]
   trainers: { id: string; name_ar: string; name_en: string }[]
@@ -20,7 +21,7 @@ type Lookups = {
 const MODES = ['self', 'school_nomination', 'center_nomination', 'bulk_import']
 
 const empty = {
-  code: '', category_id: '', title_ar: '', title_en: '', summary_ar: '', summary_en: '', description_ar: '', description_en: '',
+  code: '', category_id: '', coordinator_id: '', title_ar: '', title_en: '', summary_ar: '', summary_en: '', description_ar: '', description_en: '',
   objectives: [] as string[], delivery_mode: 'in_person', level: 'intermediate', total_hours: 12, capacity: 30, min_attendance_percent: 80,
   requires_tasks: true, requires_evaluation: true, start_date: '', end_date: '', registration_opens_at: '', registration_closes_at: '',
   registration_modes: MODES, status: 'draft', is_featured: false,
@@ -45,7 +46,7 @@ export default function ProgramEditor() {
     setForm({
       ...empty,
       ...Object.fromEntries(Object.entries(p).filter(([k]) => k in empty)),
-      category_id: p.category_id ?? '',
+      category_id: p.category_id ?? '', coordinator_id: (p as { coordinator_id?: string | null }).coordinator_id ?? '',
       summary_ar: p.summary_ar ?? '', summary_en: p.summary_en ?? '', description_ar: p.description_ar ?? '', description_en: p.description_en ?? '',
       start_date: toDateInput(p.start_date), end_date: toDateInput(p.end_date),
       registration_opens_at: toDateTimeInput(p.registration_opens_at), registration_closes_at: toDateTimeInput(p.registration_closes_at),
@@ -65,7 +66,7 @@ export default function ProgramEditor() {
   const save = async () => {
     setSaving(true)
     setError(null)
-    const payload = { ...form, category_id: form.category_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const payload = { ...form, category_id: form.category_id || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -89,6 +90,11 @@ export default function ProgramEditor() {
               <Field label={t('programs.category')}>
                 <select className="input" value={form.category_id} onChange={(e) => set('category_id', e.target.value)}>
                   <option value="">—</option>{L.categories.map((c) => <option key={c.id} value={c.id}>{name(c)}</option>)}
+                </select>
+              </Field>
+              <Field label={t('lobby.coordinator')}>
+                <select className="input" value={form.coordinator_id} onChange={(e) => set('coordinator_id', e.target.value)}>
+                  <option value="">—</option>{(L.coordinators ?? []).map((u) => <option key={u.id} value={u.id}>{u.name_ar || u.name}</option>)}
                 </select>
               </Field>
               <Field label={t('admin.programs.titleAr')}>{input('title_ar')}</Field>

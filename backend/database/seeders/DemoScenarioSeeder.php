@@ -255,7 +255,7 @@ class DemoScenarioSeeder extends Seeder
             'objectives' => ['تطبيق المهارات في الصف', 'قياس أثر التدريب على تعلم الطلاب'], 'delivery_mode' => $mode, 'level' => 'intermediate', 'total_hours' => 5 * max(1, $this->count($code)), 'capacity' => $capacity,
             'min_attendance_percent' => 80, 'requires_tasks' => false, 'requires_evaluation' => true, 'start_date' => $start, 'end_date' => $end,
             'registration_opens_at' => $start->copy()->subDays(30), 'registration_closes_at' => $end->copy()->endOfDay(), 'registration_modes' => Program::MODES,
-            'status' => $status, 'is_featured' => $code === 'SC-1', 'remote' => $remote, 'survey_mode' => 'auto', 'survey_auto_hours' => 24,
+            'status' => $status, 'is_featured' => $code === 'SC-1', 'remote' => $remote, 'coordinator_id' => User::where('email', 'coordinator@tedc.qa')->value('id') ?? $this->center->id, 'survey_mode' => 'auto', 'survey_auto_hours' => 24,
         ]);
         TargetGroup::firstOrCreate(['program_id' => $program->id, 'description' => 'معلمو المرحلة الابتدائية'], ['education_stage' => 'primary']);
 

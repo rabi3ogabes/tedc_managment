@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\JobTitle;
 use App\Models\ProgramCategory;
+use App\Models\Role;
 use App\Models\School;
 use App\Models\Skill;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,6 +29,7 @@ class CatalogController extends Controller
             'job_titles' => JobTitle::orderBy('name_ar')->get(),
             'departments' => Department::whereNull('school_id')->orderBy('name_ar')->get(),
             'rooms' => TrainingRoom::orderBy('name_ar')->get(),
+            'coordinators' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', Role::CENTER_STAFF))->where('status', 'active')->orderBy('name_ar')->get(['id', 'name', 'name_ar']),
             'trainers' => Trainer::where('status', 'active')->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'schools' => School::orderBy('name_ar')->get(['id', 'code', 'name_ar', 'name_en', 'region', 'type', 'stage']),
             'regions' => School::REGIONS,

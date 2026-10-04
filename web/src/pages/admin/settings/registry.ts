@@ -1,4 +1,4 @@
-import { BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { BellRing, BellPlus, Mail, Tv, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -22,6 +22,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
   { id: 'channels', group: 'communication', permission: ['settings.manage'], icon: Mail, component: lazy(() => import('@/pages/admin/ChannelsSettings')), keywords: ['channels', 'email', 'sms', 'mail', 'smtp', 'قنوات', 'بريد', 'رسائل', 'نصية'] },
   { id: 'roomscreen', group: 'training', permission: ['settings.manage'], icon: MonitorPlay, component: lazy(() => import('@/pages/admin/RoomScreenSettings')), keywords: ['room', 'screen', 'tv', 'display', 'template', 'brand', 'logo', 'شاشة', 'قاعة', 'قالب', 'عرض', 'هوية'] },
+  { id: 'lobbyscreen', group: 'training', permission: ['settings.manage'], icon: Tv, component: lazy(() => import('@/pages/admin/LobbyScreenSettings')), keywords: ['lobby', 'screen', 'tv', 'signage', 'slides', 'portrait', 'شاشة', 'الردهة', 'برامج اليوم', 'شرائح', 'عرض'] },
   { id: 'trainingday', group: 'training', permission: ['settings.manage'], icon: Clock, component: lazy(() => import('@/pages/admin/TrainingDaySettings')), keywords: ['day', 'hours', 'time', 'start', 'end', 'room', 'session', 'يوم', 'ساعات', 'وقت', 'بداية', 'نهاية', 'قاعة', 'جلسة'] },
   { id: 'attendance', group: 'training', permission: ['settings.manage'], icon: MapPinCheck, component: lazy(() => import('@/pages/admin/AttendanceSettings')), keywords: ['attendance', 'location', 'gps', 'geofence', 'presence', 'حضور', 'موقع', 'تحقق'] },
   { id: 'security', group: 'security', permission: ['settings.manage'], icon: LockKeyhole, component: lazy(() => import('@/pages/admin/SessionLockSettings')), keywords: ['security', 'lock', 'idle', 'session', 'password', 'timeout', 'أمان', 'قفل', 'جلسة', 'كلمة المرور'] },
