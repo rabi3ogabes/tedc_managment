@@ -382,7 +382,7 @@ class _ArticleLesson extends StatelessWidget {
 /// One paragraph-sized block of an article, written in a light Markdown: headings (#, ##, ###), bullet and numbered
 /// lists, quotes (>), simple tables and **bold**.
 class ArticleBlock extends StatelessWidget {
-  const ArticleBlock({required this.text});
+  const ArticleBlock({super.key, required this.text});
 
   final String text;
 
