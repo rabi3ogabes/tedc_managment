@@ -101,8 +101,8 @@ export const kitsAr = {
     title: 'اختيار صورة', tabAi: 'إنشاء بالذكاء الاصطناعي', tabLibrary: 'مكتبة الحقيبة', tabUpload: 'رفع صورة', describe: 'صف الصورة المطلوبة', placeholder: 'مثال: معلمة تشرح لمجموعة طلاب باستخدام لوح تفاعلي', aspect: 'النسبة',
     styles: { flat: 'رسم مسطح حديث', watercolor: 'ألوان مائية', realistic: 'واقعي', infographic: 'إنفوجرافيك', minimal: 'بسيط' }, generate: 'إنشاء الصورة', again: 'إنشاء نسخة أخرى', working: 'جارٍ إنشاء الصورة…', results: 'النتائج — انقر لاستخدام الصورة',
     libraryEmpty: 'لا توجد صور في مكتبة الحقيبة بعد.', drop: 'اسحب صورة إلى هنا أو انقر للاختيار', choose: 'اختيار ملف',
-    providers: { openai: 'OpenAI', svg: 'رسم متجه', placeholder: 'تصميم مبدئي' },
-    providerNote: { openai: 'تُنشأ الصورة بمحرك OpenAI للصور.', svg: 'يرسم Claude الصورة كرسم متجه (SVG) بهوية المركز.', placeholder: 'لم يُضبط مفتاح ذكاء اصطناعي: تُنشأ تصاميم بصرية مبدئية بألوان المركز. أضف مفتاح Anthropic أو OpenAI لتوليد صور حقيقية.' },
+    providers: { model: 'نموذجك', openai: 'OpenAI', svg: 'رسم متجه', placeholder: 'تصميم مبدئي' },
+    providerNote: { model: 'تُنشأ الصورة بنموذج الصور الذي اخترته في إعدادات نماذج الذكاء الاصطناعي.', openai: 'تُنشأ الصورة بمحرك OpenAI للصور.', svg: 'يرسم Claude الصورة كرسم متجه (SVG) بهوية المركز.', placeholder: 'لم يُضبط مفتاح ذكاء اصطناعي: تُنشأ تصاميم بصرية مبدئية بألوان المركز. أضف مفتاح Anthropic أو OpenAI لتوليد صور حقيقية.' },
   },
   ai: {
     noKey: 'مفتاح الذكاء الاصطناعي غير مضبوط في الخادم، لذلك تُستخدم قوالب جاهزة كمسودة أولى. أضف ANTHROPIC_API_KEY لتفعيل الكتابة الذكية.', noKeyShort: 'الذكاء الاصطناعي غير مفعّل (لا يوجد مفتاح).', addSlides: 'إضافة شرائح بالذكاء الاصطناعي', topicPlaceholder: 'موضوع الشرائح، مثال: استراتيجيات التغذية الراجعة', instructions: 'تعليمات إضافية (اختياري)',
@@ -237,8 +237,8 @@ export const kitsEn: KitsStrings = {
     title: 'Choose a picture', tabAi: 'Generate with AI', tabLibrary: 'Kit library', tabUpload: 'Upload', describe: 'Describe the picture you need', placeholder: 'e.g. A teacher explaining to a group of students with an interactive board', aspect: 'Aspect',
     styles: { flat: 'Modern flat', watercolor: 'Watercolor', realistic: 'Realistic', infographic: 'Infographic', minimal: 'Minimal' }, generate: 'Generate image', again: 'Generate another', working: 'Creating the image…', results: 'Results - click to use',
     libraryEmpty: 'The kit library has no pictures yet.', drop: 'Drop a picture here or click to choose', choose: 'Choose file',
-    providers: { openai: 'OpenAI', svg: 'Vector', placeholder: 'Placeholder' },
-    providerNote: { openai: 'Images are created by the OpenAI image model.', svg: 'Claude draws the picture as a vector illustration (SVG) in the center palette.', placeholder: 'No AI key is configured: on-brand abstract placeholders are created. Add an Anthropic or OpenAI key to generate real pictures.' },
+    providers: { model: 'Your model', openai: 'OpenAI', svg: 'Vector', placeholder: 'Placeholder' },
+    providerNote: { model: 'Images are created by the image model you chose in AI models settings.', openai: 'Images are created by the OpenAI image model.', svg: 'Claude draws the picture as a vector illustration (SVG) in the center palette.', placeholder: 'No AI key is configured: on-brand abstract placeholders are created. Add an Anthropic or OpenAI key to generate real pictures.' },
   },
   ai: {
     noKey: 'No AI key is configured on the server, so ready-made templates are used as a first draft. Add ANTHROPIC_API_KEY to switch on smart writing.', noKeyShort: 'AI is not enabled (no key).', addSlides: 'Add slides with AI', topicPlaceholder: 'Slide topic, e.g. feedback strategies', instructions: 'Extra instructions (optional)',
