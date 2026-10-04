@@ -30,7 +30,7 @@ use ZipArchive;
  */
 class DemoKitSeeder extends Seeder
 {
-    private const PASSWORD = 'Tedc@2026!';
+    protected const PASSWORD = 'Tedc@2026!';
 
     public function run(): void
     {
@@ -157,7 +157,7 @@ class DemoKitSeeder extends Seeder
 
     // Building blocks ---------------------------------------------------------------------------
 
-    private function deck(TrainingKit $kit, User $dev, string $name, int $slides): KitFile
+    protected function deck(TrainingKit $kit, User $dev, string $name, int $slides): KitFile
     {
         $outline = app(DeckGenerator::class)->template([
             'topic' => $kit->title_ar, 'audience' => $kit->audience, 'objectives' => $kit->objectives, 'slide_count' => $slides, 'language' => 'ar', 'duration_hours' => $kit->duration_hours, 'activities' => true, 'quiz' => true,
@@ -168,7 +168,7 @@ class DemoKitSeeder extends Seeder
     }
 
     /** Puts a generated picture into the first empty image frame of the deck. */
-    private function picture(TrainingKit $kit, User $dev, string $prompt, KitFile $deck): void
+    protected function picture(TrainingKit $kit, User $dev, string $prompt, KitFile $deck): void
     {
         $asset = app(ImageGenerator::class)->generate($prompt, $kit, $dev, ['aspect' => '4:3']);
         $content = $deck->content;
@@ -188,7 +188,7 @@ class DemoKitSeeder extends Seeder
         KitAsset::whereKey($asset->id)->update(['source' => 'generated']);
     }
 
-    private function guide(TrainingKit $kit, User $user, string $name, string $category, array $sections): KitFile
+    protected function guide(TrainingKit $kit, User $user, string $name, string $category, array $sections): KitFile
     {
         $paragraphs = ['<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>'.htmlspecialchars($name).'</w:t></w:r></w:p>', $this->wp("الفئة المستهدفة: {$kit->audience}"), $this->wp('مدة الجلسة: '.rtrim(rtrim(number_format($kit->duration_hours, 1), '0'), '.').' ساعات')];
         foreach ($sections as $i => $section) {
@@ -200,12 +200,12 @@ class DemoKitSeeder extends Seeder
         return $this->storeDocx($kit, $user, $name, $category, implode('', $paragraphs));
     }
 
-    private function wp(string $text): string
+    protected function wp(string $text): string
     {
         return '<w:p><w:pPr><w:bidi/></w:pPr><w:r><w:t xml:space="preserve">'.htmlspecialchars($text).'</w:t></w:r></w:p>';
     }
 
-    private function storeDocx(TrainingKit $kit, User $user, string $name, string $category, string $body): KitFile
+    protected function storeDocx(TrainingKit $kit, User $user, string $name, string $category, string $body): KitFile
     {
         $zip = new ZipArchive;
         $tmp = tempnam(sys_get_temp_dir(), 'docx');
@@ -220,7 +220,7 @@ class DemoKitSeeder extends Seeder
         return $this->storeFile($kit, $user, $name, $category, 'document', 'docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', $bytes);
     }
 
-    private function handout(TrainingKit $kit, User $user, string $name, string $category): KitFile
+    protected function handout(TrainingKit $kit, User $user, string $name, string $category): KitFile
     {
         $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true, 'directionality' => 'rtl']);
         $items = collect($kit->objectives)->map(fn ($o) => '<li style="margin:6px 0">'.e($o).'</li>')->implode('');
@@ -230,7 +230,7 @@ class DemoKitSeeder extends Seeder
         return $this->storeFile($kit, $user, $name, $category, 'pdf', 'pdf', 'application/pdf', $mpdf->Output('', 'S'));
     }
 
-    private function storeFile(TrainingKit $kit, User $user, string $name, string $category, string $kind, string $ext, string $mime, string $bytes): KitFile
+    protected function storeFile(TrainingKit $kit, User $user, string $name, string $category, string $kind, string $ext, string $mime, string $bytes): KitFile
     {
         $path = app(FileStorage::class)->put('documents', "kits/{$kit->id}/files/".Str::uuid().".{$ext}", $bytes, $mime);
         $file = KitFile::create(['kit_id' => $kit->id, 'name' => $name, 'original_name' => Str::slug($name, '_').".{$ext}", 'kind' => $kind, 'category' => $category, 'source' => 'upload', 'mime' => $mime, 'size' => strlen($bytes),
@@ -241,7 +241,7 @@ class DemoKitSeeder extends Seeder
     }
 
     /** A QA comment pinned to a slide, optionally with the developer's reply. */
-    private function thread(TrainingKit $kit, KitFile $deck, User $qa, User $dev, ?string $slideId, string $body, string $category, string $severity, string $status, ?string $reply, int $round, int $daysAgo, ?int $x = null, ?int $y = null, ?string $fileId = null): void
+    protected function thread(TrainingKit $kit, KitFile $deck, User $qa, User $dev, ?string $slideId, string $body, string $category, string $severity, string $status, ?string $reply, int $round, int $daysAgo, ?int $x = null, ?int $y = null, ?string $fileId = null): void
     {
         $slides = collect($deck->content['slides']);
         $index = $slideId ? $slides->search(fn ($s) => $s['id'] === $slideId) : false;

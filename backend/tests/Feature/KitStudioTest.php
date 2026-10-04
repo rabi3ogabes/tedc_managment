@@ -42,25 +42,32 @@ class KitStudioTest extends TestCase
         return $this->asUser($this->dev)->postJson("/api/v1/admin/kits/$kitId/ai/deck", ['topic' => 'إدارة الصف', 'slide_count' => 10])->assertCreated()->assertJsonPath('data.provider', 'template')->json('data.file.id');
     }
 
-    public function test_kits_are_either_regular_or_online_and_the_studio_filters_by_type(): void
+    public function test_every_kit_is_in_person_online_or_hybrid_like_its_program(): void
     {
-        $regular = $this->kit();
+        $inPerson = $this->kit();
         $online = $this->kit(['title_ar' => 'حقيبة إلكترونية', 'title_en' => 'Online Kit', 'delivery' => 'online']);
-        $program = $this->makeProgram(['delivery_mode' => 'online']);
-        $fromProgram = $this->kit(['program_id' => $program->id, 'title_ar' => 'من برنامج', 'title_en' => 'From program']);
+        $hybridProgram = $this->makeProgram(['delivery_mode' => 'hybrid']);
+        $hybrid = $this->kit(['program_id' => $hybridProgram->id, 'title_ar' => 'من برنامج مدمج', 'title_en' => 'From a hybrid program', 'delivery' => 'online']);
 
-        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$regular}")->assertJsonPath('data.delivery', 'standard');
-        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$fromProgram}")->assertJsonPath('data.delivery', 'online');
+        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$inPerson}")->assertJsonPath('data.delivery', 'in_person');
+        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$hybrid}")->assertJsonPath('data.delivery', 'hybrid');   // the program decides, not the request
 
         $ids = fn (string $type) => collect($this->asUser($this->admin)->getJson("/api/v1/admin/kits?delivery={$type}")->json('data'))->pluck('id')->all();
-        $this->assertSame([$regular], $ids('standard'));
-        $this->assertEqualsCanonicalizing([$online, $fromProgram], $ids('online'));
+        $this->assertSame([$inPerson], $ids('in_person'));
+        $this->assertSame([$online], $ids('online'));
+        $this->assertSame([$hybrid], $ids('hybrid'));
+        $this->assertCount(3, $this->asUser($this->admin)->getJson('/api/v1/admin/kits')->json('data'), 'without a filter every kit is listed');
 
         $stats = $this->asUser($this->admin)->getJson('/api/v1/admin/kits/stats?delivery=online')->assertOk();
-        $this->assertSame(['standard' => 1, 'online' => 2], $stats->json('data.by_delivery'), 'both tabs show their own count');
-        $this->assertSame(2, $stats->json('data.total'));
-        $this->asUser($this->admin)->putJson("/api/v1/admin/kits/{$regular}", ['delivery' => 'online'])->assertOk()->assertJsonPath('data.delivery', 'online');
-        $this->asUser($this->admin)->postJson('/api/v1/admin/kits', ['title_ar' => 'x', 'title_en' => 'x', 'delivery' => 'nonsense'])->assertUnprocessable();
+        $this->assertSame(['in_person' => 1, 'online' => 1, 'hybrid' => 1], $stats->json('data.by_delivery'));
+        $this->assertSame(1, $stats->json('data.total'));
+
+        // Changing how the program is delivered changes its kit; a free-standing kit can be retyped, a program's kit cannot.
+        $hybridProgram->update(['delivery_mode' => 'online']);
+        $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$hybrid}")->assertJsonPath('data.delivery', 'online');
+        $this->asUser($this->admin)->putJson("/api/v1/admin/kits/{$hybrid}", ['delivery' => 'in_person'])->assertOk()->assertJsonPath('data.delivery', 'online');
+        $this->asUser($this->admin)->putJson("/api/v1/admin/kits/{$inPerson}", ['delivery' => 'hybrid'])->assertOk()->assertJsonPath('data.delivery', 'hybrid');
+        $this->asUser($this->admin)->postJson('/api/v1/admin/kits', ['title_ar' => 'x', 'title_en' => 'x', 'delivery' => 'standard'])->assertUnprocessable();
     }
 
     public function test_access_follows_membership_and_roles(): void
@@ -285,5 +292,37 @@ class KitStudioTest extends TestCase
         $this->assertNotEmpty($stats['recent']);
         $this->assertSame(0, TrainingKit::where('status', 'in_review')->count());
         $this->assertSame(KitFile::count(), 1);
+    }
+
+    public function test_the_fifteen_ready_sample_kits_cover_each_kind_of_program_with_complete_content(): void
+    {
+        $this->makeUser(Role::CENTER_ADMIN, ['email' => 'center@tedc.qa']);
+
+        $res = $this->asUser($this->admin)->getJson('/api/v1/admin/kits/samples')->assertOk()->json('data');
+        $this->assertCount(15, $res);
+        $this->assertSame([5, 5, 5], [collect($res)->where('mode', 'in_person')->count(), collect($res)->where('mode', 'online')->count(), collect($res)->where('mode', 'hybrid')->count()]);
+        $this->assertFalse(collect($res)->contains('built', true));
+
+        // One kit per call; an in-person, an online and a hybrid sample are enough to prove each kind.
+        foreach ([1, 6, 11] as $n) {
+            $this->asUser($this->admin)->postJson('/api/v1/admin/kits/samples', ['n' => $n])->assertCreated();
+        }
+        $this->asUser($this->admin)->postJson('/api/v1/admin/kits/samples', ['n' => 11])->assertCreated();   // idempotent
+        $this->asUser($this->admin)->postJson('/api/v1/admin/kits/samples', ['n' => 16])->assertUnprocessable();
+        $this->asUser($this->makeEmployee()->user)->postJson('/api/v1/admin/kits/samples', ['n' => 2])->assertForbidden();
+
+        $this->assertSame(3, TrainingKit::where('code', 'like', 'KIT-S-%')->count());
+        foreach (['in_person' => 'KIT-S-IP1', 'online' => 'KIT-S-ON1', 'hybrid' => 'KIT-S-HY1'] as $mode => $code) {
+            $kit = TrainingKit::with('program')->where('code', $code)->first();
+            $this->assertSame($mode, $kit->delivery);
+            $this->assertSame($mode, $kit->program->delivery_mode, 'the kit belongs to a program of the same kind');
+            $this->assertSame('published', $kit->status);
+            $this->assertEqualsCanonicalizing(['presentation', 'trainer_guide', 'handout', 'assessment', 'activity', 'media'], $kit->files()->pluck('category')->unique()->values()->all());
+            $detail = $this->asUser($this->admin)->getJson("/api/v1/admin/kits/{$kit->id}")->assertOk()->assertJsonPath('data.delivery', $mode)->json('data');
+            $this->assertSame(100, $detail['completeness']['percent'], "{$code} is complete");
+            foreach ($kit->program->sessions as $session) {
+                $this->assertSame(['08:00', '13:00'], [$session->starts_at->format('H:i'), $session->ends_at->format('H:i')]);
+            }
+        }
     }
 }

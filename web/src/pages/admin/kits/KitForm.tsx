@@ -13,7 +13,7 @@ type Row = { user_id: string; role: KitRole }
 const ROLES: KitRole[] = ['developer', 'qa', 'reviewer', 'viewer']
 
 /** Create or edit a kit: titles, objectives, due date, program link and the team (developers and QA). */
-export default function KitForm({ kit, defaultDelivery = 'standard', onClose, onSaved }: { kit?: KitDetail; defaultDelivery?: KitDelivery; onClose: () => void; onSaved: (id: string) => void }) {
+export default function KitForm({ kit, defaultDelivery = 'in_person', onClose, onSaved }: { kit?: KitDetail; defaultDelivery?: KitDelivery; onClose: () => void; onSaved: (id: string) => void }) {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const people = useGet<{ data: Person[] }>('/admin/kits/people')
@@ -36,7 +36,7 @@ export default function KitForm({ kit, defaultDelivery = 'standard', onClose, on
   const pickProgram = (id: string) => {
     set('program_id', id)
     const p = programs.data?.data.find((x) => x.id === id)
-    if (p) setDelivery(p.delivery_mode === 'online' ? 'online' : 'standard')
+    if (p && (p.delivery_mode === 'in_person' || p.delivery_mode === 'online' || p.delivery_mode === 'hybrid')) setDelivery(p.delivery_mode)
     if (p) setForm((f) => ({ ...f, program_id: id, title_ar: f.title_ar || p.title_ar, title_en: f.title_en || p.title_en, duration_hours: f.duration_hours || String(p.total_hours), objectives: f.objectives || (p.objectives ?? []).join('\n'), category_id: f.category_id || p.category_id || '' }))
   }
 
@@ -68,8 +68,12 @@ export default function KitForm({ kit, defaultDelivery = 'standard', onClose, on
   return (
     <Modal open onClose={busy ? () => undefined : onClose} wide title={kit ? t('kits.form.editTitle') : t('kits.form.newTitle')}>
       <div className="space-y-6">
-        <div role="radiogroup" aria-label={t('kits.delivery.label')} className="grid grid-cols-2 gap-2 rounded-2xl bg-ivory p-1.5">
-          {(['standard', 'online'] as const).map((d) => <button key={d} type="button" role="radio" aria-checked={delivery === d} onClick={() => setDelivery(d)} className={clsx('rounded-xl px-4 py-2.5 text-sm font-bold transition', delivery === d ? 'bg-navy-900 text-white shadow' : 'text-slate-600 hover:text-navy-900')}>{t(`kits.delivery.${d}`)}</button>)}
+        {/* The kind of program; a kit that belongs to a program always takes that program's kind */}
+        <div>
+          <div role="radiogroup" aria-label={t('kits.delivery.label')} className="grid grid-cols-3 gap-2 rounded-2xl bg-ivory p-1.5">
+            {(['in_person', 'online', 'hybrid'] as const).map((d) => <button key={d} type="button" role="radio" aria-checked={delivery === d} disabled={Boolean(form.program_id)} onClick={() => setDelivery(d)} className={clsx('rounded-xl px-3 py-2.5 text-sm font-bold transition', delivery === d ? 'bg-navy-900 text-white shadow' : 'text-slate-600 hover:text-navy-900', form.program_id && delivery !== d && 'opacity-40')}>{t(`kits.delivery.badge.${d}`)}</button>)}
+          </div>
+          {form.program_id && <p className="mt-1.5 text-xs text-slate-500">{t('kits.delivery.setByProgram', { type: t(`kits.delivery.badge.${delivery}`) })}</p>}
         </div>
         {!kit && (
           <Field label={t('kits.form.program')} hint={t('kits.form.programHint')}>

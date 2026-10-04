@@ -8,7 +8,7 @@ export const FILE_CATEGORIES: FileCategory[] = ['presentation', 'trainer_guide',
 
 export type KitMember = { user_id: string; name: string | null; email?: string | null; role: KitRole }
 
-export type KitDelivery = 'standard' | 'online'
+export type KitDelivery = 'in_person' | 'online' | 'hybrid'
 
 export type Kit = {
   id: string; code: string; title: string; title_ar: string; title_en: string; description?: string | null; description_ar?: string | null; description_en?: string | null

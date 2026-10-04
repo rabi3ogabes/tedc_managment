@@ -335,9 +335,9 @@ class DemoScenarioSeeder extends Seeder
         $programs = array_map(fn (string $code) => Program::where('code', $code)->first(), $codes);
         $owner = $people['dev'] ?? $this->center;
         $rows = [
-            [$programs[0], 'KIT-SC-1', 'standard', TrainingKit::PUBLISHED, -8],
+            [$programs[0], 'KIT-SC-1', 'in_person', TrainingKit::PUBLISHED, -8],
             [$programs[1], 'KIT-SC-2', 'online', TrainingKit::IN_REVIEW, -2],
-            [$programs[2], 'KIT-SC-3', 'standard', TrainingKit::IN_DEVELOPMENT, -1],
+            [$programs[2], 'KIT-SC-3', 'hybrid', TrainingKit::IN_DEVELOPMENT, -1],
         ];
         foreach ($rows as [$program, $code, $delivery, $status, $when]) {
             $kit = TrainingKit::updateOrCreate(['code' => $code], [

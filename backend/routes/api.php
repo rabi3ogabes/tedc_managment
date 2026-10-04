@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
@@ -287,6 +288,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('/', [KitController::class, 'index']);
                 Route::get('board', [KitController::class, 'board']);
                 Route::get('stats', [KitController::class, 'stats']);
+                Route::get('samples', [KitSampleController::class, 'index']);
+                Route::post('samples', [KitSampleController::class, 'store'])->middleware(['permission:kits.manage', 'throttle:60,1']);
                 Route::get('people', [KitController::class, 'people']);
                 Route::get('ai/status', [KitAiController::class, 'status']);
                 Route::post('/', [KitController::class, 'store']);

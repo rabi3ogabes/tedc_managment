@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AlarmClock, CalendarClock, FilePlus2, FolderKanban, LayoutGrid, MessageSquareWarning, MonitorPlay, PackageCheck, Presentation, Rows3, Search, ShieldCheck, Table2, UserCheck } from 'lucide-react'
+import { AlarmClock, CalendarClock, FilePlus2, FolderKanban, LayoutGrid, MessageSquareWarning, PackageCheck, Rows3, Search, ShieldCheck, Table2, UserCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -10,7 +10,8 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated } from '@/lib/types'
 import { relativeTime } from './comments/api'
-import { KitStatusBadge, statusTone } from './common'
+import { DeliveryBadge, KitStatusBadge, deliveryMeta, statusTone } from './common'
+import SampleKits from './SampleKits'
 import KitForm from './KitForm'
 import { KIT_STATUSES, type Kit, type KitDelivery, type KitStats, type KitStatus } from './types'
 import { Pager } from '../shared'
@@ -36,9 +37,9 @@ function KitCard({ kit }: { kit: Kit }) {
       <span className={clsx('absolute inset-x-0 top-0 h-1 bg-gradient-to-l to-transparent', statusTone[kit.status].column)} />
       <div className="flex items-start justify-between gap-2">
         <span className="rounded-md bg-navy-900 px-1.5 py-0.5 font-mono text-[10px] font-bold text-gold-300" dir="ltr">{kit.code}</span>
-        {kit.delivery === 'online' && <span className="inline-flex items-center gap-1 rounded-md bg-gold-100 px-1.5 py-0.5 text-[10px] font-bold text-gold-700"><MonitorPlay className="size-3" />{t('kits.delivery.badge')}</span>}
-        {kit.category && <span className="truncate text-[11px] font-semibold text-slate-400">{kit.category.name}</span>}
+        <DeliveryBadge delivery={kit.delivery} className="!text-[10px]" />
       </div>
+      {kit.category && <div className="mt-1.5 truncate text-[11px] font-semibold text-slate-400">{kit.category.name}</div>}
       <h3 className="mt-2 line-clamp-2 min-h-[2.5rem] font-bold leading-snug text-navy-900 group-hover:text-link" dir="auto">{kit.title}</h3>
       {kit.program && <p className="mt-1 truncate text-[11px] text-slate-400" dir="auto">{kit.program.title}</p>}
       <div className="mt-3 flex items-center gap-2"><Progress value={kit.progress ?? 0} tone={kit.progress && kit.progress >= 90 ? 'green' : 'gold'} /><span className="w-9 shrink-0 text-end text-[11px] font-bold text-navy-800">{fmt.percent(kit.progress ?? 0)}</span></div>
@@ -81,32 +82,37 @@ export default function KitsHome() {
   const [overdue, setOverdue] = useState(false)
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
-  const [delivery, setDelivery] = useState<KitDelivery>(() => (localStorage.getItem('tedc.kits.delivery') === 'online' ? 'online' : 'standard'))
-  const filters = { q: q || undefined, mine: mine ? 1 : undefined, overdue: overdue ? 1 : undefined, delivery }
-  const stats = useGet<{ data: KitStats }>('/admin/kits/stats', { delivery })
+  const [delivery, setDelivery] = useState<KitDelivery | 'all'>(() => { try { const v = localStorage.getItem('tedc.kits.delivery'); return v === 'in_person' || v === 'online' || v === 'hybrid' ? v : 'all' } catch { return 'all' } })
+  const type = delivery === 'all' ? undefined : delivery
+  const filters = { q: q || undefined, mine: mine ? 1 : undefined, overdue: overdue ? 1 : undefined, delivery: type }
+  const stats = useGet<{ data: KitStats }>('/admin/kits/stats', { delivery: type })
   const board = useGet<{ data: Column[] }>(view === 'board' ? '/admin/kits/board' : null, filters)
   const list = useGet<Paginated<Kit>>(view !== 'board' ? '/admin/kits' : null, { ...filters, status: status || undefined, page })
   const s = stats.data?.data
-  const changeDelivery = (d: KitDelivery) => { setDelivery(d); setStatus(''); setPage(1); try { localStorage.setItem('tedc.kits.delivery', d) } catch { /* storage unavailable */ } }
+  const changeDelivery = (d: KitDelivery | 'all') => { setDelivery(d); setStatus(''); setPage(1); try { localStorage.setItem('tedc.kits.delivery', d) } catch { /* storage unavailable */ } }
   const changeView = (v: View) => { setView(v); setPage(1); try { localStorage.setItem('tedc.kits.view', v) } catch { /* storage unavailable */ } }
 
   return (
     <>
-      <PageHeader title={t('kits.home.title')} subtitle={t('kits.home.subtitle')} actions={can('kits.manage') && <Button variant="gold" icon={<FilePlus2 className="size-4" />} onClick={() => setCreating(true)}>{t(delivery === 'online' ? 'kits.home.newOnline' : 'kits.home.new')}</Button>} />
+      <PageHeader title={t('kits.home.title')} subtitle={t('kits.home.subtitle')} actions={can('kits.manage') && <Button variant="gold" icon={<FilePlus2 className="size-4" />} onClick={() => setCreating(true)}>{t('kits.home.new')}</Button>} />
 
-      {/* The two kinds of kits */}
-      <div role="tablist" aria-label={t('kits.delivery.label')} className="mb-6 grid gap-3 sm:grid-cols-2">
-        {([['standard', Presentation], ['online', MonitorPlay]] as const).map(([id, Icon]) => {
+      {/* The kinds of programs the kits are for */}
+      <div role="tablist" aria-label={t('kits.delivery.label')} className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {(['all', 'in_person', 'online', 'hybrid'] as const).map((id) => {
           const active = delivery === id
+          const Icon = id === 'all' ? PackageCheck : deliveryMeta[id].icon
+          const count = id === 'all' ? Object.values(s?.by_delivery ?? {}).reduce((a, n) => a + n, 0) : s?.by_delivery?.[id] ?? 0
           return (
-            <button key={id} type="button" role="tab" aria-selected={active} onClick={() => changeDelivery(id)} className={clsx('group flex items-center gap-4 rounded-2xl border p-4 text-start transition', active ? 'border-navy-900 bg-navy-900 text-white shadow-glass' : 'border-navy-100 bg-white hover:border-gold-400')}>
-              <span className={clsx('grid size-12 shrink-0 place-items-center rounded-xl', active ? 'bg-gold-500 text-navy-950' : 'bg-navy-100/70 text-navy-800')}><Icon className="size-6" /></span>
-              <span className="min-w-0 flex-1"><span className="block font-extrabold">{t(`kits.delivery.${id}`)}</span><span className={clsx('mt-0.5 block text-xs', active ? 'text-white/70' : 'text-slate-500')}>{t(`kits.delivery.${id}Hint`)}</span></span>
-              <span className={clsx('rounded-full px-3 py-1 text-lg font-black tabular-nums', active ? 'bg-white/15 text-gold-300' : 'bg-navy-100/70 text-navy-900')}>{fmt.number(s?.by_delivery?.[id] ?? 0)}</span>
+            <button key={id} type="button" role="tab" aria-selected={active} onClick={() => changeDelivery(id)} className={clsx('group flex items-center gap-3 rounded-2xl border p-3.5 text-start transition', active ? 'border-navy-900 bg-navy-900 text-white shadow-glass' : 'border-navy-100 bg-white hover:border-gold-400')}>
+              <span className={clsx('grid size-11 shrink-0 place-items-center rounded-xl', active ? 'bg-gold-500 text-navy-950' : 'bg-navy-100/70 text-navy-800')}><Icon className="size-5" /></span>
+              <span className="min-w-0 flex-1"><span className="block text-sm font-extrabold leading-tight">{t(`kits.delivery.${id}`)}</span><span className={clsx('mt-0.5 block truncate text-[11px]', active ? 'text-white/70' : 'text-slate-500')}>{t(`kits.delivery.${id}Hint`)}</span></span>
+              <span className={clsx('rounded-full px-2.5 py-0.5 text-lg font-black tabular-nums', active ? 'bg-white/15 text-gold-300' : 'bg-navy-100/70 text-navy-900')}>{fmt.number(count)}</span>
             </button>
           )
         })}
       </div>
+
+      {can('kits.manage') && <SampleKits />}
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat icon={PackageCheck} label={t('kits.home.stats.total')} value={s?.total ?? 0} onClick={() => { setStatus(''); setMine(false); setOverdue(false) }} />
@@ -152,6 +158,7 @@ export default function KitsHome() {
           <DataView id="admin.kits" rows={list.data?.data} total={list.data?.meta?.total} loading={list.isLoading} rowKey={(k) => k.id} defaultMode={view === 'table' ? 'table' : 'cards'} emptyText={t('kits.home.empty')} cardsClassName="2xl:grid-cols-3" columns={[
             { key: 'code', header: t('kits.home.code'), role: 'media', cell: (k) => <span className="rounded-md bg-navy-900 px-1.5 py-0.5 font-mono text-[10px] font-bold text-gold-300" dir="ltr">{k.code}</span> },
             { key: 'title', header: t('kits.home.kit'), role: 'title', cell: (k) => <Link to={`/admin/kits/${k.id}`} className="hover:text-link" dir="auto">{k.title}</Link> },
+            { key: 'delivery', header: t('kits.delivery.label'), cell: (k) => <DeliveryBadge delivery={k.delivery} /> },
             { key: 'program', header: t('kits.home.program'), role: 'subtitle', cell: (k) => k.program?.title ?? '—' },
             { key: 'status', header: t('kits.home.status'), role: 'badge', cell: (k) => <KitStatusBadge status={k.status} /> },
             { key: 'team', header: t('kits.home.team'), cell: (k) => <People kit={k} /> },
@@ -184,7 +191,7 @@ export default function KitsHome() {
         </section>
       )}
 
-      {creating && <KitForm defaultDelivery={delivery} onClose={() => setCreating(false)} onSaved={(id) => navigate(`/admin/kits/${id}`)} />}
+      {creating && <KitForm defaultDelivery={type ?? 'in_person'} onClose={() => setCreating(false)} onSaved={(id) => navigate(`/admin/kits/${id}`)} />}
     </>
   )
 }

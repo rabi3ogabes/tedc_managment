@@ -5,7 +5,12 @@ export const kitsAr = {
   roles: { developer: 'معد الحقيبة', qa: 'ضمان الجودة', reviewer: 'مراجع', viewer: 'مطّلع' },
   kinds: { presentation: 'عرض تقديمي', document: 'مستند', pdf: 'PDF', image: 'صورة', video: 'فيديو', other: 'ملف' },
   categories: { presentation: 'العرض التقديمي', trainer_guide: 'دليل المدرب', handout: 'دليل المتدرب', assessment: 'التقويم', activity: 'الأنشطة', media: 'وسائط', other: 'أخرى' },
-  delivery: { label: 'نوع الحقيبة', standard: 'حقائب البرامج العادية', standardHint: 'للبرامج الحضورية والمدمجة', online: 'حقائب البرامج الإلكترونية', onlineHint: 'للدورات عبر الإنترنت (فيديو، عروض، اختبارات)', badge: 'إلكترونية' },
+  delivery: {
+    label: 'نوع الحقيبة', all: 'كل الحقائب', allHint: 'الحضورية وعن بُعد والمدمجة', in_person: 'حقائب البرامج الحضورية', in_personHint: 'برامج عادية في القاعة', online: 'حقائب البرامج عن بُعد', onlineHint: 'دورات عبر الإنترنت (فيديو، عروض، اختبارات)',
+    hybrid: 'حقائب البرامج المدمجة', hybridHint: 'لقاءات حضورية وجلسات عن بُعد', badge: { in_person: 'برنامج حضوري', online: 'برنامج عن بُعد', hybrid: 'برنامج مدمج' },
+    setByProgram: 'نوع الحقيبة يتبع برنامجها: {{type}}',
+    samples: { title: 'حقائب نموذجية جاهزة', text: '١٥ حقيبة مكتملة — خمس لكل نوع (حضوري وعن بُعد ومدمج) — بعرضها وأدلتها وأدوات تقويمها، مرتبطة ببرامج من النوع نفسه.', build: 'إنشاء الحقائب النموذجية', progress: 'جارٍ إنشاء {{n}} / {{total}}…', done: 'اكتمل إنشاء الحقائب النموذجية.', retry: 'اضغط الزر مرة أخرى لإكمال الباقي' },
+  },
   home: {
     title: 'استوديو الحقائب التدريبية', subtitle: 'أعدّ الحقيبة، راجعها مع فريق ضمان الجودة، واعتمدها — في مكان واحد', newOnline: 'حقيبة إلكترونية جديدة', new: 'حقيبة جديدة', search: 'ابحث بالاسم أو الرمز…', mine: 'حقائبي',
     views: { board: 'لوحة', cards: 'بطاقات', table: 'جدول' }, files: 'ملف', round: 'الجولة {{n}}', code: 'الرمز', kit: 'الحقيبة', program: 'البرنامج', status: 'الحالة', team: 'الفريق', progress: 'الجاهزية',
@@ -123,7 +128,12 @@ export const kitsEn: KitsStrings = {
   roles: { developer: 'Kit developer', qa: 'Quality assurance', reviewer: 'Reviewer', viewer: 'Viewer' },
   kinds: { presentation: 'Presentation', document: 'Document', pdf: 'PDF', image: 'Image', video: 'Video', other: 'File' },
   categories: { presentation: 'Presentation', trainer_guide: 'Trainer guide', handout: 'Trainee handout', assessment: 'Assessment', activity: 'Activities', media: 'Media', other: 'Other' },
-  delivery: { label: 'Kit type', standard: 'Regular program kits', standardHint: 'For in-person and blended programs', online: 'Online program kits', onlineHint: 'For online courses (video, slides, quizzes)', badge: 'Online' },
+  delivery: {
+    label: 'Kit type', all: 'All kits', allHint: 'In person, online and hybrid', in_person: 'In-person program kits', in_personHint: 'Regular programs in the room', online: 'Online program kits', onlineHint: 'Online courses (video, slides, quizzes)',
+    hybrid: 'Hybrid program kits', hybridHint: 'In-person meetings and online sessions', badge: { in_person: 'In-person program', online: 'Online program', hybrid: 'Hybrid program' },
+    setByProgram: 'The kit follows its program: {{type}}',
+    samples: { title: 'Ready sample kits', text: '15 complete kits — five for each kind (in person, online, hybrid) — with their presentation, guides and assessment, linked to programs of the same kind.', build: 'Create the sample kits', progress: 'Creating {{n}} / {{total}}…', done: 'The sample kits are ready.', retry: 'press the button again to finish the rest' },
+  },
   home: {
     title: 'Training Kit Studio', subtitle: 'Build the kit, review it with the QA team and approve it - all in one place', newOnline: 'New online kit', new: 'New kit', search: 'Search by name or code…', mine: 'My kits',
     views: { board: 'Board', cards: 'Cards', table: 'Table' }, files: 'files', round: 'Round {{n}}', code: 'Code', kit: 'Kit', program: 'Program', status: 'Status', team: 'Team', progress: 'Readiness',

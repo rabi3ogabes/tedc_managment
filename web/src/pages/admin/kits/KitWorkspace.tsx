@@ -11,7 +11,7 @@ import GenerateDeckDialog from './ai/GenerateDeckDialog'
 import VideoStudio from './ai/VideoStudio'
 import CommentsPanel from './comments/CommentsPanel'
 import { relativeTime, useKitComments } from './comments/api'
-import { KitStatusBadge, categoryIcon, fmtSize, kindIcon, kindTint } from './common'
+import { DeliveryBadge, KitStatusBadge, categoryIcon, fmtSize, kindIcon, kindTint } from './common'
 import ImagePickerDialog from './deck/ImagePickerDialog'
 import { FileWorkbench } from './FileStudio'
 import KitActions from './KitActions'
@@ -201,7 +201,7 @@ export default function KitWorkspace() {
         <div className="pointer-events-none absolute -end-20 -top-24 size-72 rounded-full bg-gold-500/15 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-6">
           <div className="min-w-0 max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2"><span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-xs font-bold text-gold-300" dir="ltr">{kit.code} · v{kit.version}</span><KitStatusBadge status={kit.status} className="!bg-white !text-navy-900" />
+            <div className="flex flex-wrap items-center gap-2"><span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-xs font-bold text-gold-300" dir="ltr">{kit.code} · v{kit.version}</span><KitStatusBadge status={kit.status} className="!bg-white !text-navy-900" /><DeliveryBadge delivery={kit.delivery} onDark />
               {kit.status === 'in_review' && <Badge color="gold">{t('kits.home.round', { n: kit.review_round })}</Badge>}
               {overdue && <span className="inline-flex items-center gap-1 rounded-full bg-red-500/90 px-2.5 py-0.5 text-xs font-bold"><AlertTriangle className="size-3" />{t('kits.workspace.overdue')}</span>}</div>
             <h1 className="mt-3 text-2xl font-bold leading-tight sm:text-3xl" dir="auto">{kit.title}</h1>

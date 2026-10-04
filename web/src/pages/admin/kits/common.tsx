@@ -1,7 +1,7 @@
 import clsx from 'clsx'
-import { Award, BookOpenCheck, FileArchive, FileAudio2, FileImage, FileText, FileType2, FileVideo, Presentation, ScrollText, type LucideIcon } from 'lucide-react'
+import { Award, BookOpenCheck, Building2, FileArchive, FileAudio2, FileImage, FileText, FileType2, FileVideo, Layers, MonitorPlay, Presentation, ScrollText, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { FileCategory, FileKind, KitStatus } from './types'
+import type { FileCategory, FileKind, KitDelivery, KitStatus } from './types'
 
 export const statusTone: Record<KitStatus, { dot: string; chip: string; column: string }> = {
   draft: { dot: 'bg-slate-400', chip: 'bg-slate-100 text-slate-700 ring-slate-500/20', column: 'from-slate-400' },
@@ -18,6 +18,25 @@ export function KitStatusBadge({ status, className }: { status: KitStatus; class
   return (
     <span className={clsx('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset', statusTone[status].chip, className)}>
       <span className={clsx('size-1.5 rounded-full', statusTone[status].dot)} />{t(`kits.status.${status}`)}
+    </span>
+  )
+}
+
+/** What kind of program a kit is for: in person ("normal"), online or hybrid. */
+export const deliveryMeta: Record<KitDelivery, { icon: LucideIcon; chip: string; solid: string }> = {
+  in_person: { icon: Building2, chip: 'bg-navy-100 text-navy-800 ring-navy-600/20', solid: 'bg-navy-900 text-gold-300' },
+  online: { icon: MonitorPlay, chip: 'bg-sky-50 text-sky-700 ring-sky-600/20', solid: 'bg-sky-600 text-white' },
+  hybrid: { icon: Layers, chip: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', solid: 'bg-emerald-600 text-white' },
+}
+
+/** Shown on every kit, so the kind of its program is always clear. */
+export function DeliveryBadge({ delivery, className, onDark }: { delivery?: KitDelivery | null; className?: string; onDark?: boolean }) {
+  const { t } = useTranslation()
+  const d: KitDelivery = delivery && delivery in deliveryMeta ? delivery : 'in_person'
+  const { icon: Icon, chip } = deliveryMeta[d]
+  return (
+    <span className={clsx('inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ring-1 ring-inset', onDark ? 'bg-white/15 text-white ring-white/25' : chip, className)}>
+      <Icon className="size-3.5" />{t(`kits.delivery.badge.${d}`)}
     </span>
   )
 }

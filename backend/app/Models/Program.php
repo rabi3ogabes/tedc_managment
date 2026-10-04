@@ -24,6 +24,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class Program extends Model
 {
+    protected static function booted(): void
+    {
+        // Changing how a program is delivered changes the type of its kits with it.
+        static::saved(function (Program $program) {
+            if ($program->wasChanged('delivery_mode') && in_array($program->delivery_mode, TrainingKit::DELIVERIES, true)) {
+                TrainingKit::where('program_id', $program->id)->update(['delivery' => $program->delivery_mode]);
+            }
+        });
+    }
+
     use Auditable, HasFactory, HasTranslations, HasUuids, SoftDeletes;
 
     public const STATUS_DRAFT = 'draft';

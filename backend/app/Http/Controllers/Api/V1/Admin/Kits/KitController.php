@@ -45,7 +45,7 @@ class KitController extends KitBaseController
         $counts = (clone $base)->reorder()->select('status', DB::raw('count(*) as n'))->groupBy('status')->pluck('n', 'status');
 
         $columns = collect(TrainingKit::STATUSES)->reject(fn ($s) => $s === TrainingKit::ARCHIVED && ! $request->boolean('archived'))->map(function ($status) use ($base, $counts) {
-            $items = (clone $base)->where('status', $status)->with(['owner', 'category', 'members.user'])->withCount('files')->latest('updated_at')->limit(30)->get();
+            $items = (clone $base)->where('status', $status)->with(['owner', 'category', 'program', 'members.user'])->withCount('files')->latest('updated_at')->limit(30)->get();
             $this->decorate($items);
 
             return ['status' => $status, 'count' => (int) ($counts[$status] ?? 0), 'items' => KitResource::collection($items)];
@@ -67,7 +67,7 @@ class KitController extends KitBaseController
         $mine = KitComment::whereIn('kit_id', $ids)->whereNull('parent_id')->where('assignee_id', $user->id)->whereIn('status', ['open', 'addressed']);
 
         return response()->json(['data' => [
-            'by_delivery' => ['standard' => (int) ($byDelivery['standard'] ?? 0), 'online' => (int) ($byDelivery['online'] ?? 0)],
+            'by_delivery' => collect(TrainingKit::DELIVERIES)->mapWithKeys(fn ($d) => [$d => (int) ($byDelivery[$d] ?? 0)])->all(),
             'total' => (int) $byStatus->except(TrainingKit::ARCHIVED)->sum(),
             'by_status' => $byStatus,
             'awaiting_review' => (clone $kits)->where('status', TrainingKit::IN_REVIEW)->count(),
@@ -118,8 +118,9 @@ class KitController extends KitBaseController
 
         $kit = DB::transaction(function () use ($data, $user) {
             $program = ! empty($data['program_id']) ? Program::find($data['program_id']) : null;
+            // A kit made for a program is of that program's kind; a free-standing kit takes the kind it is given.
+            $data['delivery'] = $program && in_array($program->delivery_mode, TrainingKit::DELIVERIES, true) ? $program->delivery_mode : ($data['delivery'] ?? 'in_person');
             $kit = TrainingKit::create($data + [
-                'delivery' => $program && $program->delivery_mode === 'online' ? 'online' : 'standard',
                 'code' => $this->nextCode(),
                 'status' => TrainingKit::DRAFT,
                 'owner_id' => $data['owner_id'] ?? $user->id,
@@ -141,6 +142,10 @@ class KitController extends KitBaseController
         $this->manageable($kit);
         $data = $this->validated($request, true);
         unset($data['members']);
+        $program = ($data['program_id'] ?? $kit->program_id) ? Program::find($data['program_id'] ?? $kit->program_id) : null;
+        if ($program && in_array($program->delivery_mode, TrainingKit::DELIVERIES, true)) {
+            $data['delivery'] = $program->delivery_mode;   // the program decides
+        }
         $kit->update($data);
         KitLog::record($kit, $this->user(), 'updated', 'kit', $kit->id);
 

@@ -31,7 +31,8 @@ class TrainingKit extends Model
 
     public const ARCHIVED = 'archived';
 
-    public const DELIVERIES = ['standard', 'online'];
+    /** The kind of program the kit is for — always the same as its program's delivery mode when it has one. */
+    public const DELIVERIES = ['in_person', 'online', 'hybrid'];
 
     public const STATUSES = [self::DRAFT, self::IN_DEVELOPMENT, self::IN_REVIEW, self::CHANGES_REQUESTED, self::APPROVED, self::PUBLISHED, self::ARCHIVED];
 
