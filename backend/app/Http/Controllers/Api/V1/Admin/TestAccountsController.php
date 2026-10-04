@@ -10,7 +10,9 @@ use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoScenarioSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 /** Settings → Test accounts: the demo trainees / trainers for trying the mobile app, and which programs they belong to. */
@@ -38,13 +40,24 @@ class TestAccountsController extends Controller
         return response()->json(['data' => $this->payload()]);
     }
 
-    /** Builds (or rebuilds from today) the presentation scenario: five programs with every step of the journey. */
-    public function scenario(): JsonResponse
+    /**
+     * Builds (or rebuilds from today) the presentation scenario, one phase per request so a slow remote database stays
+     * within the time limit of a single call: the page calls it for sc1 … sc5 in turn.
+     */
+    public function scenario(Request $request): JsonResponse
     {
-        app(DemoTestAccountsSeeder::class)->run();
-        app(DemoScenarioSeeder::class)->run();
+        $phase = $request->validate(['phase' => ['nullable', Rule::in(DemoScenarioSeeder::PHASES)]])['phase'] ?? null;
+        if ($phase === null || $phase === 'accounts') {
+            app(DemoTestAccountsSeeder::class)->run();
+        }
+        if ($phase !== 'accounts') {
+            app(DemoScenarioSeeder::class)->run($phase);
+        }
 
-        return response()->json(['data' => ['programs' => Program::whereIn('code', DemoScenarioSeeder::CODES)->orderBy('code')->get(['id', 'code', 'delivery_mode', 'status'])->map(fn (Program $p) => ['id' => $p->id, 'code' => $p->code, 'mode' => $p->delivery_mode, 'status' => $p->status, 'title' => $p->translate('title')])]]);
+        $order = DemoScenarioSeeder::PHASES;
+        $next = $phase === null ? null : ($order[array_search($phase, $order, true) + 1] ?? null);
+
+        return response()->json(['data' => ['phase' => $phase, 'next' => $next, 'done' => $next === null]]);
     }
 
     private function payload(): array

@@ -9,6 +9,8 @@ use App\Models\ProgramCategory;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\Trainer;
+use App\Models\TrainingKit;
 use App\Models\User;
 use Database\Seeders\DemoScenarioSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
@@ -69,6 +71,63 @@ class DemoScenarioTest extends TestCase
 
         $this->assertSame(5, Program::whereIn('code', DemoScenarioSeeder::CODES)->count());
         $this->assertSame($first, ProgramSession::count());
+    }
+
+    public function test_the_page_builds_the_scenario_phase_by_phase_and_each_phase_is_short(): void
+    {
+        ProgramCategory::create(['name_ar' => 'عام', 'name_en' => 'General', 'slug' => 'general']);
+        $this->makeEmployee([], $this->makeUser(Role::EMPLOYEE, ['email' => 'teacher@tedc.qa']));
+        $this->makeUser(Role::CENTER_ADMIN, ['email' => 'center@tedc.qa']);
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+
+        foreach (DemoScenarioSeeder::PHASES as $i => $phase) {
+            \DB::enableQueryLog();
+            \DB::flushQueryLog();
+            $res = $this->asUser($admin)->postJson('/api/v1/admin/test-accounts/scenario', ['phase' => $phase])->assertOk();
+            $this->assertLessThan(600, count(\DB::getQueryLog()), "{$phase} stays small enough for a slow database");
+            $this->assertSame($i === 5, $res->json('data.done'));
+        }
+        $this->assertSame(5, Program::whereIn('code', DemoScenarioSeeder::CODES)->count());
+        $this->assertSame(3, TrainingKit::where('code', 'like', 'KIT-SC-%')->count());
+        $this->asUser($admin)->postJson('/api/v1/admin/test-accounts/scenario', ['phase' => 'nope'])->assertUnprocessable();
+    }
+
+    public function test_what_the_mobile_app_reads_is_complete_for_each_kind_of_trainee(): void
+    {
+        $this->seedScenario();
+        $one = User::where('email', 'trainee1@tedc.qa')->first();
+        $two = User::where('email', 'trainee2@tedc.qa')->first();
+
+        $this->asUser($one)->getJson('/api/v1/me/home')->assertOk();
+        $regs = collect($this->asUser($one)->getJson('/api/v1/me/registrations')->assertOk()->json('data'));
+        $this->assertGreaterThanOrEqual(3, $regs->count(), 'in person, online and the finished program');
+        $this->assertTrue($regs->contains(fn ($r) => $r['status'] === 'completed'));
+
+        // The session screen works for an in-person, an online and a hybrid session alike.
+        foreach (['SC-1', 'SC-2', 'SC-3'] as $code) {
+            $session = ProgramSession::whereHas('program', fn ($q) => $q->where('code', $code))->orderBy('starts_at')->first();
+            $user = $code === 'SC-3' ? User::where('email', 'teacher@tedc.qa')->first() : $one;
+            $res = $this->asUser($user)->getJson("/api/v1/me/sessions/{$session->id}")->assertOk();
+            $this->assertSame($session->mode, $res->json('data.mode'));
+            $this->assertSame($session->mode === 'online', $res->json('data.online') !== null);
+        }
+
+        $calendar = $this->asUser($one)->getJson('/api/v1/me/calendar')->assertOk()->json('data');
+        $this->assertNotEmpty($calendar);
+        $mine = fn ($user) => collect($this->asUser($user)->getJson('/api/v1/me/certificates')->assertOk()->json('data'));
+        $this->assertTrue($mine($one)->contains(fn ($c) => $c['downloadable'] === true), 'trainee 1 can download');
+        $this->assertTrue($mine($two)->contains(fn ($c) => $c['survey_required'] === true), 'trainee 2 is asked for the survey first');
+        $this->assertNotEmpty($this->asUser($one)->getJson('/api/v1/me/notifications')->assertOk()->json('data'));
+    }
+
+    public function test_the_trainer_gets_a_thank_you_certificate_for_the_finished_program(): void
+    {
+        $this->seedScenario();
+        $trainer = Trainer::find(ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'SC-4'))->value('trainer_id'))->user;
+        $items = collect($this->asUser($trainer)->getJson('/api/v1/me/trainer-certificates')->assertOk()->json('data'));
+
+        $this->assertTrue($items->isNotEmpty(), 'the trainer sees her certificates');
+        $this->assertDatabaseHas('notifications', ['type' => 'certificate.trainer_available', 'user_id' => $trainer->id]);
     }
 
     public function test_the_scenario_moves_forward_with_the_calendar_without_losing_anything(): void

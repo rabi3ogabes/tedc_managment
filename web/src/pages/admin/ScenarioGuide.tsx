@@ -12,20 +12,26 @@ const CAST: [string, string][] = [
   ['admin', 'admin@tedc.qa'], ['center', 'center@tedc.qa'], ['coordinator', 'coordinator@tedc.qa'], ['executive', 'executive@tedc.qa'], ['kits', 'kits@tedc.qa'], ['qa', 'qa@tedc.qa'],
   ['trainer', 'trainer@tedc.qa'], ['school', 'school@tedc.qa'], ['teacher', 'teacher@tedc.qa'], ['trainee1', 'trainee1@tedc.qa'], ['trainee2', 'trainee2@tedc.qa'], ['trainee3', 'trainee3@tedc.qa'], ['trainee4', 'trainee4@tedc.qa'],
 ]
+const PHASES = ['accounts', 'sc1', 'sc2', 'sc3', 'sc4', 'sc5'] as const
 const TONE = { in_person: 'bg-navy-900 text-gold-300', online: 'bg-sky-600 text-white', hybrid: 'bg-emerald-600 text-white' }
 
 /** Settings → Test accounts: the presentation scenario — build it, see its programs, who plays whom, and the running order. */
 export default function ScenarioGuide({ programs, onBuilt }: { programs: Item[]; onBuilt: () => void }) {
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
+  const [step, setStep] = useState(0)
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const ready = programs.length > 0
   const steps = t('scenario.steps', { returnObjects: true }) as unknown as string[][]
 
   const build = async () => {
-    setBusy(true); setNote(null)
-    try { await api.post('/admin/test-accounts/scenario'); setNote({ ok: true, text: t('scenario.built') }); onBuilt() } catch (e) { setNote({ ok: false, text: errorMessage(e) }) } finally { setBusy(false) }
+    setBusy(true); setNote(null); setStep(0)
+    try {
+      // One phase per request keeps every call short, even on a slow connection to the database.
+      for (let i = 0; i < PHASES.length; i++) { setStep(i + 1); await api.post('/admin/test-accounts/scenario', { phase: PHASES[i] }, { timeout: 120_000 }) }
+      setNote({ ok: true, text: t('scenario.built') }); onBuilt()
+    } catch (e) { setNote({ ok: false, text: `${errorMessage(e)} — ${t('scenario.retry')}` }) } finally { setBusy(false); setStep(0) }
   }
   const copy = (v: string) => { void navigator.clipboard?.writeText(v); setCopied(v); setTimeout(() => setCopied(null), 1500) }
 
@@ -36,7 +42,7 @@ export default function ScenarioGuide({ programs, onBuilt }: { programs: Item[];
         <div className="relative flex flex-wrap items-center gap-4">
           <span className="grid size-12 place-items-center rounded-2xl bg-gold-500 text-navy-950"><Play className="size-6" /></span>
           <div className="min-w-0 flex-1 basis-72"><h2 className="text-xl font-extrabold">{t('scenario.title')}</h2><p className="mt-1 text-sm text-white/70">{t('scenario.subtitle')}</p></div>
-          <Button variant="gold" icon={<RefreshCcw className="size-4" />} loading={busy} onClick={build}>{ready ? t('scenario.rebuild') : t('scenario.build')}</Button>
+          <Button variant="gold" icon={<RefreshCcw className="size-4" />} loading={busy} onClick={build}>{busy && step > 0 ? t('scenario.progress', { n: step, total: PHASES.length }) : ready ? t('scenario.rebuild') : t('scenario.build')}</Button>
         </div>
       </div>
       {note && <div role="status" className={clsx('rounded-2xl p-3 text-sm font-semibold', note.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{note.text}</div>}

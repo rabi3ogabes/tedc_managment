@@ -22,6 +22,7 @@ use App\Services\CertificateService;
 use App\Services\Notifications\ProgramSurvey;
 use App\Services\NotificationService;
 use App\Services\RegistrationService;
+use App\Services\TrainerCertificateService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -54,7 +55,11 @@ class DemoScenarioSeeder extends Seeder
     /** @var array<string, Employee> */
     private array $people = [];
 
-    public function run(): void
+    /** The build is split in phases so a slow remote database never hits the time limit of a single request. */
+    public const PHASES = ['accounts', 'sc1', 'sc2', 'sc3', 'sc4', 'sc5'];
+
+    /** @param  string|null  $phase  one of PHASES, or null for the whole scenario */
+    public function run(?string $phase = null): void
     {
         $this->center = User::where('email', 'center@tedc.qa')->first() ?? User::first();
         $this->admin = User::where('email', 'admin@tedc.qa')->first() ?? $this->center;
@@ -73,23 +78,35 @@ class DemoScenarioSeeder extends Seeder
             return; // run DemoTestAccountsSeeder first
         }
 
-        $this->reset();
-        $this->normaliseTimes();
-
+        $phases = $phase ? [$phase] : array_values(array_diff(self::PHASES, ['accounts']));
         $rooms = $this->rooms();
         $trainers = $this->trainers();
-        $kits = $this->kitPeople();
 
-        $sc1 = $this->inPerson($rooms[0], $trainers[0], $jobTitleId);
-        $sc2 = $this->online($trainers[1], $jobTitleId);
-        $sc3 = $this->hybrid($rooms[1], $trainers[2], $jobTitleId);
-        $sc4 = $this->finished($rooms[1], $trainers[0], $jobTitleId);
-        $this->draft($jobTitleId);
-        $this->kits($kits, [$sc1, $sc2, $sc3]);
-        $this->invitations($sc3);
+        foreach ($phases as $current) {
+            match ($current) {
+                'sc1' => $this->first($rooms, $trainers, $jobTitleId),
+                'sc2' => $this->online($trainers[1], $jobTitleId),
+                'sc3' => $this->hybrid($rooms[1], $trainers[2], $jobTitleId),
+                'sc4' => $this->finished($rooms[1], $trainers[0], $jobTitleId),
+                'sc5' => $this->last($jobTitleId),
+                default => null,
+            };
+        }
+    }
+
+    private function first(array $rooms, array $trainers, string $job): void
+    {
+        $this->reset();
+        $this->normaliseTimes();
+        $this->inPerson($rooms[0], $trainers[0], $job);
+    }
+
+    private function last(string $job): void
+    {
+        $this->draft($job);
+        $this->kits($this->kitPeople(), ['SC-1', 'SC-2', 'SC-3']);
+        $this->invitations(Program::where('code', 'SC-3')->first());
         SiteSetting::updateOrCreate(['key' => self::ANCHOR_KEY], ['value' => ['anchor' => today()->toDateString()]]);
-
-        unset($sc4);
     }
 
     // The five programs --------------------------------------------------------------------------------------------
@@ -205,6 +222,15 @@ class DemoScenarioSeeder extends Seeder
             $certificates->refreshStatus(Registration::where('program_id', $p->id)->where('employee_id', $t['teacher']->id)->first());
         });
 
+        // The trainer delivered every session: her thank-you certificate is ready too.
+        $this->at(-9, 16, function () use ($p, $trainer) {
+            try {
+                app(TrainerCertificateService::class)->issueIfComplete($trainer, $p->refresh());
+            } catch (Throwable $e) {
+                report($e);
+            }
+        });
+
         return $p;
     }
 
@@ -304,8 +330,9 @@ class DemoScenarioSeeder extends Seeder
         return ['dev' => User::where('email', 'kits@tedc.qa')->first(), 'qa' => User::where('email', 'qa@tedc.qa')->first()];
     }
 
-    private function kits(array $people, array $programs): void
+    private function kits(array $people, array $codes): void
     {
+        $programs = array_map(fn (string $code) => Program::where('code', $code)->first(), $codes);
         $owner = $people['dev'] ?? $this->center;
         $rows = [
             [$programs[0], 'KIT-SC-1', 'standard', TrainingKit::PUBLISHED, -8],

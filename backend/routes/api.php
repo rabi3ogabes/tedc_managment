@@ -636,7 +636,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:users.manage')->group(function () {
                 Route::get('test-accounts', [TestAccountsController::class, 'show']);
                 Route::post('test-accounts', [TestAccountsController::class, 'seed']);
-                Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware('throttle:6,1');
+                Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware('throttle:30,1');
                 Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware('throttle:20,1');
                 Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop']);
                 Route::get('users', [UserController::class, 'index']);

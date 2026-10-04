@@ -14,7 +14,7 @@ export const opsAr = {
   },
   scenario: {
     title: 'سيناريو العرض التقديمي', subtitle: 'رحلة كاملة جاهزة بالبيانات: خمسة برامج (حضوري وعن بُعد ومدمج)، كل جلساتها من 8 صباحاً إلى 1 ظهراً، وإشعارات كل خطوة بالعربية.',
-    build: 'تهيئة السيناريو من اليوم', rebuild: 'إعادة تهيئة السيناريو من اليوم', building: 'جارٍ التهيئة…', built: 'اكتملت التهيئة — التواريخ محسوبة من اليوم.', empty: 'لم يُجهَّز السيناريو بعد. اضغط «تهيئة السيناريو» وانتظر لحظات.',
+    build: 'تهيئة السيناريو من اليوم', rebuild: 'إعادة تهيئة السيناريو من اليوم', building: 'جارٍ التهيئة…', progress: 'جارٍ البناء {{n}} / {{total}}…', retry: 'اضغط الزر مرة أخرى لإكمال التهيئة', built: 'اكتملت التهيئة — التواريخ محسوبة من اليوم.', empty: 'لم يُجهَّز السيناريو بعد. اضغط «تهيئة السيناريو» وانتظر لحظات.',
     programs: 'برامج السيناريو', cast: 'من يشارك في العرض', cols: { who: 'الدور', account: 'الحساب', does: 'ماذا يفعل في العرض' }, script: 'تسلسل العرض', note: 'كلمة المرور لكل الحسابات: Tedc@2026! — برامج الاختبار (TEST-…) مفتوحة اليوم كله لتجربة الحضور وليست جزءاً من العرض.',
     modes: { in_person: 'حضوري', online: 'عن بُعد', hybrid: 'مدمج' }, status: { draft: 'مسودة', registration_open: 'التسجيل مفتوح', in_progress: 'جارٍ الآن', completed: 'منتهٍ' },
     roles: {
@@ -84,7 +84,7 @@ export const opsEn: typeof opsAr = {
   },
   scenario: {
     title: 'Presentation scenario', subtitle: 'A complete journey, data ready: five programs (in person, online, hybrid), every session 8 am – 1 pm, with the notifications of each step in Arabic.',
-    build: 'Build the scenario from today', rebuild: 'Rebuild the scenario from today', building: 'Building…', built: 'Done — dates are counted from today.', empty: 'The scenario has not been prepared yet. Press “Build the scenario” and wait a moment.',
+    build: 'Build the scenario from today', rebuild: 'Rebuild the scenario from today', building: 'Building…', progress: 'Building {{n}} / {{total}}…', retry: 'press the button again to finish', built: 'Done — dates are counted from today.', empty: 'The scenario has not been prepared yet. Press “Build the scenario” and wait a moment.',
     programs: 'Scenario programs', cast: 'Who takes part', cols: { who: 'Role', account: 'Account', does: 'What they do in the demo' }, script: 'Running order', note: 'Password for every account: Tedc@2026! — the TEST-… programs stay open all day for attendance trials and are not part of the demo.',
     modes: { in_person: 'In person', online: 'Online', hybrid: 'Hybrid' }, status: { draft: 'Draft', registration_open: 'Registration open', in_progress: 'Running now', completed: 'Finished' },
     roles: {
