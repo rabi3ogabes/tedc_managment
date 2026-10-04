@@ -46,9 +46,10 @@ void main() {
     await tester.pumpWidget(_app(container));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(SplashScreen));
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pump();
+    // A new animation starts on the frame after it is requested, so give it a few frames to run through.
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 300));
+    }
 
     expect(container.read(introDoneProvider), isTrue, reason: 'a tap fast-forwards to the end instead of waiting 3.6 s');
   });
