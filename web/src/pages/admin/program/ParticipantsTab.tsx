@@ -1,7 +1,7 @@
 import { CheckCheck, Upload, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, Progress, StatusBadge } from '@/components/ui'
+import { Badge, Button, Card, Progress, StatusBadge } from '@/components/ui'
 import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Program, Registration } from '@/lib/types'
 import { ImportModal, NominateModal } from '../registrationModals'
+import PassStatusModal from './PassStatusModal'
 
 export default function ParticipantsTab({ program }: { program: Program }) {
   const { t } = useTranslation()
@@ -16,6 +17,7 @@ export default function ParticipantsTab({ program }: { program: Program }) {
   const [selected, setSelected] = useState<string[]>([])
   const [modal, setModal] = useState<'nominate' | 'import' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [passFor, setPassFor] = useState<Registration | null>(null)
   const { data, isLoading, refetch } = useGet<Paginated<Registration>>('/admin/registrations', { program_id: program.id, per_page: 100 })
 
   const act = async (ids: string[], status: string) => {
@@ -29,8 +31,8 @@ export default function ParticipantsTab({ program }: { program: Program }) {
       setError(errorMessage(e))
     }
   }
-  const issue = async (id: string) => {
-    try { await api.post(`/admin/registrations/${id}/certificate`); refetch() } catch (e) { setError(errorMessage(e)) }
+  const issue = async (id: string, type?: 'attendance' | 'pass') => {
+    try { await api.post(`/admin/registrations/${id}/certificate`, type ? { type } : {}); refetch() } catch (e) { setError(errorMessage(e)) }
   }
 
   const rows = data?.data ?? []
@@ -50,7 +52,8 @@ export default function ParticipantsTab({ program }: { program: Program }) {
         { key: 'source', header: t('admin.registrations.source'), cell: (r) => <span className="text-xs text-slate-500">{t(`sources.${r.source}`)}</span> },
         { key: 'status', header: t('common.status'), role: 'badge', cell: (r) => <StatusBadge status={r.status} /> },
         { key: 'attendance', header: t('admin.registrations.attendance'), cell: (r) => <div className="w-28"><div className="mb-1 text-xs">{fmt.percent(r.attendance_percent)}</div><Progress value={r.attendance_percent} tone={r.attendance_percent >= program.min_attendance_percent ? 'green' : 'gold'} /></div> },
-        { key: 'certificate', header: t('admin.registrations.certificate'), cell: (r) => <StatusBadge status={r.certificate_status} /> },
+        { key: 'pass', header: t('passing.column'), cell: (r) => <button type="button" onClick={() => setPassFor(r)} className="text-start" aria-label={t('passing.details')}><Badge color={r.pass_status === 'passed' || r.pass_status === 'exempted' ? 'green' : r.pass_status === 'failed' ? 'red' : 'gray'}>{t(`passing.status.${r.pass_status ?? 'pending'}`)}</Badge>{r.weighted_score != null && <div className="mt-0.5 text-[11px] text-slate-400">{fmt.number(r.weighted_score, 1)}%</div>}</button> },
+        { key: 'certificate', header: t('admin.registrations.certificate'), cell: (r) => { const a = r.certificates?.find((c) => c.type === 'attendance'); const p = r.certificates?.find((c) => c.type !== 'attendance'); return (<div className="space-y-1 text-xs">{a && <div><Badge color="gold">{t('passing.certAttendance')}</Badge></div>}{p ? <div><Badge color="green">{t('passing.certPass')}</Badge></div> : !a && <StatusBadge status={r.certificate_status} />}</div>) } },
         { key: 'impact', header: t('admin.impact.score'), cell: (r) => <span className="font-bold text-navy-900">{fmt.number(r.impact_score, 1)}</span> },
         { key: 'actions', header: t('common.actions'), role: 'actions', cell: (r) => (
           <div className="flex gap-1">
@@ -59,9 +62,11 @@ export default function ParticipantsTab({ program }: { program: Program }) {
               <Button size="sm" variant="ghost" onClick={() => act([r.id], 'rejected')}>{t('common.reject')}</Button>
             </>}
             {can('certificates.issue') && r.certificate_status === 'eligible' && <Button size="sm" variant="gold" onClick={() => issue(r.id)}>{t('admin.certificates.issue')}</Button>}
+            {can('certificates.issue') && !r.certificates?.some((c) => c.type === 'attendance') && r.status === 'approved' && <Button size="sm" variant="ghost" onClick={() => issue(r.id, 'attendance')}>{t('passing.certAttendance')}</Button>}
           </div>
         ) },
       ]} />
+      {passFor && <PassStatusModal registrationId={passFor.id} name={passFor.employee?.name} onClose={() => setPassFor(null)} onChanged={refetch} />}
       <NominateModal open={modal === 'nominate'} onClose={() => { setModal(null); refetch() }} programId={program.id} />
       <ImportModal open={modal === 'import'} onClose={() => { setModal(null); refetch() }} programId={program.id} />
     </Card>

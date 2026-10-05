@@ -24,7 +24,7 @@ class MyPassingController extends MeController
         $hours = $this->passing->hours($registration, $e['policy']);
 
         return response()->json(['data' => [
-            'program' => $registration->program->translate('title'), 'pass_status' => $registration->pass_status, 'passed_via' => $registration->passed_via, 'mode' => $e['policy']['mode'],
+            'program_id' => $registration->program_id, 'program' => $registration->program->translate('title'), 'pass_status' => $registration->pass_status, 'passed_via' => $registration->passed_via, 'mode' => $e['policy']['mode'],
             'weighted_score' => $e['weighted_score'], 'pass_threshold' => $e['policy']['pass_threshold'], 'hours' => $hours,
             'criteria' => array_map(fn ($c) => ['key' => $c['key'], 'value' => $c['value'], 'min' => $c['min'], 'weight' => $c['weight'], 'required' => $c['required'], 'met' => $c['met'], 'applicable' => $c['applicable'], 'exempted' => $c['exempted'], 'evidence' => $c['evidence']], $e['criteria']),
             'can_test_out' => $e['policy']['allow_test_out'] && $e['policy']['test_out_assessment_id'] && ! $e['passed'],

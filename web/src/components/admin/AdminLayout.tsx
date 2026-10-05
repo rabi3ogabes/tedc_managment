@@ -84,6 +84,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
           { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
           { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
+          { to: '/admin/passing-policy', label: t('passing.global'), icon: Award, permission: 'passing.manage' },
           { to: '/admin/question-banks', label: t('assess.studio.title'), icon: ClipboardList, permission: 'banks.manage|assessments.manage' },
           { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage' },
           { to: '/admin/plans', label: t('plans.nav'), icon: CalendarRange, permission: 'plans.view' },

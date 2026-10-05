@@ -27,7 +27,7 @@ export default function Wallet() {
               <div className="absolute -end-10 -top-10 size-40 rounded-full bg-gold-500/25 blur-2xl" />
               <div className="relative">
                 <div className="flex items-center justify-between"><BrandMark onDark className="h-10 max-w-[150px]" markClassName="size-10" /><StatusBadge status={c.status ?? 'pending'} /></div>
-                <div className="mt-6 text-xs font-semibold text-gold-300">{t(c.kind === 'trainer' ? 'portal.trainerCert' : 'portal.traineeCert')}</div>
+                <div className="mt-6 text-xs font-semibold text-gold-300">{c.kind !== 'trainer' && c.type === 'attendance' ? t('passing.certAttendance') : t(c.kind === 'trainer' ? 'portal.trainerCert' : 'portal.traineeCert')}</div>
                 <h3 className="mt-1 text-xl font-bold leading-snug">{c.program?.title}</h3>
                 <div className="mt-1 text-sm text-gold-300">{c.issued_at ? `${fmt.number(c.hours ?? 0)} ${t('common.hours')} · ${fmt.date(c.issued_at)}` : `${t('portal.sessionsDone')}: ${c.sessions_done ?? 0}/${c.sessions_total ?? 0} · ${fmt.number(c.hours ?? 0)} ${t('common.hours')}`}</div>
                 {c.downloadable === false ? (

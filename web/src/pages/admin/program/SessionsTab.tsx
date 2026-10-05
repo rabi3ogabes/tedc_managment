@@ -10,7 +10,7 @@ import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import type { Program, Session } from '@/lib/types'
 
-type Report = { expected: number; present: number; late: number; absent: number; rows: { registration_id: string; name: string; school?: string; status: string; check_in_at?: string; check_out_at?: string; minutes: number; attendance_id?: string | null; method?: string | null; leave_minutes?: number }[] }
+type Report = { expected: number; present: number; late: number; absent: number; rows: { registration_id: string; name: string; school?: string; status: string; check_in_at?: string; check_out_at?: string; minutes: number; attendance_id?: string | null; method?: string | null; participated?: boolean; leave_minutes?: number }[] }
 type TrainerRow = { trainer_id: string; name: string | null; check_in_at: string | null; check_out_at: string | null; method: string | null; minutes: number }
 
 export default function SessionsTab({ program }: { program: Program }) {
@@ -129,6 +129,9 @@ function AttendanceModal({ session, onClose }: { session: Session; onClose: () =
     if (!leaveFor?.attendance_id) return
     try { await api.post(`/admin/attendance/${leaveFor.attendance_id}/leaves`, leave); toast(t('ops.session.leaveSaved')); setLeaveFor(null); await refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
+  const participate = async (registration_id: string, participated: boolean) => {
+    try { await api.put(`/admin/sessions/${session.id}/participation`, { marks: [{ registration_id, participated }] }); await refetch() } catch (e) { toast(errorMessage(e), 'error') }
+  }
   const markTrainer = async (trainer_id: string, status: 'present' | 'absent') => {
     try { await api.post(`/admin/sessions/${session.id}/trainer-attendance`, { trainer_id, status }); await trainers.refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
@@ -150,7 +153,7 @@ function AttendanceModal({ session, onClose }: { session: Session; onClose: () =
           </div>
           <div className="mb-4 flex gap-2"><input className="input min-w-0 flex-1 font-mono text-xs" dir="ltr" placeholder={t('ops.session.staffScanHint')} value={payload} onChange={(e) => setPayload(e.target.value)} /><Button variant="outline" disabled={!payload.trim()} onClick={() => void scan()}>{t('ops.session.scan')}</Button></div>
           <div className="max-h-80 overflow-y-auto">
-            <Table head={[t('common.name'), t('common.status'), t('ops.session.method'), 'In', 'Out', '']}>
+            <Table head={[t('common.name'), t('common.status'), t('ops.session.method'), 'In', 'Out', t('passing.marks'), '']}>
               {r.rows.map((row) => (
                 <tr key={row.registration_id}>
                   <Td><div className="font-semibold">{row.name}</div><div className="text-xs text-slate-400">{row.school}</div></Td>
@@ -158,6 +161,7 @@ function AttendanceModal({ session, onClose }: { session: Session; onClose: () =
                   <Td className="text-xs">{row.method ? t(`ops.session.methods.${row.method}`, { defaultValue: row.method }) : '—'}</Td>
                   <Td className="text-xs">{fmt.time(row.check_in_at)}</Td>
                   <Td className="text-xs">{fmt.time(row.check_out_at)}</Td>
+                  <Td>{row.attendance_id && <input type="checkbox" className="accent-gold-600" aria-label={t('passing.participated')} checked={!!row.participated} onChange={(e) => void participate(row.registration_id, e.target.checked)} />}</Td>
                   <Td>
                     <div className="flex gap-1">
                       <select className="input py-1 text-xs" value="" onChange={(e) => e.target.value && mark(row.registration_id, e.target.value)}>

@@ -12,6 +12,7 @@ use App\Services\CertificateService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CertificateController extends Controller
@@ -85,9 +86,11 @@ class CertificateController extends Controller
         return response()->json(['data' => $this->certificates->requirements($registration)]);
     }
 
-    public function issue(Registration $registration): CertificateResource
+    public function issue(Request $request, Registration $registration): CertificateResource
     {
-        return new CertificateResource($this->certificates->issue($registration, $this->user())->load(['program', 'employee.user']));
+        $type = $request->validate(['type' => ['nullable', Rule::in(['attendance', 'pass'])]])['type'] ?? null;
+
+        return new CertificateResource($this->certificates->issue($registration, $this->user(), $type)->load(['program', 'employee.user']));
     }
 
     /**
@@ -104,8 +107,13 @@ class CertificateController extends Controller
             ->get()
             ->each(function (Registration $registration) use (&$issued, &$blocked) {
                 try {
-                    $this->certificates->issue($registration, $this->user());
-                    $issued++;
+                    // Every certificate type the policy hands out; the first one that is not due yet explains the block.
+                    $before = $registration->certificates()->count();
+                    $due = $this->certificates->issueDue($registration, $this->user());
+                    if ($due === [] && $before === 0) {
+                        $this->certificates->issue($registration, $this->user());
+                    }
+                    $issued += $registration->certificates()->count() > $before ? 1 : 0;
                 } catch (BusinessRuleException $e) {
                     $blocked[] = [
                         'registration_id' => $registration->id,

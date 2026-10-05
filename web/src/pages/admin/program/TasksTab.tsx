@@ -9,7 +9,7 @@ import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 
 type Task = { id: string; title_ar: string; title_en: string; instructions_ar?: string; due_at?: string; submission_types: string[]; is_required: boolean; submissions_count: number; pending_count: number; approved_count: number }
-type Submission = { id: string; employee_name: string; employee_no: string; status: string; text_response?: string; file_name?: string; file_url?: string; feedback?: string; version: number; updated_at: string }
+type Submission = { returned_count?: number; id: string; employee_name: string; employee_no: string; status: string; text_response?: string; file_name?: string; file_url?: string; feedback?: string; version: number; updated_at: string }
 
 export default function TasksTab({ program }: { program: Program }) {
   const { t, i18n } = useTranslation()
@@ -17,7 +17,7 @@ export default function TasksTab({ program }: { program: Program }) {
   const { data, isLoading, refetch } = useGet<{ data: Task[] }>(`/admin/programs/${program.id}/tasks`)
   const [creating, setCreating] = useState(false)
   const [reviewing, setReviewing] = useState<Task | null>(null)
-  const [form, setForm] = useState({ title_ar: '', title_en: '', instructions_ar: '', due_at: '', submission_types: ['pdf', 'word', 'text'], is_required: true })
+  const [form, setForm] = useState({ title_ar: '', title_en: '', instructions_ar: '', due_at: '', submission_types: ['pdf', 'word', 'text'], is_required: true, self_assessed: false })
   const [error, setError] = useState<string | null>(null)
   const title = (task: Task) => (i18n.language === 'ar' ? task.title_ar : task.title_en)
 
@@ -70,6 +70,7 @@ export default function TasksTab({ program }: { program: Program }) {
               <label key={s} className="flex items-center gap-1.5 text-sm"><input type="checkbox" className="accent-gold-600" checked={form.submission_types.includes(s)} onChange={(e) => setForm({ ...form, submission_types: e.target.checked ? [...form.submission_types, s] : form.submission_types.filter((x) => x !== s) })} />{s.toUpperCase()}</label>
             ))}</div>
           </div>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={form.self_assessed} onChange={(e) => setForm({ ...form, self_assessed: e.target.checked })} />{t('passing.tasks.selfAssessed')}</label>
           {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex justify-end"><Button variant="gold" onClick={create}>{t('common.create')}</Button></div>
         </div>
@@ -86,10 +87,11 @@ function ReviewModal({ task, onClose }: { task: Task; onClose: () => void }) {
   const [feedback, setFeedback] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
 
-  const review = async (id: string, status: string) => {
+  const { can } = useAuth()
+  const review = async (id: string, decision: string, final = false) => {
     setError(null)
     try {
-      await api.post(`/admin/submissions/${id}/review`, { status, feedback: feedback[id] || null })
+      await api.post(`/admin/submissions/${id}/${final ? 'final-decision' : 'trainer-decision'}`, { decision, feedback: feedback[id] || null })
       refetch()
     } catch (e) {
       setError(errorMessage(e))
@@ -114,11 +116,22 @@ function ReviewModal({ task, onClose }: { task: Task; onClose: () => void }) {
               {s.text_response && <p className="mt-2 rounded-xl bg-ivory p-3 text-sm text-slate-700">{s.text_response}</p>}
               {s.file_name && <button onClick={() => openFile(s.id)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-link"><FileText className="size-4" />{s.file_name}</button>}
               <textarea className="input mt-3 text-sm" placeholder={t('admin.tasks.feedback')} value={feedback[s.id] ?? s.feedback ?? ''} onChange={(e) => setFeedback({ ...feedback, [s.id]: e.target.value })} />
-              <div className="mt-2 flex gap-2">
-                <Button size="sm" variant="gold" onClick={() => review(s.id, 'approved')}>{t('admin.tasks.approve')}</Button>
-                <Button size="sm" variant="outline" onClick={() => review(s.id, 'changes_requested')}>{t('admin.tasks.requestChanges')}</Button>
-                <Button size="sm" variant="ghost" onClick={() => review(s.id, 'rejected')}>{t('admin.tasks.reject')}</Button>
-              </div>
+              {(s.returned_count ?? 0) > 0 && <p className="mt-1 text-xs text-amber-700">{t('passing.tasks.returned', { n: s.returned_count })}</p>}
+              {s.status === 'pending_final' ? (
+                can('tasks.final_approve') ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2"><Badge color="gold">{t('passing.tasks.pending_final')}</Badge>
+                    <Button size="sm" variant="gold" onClick={() => review(s.id, 'approved', true)}>{t('passing.tasks.finalApprove')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => review(s.id, 'returned', true)}>{t('passing.tasks.returnIt')}</Button>
+                    <Button size="sm" variant="ghost" onClick={() => review(s.id, 'rejected', true)}>{t('passing.tasks.reject')}</Button>
+                  </div>
+                ) : <div className="mt-2"><Badge color="gold">{t('passing.tasks.pending_final')}</Badge></div>
+              ) : (
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="gold" onClick={() => review(s.id, 'approved')}>{t('admin.tasks.approve')}</Button>
+                  <Button size="sm" variant="outline" onClick={() => review(s.id, 'returned')}>{t('admin.tasks.requestChanges')}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => review(s.id, 'rejected')}>{t('admin.tasks.reject')}</Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

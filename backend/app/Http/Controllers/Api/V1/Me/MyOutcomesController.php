@@ -172,6 +172,7 @@ class MyOutcomesController extends MyTrainingController
             'downloadable' => $service->downloadable($c),
             'survey_required' => $c->status === 'valid' && ! $service->downloadable($c),
             'registration_id' => $c->registration_id,
+            'type' => $c->type,
         ])]);
     }
 

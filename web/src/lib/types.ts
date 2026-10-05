@@ -90,12 +90,13 @@ export type Registration = {
   eligibility?: Eligibility | null; attendance_percent: number; tasks_completed: boolean; evaluation_completed: boolean
   certificate_status: string; impact_score?: number | null; completed_at?: string | null; created_at?: string; certificate?: Certificate | null
   has_course?: boolean; course_percent?: number; course_completed?: boolean
+  pass_status?: string; passed_via?: string | null; weighted_score?: number | null; participation_percent?: number; certificates?: Certificate[]
 }
 
 export type Certificate = {
   id: string; certificate_no: string; verification_code: string; verification_url: string; issued_at: string; hours: number; status: string
   program?: { id: string; code: string; title: string }; employee?: { id: string; employee_no: string; name: string }; download_url: string
-  is_sent: boolean; sent_at: string | null; sent_count: number; sent_to: string | null; sent_by: string | null; send_error: string | null
+  type?: 'attendance' | 'pass'; hours_mode?: string; hours_total?: number | null; hours_actual?: number | null; is_sent: boolean; sent_at: string | null; sent_count: number; sent_to: string | null; sent_by: string | null; send_error: string | null
 }
 
 export type CertificateSendResult = {

@@ -371,6 +371,7 @@ class AttendanceService
             'attendance_id' => $records->get($r->id)?->id,
             'method' => $records->get($r->id)?->method,
             'leave_minutes' => $records->get($r->id)?->leave_minutes ?? 0,
+            'participated' => (bool) ($records->get($r->id)?->participated ?? false),
         ])->values();
 
         return [
