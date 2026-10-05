@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
   Award, Bug, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert } from 'lucide-react'
@@ -204,6 +205,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   return (
     <div className="flex min-h-screen bg-ivory">
       <ImpersonationBanner />
+      <FeatureBanner />
       <div className="fixed inset-y-0 start-0 z-30 hidden lg:block" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHovering(false) }}>{renderSidebar(!expanded, false)}</div>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setOpen(false)}>

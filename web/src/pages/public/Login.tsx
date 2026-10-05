@@ -6,6 +6,7 @@ import Logo from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { MinistryOfEducation } from '@/components/public/QatarArt'
 import { Button, Field } from '@/components/ui'
+import { useGet } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
 import { homeFor, useAuth } from '@/lib/auth'
 import { useCenterName } from '@/lib/ThemeProvider'
@@ -17,8 +18,9 @@ const DEMO = [
 
 const TEST_ACCOUNTS: [string, string][] = [['trainee1@tedc.qa', 'متدرب 1'], ['trainee2@tedc.qa', 'متدرب 2'], ['trainee3@tedc.qa', 'متدرب 3'], ['trainee4@tedc.qa', 'متدرب 4'], ['trainer1@tedc.qa', 'مدرب 1'], ['trainer2@tedc.qa', 'مدرب 2']]
 
-// Demo accounts panel: shown by default (also on the live site); build with VITE_SHOW_DEMO_ACCOUNTS=false to hide it.
-const SHOW_DEMO = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
+// The demo accounts panel appears only where the server is in demo mode (never on a live system by default; see DemoGuard).
+// A build can still hide it with VITE_SHOW_DEMO_ACCOUNTS=false.
+const DEMO_BUILD = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
 const DEMO_PASSWORD = 'Tedc@2026!'
 
 export default function Login() {
@@ -31,6 +33,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const config = useGet<{ data: { demo_accounts?: boolean } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
+  const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true
 
   if (user) return <Navigate to={homeFor(user)} replace />
 

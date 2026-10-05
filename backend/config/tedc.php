@@ -110,6 +110,9 @@ return [
         'autosnapshot_minutes' => 10,
     ],
 
+    // Demo data on a live system is opt-in: only a demonstration deployment sets TEDC_ALLOW_DEMO_IN_PRODUCTION=true.
+    'demo' => ['allow_in_production' => (bool) env('TEDC_ALLOW_DEMO_IN_PRODUCTION', false)],
+
     'ai' => [
         'provider' => env('TEDC_AI_PROVIDER', 'anthropic'),
         'api_key' => env('ANTHROPIC_API_KEY'),

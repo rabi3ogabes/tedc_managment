@@ -154,3 +154,13 @@ seeded default (`database/seeders/RolePermissionSeeder.php`). School admins are 
 * Append-only `audit_logs` (database trigger) for creates/updates/deletes and role/permission changes.
 * Rate limits on login, verification, contact, QR scan, AI and general API usage; security headers on responses.
 * Mobile: tokens in Keychain/Keystore; HTTPS-only network security config (cleartext only for the emulator host).
+
+## Feature flags and production safety
+
+`config/features.php` defines every flag (title, description, owner phase, `unsafe`, defaults per environment). `App\Services\FeatureSettings` merges the defaults with overrides stored in `site_settings` (`features` key) and audits every change; `App\Support\Features::enabled('key')` is the single question the code asks, the `feature:` middleware gates routes, and the web (`useFeature`) and app (`featureOn`) read the same map from `GET /features`.
+
+In production the four demonstration/support tools (`impersonation`, `test_accounts`, `demo_scenarios`, `self_heal`) default to **off**; enabling one needs `users.manage` and a reason, and a banner is shown to every administrator. `App\Support\DemoGuard` keeps demo seeders and the demo-accounts panel out of production unless `TEDC_ALLOW_DEMO_IN_PRODUCTION=true`. The error auto-fixer only suggests remedies while `self_heal` is off.
+
+## RFP traceability
+
+`docs/rfp/gap-register.md` is the source of truth; `php artisan tedc:rfp-status` turns it into `backend/resources/rfp/status.json` (read by Settings → RFP Compliance) and `docs/rfp/compliance-sheet.md`.

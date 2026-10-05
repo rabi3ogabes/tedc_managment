@@ -233,3 +233,15 @@ from the storyboard (WebM with captions).
 | GET / PUT | `/admin/settings/push` | `settings.manage`: settings (the service account is write-only), categories, stats, delivery log |
 | POST | `/admin/settings/push/verify` | `settings.manage`: sign in to Google with the service account |
 | POST | `/admin/settings/push/test` | `settings.manage`: test notification to own devices (`audience=me`) or all devices (`audience=all`) |
+
+## Feature flags and RFP compliance (Phase 00)
+
+| Method | Path | Access |
+|---|---|---|
+| GET | `/features` | signed in: `{flags: {key: bool}, unsafe_active: [key], environment}` — which features are on (web `useFeature`, app `featureOn`) |
+| GET | `/admin/features` | `settings.manage`: every flag with title, description, default, source (default/override), reason and the last five changes |
+| PUT | `/admin/features/{key}` | `settings.manage`: `{enabled, reason?}`. In production, switching on `impersonation`, `test_accounts`, `demo_scenarios` or `self_heal` also needs `users.manage` and a reason (≥ 5 characters); audited as `feature_toggled` |
+| GET | `/admin/rfp-status` | `settings.manage`: coverage of the RFP's requirements (totals, phases, modules with items, the 31 main items), generated from `docs/rfp/gap-register.md` |
+| GET | `/public/mobile-config` | now also returns `demo_accounts` (true only where demo mode is on) |
+
+Routes can be gated with the `feature:<key>` middleware; a disabled feature answers `403` with `code: feature_disabled`.

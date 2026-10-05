@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\AttendanceSettings;
 use App\Services\Push\PushSettings;
 use App\Services\ThemeService;
+use App\Support\DemoGuard;
+use App\Support\Features;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -20,6 +22,8 @@ class MobileConfigController extends Controller
 
         return response()->json(['data' => [
             'push' => $push->forMobile(),
+            // The sign-in screens list the demo accounts only where demo mode is on (never on a live system by default).
+            'demo_accounts' => DemoGuard::allowed() && Features::enabled('test_accounts'),
             'attendance' => ['geofence' => $attendance->all()['geofence_enabled']],
             'brand' => [
                 'primary' => $t['colors']['primary'],

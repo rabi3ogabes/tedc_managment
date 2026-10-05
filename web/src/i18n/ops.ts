@@ -83,6 +83,20 @@ export const opsAr = {
     nav: 'محاولات الحضور', title: 'محاولات تسجيل الحضور', subtitle: 'كل مسح لم يُسجَّل به حضور مع السبب: برنامج غير مُسند، حاضر بالفعل، رمز منتهٍ وغيرها.', last7: 'آخر ٧ أيام', empty: 'لا توجد محاولات مرفوضة. كل شيء يسير جيداً.',
     codes: { not_registered: 'برنامج غير مُسند', already_present: 'حاضر بالفعل', already_checked_out: 'خرج بالفعل', not_checked_in: 'خروج قبل الحضور', invalid_qr: 'رمز غير صالح', not_open: 'قبل الموعد', closed: 'بعد الإغلاق', biometric_required: 'بدون تحقق بالبصمة', location_required: 'بدون موقع', outside_venue: 'خارج مكان التدريب' },
   },
+  features: {
+    title: 'الميزات والأدوات', subtitle: 'شغّل أو أوقف ميزات المنصة. الأدوات الحذرة تبدأ متوقفة على النظام الحي ولا تُفعَّل إلا بسبب مكتوب، وكل تغيير مسجّل.',
+    toolsTitle: 'أدوات العرض والدعم', productTitle: 'ميزات المنصة', careful: 'استخدام حذر', phase: 'المرحلة {{n}}', on: 'مفعّلة', off: 'متوقفة',
+    changed: 'غُيّرت من الإعدادات', byDefault: 'الوضع الافتراضي: {{state}}', because: 'السبب:', history: 'السجل', saved: 'تم الحفظ',
+    productionNote: 'أنت على النظام الحي: تفعيل الأدوات الحذرة يتطلب صلاحية إدارة المستخدمين وسبباً مكتوباً، ويظهر تنبيه دائم لكل الإداريين.',
+    askTitle: 'تفعيل «{{name}}»', askBody: 'هذه الأداة تُستخدم بحذر على النظام الحي. اكتب سبب التفعيل ليُحفظ في سجل التدقيق.', reason: 'السبب', reasonPlaceholder: 'مثال: عرض للوزارة يوم الأحد', turnOn: 'تفعيل', cancel: 'إلغاء',
+    banner: 'أدوات حذرة مفعّلة على النظام الحي: {{tools}}.', review: 'مراجعة',
+    names: { impersonation: 'الدخول بحساب مستخدم', test_accounts: 'الحسابات التجريبية', demo_scenarios: 'سيناريو العرض', self_heal: 'الإصلاح التلقائي' },
+  },
+  rfp: {
+    title: 'الامتثال لكراسة الشروط', subtitle: 'تغطية المنصة لمتطلبات كراسة الشروط حسب الوحدة والمرحلة، مع الدليل على كل متطلب.', coverage: 'نسبة التغطية (المتوفر كاملاً + نصف الجزئي)',
+    status: { available: 'متوفر', partial: 'جزئي', missing: 'غير متوفر', vendor: 'للمورّد' }, mandatory: 'إلزامي', mandatoryOnly: 'الإلزامية فقط', phases: 'مراحل التنفيذ', phase: 'مرحلة {{n}}',
+    search: 'ابحث برقم المتطلب أو نصه…', empty: 'لا توجد متطلبات بهذه المرشحات.', main31: 'المتطلبات الرئيسية (٣١)', generated: 'آخر تحديث للسجل: {{date}}',
+  },
   lobby: {
     title: 'شاشة برامج اليوم', subtitle: 'شاشة رأسية (1080 × 1920) في الردهة: تعرض برامج اليوم تلقائياً (البرنامج والقاعة والطابق والمنسق) ثم الصور التي تضيفها أنت، بالتوقيت والانتقال الذي تختاره.',
     link: 'رابط الشاشة', linkHint: 'افتحه على شاشة العرض (متصفح ملء الشاشة). يتحدّث وحده كل دقيقة.', copy: 'نسخ الرابط', copied: 'تم النسخ', open: 'فتح الشاشة', regenerate: 'رابط جديد', regenerateConfirm: 'سيتوقف الرابط الحالي عن العمل وعليك فتح الرابط الجديد على الشاشة. متابعة؟',
@@ -202,6 +216,20 @@ export const opsEn: typeof opsAr = {
   attempts: {
     nav: 'Attendance attempts', title: 'Attendance attempts', subtitle: 'Every scan that did not record attendance, with the reason: program not assigned, already present, expired code and more.', last7: 'Last 7 days', empty: 'No refused attempts. All is well.',
     codes: { not_registered: 'Program not assigned', already_present: 'Already present', already_checked_out: 'Already left', not_checked_in: 'Exit before entry', invalid_qr: 'Invalid code', not_open: 'Too early', closed: 'Closed', biometric_required: 'No fingerprint check', location_required: 'No location', outside_venue: 'Outside the venue' },
+  },
+  features: {
+    title: 'Features & tools', subtitle: 'Switch platform features on or off. Careful tools start off on the live system and need a written reason; every change is recorded.',
+    toolsTitle: 'Demonstration and support tools', productTitle: 'Platform features', careful: 'Use with care', phase: 'Phase {{n}}', on: 'On', off: 'Off',
+    changed: 'Changed in settings', byDefault: 'Default: {{state}}', because: 'Reason:', history: 'History', saved: 'Saved',
+    productionNote: 'You are on the live system: switching on a careful tool needs the manage-users permission and a written reason, and shows a permanent banner to every administrator.',
+    askTitle: 'Turn on “{{name}}”', askBody: 'This tool is used with care on a live system. Write why it is needed; it is kept in the audit log.', reason: 'Reason', reasonPlaceholder: 'For example: presentation to the Ministry on Sunday', turnOn: 'Turn on', cancel: 'Cancel',
+    banner: 'Careful tools are switched on on the live system: {{tools}}.', review: 'Review',
+    names: { impersonation: 'Sign in as a user', test_accounts: 'Test accounts', demo_scenarios: 'Demo scenario', self_heal: 'Automatic fixing' },
+  },
+  rfp: {
+    title: 'RFP compliance', subtitle: 'How much of the RFP the platform covers, per module and phase, with the evidence for each requirement.', coverage: 'Coverage (fully available + half of partial)',
+    status: { available: 'Available', partial: 'Partial', missing: 'Missing', vendor: 'Vendor' }, mandatory: 'Mandatory', mandatoryOnly: 'Mandatory only', phases: 'Delivery phases', phase: 'Phase {{n}}',
+    search: 'Search by requirement id or text…', empty: 'No requirements match these filters.', main31: 'The 31 main requirements', generated: 'Register last updated: {{date}}',
   },
   lobby: {
     title: "Today's programs screen", subtitle: "A portrait screen (1080 × 1920) in the lobby: today's programs shown automatically (program, room, floor, coordinator), then the images you add, with the timing and transition you choose.",

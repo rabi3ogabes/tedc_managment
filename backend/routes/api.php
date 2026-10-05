@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
+use App\Http\Controllers\Api\V1\Admin\RfpStatusController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
@@ -54,6 +55,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
+use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
@@ -160,6 +162,9 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware(['auth:api', 'throttle:api'])->group(function () {
+
+        // Which features are on (web and app read this once and cache it).
+        Route::get('features', [FeaturesController::class, 'map']);
 
         // Employee self-service -----------------------------------------------
         Route::prefix('me')->group(function () {
@@ -633,6 +638,9 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
                 // Attendance rules (location check)
+                Route::get('rfp-status', RfpStatusController::class);
+                Route::get('features', [FeaturesController::class, 'index']);
+                Route::put('features/{key}', [FeaturesController::class, 'update'])->middleware('throttle:30,1');
                 Route::get('settings/ai-models', [AiModelsController::class, 'show']);
                 Route::post('settings/ai-models/connections', [AiModelsController::class, 'saveConnection']);
                 Route::put('settings/ai-models/connections/{id}', [AiModelsController::class, 'saveConnection']);
@@ -681,11 +689,13 @@ Route::prefix('v1')->group(function () {
 
             // Users, roles, audit
             Route::middleware('permission:users.manage')->group(function () {
-                Route::get('test-accounts', [TestAccountsController::class, 'show']);
-                Route::post('test-accounts', [TestAccountsController::class, 'seed']);
-                Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware('throttle:30,1');
-                Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware('throttle:20,1');
-                Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop']);
+                Route::middleware('feature:test_accounts')->group(function () {
+                    Route::get('test-accounts', [TestAccountsController::class, 'show']);
+                    Route::post('test-accounts', [TestAccountsController::class, 'seed']);
+                    Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware(['feature:demo_scenarios', 'throttle:30,1']);
+                });
+                Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware(['feature:impersonation', 'throttle:20,1']);
+                Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop'])->middleware('feature:impersonation');
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);

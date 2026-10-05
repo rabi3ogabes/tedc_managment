@@ -114,11 +114,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ]),
               ),
             ),
-            if (AppConfig.showDemoAccounts) _DemoAccounts(onPick: _useDemo),
+            // Demo accounts only where the server is in demo mode (never on a live system by default).
+            if (AppConfig.showDemoAccounts && _serverShowsDemo(ref)) _DemoAccounts(onPick: _useDemo),
           ]),
         ),
       ]),
     );
+  }
+
+  bool _serverShowsDemo(WidgetRef ref) {
+    final config = ref.watch(getProvider('/public/mobile-config')).value;
+    return config is Map && config['data'] is Map && (config['data'] as Map)['demo_accounts'] == true;
   }
 
   void _useDemo(String email) {

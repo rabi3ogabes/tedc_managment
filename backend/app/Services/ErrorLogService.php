@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\ErrorLog;
+use App\Support\Features;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -85,6 +86,12 @@ class ErrorLogService
     /** Runs the automatic remedy of the entry, if there is one. @return array{fixed: bool, rule: ?string, note: string} */
     public function tryFix(ErrorLog $log): array
     {
+        // On a live system the remedy is only suggested: nothing is changed until Settings → Features switches self-healing on.
+        if (! Features::enabled('self_heal')) {
+            $rule = $this->fixer->ruleFor($log);
+
+            return ['fixed' => false, 'suggested' => true, 'rule' => $rule, 'note' => $rule ? __('messages.features.fix_suggested', ['fix' => $this->fixer->label($rule)]) : __('messages.features.no_remedy')];
+        }
         $result = $this->fixer->fix($log);
         $log->fill(['fix_attempts' => $log->fix_attempts + 1, 'last_fix_at' => now(), 'note' => $this->appendNote($log->note, $result['rule'] ? "[{$this->fixer->label($result['rule'])}] {$result['note']}" : null)]);
         if ($result['fixed']) {

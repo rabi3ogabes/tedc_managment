@@ -187,3 +187,13 @@ Future<void> _revalidate(Ref ref, String key, String path, int generation) async
     // Offline or refused: the copy already on screen stays.
   }
 }
+
+/// Which features the administrator switched on (Settings → Features). Unknown, offline or signed out means off.
+final featuresProvider = Provider.autoDispose<Map<String, bool>>((ref) {
+  final data = ref.watch(getProvider('/features')).value;
+  final flags = data is Map && data['data'] is Map ? (data['data'] as Map)['flags'] : null;
+  return flags is Map ? {for (final e in flags.entries) e.key.toString(): e.value == true} : const <String, bool>{};
+});
+
+/// `featureOn(ref, 'offline_mobile')` — use inside build(); rebuilds when the answer arrives.
+bool featureOn(WidgetRef ref, String key) => ref.watch(featuresProvider)[key] ?? false;

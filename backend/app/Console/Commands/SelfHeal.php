@@ -6,6 +6,7 @@ use App\Models\ErrorLog;
 use App\Services\ErrorAutoFixer;
 use App\Services\ErrorLogService;
 use App\Services\ErrorLogSettings;
+use App\Support\Features;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -21,6 +22,11 @@ class SelfHeal extends Command
     {
         $s = $settings->all();
         $fixed = 0;
+        // In production the remedies are only suggested (shown in the error log) unless Settings → Features switches this on.
+        $s['auto_fix'] = $s['auto_fix'] && Features::enabled('self_heal');
+        if (! Features::enabled('self_heal')) {
+            $this->info('Automatic fixing is switched off: remedies are only suggested (Settings → Features).');
+        }
 
         // 1. A database that is behind the code is brought up to date.
         try {
@@ -44,7 +50,7 @@ class SelfHeal extends Command
         }
 
         // 3. Temporary connection errors that have not come back for half an hour are closed.
-        $recovered = ErrorLog::where('status', 'open')->where('last_seen_at', '<', now()->subMinutes(30))->get()->filter(fn (ErrorLog $l) => $fixer->ruleFor($l) === 'transient');
+        $recovered = $s['auto_fix'] ? ErrorLog::where('status', 'open')->where('last_seen_at', '<', now()->subMinutes(30))->get()->filter(fn (ErrorLog $l) => $fixer->ruleFor($l) === 'transient') : collect();
         $recovered->each(fn (ErrorLog $l) => $l->update(['status' => 'fixed', 'auto_fixed' => true, 'resolved_at' => now(), 'note' => trim(($l->note ? $l->note."\n" : '').now()->format('Y-m-d H:i').' Closed automatically: it did not recur for 30 minutes.')]));
 
         // 4. Old entries go.

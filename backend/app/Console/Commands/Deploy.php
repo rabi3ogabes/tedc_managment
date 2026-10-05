@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Role;
 use App\Models\School;
+use App\Support\DemoGuard;
 use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
@@ -25,7 +26,7 @@ class Deploy extends Command
         if (! Schema::hasTable('roles') || Role::query()->doesntExist()) {
             $this->info('Empty database — seeding.');
             $this->call('db:seed', ['--force' => true]);
-        } elseif (filter_var(env('TEDC_SEED_DEMO', false), FILTER_VALIDATE_BOOL)) {
+        } elseif (filter_var(env('TEDC_SEED_DEMO', false), FILTER_VALIDATE_BOOL) && DemoGuard::allowed()) {
             // Demo data added by later releases to an existing demo database (each seeder is idempotent).
             $this->call('db:seed', ['--class' => DemoNeedsSurveySeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
