@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 118,
-        "partial": 75,
-        "missing": 85,
+        "available": 133,
+        "partial": 65,
+        "missing": 80,
         "mandatory": 108,
-        "open": 160
+        "open": 145
     },
     "phases": [
         {
@@ -54,7 +54,7 @@
             "phase": 6,
             "title": "Assessment Engine & Interactive Learning",
             "open": 16,
-            "items": 16,
+            "items": 1,
             "done": 0
         },
         {
@@ -413,9 +413,9 @@
                     "id": "TYP-04",
                     "mandatory": true,
                     "requirement": "Pre- and post-program assessment of the trainee’s level",
-                    "status": "partial",
-                    "evidence": "Pre/post scores are numbers the trainee types on the evaluation form — no real pre-test / post-test.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md",
+                    "phase": null
                 },
                 {
                     "id": "TYP-05",
@@ -437,25 +437,25 @@
                     "id": "TYP-07",
                     "mandatory": true,
                     "requirement": "Interactive video: in-video questions / comments, pop-up control, progress gating",
-                    "status": "missing",
-                    "evidence": "Video player has no cue points or embedded questions.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Interactive video interactions with blocking and anti-distraction rules",
+                    "phase": null
                 },
                 {
                     "id": "TYP-08",
                     "mandatory": false,
                     "requirement": "Chapter quizzes from a random bank, auto-graded, gate the next chapter",
-                    "status": "partial",
-                    "evidence": "Quiz lessons with shuffle, auto-grading and sequential gating; no question bank or random draw.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Assessment builder: sections, random draw, difficulty mix, timer, attempts",
+                    "phase": null
                 },
                 {
                     "id": "TYP-09",
                     "mandatory": false,
                     "requirement": "Final exams with retry rules and re-study after failure",
-                    "status": "partial",
-                    "evidence": "Max attempts supported; no forced re-study loop.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Diagnostic and comprehensive skills tests; results feed employee skills",
+                    "phase": null
                 },
                 {
                     "id": "TYP-10",
@@ -469,9 +469,9 @@
                     "id": "TYP-11",
                     "mandatory": true,
                     "requirement": "Exams taken remotely or in-centre via a secret access code",
-                    "status": "missing",
-                    "evidence": "No exam access codes.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Pre/post tests with knowledge gain against the 35% target",
+                    "phase": null
                 },
                 {
                     "id": "TYP-12",
@@ -485,9 +485,9 @@
                     "id": "TYP-13",
                     "mandatory": true,
                     "requirement": "Anti-distraction: prevent pause, seek or minimise during video",
-                    "status": "partial",
-                    "evidence": "Seek lock, max speed, minimum watch %, auto-pause when hidden; no fullscreen / pause lock.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Lesson quizzes migrated to the bank; lesson gating by assessment",
+                    "phase": null
                 },
                 {
                     "id": "TYP-14",
@@ -1108,9 +1108,9 @@
                     "id": "PAS-02",
                     "mandatory": false,
                     "requirement": "Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop",
-                    "status": "partial",
-                    "evidence": "Single, multiple and true/false only.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Pass mark, attempts, cooldown, restudy rule per assessment",
+                    "phase": null
                 },
                 {
                     "id": "PAS-03",
@@ -1140,9 +1140,9 @@
                     "id": "PAS-06",
                     "mandatory": false,
                     "requirement": "Objective questions auto-graded; essays graded manually",
-                    "status": "partial",
-                    "evidence": "No essay type or manual grading.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Manual grading queue, regrade with replacement, release of results",
+                    "phase": null
                 },
                 {
                     "id": "PAS-07",
@@ -1416,9 +1416,9 @@
                     "id": "EXM-01",
                     "mandatory": true,
                     "requirement": "Final, short and diagnostic tests",
-                    "status": "partial",
-                    "evidence": "Quiz lessons only; no diagnostic / final typing.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "14 question types incl. essay, matching, ordering, hotspot, numeric",
+                    "phase": null
                 },
                 {
                     "id": "EXM-02",
@@ -1440,33 +1440,33 @@
                     "id": "EXM-04",
                     "mandatory": true,
                     "requirement": "Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Question banks with categories, tags, difficulty, versions, import/export",
+                    "phase": null
                 },
                 {
                     "id": "EXM-05",
                     "mandatory": true,
                     "requirement": "Question banks by course / unit / difficulty, reusable, with media",
-                    "status": "missing",
-                    "evidence": "Questions belong to one lesson.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Random draw by category and difficulty mix; shuffling",
+                    "phase": null
                 },
                 {
                     "id": "EXM-06",
                     "mandatory": false,
                     "requirement": "Random selection from a bank",
-                    "status": "partial",
-                    "evidence": "Shuffle inside one quiz; no bank draw.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Server-owned timer, autosave, resume, extra time",
+                    "phase": null
                 },
                 {
                     "id": "EXM-07",
                     "mandatory": false,
                     "requirement": "Auto + manual grading, immediate / deferred feedback, question weights",
-                    "status": "partial",
-                    "evidence": "Auto-grading, points, show-answers modes; no manual grading.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Static and rotating access codes for in-centre exams",
+                    "phase": null
                 },
                 {
                     "id": "EXM-08",
@@ -1481,24 +1481,24 @@
                     "mandatory": false,
                     "requirement": "Access codes and submission timestamps",
                     "status": "partial",
-                    "evidence": "Timestamps only.",
+                    "evidence": "Integrity events, thresholds, snapshots (browser consent); face check best-effort",
                     "phase": 6
                 },
                 {
                     "id": "EXM-10",
                     "mandatory": true,
                     "requirement": "Anti-cheating: activity tracking, face recognition",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Live invigilation: attempts, flags, extend, void",
+                    "phase": null
                 },
                 {
                     "id": "EXM-11",
                     "mandatory": false,
                     "requirement": "Result analytics per trainee, group and program",
-                    "status": "partial",
-                    "evidence": "Per-lesson course analytics; no item analysis.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Item analysis, difficulty and discrimination, distractors, by group",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T13:36:27+03:00"
+    "generated_at": "2026-10-05T14:01:30+03:00"
 }

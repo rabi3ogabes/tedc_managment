@@ -10,6 +10,7 @@ use App\Models\Evaluation;
 use App\Models\LessonProgress;
 use App\Models\Question;
 use App\Models\QuestionBank;
+use App\Models\QuizQuestion;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\Skill;
@@ -197,7 +198,7 @@ class AssessmentExtrasTest extends TestCase
         $program = $this->makeProgram();
         $module = CourseModule::create(['program_id' => $program->id, 'title_ar' => 'و', 'title_en' => 'U', 'sort_order' => 0]);
         $lesson = CourseLesson::create(['program_id' => $program->id, 'module_id' => $module->id, 'type' => 'quiz', 'title_ar' => 'اختبار', 'title_en' => 'Quiz', 'sort_order' => 0, 'is_required' => true, 'status' => 'published', 'settings' => ['pass_percent' => 80]]);
-        \App\Models\QuizQuestion::create(['lesson_id' => $lesson->id, 'type' => 'single', 'text_ar' => 'س', 'options' => [['id' => 'a', 'text_ar' => 'ص', 'correct' => true], ['id' => 'b', 'text_ar' => 'خ', 'correct' => false]], 'points' => 2, 'sort_order' => 0]);
+        QuizQuestion::create(['lesson_id' => $lesson->id, 'type' => 'single', 'text_ar' => 'س', 'options' => [['id' => 'a', 'text_ar' => 'ص', 'correct' => true], ['id' => 'b', 'text_ar' => 'خ', 'correct' => false]], 'points' => 2, 'sort_order' => 0]);
 
         $this->artisan('tedc:migrate-lesson-quizzes')->assertSuccessful();
         $this->artisan('tedc:migrate-lesson-quizzes')->assertSuccessful();

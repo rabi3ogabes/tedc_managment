@@ -7,6 +7,7 @@ import 'core/error_reporter.dart';
 import 'core/providers.dart';
 import 'features/course/course_screen.dart';
 import 'features/course/lesson_screen.dart';
+import 'features/assessment/assessments_screen.dart';
 import 'features/needs/needs_survey_screen.dart';
 import 'features/attendance/scan_screen.dart';
 import 'features/auth/login_screen.dart';
@@ -71,6 +72,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-qr', builder: (_, _) => const MyQrScreen()),
           GoRoute(path: '/approvals', builder: (_, _) => const ApprovalsScreen()),
           GoRoute(path: '/my-needs', builder: (_, _) => const NeedsScreen()),
+          GoRoute(path: '/my-assessments', builder: (_, _) => const AssessmentsScreen()),
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),
           GoRoute(path: '/courses/:id', builder: (_, s) => CourseScreen(registrationId: s.pathParameters['id']!)),
@@ -83,6 +85,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/needs-surveys', builder: (_, _) => const NeedsSurveysScreen()),
         ],
       ),
+      GoRoute(path: '/assessments/:id/take', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: ExamScreen(id: s.pathParameters['id']!, needsCode: s.extra == true))),
+      GoRoute(path: '/attempts/:id', builder: (_, s) => AttemptResultScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/needs-surveys/:id', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: NeedsSurveyScreen(id: s.pathParameters['id']!))),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => HomeShell(shell: shell),

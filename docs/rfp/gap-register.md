@@ -142,38 +142,38 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 06 — Assessment Engine & Interactive Learning  (16)
 
-- [ ] **TYP-04** ★ — Pre- and post-program assessment of the trainee’s level  
-  _Now:_ 🟡 Partial — Pre/post scores are numbers the trainee types on the evaluation form — no real pre-test / post-test.
-- [ ] **TYP-07** ★ — Interactive video: in-video questions / comments, pop-up control, progress gating  
-  _Now:_ 🔴 Missing — Video player has no cue points or embedded questions.
-- [ ] **TYP-08** — Chapter quizzes from a random bank, auto-graded, gate the next chapter  
-  _Now:_ 🟡 Partial — Quiz lessons with shuffle, auto-grading and sequential gating; no question bank or random draw.
-- [ ] **TYP-09** — Final exams with retry rules and re-study after failure  
-  _Now:_ 🟡 Partial — Max attempts supported; no forced re-study loop.
-- [ ] **TYP-11** ★ — Exams taken remotely or in-centre via a secret access code  
-  _Now:_ 🔴 Missing — No exam access codes.
-- [ ] **TYP-13** ★ — Anti-distraction: prevent pause, seek or minimise during video  
-  _Now:_ 🟡 Partial — Seek lock, max speed, minimum watch %, auto-pause when hidden; no fullscreen / pause lock.
-- [ ] **PAS-02** — Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop  
-  _Now:_ 🟡 Partial — Single, multiple and true/false only.
-- [ ] **PAS-06** — Objective questions auto-graded; essays graded manually  
-  _Now:_ 🟡 Partial — No essay type or manual grading.
-- [ ] **EXM-01** ★ — Final, short and diagnostic tests  
-  _Now:_ 🟡 Partial — Quiz lessons only; no diagnostic / final typing.
-- [ ] **EXM-04** ★ — Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EXM-05** ★ — Question banks by course / unit / difficulty, reusable, with media  
-  _Now:_ 🔴 Missing — Questions belong to one lesson.
-- [ ] **EXM-06** — Random selection from a bank  
-  _Now:_ 🟡 Partial — Shuffle inside one quiz; no bank draw.
-- [ ] **EXM-07** — Auto + manual grading, immediate / deferred feedback, question weights  
-  _Now:_ 🟡 Partial — Auto-grading, points, show-answers modes; no manual grading.
-- [ ] **EXM-09** — Access codes and submission timestamps  
-  _Now:_ 🟡 Partial — Timestamps only.
-- [ ] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EXM-11** — Result analytics per trainee, group and program  
-  _Now:_ 🟡 Partial — Per-lesson course analytics; no item analysis.
+- [x] **TYP-04** ★ — Pre- and post-program assessment of the trainee’s level  
+  _Now:_ ✅ Available — Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md
+- [x] **TYP-07** ★ — Interactive video: in-video questions / comments, pop-up control, progress gating  
+  _Now:_ ✅ Available — Interactive video interactions with blocking and anti-distraction rules
+- [x] **TYP-08** — Chapter quizzes from a random bank, auto-graded, gate the next chapter  
+  _Now:_ ✅ Available — Assessment builder: sections, random draw, difficulty mix, timer, attempts
+- [x] **TYP-09** — Final exams with retry rules and re-study after failure  
+  _Now:_ ✅ Available — Diagnostic and comprehensive skills tests; results feed employee skills
+- [x] **TYP-11** ★ — Exams taken remotely or in-centre via a secret access code  
+  _Now:_ ✅ Available — Pre/post tests with knowledge gain against the 35% target
+- [x] **TYP-13** ★ — Anti-distraction: prevent pause, seek or minimise during video  
+  _Now:_ ✅ Available — Lesson quizzes migrated to the bank; lesson gating by assessment
+- [x] **PAS-02** — Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop  
+  _Now:_ ✅ Available — Pass mark, attempts, cooldown, restudy rule per assessment
+- [x] **PAS-06** — Objective questions auto-graded; essays graded manually  
+  _Now:_ ✅ Available — Manual grading queue, regrade with replacement, release of results
+- [x] **EXM-01** ★ — Final, short and diagnostic tests  
+  _Now:_ ✅ Available — 14 question types incl. essay, matching, ordering, hotspot, numeric
+- [x] **EXM-04** ★ — Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible  
+  _Now:_ ✅ Available — Question banks with categories, tags, difficulty, versions, import/export
+- [x] **EXM-05** ★ — Question banks by course / unit / difficulty, reusable, with media  
+  _Now:_ ✅ Available — Random draw by category and difficulty mix; shuffling
+- [x] **EXM-06** — Random selection from a bank  
+  _Now:_ ✅ Available — Server-owned timer, autosave, resume, extra time
+- [x] **EXM-07** — Auto + manual grading, immediate / deferred feedback, question weights  
+  _Now:_ ✅ Available — Static and rotating access codes for in-centre exams
+- [x] **EXM-09** — Access codes and submission timestamps  
+  _Now:_ 🟡 Partial — Integrity events, thresholds, snapshots (browser consent); face check best-effort
+- [x] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
+  _Now:_ ✅ Available — Live invigilation: attempts, flags, extend, void
+- [x] **EXM-11** — Result analytics per trainee, group and program  
+  _Now:_ ✅ Available — Item analysis, difficulty and discrimination, distractors, by group
 
 ### Phase 07 — Passing Rules & Certificates  (6)
 
@@ -534,16 +534,16 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-01 | In-person: registration, acceptance, attendance | ✅ Available | Full lifecycle with QR attendance. | — |
 | TYP-02 | In-person: training-room allocation | ✅ Available | Room conflict check and best-fit room suggestion. | — |
 | TYP-03 | In-person: pass recording and certificates | ✅ Available | Smart Certificate Engine. | — |
-| TYP-04 ★ | Pre- and post-program assessment of the trainee’s level | 🟡 Partial | Pre/post scores are numbers the trainee types on the evaluation form — no real pre-test / post-test. | 6 |
+| TYP-04 ★ | Pre- and post-program assessment of the trainee’s level | ✅ Available | Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md | — |
 | TYP-05 ★ | Synchronous remote training via Microsoft Teams | 🟡 Partial | Teams / Zoom / Meet / Webex join links + in-app join/leave tracking; no Microsoft Graph integration. | 13 |
 | TYP-06 | E-learning hierarchy: categories, programs, chapters, topics, recorded video | ✅ Available | Category → Program → Module → Lesson (video, slides, quiz, survey, article). | — |
-| TYP-07 ★ | Interactive video: in-video questions / comments, pop-up control, progress gating | 🔴 Missing | Video player has no cue points or embedded questions. | 6 |
-| TYP-08 | Chapter quizzes from a random bank, auto-graded, gate the next chapter | 🟡 Partial | Quiz lessons with shuffle, auto-grading and sequential gating; no question bank or random draw. | 6 |
-| TYP-09 | Final exams with retry rules and re-study after failure | 🟡 Partial | Max attempts supported; no forced re-study loop. | 6 |
+| TYP-07 ★ | Interactive video: in-video questions / comments, pop-up control, progress gating | ✅ Available | Interactive video interactions with blocking and anti-distraction rules | — |
+| TYP-08 | Chapter quizzes from a random bank, auto-graded, gate the next chapter | ✅ Available | Assessment builder: sections, random draw, difficulty mix, timer, attempts | — |
+| TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Diagnostic and comprehensive skills tests; results feed employee skills | — |
 | TYP-10 | Contact the trainer and ask questions from inside the course | 🔴 Missing | No learner ↔ trainer Q&A channel. | 14 |
-| TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | 🔴 Missing | No exam access codes. | 6 |
+| TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Pre/post tests with knowledge gain against the 35% target | — |
 | TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🔴 Missing | Mobile caches last GET responses (read-only); no offline download, sync or resumable exams. | 10 |
-| TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | 🟡 Partial | Seek lock, max speed, minimum watch %, auto-pause when hidden; no fullscreen / pause lock. | 6 |
+| TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Lesson quizzes migrated to the bank; lesson gating by assessment | — |
 | TYP-14 | Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs | 🔴 Missing | No content-provider connectors. | 10 |
 | TYP-15 ★ | SCORM and H5P support with tracking and reuse | 🔴 Missing | No SCORM runtime or H5P embedding. | 10 |
 | TYP-16 | Admin suggests / assigns programs by history, job title or job group | ✅ Available | Recommendation engine, audience builder, centre nomination. | — |
@@ -658,11 +658,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | PAS-01 ★ | Pass criteria with relative weights (attendance, participation, tasks, tests) | 🟡 Partial | Pass/fail checks (attendance, tasks, evaluation, course); no weights or participation %. | 7 |
-| PAS-02 | Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop | 🟡 Partial | Single, multiple and true/false only. | 6 |
+| PAS-02 | Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop | ✅ Available | Pass mark, attempts, cooldown, restudy rule per assessment | — |
 | PAS-03 | Required tasks set per course and submitted electronically | ✅ Available | Tasks with file / text submissions and versions. | — |
 | PAS-04 | Trainer approves, rejects or returns tasks with notes | ✅ Available | Submission review. | — |
 | PAS-05 | Final approval by course supervisor; auto-approval for self-learning | 🟡 Partial | One review stage only. | 7 |
-| PAS-06 | Objective questions auto-graded; essays graded manually | 🟡 Partial | No essay type or manual grading. | 6 |
+| PAS-06 | Objective questions auto-graded; essays graded manually | ✅ Available | Manual grading queue, regrade with replacement, release of results | — |
 | PAS-07 | Pass via a comprehensive skills test without attending | 🔴 Missing | Not available. | 7 |
 | PAS-08 ★ | Certificate designer: logos, background, watermark, text, e-signature | ✅ Available | Designer from PDF / image templates, bilingual PDF (mPDF). | — |
 | PAS-09 | Certificate hours: total vs actually attended | 🟡 Partial | Hours stored; no switch. | 7 |
@@ -713,17 +713,17 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| EXM-01 ★ | Final, short and diagnostic tests | 🟡 Partial | Quiz lessons only; no diagnostic / final typing. | 6 |
+| EXM-01 ★ | Final, short and diagnostic tests | ✅ Available | 14 question types incl. essay, matching, ordering, hotspot, numeric | — |
 | EXM-02 ★ | Timed and open-duration tests | ✅ Available | Time limit per quiz. | — |
 | EXM-03 ★ | Question types: multiple choice, multi-select, true/false | ✅ Available | Supported. | — |
-| EXM-04 ★ | Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible | 🔴 Missing | Not available. | 6 |
-| EXM-05 ★ | Question banks by course / unit / difficulty, reusable, with media | 🔴 Missing | Questions belong to one lesson. | 6 |
-| EXM-06 | Random selection from a bank | 🟡 Partial | Shuffle inside one quiz; no bank draw. | 6 |
-| EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | 🟡 Partial | Auto-grading, points, show-answers modes; no manual grading. | 6 |
+| EXM-04 ★ | Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible | ✅ Available | Question banks with categories, tags, difficulty, versions, import/export | — |
+| EXM-05 ★ | Question banks by course / unit / difficulty, reusable, with media | ✅ Available | Random draw by category and difficulty mix; shuffling | — |
+| EXM-06 | Random selection from a bank | ✅ Available | Server-owned timer, autosave, resume, extra time | — |
+| EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | ✅ Available | Static and rotating access codes for in-centre exams | — |
 | EXM-08 | Attempts, time limit, show / hide results | ✅ Available | Supported. | — |
-| EXM-09 | Access codes and submission timestamps | 🟡 Partial | Timestamps only. | 6 |
-| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | 🔴 Missing | Not available. | 6 |
-| EXM-11 | Result analytics per trainee, group and program | 🟡 Partial | Per-lesson course analytics; no item analysis. | 6 |
+| EXM-09 | Access codes and submission timestamps | 🟡 Partial | Integrity events, thresholds, snapshots (browser consent); face check best-effort | 6 |
+| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | ✅ Available | Live invigilation: attempts, flags, extend, void | — |
+| EXM-11 | Result analytics per trainee, group and program | ✅ Available | Item analysis, difficulty and discrimination, distractors, by group | — |
 
 ### NTF · Notifications & Announcements — إدارة الإشعارات
 
