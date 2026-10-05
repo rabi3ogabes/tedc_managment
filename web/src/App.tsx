@@ -41,6 +41,8 @@ const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
 const PassingPolicies = lazy(() => import('@/pages/admin/PassingPolicies'))
 const EvaluationForms = lazy(() => import('@/pages/admin/EvaluationForms'))
 const EvaluationSettings = lazy(() => import('@/pages/admin/EvaluationSettings'))
+const CareerPaths = lazy(() => import('@/pages/admin/CareerPaths'))
+const PdCentre = lazy(() => import('@/pages/admin/PdCentre'))
 const QuestionBanks = lazy(() => import('@/pages/admin/QuestionBanks'))
 const NeedsHub = lazy(() => import('@/pages/admin/needshub/NeedsHub'))
 const MyNeeds = lazy(() => import('@/pages/portal/MyNeeds'))
@@ -84,6 +86,7 @@ const Learn = lazy(() => import('@/pages/portal/Learn'))
 const Wallet = lazy(() => import('@/pages/portal/Wallet'))
 const MyTasks = lazy(() => import('@/pages/portal/MyTasks'))
 const Surveys = lazy(() => import('@/pages/portal/Surveys'))
+const MyGrowth = lazy(() => import('@/pages/portal/MyGrowth'))
 const MyEvaluations = lazy(() => import('@/pages/portal/MyEvaluations'))
 const MyEvaluationForm = lazy(() => import('@/pages/portal/MyEvaluations').then((m) => ({ default: m.MyEvaluationForm })))
 const Notifications = lazy(() => import('@/pages/portal/Notifications'))
@@ -123,6 +126,8 @@ export default function App() {
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
           <Route path="evaluation-forms" element={<RequireAuth permission="evaluations.manage"><EvaluationForms /></RequireAuth>} />
           <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />
+          <Route path="career-paths" element={<RequireAuth permission="paths.manage|licences.manage"><CareerPaths /></RequireAuth>} />
+          <Route path="pd-centre" element={<RequireAuth permission="pd.recognise|pd.approve|pd.types.manage|knowledge_transfer.review"><PdCentre /></RequireAuth>} />
           <Route path="passing-policy" element={<RequireAuth permission="passing.manage"><PassingPolicies /></RequireAuth>} />
           <Route path="question-banks" element={<RequireAuth permission="banks.manage|assessments.manage"><QuestionBanks /></RequireAuth>} />
           <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
@@ -198,6 +203,7 @@ export default function App() {
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
           <Route path="evaluations" element={<MyEvaluations />} />
+          <Route path="growth" element={<MyGrowth />} />
           <Route path="evaluations/:id" element={<MyEvaluationForm />} />
           <Route path="needs" element={<MyNeeds />} />
           <Route path="assessments" element={<PortalAssessments />} />

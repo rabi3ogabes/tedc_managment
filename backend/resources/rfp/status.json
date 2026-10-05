@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 150,
-        "partial": 57,
-        "missing": 71,
+        "available": 161,
+        "partial": 56,
+        "missing": 61,
         "mandatory": 108,
-        "open": 128
+        "open": 117
     },
     "phases": [
         {
@@ -75,7 +75,7 @@
             "phase": 9,
             "title": "Career Paths, Licences & CPD",
             "open": 11,
-            "items": 11,
+            "items": 0,
             "done": 0
         },
         {
@@ -533,9 +533,9 @@
                     "id": "TYP-19",
                     "mandatory": false,
                     "requirement": "Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline",
-                    "status": "missing",
-                    "evidence": "No knowledge-transfer records.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Knowledge transfer with beneficiaries, hours, evidence, deadline and review",
+                    "phase": null
                 },
                 {
                     "id": "TYP-20",
@@ -603,33 +603,33 @@
                     "id": "CAR-01",
                     "mandatory": true,
                     "requirement": "Promotion paths linked to experience, grade and annual appraisal",
-                    "status": "missing",
-                    "evidence": "No career-path entity.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Promotion/specialisation paths with levels and conditions — docs/rfp/phase-09-career-pd.md",
+                    "phase": null
                 },
                 {
                     "id": "CAR-02",
                     "mandatory": false,
                     "requirement": "Professional-licence programs for the four licence levels",
-                    "status": "missing",
-                    "evidence": "No licence model.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Four-level licence paths with validity and renewal",
+                    "phase": null
                 },
                 {
                     "id": "CAR-03",
                     "mandatory": false,
                     "requirement": "Conditions per program / licence block progress until met",
-                    "status": "partial",
-                    "evidence": "Eligibility engine covers experience, qualification, completed programs; no grade, appraisal or licence fields.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Conditions engine in eligibility syntax; blocks level-restricted programs",
+                    "phase": null
                 },
                 {
                     "id": "CAR-04",
                     "mandatory": false,
                     "requirement": "Path-compliance dashboards with automatic gain/loss notifications",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Compliance funnel/matrix with export; gain and loss notifications to employee and manager",
+                    "phase": null
                 },
                 {
                     "id": "CAR-05",
@@ -1803,49 +1803,49 @@
                     "id": "CPD-01",
                     "mandatory": true,
                     "requirement": "Log external PD activities with details and evidence",
-                    "status": "missing",
-                    "evidence": "Passport shows platform training only.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "External PD records with evidence",
+                    "phase": null
                 },
                 {
                     "id": "CPD-02",
                     "mandatory": true,
                     "requirement": "Hours calculated by activity type and participation level",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Hour rules per type and participation level with caps",
+                    "phase": null
                 },
                 {
                     "id": "CPD-03",
                     "mandatory": true,
                     "requirement": "Direct-manager approval of activities",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Direct-manager approval (approve / reject / return)",
+                    "phase": null
                 },
                 {
                     "id": "CPD-04",
                     "mandatory": false,
                     "requirement": "Reports: total hours, distribution by domain / competency, approval rates",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "PD reports: hours, domain, approval rates, shortfalls; Excel/PDF/Word",
+                    "phase": null
                 },
                 {
                     "id": "CPD-05",
                     "mandatory": false,
                     "requirement": "Annual minimum-hours tracking per employee",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Annual minimum hours with alerts, calendar or fiscal year",
+                    "phase": null
                 },
                 {
                     "id": "CPD-06",
                     "mandatory": false,
                     "requirement": "Request recognition of external courses (centre sets hours / equivalent programs)",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 9
+                    "status": "available",
+                    "evidence": "Recognition requests with recognised hours and equivalent programs",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T17:45:55+03:00"
+    "generated_at": "2026-10-05T18:01:49+03:00"
 }

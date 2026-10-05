@@ -7,7 +7,7 @@ import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
 
-const KEYS = ['attendance', 'participation', 'tasks', 'assessments', 'course', 'evaluation'] as const
+const KEYS = ['attendance', 'participation', 'tasks', 'assessments', 'course', 'evaluation', 'knowledge_transfer'] as const
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const blank = (): any => ({ mode: 'all_required', pass_threshold: 60, criteria: [{ key: 'attendance', required: true, min: 80, weight: 0 }], assessment_ids: [], participation_rules: { lessons: true, session_marks: true }, allow_test_out: false, test_out_assessment_id: null, hours_mode: 'total', certificate_types: 'pass', attendance_certificate_min: 80, survey_required_for_download: true, task_approval: 'trainer', certificate_templates: {} })
 
@@ -91,6 +91,24 @@ export function PolicyEditor({ scope, id, programId }: { scope: 'global' | 'prog
   )
 }
 
+/** Knowledge transfer after the program: whether it is required, how many beneficiaries and hours, the deadline, and the reach so far. */
+function KnowledgeTransferSetting({ program }: { program: Program }) {
+  const { t } = useTranslation()
+  const res = useGet<{ data: any }>(`/admin/programs/${program.id}/knowledge-transfer`, undefined, { staleTime: 0 })
+  const [f, setF] = useState<any>(null)
+  useEffect(() => { if (res.data) setF({ required: false, min_beneficiaries: 5, min_hours: 1, deadline_days: 30, evidence_required: true, ...(res.data.data.config ?? {}) }) }, [res.data])
+  if (!f || !res.data) return null
+  const r = res.data.data
+  const save = async () => { try { await api.put(`/admin/programs/${program.id}/knowledge-transfer`, { ...f, min_beneficiaries: Number(f.min_beneficiaries), min_hours: Number(f.min_hours), deadline_days: Number(f.deadline_days) }); toast(t('passing.saved')); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  return (
+    <Card className="space-y-3"><h3 className="font-bold text-navy-900">{t('career.kt.setting')}</h3>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={f.required} onChange={(e) => setF({ ...f, required: e.target.checked })} />{t('career.kt.required')}</label>
+      {f.required && <div className="grid gap-3 sm:grid-cols-3"><Field label={t('career.kt.minBeneficiaries')}><input className={input} type="number" min="1" value={f.min_beneficiaries} onChange={(e) => setF({ ...f, min_beneficiaries: e.target.value })} /></Field><Field label={t('career.kt.minHours')}><input className={input} type="number" step="0.5" value={f.min_hours} onChange={(e) => setF({ ...f, min_hours: e.target.value })} /></Field><Field label={t('career.kt.deadline')}><input className={input} type="number" min="1" value={f.deadline_days} onChange={(e) => setF({ ...f, deadline_days: e.target.value })} /></Field></div>}
+      <p className="text-xs text-slate-500">{t('career.kt.reach', { d: r.direct_trainees, i: r.indirect_beneficiaries, h: r.hours })}</p>
+      <Button size="sm" variant="gold" onClick={() => void save()}>{t('passing.save')}</Button></Card>
+  )
+}
+
 /** The program's passing rules, with an optional override for one group. */
 export default function PassingTab({ program }: { program: Program }) {
   const { t } = useTranslation()
@@ -102,6 +120,7 @@ export default function PassingTab({ program }: { program: Program }) {
       <div className="flex items-center gap-2"><label className="text-sm font-semibold">{t('passing.scope')}</label>
         <select className="rounded-xl border border-navy-100 px-3 py-2 text-sm" value={scope} onChange={(e) => setScope(e.target.value)}><option value="program">{t('passing.program')}</option>{list.map((g) => <option key={g.id} value={g.id}>{t('passing.group')} — {g.code}</option>)}</select></div>
       <PolicyEditor key={scope} scope={scope === 'program' ? 'program' : 'group'} id={scope === 'program' ? program.id : scope} programId={program.id} />
+      {scope === 'program' && <KnowledgeTransferSetting program={program} />}
     </div>
   )
 }

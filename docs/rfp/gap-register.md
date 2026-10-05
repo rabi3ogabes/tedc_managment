@@ -217,28 +217,28 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 09 — Career Paths, Licences & CPD  (11)
 
-- [ ] **TYP-19** — Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline  
-  _Now:_ 🔴 Missing — No knowledge-transfer records.
-- [ ] **CAR-01** ★ — Promotion paths linked to experience, grade and annual appraisal  
-  _Now:_ 🔴 Missing — No career-path entity.
-- [ ] **CAR-02** — Professional-licence programs for the four licence levels  
-  _Now:_ 🔴 Missing — No licence model.
-- [ ] **CAR-03** — Conditions per program / licence block progress until met  
-  _Now:_ 🟡 Partial — Eligibility engine covers experience, qualification, completed programs; no grade, appraisal or licence fields.
-- [ ] **CAR-04** — Path-compliance dashboards with automatic gain/loss notifications  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CPD-01** ★ — Log external PD activities with details and evidence  
-  _Now:_ 🔴 Missing — Passport shows platform training only.
-- [ ] **CPD-02** ★ — Hours calculated by activity type and participation level  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CPD-03** ★ — Direct-manager approval of activities  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CPD-04** — Reports: total hours, distribution by domain / competency, approval rates  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CPD-05** — Annual minimum-hours tracking per employee  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CPD-06** — Request recognition of external courses (centre sets hours / equivalent programs)  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **TYP-19** — Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline  
+  _Now:_ ✅ Available — Knowledge transfer with beneficiaries, hours, evidence, deadline and review
+- [x] **CAR-01** ★ — Promotion paths linked to experience, grade and annual appraisal  
+  _Now:_ ✅ Available — Promotion/specialisation paths with levels and conditions — docs/rfp/phase-09-career-pd.md
+- [x] **CAR-02** — Professional-licence programs for the four licence levels  
+  _Now:_ ✅ Available — Four-level licence paths with validity and renewal
+- [x] **CAR-03** — Conditions per program / licence block progress until met  
+  _Now:_ ✅ Available — Conditions engine in eligibility syntax; blocks level-restricted programs
+- [x] **CAR-04** — Path-compliance dashboards with automatic gain/loss notifications  
+  _Now:_ ✅ Available — Compliance funnel/matrix with export; gain and loss notifications to employee and manager
+- [x] **CPD-01** ★ — Log external PD activities with details and evidence  
+  _Now:_ ✅ Available — External PD records with evidence
+- [x] **CPD-02** ★ — Hours calculated by activity type and participation level  
+  _Now:_ ✅ Available — Hour rules per type and participation level with caps
+- [x] **CPD-03** ★ — Direct-manager approval of activities  
+  _Now:_ ✅ Available — Direct-manager approval (approve / reject / return)
+- [x] **CPD-04** — Reports: total hours, distribution by domain / competency, approval rates  
+  _Now:_ ✅ Available — PD reports: hours, domain, approval rates, shortfalls; Excel/PDF/Word
+- [x] **CPD-05** — Annual minimum-hours tracking per employee  
+  _Now:_ ✅ Available — Annual minimum hours with alerts, calendar or fiscal year
+- [x] **CPD-06** — Request recognition of external courses (centre sets hours / equivalent programs)  
+  _Now:_ ✅ Available — Recognition requests with recognised hours and equivalent programs
 
 ### Phase 10 — Content Standards, Library & Offline  (15)
 
@@ -549,7 +549,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-16 | Admin suggests / assigns programs by history, job title or job group | ✅ Available | Recommendation engine, audience builder, centre nomination. | — |
 | TYP-17 | Advertise and register for programs on other platforms (e.g., I-earn) | 🔴 Missing | No external-program listing type. | 10 |
 | TYP-18 ★ | Blended programs (in-person + synchronous + self-paced) | ✅ Available | Per-session mode (in-person / online) plus an attached e-course. | — |
-| TYP-19 | Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline | 🔴 Missing | No knowledge-transfer records. | 9 |
+| TYP-19 | Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline | ✅ Available | Knowledge transfer with beneficiaries, hours, evidence, deadline and review | — |
 | TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | 🟡 Partial | Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09. | 2 |
 
 ### STR · Training Structure — هيكلية التدريب
@@ -566,10 +566,10 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| CAR-01 ★ | Promotion paths linked to experience, grade and annual appraisal | 🔴 Missing | No career-path entity. | 9 |
-| CAR-02 | Professional-licence programs for the four licence levels | 🔴 Missing | No licence model. | 9 |
-| CAR-03 | Conditions per program / licence block progress until met | 🟡 Partial | Eligibility engine covers experience, qualification, completed programs; no grade, appraisal or licence fields. | 9 |
-| CAR-04 | Path-compliance dashboards with automatic gain/loss notifications | 🔴 Missing | Not available. | 9 |
+| CAR-01 ★ | Promotion paths linked to experience, grade and annual appraisal | ✅ Available | Promotion/specialisation paths with levels and conditions — docs/rfp/phase-09-career-pd.md | — |
+| CAR-02 | Professional-licence programs for the four licence levels | ✅ Available | Four-level licence paths with validity and renewal | — |
+| CAR-03 | Conditions per program / licence block progress until met | ✅ Available | Conditions engine in eligibility syntax; blocks level-restricted programs | — |
+| CAR-04 | Path-compliance dashboards with automatic gain/loss notifications | ✅ Available | Compliance funnel/matrix with export; gain and loss notifications to employee and manager | — |
 | CAR-05 | HR integration for experience, grades and appraisals | 🔴 Missing | No HR connector. | 13 |
 
 ### EXT · External User Registration — نموذج تسجيل مستخدمين من خارج الوزارة
@@ -782,12 +782,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| CPD-01 ★ | Log external PD activities with details and evidence | 🔴 Missing | Passport shows platform training only. | 9 |
-| CPD-02 ★ | Hours calculated by activity type and participation level | 🔴 Missing | Not available. | 9 |
-| CPD-03 ★ | Direct-manager approval of activities | 🔴 Missing | Not available. | 9 |
-| CPD-04 | Reports: total hours, distribution by domain / competency, approval rates | 🔴 Missing | Not available. | 9 |
-| CPD-05 | Annual minimum-hours tracking per employee | 🔴 Missing | Not available. | 9 |
-| CPD-06 | Request recognition of external courses (centre sets hours / equivalent programs) | 🔴 Missing | Not available. | 9 |
+| CPD-01 ★ | Log external PD activities with details and evidence | ✅ Available | External PD records with evidence | — |
+| CPD-02 ★ | Hours calculated by activity type and participation level | ✅ Available | Hour rules per type and participation level with caps | — |
+| CPD-03 ★ | Direct-manager approval of activities | ✅ Available | Direct-manager approval (approve / reject / return) | — |
+| CPD-04 | Reports: total hours, distribution by domain / competency, approval rates | ✅ Available | PD reports: hours, domain, approval rates, shortfalls; Excel/PDF/Word | — |
+| CPD-05 | Annual minimum-hours tracking per employee | ✅ Available | Annual minimum hours with alerts, calendar or fiscal year | — |
+| CPD-06 | Request recognition of external courses (centre sets hours / equivalent programs) | ✅ Available | Recognition requests with recognised hours and equivalent programs | — |
 
 ### RPT · Reports & Analytics — التقارير والإحصائيات
 
