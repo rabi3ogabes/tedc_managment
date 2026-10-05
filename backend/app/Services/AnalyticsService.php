@@ -13,6 +13,7 @@ use App\Models\Registration;
 use App\Models\School;
 use App\Models\Skill;
 use App\Models\TrainingNeed;
+use App\Support\AccessScope;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,24 +27,22 @@ class AnalyticsService
 {
     private const ACTIVE = [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED];
 
-    public function dashboard(?string $schoolId = null): array
+    public function dashboard(?AccessScope $scope = null): array
     {
-        $employees = Employee::query()->when($schoolId, fn ($q) => $q->where('school_id', $schoolId));
-        $registrations = Registration::query()->when($schoolId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('school_id', $schoolId)));
+        $scope ??= AccessScope::ministry();
+        $employees = $scope->constrainEmployees(Employee::query());
+        $registrations = $scope->constrainThroughEmployee(Registration::query());
 
-        $minutes = Attendance::query()
-            ->when($schoolId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('school_id', $schoolId)))
-            ->sum('minutes_attended');
+        $minutes = $scope->constrainThroughEmployee(Attendance::query())->sum('minutes_attended');
 
         return [
             'kpis' => [
-                'total_schools' => $schoolId ? 1 : School::where('status', 'active')->count(),
+                'total_schools' => $scope->constrainSchoolColumn(School::where('status', 'active'), 'id')->count(),
                 'total_employees' => (clone $employees)->count(),
                 'active_programs' => Program::whereIn('status', [Program::STATUS_REGISTRATION_OPEN, Program::STATUS_IN_PROGRESS, Program::STATUS_PUBLISHED])->count(),
                 'participants' => (clone $registrations)->whereIn('status', self::ACTIVE)->distinct()->count('employee_id'),
                 'training_hours' => round($minutes / 60),
-                'certificates_issued' => Certificate::where('status', 'valid')
-                    ->when($schoolId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('school_id', $schoolId)))->count(),
+                'certificates_issued' => $scope->constrainThroughEmployee(Certificate::where('status', 'valid'))->count(),
                 'impact_score' => round((float) (clone $registrations)->whereNotNull('impact_score')->avg('impact_score'), 1),
                 'pending_registrations' => (clone $registrations)->where('status', Registration::STATUS_PENDING)->count(),
             ],

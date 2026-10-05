@@ -35,15 +35,18 @@ use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
+use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\RfpStatusController;
+use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
+use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
@@ -53,6 +56,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainerController;
 use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\UserRoleController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\FeaturesController;
@@ -67,6 +71,7 @@ use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
+use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SystemController;
 use App\Models\TrainingRoom;
 use App\Services\FileStorage;
@@ -153,15 +158,18 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
         Route::post('login', 'login')->middleware('throttle:login');
         Route::post('refresh', 'refresh')->middleware('throttle:login');
-        Route::middleware('auth:api')->group(function () {
+        Route::middleware(['auth:api', 'active.role'])->group(function () {
             Route::get('me', 'me');
+            Route::post('active-role', 'switchRole');
             Route::patch('me', 'updateProfile');
             Route::post('lock', 'lock');
             Route::post('unlock', 'unlock')->middleware('throttle:10,1');
         });
     });
 
-    Route::middleware(['auth:api', 'throttle:api'])->group(function () {
+    Route::middleware(['auth:api', 'active.role', 'throttle:api'])->group(function () {
+
+        Route::get('search', SearchController::class)->middleware('throttle:60,1');
 
         // Which features are on (web and app read this once and cache it).
         Route::get('features', [FeaturesController::class, 'map']);
@@ -259,6 +267,11 @@ Route::prefix('v1')->group(function () {
                 Route::put('/', [NotificationChannelsController::class, 'update']);
                 Route::post('test', [NotificationChannelsController::class, 'test'])->middleware('throttle:10,1');
             });
+            // Notifying one program's trainees is also open to people the head of training granted that right on the program.
+            Route::middleware('can_or_grant:announcements.manage,notifications.send')->prefix('notifications')->group(function () {
+                Route::post('send', [NotificationTrackingController::class, 'send']);
+                Route::get('audience', [NotificationTrackingController::class, 'audience']);
+            });
             Route::middleware('permission:announcements.manage')->prefix('notifications')->group(function () {
                 Route::get('templates', [NotificationTemplateController::class, 'index']);
                 Route::post('templates', [NotificationTemplateController::class, 'store']);
@@ -266,8 +279,6 @@ Route::prefix('v1')->group(function () {
                 Route::put('templates/{template}', [NotificationTemplateController::class, 'update']);
                 Route::delete('templates/{template}', [NotificationTemplateController::class, 'destroy']);
                 Route::post('templates/{template}/reset', [NotificationTemplateController::class, 'reset']);
-                Route::post('send', [NotificationTrackingController::class, 'send']);
-                Route::get('audience', [NotificationTrackingController::class, 'audience']);
                 Route::get('campaigns', [NotificationTrackingController::class, 'campaigns']);
                 Route::get('campaigns/{campaign}', [NotificationTrackingController::class, 'campaign']);
                 Route::get('campaigns/{campaign}/export', [NotificationTrackingController::class, 'exportCampaign']);
@@ -459,8 +470,8 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('programs/{program}/remote-tracking', [RemoteProgramController::class, 'tracking'])->middleware('permission:programs.view');
             Route::post('program-builder/slots', [RemoteProgramController::class, 'slots'])->middleware('permission:programs.manage');
-            Route::post('sessions/{session}/remind', [RemoteProgramController::class, 'remind'])->middleware('permission:attendance.manage');
-            Route::middleware('permission:attendance.manage')->group(function () {
+            Route::post('sessions/{session}/remind', [RemoteProgramController::class, 'remind'])->middleware('can_or_grant:attendance.manage,attendance.mark');
+            Route::middleware('can_or_grant:attendance.manage,attendance.mark')->group(function () {
                 Route::get('sessions/{session}/qr', [SessionController::class, 'qr']);
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
                 Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
@@ -473,7 +484,7 @@ Route::prefix('v1')->group(function () {
                 Route::put('tasks/{task}', [TaskController::class, 'update']);
                 Route::delete('tasks/{task}', [TaskController::class, 'destroy']);
             });
-            Route::middleware('permission:tasks.review')->group(function () {
+            Route::middleware('can_or_grant:tasks.review,tasks.review')->group(function () {
                 Route::get('tasks/{task}/submissions', [TaskController::class, 'submissions']);
                 Route::post('submissions/{submission}/review', [TaskController::class, 'review']);
                 Route::get('submissions/{submission}/file', [TaskController::class, 'file'])->name('api.submissions.file');
@@ -678,6 +689,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:logs.manage')->prefix('error-logs')->controller(ErrorLogController::class)->group(function () {
                 Route::get('/', 'index');
                 Route::get('badge', 'badge');
+                Route::get('prompt', 'prompt');
                 Route::get('settings', 'settings');
                 Route::put('settings', 'updateSettings');
                 Route::post('bulk', 'bulk');
@@ -699,9 +711,31 @@ Route::prefix('v1')->group(function () {
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);
+                Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
+                Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
+                Route::delete('users/{user}/roles/{roleUser}', [UserRoleController::class, 'destroy']);
                 Route::get('roles', [UserController::class, 'roles']);
             });
             Route::put('roles/{role}/permissions', [UserController::class, 'updateRolePermissions'])->middleware('permission:roles.manage');
+            Route::middleware('permission:roles.create')->group(function () {
+                Route::post('roles', [RoleAdminController::class, 'store']);
+                Route::put('roles/{role}', [RoleAdminController::class, 'update']);
+                Route::delete('roles/{role}', [RoleAdminController::class, 'destroy']);
+            });
+            Route::middleware('permission:program_grants.manage')->group(function () {
+                Route::get('programs/{program}/grants', [ProgramGrantController::class, 'index']);
+                Route::post('programs/{program}/grants', [ProgramGrantController::class, 'store']);
+                Route::delete('programs/{program}/grants/{grant}', [ProgramGrantController::class, 'destroy']);
+            });
+            Route::middleware('permission:scopes.manage')->group(function () {
+                Route::post('school-groups/import', [SchoolGroupController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('school-groups', [SchoolGroupController::class, 'index']);
+                Route::post('school-groups', [SchoolGroupController::class, 'store']);
+                Route::get('school-groups/{schoolGroup}', [SchoolGroupController::class, 'show']);
+                Route::put('school-groups/{schoolGroup}', [SchoolGroupController::class, 'update']);
+                Route::delete('school-groups/{schoolGroup}', [SchoolGroupController::class, 'destroy']);
+                Route::put('school-groups/{schoolGroup}/schools', [SchoolGroupController::class, 'syncSchools']);
+            });
             Route::get('audit-logs', [UserController::class, 'audit'])->middleware('permission:audit.view');
         });
     });

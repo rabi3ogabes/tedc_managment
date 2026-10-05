@@ -11,6 +11,7 @@ return [
     'email_not_confirmed' => 'This e-mail address has not been confirmed yet. Please confirm it from the e-mail you received or contact the training center.',
     'unreachable' => 'The sign-in service is unreachable. Please try again later.',
     'tls_error' => 'The server could not verify the Supabase SSL certificate. Set SUPABASE_CA_BUNDLE — see the Supabase setup guide.',
+    'role_not_held' => 'You do not hold this role, or it has expired.',
     'forbidden' => 'You are not allowed to perform this action.',
     'unauthenticated' => 'Authentication required.',
 ];

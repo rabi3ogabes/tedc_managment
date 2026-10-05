@@ -25,10 +25,10 @@ class RegistrationController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $schoolId = $this->schoolScope();
+        $scope = $this->scope();
 
         $query = Registration::with(['employee.user', 'employee.school', 'employee.jobTitle', 'program'])
-            ->when($schoolId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('school_id', $schoolId)))
+            ->tap(fn ($q) => $scope->constrainThroughEmployee($q))
             ->when($request->query('program_id'), fn ($q, $id) => $q->where('program_id', $id))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->when($request->query('source'), fn ($q, $s) => $q->where('source', $s))
@@ -147,7 +147,7 @@ class RegistrationController extends Controller
      */
     public function candidates(Request $request, Program $program, RecommendationEngine $engine): JsonResponse
     {
-        $candidates = $engine->candidatesForProgram($program, $this->schoolScope() ?? $request->query('school_id'), 50);
+        $candidates = $engine->candidatesForProgram($program, $request->query('school_id'), 50, $this->scope());
 
         return response()->json(['data' => $candidates->map(fn ($c) => [
             'employee' => new EmployeeResource($c['employee']),
@@ -157,8 +157,7 @@ class RegistrationController extends Controller
 
     private function authorizeSchool(Employee $employee): void
     {
-        $schoolId = $this->schoolScope();
-        if ($schoolId && $employee->school_id !== $schoolId) {
+        if (! $this->scope()->allowsEmployee($employee)) {
             throw new BusinessRuleException(__('messages.registration.outside_school'), 'outside_school');
         }
     }

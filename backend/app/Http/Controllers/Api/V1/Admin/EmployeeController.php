@@ -20,11 +20,11 @@ class EmployeeController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $user = $this->user();
-        $schoolId = $this->schoolScope();
-        $supervisorOnly = ! $schoolId && ! $this->isCenterStaff($user) && ! $user->hasRole(Role::EXECUTIVE) && $user->hasRole(Role::SUPERVISOR);
+        $scope = $this->scope();
+        $supervisorOnly = $scope->isMinistryWide() && ! $this->isCenterStaff($user) && ! $user->hasRole(Role::EXECUTIVE) && $user->hasRole(Role::SUPERVISOR);
 
         $employees = Employee::with(['user', 'school', 'jobTitle', 'department'])
-            ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
+            ->tap(fn ($q) => $scope->constrainEmployees($q))
             ->when($supervisorOnly, fn ($q) => $q->where('supervisor_id', $user->employee?->id ?? '00000000-0000-0000-0000-000000000000'))
             ->when($request->query('school_id'), fn ($q, $id) => $q->where('school_id', $id))
             ->when($request->query('job_title_id'), fn ($q, $id) => $q->where('job_title_id', $id))
@@ -101,7 +101,7 @@ class EmployeeController extends Controller
         if ($this->isCenterStaff($user) || $user->hasRole(Role::EXECUTIVE)) {
             return;
         }
-        $allowed = ($this->schoolScope() && $employee->school_id === $this->schoolScope())
+        $allowed = (! $this->scope()->isMinistryWide() && $this->scope()->allowsEmployee($employee))
             || ($user->employee && $employee->supervisor_id === $user->employee->id);
         abort_unless($allowed, 403, __('auth.forbidden'));
     }

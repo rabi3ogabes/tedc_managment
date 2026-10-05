@@ -16,6 +16,32 @@ type Entry = {
 type List = { data: Entry[]; total: number; last_page: number; current_page: number; stats: { open: number; critical: number; today: number; auto_fixed: number; fixed: number; total: number; by_source: Record<string, number>; trend: { date: string; count: number }[] } }
 type Settings = { enabled: boolean; auto_fix: boolean; capture_clients: boolean; retention_days: number }
 
+/** Puts text on the clipboard; falls back to a hidden field where the clipboard API is blocked (plain http, older browsers). */
+async function copyText(text: string) {
+  try { await navigator.clipboard.writeText(text); return } catch { /* fall through */ }
+  const area = document.createElement('textarea')
+  area.value = text; area.style.cssText = 'position:fixed;opacity:0'
+  document.body.appendChild(area); area.select(); document.execCommand('copy'); area.remove()
+}
+
+/** "Copy for Claude": the server writes one ready request from the errors, and it lands on the clipboard. */
+function useCopyForClaude() {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
+  const copy = async (params: Record<string, string | number>) => {
+    setBusy(true); setNote(null)
+    try {
+      const { data } = await api.get<{ data: { text: string; count: number; total: number; truncated: boolean } }>('/admin/error-logs/prompt', { params })
+      const r = data.data
+      if (r.count === 0) { setNote({ ok: false, text: t('logs.claude.none') }); return }
+      await copyText(r.text)
+      setNote({ ok: true, text: r.truncated ? t('logs.claude.copiedPart', { count: r.count, total: r.total }) : t('logs.claude.copied', { count: r.count }) })
+    } catch (e) { setNote({ ok: false, text: errorMessage(e) }) } finally { setBusy(false); window.setTimeout(() => setNote(null), 6000) }
+  }
+  return { copy, busy, note }
+}
+
 const SOURCE_ICON = { server: Server, web: Globe, app: Smartphone } as const
 const LEVEL_TONE = { critical: 'bg-red-500', error: 'bg-amber-500', warning: 'bg-sky-400' } as const
 
@@ -61,6 +87,7 @@ function Detail({ id, onClose, onChanged }: { id: string; onClose: () => void; o
   const [note, setNote] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const claude = useCopyForClaude()
   const e = data?.data
   if (!e) return <Modal open onClose={onClose} title="…" wide><Spinner /></Modal>
 
@@ -76,6 +103,7 @@ function Detail({ id, onClose, onChanged }: { id: string; onClose: () => void; o
 
         <div className="flex flex-wrap items-center gap-2">
           {e.status === 'open' && e.fixable && <Button variant="gold" size="sm" loading={busy === 'fix'} icon={<Wand2 className="size-4" />} onClick={() => act('fix', async () => { const r = await api.post<{ result: { fixed: boolean; note: string } }>(`/admin/error-logs/${id}/fix`); setMessage({ ok: r.data.result.fixed, text: r.data.result.note }) })}>{t('logs.tryFix')}{e.fix_label && <span className="opacity-70"> · {e.fix_label}</span>}</Button>}
+          <Button variant="gold" size="sm" loading={claude.busy} icon={claude.note?.ok ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />} onClick={() => void claude.copy({ ids: id })}>{claude.note?.ok ? t('logs.claude.done') : t('logs.claude.one')}</Button>
           {e.status !== 'fixed' && <Button variant="primary" size="sm" loading={busy === 'fixed'} icon={<CheckCircle2 className="size-4" />} onClick={() => set('fixed')}>{t('logs.markFixed')}</Button>}
           {e.status !== 'ignored' && <Button variant="outline" size="sm" loading={busy === 'ignored'} icon={<EyeOff className="size-4" />} onClick={() => set('ignored')}>{t('logs.ignore')}</Button>}
           {e.status !== 'open' && <Button variant="outline" size="sm" loading={busy === 'open'} icon={<RotateCcw className="size-4" />} onClick={() => set('open')}>{t('logs.reopen')}</Button>}
@@ -119,6 +147,8 @@ export default function ErrorLog() {
   const params = Object.fromEntries(Object.entries({ source: f.source, level: f.level, status: f.status, q: f.q, days: f.days, sort: f.sort, page: f.page, per_page: 25 }).filter(([, v]) => v !== ''))
   const { data, isLoading, refetch } = useGet<List>('/admin/error-logs', params, { refetchInterval: 30_000, staleTime: 0 })
   const stats = data?.stats
+  const claude = useCopyForClaude()
+  const filterParams = Object.fromEntries(Object.entries({ source: f.source, level: f.level, status: f.status, q: f.q, days: f.days }).filter(([, v]) => v !== ''))
 
   const bulk = async (action: 'fix' | 'ignore' | 'reopen' | 'delete', body: Record<string, unknown>) => {
     if (action === 'delete' && !window.confirm(t('logs.confirmDeleteMany'))) return
@@ -131,9 +161,12 @@ export default function ErrorLog() {
   return (
     <>
       <PageHeader title={t('logs.title')} subtitle={t('logs.subtitle')} actions={<>
+        <Button variant="gold" loading={claude.busy} disabled={!data?.total} icon={claude.note?.ok ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />} onClick={() => void claude.copy(filterParams)}>{claude.note?.ok ? t('logs.claude.done') : t('logs.claude.all')}</Button>
         {f.status === 'fixed' && (data?.total ?? 0) > 0 && <Button variant="outline" icon={<Trash2 className="size-4" />} onClick={() => bulk('delete', { status: 'fixed' })}>{t('logs.clearFixed')}</Button>}
         <Button variant="outline" icon={<Settings2 className="size-4" />} onClick={() => setSettings(true)}>{t('logs.settings.button')}</Button>
       </>} />
+
+      {claude.note && <div role="status" className={clsx('mb-4 flex items-center gap-2 rounded-2xl p-3 text-sm font-semibold', claude.note.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger')}>{claude.note.ok ? <CheckCircle2 className="size-4" /> : <AlertOctagon className="size-4" />}{claude.note.text}</div>}
 
       <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1fr_1fr_1fr_1.4fr]">
         {([[t('logs.stats.open'), stats?.open, AlertOctagon, 'text-red-600'], [t('logs.stats.critical'), stats?.critical, Bug, 'text-red-700'], [t('logs.stats.today'), stats?.today, Users, 'text-navy-900'], [t('logs.stats.auto'), stats?.auto_fixed, Sparkles, 'text-emerald-600']] as const).map(([label, value, Icon, tone]) => (
@@ -158,6 +191,7 @@ export default function ErrorLog() {
       {selected.length > 0 && (
         <div className="sticky top-2 z-20 mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-navy-100 bg-white/95 p-3 shadow-glass backdrop-blur">
           <span className="text-sm font-semibold text-navy-900">{t('logs.selected', { count: selected.length })}</span>
+          <Button size="sm" variant="gold" loading={claude.busy} icon={<Sparkles className="size-4" />} onClick={() => void claude.copy({ ids: selected.join(',') })}>{t('logs.claude.selected')}</Button>
           <Button size="sm" variant="primary" loading={busy} icon={<CheckCircle2 className="size-4" />} onClick={() => bulk('fix', { ids: selected })}>{t('logs.markFixed')}</Button>
           <Button size="sm" variant="outline" icon={<EyeOff className="size-4" />} onClick={() => bulk('ignore', { ids: selected })}>{t('logs.ignore')}</Button>
           <Button size="sm" variant="outline" icon={<RotateCcw className="size-4" />} onClick={() => bulk('reopen', { ids: selected })}>{t('logs.reopen')}</Button>

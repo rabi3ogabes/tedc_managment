@@ -12,7 +12,7 @@ class AnalyticsController extends Controller
 
     public function dashboard(): JsonResponse
     {
-        return response()->json(['data' => $this->analytics->dashboard($this->schoolScope())]);
+        return response()->json(['data' => $this->analytics->dashboard($this->scope())]);
     }
 
     public function executive(): JsonResponse

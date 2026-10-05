@@ -9,6 +9,7 @@ use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
 use Database\Seeders\DemoTrainerTraineeSeeder;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -21,6 +22,11 @@ class Deploy extends Command
     public function handle(): int
     {
         $this->call('migrate', ['--force' => true]);
+
+        // New roles and permissions of this release reach an existing database without touching hand-made changes.
+        if (Schema::hasTable('roles') && Schema::hasColumn('roles', 'scope_levels')) {
+            (new RolePermissionSeeder)->additive();
+        }
 
         // First deploy only: roles, permissions and reference data (plus demo data when TEDC_SEED_DEMO=true).
         if (! Schema::hasTable('roles') || Role::query()->doesntExist()) {

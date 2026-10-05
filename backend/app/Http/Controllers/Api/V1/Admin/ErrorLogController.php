@@ -7,8 +7,10 @@ use App\Models\ErrorLog;
 use App\Services\ErrorAutoFixer;
 use App\Services\ErrorLogService;
 use App\Services\ErrorLogSettings;
+use App\Services\ErrorPromptBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /** The error log, for the system administrator: review, fix (by hand or automatically) and delete. */
@@ -38,6 +40,31 @@ class ErrorLogController extends Controller
             'total' => $page->total(), 'last_page' => $page->lastPage(), 'current_page' => $page->currentPage(),
             'stats' => $this->stats(),
         ]);
+    }
+
+    /**
+     * One request for Claude with the errors that match the filters (or only the chosen ones): worst first, then the most frequent.
+     * Stack traces make it long, so it stops at `limit` entries and says how many were left out.
+     */
+    public function prompt(Request $request, ErrorPromptBuilder $builder): JsonResponse
+    {
+        $f = $request->validate([
+            'source' => ['nullable', Rule::in(['server', 'web', 'app'])], 'level' => ['nullable', Rule::in(['warning', 'error', 'critical'])], 'status' => ['nullable', Rule::in(['open', 'fixed', 'ignored'])],
+            'q' => ['nullable', 'string', 'max:120'], 'days' => ['nullable', 'integer', 'between:1,365'], 'ids' => ['nullable', 'string', 'max:4000'], 'limit' => ['nullable', 'integer', 'between:1,60'],
+        ]);
+        $ids = collect(explode(',', (string) ($f['ids'] ?? '')))->filter(fn ($i) => Str::isUuid($i))->values();
+
+        $query = ErrorLog::query()
+            ->when($ids->isNotEmpty(), fn ($q) => $q->whereIn('id', $ids))
+            ->when($ids->isEmpty() && ($f['source'] ?? null), fn ($q) => $q->where('source', $f['source']))->when($ids->isEmpty() && ($f['level'] ?? null), fn ($q) => $q->where('level', $f['level']))
+            ->when($ids->isEmpty() && ($f['status'] ?? null), fn ($q) => $q->where('status', $f['status']))
+            ->when($ids->isEmpty() && ($f['days'] ?? null), fn ($q) => $q->where('last_seen_at', '>=', now()->subDays($f['days'])))
+            ->when($ids->isEmpty() && ($f['q'] ?? null), fn ($q) => $q->where(fn ($w) => $w->where('message', 'like', "%{$f['q']}%")->orWhere('location', 'like', "%{$f['q']}%")->orWhere('url', 'like', "%{$f['q']}%")));
+
+        $total = (clone $query)->count();
+        $logs = $query->orderByRaw("case level when 'critical' then 0 when 'error' then 1 else 2 end")->orderByDesc('occurrences')->limit($f['limit'] ?? 30)->get();
+
+        return response()->json(['data' => ['text' => $builder->build($logs, $total), 'count' => $logs->count(), 'total' => $total, 'truncated' => $total > $logs->count()]]);
     }
 
     public function show(ErrorLog $log): JsonResponse

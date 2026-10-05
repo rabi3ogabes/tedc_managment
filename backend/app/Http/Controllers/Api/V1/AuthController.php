@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Auth\AuthService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EmployeeResource;
+use App\Models\AuditLog;
+use App\Models\RoleUser;
 use App\Models\User;
+use App\Support\ActiveRole;
+use App\Support\ScopeLabel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -56,6 +60,26 @@ class AuthController extends Controller
         return $this->session($this->auth->refresh($data['refresh_token']));
     }
 
+    /** Switches the role the user works in (and remembers it). */
+    public function switchRole(Request $request, ActiveRole $active): JsonResponse
+    {
+        $data = $request->validate(['role_user_id' => ['required', 'uuid']]);
+        $user = $request->user();
+        $assignment = $active->assignments($user)->firstWhere('id', $data['role_user_id']);
+        abort_unless($assignment, 403, __('auth.role_not_held'));
+
+        $before = $user->active_role_user_id;
+        $user->forceFill(['active_role_user_id' => $assignment->id])->saveQuietly();
+        $active->set($user, $assignment);
+        AuditLog::create([
+            'user_id' => $user->id, 'action' => 'role_switched', 'auditable_type' => User::class, 'auditable_id' => $user->id,
+            'old_values' => ['role_user_id' => $before], 'new_values' => ['role_user_id' => $assignment->id, 'role' => $assignment->role->slug, 'scope' => $assignment->scope_type],
+            'ip_address' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255), 'url' => $request->fullUrl(),
+        ]);
+
+        return response()->json(['data' => $this->profile($user->refresh())]);
+    }
+
     public function me(Request $request): JsonResponse
     {
         return response()->json(['data' => $this->profile($request->user())]);
@@ -84,7 +108,24 @@ class AuthController extends Controller
 
     public function profile(User $user): array
     {
-        $user->loadMissing(['roles', 'employee.school', 'employee.jobTitle', 'employee.department', 'trainer']);
+        $user->loadMissing(['employee.school', 'employee.jobTitle', 'employee.department', 'trainer']);
+        $context = app(ActiveRole::class);
+        $assignments = $context->assignments($user);
+        // Signing in happens before any request is made in a role: the remembered (or highest) one is the active role.
+        $active = $context->isSet($user) ? $context->for($user) : $context->defaultFor($user, $assignments);
+        if (! $context->isSet($user)) {
+            $context->set($user, $active);
+        }
+        $ar = app()->getLocale() === 'ar';
+        $roles = $assignments->map(function (RoleUser $a) use ($active, $ar) {
+            $scope = ScopeLabel::for($a);
+
+            return [
+                'id' => $a->id, 'slug' => $a->role->slug, 'name' => $ar ? $a->role->name_ar : $a->role->name_en, 'name_ar' => $a->role->name_ar, 'name_en' => $a->role->name_en,
+                'scope_type' => $a->scope_type, 'scope_id' => $a->scope_id, 'scope_label_ar' => $scope['ar'], 'scope_label_en' => $scope['en'],
+                'landing_route' => $a->role->landing_route ?: ($a->role->level >= 40 ? '/admin' : '/portal'), 'expires_at' => $a->expires_at?->toIso8601String(), 'active' => $active?->id === $a->id,
+            ];
+        })->values();
 
         return [
             'id' => $user->id,
@@ -94,7 +135,8 @@ class AuthController extends Controller
             'email' => $user->email,
             'phone' => $user->phone,
             'locale' => $user->locale,
-            'roles' => $user->roles->map(fn ($r) => ['slug' => $r->slug, 'name' => app()->getLocale() === 'ar' ? $r->name_ar : $r->name_en]),
+            'roles' => $roles,
+            'active_role' => $roles->firstWhere('active', true),
             'permissions' => $user->isSuperAdmin() ? ['*'] : $user->permissionSlugs(),
             'employee' => $user->employee ? new EmployeeResource($user->employee) : null,
             'trainer_id' => $user->trainer?->id,

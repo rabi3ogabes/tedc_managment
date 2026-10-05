@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\User;
+use App\Support\AccessScope;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -38,7 +39,7 @@ class BulkImportService
         $notesIndex = array_search('notes', $header, true);
 
         $report = ['imported' => 0, 'waitlisted' => 0, 'failed' => 0, 'rows' => []];
-        $schoolId = $actor->managedSchoolId();
+        $scope = AccessScope::current($actor);
 
         foreach ($sheet as $i => $row) {
             $line = $i + 2;
@@ -48,7 +49,7 @@ class BulkImportService
             }
 
             $employee = Employee::where('employee_no', $number)
-                ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
+                ->tap(fn ($q) => $scope->constrainEmployees($q))
                 ->first();
 
             if (! $employee) {

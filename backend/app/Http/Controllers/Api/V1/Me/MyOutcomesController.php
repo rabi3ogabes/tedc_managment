@@ -220,8 +220,7 @@ class MyOutcomesController extends MyTrainingController
     {
         $user = $this->user();
         $owner = $user->employee?->id === $certificate->employee_id;
-        $schoolScope = $this->schoolScope();
-        $staff = $user->hasPermission('certificates.view') && (! $schoolScope || $certificate->employee->school_id === $schoolScope);
+        $staff = $user->hasPermission('certificates.view') && $this->scope()->allowsEmployee($certificate->employee);
         abort_unless($owner || $staff, 403);
         // A trainee gets the PDF only after completing the program survey (staff are not held to it).
         if (! $staff && ! $service->downloadable($certificate)) {

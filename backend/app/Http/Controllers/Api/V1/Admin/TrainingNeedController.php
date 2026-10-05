@@ -20,7 +20,7 @@ class TrainingNeedController extends Controller
     public function index(Request $request): JsonResponse
     {
         $needs = TrainingNeed::with(['school:id,name_ar,name_en,region', 'skill', 'targetJobTitle', 'program:id,code,title_ar,title_en'])
-            ->when($this->schoolScope(), fn ($q, $id) => $q->where('school_id', $id))
+            ->tap(fn ($q) => $this->scope()->constrainSchoolColumn($q))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->when($request->query('priority'), fn ($q, $p) => $q->where('priority', $p))
             ->when($request->query('school_id'), fn ($q, $id) => $q->where('school_id', $id))
@@ -43,8 +43,9 @@ class TrainingNeedController extends Controller
             'target_group' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $schoolId = $this->schoolScope() ?? $data['school_id'] ?? null;
+        $schoolId = $this->scope()->singleSchoolId() ?? $data['school_id'] ?? null;
         abort_unless($schoolId, 422, 'school_id is required');
+        abort_unless($this->scope()->allowsSchool($schoolId), 403, __('auth.forbidden'));
 
         if (! empty($data['skill_id'])) {
             $data['skill_name'] = Skill::find($data['skill_id'])->name_ar;

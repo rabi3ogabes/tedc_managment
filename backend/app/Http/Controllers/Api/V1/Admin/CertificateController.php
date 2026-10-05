@@ -67,10 +67,8 @@ class CertificateController extends Controller
     /** List filters shared by the index and bulk send; school admins only ever see their own school. */
     private function filtered(Request $request)
     {
-        $schoolId = $this->schoolScope();
-
         return Certificate::query()
-            ->when($schoolId, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('school_id', $schoolId)))
+            ->tap(fn ($q) => $this->scope()->constrainThroughEmployee($q))
             ->when($request->input('program_id'), fn ($q, $id) => $q->where('program_id', $id))
             ->when($request->input('status'), fn ($q, $s) => $q->where('status', $s))
             ->when($request->input('sent') === 'yes', fn ($q) => $q->whereNotNull('sent_at'))

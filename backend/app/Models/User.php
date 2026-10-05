@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\ActiveRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 
-#[Fillable(['auth_id', 'name', 'name_ar', 'email', 'phone', 'password', 'locale', 'avatar_path', 'status', 'last_login_at'])]
+#[Fillable(['auth_id', 'name', 'name_ar', 'email', 'phone', 'password', 'locale', 'avatar_path', 'status', 'last_login_at', 'active_role_user_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -35,7 +36,35 @@ class User extends Authenticatable
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class)->withTimestamps();
+        return $this->belongsToMany(Role::class)->using(RoleUser::class)->withPivot(['id', 'scope_type', 'scope_id', 'granted_by', 'granted_at', 'expires_at'])->withTimestamps();
+    }
+
+    public function roleAssignments(): HasMany
+    {
+        return $this->hasMany(RoleUser::class);
+    }
+
+    /**
+     * The roles that count right now: the active role during a request (a person works as one role at a time),
+     * otherwise — console, jobs — every role that has not expired.
+     *
+     * @return Collection<int, Role>
+     */
+    public function effectiveRoles(): Collection
+    {
+        $context = app(ActiveRole::class);
+        if ($context->isSet($this)) {
+            $active = $context->for($this);
+
+            return $active ? collect([$active->role]) : collect();
+        }
+
+        return $this->roles->filter(fn (Role $r) => $r->pivot->expires_at === null || $r->pivot->expires_at->isFuture())->values();
+    }
+
+    public function forgetPermissionCache(): void
+    {
+        $this->permissionCache = null;
     }
 
     public function employee(): HasOne
@@ -55,7 +84,7 @@ class User extends Authenticatable
 
     public function hasRole(string ...$slugs): bool
     {
-        return $this->roles->pluck('slug')->intersect($slugs)->isNotEmpty();
+        return $this->effectiveRoles()->pluck('slug')->intersect($slugs)->isNotEmpty();
     }
 
     public function isSuperAdmin(): bool
@@ -65,7 +94,7 @@ class User extends Authenticatable
 
     public function permissionSlugs(): Collection
     {
-        return $this->permissionCache ??= $this->roles()
+        return $this->permissionCache ??= Role::whereIn('id', $this->effectiveRoles()->pluck('id'))
             ->with('permissions:id,slug')
             ->get()
             ->flatMap(fn (Role $role) => $role->permissions->pluck('slug'))
@@ -76,14 +105,6 @@ class User extends Authenticatable
     public function hasPermission(string $slug): bool
     {
         return $this->isSuperAdmin() || $this->permissionSlugs()->contains($slug);
-    }
-
-    /**
-     * School the user administers (school admins are linked through their employee record).
-     */
-    public function managedSchoolId(): ?string
-    {
-        return $this->hasRole(Role::SCHOOL_ADMIN) ? $this->employee?->school_id : null;
     }
 
     public function displayName(?string $locale = null): string

@@ -11,6 +11,7 @@ use App\Services\Notifications\NotificationCampaigns;
 use App\Services\Notifications\NotificationTemplates;
 use App\Services\Notifications\ProgramSurvey;
 use App\Services\Notifications\UpcomingNotifications;
+use App\Services\ProgramGrantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,7 @@ class NotificationTrackingController extends Controller
             'body_ar' => ['nullable', 'string', 'max:1000'], 'body_en' => ['nullable', 'string', 'max:1000'],
         ]);
         $program = Program::findOrFail($data['program_id']);
+        $this->authorizeNotify($program);
         $template = isset($data['template_id']) ? NotificationTemplate::find($data['template_id']) : null;
         $audience = $data['audience'] ?? 'trainees';
         $userIds = $this->survey->traineeUserIds($program, $audience === 'pending_survey');
@@ -56,6 +58,7 @@ class NotificationTrackingController extends Controller
     {
         $data = $request->validate(['program_id' => ['required', 'uuid'], 'audience' => ['sometimes', 'in:trainees,pending_survey']]);
         $program = Program::findOrFail($data['program_id']);
+        $this->authorizeNotify($program);
         $ids = $this->survey->traineeUserIds($program, ($data['audience'] ?? 'trainees') === 'pending_survey');
 
         return response()->json(['data' => ['count' => $ids->count()]]);
@@ -147,5 +150,12 @@ class NotificationTrackingController extends Controller
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /** The communication permission, or the head of training's grant to notify this program's trainees. */
+    private function authorizeNotify(Program $program): void
+    {
+        $user = request()->user();
+        abort_unless($user->hasPermission('announcements.manage') || app(ProgramGrantService::class)->allows($user, $program, 'notifications.send'), 403, __('auth.forbidden'));
     }
 }

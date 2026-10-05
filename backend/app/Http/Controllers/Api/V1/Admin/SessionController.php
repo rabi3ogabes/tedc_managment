@@ -9,6 +9,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
+use App\Services\ProgramGrantService;
 use App\Services\RoomService;
 use App\Services\TrainerCertificateService;
 use App\Services\TrainerService;
@@ -151,7 +152,9 @@ class SessionController extends Controller
 
         $trainerId = $user->trainer?->id;
         $delivers = $trainerId && ($session->trainer_id === $trainerId || $session->program->trainers()->where('trainers.id', $trainerId)->exists());
-        abort_unless($delivers, 403, __('auth.forbidden'));
+        // Or the head of training gave this person the attendance right on this program.
+        $granted = app(ProgramGrantService::class)->allows($user, $session->program_id, 'attendance.mark');
+        abort_unless($delivers || $granted, 403, __('messages.grants.attendance_denied'));
     }
 
     private function validated(Request $request, bool $partial = false): array

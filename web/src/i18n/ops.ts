@@ -116,6 +116,7 @@ export const opsAr = {
     joined: 'دخل', left: 'غادر', feed: 'آخر الأحداث', feedEmpty: 'ستظهر هنا حركة الدخول والخروج لحظة بلحظة.', noMap: 'لا مواقع متاحة بعد — تظهر المواقع حين يدخل المستخدمون عبر الإنترنت.', auto: 'يتحدث تلقائياً كل 5 ثوانٍ',
   },
   logs: {
+    claude: { all: 'نسخ لـ Claude', one: 'نسخ لـ Claude', selected: 'نسخ المحدد لـ Claude', done: 'تم النسخ', copied: 'تم نسخ {{count}} من الأخطاء كطلب جاهز. الصقه في Claude ليصلحها.', copiedPart: 'تم نسخ الأهم {{count}} من {{total}} خطأ كطلب جاهز. الصقه في Claude ليصلحها.', none: 'لا توجد أخطاء مطابقة لنسخها.' },
     nav: 'سجل الأخطاء', title: 'سجل الأخطاء', subtitle: 'كل ما تعثّر في النظام أو الموقع أو التطبيق، مجمّعاً بحسب السبب — يظهر لمدير النظام فقط. تُعالَج المشكلات المعروفة تلقائياً.',
     stats: { open: 'مفتوحة', critical: 'حرجة', today: 'اليوم', auto: 'عولجت تلقائياً', trend: 'آخر 14 يوماً' },
     status: { open: 'مفتوحة', fixed: 'تم إصلاحها', ignored: 'متجاهَلة', all: 'الكل' }, source: { all: 'كل المصادر', server: 'النظام', web: 'الموقع', app: 'التطبيق' },
@@ -250,6 +251,7 @@ export const opsEn: typeof opsAr = {
     joined: 'joined', left: 'left', feed: 'Latest activity', feedEmpty: 'Arrivals and departures show up here as they happen.', noMap: 'No locations yet — they appear as users connect over the internet.', auto: 'Updates automatically every 5 seconds',
   },
   logs: {
+    claude: { all: 'Copy for Claude', one: 'Copy for Claude', selected: 'Copy selected for Claude', done: 'Copied', copied: '{{count}} error(s) copied as a ready request. Paste it into Claude to fix them.', copiedPart: 'The {{count}} most important of {{total}} errors were copied as a ready request. Paste it into Claude to fix them.', none: 'No matching errors to copy.' },
     nav: 'Error log', title: 'Error log', subtitle: 'Everything that failed in the system, the website or the app, grouped by cause — visible to the system administrator only. Known problems are fixed automatically.',
     stats: { open: 'Open', critical: 'Critical', today: 'Today', auto: 'Fixed automatically', trend: 'Last 14 days' },
     status: { open: 'Open', fixed: 'Fixed', ignored: 'Ignored', all: 'All' }, source: { all: 'All sources', server: 'System', web: 'Website', app: 'App' },

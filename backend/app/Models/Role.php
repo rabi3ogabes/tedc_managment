@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['slug', 'name_en', 'name_ar', 'description', 'level', 'is_system'])]
+#[Fillable(['slug', 'name_en', 'name_ar', 'description', 'level', 'is_system', 'scope_levels', 'landing_route'])]
 class Role extends Model
 {
     use HasUuids;
@@ -34,10 +34,28 @@ class Role extends Model
     /** فريق ضمان الجودة - reviews and signs off training kits. */
     public const QA_REVIEWER = 'qa_reviewer';
 
+    /** رئيس قسم التدريب — assigns supervisors, grants attendance rights, approves kits. */
+    public const TRAINING_HEAD = 'training_head';
+
+    /** مسؤول التطوير المهني (النائب الأكاديمي) — the school's professional-development officer. */
+    public const ACADEMIC_DEPUTY = 'academic_deputy';
+
+    /** قيادات المركز وواضعو السياسات. */
+    public const CENTER_LEADERSHIP = 'center_leadership';
+
+    /** رئيس قسم التخطيط. */
+    public const PLANNING_HEAD = 'planning_head';
+
+    /** أخصائي التخطيط. */
+    public const PLANNING_SPECIALIST = 'planning_specialist';
+
+    /** مسؤول الدعم اللوجستي. */
+    public const LOGISTICS_OFFICER = 'logistics_officer';
+
     /** Roles that administer the training center as a whole. */
     public const CENTER_STAFF = [self::SUPER_ADMIN, self::CENTER_ADMIN, self::COORDINATOR];
 
-    protected $casts = ['is_system' => 'boolean'];
+    protected $casts = ['is_system' => 'boolean', 'scope_levels' => 'array'];
 
     public function permissions(): BelongsToMany
     {
@@ -46,6 +64,6 @@ class Role extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class)->using(RoleUser::class)->withTimestamps();
     }
 }

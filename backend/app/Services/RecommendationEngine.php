@@ -9,6 +9,7 @@ use App\Models\Registration;
 use App\Models\TrainingNeed;
 use App\Services\Eligibility\EligibilityEngine;
 use App\Services\Eligibility\EmployeeContext;
+use App\Support\AccessScope;
 use Illuminate\Support\Collection;
 
 /**
@@ -114,7 +115,7 @@ class RecommendationEngine
     /**
      * Employees best suited for a program — used by admins to target nominations.
      */
-    public function candidatesForProgram(Program $program, ?string $schoolId = null, int $limit = 50): Collection
+    public function candidatesForProgram(Program $program, ?string $schoolId = null, int $limit = 50, ?AccessScope $scope = null): Collection
     {
         $program->loadMissing(['skills', 'targetGroups', 'eligibilityRules']);
         $registered = $program->registrations()->pluck('employee_id');
@@ -122,6 +123,7 @@ class RecommendationEngine
         return Employee::with(['user:id,name,name_ar', 'school:id,name_ar,name_en', 'jobTitle', 'skills'])
             ->where('status', 'active')
             ->when($schoolId, fn ($q) => $q->where('school_id', $schoolId))
+            ->when($scope, fn ($q) => $scope->constrainEmployees($q))
             ->whereNotIn('id', $registered)
             ->limit(500)
             ->get()

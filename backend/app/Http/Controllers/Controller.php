@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\AccessScope;
 use Illuminate\Http\Request;
 
 abstract class Controller
@@ -19,14 +20,10 @@ abstract class Controller
         return ($user ?? $this->user())->hasRole(...Role::CENTER_STAFF);
     }
 
-    /**
-     * School the current user is restricted to (school admins), or null for center-wide access.
-     */
-    protected function schoolScope(): ?string
+    /** What the active role may see (Ministry, school group, school or department). */
+    protected function scope(): AccessScope
     {
-        $user = $this->user();
-
-        return $this->isCenterStaff($user) || $user->hasRole(Role::EXECUTIVE) ? null : $user->managedSchoolId();
+        return AccessScope::current($this->user());
     }
 
     protected function perPage(Request $request, int $default = 20): int

@@ -16,7 +16,7 @@ class SchoolController extends Controller
     public function index(Request $request): JsonResponse
     {
         $schools = School::withCount('employees')
-            ->when($this->schoolScope(), fn ($q, $id) => $q->whereKey($id))
+            ->tap(fn ($q) => $this->scope()->constrainSchoolColumn($q, 'id'))
             ->when($request->query('region'), fn ($q, $r) => $q->where('region', $r))
             ->when($request->query('type'), fn ($q, $t) => $q->where('type', $t))
             ->when($request->boolean('official'), fn ($q) => $q->where('source', 'like', 'moe_%'))
@@ -31,7 +31,7 @@ class SchoolController extends Controller
     public function map(): JsonResponse
     {
         $schools = School::withCount('employees')->where('source', 'like', 'moe_%')->whereNotNull('latitude')->whereNotNull('longitude')->where('status', 'active')
-            ->when($this->schoolScope(), fn ($q, $id) => $q->whereKey($id))->orderBy('name_ar')->get();
+            ->tap(fn ($q) => $this->scope()->constrainSchoolColumn($q, 'id'))->orderBy('name_ar')->get();
 
         return response()->json(['data' => [
             'schools' => $schools->map(fn (School $s) => [
@@ -60,7 +60,7 @@ class SchoolController extends Controller
 
     public function show(School $school): JsonResponse
     {
-        abort_if($this->schoolScope() && $this->schoolScope() !== $school->id, 403);
+        abort_unless($this->scope()->allowsSchool($school->id), 403);
 
         return response()->json(['data' => $school->loadCount('employees')]);
     }

@@ -48,6 +48,12 @@ return [
         'one_correct' => 'Question :n needs a correct answer (exactly one for this type).',
     ],
     'training_day' => ['outside' => 'A session must fall within the training day (:from to :to).', 'order' => 'The day must end after it starts.'],
+    'grants' => ['attendance_denied' => 'You do not have the right to record attendance for this program. Ask the head of training to grant it.'],
+    'roles' => [
+        'scope_not_allowed' => 'This role cannot be granted at this scope.', 'scope_required' => 'Choose the school, group or department for this scope.', 'already_granted' => 'This role is already granted at this scope.',
+        'last_role' => 'A user\'s last role cannot be removed.', 'system_protected' => 'System roles cannot be edited or deleted. Make a copy instead.', 'in_use' => 'A role that users hold cannot be deleted.',
+        'no_clone_super' => 'The super administrator role cannot be copied.', 'group_in_use' => 'The group is the scope of a granted role. Remove the grant first.',
+    ],
     'features' => ['disabled' => 'This feature is switched off. A system administrator can switch it on in Settings → Features.', 'fix_suggested' => 'Suggested remedy: :fix. It was not applied because automatic fixing is off.', 'no_remedy' => 'There is no known remedy for this error.', 'reason_required' => 'Write a reason (at least 5 characters): this tool is used with care on a live system.'],
     'impersonation' => ['self' => 'You are already signed in with this account.', 'admin' => 'You cannot sign in as another system administrator.', 'inactive' => 'The account is suspended: activate it first.'],
     'theme' => ['unsafe_svg' => 'This SVG contains unsafe parts (scripts or external links). Use a clean copy.'],

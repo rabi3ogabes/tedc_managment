@@ -9,6 +9,7 @@ use App\Models\TaskSubmission;
 use App\Services\CertificateService;
 use App\Services\FileStorage;
 use App\Services\NotificationService;
+use App\Services\ProgramGrantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -47,6 +48,7 @@ class TaskController extends Controller
 
     public function submissions(Request $request, Task $task): JsonResponse
     {
+        $this->authorizeProgram($task->program_id);
         $submissions = $task->submissions()->with('employee.user:id,name,name_ar')
             ->when($request->query('status'), fn ($q, $s) => $q->where('status', $s))
             ->latest('updated_at')->get()
@@ -68,6 +70,7 @@ class TaskController extends Controller
             'status' => ['required', Rule::in([TaskSubmission::STATUS_APPROVED, TaskSubmission::STATUS_REJECTED, TaskSubmission::STATUS_CHANGES])],
             'feedback' => ['nullable', 'required_unless:status,approved', 'string', 'max:2000'],
         ]);
+        $this->authorizeProgram($submission->task->program_id);
 
         $submission->update($data + ['reviewed_by' => $this->user()->id, 'reviewed_at' => now()]);
         $certificates->refreshStatus($submission->registration);
@@ -91,6 +94,7 @@ class TaskController extends Controller
 
     public function file(TaskSubmission $submission, FileStorage $storage): JsonResponse
     {
+        $this->authorizeProgram($submission->task->program_id);
         abort_unless($submission->file_path, 404);
 
         return response()->json(['data' => ['url' => $storage->temporaryUrl('submissions', $submission->file_path), 'name' => $submission->file_name]]);
@@ -112,5 +116,12 @@ class TaskController extends Controller
             'max_file_mb' => ['sometimes', 'integer', 'between:1,100'],
             'is_required' => ['sometimes', 'boolean'],
         ]);
+    }
+
+    /** Reviewing needs the task-review permission, or the head of training's grant on this program. */
+    private function authorizeProgram(string $programId): void
+    {
+        $user = $this->user();
+        abort_unless($user->hasPermission('tasks.review') || app(ProgramGrantService::class)->allows($user, $programId, 'tasks.review'), 403, __('auth.forbidden'));
     }
 }
