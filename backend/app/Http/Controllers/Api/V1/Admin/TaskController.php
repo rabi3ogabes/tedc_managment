@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Program;
 use App\Models\Task;
 use App\Models\TaskSubmission;
-use App\Services\CertificateService;
 use App\Services\FileStorage;
-use App\Services\NotificationService;
 use App\Services\ProgramGrantService;
+use App\Services\TaskApprovalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -62,34 +61,35 @@ class TaskController extends Controller
     }
 
     /**
-     * Trainer decision: approve, reject or request changes.
+     * Trainer decision: approve, reject or request changes. Under the two-stage policy an approval waits for the supervisor.
      */
-    public function review(Request $request, TaskSubmission $submission, CertificateService $certificates, NotificationService $notifications): JsonResponse
+    public function review(Request $request, TaskSubmission $submission, TaskApprovalService $tasks): JsonResponse
     {
         $data = $request->validate([
             'status' => ['required', Rule::in([TaskSubmission::STATUS_APPROVED, TaskSubmission::STATUS_REJECTED, TaskSubmission::STATUS_CHANGES])],
             'feedback' => ['nullable', 'required_unless:status,approved', 'string', 'max:2000'],
         ]);
+
+        $this->authorizeProgram($submission->task->program_id);
+        $decision = ['approved' => 'approved', 'rejected' => 'rejected', 'changes_requested' => 'returned'][$data['status']];
+
+        return response()->json(['data' => $tasks->trainerDecide($submission, $decision, $data['feedback'] ?? null, $this->user())]);
+    }
+
+    public function trainerDecision(Request $request, TaskSubmission $submission, TaskApprovalService $tasks): JsonResponse
+    {
+        $data = $request->validate(['decision' => ['required', Rule::in(['approved', 'rejected', 'returned'])], 'feedback' => ['nullable', 'required_unless:decision,approved', 'string', 'max:2000']]);
         $this->authorizeProgram($submission->task->program_id);
 
-        $submission->update($data + ['reviewed_by' => $this->user()->id, 'reviewed_at' => now()]);
-        $certificates->refreshStatus($submission->registration);
+        return response()->json(['data' => $tasks->trainerDecide($submission, $data['decision'], $data['feedback'] ?? null, $this->user())]);
+    }
 
-        $labels = [
-            TaskSubmission::STATUS_APPROVED => ['ar' => 'تم اعتماد مهمتك', 'en' => 'Your task was approved'],
-            TaskSubmission::STATUS_REJECTED => ['ar' => 'تم رفض مهمتك', 'en' => 'Your task was rejected'],
-            TaskSubmission::STATUS_CHANGES => ['ar' => 'مطلوب تعديلات على مهمتك', 'en' => 'Changes requested on your task'],
-        ];
-        $suffix = filled($data['feedback'] ?? null) ? ' — '.$data['feedback'] : '';
-        $notifications->send(
-            $submission->employee->user_id,
-            'task.'.$data['status'],
-            $labels[$data['status']],
-            ['ar' => $submission->task->title_ar.$suffix, 'en' => $submission->task->title_en.$suffix],
-            ['task_id' => $submission->task_id, 'submission_id' => $submission->id],
-        );
+    /** The supervisor's final approval of a task the trainer approved. */
+    public function finalDecision(Request $request, TaskSubmission $submission, TaskApprovalService $tasks): JsonResponse
+    {
+        $data = $request->validate(['decision' => ['required', Rule::in(['approved', 'rejected', 'returned'])], 'feedback' => ['nullable', 'required_unless:decision,approved', 'string', 'max:2000']]);
 
-        return response()->json(['data' => $submission->refresh()]);
+        return response()->json(['data' => $tasks->finalDecide($submission, $data['decision'], $data['feedback'] ?? null, $this->user())]);
     }
 
     public function file(TaskSubmission $submission, FileStorage $storage): JsonResponse
@@ -115,6 +115,7 @@ class TaskController extends Controller
             'submission_types.*' => [Rule::in(Task::TYPES)],
             'max_file_mb' => ['sometimes', 'integer', 'between:1,100'],
             'is_required' => ['sometimes', 'boolean'],
+            'self_assessed' => ['sometimes', 'boolean'],
         ]);
     }
 

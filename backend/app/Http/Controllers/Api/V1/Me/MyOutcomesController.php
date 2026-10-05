@@ -18,6 +18,7 @@ use App\Services\Assessment\KnowledgeService;
 use App\Services\CertificateService;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Services\TaskApprovalService;
 use App\Services\TrainerCertificateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class MyOutcomesController extends MyTrainingController
         }
 
         $existing = TaskSubmission::where('task_id', $task->id)->where('registration_id', $registration->id)->first();
-        if ($existing?->status === TaskSubmission::STATUS_APPROVED) {
+        if (in_array($existing?->status, [TaskSubmission::STATUS_APPROVED, TaskSubmission::STATUS_PENDING_FINAL], true)) {
             throw new BusinessRuleException(__('messages.tasks.locked'), 'task_locked');
         }
 
@@ -98,6 +99,7 @@ class MyOutcomesController extends MyTrainingController
             'version' => ($existing?->version ?? 0) + 1,
             'reviewed_by' => null,
             'reviewed_at' => null,
+            'trainer_decision' => null, 'trainer_id' => null, 'trainer_decided_at' => null, 'supervisor_decision' => null, 'supervisor_id' => null, 'supervisor_decided_at' => null,
         ];
 
         if ($file = $request->file('file')) {
@@ -114,7 +116,7 @@ class MyOutcomesController extends MyTrainingController
         }
 
         $submission = TaskSubmission::updateOrCreate(['task_id' => $task->id, 'registration_id' => $registration->id], $attributes);
-        $certificates->refreshStatus($registration);
+        $submission = app(TaskApprovalService::class)->onSubmitted($submission);
 
         return response()->json(['data' => $submission], 201);
     }

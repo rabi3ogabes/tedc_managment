@@ -28,7 +28,7 @@ class RegistrationController extends Controller
     {
         $scope = $this->scope();
 
-        $query = Registration::with(['employee.user', 'employee.school', 'employee.jobTitle', 'program'])
+        $query = Registration::with(['employee.user', 'employee.school', 'employee.jobTitle', 'program', 'certificates'])
             ->tap(fn ($q) => $scope->constrainThroughEmployee($q))
             ->when($request->query('program_id'), fn ($q, $id) => $q->where('program_id', $id))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))

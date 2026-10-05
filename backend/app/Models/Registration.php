@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'program_id', 'training_group_id', 'employee_id', 'nomination_id', 'source', 'status', 'eligibility_snapshot', 'approved_by', 'approved_at',
     'completed_at', 'attendance_percent', 'tasks_completed', 'evaluation_completed', 'certificate_status', 'impact_score', 'notes', 'course_percent', 'course_completed',
     'manager_id', 'manager_decided_at', 'manager_note', 'center_decided_by', 'center_decided_at', 'seat_entity_type', 'seat_entity_id', 'priority_score', 'priority_explanation',
+    'participation_percent', 'weighted_score', 'pass_status', 'passed_via', 'computed_at',
 ])]
 class Registration extends Model
 {
@@ -116,8 +117,14 @@ class Registration extends Model
         return $this->hasMany(ImpactSurvey::class);
     }
 
+    /** The pass certificate when there is one, else the attendance certificate. */
     public function certificate(): HasOne
     {
-        return $this->hasOne(Certificate::class);
+        return $this->hasOne(Certificate::class)->orderByRaw("case when type = 'pass' then 0 else 1 end");
+    }
+
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

@@ -13,6 +13,7 @@ use App\Models\LessonProgress;
 use App\Models\Question;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\CertificateService;
 use App\Services\CourseService;
 use App\Services\FileStorage;
 use App\Services\NotificationService;
@@ -297,6 +298,21 @@ class AttemptService
         $at->update(['manual_score' => $manual, 'max_score' => $max, 'score_percent' => $percent, 'passed' => $percent >= (float) $at->assessment->pass_percent, 'status' => 'graded', 'graded_at' => now()]);
         $this->knowledge->afterGraded($at->fresh());
         $this->syncLesson($at->fresh());
+        $this->afterGraded($at->fresh());
+    }
+
+    /** A graded attempt can change who passes — and passing the test-out assessment passes the program. */
+    private function afterGraded(AssessmentAttempt $at): void
+    {
+        $registration = $at->registration()->with('program', 'employee')->first();
+        if (! $registration) {
+            return;
+        }
+        $certificates = app(CertificateService::class);
+        $certificates->refreshStatus($registration);
+        if ($registration->refresh()->passed_via === 'test_out') {
+            $certificates->issueDue($registration);
+        }
     }
 
     /** A graded assessment that sits inside a course lesson counts as that lesson's quiz. */

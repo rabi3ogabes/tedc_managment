@@ -69,6 +69,9 @@ class RolePermissionSeeder extends Seeder
         'search.global' => ['general', 'البحث الشامل', 'Global search'],
         'groups.manage' => ['programs', 'إدارة المجموعات التدريبية', 'Manage training groups'],
         'groups.status' => ['programs', 'تغيير حالة المجموعات التدريبية', 'Change the status of training groups'],
+        'passing.manage' => ['programs', 'إدارة سياسات النجاح', 'Manage passing policies'],
+        'pass_exceptions.grant' => ['programs', 'منح استثناءات النجاح', 'Grant passing exceptions'],
+        'tasks.final_approve' => ['programs', 'الاعتماد النهائي للمهام', 'Give the final approval of tasks'],
         'banks.manage' => ['programs', 'إدارة بنوك الأسئلة', 'Manage question banks'],
         'assessments.manage' => ['programs', 'إدارة الاختبارات', 'Manage assessments'],
         'assessments.grade' => ['programs', 'تصحيح الاختبارات يدوياً', 'Grade assessments manually'],
@@ -126,6 +129,7 @@ class RolePermissionSeeder extends Seeder
             'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
             'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
             'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
+            'passing.manage', 'tasks.final_approve',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
@@ -148,7 +152,7 @@ class RolePermissionSeeder extends Seeder
             'groups.manage', 'groups.status', 'workshops.approve', 'gaps.view', 'needs.cycles',
             'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
             'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
-            'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
+            'passing.manage', 'tasks.final_approve', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -235,5 +239,7 @@ class RolePermissionSeeder extends Seeder
         'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
         // Phase 06
         'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
+        // Phase 07
+        'passing.manage', 'pass_exceptions.grant', 'tasks.final_approve',
     ];
 }

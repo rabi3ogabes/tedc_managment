@@ -5,9 +5,9 @@ namespace App\Services;
 use App\Exceptions\BusinessRuleException;
 use App\Mail\CertificateMail;
 use App\Models\Certificate;
+use App\Models\CertificateTemplate;
+use App\Models\PassException;
 use App\Models\Registration;
-use App\Models\Task;
-use App\Models\TaskSubmission;
 use App\Models\User;
 use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\QRCode;
@@ -33,49 +33,64 @@ class CertificateService
         private readonly NotificationService $notifications,
     ) {}
 
-    /** @return array{eligible: bool, checks: array<int, array{key: string, passed: bool, label: string}>} */
-    public function requirements(Registration $registration): array
+    /**
+     * What a certificate of the given type needs. The checks come from the passing policy: the attendance certificate
+     * needs the attendance minimum, the pass certificate needs the policy to be met.
+     *
+     * @return array{eligible: bool, checks: array<int, array{key: string, passed: bool, label: string}>}
+     */
+    public function requirements(Registration $registration, string $type = 'pass'): array
     {
         $registration->loadMissing('program');
+        $passing = app(PassingPolicyService::class);
+        $result = $passing->evaluate($registration);
+        $policy = $result['policy'];
+        $byKey = collect($result['criteria'])->keyBy('key');
         $program = $registration->program;
 
-        $requiredTasks = $program->requires_tasks
-            ? Task::where('program_id', $program->id)->where('is_required', true)->pluck('id')
-            : collect();
-        $approvedTasks = $requiredTasks->isEmpty() ? 0 : TaskSubmission::where('registration_id', $registration->id)
-            ->whereIn('task_id', $requiredTasks)
-            ->where('status', TaskSubmission::STATUS_APPROVED)
-            ->count();
-        $evaluationDone = ! $program->requires_evaluation || $registration->evaluation()->exists();
+        $checks = [[
+            'key' => 'registration',
+            'passed' => in_array($registration->status, [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED], true),
+            'label' => __('messages.certificate.registration'),
+        ]];
 
-        $checks = [
-            [
-                'key' => 'registration',
-                'passed' => in_array($registration->status, [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED], true),
-                'label' => __('messages.certificate.registration'),
-            ],
-            [
-                'key' => 'attendance',
-                // A self-paced online program has no sessions to attend.
-                'passed' => ! $program->sessions()->where('status', '!=', 'cancelled')->exists() || $registration->attendance_percent >= $program->min_attendance_percent,
-                'label' => __('messages.certificate.attendance', ['actual' => round($registration->attendance_percent), 'required' => $program->min_attendance_percent]),
-            ],
-            [
-                'key' => 'tasks',
-                'passed' => $approvedTasks >= $requiredTasks->count(),
-                'label' => __('messages.certificate.tasks', ['done' => $approvedTasks, 'total' => $requiredTasks->count()]),
-            ],
-            [
-                'key' => 'evaluation',
-                'passed' => $evaluationDone,
-                'label' => __('messages.certificate.evaluation'),
-            ],
-        ];
-        if ($program->has_course) {
-            $checks[] = ['key' => 'course', 'passed' => (bool) $registration->course_completed, 'label' => __('messages.certificate.course', ['percent' => round($registration->course_percent), 'required' => $program->course_completion_percent])];
+        if ($type === 'attendance') {
+            $hasSessions = $program->sessions()->where('status', '!=', 'cancelled')->exists();
+            $excused = PassException::where('registration_id', $registration->id)->where('criterion', 'attendance')->whereNull('revoked_at')->exists();
+            $checks[] = ['key' => 'attendance', 'passed' => $excused || ! $hasSessions || $registration->attendance_percent + 1e-9 >= $policy['attendance_certificate_min'],
+                'label' => __('messages.certificate.attendance', ['actual' => round($registration->attendance_percent), 'required' => round($policy['attendance_certificate_min'])])];
+
+            return ['eligible' => collect($checks)->every('passed'), 'checks' => $checks];
         }
 
-        return ['eligible' => collect($checks)->every('passed'), 'checks' => $checks];
+        // A pass through the test-out assessment (or an exception) is explained as one line; otherwise each criterion shows its evidence.
+        $labels = [
+            'attendance' => fn ($c) => __('messages.certificate.attendance', ['actual' => round($c['value']), 'required' => round($c['min'])]),
+            'tasks' => fn ($c) => __('messages.certificate.tasks', ['done' => $c['evidence']['done'] ?? 0, 'total' => $c['evidence']['total'] ?? 0]),
+            'evaluation' => fn () => __('messages.certificate.evaluation'),
+            'course' => fn ($c) => __('messages.certificate.course', ['percent' => round($c['value']), 'required' => round($c['min'])]),
+            'participation' => fn ($c) => __('messages.passing.participation', ['actual' => round($c['value']), 'required' => round($c['min'])]),
+            'assessments' => fn ($c) => __('messages.passing.assessments', ['actual' => round($c['value']), 'required' => round($c['min'])]),
+        ];
+        foreach (['attendance', 'tasks', 'evaluation', 'course', 'participation', 'assessments'] as $key) {
+            $c = $byKey->get($key);
+            if (! $c) {
+                if (in_array($key, ['attendance', 'tasks', 'evaluation'], true)) {
+                    $checks[] = ['key' => $key, 'passed' => true, 'label' => __('messages.passing.not_required', ['name' => __("messages.passing.names.{$key}")])];
+                }
+
+                continue;
+            }
+            $checks[] = ['key' => $key, 'passed' => $result['passed'] ? true : (bool) $c['met'], 'label' => $labels[$key]($c).($c['exempted'] ? ' — '.__('messages.passing.exempted') : ''), 'weight' => $c['weight']];
+        }
+        if ($policy['mode'] === 'weighted') {
+            $checks[] = ['key' => 'weighted_score', 'passed' => $result['passed'], 'label' => __('messages.passing.weighted', ['score' => $result['weighted_score'] ?? 0, 'threshold' => round($policy['pass_threshold'])])];
+        }
+        if ($result['via'] === 'test_out') {
+            $checks[] = ['key' => 'test_out', 'passed' => true, 'label' => __('messages.passing.test_out')];
+        }
+
+        return ['eligible' => collect($checks)->every('passed') && $result['passed'], 'checks' => $checks];
     }
 
     /**
@@ -83,6 +98,8 @@ class CertificateService
      */
     public function refreshStatus(Registration $registration): Registration
     {
+        $registration->loadMissing('program', 'employee');
+        app(PassingPolicyService::class)->recompute($registration);
         $result = $this->requirements($registration);
         $checks = collect($result['checks'])->keyBy('key');
 
@@ -102,19 +119,54 @@ class CertificateService
         return $registration;
     }
 
-    public function issue(Registration $registration, ?User $actor = null): Certificate
+    /** The certificate types the policy hands out. @return list<string> */
+    public function typesFor(Registration $registration): array
     {
-        if ($existing = $registration->certificate) {
+        return match (app(PassingPolicyService::class)->policy($registration)['certificate_types']) {
+            'attendance' => ['attendance'],
+            'both' => ['attendance', 'pass'],
+            default => ['pass'],
+        };
+    }
+
+    /** Issues every certificate the policy hands out that is due and not issued yet. @return list<Certificate> */
+    public function issueDue(Registration $registration, ?User $actor = null): array
+    {
+        $out = [];
+        foreach ($this->typesFor($registration) as $type) {
+            try {
+                $out[] = $this->issue($registration->refresh(), $actor, $type);
+            } catch (BusinessRuleException) {
+                // not due yet
+            }
+        }
+
+        return $out;
+    }
+
+    public function issue(Registration $registration, ?User $actor = null, ?string $type = null): Certificate
+    {
+        $registration->loadMissing('program', 'employee');
+        $types = $this->typesFor($registration);
+        $type ??= in_array('pass', $types, true) ? 'pass' : 'attendance';
+        abort_unless(in_array($type, ['attendance', 'pass'], true), 422);
+
+        if ($existing = $registration->certificates()->where('type', $type)->first()) {
             return $existing;
         }
 
-        $requirements = $this->requirements($registration);
+        $requirements = $this->requirements($registration, $type);
         if (! $requirements['eligible']) {
             $this->refreshStatus($registration);
             throw new BusinessRuleException(__('messages.certificate.blocked'), 'certificate_blocked', $requirements);
         }
 
-        $certificate = DB::transaction(function () use ($registration, $actor) {
+        $passing = app(PassingPolicyService::class);
+        $policy = $passing->policy($registration);
+        $hours = $passing->hours($registration, $policy);
+        $isMain = $type === 'pass' || ! in_array('pass', $types, true);
+
+        $certificate = DB::transaction(function () use ($registration, $actor, $type, $hours, $isMain, $policy) {
             $program = $registration->program;
 
             $certificate = Certificate::create([
@@ -124,19 +176,25 @@ class CertificateService
                 'employee_id' => $registration->employee_id,
                 'program_id' => $program->id,
                 'issued_at' => now(),
-                'hours' => $program->total_hours,
+                'hours' => $hours['used'],
+                'type' => $type,
+                'hours_mode' => $hours['mode'],
+                'hours_total' => $hours['total'],
+                'hours_actual' => $hours['actual'],
                 'status' => 'valid',
                 'issued_by' => $actor?->id,
-                'meta' => ['attendance_percent' => $registration->attendance_percent],
+                'template_id' => $policy['certificate_templates'][$type] ?? null,
+                'meta' => ['attendance_percent' => $registration->attendance_percent, 'passed_via' => $registration->passed_via],
             ]);
 
-            $registration->update([
-                'status' => Registration::STATUS_COMPLETED,
-                'completed_at' => $registration->completed_at ?? now(),
-                'certificate_status' => 'issued',
-            ]);
-
-            $this->creditSkills($registration);
+            if ($isMain) {
+                $registration->update([
+                    'status' => Registration::STATUS_COMPLETED,
+                    'completed_at' => $registration->completed_at ?? now(),
+                    'certificate_status' => 'issued',
+                ]);
+                $this->creditSkills($registration);
+            }
 
             return $certificate;
         });
@@ -144,7 +202,7 @@ class CertificateService
         $path = $this->storage->put('certificates', "{$certificate->program_id}/{$certificate->certificate_no}.pdf", $this->render($certificate), 'application/pdf');
         $certificate->update(['file_path' => $path]);
 
-        app(ImpactService::class)->scheduleFollowUps($registration);
+        $isMain && app(ImpactService::class)->scheduleFollowUps($registration);
 
         if ($this->downloadable($certificate)) {
             $this->announce($certificate);
@@ -170,7 +228,8 @@ class CertificateService
 
         // A design made in the template studio wins over the built-in layout.
         $templates = app(CertificateTemplateService::class);
-        if ($template = $templates->resolve('trainee', $certificate->program)) {
+        $chosen = $certificate->template_id ? CertificateTemplate::where('status', 'active')->find($certificate->template_id) : null;
+        if ($template = $chosen ?? $templates->resolve('trainee', $certificate->program)) {
             return $templates->renderFor($template, $certificate);
         }
 
@@ -212,7 +271,15 @@ class CertificateService
     /** The trainee may download the certificate only after filling in the program survey. */
     public function downloadable(Certificate $certificate): bool
     {
-        return $certificate->status === 'valid' && $certificate->registration()->first()?->evaluation()->exists() === true;
+        if ($certificate->status !== 'valid') {
+            return false;
+        }
+        $registration = $certificate->registration()->first();
+        if ($registration && ! app(PassingPolicyService::class)->policy($registration)['survey_required_for_download']) {
+            return true;
+        }
+
+        return $registration?->evaluation()->exists() === true;
     }
 
     /**
@@ -232,7 +299,7 @@ class CertificateService
         $certificate->update(['available_notified_at' => now()]);
         $this->notifications->send(
             $certificate->employee->user_id,
-            'certificate.available',
+            $certificate->type === 'attendance' ? 'certificate.attendance_issued' : 'certificate.available',
             ['ar' => 'شهادتك جاهزة للتحميل', 'en' => 'Your certificate is ready to download'],
             [
                 'ar' => "شكرًا لتعبئة الاستبيان. يمكنك الآن تحميل شهادة برنامج «{$certificate->program->title_ar}» من تطبيقك.",
@@ -329,6 +396,7 @@ class CertificateService
             'participant' => ['ar' => $certificate->employee->user->name_ar ?? $certificate->employee->user->name, 'en' => $certificate->employee->user->name],
             'program' => ['ar' => $certificate->program->title_ar, 'en' => $certificate->program->title_en],
             'hours' => $certificate->hours,
+            'type' => $certificate->type,
             'issued_at' => $certificate->issued_at->toDateString(),
             'issuer' => app(ThemeService::class)->centerName(),
         ];

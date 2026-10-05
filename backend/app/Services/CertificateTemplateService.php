@@ -109,6 +109,7 @@ class CertificateTemplateService
             'hours' => rtrim(rtrim(number_format((float) $certificate->hours, 1), '0'), '.'),
             'date' => $certificate->issued_at->format('Y-m-d'),
             'certificate_no' => $certificate->certificate_no, 'code' => $certificate->verification_code,
+            'certificate_type' => ($certificate->type ?? 'pass') === 'attendance' ? 'شهادة حضور' : 'شهادة إتمام',
         ] + $this->commonTokens($program, $center);
     }
 
@@ -119,7 +120,7 @@ class CertificateTemplateService
             'name' => 'د. سامر يحيى الدريعي', 'name_en' => 'Dr. Samer Al-Dreiee', 'school' => 'مدرسة ناصر بن عبدالله الثانوية للبنين',
             'program' => 'خارطة التعلم اليومية', 'program_en' => 'Daily Learning Map', 'hours' => '10', 'date' => now()->format('Y-m-d'),
             'start_date' => now()->subDays(10)->format('Y-m-d'), 'end_date' => now()->format('Y-m-d'), 'academic_year' => $this->academicYear(now()),
-            'certificate_no' => 'TEDC-2026-A1B2C3', 'code' => 'A1B2C3D4E5F6',
+            'certificate_no' => 'TEDC-2026-A1B2C3', 'code' => 'A1B2C3D4E5F6', 'certificate_type' => 'شهادة إتمام',
         ] + $this->commonTokens(null, app(ThemeService::class)->centerName());
     }
 

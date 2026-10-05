@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['task_id', 'registration_id', 'employee_id', 'text_response', 'file_path', 'file_name', 'mime', 'status', 'feedback', 'reviewed_by', 'reviewed_at', 'version'])]
+#[Fillable(['task_id', 'registration_id', 'employee_id', 'text_response', 'file_path', 'file_name', 'mime', 'status', 'feedback', 'reviewed_by', 'reviewed_at', 'version', 'trainer_decision', 'trainer_id', 'trainer_decided_at', 'supervisor_decision', 'supervisor_id', 'supervisor_decided_at', 'returned_count'])]
 class TaskSubmission extends Model
 {
     use Auditable, HasUuids;
 
     public const STATUS_SUBMITTED = 'submitted';
+
+    public const STATUS_PENDING_FINAL = 'pending_final';
 
     public const STATUS_APPROVED = 'approved';
 
@@ -21,7 +23,7 @@ class TaskSubmission extends Model
 
     public const STATUS_CHANGES = 'changes_requested';
 
-    protected $casts = ['reviewed_at' => 'datetime'];
+    protected $casts = ['reviewed_at' => 'datetime', 'trainer_decided_at' => 'datetime', 'supervisor_decided_at' => 'datetime'];
 
     public function task(): BelongsTo
     {

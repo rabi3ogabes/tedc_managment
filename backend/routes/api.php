@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
+use App\Http\Controllers\Api\V1\Admin\PassingController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
@@ -89,6 +90,7 @@ use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
+use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
@@ -235,6 +237,8 @@ Route::prefix('v1')->group(function () {
             Route::get('withdrawal-reasons', [WithdrawalController::class, 'activeReasons']);
             Route::post('registrations/{registration}/excuses', [AbsenceController::class, 'submitExcuse']);
             Route::get('excuses', [AbsenceController::class, 'myExcuses']);
+            Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
+            Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
             Route::get('assessments', [MyAssessmentController::class, 'index']);
             Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
             Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
@@ -550,6 +554,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('can_or_grant:tasks.review,tasks.review')->group(function () {
                 Route::get('tasks/{task}/submissions', [TaskController::class, 'submissions']);
                 Route::post('submissions/{submission}/review', [TaskController::class, 'review']);
+                Route::post('submissions/{submission}/trainer-decision', [TaskController::class, 'trainerDecision']);
                 Route::get('submissions/{submission}/file', [TaskController::class, 'file'])->name('api.submissions.file');
             });
 
@@ -888,6 +893,19 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
             Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Passing policies, exceptions and the final approval of tasks.
+            Route::middleware('permission:passing.manage')->group(function () {
+                Route::get('passing-policies/{scope}/{id?}', [PassingController::class, 'show'])->where('scope', 'global|program|group');
+                Route::put('passing-policies/{scope}/{id?}', [PassingController::class, 'save'])->where('scope', 'global|program|group');
+                Route::delete('passing-policies/{scope}/{id?}', [PassingController::class, 'destroy'])->where('scope', 'global|program|group');
+                Route::post('passing-policies/preview', [PassingController::class, 'preview']);
+            });
+            Route::get('registrations/{registration}/pass-status', [PassingController::class, 'status'])->middleware('permission:registrations.view');
+            Route::post('registrations/{registration}/exceptions', [PassingController::class, 'grantException'])->middleware('permission:pass_exceptions.grant');
+            Route::delete('pass-exceptions/{exception}', [PassingController::class, 'revokeException'])->middleware('permission:pass_exceptions.grant');
+            Route::get('pass-exceptions/{exception}/file', [PassingController::class, 'exceptionFile'])->middleware('permission:registrations.view');
+            Route::post('submissions/{submission}/final-decision', [TaskController::class, 'finalDecision'])->middleware('permission:tasks.final_approve');
+            Route::put('sessions/{session}/participation', [PassingController::class, 'participation'])->middleware('permission:attendance.manage');
             // Assessments.
             Route::middleware('permission:assessments.manage')->group(function () {
                 Route::get('programs/{program}/assessments', [AssessmentController::class, 'index']);
