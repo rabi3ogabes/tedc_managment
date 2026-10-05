@@ -68,6 +68,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/certificates', label: t('portal.certificates'), icon: Wallet },
           { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList },
           { to: '/portal/surveys', label: t('portal.surveys'), icon: Target },
+          { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
       }]
@@ -82,6 +83,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
           { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
           { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
+          { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage' },
           { to: '/admin/plans', label: t('plans.nav'), icon: CalendarRange, permission: 'plans.view' },
           { to: '/admin/groups', label: t('groups.board.title'), icon: KanbanSquare, permission: 'programs.view' },
           { to: '/admin/internal-workshops', label: t('workshops.nav'), icon: School2, permission: 'workshops.internal|workshops.approve' },

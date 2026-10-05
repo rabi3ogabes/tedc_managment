@@ -124,6 +124,7 @@ class NotificationTemplates
                 'center' => (string) ($center ?? ''),
                 'group' => $group ? $group->displayTitle($lang) : '',
                 'reason' => (string) ($data['reason'] ?? ''),
+                'detail' => (string) ($data["detail_{$lang}"] ?? ''),
                 'plan' => $plan ? '«'.$plan->{"title_{$lang}"}.'» ('.$plan->year.')' : '',
             ];
         }

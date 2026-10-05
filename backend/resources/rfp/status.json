@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 87,
-        "partial": 85,
-        "missing": 106,
+        "available": 94,
+        "partial": 80,
+        "missing": 104,
         "mandatory": 108,
-        "open": 191
+        "open": 184
     },
     "phases": [
         {
@@ -33,7 +33,7 @@
             "phase": 3,
             "title": "Needs Assessment & Gap Analysis",
             "open": 7,
-            "items": 7,
+            "items": 0,
             "done": 0
         },
         {
@@ -681,49 +681,49 @@
                     "id": "NDS-01",
                     "mandatory": true,
                     "requirement": "Needs-assessment toolset that feeds the annual plan",
-                    "status": "partial",
-                    "evidence": "Needs Survey Studio (templates, audience, analysis, auto-generate needs) + school needs; no annual plan.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Needs workspace (`/admin/needs-hub`): cycle + proposals, manager requests, staff needs, performance data, rules, gap analysis and the competency framework; accepted items and gaps flow into the annual plan draft.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-02",
                     "mandatory": false,
                     "requirement": "Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority)",
-                    "status": "partial",
-                    "evidence": "School needs capture skill, headcount, priority and reason only.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Yearly needs cycle with an opening and closing window (`needs_cycles`); department/school proposals carry every RFP field (groups, axes, target jobs, days, hours, kit availability, trainer nominations, importance, justification); submissions outside the window are refused; reminders and auto-close (`tedc:needs-cycles`).",
+                    "phase": null
                 },
                 {
                     "id": "NDS-03",
                     "mandatory": false,
                     "requirement": "Manager request form for institutional needs with objectives",
-                    "status": "partial",
-                    "evidence": "School Admin can submit needs; no manager request form.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Direct-manager requests for their own staff (`institutional_requests`): need degree, objectives, employees, preferred window; reviewed (accept / merge / reject) and converted to plan items.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-04",
                     "mandatory": false,
                     "requirement": "Individual needs surveys linked to job competencies + manager approval",
-                    "status": "partial",
-                    "evidence": "Surveys exist; no competency mapping or manager approval.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Employees declare needs (`POST /me/needs`) and surveys create needs from low self-ratings; the direct manager approves or rejects in bulk with a note, and a configurable auto-approval after N days is audited.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-05",
                     "mandatory": false,
                     "requirement": "Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies",
-                    "status": "missing",
-                    "evidence": "No appraisal / observation data or rules.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Needs rules (`needs_rules`) run nightly and on demand for new hires, appraisals, classroom observations and specialisation/stage; every need carries an explanation and re-runs never duplicate. Licence and test triggers are wired for Phases 06 and 09.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-06",
                     "mandatory": false,
                     "requirement": "Automatic gap analysis vs competency framework & licence requirements, prioritised",
-                    "status": "partial",
-                    "evidence": "Survey analyzer, needs analytics and AI assistant; no competency framework.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Competency framework with level descriptors and required levels per job (stage/subject overrides); current level blended from verified level, manager rating, observations and self rating with editable weights and shown evidence; gaps ranked by gap × people × licence weight with explanations, uncovered gaps listed and sent to the plan.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-07",
@@ -793,9 +793,9 @@
                     "id": "NDS-15",
                     "mandatory": false,
                     "requirement": "Approve needs and evaluation instruments before they are distributed",
-                    "status": "missing",
-                    "evidence": "Surveys are published directly.",
-                    "phase": 3
+                    "status": "available",
+                    "evidence": "Needs surveys cannot be published until the planning head approves them (`instruments.approve`); returned with a note, audited and notified. Evaluation forms join the same flow in Phase 08.",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T10:32:45+03:00"
+    "generated_at": "2026-10-05T12:48:16+03:00"
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NeedsSurvey;
 use App\Models\NeedsSurveyRecipient;
 use App\Models\NeedsSurveyResponse;
+use App\Services\IndividualNeedsService;
 use App\Services\NeedsSurveys\SurveySchema;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,6 +65,7 @@ class MyNeedsSurveyController extends Controller
             ],
         );
         $recipient->update(['responded_at' => now()]);
+        rescue(fn () => app(IndividualNeedsService::class)->fromSurveyResponse($needsSurvey, NeedsSurveyResponse::where('survey_id', $needsSurvey->id)->where('user_id', $this->user()->id)->first()), null, true);
 
         return response()->json(['message' => $needsSurvey->settings['thank_you'] ?? __('Thank you, your answers were saved.')]);
     }

@@ -8,6 +8,7 @@ import { Button, ErrorState, StatusBadge } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { autoLinkSkills, newQuestion, QUESTION_TYPES, uid, type Question, type QuestionType, type Skill, type Survey } from '@/lib/surveys'
 import QuestionEditor, { linkedCount, TYPE_ICONS } from './QuestionEditor'
@@ -19,6 +20,7 @@ type SaveState = 'saved' | 'dirty' | 'saving' | 'error'
 export default function SurveyStudio() {
   const { id } = useParams()
   const { t } = useTranslation()
+  const { can } = useAuth()
   const [params, setParams] = useSearchParams()
   const query = useGet<{ data: Survey }>(`/admin/needs-surveys/${id}`, undefined, { staleTime: 0 })
   const lookups = useGet<{ data: { skills: Skill[] } }>('/admin/lookups', undefined, { staleTime: 10 * 60_000 })
@@ -118,7 +120,12 @@ export default function SurveyStudio() {
             <Button variant="outline" size="sm" icon={<Eye className="size-4" />} onClick={() => setDialog('preview')}>{t('surveys.actions.preview')}</Button>
             <Button variant="outline" size="sm" icon={<Users className="size-4" />} onClick={() => setDialog('audience')}><span className="max-w-40 truncate">{draft.audience_summary}</span></Button>
             <Button variant="outline" size="sm" icon={<Settings2 className="size-4" />} onClick={() => setDialog('settings')}>{t('surveys.builder.settings')}</Button>
-            <Button variant="gold" size="sm" icon={<Send className="size-4" />} onClick={async () => { clearTimeout(timer.current); await persist(); setDialog('publish') }}>{draft.status === 'draft' ? t('surveys.actions.publish') : t('surveys.actions.republish')}</Button>
+            <StatusBadge status={draft.approval_status ?? 'draft'} label={t(`needsHub.instrument.status.${draft.approval_status ?? 'draft'}`)} />
+            {draft.approval_status !== 'approved' && draft.approval_status !== 'pending' && <Button variant="outline" size="sm" onClick={async () => { clearTimeout(timer.current); await persist(); await api.post(`/admin/needs-surveys/${draft.id}/submit-approval`).then(() => setDraft({ ...draft, approval_status: 'pending' })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.submit')}</Button>}
+            {draft.approval_status === 'pending' && can('instruments.approve') && <>
+              <Button variant="outline" size="sm" onClick={() => void api.post(`/admin/needs-surveys/${draft.id}/approve`).then(() => setDraft({ ...draft, approval_status: 'approved' })).catch((e) => setToast(errorMessage(e)))}>{t('needsHub.instrument.approve')}</Button>
+              <Button variant="outline" size="sm" onClick={() => { const note = window.prompt(t('needsHub.instrument.return')); if (note) void api.post(`/admin/needs-surveys/${draft.id}/return`, { note }).then(() => setDraft({ ...draft, approval_status: 'returned', approval_note: note })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.return')}</Button></>}
+            <Button variant="gold" size="sm" disabled={draft.approval_status !== 'approved'} icon={<Send className="size-4" />} onClick={async () => { clearTimeout(timer.current); await persist(); setDialog('publish') }}>{draft.status === 'draft' ? t('surveys.actions.publish') : t('surveys.actions.republish')}</Button>
           </div>
         </div>
         <div className="flex gap-1 border-t border-navy-100 px-5">

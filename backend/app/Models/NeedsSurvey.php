@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['title', 'description', 'status', 'source', 'template_key', 'questions', 'audience', 'settings', 'created_by', 'published_at', 'closes_at', 'closed_at'])]
+#[Fillable(['title', 'description', 'status', 'source', 'template_key', 'questions', 'audience', 'settings', 'created_by', 'published_at', 'closes_at', 'closed_at', 'approval_status', 'approved_by', 'approved_at', 'approval_note'])]
 class NeedsSurvey extends Model
 {
     use Auditable, HasUuids;

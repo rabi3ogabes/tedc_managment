@@ -41,7 +41,7 @@ class DemoNeedsSurveySeeder extends Seeder
             'questions' => SurveySchema::normalize($template['questions']),
             'audience' => [],
             'settings' => ['accent' => $template['accent'], 'show_progress' => true, 'thank_you' => 'شكراً لمشاركتك، إجاباتك تصنع برامج العام القادم.'],
-            'status' => 'published',
+            'status' => 'published', 'approval_status' => 'approved',
             'published_at' => now()->subDays(12),
             'closes_at' => now()->addDays(18),
             'created_by' => $admin?->id,

@@ -69,6 +69,13 @@ class RolePermissionSeeder extends Seeder
         'search.global' => ['general', 'البحث الشامل', 'Global search'],
         'groups.manage' => ['programs', 'إدارة المجموعات التدريبية', 'Manage training groups'],
         'groups.status' => ['programs', 'تغيير حالة المجموعات التدريبية', 'Change the status of training groups'],
+        'competencies.manage' => ['needs', 'إدارة إطار الجدارات', 'Manage the competency framework'],
+        'needs.cycles' => ['needs', 'إدارة دورة الاحتياجات والمقترحات', 'Manage the needs cycle and proposals'],
+        'needs.propose' => ['needs', 'تقديم مقترحات البرامج التخصصية', 'Submit specialised program proposals'],
+        'needs.request' => ['needs', 'رفع احتياجات مؤسسية للموظفين', 'Request programs for staff'],
+        'needs.approve_individual' => ['needs', 'اعتماد الاحتياجات الفردية للموظفين', 'Approve individual needs of staff'],
+        'performance.import' => ['needs', 'استيراد بيانات الأداء والملاحظات الصفية', 'Import performance and observation data'],
+        'gaps.view' => ['needs', 'عرض تحليل الفجوات', 'View the gap analysis'],
         'trainers.respond' => ['programs', 'الرد على ترشيحات التدريب', 'Respond to training proposals'],
         'workshops.approve' => ['programs', 'اعتماد الورش الداخلية للمدارس', 'Approve school internal workshops'],
     ];
@@ -97,13 +104,15 @@ class RolePermissionSeeder extends Seeder
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
             'announcements.manage', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
             'plans.view', 'search.global', 'groups.manage', 'groups.status', 'workshops.approve', 'trainers.assign',
+            'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'search.global']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
+            'needs.propose', 'needs.request', 'needs.approve_individual',
         ]],
-        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'search.global']],
+        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'search.global']],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global',
@@ -115,22 +124,25 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
-            'groups.manage', 'groups.status', 'workshops.approve',
+            'groups.manage', 'groups.status', 'workshops.approve', 'gaps.view', 'needs.cycles',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
             'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global',
+            'needs.propose', 'needs.request', 'needs.approve_individual',
         ]],
         Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, [
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view', 'impact.view', 'needs.view', 'ai.assistant',
-            'reports.view', 'trainers.approve', 'plans.view', 'plans.approve', 'search.global',
+            'reports.view', 'trainers.approve', 'plans.view', 'plans.approve', 'gaps.view', 'search.global',
         ]],
         Role::PLANNING_HEAD => ['رئيس قسم التخطيط', 'Head of Planning', 66, [
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'ai.assistant', 'reports.view',
             'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'search.global',
+            'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import',
         ]],
         Role::PLANNING_SPECIALIST => ['أخصائي التخطيط', 'Planning Specialist', 58, [
             'dashboard.view', 'schools.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'reports.view', 'plans.view', 'plans.manage', 'search.global',
+            'needs.cycles', 'competencies.manage', 'gaps.view',
         ]],
         Role::LOGISTICS_OFFICER => ['مسؤول الدعم اللوجستي', 'Logistics Support Officer', 52, [
             'dashboard.view', 'programs.view', 'calendar.view', 'rooms.manage', 'rooms.book', 'logistics.manage', 'search.global',
@@ -191,5 +203,7 @@ class RolePermissionSeeder extends Seeder
         'scopes.manage', 'roles.create', 'program_grants.manage', 'trainers.assign', 'trainers.approve', 'rooms.book', 'logistics.manage', 'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'pd.approve', 'workshops.internal', 'search.global',
         // Phase 02
         'groups.manage', 'groups.status', 'workshops.approve', 'trainers.respond',
+        // Phase 03
+        'competencies.manage', 'needs.cycles', 'needs.propose', 'needs.request', 'needs.approve_individual', 'performance.import', 'gaps.view',
     ];
 }

@@ -4,6 +4,7 @@ import 'package:tedc_mobile/core/notification_route.dart';
 
 void main() {
   test('a trainer proposal notification opens the assignment form', () {
+    expect(NotificationRoute.resolve('individual_need.decided', {'route': '/needs'}), '/my-needs');
     expect(NotificationRoute.resolve('trainer.assignment_proposed', {'route': '/assignments'}), '/assignments');
   });
 

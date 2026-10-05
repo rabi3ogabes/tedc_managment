@@ -37,6 +37,7 @@ export type Audience = {
 
 export type SurveySummary = {
   id: string; title: string; description?: string | null; status: 'draft' | 'published' | 'closed'; source: 'builder' | 'template' | 'import'
+  approval_status?: 'draft' | 'pending' | 'approved' | 'returned'; approval_note?: string | null
   template_key?: string | null; questions_count: number; recipients_count: number; responses_count: number; needs_count: number
   audience_summary: string; accent?: string | null; published_at?: string | null; closes_at?: string | null; created_at: string; updated_at: string
 }

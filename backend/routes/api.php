@@ -12,10 +12,12 @@ use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
 use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
+use App\Http\Controllers\Api\V1\Admin\CompetencyController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
+use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -27,7 +29,9 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
+use App\Http\Controllers\Api\V1\Admin\NeedsCycleController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
+use App\Http\Controllers\Api\V1\Admin\NeedsToolsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
@@ -199,6 +203,9 @@ Route::prefix('v1')->group(function () {
             Route::post('notifications/seen', [MeController::class, 'seenNotifications']);
             Route::post('notifications/{notification}/read', [MeController::class, 'readNotification']);
 
+            Route::get('competencies', [NeedsToolsController::class, 'catalog']);
+            Route::get('needs', [NeedsToolsController::class, 'mine']);
+            Route::post('needs', [NeedsToolsController::class, 'declare']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -740,6 +747,70 @@ Route::prefix('v1')->group(function () {
                 Route::post('internal-workshops/{program}/register', [InternalWorkshopController::class, 'register']);
             });
             Route::post('internal-workshops/{program}/decision', [InternalWorkshopController::class, 'decision'])->middleware('permission:workshops.approve');
+            // Needs cycle: window, department proposals, manager requests.
+            Route::get('needs-cycles', [NeedsCycleController::class, 'index'])->middleware('permission:needs.cycles|needs.propose|needs.request');
+            Route::middleware('permission:needs.cycles')->group(function () {
+                Route::post('needs-cycles', [NeedsCycleController::class, 'store']);
+                Route::get('needs-cycles/{cycle}', [NeedsCycleController::class, 'show']);
+                Route::put('needs-cycles/{cycle}', [NeedsCycleController::class, 'update']);
+                Route::post('needs-cycles/{cycle}/open', [NeedsCycleController::class, 'open']);
+                Route::post('needs-cycles/{cycle}/close', [NeedsCycleController::class, 'close']);
+                Route::post('proposals/{proposal}/review', [NeedsCycleController::class, 'reviewProposal']);
+                Route::post('institutional-requests/{institutionalRequest}/review', [NeedsCycleController::class, 'reviewRequest']);
+            });
+            Route::middleware('permission:needs.propose|needs.cycles')->group(function () {
+                Route::get('needs-cycles/{cycle}/proposals', [NeedsCycleController::class, 'proposals']);
+                Route::post('needs-cycles/{cycle}/proposals', [NeedsCycleController::class, 'storeProposal']);
+                Route::put('proposals/{proposal}', [NeedsCycleController::class, 'updateProposal']);
+            });
+            Route::middleware('permission:needs.request|needs.cycles')->group(function () {
+                Route::get('institutional-requests', [NeedsCycleController::class, 'requests']);
+                Route::post('institutional-requests', [NeedsCycleController::class, 'storeRequest']);
+            });
+            // Competency framework and gap analysis.
+            Route::middleware('permission:competencies.manage|gaps.view|needs.view')->group(function () {
+                Route::get('competency-domains', [CompetencyController::class, 'domains']);
+                Route::get('competencies', [CompetencyController::class, 'index']);
+                Route::get('competencies/export', [CompetencyController::class, 'export']);
+                Route::get('competencies/weights', [CompetencyController::class, 'weights']);
+                Route::get('job-titles/{jobTitle}/requirements', [CompetencyController::class, 'requirements']);
+            });
+            Route::middleware('permission:competencies.manage')->group(function () {
+                Route::post('competency-domains', [CompetencyController::class, 'storeDomain']);
+                Route::put('competency-domains/{domain}', [CompetencyController::class, 'updateDomain']);
+                Route::post('competencies', [CompetencyController::class, 'store']);
+                Route::post('competencies/import', [CompetencyController::class, 'import'])->middleware('throttle:20,1');
+                Route::put('competencies/weights', [CompetencyController::class, 'weights']);
+                Route::put('competencies/{competency}', [CompetencyController::class, 'update']);
+                Route::put('job-titles/{jobTitle}/requirements', [CompetencyController::class, 'syncRequirements']);
+            });
+            Route::middleware('permission:gaps.view')->group(function () {
+                Route::get('gaps', [GapController::class, 'index']);
+                Route::get('gaps/employees/{employee}', [GapController::class, 'employee']);
+            });
+            Route::post('gaps/to-plan', [GapController::class, 'toPlan'])->middleware('permission:plans.manage');
+            // Individual needs, rules, performance data, instrument approval.
+            Route::middleware('permission:needs.approve_individual|needs.cycles')->group(function () {
+                Route::get('individual-needs', [NeedsToolsController::class, 'index']);
+                Route::post('individual-needs/decide', [NeedsToolsController::class, 'decide']);
+            });
+            Route::middleware('permission:needs.cycles')->group(function () {
+                Route::put('individual-needs/settings', [NeedsToolsController::class, 'settings']);
+                Route::get('needs-rules', [NeedsToolsController::class, 'rules']);
+                Route::post('needs-rules', [NeedsToolsController::class, 'storeRule']);
+                Route::post('needs-rules/run', [NeedsToolsController::class, 'runRules']);
+                Route::put('needs-rules/{rule}', [NeedsToolsController::class, 'updateRule']);
+                Route::delete('needs-rules/{rule}', [NeedsToolsController::class, 'destroyRule']);
+            });
+            Route::middleware('permission:performance.import')->prefix('performance')->group(function () {
+                Route::post('appraisals/import', [NeedsToolsController::class, 'importAppraisals'])->middleware('throttle:20,1');
+                Route::post('observations/import', [NeedsToolsController::class, 'importObservations'])->middleware('throttle:20,1');
+                Route::get('weak', [NeedsToolsController::class, 'weak']);
+                Route::post('weak/target', [NeedsToolsController::class, 'targetWeak']);
+            });
+            Route::post('needs-surveys/{needsSurvey}/submit-approval', [NeedsToolsController::class, 'submitApproval'])->middleware('permission:needs.manage');
+            Route::post('needs-surveys/{needsSurvey}/approve', [NeedsToolsController::class, 'approve'])->middleware('permission:instruments.approve');
+            Route::post('needs-surveys/{needsSurvey}/return', [NeedsToolsController::class, 'returnSurvey'])->middleware('permission:instruments.approve');
             // Annual training plan.
             Route::middleware('permission:plans.view')->group(function () {
                 Route::get('plans', [AnnualPlanController::class, 'index']);

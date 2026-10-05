@@ -38,6 +38,8 @@ const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
 const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
+const NeedsHub = lazy(() => import('@/pages/admin/needshub/NeedsHub'))
+const MyNeeds = lazy(() => import('@/pages/portal/MyNeeds'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
@@ -100,6 +102,7 @@ export default function App() {
           <Route path="programs/:code" element={<ProgramDetail />} />
           <Route path="trainers" element={<Trainers />} />
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
+          <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
           <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
           <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
           <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
@@ -164,6 +167,7 @@ export default function App() {
           <Route path="learn/:registrationId/:lessonId?" element={<Learn />} />
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
+          <Route path="needs" element={<MyNeeds />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="profile" element={<Profile />} />
         </Route>

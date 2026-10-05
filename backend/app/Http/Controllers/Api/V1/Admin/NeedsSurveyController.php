@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Models\NeedsSurvey;
 use App\Models\NeedsSurveyRecipient;
@@ -110,7 +111,7 @@ class NeedsSurveyController extends Controller
 
     public function duplicate(NeedsSurvey $needsSurvey): JsonResponse
     {
-        $copy = $needsSurvey->replicate(['status', 'published_at', 'closed_at']);
+        $copy = $needsSurvey->replicate(['status', 'published_at', 'closed_at', 'approval_status', 'approved_by', 'approved_at', 'approval_note']);
         $copy->fill(['title' => $needsSurvey->title.' (نسخة)', 'status' => 'draft', 'created_by' => $this->user()->id])->save();
 
         return response()->json(['data' => $this->detail($copy)], 201);
@@ -127,6 +128,9 @@ class NeedsSurveyController extends Controller
     public function publish(NeedsSurvey $needsSurvey, NotificationService $notifications): JsonResponse
     {
         abort_if(! array_filter($needsSurvey->questions ?? [], fn ($q) => $q['type'] !== 'section'), 422, __('Add at least one question.'));
+        if ($needsSurvey->approval_status !== 'approved') {
+            throw new BusinessRuleException(__('messages.needs.instrument_not_approved'), 'instrument_not_approved');
+        }
 
         $existing = $needsSurvey->recipients()->pluck('user_id')->flip();
         $now = now();
@@ -346,6 +350,8 @@ class NeedsSurveyController extends Controller
             'description' => $s->description,
             'status' => $s->isOpen() || $s->status !== 'published' ? $s->status : 'closed',
             'source' => $s->source,
+            'approval_status' => $s->approval_status,
+            'approval_note' => $s->approval_note,
             'template_key' => $s->template_key,
             'questions_count' => count(array_filter($s->questions ?? [], fn ($q) => $q['type'] !== 'section')),
             'recipients_count' => $s->recipients_count ?? $s->recipients()->count(),

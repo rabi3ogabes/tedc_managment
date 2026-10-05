@@ -66,6 +66,16 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const _AccountEntry(),
               const _AssignmentsEntry(),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  leading: const Icon(Icons.trending_up, color: AppColors.gold500),
+                  title: Text(context.tr('needs.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  onTap: () => context.push('/my-needs'),
+                ),
+              ),
               const SizedBox(height: 16),
               if (employee != null)
                 passport.when(

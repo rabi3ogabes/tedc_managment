@@ -43,6 +43,9 @@ class NeedsSurveyTest extends TestCase
             'title' => 'استبانة الرياضيات', 'questions' => $questions, 'audience' => ['specializations' => ['رياضيات']],
         ])->assertCreated()->json('data.id');
 
+        $this->asUser($admin)->postJson("/api/v1/admin/needs-surveys/$id/publish")->assertStatus(422)->assertJsonPath('code', 'instrument_not_approved');
+        $this->asUser($admin)->postJson("/api/v1/admin/needs-surveys/$id/submit-approval")->assertOk();
+        $this->asUser($admin)->postJson("/api/v1/admin/needs-surveys/$id/approve")->assertOk();
         $this->asUser($admin)->postJson("/api/v1/admin/needs-surveys/$id/publish")->assertOk()->assertJsonPath('added', 2);
         $this->assertSame(1, AppNotification::where('user_id', $qatariTeacher->user_id)->where('type', 'needs_survey.invite')->count());
         $this->assertSame(0, AppNotification::where('user_id', $outsider->user_id)->count());

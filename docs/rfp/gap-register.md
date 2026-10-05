@@ -69,20 +69,20 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 03 — Needs Assessment & Gap Analysis  (7)
 
-- [ ] **NDS-01** ★ — Needs-assessment toolset that feeds the annual plan  
-  _Now:_ 🟡 Partial — Needs Survey Studio (templates, audience, analysis, auto-generate needs) + school needs; no annual plan.
-- [ ] **NDS-02** — Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority)  
-  _Now:_ 🟡 Partial — School needs capture skill, headcount, priority and reason only.
-- [ ] **NDS-03** — Manager request form for institutional needs with objectives  
-  _Now:_ 🟡 Partial — School Admin can submit needs; no manager request form.
-- [ ] **NDS-04** — Individual needs surveys linked to job competencies + manager approval  
-  _Now:_ 🟡 Partial — Surveys exist; no competency mapping or manager approval.
-- [ ] **NDS-05** — Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies  
-  _Now:_ 🔴 Missing — No appraisal / observation data or rules.
-- [ ] **NDS-06** — Automatic gap analysis vs competency framework & licence requirements, prioritised  
-  _Now:_ 🟡 Partial — Survey analyzer, needs analytics and AI assistant; no competency framework.
-- [ ] **NDS-15** — Approve needs and evaluation instruments before they are distributed  
-  _Now:_ 🔴 Missing — Surveys are published directly.
+- [x] **NDS-01** ★ — Needs-assessment toolset that feeds the annual plan  
+  _Now:_ ✅ Available — Needs workspace (`/admin/needs-hub`): cycle + proposals, manager requests, staff needs, performance data, rules, gap analysis and the competency framework; accepted items and gaps flow into the annual plan draft.
+- [x] **NDS-02** — Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority)  
+  _Now:_ ✅ Available — Yearly needs cycle with an opening and closing window (`needs_cycles`); department/school proposals carry every RFP field (groups, axes, target jobs, days, hours, kit availability, trainer nominations, importance, justification); submissions outside the window are refused; reminders and auto-close (`tedc:needs-cycles`).
+- [x] **NDS-03** — Manager request form for institutional needs with objectives  
+  _Now:_ ✅ Available — Direct-manager requests for their own staff (`institutional_requests`): need degree, objectives, employees, preferred window; reviewed (accept / merge / reject) and converted to plan items.
+- [x] **NDS-04** — Individual needs surveys linked to job competencies + manager approval  
+  _Now:_ ✅ Available — Employees declare needs (`POST /me/needs`) and surveys create needs from low self-ratings; the direct manager approves or rejects in bulk with a note, and a configurable auto-approval after N days is audited.
+- [x] **NDS-05** — Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies  
+  _Now:_ ✅ Available — Needs rules (`needs_rules`) run nightly and on demand for new hires, appraisals, classroom observations and specialisation/stage; every need carries an explanation and re-runs never duplicate. Licence and test triggers are wired for Phases 06 and 09.
+- [x] **NDS-06** — Automatic gap analysis vs competency framework & licence requirements, prioritised  
+  _Now:_ ✅ Available — Competency framework with level descriptors and required levels per job (stage/subject overrides); current level blended from verified level, manager rating, observations and self rating with editable weights and shown evidence; gaps ranked by gap × people × licence weight with explanations, uncovered gaps listed and sent to the plan.
+- [x] **NDS-15** — Approve needs and evaluation instruments before they are distributed  
+  _Now:_ ✅ Available — Needs surveys cannot be published until the planning head approves them (`instruments.approve`); returned with a note, audited and notified. Evaluation forms join the same flow in Phase 08.
 
 ### Phase 04 — Enrollment, Withdrawal & External Users  (15)
 
@@ -584,12 +584,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| NDS-01 ★ | Needs-assessment toolset that feeds the annual plan | 🟡 Partial | Needs Survey Studio (templates, audience, analysis, auto-generate needs) + school needs; no annual plan. | 3 |
-| NDS-02 | Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority) | 🟡 Partial | School needs capture skill, headcount, priority and reason only. | 3 |
-| NDS-03 | Manager request form for institutional needs with objectives | 🟡 Partial | School Admin can submit needs; no manager request form. | 3 |
-| NDS-04 | Individual needs surveys linked to job competencies + manager approval | 🟡 Partial | Surveys exist; no competency mapping or manager approval. | 3 |
-| NDS-05 | Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies | 🔴 Missing | No appraisal / observation data or rules. | 3 |
-| NDS-06 | Automatic gap analysis vs competency framework & licence requirements, prioritised | 🟡 Partial | Survey analyzer, needs analytics and AI assistant; no competency framework. | 3 |
+| NDS-01 ★ | Needs-assessment toolset that feeds the annual plan | ✅ Available | Needs workspace (`/admin/needs-hub`): cycle + proposals, manager requests, staff needs, performance data, rules, gap analysis and the competency framework; accepted items and gaps flow into the annual plan draft. | — |
+| NDS-02 | Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority) | ✅ Available | Yearly needs cycle with an opening and closing window (`needs_cycles`); department/school proposals carry every RFP field (groups, axes, target jobs, days, hours, kit availability, trainer nominations, importance, justification); submissions outside the window are refused; reminders and auto-close (`tedc:needs-cycles`). | — |
+| NDS-03 | Manager request form for institutional needs with objectives | ✅ Available | Direct-manager requests for their own staff (`institutional_requests`): need degree, objectives, employees, preferred window; reviewed (accept / merge / reject) and converted to plan items. | — |
+| NDS-04 | Individual needs surveys linked to job competencies + manager approval | ✅ Available | Employees declare needs (`POST /me/needs`) and surveys create needs from low self-ratings; the direct manager approves or rejects in bulk with a note, and a configurable auto-approval after N days is audited. | — |
+| NDS-05 | Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies | ✅ Available | Needs rules (`needs_rules`) run nightly and on demand for new hires, appraisals, classroom observations and specialisation/stage; every need carries an explanation and re-runs never duplicate. Licence and test triggers are wired for Phases 06 and 09. | — |
+| NDS-06 | Automatic gap analysis vs competency framework & licence requirements, prioritised | ✅ Available | Competency framework with level descriptors and required levels per job (stage/subject overrides); current level blended from verified level, manager rating, observations and self rating with editable weights and shown evidence; gaps ranked by gap × people × licence weight with explanations, uncovered gaps listed and sent to the plan. | — |
 | NDS-07 ★ | Generate the annual plan (program, audience, priority) with review and approval | ✅ Available | Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`). | — |
 | NDS-08 | Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير) | 🟡 Partial | Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced. | 2 |
 | NDS-09 | Program objectives, axes, units, competencies and summary | ✅ Available | Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills. | — |
@@ -598,7 +598,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NDS-12 | Flag emergency (unplanned) programs for reporting | ✅ Available | Groups and plan items can be flagged emergency with a reason; the plan execution view splits planned and emergency work and lists unplanned groups as deviations. | — |
 | NDS-13 | Central status board: planned, ongoing, incomplete, postponed, cancelled, completed | ✅ Available | Status board (`/admin/groups`): planned, registration open, ongoing, incomplete, postponed, cancelled, completed; drag a card to change status with the reason dialog; table view and filters; hourly lifecycle job. | — |
 | NDS-14 | Real-time plan execution tracking and deviation detection | ✅ Available | Plan execution (`GET /admin/plans/{id}/execution`): planned vs created vs executed groups, seats and hours, % execution, % changed after approval, emergency share and a deviation list (late, under-filled, cancelled, postponed, unplanned); daily job `tedc:plan-deviations` notifies planning staff. | — |
-| NDS-15 | Approve needs and evaluation instruments before they are distributed | 🔴 Missing | Surveys are published directly. | 3 |
+| NDS-15 | Approve needs and evaluation instruments before they are distributed | ✅ Available | Needs surveys cannot be published until the planning head approves them (`instruments.approve`); returned with a note, audited and notified. Evaluation forms join the same flow in Phase 08. | — |
 
 ### ENR · Course Management & Admission Rules — إدارة الدورات التدريبية وضوابط الالتحاق
 

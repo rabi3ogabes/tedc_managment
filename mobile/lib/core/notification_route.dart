@@ -7,7 +7,7 @@ class NotificationRoute {
   static const tabs = ['/home', '/programs', '/training', '/certificates', '/profile'];
 
   static const _allowed = [
-    '/home', '/programs', '/training', '/certificates', '/profile', '/notifications', '/account', '/assignments', '/scan', '/school',
+    '/home', '/programs', '/training', '/certificates', '/profile', '/notifications', '/account', '/assignments', '/my-needs', '/scan', '/school',
     '/sessions/', '/courses/', '/lessons/', '/registrations/', '/tasks/', '/surveys/', '/needs-surveys', '/my-program/',
   ];
 
@@ -27,6 +27,7 @@ class NotificationRoute {
     if (group == 'course' && id('registration_id').isNotEmpty) return '/courses/${id('registration_id')}';
     if (group == 'certificate') return '/certificates';
     if (group == 'profile') return '/account';
+    if (group == 'individual_need') return '/my-needs';
     if (id('registration_id').isNotEmpty) return '/registrations/${id('registration_id')}';
     if (['survey', 'program', 'registration'].contains(group) && id('program_id').isNotEmpty) return '/my-program/${id('program_id')}';
     if (['registration', 'task', 'session', 'survey', 'program', 'impact'].contains(group)) return '/training';
