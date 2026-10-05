@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
+use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceMethodsController;
@@ -74,6 +75,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingGroupController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
+use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
@@ -82,6 +84,7 @@ use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
+use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
 use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
@@ -232,6 +235,15 @@ Route::prefix('v1')->group(function () {
             Route::get('withdrawal-reasons', [WithdrawalController::class, 'activeReasons']);
             Route::post('registrations/{registration}/excuses', [AbsenceController::class, 'submitExcuse']);
             Route::get('excuses', [AbsenceController::class, 'myExcuses']);
+            Route::get('assessments', [MyAssessmentController::class, 'index']);
+            Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
+            Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/events', [MyAssessmentController::class, 'event'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/snapshot', [MyAssessmentController::class, 'snapshot'])->middleware('throttle:60,1');
+            Route::post('attempts/{attempt}/submit', [MyAssessmentController::class, 'submit']);
+            Route::get('attempts/{attempt}/result', [MyAssessmentController::class, 'result']);
+            Route::get('lessons/{lesson}/interactions', [VideoInteractionController::class, 'mine']);
+            Route::post('lessons/{lesson}/interactions/{interaction}/answer', [VideoInteractionController::class, 'answer']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -873,6 +885,35 @@ Route::prefix('v1')->group(function () {
                 Route::get('logistics-requests', [RoomsOpsController::class, 'logisticsIndex']);
                 Route::post('logistics-requests', [RoomsOpsController::class, 'logisticsStore']);
                 Route::put('logistics-requests/{logisticsRequest}', [RoomsOpsController::class, 'logisticsUpdate']);
+            });
+            Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
+            Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Assessments.
+            Route::middleware('permission:assessments.manage')->group(function () {
+                Route::get('programs/{program}/assessments', [AssessmentController::class, 'index']);
+                Route::post('programs/{program}/assessments', [AssessmentController::class, 'store']);
+                Route::get('assessments/{assessment}', [AssessmentController::class, 'show']);
+                Route::put('assessments/{assessment}', [AssessmentController::class, 'update']);
+                Route::delete('assessments/{assessment}', [AssessmentController::class, 'destroy']);
+                Route::put('assessments/{assessment}/sections', [AssessmentController::class, 'sections']);
+                Route::post('assessments/{assessment}/validate', [AssessmentController::class, 'validateAssessment']);
+                Route::post('assessments/{assessment}/publish', [AssessmentController::class, 'publish']);
+                Route::post('assessments/{assessment}/access-codes', [AssessmentController::class, 'accessCode']);
+                Route::post('assessments/{assessment}/regrade', [AssessmentController::class, 'regrade']);
+                Route::post('assessments/{assessment}/release', [AssessmentController::class, 'release']);
+            });
+            Route::middleware('permission:assessments.invigilate|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/live', [AssessmentController::class, 'live']);
+                Route::post('attempts/{attempt}/extend', [AssessmentController::class, 'extend']);
+                Route::post('attempts/{attempt}/void', [AssessmentController::class, 'void']);
+            });
+            Route::middleware('permission:assessments.grade|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/grading', [AssessmentController::class, 'grading']);
+                Route::post('attempts/{attempt}/grade', [AssessmentController::class, 'grade']);
+            });
+            Route::middleware('permission:assessments.analytics|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/analytics', [AssessmentController::class, 'analytics']);
+                Route::get('programs/{program}/knowledge-gain', [AssessmentController::class, 'knowledgeGain']);
             });
             // Question banks.
             Route::middleware('permission:banks.manage|assessments.manage')->group(function () {

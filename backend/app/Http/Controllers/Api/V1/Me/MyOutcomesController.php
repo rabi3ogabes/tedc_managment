@@ -14,6 +14,7 @@ use App\Models\Registration;
 use App\Models\Task;
 use App\Models\TaskSubmission;
 use App\Models\TrainerCertificate;
+use App\Services\Assessment\KnowledgeService;
 use App\Services\CertificateService;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
@@ -134,6 +135,11 @@ class MyOutcomesController extends MyTrainingController
             'comments' => ['nullable', 'string', 'max:3000'],
             'allow_testimonial' => ['sometimes', 'boolean'],
         ]);
+
+        // Real tests win over typed numbers: the pre / post scores come from the graded attempts when they exist.
+        $real = app(KnowledgeService::class)->scoresFor($registration);
+        $data['pre_test_score'] = $real['pre'] ?? ($data['pre_test_score'] ?? null);
+        $data['post_test_score'] = $real['post'] ?? ($data['post_test_score'] ?? null);
 
         $satisfaction = round(collect($data['ratings'])->avg() / 5 * 100, 2);
 

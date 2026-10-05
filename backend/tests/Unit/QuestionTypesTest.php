@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\Assessment\ArabicText;
 use App\Services\Assessment\QuestionTypes;
+use App\Services\Assessment\Types\TrueFalse;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -27,7 +28,7 @@ class QuestionTypesTest extends TestCase
         foreach (['single_choice', 'multiple_select', 'true_false', 'dropdown', 'matrix', 'essay', 'short_answer', 'fill_blanks', 'matching', 'ordering', 'categorization', 'hotspot', 'numeric', 'h5p'] as $k) {
             $this->assertContains($k, QuestionTypes::keys());
         }
-        QuestionTypes::register(new class extends \App\Services\Assessment\Types\TrueFalse
+        QuestionTypes::register(new class extends TrueFalse
         {
             public function key(): string
             {

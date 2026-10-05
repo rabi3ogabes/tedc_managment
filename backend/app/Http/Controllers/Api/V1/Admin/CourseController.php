@@ -405,6 +405,7 @@ class CourseController extends Controller
             'settings' => ['nullable', 'array'],
             'settings.allow_seeking' => ['sometimes', 'boolean'], 'settings.min_watch_percent' => ['sometimes', 'integer', 'between:1,100'],
             'settings.max_speed' => ['sometimes', 'numeric', 'between:1,3'], 'settings.pause_when_hidden' => ['sometimes', 'boolean'],
+            'settings.require_visible' => ['sometimes', 'boolean'], 'settings.require_fullscreen' => ['sometimes', 'boolean'], 'settings.lock_pause' => ['nullable', 'integer', 'between:0,50'], 'settings.min_seconds_per_slide' => ['nullable', 'integer', 'between:0,600'],
             'settings.min_view_percent' => ['sometimes', 'integer', 'between:1,100'], 'settings.downloadable' => ['sometimes', 'boolean'],
             'settings.pass_percent' => ['sometimes', 'integer', 'between:1,100'], 'settings.max_attempts' => ['nullable', 'integer', 'between:1,50'],
             'settings.shuffle_questions' => ['sometimes', 'boolean'], 'settings.shuffle_options' => ['sometimes', 'boolean'],

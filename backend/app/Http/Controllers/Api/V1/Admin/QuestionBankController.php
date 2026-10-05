@@ -10,6 +10,7 @@ use App\Services\Assessment\QuestionBankService;
 use App\Services\Assessment\QuestionTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 
 /** Question banks, categories and questions. */
@@ -106,7 +107,7 @@ class QuestionBankController extends Controller
         return response()->json(['data' => $this->banks->import($bank, $request->file('file')->getRealPath(), $this->user())]);
     }
 
-    public function export(Request $request, QuestionBank $bank): \Illuminate\Http\Response
+    public function export(Request $request, QuestionBank $bank): Response
     {
         $format = $request->validate(['format' => ['sometimes', Rule::in(['csv', 'xlsx'])]])['format'] ?? 'xlsx';
 

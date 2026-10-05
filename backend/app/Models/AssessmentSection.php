@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A block of an assessment with fixed questions or a random draw. */
 #[Fillable(['assessment_id', 'title', 'sort_order', 'selection', 'bank_id', 'category_ids', 'difficulty_mix', 'count', 'points_per_question', 'question_ids'])]
@@ -15,5 +16,10 @@ class AssessmentSection extends Model
     protected function casts(): array
     {
         return ['category_ids' => 'array', 'difficulty_mix' => 'array', 'question_ids' => 'array', 'points_per_question' => 'float'];
+    }
+
+    public function assessment(): BelongsTo
+    {
+        return $this->belongsTo(Assessment::class);
     }
 }

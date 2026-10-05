@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Question;
 use App\Models\Role;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class QuestionBankTest extends TestCase
@@ -73,7 +74,7 @@ class QuestionBankTest extends TestCase
             ."numeric,2+2,,easy,1,,,,,,,4,0\n"
             ."single_choice,بلا إجابة,,easy,1,نعم,لا,,,,,,\n"
             ."unknown_type,x,,easy,1,,,,,,,,\n";
-        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('q.csv', $csv);
+        $file = UploadedFile::fake()->createWithContent('q.csv', $csv);
 
         $res = $this->asUser($head)->post("/api/v1/admin/question-banks/{$bank}/import", ['file' => $file], ['Accept' => 'application/json'])->assertOk();
         $this->assertSame(4, $res->json('data.created'));

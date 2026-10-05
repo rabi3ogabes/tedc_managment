@@ -9,6 +9,7 @@ use App\Models\Program;
 use App\Models\QuizAttempt;
 use App\Models\Registration;
 use App\Models\SurveyResponse;
+use App\Services\Assessment\InteractionService;
 use Illuminate\Support\Collection;
 
 /**
@@ -22,7 +23,7 @@ class CourseService
 
     private const JITTER_SECONDS = 4;
 
-    public function __construct(private readonly NotificationService $notifications) {}
+    public function __construct(private readonly NotificationService $notifications, private readonly InteractionService $interactions) {}
 
     // Outline ---------------------------------------------------------------------------------------------------
 
@@ -136,7 +137,7 @@ class CourseService
      *
      * @return array{percent: float, status: string, position: float, furthest: float, completed: bool, credited: float}
      */
-    public function heartbeat(CourseLesson $lesson, Registration $registration, float $from, float $to, ?float $duration = null, float $rate = 1.0): array
+    public function heartbeat(CourseLesson $lesson, Registration $registration, float $from, float $to, ?float $duration = null, float $rate = 1.0, bool $visible = true): array
     {
         $p = $this->progressFor($lesson, $registration);
         if ($lesson->duration_seconds <= 0 && $duration && $duration > 1 && $duration < 86400) {
@@ -147,6 +148,11 @@ class CourseService
 
         $from = max(0, min($from, $length));
         $to = max($from, min($to, $length));
+        // A required in-video question stops progress at its moment until the trainee has answered it (right, when it must be right).
+        $blocker = $this->interactions->blockerFor($lesson, $registration);
+        if ($blocker && $to > $blocker->at_seconds) {
+            $to = max($from, min($to, (float) $blocker->at_seconds));
+        }
         $span = min($to - $from, self::MAX_BEAT_SECONDS);
         $elapsed = $p->last_activity_at ? max(0, $p->last_activity_at->diffInSeconds(now(), true)) : self::MAX_BEAT_SECONDS;
         $allowed = min($elapsed, self::MAX_BEAT_SECONDS) * min(max($rate, 0.25), $maxSpeed) + self::JITTER_SECONDS;
@@ -157,6 +163,14 @@ class CourseService
         if ($skipped) {
             $credited = 0;
         }
+        // Hidden tab or minimised app: no time counts when the lesson asks for the player to stay visible.
+        if (! $visible && $lesson->setting('require_visible', false)) {
+            $credited = 0;
+        }
+        // Seeking past an unanswered required question earns nothing either.
+        if ($blocker && $from > $blocker->at_seconds + self::JITTER_SECONDS) {
+            $credited = 0;
+        }
 
         $segments = $p->segments ?? [];
         if ($credited > 0) {
@@ -164,22 +178,22 @@ class CourseService
         }
         $watched = (int) round($this->covered($segments));
         $percent = min(100, round($watched / $length * 100, 2));
-        $complete = $percent >= (float) $lesson->setting('min_watch_percent', 90);
+        $complete = $percent >= (float) $lesson->setting('min_watch_percent', 90) && ! $this->interactions->blockerFor($lesson, $registration, true);
 
         // Only what was credited counts as reached; a skip sends the player back to where the learner really got to.
         $reached = $from + $credited;
         $position = $skipped ? min($p->furthest_position, $length) : $reached;
         $p->fill([
-            'segments' => $segments, 'watched_seconds' => $watched, 'percent' => max($p->percent, $percent), 'last_position' => $position,
-            'furthest_position' => max($p->furthest_position, $skipped ? 0 : $reached), 'last_activity_at' => now(),
+            'segments' => $segments, 'watched_seconds' => $watched, 'percent' => max((float) $p->percent, $percent), 'last_position' => $position,
+            'furthest_position' => max((float) $p->furthest_position, $skipped ? 0 : $reached), 'last_activity_at' => now(),
         ]);
         if ($complete && $p->status !== 'completed') {
-            $p->fill(['status' => 'completed', 'completed_at' => now(), 'percent' => max($p->percent, $percent)]);
+            $p->fill(['status' => 'completed', 'completed_at' => now(), 'percent' => max((float) $p->percent, $percent)]);
         }
         $p->save();
         $this->recompute($registration);
 
-        return ['percent' => (float) $p->percent, 'status' => $p->status, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'completed' => $p->status === 'completed', 'credited' => round($credited, 1)];
+        return ['percent' => (float) $p->percent, 'status' => $p->status, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'completed' => $p->status === 'completed', 'credited' => round($credited, 1), 'blocked_by' => $blocker?->id, 'blocked_at' => $blocker ? (float) $blocker->at_seconds : null];
     }
 
     // Presentations & articles ----------------------------------------------------------------------------------

@@ -76,10 +76,10 @@ class MyCourseController extends MeController
 
     public function heartbeat(Request $request, CourseLesson $lesson): JsonResponse
     {
-        $data = $request->validate(['from' => ['required', 'numeric', 'min:0'], 'to' => ['required', 'numeric', 'min:0'], 'duration' => ['nullable', 'numeric', 'min:0'], 'rate' => ['nullable', 'numeric', 'min:0.25', 'max:4']]);
+        $data = $request->validate(['from' => ['required', 'numeric', 'min:0'], 'to' => ['required', 'numeric', 'min:0'], 'duration' => ['nullable', 'numeric', 'min:0'], 'rate' => ['nullable', 'numeric', 'min:0.25', 'max:4'], 'visible' => ['nullable', 'boolean']]);
         $registration = $this->openRegistration($lesson);
 
-        return response()->json(['data' => $this->course->heartbeat($lesson, $registration, (float) $data['from'], (float) $data['to'], isset($data['duration']) ? (float) $data['duration'] : null, (float) ($data['rate'] ?? 1))]);
+        return response()->json(['data' => $this->course->heartbeat($lesson, $registration, (float) $data['from'], (float) $data['to'], isset($data['duration']) ? (float) $data['duration'] : null, (float) ($data['rate'] ?? 1), (bool) ($data['visible'] ?? true))]);
     }
 
     public function slide(Request $request, CourseLesson $lesson): JsonResponse
