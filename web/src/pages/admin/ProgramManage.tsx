@@ -16,10 +16,11 @@ import MaterialsTab from './program/MaterialsTab'
 import ParticipantsTab from './program/ParticipantsTab'
 import RulesTab from './program/RulesTab'
 import SessionsTab from './program/SessionsTab'
+import StaffTab from './program/StaffTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact'
+type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -65,6 +66,7 @@ export default function ProgramManage() {
         { id: 'survey', label: t('mgmt.notif.survey.tab') },
         { id: 'certificates', label: t('studio.certs.tab') },
         { id: 'impact', label: t('admin.programs.impact') },
+        ...(can('program_grants.manage') ? [{ id: 'staff' as const, label: t('grants.tab') }] : []),
       ]} />
       {tab === 'participants' && <ParticipantsTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}
@@ -76,6 +78,7 @@ export default function ProgramManage() {
       {tab === 'materials' && <MaterialsTab program={p} />}
       {tab === 'survey' && <SurveyTab program={p} />}
       {tab === 'impact' && <ImpactTab program={p} />}
+      {tab === 'staff' && can('program_grants.manage') && <StaffTab programId={p.id} />}
     </>
   )
 }

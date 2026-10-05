@@ -19,6 +19,18 @@ use Illuminate\Validation\Rule;
 /** A user's roles, each granted at a scope (Ministry, school group, school or department) and optionally until a date. */
 class UserRoleController extends Controller
 {
+    /** Finds people to grant something to (program staff screen): name, e-mail and roles, ten at a time. */
+    public function lookup(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+        abort_if(mb_strlen($q) < 2, 422, __('validation.min.string', ['attribute' => 'q', 'min' => 2]));
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $q).'%';
+
+        return response()->json(['data' => User::with('roles:id,slug,name_ar,name_en')->where('status', 'active')
+            ->where(fn ($w) => $w->whereLike('name', $like)->orWhereLike('name_ar', $like)->orWhereLike('email', $like))
+            ->orderBy('name')->limit(10)->get()->map(fn (User $u) => ['id' => $u->id, 'name' => $u->displayName(), 'email' => $u->email, 'roles' => $u->roles->map(fn ($r) => app()->getLocale() === 'ar' ? $r->name_ar : $r->name_en)->all()])]);
+    }
+
     public function index(User $user): JsonResponse
     {
         return response()->json(['data' => RoleUser::with('role')->where('user_id', $user->id)->get()->map(fn (RoleUser $g) => $this->present($g))->values()]);

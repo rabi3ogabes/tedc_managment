@@ -28,7 +28,7 @@ class ErrorLogController extends Controller
         $query = ErrorLog::query()
             ->when($f['source'] ?? null, fn ($q, $v) => $q->where('source', $v))->when($f['level'] ?? null, fn ($q, $v) => $q->where('level', $v))->when($f['status'] ?? null, fn ($q, $v) => $q->where('status', $v))
             ->when($f['days'] ?? null, fn ($q, $v) => $q->where('last_seen_at', '>=', now()->subDays($v)))
-            ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->where('message', 'like', "%{$v}%")->orWhere('location', 'like', "%{$v}%")->orWhere('user_email', 'like', "%{$v}%")->orWhere('url', 'like', "%{$v}%")));
+            ->when($f['q'] ?? null, fn ($q, $v) => $q->where(fn ($w) => $w->whereLike('message', "%{$v}%")->orWhereLike('location', "%{$v}%")->orWhereLike('user_email', "%{$v}%")->orWhereLike('url', "%{$v}%")));
         match ($f['sort'] ?? 'recent') {
             'frequent' => $query->orderByDesc('occurrences'), 'users' => $query->orderByDesc('users_count'), default => $query->orderByDesc('last_seen_at'),
         };
@@ -59,7 +59,7 @@ class ErrorLogController extends Controller
             ->when($ids->isEmpty() && ($f['source'] ?? null), fn ($q) => $q->where('source', $f['source']))->when($ids->isEmpty() && ($f['level'] ?? null), fn ($q) => $q->where('level', $f['level']))
             ->when($ids->isEmpty() && ($f['status'] ?? null), fn ($q) => $q->where('status', $f['status']))
             ->when($ids->isEmpty() && ($f['days'] ?? null), fn ($q) => $q->where('last_seen_at', '>=', now()->subDays($f['days'])))
-            ->when($ids->isEmpty() && ($f['q'] ?? null), fn ($q) => $q->where(fn ($w) => $w->where('message', 'like', "%{$f['q']}%")->orWhere('location', 'like', "%{$f['q']}%")->orWhere('url', 'like', "%{$f['q']}%")));
+            ->when($ids->isEmpty() && ($f['q'] ?? null), fn ($q) => $q->where(fn ($w) => $w->whereLike('message', "%{$f['q']}%")->orWhereLike('location', "%{$f['q']}%")->orWhereLike('url', "%{$f['q']}%")));
 
         $total = (clone $query)->count();
         $logs = $query->orderByRaw("case level when 'critical' then 0 when 'error' then 1 else 2 end")->orderByDesc('occurrences')->limit($f['limit'] ?? 30)->get();

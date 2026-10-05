@@ -245,3 +245,18 @@ from the storyboard (WebM with captions).
 | GET | `/public/mobile-config` | now also returns `demo_accounts` (true only where demo mode is on) |
 
 Routes can be gated with the `feature:<key>` middleware; a disabled feature answers `403` with `code: feature_disabled`.
+
+## Roles, scopes, grants and search (Phase 01)
+
+| Method | Path | Access |
+|---|---|---|
+| GET | `/auth/me` | signed in: `roles[]` (each grant: `id`, `slug`, names, `scope_type`, `scope_id`, `scope_label_ar/en`, `landing_route`, `expires_at`, `active`) and `active_role` |
+| POST | `/auth/active-role` | signed in: `{role_user_id}` — switch (and remember) the role; returns the new profile. Any request may also send `X-Active-Role: <role grant id>`; a role the user does not hold or that expired answers 403 `role_not_held` |
+| GET/POST/PUT/DELETE | `/admin/school-groups[...]`, PUT `/{id}/schools`, POST `/import` (CSV) | `scopes.manage` |
+| GET/POST/DELETE | `/admin/users/{user}/roles[/{grant}]` | `users.manage`: grant a role at a scope (`role_id`, `scope_type`, `scope_id`, `expires_at`) |
+| POST/PUT/DELETE | `/admin/roles[/{role}]` | `roles.create`: create or clone (`clone_from`) a custom role; system roles are protected; a role with users cannot be deleted. Permission matrix: `PUT /admin/roles/{role}/permissions` (`roles.manage`) |
+| GET/POST/DELETE | `/admin/programs/{program}/grants[/{grant}]` | `program_grants.manage`: abilities `attendance.mark`, `notifications.send`, `tasks.review`, `kits.assign`, optional expiry |
+| GET | `/admin/staff-lookup?q=` | `program_grants.manage` or `users.manage`: find people to grant to |
+| GET | `/search?q=&types=` | signed in with `search.global`: grouped results for programs, people (scoped), trainers, kits, certificates, news |
+
+Attendance marking, task review and program notifications also accept a person who holds the matching program grant (`can_or_grant` middleware plus a program check in the controller).

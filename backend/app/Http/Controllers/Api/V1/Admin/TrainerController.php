@@ -33,7 +33,7 @@ class TrainerController extends Controller
             ->pluck('trainer_id') : collect();
 
         $trainers = Trainer::with(['school:id,name_ar,name_en', 'partner:id,name_ar,name_en,type'])->withCount(['programs', 'sessions'])
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")->orWhere('organization', 'like', "%{$t}%")->orWhere('email', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name_ar', "%{$t}%")->orWhereLike('name_en', "%{$t}%")->orWhereLike('organization', "%{$t}%")->orWhereLike('email', "%{$t}%")))
             ->when($request->query('source'), fn ($q, $v) => $q->whereIn('source', explode(',', $v)))
             ->when($request->query('school_id'), fn ($q, $v) => $q->where('school_id', $v))
             ->when($request->query('partner_id'), fn ($q, $v) => $q->where('partner_id', $v))
@@ -73,8 +73,8 @@ class TrainerController extends Controller
         $employees = Employee::with(['user:id,name,name_ar,email', 'school:id,name_ar,name_en', 'jobTitle:id,name_ar,name_en'])
             ->where('status', 'active')
             ->when($request->query('school_id'), fn ($q, $v) => $q->where('school_id', $v))
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('employee_no', 'like', "%{$t}%")->orWhere('specialization', 'like', "%{$t}%")
-                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$t}%")->orWhere('name_ar', 'like', "%{$t}%")->orWhere('email', 'like', "%{$t}%"))))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('employee_no', "%{$t}%")->orWhereLike('specialization', "%{$t}%")
+                ->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$t}%")->orWhereLike('name_ar', "%{$t}%")->orWhereLike('email', "%{$t}%"))))
             ->orderBy('employee_no')->limit(30)->get();
         $taken = Trainer::whereIn('employee_id', $employees->pluck('id'))->pluck('id', 'employee_id');
 

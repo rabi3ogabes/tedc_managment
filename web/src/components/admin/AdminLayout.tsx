@@ -1,8 +1,9 @@
 import clsx from 'clsx'
+import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/components/search/GlobalSearch'
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert } from 'lucide-react'
+  Award, Bug, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -113,6 +114,13 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
 
   const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || can(i.permission)) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
+  const [searchOpen, setSearchOpen] = useState(false)
+  useSearchShortcut(() => setSearchOpen((v) => !v))
+  // The "functions" the search can open: the menu entries and the settings sections this role may use.
+  const functions: FunctionTarget[] = [
+    ...visible.flatMap((g) => g.items.map((i) => ({ label: i.label, to: i.to, icon: i.icon, keywords: [g.title] }))),
+    ...(portal ? [] : SETTINGS_SECTIONS.filter((s) => s.permission.some((p) => can(p))).map((s) => ({ label: t(`mgmt.settings.sections.${s.id}.title`), to: `/admin/settings?tab=${s.id}`, icon: s.icon, keywords: s.keywords }))),
+  ]
 
   const renderSidebar = (compact: boolean, drawer: boolean) => (
     <aside className={clsx('flex h-full flex-col bg-navy-950 text-white transition-[width,box-shadow] duration-300 ease-out', compact ? 'w-[4.75rem]' : 'w-72', !drawer && !pinned && expanded && 'shadow-[12px_0_40px_-8px_rgba(0,0,0,.45)]')}>
@@ -206,6 +214,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
     <div className="flex min-h-screen bg-ivory">
       <ImpersonationBanner />
       <FeatureBanner />
+      <GlobalSearch functions={functions} open={searchOpen} onClose={() => setSearchOpen(false)} />
       <div className="fixed inset-y-0 start-0 z-30 hidden lg:block" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHovering(false) }}>{renderSidebar(!expanded, false)}</div>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setOpen(false)}>
@@ -222,6 +231,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
             </button>
             <div className="hidden text-sm text-slate-500 lg:block">{t('brand.tagline')}</div>
             <div className="flex items-center gap-2">
+              <button type="button" onClick={() => setSearchOpen(true)} aria-label={t('search.title')} className="inline-flex items-center gap-2 rounded-xl p-2 text-navy-800 hover:bg-navy-100/60 sm:border sm:border-navy-100 sm:bg-white sm:px-3 sm:py-1.5"><Search className="size-4" /><span className="hidden text-xs text-slate-400 sm:inline">{t('search.button')}</span><kbd className="hidden rounded bg-navy-100/70 px-1.5 font-mono text-[10px] text-slate-500 sm:inline" dir="ltr">Ctrl K</kbd></button>
               <LanguageToggle />
               <Link to="/portal/notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
                 <Bell className="size-5" />

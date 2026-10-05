@@ -24,7 +24,9 @@ class ResolveActiveRole
         $requested = trim((string) $request->header('X-Active-Role', ''));
         if ($requested !== '') {
             $assignment = $assignments->firstWhere('id', $requested);
-            abort_unless($assignment, 403, __('auth.role_not_held'));
+            if (! $assignment) {
+                return response()->json(['message' => __('auth.role_not_held'), 'code' => 'role_not_held'], 403);
+            }
         } else {
             $assignment = $this->active->defaultFor($user, $assignments);
         }

@@ -47,8 +47,14 @@ class SessionStore {
     }
   }
 
+  static const _roleKey = 'tedc.active_role';
   static const _bioKey = 'tedc.biometric_login';
   static const _bioOfferedKey = 'tedc.biometric_offered';
+
+  /// The role grant the person works in on this phone (sent as X-Active-Role).
+  Future<String?> readActiveRole() => _storage.read(key: _roleKey);
+
+  Future<void> writeActiveRole(String? id) => id == null || id.isEmpty ? _storage.delete(key: _roleKey) : _storage.write(key: _roleKey, value: id);
 
   Future<bool> readBiometricLogin() async => (await _storage.read(key: _bioKey)) == '1';
 

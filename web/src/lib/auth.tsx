@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { activeRoleStore } from './activeRole'
 import { api, sessionStore } from './api'
-import type { Me } from './types'
+import type { Me, RoleGrant } from './types'
 import i18n from '@/i18n'
 
 type AuthState = {
@@ -10,6 +11,9 @@ type AuthState = {
   login: (email: string, password: string) => Promise<Me>
   logout: () => void
   can: (permission: string) => boolean
+  activeRole: RoleGrant | null
+  /** Works as another of the user's roles: no new sign-in, the data is reloaded for the new role. */
+  switchRole: (grantId: string) => Promise<RoleGrant | null>
   hasRole: (...roles: string[]) => boolean
   refresh: () => Promise<void>
 }
@@ -49,8 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.user as Me
   }, [])
 
+  const switchRole = useCallback(async (grantId: string) => {
+    const { data } = await api.post('/auth/active-role', { role_user_id: grantId })
+    activeRoleStore.set(grantId)
+    // Everything on screen was loaded for the previous role.
+    queryClient.clear()
+    setUser(data.data)
+    return (data.data as Me).active_role ?? null
+  }, [queryClient])
+
   const logout = useCallback(() => {
     sessionStore.set(null)
+    activeRoleStore.set(null)
     setUser(null)
     queryClient.clear()
   }, [queryClient])
@@ -61,9 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     refresh,
+    switchRole,
+    activeRole: user?.active_role ?? user?.roles.find((r) => r.active) ?? null,
     can: (permission) => !!user && (user.permissions.includes('*') || user.permissions.includes(permission)),
     hasRole: (...roles) => !!user && user.roles.some((r) => roles.includes(r.slug)),
-  }), [user, loading, login, logout, refresh])
+  }), [user, loading, login, logout, refresh, switchRole])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
@@ -74,8 +90,10 @@ export function useAuth() {
   return ctx
 }
 
-/** Where a user lands after signing in. */
+/** Where a user lands after signing in or switching role: the landing page of the active role. */
 export function homeFor(user: Me): string {
+  const active = user.active_role ?? user.roles.find((r) => r.active)
+  if (active?.landing_route) return active.landing_route
   const staff = ['super_admin', 'center_admin', 'program_coordinator', 'executive', 'school_admin', 'trainer']
   if (user.roles.some((r) => staff.includes(r.slug))) return '/admin'
   // Kit developers and the QA team work in the Training Kit Studio.

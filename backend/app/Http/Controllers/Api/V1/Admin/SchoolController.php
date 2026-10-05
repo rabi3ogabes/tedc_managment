@@ -21,7 +21,7 @@ class SchoolController extends Controller
             ->when($request->query('region'), fn ($q, $r) => $q->where('region', $r))
             ->when($request->query('type'), fn ($q, $t) => $q->where('type', $t))
             ->when($request->boolean('official'), fn ($q) => $q->where('source', 'like', 'moe_%'))
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")->orWhere('code', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name_ar', "%{$t}%")->orWhereLike('name_en', "%{$t}%")->orWhereLike('code', "%{$t}%")))
             ->orderBy('name_ar')
             ->paginate($this->perPage($request, 25));
 

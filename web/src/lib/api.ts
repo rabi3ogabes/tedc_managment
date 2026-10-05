@@ -1,5 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import i18n from '@/i18n'
+import { activeRoleStore } from './activeRole'
 import { reportError } from './errorReporter'
 
 export const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1'
@@ -32,6 +33,8 @@ export const api = axios.create({ baseURL: API_URL, headers: { Accept: 'applicat
 api.interceptors.request.use((config) => {
   const session = sessionStore.get()
   if (session) config.headers.Authorization = `Bearer ${session.access_token}`
+  const role = activeRoleStore.get()
+  if (role) config.headers['X-Active-Role'] = role
   const lang = i18n.language === 'en' ? 'en' : 'ar'
   config.headers['X-Locale'] = lang
   // The language is also part of the URL so CDN-cached public responses are stored per language.
@@ -61,7 +64,14 @@ api.interceptors.response.use(undefined, async (error: AxiosError) => {
   const status = error.response?.status
   // Failed server calls are reported (not the reporter's own, not expected 4xx).
   if (status && status >= 500 && !String(error.config?.url ?? '').includes('client-errors')) reportError(new Error(`${error.config?.method?.toUpperCase()} ${error.config?.url} → ${status}`), { status_code: status, context: { response: String(JSON.stringify(error.response?.data ?? '')).slice(0, 300) } })
-  const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined
+  const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean; _roleRetried?: boolean }) | undefined
+  // The remembered role expired or was taken away: forget it and ask again as the user's default role.
+  if (error.response?.status === 403 && (error.response.data as { code?: string } | undefined)?.code === 'role_not_held' && original && !original._roleRetried) {
+    original._roleRetried = true
+    activeRoleStore.set(null)
+    delete original.headers['X-Active-Role']
+    return api(original)
+  }
   if (error.response?.status === 401 && original && !original._retried && sessionStore.get()) {
     original._retried = true
     refreshing ??= refreshToken().finally(() => (refreshing = null))

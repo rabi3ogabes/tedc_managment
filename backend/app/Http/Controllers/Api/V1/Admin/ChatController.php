@@ -21,8 +21,8 @@ class ChatController extends Controller
             ->when($filter === 'unread', fn ($w) => $w->where('admin_unread', '>', 0))
             ->when($filter === 'open', fn ($w) => $w->where('status', 'open'))
             ->when($filter === 'closed', fn ($w) => $w->where('status', 'closed'))
-            ->when($request->query('q'), fn ($w, $v) => $w->where(fn ($x) => $x->where('visitor_name', 'like', "%{$v}%")->orWhere('visitor_email', 'like', "%{$v}%")
-                ->orWhereHas('messages', fn ($m) => $m->where('body', 'like', "%{$v}%"))))
+            ->when($request->query('q'), fn ($w, $v) => $w->where(fn ($x) => $x->whereLike('visitor_name', "%{$v}%")->orWhereLike('visitor_email', "%{$v}%")
+                ->orWhereHas('messages', fn ($m) => $m->whereLike('body', "%{$v}%"))))
             ->orderByRaw("case when needs_human = true and status = 'open' then 0 else 1 end")->orderByDesc('last_message_at');
 
         return response()->json(['summary' => $this->summary(), 'data' => $q->paginate(30)->through(fn (ChatConversation $c) => $this->row($c))]);

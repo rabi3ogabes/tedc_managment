@@ -8,9 +8,11 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide Session;
 import '../../core/auth/session_store.dart';
 import '../../core/biometric.dart';
 import '../../core/config.dart';
+import '../../core/l10n/strings.dart';
 import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
@@ -178,7 +180,14 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
         showStaffHome ? const StaffHome() : widget.shell,
         // The notifications button lives at the left of the home screen (physical left in both languages).
         if (widget.shell.currentIndex == 0)
-          Positioned(left: 14, top: MediaQuery.paddingOf(context).top + 10, child: NotificationBell(onDark: !staff)),
+          Positioned(
+            left: 14,
+            top: MediaQuery.paddingOf(context).top + 10,
+            child: Row(children: [
+              NotificationBell(onDark: !staff),
+              IconButton(onPressed: () => context.push('/search'), icon: Icon(Icons.search, color: staff ? AppColors.navy900 : Colors.white), tooltip: context.s.t('search.title')),
+            ]),
+          ),
         PushBanner(
           message: _banner,
           onTap: (route) {

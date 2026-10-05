@@ -27,7 +27,7 @@ class RoomController extends Controller
     {
         $rooms = TrainingRoom::query()
             ->withCount(['sessions', 'sessions as upcoming_sessions_count' => fn ($q) => $q->where('starts_at', '>=', now())->where('status', '!=', 'cancelled')])
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")->orWhere('code', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name_ar', "%{$t}%")->orWhereLike('name_en', "%{$t}%")->orWhereLike('code', "%{$t}%")))
             ->when($request->query('office'), fn ($q, $v) => $q->where('office', $v))
             ->when($request->query('floor'), fn ($q, $v) => $q->where('floor', $v))
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))

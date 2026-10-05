@@ -104,7 +104,14 @@ export type CertificateSendResult = {
 
 export type Me = {
   id: string; name: string; name_en: string; name_ar?: string | null; email: string; locale: string
-  roles: { slug: string; name: string }[]; permissions: string[]; employee: Employee | null; trainer_id?: string | null
+  roles: RoleGrant[]; active_role?: RoleGrant | null; permissions: string[]; employee: Employee | null; trainer_id?: string | null
+}
+
+/** A role the user holds, at a scope (Ministry, school group, school or department). */
+export type RoleGrant = {
+  id: string; slug: string; name: string; name_ar: string; name_en: string
+  scope_type: 'ministry' | 'school_group' | 'school' | 'department'; scope_id: string | null; scope_label_ar: string; scope_label_en: string
+  landing_route: string; expires_at: string | null; active: boolean
 }
 
 export type NotificationItem = { id: string; type: string; title: string; body?: string | null; data: Record<string, unknown>; read: boolean; created_at: string }

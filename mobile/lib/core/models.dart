@@ -24,6 +24,10 @@ class Me {
   Json? get employee => json.obj('employee');
   bool get isTrainer => json.str('trainer_id').isNotEmpty;
 
+  /// Every role the person holds, each at a scope (id, slug, name, scope_label_ar/en, landing_route, active).
+  List<Json> get roleGrants => json.list('roles');
+  Json? get activeRole => json.obj('active_role');
+
   bool can(String permission) => permissions.contains('*') || permissions.contains(permission);
   bool hasRole(String role) => roles.contains(role);
   bool get isSchoolAdmin => hasRole('school_admin');

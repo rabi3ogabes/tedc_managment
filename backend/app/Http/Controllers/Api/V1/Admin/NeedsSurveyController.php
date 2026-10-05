@@ -32,7 +32,7 @@ class NeedsSurveyController extends Controller
         $surveys = NeedsSurvey::query()
             ->withCount(['recipients', 'responses', 'trainingNeeds'])
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
-            ->when($request->query('q'), fn ($q, $t) => $q->where('title', 'like', "%{$t}%"))
+            ->when($request->query('q'), fn ($q, $t) => $q->whereLike('title', "%{$t}%"))
             ->latest()
             ->paginate($this->perPage($request, 30));
 

@@ -33,7 +33,7 @@ class KitCommentController extends KitBaseController
             ->when($request->query('category'), fn ($q, $s) => $q->whereIn('category', explode(',', $s)))
             ->when($request->query('round'), fn ($q, $r) => $q->where('review_round', (int) $r))
             ->when($request->boolean('mine'), fn ($q) => $q->where(fn ($w) => $w->where('assignee_id', $user->id)->orWhere('author_id', $user->id)))
-            ->when($request->query('q'), fn ($q, $t) => $q->where('body', 'like', "%{$t}%"));
+            ->when($request->query('q'), fn ($q, $t) => $q->whereLike('body', "%{$t}%"));
 
         $counts = (clone $query)->reorder()->select('status', DB::raw('count(*) as n'))->groupBy('status')->pluck('n', 'status');
         $comments = $query->with(['author.roles', 'assignee', 'file:id,name,kind', 'replies.author.roles'])->orderByRaw("case status when 'open' then 0 when 'addressed' then 1 else 2 end")->latest()->limit(300)->get();

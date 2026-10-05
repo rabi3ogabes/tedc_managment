@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/biometric.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
@@ -94,6 +95,10 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ],
                   const Divider(height: 1),
+                  if ((me?.roleGrants.length ?? 0) > 1) ...[
+                    const _RoleTile(),
+                    const Divider(height: 1),
+                  ],
                   const _PushTile(),
                   const Divider(height: 1),
                   const _BiometricTile(),
@@ -305,5 +310,59 @@ class _BiometricTileState extends ConsumerState<_BiometricTile> {
       ),
       const Divider(height: 1),
     ]);
+  }
+}
+
+/// Works as another of the person's roles (trainer, trainee, manager…); each is shown with its scope.
+class _RoleTile extends ConsumerWidget {
+  const _RoleTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final me = ref.watch(authProvider).value;
+    if (me == null) return const SizedBox.shrink();
+    String name(Json g) => g.str('name');
+    String scope(Json g) => s.isArabic ? g.str('scope_label_ar') : g.str('scope_label_en');
+    final active = me.activeRole;
+
+    return ListTile(
+      leading: const Icon(Icons.swap_horiz, color: AppColors.gold700),
+      title: Text(s.t('role.switch')),
+      subtitle: Text(active == null ? '' : '${name(active)} — ${scope(active)}'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (sheet) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Text(s.t('role.switch'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+              for (final g in me.roleGrants)
+                ListTile(
+                  leading: Icon(g.flag('active') ? Icons.radio_button_checked : Icons.radio_button_off, color: g.flag('active') ? AppColors.gold700 : AppColors.muted),
+                  title: Text(name(g), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text(scope(g)),
+                  onTap: g.flag('active')
+                      ? null
+                      : () async {
+                          Navigator.pop(sheet);
+                          try {
+                            await ref.read(authProvider.notifier).switchRole(g.str('id'));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(s.t('role.switched').replaceFirst('{role}', name(g)))));
+                              context.go('/home');
+                            }
+                          } catch (e) {
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiException.from(e).message)));
+                          }
+                        },
+                ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }

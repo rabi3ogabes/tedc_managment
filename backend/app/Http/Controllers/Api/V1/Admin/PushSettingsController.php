@@ -83,7 +83,7 @@ class PushSettingsController extends Controller
         $devices = DeviceToken::query()->selectRaw('user_id, count(*) as total')->groupBy('user_id')->pluck('total', 'user_id');
 
         $people = $q === '' ? collect() : User::query()->with('roles:id,slug,name_ar,name_en')
-            ->where(fn ($w) => $w->where('name', 'like', "%{$q}%")->orWhere('name_ar', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%"))
+            ->where(fn ($w) => $w->whereLike('name', "%{$q}%")->orWhereLike('name_ar', "%{$q}%")->orWhereLike('email', "%{$q}%"))
             ->orderBy('name')->limit(12)->get()
             ->map(fn (User $u) => ['id' => $u->id, 'name' => $u->displayName(), 'email' => $u->email, 'roles' => $u->roles->map(fn (Role $r) => $this->roleName($r))->all(), 'devices' => (int) ($devices[$u->id] ?? 0)]);
 

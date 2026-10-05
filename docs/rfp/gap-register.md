@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 72 | 89 | 117 | 206 |
+| 278 | 78 | 88 | 112 | 200 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -21,15 +21,15 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 - [ ] **UX-03** — Approved Lusail typeface and readable font sizes  
   _Now:_ 🟡 Partial — Ships Qatar Sans / El Messiri / Tajawal; Lusail is not bundled or default (Brand Studio can upload fonts).
-- [ ] **UX-04** — Few steps per task, clear navigation, quick search for content & functions  
+- [x] **UX-04** — Few steps per task, clear navigation, quick search for content & functions  
   _Now:_ 🟡 Partial — Clear navigation; Ctrl/⌘K switcher exists only inside Settings — no global search across programs, people, content.
-- [ ] **UX-08** ★ — Seamless switching between a user’s roles (trainer / trainee / manager)  
+- [x] **UX-08** ★ — Seamless switching between a user’s roles (trainer / trainee / manager)  
   _Now:_ 🔴 Missing — Users can hold several roles but there is no role switcher; permissions are merged.
 - [ ] **RBA-03** — PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops  
   _Now:_ 🔴 Missing — No dedicated role; School Admin covers nomination only.
-- [ ] **RBA-04** — Head of Training Department  
+- [x] **RBA-04** — Head of Training Department  
   _Now:_ 🔴 Missing — Not modelled (assign supervisors, grant attendance rights, approve kits).
-- [ ] **RBA-05** — Training Supervisor  
+- [x] **RBA-05** — Training Supervisor  
   _Now:_ 🟡 Partial — Program Coordinator covers most duties; per-program grants (attendance, notifications) missing.
 - [ ] **RBA-06** — Centre Leadership & Policy Makers  
   _Now:_ 🟡 Partial — Executive role + dashboard; trainer-assignment approval and satisfaction alerts missing.
@@ -37,9 +37,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ 🔴 Missing — Not modelled (needs tools, plan approval, evaluation forms).
 - [ ] **RBA-11** — Logistics Support Officer  
   _Now:_ 🔴 Missing — Not modelled (room data, non-training bookings, logistics requests).
-- [ ] **RBA-12** — Create new roles and permissions when needed  
+- [x] **RBA-12** — Create new roles and permissions when needed  
   _Now:_ 🟡 Partial — Existing role permissions are editable; new roles cannot be created from the UI.
-- [ ] **RBA-13** ★ — Permission scope: Ministry / school group / single school  
+- [x] **RBA-13** ★ — Permission scope: Ministry / school group / single school  
   _Now:_ 🟡 Partial — School-level scoping only; no school-group (cluster) or department scope.
 
 ### Phase 02 — Training Structure & Annual Plan  (11)
@@ -491,12 +491,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | UX-01 | Simple, clear UI; understandable icons with short text labels | ✅ Available | Luxury government design system, labelled lucide icons, glass cards. | — |
 | UX-02 | Approved visual-identity colours and modern design elements | ✅ Available | Qatar Government brand (Al Adaam maroon, Dune) + live Brand Studio. | — |
-| UX-03 | Approved Lusail typeface and readable font sizes | 🟡 Partial | Ships Qatar Sans / El Messiri / Tajawal; Lusail is not bundled or default (Brand Studio can upload fonts). | 1 |
-| UX-04 | Few steps per task, clear navigation, quick search for content & functions | 🟡 Partial | Clear navigation; Ctrl/⌘K switcher exists only inside Settings — no global search across programs, people, content. | 1 |
+| UX-03 | Approved Lusail typeface and readable font sizes | 🟡 Partial | Lusail is first in every font stack and registered automatically from `web/public/fonts/lusail/` when the licensed files are added (see `lib/fonts.ts`, `public/fonts/lusail-README.md`); falls back to Qatar Sans → Tajawal. Body line height ≥ 1.65. **The Ministry must supply the font files** (web, mPDF, app). | 1 |
+| UX-04 | Few steps per task, clear navigation, quick search for content & functions | ✅ Available | Ctrl/⌘ K global search on every page (`components/search/GlobalSearch.tsx`, `GET /search`): programs, people, trainers, kits, certificates, news and functions, permission- and scope-aware, with recent searches; app search screen (`features/search`). | — |
 | UX-05 ★ | Full Arabic/English with instant switch, correct RTL/LTR, professional translation | ✅ Available | i18next (web), Flutter l10n, API X-Locale; all content stored as *_ar / *_en. | — |
 | UX-06 ★ | Each user keeps a preferred language, switchable without re-login or data loss | ✅ Available | users.locale persisted; switching is instant. | — |
 | UX-07 ★ | Responsive on desktop, tablet and phone, all browsers | ✅ Available | Tailwind responsive web + Flutter mobile app. | — |
-| UX-08 ★ | Seamless switching between a user’s roles (trainer / trainee / manager) | 🔴 Missing | Users can hold several roles but there is no role switcher; permissions are merged. | 1 |
+| UX-08 ★ | Seamless switching between a user’s roles (trainer / trainee / manager) | ✅ Available | Role switcher in the account menu (web) and on the profile screen (app): `POST /auth/active-role`, `X-Active-Role` header, only the active role's permissions and scope count (`ActiveRole`, `ResolveActiveRole`); remembered per device; `ActiveRoleTest`. | — |
 
 ### HOM · Portal Homepage & Dashboards — الصفحة الرئيسية للبوابة
 
@@ -515,17 +515,17 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | RBA-01 | Trainee | ✅ Available | Employee role + self-service web portal and mobile app. | — |
 | RBA-02 | School Principal | ✅ Available | School Admin role, school-scoped data. | — |
-| RBA-03 | PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops | 🔴 Missing | No dedicated role; School Admin covers nomination only. | 1 |
-| RBA-04 | Head of Training Department | 🔴 Missing | Not modelled (assign supervisors, grant attendance rights, approve kits). | 1 |
-| RBA-05 | Training Supervisor | 🟡 Partial | Program Coordinator covers most duties; per-program grants (attendance, notifications) missing. | 1 |
-| RBA-06 | Centre Leadership & Policy Makers | 🟡 Partial | Executive role + dashboard; trainer-assignment approval and satisfaction alerts missing. | 1 |
+| RBA-03 | PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops | 🟡 Partial | Role `academic_deputy` (school / group / department scope, permissions `pd.approve`, `workshops.internal`, nominations). PD-record approval (Phase 09) and internal workshops (Phase 02) arrive with those phases. | 1 |
+| RBA-04 | Head of Training Department | ✅ Available | Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `RolesManagementTest`, `ProgramGrantsTest`. | — |
+| RBA-05 | Training Supervisor | ✅ Available | Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, `ProgramGrantService`). | — |
+| RBA-06 | Centre Leadership & Policy Makers | 🟡 Partial | Role `center_leadership` with leadership dashboards and `trainers.approve`; trainer-assignment approval (Phase 02) and satisfaction alerts (Phase 08) come with those phases. | 1 |
 | RBA-07 | Trainer | ✅ Available | Attendance, materials, task review. | — |
 | RBA-08 | System Administrator | ✅ Available | Super Admin / Centre Admin with full permissions. | — |
 | RBA-09 | Kit Developer and Quality Assurance | ✅ Available | Dedicated roles with the full kit review workflow. | — |
-| RBA-10 | Head of Planning and Planning Specialist | 🔴 Missing | Not modelled (needs tools, plan approval, evaluation forms). | 1 |
-| RBA-11 | Logistics Support Officer | 🔴 Missing | Not modelled (room data, non-training bookings, logistics requests). | 1 |
-| RBA-12 | Create new roles and permissions when needed | 🟡 Partial | Existing role permissions are editable; new roles cannot be created from the UI. | 1 |
-| RBA-13 ★ | Permission scope: Ministry / school group / single school | 🟡 Partial | School-level scoping only; no school-group (cluster) or department scope. | 1 |
+| RBA-10 | Head of Planning and Planning Specialist | 🟡 Partial | Roles `planning_head` and `planning_specialist` with plan, needs and instrument permissions (`plans.*`, `instruments.approve`); the tools themselves arrive in Phases 02, 03 and 08. | 1 |
+| RBA-11 | Logistics Support Officer | 🟡 Partial | Role `logistics_officer` (rooms, `rooms.book`, `logistics.manage`); non-training bookings and logistics requests arrive in Phase 05. | 1 |
+| RBA-12 | Create new roles and permissions when needed | ✅ Available | Settings → Roles & permissions: create a role from scratch or clone one, edit its scopes and landing page, permission matrix with diff preview, delete when unused (`RoleAdminController`, audited). | — |
+| RBA-13 ★ | Permission scope: Ministry / school group / single school | ✅ Available | Roles are granted at Ministry / school group / school / department scope with an optional end date (`role_user` scope columns, `AccessScope`); school groups managed in Settings → School groups (CSV import); every list, dashboard and search is scoped (`AccessScopeTest`). | — |
 
 ### TYP · Training Types — إدارة أنواع التدريب
 

@@ -44,9 +44,28 @@ class IntroController extends Notifier<bool> {
 
 final introDoneProvider = NotifierProvider<IntroController, bool>(IntroController.new);
 
+/// The role grant the person works in (see Phase 01): sent with every request so the server answers as that role.
+class ActiveRoleController extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  Future<void> load() async {
+    state = await ref.read(sessionStoreProvider).readActiveRole();
+  }
+
+  Future<void> set(String? id) async {
+    state = id;
+    await ref.read(sessionStoreProvider).writeActiveRole(id);
+  }
+}
+
+final activeRoleProvider = NotifierProvider<ActiveRoleController, String?>(ActiveRoleController.new);
+
 final apiProvider = Provider<ApiClient>((ref) => ApiClient(
       ref.read(sessionStoreProvider),
       locale: () => ref.read(localeProvider).languageCode,
+      activeRole: () => ref.read(activeRoleProvider),
+      onRoleRejected: () => ref.read(activeRoleProvider.notifier).set(null),
       onSessionExpired: () {
         ResponseCache.instance.clear();
         _resetGetState();
@@ -61,6 +80,7 @@ class AuthController extends AsyncNotifier<Me?> {
   Future<Me?> build() async {
     final session = await ref.read(sessionStoreProvider).read();
     if (session == null) return null;
+    await ref.read(activeRoleProvider.notifier).load();
 
     // Open instantly with the last known profile; the server confirms it in the background. Waiting for the
     // network here is what made the app sit on the splash screen on every launch.
@@ -105,6 +125,20 @@ class AuthController extends AsyncNotifier<Me?> {
     state = AsyncData(me);
   }
 
+  /// Works as another of the person's roles: no new sign-in; everything on screen is loaded again for the new role.
+  Future<Me?> switchRole(String grantId) async {
+    final data = await ref.read(apiProvider).post('/auth/active-role', {'role_user_id': grantId}) as Map<String, dynamic>;
+    await ref.read(activeRoleProvider.notifier).set(grantId);
+    final profile = Map<String, dynamic>.from(data['data'] as Map);
+    await ResponseCache.instance.clear();
+    unawaited(ResponseCache.instance.write(_meKey, profile));
+    _resetGetState();
+    ref.invalidate(getProvider);
+    final me = Me(profile);
+    state = AsyncData(me);
+    return me;
+  }
+
   Future<void> logout() async {
     // The next person to sign in on this phone starts without fingerprint sign-in.
     try {
@@ -112,6 +146,7 @@ class AuthController extends AsyncNotifier<Me?> {
     } catch (_) {}
     await ref.read(pushServiceProvider).stop();
     await ref.read(sessionStoreProvider).write(null);
+    await ref.read(activeRoleProvider.notifier).set(null);
     await ResponseCache.instance.clear();
     _resetGetState();
     state = const AsyncData(null);

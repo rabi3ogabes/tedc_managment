@@ -20,7 +20,7 @@ class UserController extends Controller
     {
         return response()->json(User::with('roles:id,slug,name_ar,name_en')
             ->when($request->query('role'), fn ($q, $r) => $q->whereHas('roles', fn ($w) => $w->where('slug', $r)))
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name', 'like', "%{$t}%")->orWhere('name_ar', 'like', "%{$t}%")->orWhere('email', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name', "%{$t}%")->orWhereLike('name_ar', "%{$t}%")->orWhereLike('email', "%{$t}%")))
             ->orderBy('name')
             ->paginate($this->perPage($request, 25)));
     }
@@ -102,7 +102,7 @@ class UserController extends Controller
         return response()->json(AuditLog::with('user:id,name,name_ar,email')
             ->when($request->query('action'), fn ($q, $a) => $q->where('action', $a))
             ->when($request->query('user_id'), fn ($q, $u) => $q->where('user_id', $u))
-            ->when($request->query('type'), fn ($q, $t) => $q->where('auditable_type', 'like', "%{$t}%"))
+            ->when($request->query('type'), fn ($q, $t) => $q->whereLike('auditable_type', "%{$t}%"))
             ->latest('created_at')
             ->paginate($this->perPage($request, 50)));
     }

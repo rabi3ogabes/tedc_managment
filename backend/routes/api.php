@@ -722,6 +722,7 @@ Route::prefix('v1')->group(function () {
                 Route::put('roles/{role}', [RoleAdminController::class, 'update']);
                 Route::delete('roles/{role}', [RoleAdminController::class, 'destroy']);
             });
+            Route::get('staff-lookup', [UserRoleController::class, 'lookup'])->middleware('permission:program_grants.manage|users.manage');
             Route::middleware('permission:program_grants.manage')->group(function () {
                 Route::get('programs/{program}/grants', [ProgramGrantController::class, 'index']);
                 Route::post('programs/{program}/grants', [ProgramGrantController::class, 'store']);

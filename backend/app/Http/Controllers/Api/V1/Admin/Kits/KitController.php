@@ -187,7 +187,7 @@ class KitController extends KitBaseController
         abort_unless($this->user()->hasPermission('kits.view'), 403);
         $users = User::with('roles')->where('status', 'active')
             ->whereHas('roles', fn ($r) => $r->whereIn('slug', [Role::KIT_DEVELOPER, Role::QA_REVIEWER, Role::COORDINATOR, Role::CENTER_ADMIN, Role::SUPER_ADMIN, Role::TRAINER]))
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name', 'like', "%{$t}%")->orWhere('name_ar', 'like', "%{$t}%")->orWhere('email', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name', "%{$t}%")->orWhereLike('name_ar', "%{$t}%")->orWhereLike('email', "%{$t}%")))
             ->orderBy('name')->limit(80)->get();
 
         return response()->json(['data' => $users->map(fn (User $u) => [
@@ -275,7 +275,7 @@ class KitController extends KitBaseController
     private function query(Request $request, User $user)
     {
         return KitAccess::scope(TrainingKit::query(), $user)
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$t}%")->orWhere('title_en', 'like', "%{$t}%")->orWhere('code', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$t}%")->orWhereLike('title_en', "%{$t}%")->orWhereLike('code', "%{$t}%")))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->when($request->boolean('mine'), fn ($q) => $q->where(fn ($w) => $w->where('owner_id', $user->id)->orWhereHas('members', fn ($m) => $m->where('user_id', $user->id))))
             ->when(in_array($request->query('delivery'), TrainingKit::DELIVERIES, true), fn ($q) => $q->where('delivery', $request->query('delivery')))

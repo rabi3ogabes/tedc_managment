@@ -19,7 +19,7 @@ class ProfileRequestController extends Controller
         $status = $request->query('status', 'pending');
         $q = ProfileChangeRequest::with(['user.employee.school', 'user.employee.jobTitle', 'reviewer:id,name,name_ar'])
             ->when($status !== 'all', fn ($w) => $status === 'resolved' ? $w->whereIn('status', ['approved', 'rejected']) : $w->where('status', $status))
-            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$v}%")->orWhere('name_ar', 'like', "%{$v}%")->orWhere('email', 'like', "%{$v}%")))
+            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->whereLike('name', "%{$v}%")->orWhereLike('name_ar', "%{$v}%")->orWhereLike('email', "%{$v}%")))
             ->orderByRaw("case when status = 'pending' then 0 else 1 end")->latest();
 
         return response()->json([

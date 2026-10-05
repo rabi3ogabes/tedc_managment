@@ -164,3 +164,9 @@ In production the four demonstration/support tools (`impersonation`, `test_accou
 ## RFP traceability
 
 `docs/rfp/gap-register.md` is the source of truth; `php artisan tedc:rfp-status` turns it into `backend/resources/rfp/status.json` (read by Settings → RFP Compliance) and `docs/rfp/compliance-sheet.md`.
+
+## Roles, scopes and the active role
+
+A user holds roles through `role_user` rows, each with a **scope** (`ministry`, `school_group`, `school`, `department`), the person who granted it and an optional end date. A request runs as exactly one grant — the **active role** (`X-Active-Role` header, else the one the user last chose, else the highest) — and `ResolveActiveRole` stores it in `App\Support\ActiveRole`; `User::hasPermission()`/`hasRole()` then look at that role only. `App\Support\AccessScope` turns the active grant into the schools and departments it reaches; controllers call `constrainEmployees`, `constrainThroughEmployee` and `constrainSchoolColumn` instead of filtering by hand. A school-level role (`scope_levels` without `ministry`) granted without a scope falls back to the school of the person's employee record, never Ministry-wide.
+
+Per-program rights (`program_grants`) let the head of training give one person attendance, notification, task-review or kit rights on a single program (`ProgramGrantService`). Deploys call `RolePermissionSeeder::additive()` so new roles and permissions reach an existing database without undoing hand-made changes.

@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 72,
-        "partial": 89,
-        "missing": 117,
+        "available": 78,
+        "partial": 88,
+        "missing": 112,
         "mandatory": 108,
-        "open": 206
+        "open": 200
     },
     "phases": [
         {
@@ -19,7 +19,7 @@
             "phase": 1,
             "title": "Roles, Scopes & UX Essentials",
             "open": 11,
-            "items": 11,
+            "items": 5,
             "done": 0
         },
         {
@@ -169,16 +169,16 @@
                     "mandatory": false,
                     "requirement": "Approved Lusail typeface and readable font sizes",
                     "status": "partial",
-                    "evidence": "Ships Qatar Sans / El Messiri / Tajawal; Lusail is not bundled or default (Brand Studio can upload fonts).",
+                    "evidence": "Lusail is first in every font stack and registered automatically from `web/public/fonts/lusail/` when the licensed files are added (see `lib/fonts.ts`, `public/fonts/lusail-README.md`); falls back to Qatar Sans → Tajawal. Body line height ≥ 1.65. **The Ministry must supply the font files** (web, mPDF, app).",
                     "phase": 1
                 },
                 {
                     "id": "UX-04",
                     "mandatory": false,
                     "requirement": "Few steps per task, clear navigation, quick search for content & functions",
-                    "status": "partial",
-                    "evidence": "Clear navigation; Ctrl/⌘K switcher exists only inside Settings — no global search across programs, people, content.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Ctrl/⌘ K global search on every page (`components/search/GlobalSearch.tsx`, `GET /search`): programs, people, trainers, kits, certificates, news and functions, permission- and scope-aware, with recent searches; app search screen (`features/search`).",
+                    "phase": null
                 },
                 {
                     "id": "UX-05",
@@ -208,9 +208,9 @@
                     "id": "UX-08",
                     "mandatory": true,
                     "requirement": "Seamless switching between a user’s roles (trainer / trainee / manager)",
-                    "status": "missing",
-                    "evidence": "Users can hold several roles but there is no role switcher; permissions are merged.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role switcher in the account menu (web) and on the profile screen (app): `POST /auth/active-role`, `X-Active-Role` header, only the active role's permissions and scope count (`ActiveRole`, `ResolveActiveRole`); remembered per device; `ActiveRoleTest`.",
+                    "phase": null
                 }
             ]
         },
@@ -294,32 +294,32 @@
                     "id": "RBA-03",
                     "mandatory": false,
                     "requirement": "PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops",
-                    "status": "missing",
-                    "evidence": "No dedicated role; School Admin covers nomination only.",
+                    "status": "partial",
+                    "evidence": "Role `academic_deputy` (school / group / department scope, permissions `pd.approve`, `workshops.internal`, nominations). PD-record approval (Phase 09) and internal workshops (Phase 02) arrive with those phases.",
                     "phase": 1
                 },
                 {
                     "id": "RBA-04",
                     "mandatory": false,
                     "requirement": "Head of Training Department",
-                    "status": "missing",
-                    "evidence": "Not modelled (assign supervisors, grant attendance rights, approve kits).",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `RolesManagementTest`, `ProgramGrantsTest`.",
+                    "phase": null
                 },
                 {
                     "id": "RBA-05",
                     "mandatory": false,
                     "requirement": "Training Supervisor",
-                    "status": "partial",
-                    "evidence": "Program Coordinator covers most duties; per-program grants (attendance, notifications) missing.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, `ProgramGrantService`).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-06",
                     "mandatory": false,
                     "requirement": "Centre Leadership & Policy Makers",
                     "status": "partial",
-                    "evidence": "Executive role + dashboard; trainer-assignment approval and satisfaction alerts missing.",
+                    "evidence": "Role `center_leadership` with leadership dashboards and `trainers.approve`; trainer-assignment approval (Phase 02) and satisfaction alerts (Phase 08) come with those phases.",
                     "phase": 1
                 },
                 {
@@ -350,33 +350,33 @@
                     "id": "RBA-10",
                     "mandatory": false,
                     "requirement": "Head of Planning and Planning Specialist",
-                    "status": "missing",
-                    "evidence": "Not modelled (needs tools, plan approval, evaluation forms).",
+                    "status": "partial",
+                    "evidence": "Roles `planning_head` and `planning_specialist` with plan, needs and instrument permissions (`plans.*`, `instruments.approve`); the tools themselves arrive in Phases 02, 03 and 08.",
                     "phase": 1
                 },
                 {
                     "id": "RBA-11",
                     "mandatory": false,
                     "requirement": "Logistics Support Officer",
-                    "status": "missing",
-                    "evidence": "Not modelled (room data, non-training bookings, logistics requests).",
+                    "status": "partial",
+                    "evidence": "Role `logistics_officer` (rooms, `rooms.book`, `logistics.manage`); non-training bookings and logistics requests arrive in Phase 05.",
                     "phase": 1
                 },
                 {
                     "id": "RBA-12",
                     "mandatory": false,
                     "requirement": "Create new roles and permissions when needed",
-                    "status": "partial",
-                    "evidence": "Existing role permissions are editable; new roles cannot be created from the UI.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Settings → Roles & permissions: create a role from scratch or clone one, edit its scopes and landing page, permission matrix with diff preview, delete when unused (`RoleAdminController`, audited).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-13",
                     "mandatory": true,
                     "requirement": "Permission scope: Ministry / school group / single school",
-                    "status": "partial",
-                    "evidence": "School-level scoping only; no school-group (cluster) or department scope.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Roles are granted at Ministry / school group / school / department scope with an optional end date (`role_user` scope columns, `AccessScope`); school groups managed in Settings → School groups (CSV import); every list, dashboard and search is scoped (`AccessScopeTest`).",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T08:51:37+03:00"
+    "generated_at": "2026-10-05T09:47:01+03:00"
 }

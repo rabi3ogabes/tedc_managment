@@ -75,9 +75,9 @@ class CertificateController extends Controller
             ->when($request->input('sent') === 'no', fn ($q) => $q->whereNull('sent_at'))
             ->when($request->input('from'), fn ($q, $d) => $q->where('issued_at', '>=', Carbon::parse($d)->startOfDay()))
             ->when($request->input('to'), fn ($q, $d) => $q->where('issued_at', '<=', Carbon::parse($d)->endOfDay()))
-            ->when($request->input('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('certificate_no', 'like', "%{$term}%")
-                ->orWhereHas('employee', fn ($e) => $e->where('employee_no', 'like', "%{$term}%")
-                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('name_ar', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%")))));
+            ->when($request->input('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('certificate_no', "%{$term}%")
+                ->orWhereHas('employee', fn ($e) => $e->whereLike('employee_no', "%{$term}%")
+                    ->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%")->orWhereLike('email', "%{$term}%")))));
     }
 
     public function requirements(Registration $registration): JsonResponse

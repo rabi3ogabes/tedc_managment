@@ -16,7 +16,7 @@ class PartnerOrganizationController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         return JsonResource::collection(PartnerOrganization::withCount('trainers')
-            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->where('name_ar', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%")))
+            ->when($request->query('q'), fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('name_ar', "%{$t}%")->orWhereLike('name_en', "%{$t}%")))
             ->when($request->query('type'), fn ($q, $v) => $q->where('type', $v))
             ->orderBy('name_ar')->paginate($this->perPage($request, 50)));
     }

@@ -42,7 +42,7 @@ class ApiException implements Exception {
 
 /// REST client for the TEDC API with bearer auth, locale header and transparent token refresh.
 class ApiClient {
-  ApiClient(this._store, {required this.locale, required this.onSessionExpired}) {
+  ApiClient(this._store, {required this.locale, required this.onSessionExpired, this.activeRole, this.onRoleRejected}) {
     dio = Dio(BaseOptions(
       baseUrl: AppConfig.apiUrl,
       connectTimeout: const Duration(seconds: 15),
@@ -56,11 +56,26 @@ class ApiClient {
         final session = await _store.read();
         if (session != null) options.headers['Authorization'] = 'Bearer ${session.accessToken}';
         options.headers['X-Locale'] = locale();
+        final role = activeRole?.call();
+        if (role != null && role.isNotEmpty) options.headers['X-Active-Role'] = role;
         // The language is also part of the URL so shared CDN caches keep one copy per language.
         if (options.method == 'GET') options.queryParameters = {'lang': locale(), ...options.queryParameters};
         handler.next(options);
       },
       onError: (error, handler) async {
+        // The remembered role expired or was taken away: forget it and ask again as the default role.
+        final data = error.response?.data;
+        if (error.response?.statusCode == 403 && data is Map && data['code'] == 'role_not_held' && error.requestOptions.extra['roleRetried'] != true) {
+          onRoleRejected?.call();
+          final options = error.requestOptions
+            ..extra['roleRetried'] = true
+            ..headers.remove('X-Active-Role');
+          try {
+            return handler.resolve(await dio.fetch(options));
+          } on DioException catch (e) {
+            return handler.next(e);
+          }
+        }
         final retried = error.requestOptions.extra['retried'] == true;
         // Another request may already have renewed the tokens while this one was waiting in the queue: just retry it.
         final used = error.requestOptions.headers['Authorization'];
@@ -90,6 +105,8 @@ class ApiClient {
   final SessionStore _store;
   final String Function() locale;
   final void Function() onSessionExpired;
+  final String? Function()? activeRole;
+  final void Function()? onRoleRejected;
   late final Dio dio;
 
   Future<bool> _refresh() async {

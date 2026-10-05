@@ -72,7 +72,7 @@ class PublicController extends Controller
             ->when($request->query('category'), fn ($q, $slug) => $q->whereHas('category', fn ($c) => $c->where('slug', $slug)))
             ->when($request->query('mode'), fn ($q, $mode) => $q->where('delivery_mode', $mode))
             ->when($request->query('level'), fn ($q, $level) => $q->where('level', $level))
-            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$term}%")->orWhere('title_en', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%")))
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$term}%")->orWhereLike('title_en', "%{$term}%")->orWhereLike('code', "%{$term}%")))
             ->when($request->boolean('open'), fn ($q) => $q->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN]))
             ->orderByRaw("case when status = 'registration_open' then 0 when status = 'published' then 1 else 2 end")
             ->orderBy('start_date')

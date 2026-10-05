@@ -33,8 +33,8 @@ class RegistrationController extends Controller
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->when($request->query('source'), fn ($q, $s) => $q->where('source', $s))
             ->when($request->query('certificate_status'), fn ($q, $s) => $q->where('certificate_status', $s))
-            ->when($request->query('q'), fn ($q, $term) => $q->whereHas('employee', fn ($e) => $e->where('employee_no', 'like', "%{$term}%")
-                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('name_ar', 'like', "%{$term}%"))))
+            ->when($request->query('q'), fn ($q, $term) => $q->whereHas('employee', fn ($e) => $e->whereLike('employee_no', "%{$term}%")
+                ->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%"))))
             ->latest();
 
         return RegistrationResource::collection($query->paginate($this->perPage($request, 25)));

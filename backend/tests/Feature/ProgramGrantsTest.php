@@ -108,4 +108,15 @@ class ProgramGrantsTest extends TestCase
         $list = $this->asUser($head)->getJson("/api/v1/admin/programs/{$program->id}/grants")->assertOk()->json('data');
         $this->assertSame($user->id, $list[0]['user']['id']);
     }
+
+    public function test_the_staff_lookup_finds_people_for_the_grants_screen(): void
+    {
+        $this->makeUser(Role::SUPERVISOR, ['name' => 'Layla Mansour', 'email' => 'layla.m@test.qa']);
+        $head = $this->makeUser(Role::TRAINING_HEAD);
+
+        $found = $this->asUser($head)->getJson('/api/v1/admin/staff-lookup?q=layla')->assertOk()->json('data');
+        $this->assertSame('layla.m@test.qa', $found[0]['email']);
+        $this->asUser($head)->getJson('/api/v1/admin/staff-lookup?q=l')->assertUnprocessable();
+        $this->asUser($this->makeEmployee()->user)->getJson('/api/v1/admin/staff-lookup?q=layla')->assertForbidden();
+    }
 }

@@ -7,6 +7,8 @@ import { BrowserRouter } from 'react-router-dom'
 import '@/i18n'
 import './index.css'
 import App from './App'
+import ToastHost from '@/components/ui/ToastHost'
+import { registerLusail } from '@/lib/fonts'
 import { AuthProvider } from '@/lib/auth'
 import { ThemeProvider } from '@/lib/ThemeProvider'
 
@@ -46,6 +48,8 @@ if (window.location.pathname === '/') {
   void queryClient.prefetchQuery({ queryKey: ['/public/home', undefined, lang], queryFn: async () => (await api.get('/public/home')).data })
 }
 
+void registerLusail()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
@@ -54,6 +58,7 @@ createRoot(document.getElementById('root')!).render(
           <AuthProvider>
             <AppErrorBoundary><App /></AppErrorBoundary>
           </AuthProvider>
+          <ToastHost />
         </ThemeProvider>
       </BrowserRouter>
     </PersistQueryClientProvider>

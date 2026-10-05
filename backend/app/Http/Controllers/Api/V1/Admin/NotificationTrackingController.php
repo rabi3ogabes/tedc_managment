@@ -79,7 +79,7 @@ class NotificationTrackingController extends Controller
             ->when($status === 'read', fn ($w) => $w->whereNotNull('read_at'))
             ->when($status === 'unread', fn ($w) => $w->whereNull('read_at'))
             ->when($status === 'unseen', fn ($w) => $w->whereNull('seen_at'))
-            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$v}%")->orWhere('name_ar', 'like', "%{$v}%")->orWhere('email', 'like', "%{$v}%")))
+            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->whereLike('name', "%{$v}%")->orWhereLike('name_ar', "%{$v}%")->orWhereLike('email', "%{$v}%")))
             ->orderBy('read_at')->orderBy('created_at')->paginate(30);
 
         return response()->json(['data' => $this->summarise($campaign), 'recipients' => $rows->through(fn (AppNotification $n) => $this->recipient($n))]);
@@ -104,7 +104,7 @@ class NotificationTrackingController extends Controller
             ->when($request->query('program_id'), fn ($w, $v) => $w->where('data->program_id', $v))
             ->when($request->query('status') === 'read', fn ($w) => $w->whereNotNull('read_at'))
             ->when($request->query('status') === 'unread', fn ($w) => $w->whereNull('read_at'))
-            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$v}%")->orWhere('name_ar', 'like', "%{$v}%")->orWhere('email', 'like', "%{$v}%")));
+            ->when($request->query('q'), fn ($w, $v) => $w->whereHas('user', fn ($u) => $u->whereLike('name', "%{$v}%")->orWhereLike('name_ar', "%{$v}%")->orWhereLike('email', "%{$v}%")));
         $totals = (clone $q)->toBase()->selectRaw('count(*) as sent_count, count(seen_at) as seen_count, count(read_at) as read_count')->reorder()->first();
 
         return response()->json([

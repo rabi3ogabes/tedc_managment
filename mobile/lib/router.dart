@@ -21,6 +21,7 @@ import 'features/programs/programs_screen.dart';
 import 'features/school/school_screen.dart';
 import 'features/training/my_program_redirect.dart';
 import 'features/training/session_screen.dart';
+import 'features/search/search_screen.dart';
 import 'features/security/unlock_screen.dart';
 import 'features/shell/app_nav_bar.dart';
 import 'features/shell/home_shell.dart';
@@ -60,6 +61,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state, child) => DetailShell(location: state.matchedLocation, child: child),
         routes: [
           GoRoute(path: '/scan', builder: (_, s) => ScanScreen(biometric: s.uri.queryParameters['biometric'] == '1')),
+          GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
           GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
           GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),

@@ -28,8 +28,8 @@ class EmployeeController extends Controller
             ->when($supervisorOnly, fn ($q) => $q->where('supervisor_id', $user->employee?->id ?? '00000000-0000-0000-0000-000000000000'))
             ->when($request->query('school_id'), fn ($q, $id) => $q->where('school_id', $id))
             ->when($request->query('job_title_id'), fn ($q, $id) => $q->where('job_title_id', $id))
-            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('employee_no', 'like', "%{$term}%")
-                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$term}%")->orWhere('name_ar', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))))
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('employee_no', "%{$term}%")
+                ->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%")->orWhereLike('email', "%{$term}%"))))
             ->orderBy('employee_no')
             ->paginate($this->perPage($request, 25));
 

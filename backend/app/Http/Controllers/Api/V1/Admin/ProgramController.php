@@ -28,7 +28,7 @@ class ProgramController extends Controller
             ->when($user->hasRole(Role::TRAINER) && ! $this->isCenterStaff($user), fn ($q) => $q->whereHas('trainers', fn ($t) => $t->where('trainers.user_id', $user->id)))
             ->when($request->query('status'), fn ($q, $status) => $q->whereIn('status', explode(',', $status)))
             ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
-            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->where('title_ar', 'like', "%{$term}%")->orWhere('title_en', 'like', "%{$term}%")->orWhere('code', 'like', "%{$term}%")));
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$term}%")->orWhereLike('title_en', "%{$term}%")->orWhereLike('code', "%{$term}%")));
 
         $programs = $scope()->with(['category', 'trainers'])
             ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)])
