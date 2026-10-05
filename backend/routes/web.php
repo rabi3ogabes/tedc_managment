@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContentProxyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,7 @@ Route::get('/files/{bucket}/{path}', function (string $bucket, string $path) {
 })->where('path', '.*')->middleware('signed')->name('files.local');
 
 // Content packages, from the app's own origin through a signed token in the path.
-Route::get('/content/{token}/{package}/{path?}', [\App\Http\Controllers\ContentProxyController::class, 'show'])->where('path', '.*')->name('content.proxy');
+Route::get('/content/{token}/{package}/{path?}', [ContentProxyController::class, 'show'])->where('path', '.*')->name('content.proxy');
 
 Route::fallback(function (Request $request) use ($spa) {
     // API routes, non-GET requests and missing static files (e.g. an old /assets/*.js) stay 404.

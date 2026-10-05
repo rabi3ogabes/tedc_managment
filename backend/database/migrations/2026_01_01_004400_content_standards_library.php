@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 /** Phase 10 — content packages (SCORM, xAPI, cmi5, H5P, HTML5, Common Cartridge), LRS, LTI, lesson versions, kits, sharing, the digital library, providers and offline sync. */
 return new class extends Migration
@@ -131,6 +132,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignUuid('lesson_id')->nullable()->constrained('course_lessons')->nullOnDelete();
             $table->string('purpose', 12)->default('launch');   // launch | deep_link
+            $table->json('context')->nullable();                 // {module_id, program_id}
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();
@@ -171,7 +173,7 @@ return new class extends Migration
             $table->unique(['kit_id', 'program_id']);
         });
         foreach (DB::table('training_kits')->whereNotNull('program_id')->get(['id', 'program_id']) as $k) {
-            DB::table('kit_program')->insert(['id' => (string) \Illuminate\Support\Str::uuid(), 'kit_id' => $k->id, 'program_id' => $k->program_id, 'created_at' => now(), 'updated_at' => now()]);
+            DB::table('kit_program')->insert(['id' => (string) Str::uuid(), 'kit_id' => $k->id, 'program_id' => $k->program_id, 'created_at' => now(), 'updated_at' => now()]);
         }
 
         Schema::create('job_groups', function (Blueprint $table) {

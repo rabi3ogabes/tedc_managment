@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Models\ContentPackage;
 use App\Models\CourseLesson;
+use App\Models\LtiTool;
 use App\Models\Registration;
 use App\Models\ScormAttempt;
 use App\Services\Content\Cmi5Service;
@@ -11,6 +12,7 @@ use App\Services\Content\PackageToken;
 use App\Services\Content\ScormService;
 use App\Services\Content\XapiService;
 use App\Services\CourseService;
+use App\Services\Lti\LtiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -89,6 +91,18 @@ class MyPackageController extends MeController
         }
 
         return response()->json(['data' => ['ids' => $ids]], 201);
+    }
+
+    /** Opens an LTI tool from a lesson: returns the auto-submitted form (OIDC login for 1.3, a signed launch for 1.1). */
+    public function ltiLaunch(CourseLesson $lesson, LtiService $lti): JsonResponse
+    {
+        $r = $this->registrationFor($lesson);
+        $this->course->assertOpen($lesson, $r);
+        $this->course->open($lesson, $r);
+        $tool = LtiTool::where('is_active', true)->findOrFail($lesson->lti_tool_id);
+        $this->course->markFromPackage($lesson, $r, false, 5);
+
+        return response()->json(['data' => $tool->version === '1.3' ? $lti->loginInitiation($tool, $this->user(), $lesson) : $lti->launch11($tool, $this->user(), $lesson)]);
     }
 
     private function own(ScormAttempt $a): void

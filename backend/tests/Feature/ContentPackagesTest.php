@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\CaliperEvent;
+use App\Models\ContentPackage;
 use App\Models\CourseLesson;
 use App\Models\LessonProgress;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\ScormAttempt;
+use App\Models\User;
 use App\Models\XapiStatement;
 use App\Services\Content\CaliperService;
 use App\Services\Content\PackageToken;
@@ -41,7 +44,7 @@ class ContentPackagesTest extends TestCase
 
     private const CC = '<?xml version="1.0"?><manifest identifier="cc" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1"><metadata><schema>IMS Common Cartridge</schema><schemaversion>1.1.0</schemaversion></metadata><organizations><organization identifier="org" structure="rooted-hierarchy"><item identifier="root"><item identifier="i1" identifierref="r1"><title>Page</title></item></item></organization></organizations><resources><resource identifier="r1" type="webcontent" href="page.html"/></resources></manifest>';
 
-    private function admin(): \App\Models\User
+    private function admin(): User
     {
         return $this->makeUser(Role::CENTER_ADMIN);
     }
@@ -64,8 +67,8 @@ class ContentPackagesTest extends TestCase
             $this->assertSame($title, $r->json('data.title'), $standard);
             $this->assertContains($href, array_column($r->json('data.entry_points'), 'href'), $standard);
         }
-        $this->assertSame('au', \App\Models\ContentPackage::where('standard', 'cmi5')->first()->entry_points[0]['type']);
-        $this->assertSame('CompletedOrPassed', \App\Models\ContentPackage::where('standard', 'cmi5')->first()->entry_points[0]['move_on']);
+        $this->assertSame('au', ContentPackage::where('standard', 'cmi5')->first()->entry_points[0]['type']);
+        $this->assertSame('CompletedOrPassed', ContentPackage::where('standard', 'cmi5')->first()->entry_points[0]['move_on']);
     }
 
     public function test_unsafe_packages_are_refused(): void
@@ -76,7 +79,7 @@ class ContentPackagesTest extends TestCase
         $post(['imsmanifest.xml' => self::SCORM12, '../evil.html' => 'x'])->assertStatus(422)->assertJsonPath('code', 'package_unsafe');
         $post(['imsmanifest.xml' => self::SCORM12, 'shell.php' => '<?php'])->assertStatus(422)->assertJsonPath('code', 'package_denied');
         $post(['readme.txt' => 'nothing to run'])->assertStatus(422)->assertJsonPath('code', 'package_unknown');
-        $this->assertSame(0, \App\Models\ContentPackage::count());
+        $this->assertSame(0, ContentPackage::count());
     }
 
     public function test_the_proxy_serves_files_with_the_right_type_ranges_and_only_with_a_valid_token(): void
@@ -95,7 +98,7 @@ class ContentPackagesTest extends TestCase
         $this->get('/content/'.PackageToken::make($pkg['id']).'/'.$pkg['id'].'/missing.html')->assertNotFound();
     }
 
-    /** @return array{0: \App\Models\User, 1: CourseLesson, 2: Registration} */
+    /** @return array{0: User, 1: CourseLesson, 2: Registration} */
     private function packageLesson(string $standard, array $files, array $settings = []): array
     {
         Storage::fake('local');
@@ -129,7 +132,7 @@ class ContentPackagesTest extends TestCase
         $p = LessonProgress::where('lesson_id', $lesson->id)->first();
         $this->assertSame('completed', $p->status);
         $this->assertEquals(85.0, (float) $p->best_score);
-        $this->assertSame(90, \App\Models\ScormAttempt::find($id)->total_time);
+        $this->assertSame(90, ScormAttempt::find($id)->total_time);
         $this->assertTrue(XapiStatement::where('verb', 'http://adlnet.gov/expapi/verbs/completed')->exists());
         $this->assertTrue((bool) $r->fresh()->course_completed);
     }
@@ -143,7 +146,7 @@ class ContentPackagesTest extends TestCase
         $this->assertSame('in_progress', LessonProgress::where('lesson_id', $lesson->id)->first()->status);      // completed but not passed
         $this->asUser($user)->putJson("/api/v1/me/scorm/{$id}/commit", ['cmi' => ['completion_status' => 'completed', 'success_status' => 'passed', 'score' => ['scaled' => 0.9], 'total_time' => 'PT2M5S']])->assertOk();
         $this->assertSame('completed', LessonProgress::where('lesson_id', $lesson->id)->first()->status);
-        $this->assertSame(125, \App\Models\ScormAttempt::find($id)->total_time);
+        $this->assertSame(125, ScormAttempt::find($id)->total_time);
         $this->assertEquals(90.0, (float) LessonProgress::where('lesson_id', $lesson->id)->first()->best_score);
         $other = $this->makeEmployee();
         $this->asUser($other->user)->putJson("/api/v1/me/scorm/{$id}/commit", ['cmi' => ['completion_status' => 'completed']])->assertNotFound();

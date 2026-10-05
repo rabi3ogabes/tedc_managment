@@ -7,7 +7,6 @@ use SimpleXMLElement;
 /** Reads the manifests of SCORM 1.2 / 2004, cmi5, TinCan and IMS Common Cartridge packages. */
 final class ManifestParser
 {
-    /** @return SimpleXMLElement|null */
     private static function xml(string $text): ?SimpleXMLElement
     {
         $prev = libxml_use_internal_errors(true);

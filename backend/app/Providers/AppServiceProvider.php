@@ -4,13 +4,18 @@ namespace App\Providers;
 
 use App\Auth\SupabaseUserResolver;
 use App\Models\AppNotification;
+use App\Models\CourseLesson;
 use App\Models\ImpactSurvey;
+use App\Models\LessonProgress;
 use App\Models\NeedsSurvey;
 use App\Models\ProgramSession;
+use App\Models\Registration;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
 use App\Services\Channels\ChannelSettings;
 use App\Services\Channels\NotificationChannels;
+use App\Services\Content\CaliperService;
+use App\Services\Content\XapiService;
 use App\Support\ActiveRole;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -39,18 +44,18 @@ class AppServiceProvider extends ServiceProvider
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         // Native learning activity is recorded as xAPI statements and Caliper events too (packages report their own).
-        \App\Models\LessonProgress::saved(function (\App\Models\LessonProgress $p) {
+        LessonProgress::saved(function (LessonProgress $p) {
             if (! $p->wasChanged('status') || $p->status !== 'completed') {
                 return;
             }
-            $lesson = \App\Models\CourseLesson::find($p->lesson_id);
-            $registration = \App\Models\Registration::find($p->registration_id);
-            if (! $lesson || ! $registration || $lesson->type === \App\Models\CourseLesson::PACKAGE) {
+            $lesson = CourseLesson::find($p->lesson_id);
+            $registration = Registration::find($p->registration_id);
+            if (! $lesson || ! $registration || $lesson->type === CourseLesson::PACKAGE) {
                 return;
             }
             try {
-                app(\App\Services\Content\XapiService::class)->native($registration, $lesson, 'http://adlnet.gov/expapi/verbs/completed', 'completed', $p->best_score !== null ? ['result' => ['completion' => true, 'score' => ['scaled' => min(1, max(0, (float) $p->best_score / 100))]]] : ['result' => ['completion' => true]]);
-                app(\App\Services\Content\CaliperService::class)->emit($lesson->type === 'video' ? 'MediaEvent' : 'GradeEvent', $registration, $lesson, $lesson->type === 'video' ? 'Ended' : 'Graded');
+                app(XapiService::class)->native($registration, $lesson, 'http://adlnet.gov/expapi/verbs/completed', 'completed', $p->best_score !== null ? ['result' => ['completion' => true, 'score' => ['scaled' => min(1, max(0, (float) $p->best_score / 100))]]] : ['result' => ['completion' => true]]);
+                app(CaliperService::class)->emit($lesson->type === 'video' ? 'MediaEvent' : 'GradeEvent', $registration, $lesson, $lesson->type === 'video' ? 'Ended' : 'Graded');
             } catch (\Throwable $e) {
                 report($e);
             }

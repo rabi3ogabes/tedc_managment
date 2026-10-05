@@ -6,6 +6,7 @@ use App\Models\CourseLesson;
 use App\Models\Registration;
 use App\Models\XapiDocument;
 use App\Models\XapiStatement;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
@@ -184,7 +185,7 @@ class XapiService
     // ───────────────────────────── TEDC's own activity as xAPI
 
     /** Records what a trainee did inside TEDC in the standard record, and forwards it when an external LRS is configured. */
-    public function native(Registration $r, CourseLesson|null $lesson, string $verb, string $verbName, array $extra = []): void
+    public function native(Registration $r, ?CourseLesson $lesson, string $verb, string $verbName, array $extra = []): void
     {
         $r->loadMissing('employee.user', 'program');
         $user = $r->employee->user;
@@ -209,6 +210,6 @@ class XapiService
         if (! $f['enabled'] || $f['endpoint'] === '') {
             return;
         }
-        \Illuminate\Support\Facades\Http::withBasicAuth($f['key'], $f['secret'])->withHeaders(['X-Experience-API-Version' => self::VERSION])->timeout(5)->post(rtrim($f['endpoint'], '/').'/statements', $statement);
+        Http::withBasicAuth($f['key'], $f['secret'])->withHeaders(['X-Experience-API-Version' => self::VERSION])->timeout(5)->post(rtrim($f['endpoint'], '/').'/statements', $statement);
     }
 }

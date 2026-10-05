@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
 use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\CompetencyController;
+use App\Http\Controllers\Api\V1\Admin\ContentImportController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
+use App\Http\Controllers\Api\V1\Admin\LtiToolController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\NeedsCycleController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
@@ -47,8 +49,8 @@ use App\Http\Controllers\Api\V1\Admin\NeedsToolsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
-use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PackageController;
+use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PassingController;
 use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
@@ -75,7 +77,6 @@ use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
-use App\Http\Controllers\Api\V1\XapiController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
@@ -92,6 +93,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\LtiController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
@@ -111,6 +113,7 @@ use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Http\Controllers\Api\V1\XapiController;
 use App\Models\TrainingRoom;
 use App\Services\FileStorage;
 use App\Services\LobbyScreenService;
@@ -130,6 +133,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+    // LTI platform endpoints (the tool authenticates itself: signed JWTs, bearer tokens, OAuth 1.0a).
+    Route::prefix('lti')->group(function () {
+        Route::get('jwks', [LtiController::class, 'jwks']);
+        Route::match(['GET', 'POST'], 'auth', [LtiController::class, 'auth'])->middleware('throttle:120,1');
+        Route::post('token', [LtiController::class, 'token'])->middleware('throttle:120,1');
+        Route::get('ags/{lesson}/lineitems', [LtiController::class, 'lineItems']);
+        Route::get('ags/{lesson}/lineitems/{id}', [LtiController::class, 'lineItem']);
+        Route::post('ags/{lesson}/lineitems/{id}/scores', [LtiController::class, 'score']);
+        Route::get('nrps/{program}/memberships', [LtiController::class, 'memberships']);
+        Route::post('deep-link/return', [LtiController::class, 'deepLinkReturn']);
+        Route::post('outcomes', [LtiController::class, 'outcomes']);
+    });
     // The xAPI learning record store (its own Basic authentication).
     Route::prefix('xapi')->group(function () {
         Route::get('about', [XapiController::class, 'about']);
@@ -268,6 +283,7 @@ Route::prefix('v1')->group(function () {
             Route::post('packages/{lesson}/launch', [MyPackageController::class, 'launch'])->middleware('throttle:60,1');
             Route::post('packages/{lesson}/complete', [MyPackageController::class, 'complete']);
             Route::post('packages/{lesson}/xapi', [MyPackageController::class, 'xapi'])->middleware('throttle:240,1');
+            Route::post('lti/{lesson}/launch', [MyPackageController::class, 'ltiLaunch'])->middleware('throttle:60,1');
             Route::get('paths', [MyCareerController::class, 'paths']);
             Route::get('paths/{path}', [MyCareerController::class, 'showPath']);
             Route::get('licences', [MyCareerController::class, 'licences']);
@@ -949,6 +965,23 @@ Route::prefix('v1')->group(function () {
                 Route::post('packages/process', [PackageController::class, 'process'])->middleware('throttle:20,1');
                 Route::delete('packages/{package}', [PackageController::class, 'destroy']);
                 Route::put('course/lessons/{lesson}/package', [PackageController::class, 'attach']);
+            });
+            Route::middleware('permission:packages.manage')->group(function () {
+                Route::get('packages/{package}/cc/preview', [ContentImportController::class, 'ccPreview']);
+                Route::post('packages/{package}/cc/import', [ContentImportController::class, 'ccImport']);
+                Route::get('content-imports', [ContentImportController::class, 'imports']);
+            });
+            Route::middleware('permission:banks.manage|assessments.manage')->group(function () {
+                Route::post('question-banks/{bank}/qti/import', [ContentImportController::class, 'qtiImport'])->middleware('throttle:20,1');
+                Route::get('question-banks/{bank}/qti/export', [ContentImportController::class, 'qtiExport']);
+            });
+            Route::middleware('permission:lti.manage')->group(function () {
+                Route::get('lti-tools', [LtiToolController::class, 'index']);
+                Route::post('lti-tools', [LtiToolController::class, 'save']);
+                Route::put('lti-tools/{tool}', [LtiToolController::class, 'save']);
+                Route::delete('lti-tools/{tool}', [LtiToolController::class, 'destroy']);
+                Route::post('lti-tools/rotate-keys', [LtiToolController::class, 'rotate']);
+                Route::post('lti-tools/{tool}/deep-link', [LtiToolController::class, 'deepLink']);
             });
             Route::middleware('permission:standards.manage')->group(function () {
                 Route::get('settings/standards', [StandardsController::class, 'show']);

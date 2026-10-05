@@ -5,6 +5,7 @@ namespace App\Services\Content;
 use App\Exceptions\BusinessRuleException;
 use App\Models\ContentPackage;
 use App\Models\CourseLesson;
+use App\Models\LessonProgress;
 use App\Models\Registration;
 use App\Models\ScormAttempt;
 use App\Services\CourseService;
@@ -78,7 +79,7 @@ class ScormService
         $lesson = CourseLesson::findOrFail($a->lesson_id);
         $needsPass = (bool) $lesson->setting('require_pass', false);
         $done = ($a->completion_status === 'completed' || $a->success_status === 'passed') && (! $needsPass || $a->success_status === 'passed') && $a->success_status !== 'failed';
-        $was = \App\Models\LessonProgress::where('lesson_id', $lesson->id)->where('registration_id', $a->registration_id)->value('status');
+        $was = LessonProgress::where('lesson_id', $lesson->id)->where('registration_id', $a->registration_id)->value('status');
         $progress = $a->cmi['progress_measure'] ?? null;
         $this->course->markFromPackage($lesson, $a->registration, $done, is_numeric($progress) ? (float) $progress * 100 : null, $a->score_scaled !== null ? round((float) $a->score_scaled * 100, 2) : null);
 
