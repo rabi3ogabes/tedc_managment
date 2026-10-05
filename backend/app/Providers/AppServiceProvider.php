@@ -38,6 +38,23 @@ class AppServiceProvider extends ServiceProvider
         foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
+        // Native learning activity is recorded as xAPI statements and Caliper events too (packages report their own).
+        \App\Models\LessonProgress::saved(function (\App\Models\LessonProgress $p) {
+            if (! $p->wasChanged('status') || $p->status !== 'completed') {
+                return;
+            }
+            $lesson = \App\Models\CourseLesson::find($p->lesson_id);
+            $registration = \App\Models\Registration::find($p->registration_id);
+            if (! $lesson || ! $registration || $lesson->type === \App\Models\CourseLesson::PACKAGE) {
+                return;
+            }
+            try {
+                app(\App\Services\Content\XapiService::class)->native($registration, $lesson, 'http://adlnet.gov/expapi/verbs/completed', 'completed', $p->best_score !== null ? ['result' => ['completion' => true, 'score' => ['scaled' => min(1, max(0, (float) $p->best_score / 100))]]] : ['result' => ['completion' => true]]);
+                app(\App\Services\Content\CaliperService::class)->emit($lesson->type === 'video' ? 'MediaEvent' : 'GradeEvent', $registration, $lesson, $lesson->type === 'video' ? 'Ended' : 'Graded');
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
         Route::bind('need', fn ($id) => TrainingNeed::findOrFail($id));
         Route::bind('survey', fn ($id) => ImpactSurvey::findOrFail($id));
         Route::bind('needsSurvey', fn ($id) => NeedsSurvey::findOrFail($id));

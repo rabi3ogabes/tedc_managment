@@ -39,7 +39,7 @@ class DemoOnlineCoursesTest extends TestCase
         $this->assertSame($courses->first()->courseLessons()->count(), Program::where('code', 'TEST-OL1')->first()->courseLessons()->count());
 
         // Every lesson type and every quiz / survey question kind is represented across the five.
-        $this->assertEqualsCanonicalizing(CourseLesson::TYPES, CourseLesson::query()->distinct()->pluck('type')->all());
+        $this->assertEqualsCanonicalizing([CourseLesson::VIDEO, CourseLesson::PRESENTATION, CourseLesson::QUIZ, CourseLesson::SURVEY, CourseLesson::ARTICLE], CourseLesson::query()->distinct()->pluck('type')->all());
         $this->assertEqualsCanonicalizing(['single', 'multiple', 'true_false'], QuizQuestion::query()->distinct()->pluck('type')->all());
         $this->assertTrue(CourseLesson::where('status', 'draft')->exists());
         $this->assertTrue(CourseLesson::where('is_required', false)->exists());

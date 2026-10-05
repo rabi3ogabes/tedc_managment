@@ -234,6 +234,21 @@ class CourseService
         return ['percent' => 100.0, 'status' => 'completed', 'completed' => true];
     }
 
+    // Packages --------------------------------------------------------------------------------------------------
+
+    /** A package (SCORM, cmi5, H5P, HTML5) reports its outcome; the lesson follows it. */
+    public function markFromPackage(CourseLesson $lesson, Registration $registration, bool $completed, ?float $percent = null, ?float $score = null): LessonProgress
+    {
+        $p = $this->progressFor($lesson, $registration);
+        $p->fill([
+            'status' => $completed ? 'completed' : 'in_progress', 'percent' => $completed ? 100 : max((float) $p->percent, min(99.0, (float) ($percent ?? 0))),
+            'best_score' => $score !== null ? max((float) ($p->best_score ?? 0), $score) : $p->best_score, 'completed_at' => $completed ? ($p->completed_at ?? now()) : $p->completed_at, 'last_activity_at' => now(),
+        ])->save();
+        $this->recompute($registration);
+
+        return $p->refresh();
+    }
+
     // Quiz ------------------------------------------------------------------------------------------------------
 
     /**

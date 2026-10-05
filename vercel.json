@@ -26,6 +26,10 @@
       "destination": "/api/index.php"
     },
     {
+      "source": "/content/(.*)",
+      "destination": "/api/index.php"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

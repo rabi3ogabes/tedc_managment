@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['program_id', 'module_id', 'type', 'title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'sort_order', 'is_required', 'status', 'duration_seconds', 'source', 'file_path', 'file_name', 'file_mime', 'file_size', 'external_url', 'slide_count', 'settings'])]
+#[Fillable(['program_id', 'module_id', 'type', 'title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'sort_order', 'is_required', 'status', 'duration_seconds', 'package_id', 'package_item_id', 'lti_tool_id', 'external_course_id', 'version', 'source', 'file_path', 'file_name', 'file_mime', 'file_size', 'external_url', 'slide_count', 'settings'])]
 class CourseLesson extends Model
 {
     use HasTranslations, HasUuids;
@@ -26,7 +26,13 @@ class CourseLesson extends Model
 
     public const ARTICLE = 'article';
 
-    public const TYPES = [self::VIDEO, self::PRESENTATION, self::QUIZ, self::SURVEY, self::ARTICLE];
+    public const PACKAGE = 'package';
+
+    public const LTI = 'lti';
+
+    public const EXTERNAL = 'external';
+
+    public const TYPES = [self::VIDEO, self::PRESENTATION, self::QUIZ, self::SURVEY, self::ARTICLE, self::PACKAGE, self::LTI, self::EXTERNAL];
 
     public function module(): BelongsTo
     {

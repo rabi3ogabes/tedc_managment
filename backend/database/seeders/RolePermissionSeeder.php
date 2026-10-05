@@ -84,6 +84,14 @@ class RolePermissionSeeder extends Seeder
         'pd.recognise' => ['planning', 'الاعتراف بأنشطة التطوير المهني الخارجية', 'Recognise external PD activities'],
         'pd.targets.manage' => ['planning', 'إدارة الحد الأدنى السنوي للساعات', 'Manage the annual minimum hours'],
         'knowledge_transfer.review' => ['programs', 'مراجعة نقل المعرفة', 'Review knowledge transfers'],
+        'packages.manage' => ['programs', 'إدارة حزم المحتوى الإلكتروني', 'Manage e-learning content packages'],
+        'lti.manage' => ['programs', 'إدارة أدوات LTI', 'Manage LTI tools'],
+        'standards.manage' => ['programs', 'إدارة معايير التعلم الإلكتروني (LRS و Caliper)', 'Manage e-learning standards (LRS, Caliper)'],
+        'library.manage' => ['programs', 'إدارة المكتبة الرقمية', 'Manage the digital library'],
+        'library.view' => ['general', 'تصفح المكتبة الرقمية', 'Browse the digital library'],
+        'sharing.manage' => ['programs', 'إدارة مشاركة الموارد', 'Manage resource sharing'],
+        'providers.manage' => ['programs', 'إدارة مزوّدي المحتوى', 'Manage content providers'],
+        'job_groups.manage' => ['programs', 'إدارة المجموعات الوظيفية', 'Manage job groups'],
         'banks.manage' => ['programs', 'إدارة بنوك الأسئلة', 'Manage question banks'],
         'assessments.manage' => ['programs', 'إدارة الاختبارات', 'Manage assessments'],
         'assessments.grade' => ['programs', 'تصحيح الاختبارات يدوياً', 'Grade assessments manually'],
@@ -132,7 +140,7 @@ class RolePermissionSeeder extends Seeder
         Role::SUPER_ADMIN => ['مدير النظام', 'Super Admin', 100, ['*']],
         Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage', '-roles.create']],
         Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, [
-            'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
+            'packages.manage', 'library.view', 'sharing.manage', 'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
             'announcements.manage', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
@@ -143,7 +151,7 @@ class RolePermissionSeeder extends Seeder
             'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
             'passing.manage', 'tasks.final_approve',
         ]],
-        Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global']],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'sharing.manage', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
@@ -154,11 +162,11 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global',
         ]],
-        Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
+        Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['packages.manage', 'library.view', 'programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
         Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review', 'search.global']],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, ['search.global']],
         Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, [
-            'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
+            'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage', 'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
             'groups.manage', 'groups.status', 'workshops.approve', 'gaps.view', 'needs.cycles',
@@ -253,6 +261,8 @@ class RolePermissionSeeder extends Seeder
         'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
         // Phase 07
         'passing.manage', 'pass_exceptions.grant', 'tasks.final_approve',
+        // Phase 10
+        'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage',
         // Phase 09
         'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review',
         // Phase 08

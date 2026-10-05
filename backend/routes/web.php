@@ -29,6 +29,9 @@ Route::get('/files/{bucket}/{path}', function (string $bucket, string $path) {
     return response()->file(Storage::disk('local')->path("{$bucket}/{$path}"), $headers);
 })->where('path', '.*')->middleware('signed')->name('files.local');
 
+// Content packages, from the app's own origin through a signed token in the path.
+Route::get('/content/{token}/{package}/{path?}', [\App\Http\Controllers\ContentProxyController::class, 'show'])->where('path', '.*')->name('content.proxy');
+
 Route::fallback(function (Request $request) use ($spa) {
     // API routes, non-GET requests and missing static files (e.g. an old /assets/*.js) stay 404.
     abort_if($request->is('api/*') || ! $request->isMethod('GET') || preg_match('/\.[a-z0-9]{1,5}$/i', $request->path()), 404);

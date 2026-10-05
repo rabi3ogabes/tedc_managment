@@ -70,6 +70,8 @@ class MyCourseController extends MeController
                 'min_watch_percent' => (int) ($settings['min_watch_percent'] ?? 90), 'min_view_percent' => (int) ($settings['min_view_percent'] ?? 80), 'downloadable' => (bool) ($settings['downloadable'] ?? false)],
             'progress' => ['status' => $p->status, 'percent' => (float) $p->percent, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'segments' => $p->segments ?? [], 'best_score' => $p->best_score, 'attempts' => $p->attempts],
             'quiz' => $quiz, 'survey' => $survey,
+            'package' => $lesson->package_id ? ($pkg = \App\Models\ContentPackage::find($lesson->package_id)) ? ['id' => $pkg->id, 'standard' => $pkg->standard, 'title' => $pkg->title, 'item_id' => $lesson->package_item_id, 'entry_points' => $pkg->entry_points] : null : null,
+            'lti_tool_id' => $lesson->lti_tool_id, 'external_course_id' => $lesson->external_course_id,
             'registration_id' => $registration->id,
         ]]);
     }

@@ -58,6 +58,10 @@ return [
             'certificates' => env('SUPABASE_BUCKET_CERTIFICATES', 'certificates'),
             'documents' => env('SUPABASE_BUCKET_DOCUMENTS', 'documents'),
             'public' => env('SUPABASE_BUCKET_PUBLIC', 'public-assets'),
+            // Evidence, exceptions and content packages live in the existing private "documents" bucket (no new bucket to create).
+            'evidence' => env('SUPABASE_BUCKET_EVIDENCE', 'documents'),
+            'exceptions' => env('SUPABASE_BUCKET_EXCEPTIONS', 'documents'),
+            'packages' => env('SUPABASE_BUCKET_PACKAGES', 'documents'),
         ],
         'signed_url_ttl' => 600,
     ],

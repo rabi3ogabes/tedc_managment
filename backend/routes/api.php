@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
+use App\Http\Controllers\Api\V1\Admin\PackageController;
 use App\Http\Controllers\Api\V1\Admin\PassingController;
 use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
@@ -72,7 +73,9 @@ use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
+use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
+use App\Http\Controllers\Api\V1\XapiController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
@@ -99,6 +102,7 @@ use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
+use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
@@ -126,6 +130,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
+    // The xAPI learning record store (its own Basic authentication).
+    Route::prefix('xapi')->group(function () {
+        Route::get('about', [XapiController::class, 'about']);
+        Route::match(['GET', 'POST', 'PUT'], 'statements', [XapiController::class, 'statements']);
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'activities/state', [XapiController::class, 'documents'])->defaults('kind', 'state');
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'activities/profile', [XapiController::class, 'documents'])->defaults('kind', 'profile');
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'agents/profile', [XapiController::class, 'documents'])->defaults('kind', 'agent-profile');
+        Route::post('cmi5/fetch/{cmi5Session}', [XapiController::class, 'cmi5Fetch']);
+    });
 
     // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
     Route::get('public/health', HealthController::class);
@@ -248,6 +261,13 @@ Route::prefix('v1')->group(function () {
             Route::get('excuses', [AbsenceController::class, 'myExcuses']);
             Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
             Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
+            Route::post('packages/{lesson}/scorm/start', [MyPackageController::class, 'scormStart'])->middleware('throttle:60,1');
+            Route::put('scorm/{attempt}/commit', [MyPackageController::class, 'scormCommit'])->middleware('throttle:240,1');
+            Route::post('scorm/{attempt}/finish', [MyPackageController::class, 'scormFinish']);
+            Route::post('packages/{lesson}/cmi5/launch', [MyPackageController::class, 'cmi5Launch'])->middleware('throttle:60,1');
+            Route::post('packages/{lesson}/launch', [MyPackageController::class, 'launch'])->middleware('throttle:60,1');
+            Route::post('packages/{lesson}/complete', [MyPackageController::class, 'complete']);
+            Route::post('packages/{lesson}/xapi', [MyPackageController::class, 'xapi'])->middleware('throttle:240,1');
             Route::get('paths', [MyCareerController::class, 'paths']);
             Route::get('paths/{path}', [MyCareerController::class, 'showPath']);
             Route::get('licences', [MyCareerController::class, 'licences']);
@@ -920,6 +940,23 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
             Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Content packages and the standards settings.
+            Route::middleware('permission:packages.manage')->group(function () {
+                Route::get('packages', [PackageController::class, 'index']);
+                Route::get('packages/{package}', [PackageController::class, 'show']);
+                Route::post('packages', [PackageController::class, 'store'])->middleware('throttle:20,1');
+                Route::post('packages/sign', [PackageController::class, 'sign']);
+                Route::post('packages/process', [PackageController::class, 'process'])->middleware('throttle:20,1');
+                Route::delete('packages/{package}', [PackageController::class, 'destroy']);
+                Route::put('course/lessons/{lesson}/package', [PackageController::class, 'attach']);
+            });
+            Route::middleware('permission:standards.manage')->group(function () {
+                Route::get('settings/standards', [StandardsController::class, 'show']);
+                Route::put('settings/standards', [StandardsController::class, 'update']);
+                Route::post('settings/standards/lrs-credentials', [StandardsController::class, 'addCredential']);
+                Route::delete('settings/standards/lrs-credentials/{key}', [StandardsController::class, 'removeCredential']);
+                Route::post('caliper/flush', [StandardsController::class, 'flushCaliper']);
+            });
             // Career paths, licences, professional development and knowledge transfer.
             Route::middleware('permission:paths.manage|licences.manage')->group(function () {
                 Route::get('career-paths', [CareerAdminController::class, 'index']);
