@@ -8,6 +8,7 @@ use App\Services\FileStorage;
 use App\Services\QatarSchools;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -50,7 +51,8 @@ class SchoolController extends Controller
             $rows = $national->fetchLive();
             $from = 'ministry';
         } catch (Throwable $e) {
-            report($e);
+            // Expected whenever the ministry's server is down or sends an incomplete certificate chain: the shipped list is used and the answer says so. Not an error to log.
+            Log::warning('School sync: ministry service unavailable, using the bundled list', ['reason' => mb_substr($e->getMessage(), 0, 200)]);
             $rows = $national->bundled();
             $from = 'bundled';
         }
