@@ -62,7 +62,7 @@ const tone: Record<string, string> = {
 
 const statusTone: Record<string, keyof typeof tone> = {
   approved: 'green', completed: 'green', issued: 'green', valid: 'green', present: 'green', eligible: 'green', fulfilled: 'green', registration_open: 'green',
-  pending: 'amber', submitted: 'amber', under_review: 'amber', waitlisted: 'blue', late: 'amber', changes_requested: 'amber', scheduled: 'blue', sent: 'blue',
+  pending: 'amber', pending_manager: 'amber', withdrawn: 'gray', submitted: 'amber', under_review: 'amber', waitlisted: 'blue', late: 'amber', changes_requested: 'amber', scheduled: 'blue', sent: 'blue',
   rejected: 'red', cancelled: 'red', blocked: 'red', revoked: 'red', absent: 'red', expired: 'gray', not_eligible: 'red',
   published: 'navy', in_progress: 'gold', planned: 'navy', live: 'gold', draft: 'gray', archived: 'gray',
   critical: 'red', high: 'amber', medium: 'blue', low: 'gray',

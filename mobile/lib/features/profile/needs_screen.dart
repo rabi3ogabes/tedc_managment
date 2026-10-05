@@ -30,7 +30,7 @@ class NeedsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.ivory,
-      appBar: AppBar(title: Text(s.t('needs.title'))),
+      appBar: AppBar(title: Text(s.t('myneeds.title'))),
       body: RefreshIndicator(
         onRefresh: () async {
           refresh(ref);

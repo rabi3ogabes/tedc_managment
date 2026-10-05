@@ -69,6 +69,14 @@ class RolePermissionSeeder extends Seeder
         'search.global' => ['general', 'البحث الشامل', 'Global search'],
         'groups.manage' => ['programs', 'إدارة المجموعات التدريبية', 'Manage training groups'],
         'groups.status' => ['programs', 'تغيير حالة المجموعات التدريبية', 'Change the status of training groups'],
+        'seats.manage' => ['registrations', 'تخصيص مقاعد المجموعات', 'Allocate group seats'],
+        'priority.manage' => ['registrations', 'إدارة قواعد أولوية القبول', 'Manage admission priority rules'],
+        'registrations.approve_manager' => ['registrations', 'موافقة المدير المباشر على التسجيل', 'Approve registrations as direct manager'],
+        'registrations.approve_center' => ['registrations', 'اعتماد التسجيل من مركز التدريب', 'Approve registrations as the centre'],
+        'withdrawals.decide' => ['registrations', 'البتّ في طلبات الانسحاب', 'Decide withdrawal requests'],
+        'withdrawals.policy' => ['registrations', 'إدارة سياسة الانسحاب', 'Manage the withdrawal policy'],
+        'external_forms.manage' => ['registrations', 'إدارة نماذج التسجيل الخارجي', 'Manage external registration forms'],
+        'external_requests.review' => ['registrations', 'مراجعة طلبات التسجيل الخارجي', 'Review external registration requests'],
         'competencies.manage' => ['needs', 'إدارة إطار الجدارات', 'Manage the competency framework'],
         'needs.cycles' => ['needs', 'إدارة دورة الاحتياجات والمقترحات', 'Manage the needs cycle and proposals'],
         'needs.propose' => ['needs', 'تقديم مقترحات البرامج التخصصية', 'Submit specialised program proposals'],
@@ -105,14 +113,15 @@ class RolePermissionSeeder extends Seeder
             'announcements.manage', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
             'plans.view', 'search.global', 'groups.manage', 'groups.status', 'workshops.approve', 'trainers.assign',
             'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import',
+            'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'search.global']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
-            'needs.propose', 'needs.request', 'needs.approve_individual',
+            'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
-        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'search.global']],
+        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global',
@@ -125,11 +134,12 @@ class RolePermissionSeeder extends Seeder
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
             'groups.manage', 'groups.status', 'workshops.approve', 'gaps.view', 'needs.cycles',
+            'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
             'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global',
-            'needs.propose', 'needs.request', 'needs.approve_individual',
+            'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
         Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, [
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view', 'impact.view', 'needs.view', 'ai.assistant',
@@ -205,5 +215,7 @@ class RolePermissionSeeder extends Seeder
         'groups.manage', 'groups.status', 'workshops.approve', 'trainers.respond',
         // Phase 03
         'competencies.manage', 'needs.cycles', 'needs.propose', 'needs.request', 'needs.approve_individual', 'performance.import', 'gaps.view',
+        // Phase 04
+        'seats.manage', 'priority.manage', 'registrations.approve_manager', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
     ];
 }

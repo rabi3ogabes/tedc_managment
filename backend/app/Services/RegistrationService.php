@@ -8,6 +8,7 @@ use App\Models\Nomination;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\RoleUser;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Models\WaitingList;
@@ -22,9 +23,11 @@ class RegistrationService
 {
     /** Allowed status transitions. */
     private const TRANSITIONS = [
-        Registration::STATUS_PENDING => [Registration::STATUS_APPROVED, Registration::STATUS_REJECTED, Registration::STATUS_CANCELLED, Registration::STATUS_WAITLISTED],
-        Registration::STATUS_WAITLISTED => [Registration::STATUS_APPROVED, Registration::STATUS_PENDING, Registration::STATUS_CANCELLED, Registration::STATUS_REJECTED],
-        Registration::STATUS_APPROVED => [Registration::STATUS_CANCELLED, Registration::STATUS_COMPLETED],
+        Registration::STATUS_PENDING_MANAGER => [Registration::STATUS_PENDING, Registration::STATUS_REJECTED, Registration::STATUS_CANCELLED, Registration::STATUS_WITHDRAWN],
+        Registration::STATUS_PENDING => [Registration::STATUS_APPROVED, Registration::STATUS_REJECTED, Registration::STATUS_CANCELLED, Registration::STATUS_WAITLISTED, Registration::STATUS_WITHDRAWN],
+        Registration::STATUS_WAITLISTED => [Registration::STATUS_APPROVED, Registration::STATUS_PENDING, Registration::STATUS_CANCELLED, Registration::STATUS_REJECTED, Registration::STATUS_WITHDRAWN],
+        Registration::STATUS_APPROVED => [Registration::STATUS_CANCELLED, Registration::STATUS_COMPLETED, Registration::STATUS_WITHDRAWN],
+        Registration::STATUS_WITHDRAWN => [],
         Registration::STATUS_REJECTED => [],
         Registration::STATUS_CANCELLED => [],
         Registration::STATUS_COMPLETED => [],
@@ -33,6 +36,9 @@ class RegistrationService
     public function __construct(
         private readonly EligibilityEngine $eligibility,
         private readonly NotificationService $notifications,
+        private readonly SeatAllocationService $seats,
+        private readonly RegistrationPriorityService $priority,
+        private readonly ConflictService $conflicts,
     ) {}
 
     /**
@@ -64,7 +70,31 @@ class RegistrationService
             throw new BusinessRuleException(__('messages.registration.not_eligible'), 'not_eligible', $result->jsonSerialize());
         }
 
-        return DB::transaction(function () use ($program, $employee, $source, $actor, $nomination, $override, $result, $multi, $group) {
+        $effective = $multi ? $group : ($group ?? $program->primaryGroup());
+        $snapshotExtras = [];
+
+        // The same or an equivalent program already completed: block, warn or allow, as the program is set up.
+        $done = $this->conflicts->completedEquivalent($employee, $program);
+        if ($done && ! $override) {
+            $policy = $program->repeat_policy ?? 'block';
+            if ($policy === 'block') {
+                throw new BusinessRuleException(__('messages.registration.already_completed', ['program' => $done->program->translate('title')]), 'already_completed');
+            }
+            if ($policy === 'warn') {
+                $snapshotExtras['repeat_warning'] = $done->program->translate('title');
+            }
+        }
+
+        // A clash with an approved program is always blocked; with the overlap setting off any seat-holding registration counts.
+        if (! $override) {
+            $statuses = ($effective?->allow_overlap_until_approved ?? true) ? [Registration::STATUS_APPROVED] : Registration::SEAT_HOLDING;
+            $clash = $this->conflicts->conflicts($employee, $program, $effective, $statuses);
+            if ($clash) {
+                throw new BusinessRuleException(__('messages.registration.time_conflict', ['program' => $clash[0]['program']]), 'time_conflict', ['conflicts' => $clash]);
+            }
+        }
+
+        return DB::transaction(function () use ($program, $employee, $source, $actor, $nomination, $override, $result, $multi, $group, $effective, $snapshotExtras) {
             // Serialize seat allocation per program.
             Program::whereKey($program->id)->lockForUpdate()->first();
 
@@ -74,20 +104,30 @@ class RegistrationService
             }
 
             $hasSeat = ($multi ? $group->seatsAvailable() : $program->seatsAvailable()) > 0;
-            $autoApprove = in_array($source, [Registration::SOURCE_CENTER, Registration::SOURCE_BULK], true);
+            $pool = $hasSeat && $effective ? $this->seats->claim($effective, $employee) : ($hasSeat ? ['open', null] : null);
+            $hasSeat = $pool !== null;
+            $autoApprove = in_array($source, [Registration::SOURCE_CENTER, Registration::SOURCE_BULK], true) || ($effective?->approval_mode === 'auto');
+            $manager = ! $autoApprove && $source === Registration::SOURCE_SELF && ($effective?->approval_mode ?? 'manager_then_center') === 'manager_then_center' ? $this->resolveManager($employee) : null;
 
             $status = match (true) {
                 ! $hasSeat => Registration::STATUS_WAITLISTED,
                 $autoApprove => Registration::STATUS_APPROVED,
+                $manager !== null => Registration::STATUS_PENDING_MANAGER,
                 default => Registration::STATUS_PENDING,
             };
+            $rank = $this->priority->score($employee, $program, $effective);
 
             $attributes = [
                 'training_group_id' => $multi ? $group->id : ($group?->id ?? $program->primaryGroup()?->id),
                 'source' => $source,
                 'status' => $status,
                 'nomination_id' => $nomination?->id,
-                'eligibility_snapshot' => $result->jsonSerialize() + ['override' => $override && ! $result->eligible, 'override_by' => $override ? $actor?->id : null],
+                'eligibility_snapshot' => $result->jsonSerialize() + ['override' => $override && ! $result->eligible, 'override_by' => $override ? $actor?->id : null] + $snapshotExtras,
+                'seat_entity_type' => $pool[0] ?? null,
+                'seat_entity_id' => $pool[1] ?? null,
+                'priority_score' => $rank['score'],
+                'priority_explanation' => $rank['explanation'],
+                'manager_id' => $manager?->id,
                 'approved_by' => $status === Registration::STATUS_APPROVED ? $actor?->id : null,
                 'approved_at' => $status === Registration::STATUS_APPROVED ? now() : null,
                 'attendance_percent' => 0,
@@ -132,12 +172,15 @@ class RegistrationService
         });
     }
 
-    public function transition(Registration $registration, string $to, ?User $actor = null, ?string $notes = null): Registration
+    public function transition(Registration $registration, string $to, ?User $actor = null, ?string $notes = null, ?string $overrideReason = null): Registration
     {
         $from = $registration->status;
 
         if (! in_array($to, self::TRANSITIONS[$from] ?? [], true)) {
             throw new BusinessRuleException(__('messages.registration.invalid_transition', ['from' => $from, 'to' => $to]), 'invalid_transition');
+        }
+        if ($to === Registration::STATUS_APPROVED) {
+            $this->assertCanApprove($registration, $overrideReason);
         }
 
         DB::transaction(function () use ($registration, $to, $actor, $notes, $from) {
@@ -146,14 +189,16 @@ class RegistrationService
                 'notes' => $notes ?? $registration->notes,
                 'approved_by' => $to === Registration::STATUS_APPROVED ? $actor?->id : $registration->approved_by,
                 'approved_at' => $to === Registration::STATUS_APPROVED ? now() : $registration->approved_at,
+                'center_decided_by' => in_array($to, [Registration::STATUS_APPROVED, Registration::STATUS_REJECTED], true) && $actor ? $actor->id : $registration->center_decided_by,
+                'center_decided_at' => in_array($to, [Registration::STATUS_APPROVED, Registration::STATUS_REJECTED], true) && $actor ? now() : $registration->center_decided_at,
                 'completed_at' => $to === Registration::STATUS_COMPLETED ? now() : $registration->completed_at,
             ], fn ($v) => $v !== null));
 
             if ($from === Registration::STATUS_WAITLISTED) {
-                WaitingList::where('registration_id', $registration->id)->update(['status' => $to === Registration::STATUS_CANCELLED ? 'expired' : 'promoted', 'promoted_at' => now()]);
+                WaitingList::where('registration_id', $registration->id)->update(['status' => in_array($to, [Registration::STATUS_CANCELLED, Registration::STATUS_WITHDRAWN], true) ? 'expired' : 'promoted', 'promoted_at' => now()]);
             }
 
-            if (in_array($from, Registration::SEAT_HOLDING, true) && in_array($to, [Registration::STATUS_CANCELLED, Registration::STATUS_REJECTED], true)) {
+            if (in_array($from, Registration::SEAT_HOLDING, true) && in_array($to, [Registration::STATUS_CANCELLED, Registration::STATUS_REJECTED, Registration::STATUS_WITHDRAWN], true)) {
                 $this->promoteFromWaitingList($registration->program, $registration->trainingGroup);
             }
         });
@@ -164,7 +209,8 @@ class RegistrationService
     }
 
     /**
-     * Moves the first waiting employee into a freed seat.
+     * Moves the best-ranked waiting employee into a freed seat: highest priority first, then who registered first.
+     * With seat allocations the person must also fit a pool they may use.
      */
     public function promoteFromWaitingList(Program $program, ?TrainingGroup $group = null): ?Registration
     {
@@ -173,18 +219,81 @@ class RegistrationService
         if (($perGroup ? $group->seatsAvailable() : $program->seatsAvailable()) <= 0) {
             return null;
         }
+        $effective = $group ?? $program->primaryGroup();
 
-        $entry = WaitingList::where('program_id', $program->id)->where('status', 'waiting')->when($perGroup, fn ($q) => $q->where('training_group_id', $group->id))->orderBy('position')->first();
-        if (! $entry) {
+        $entries = WaitingList::where('waiting_lists.program_id', $program->id)->where('waiting_lists.status', 'waiting')->when($perGroup, fn ($q) => $q->where('waiting_lists.training_group_id', $group->id))
+            ->join('registrations', 'registrations.id', '=', 'waiting_lists.registration_id')->orderByRaw('registrations.priority_score IS NULL')->orderByDesc('registrations.priority_score')->orderBy('waiting_lists.position')
+            ->select('waiting_lists.*')->get();
+        foreach ($entries as $entry) {
+            $registration = $entry->registration;
+            $pool = $effective ? $this->seats->claim($effective, $registration->employee) : ['open', null];
+            if ($pool === null) {
+                continue;
+            }
+            $entry->update(['status' => 'promoted', 'promoted_at' => now()]);
+            $registration->update(['status' => Registration::STATUS_PENDING, 'seat_entity_type' => $pool[0], 'seat_entity_id' => $pool[1]]);
+            $this->notifyStatus($registration);
+
+            return $registration;
+        }
+
+        return null;
+    }
+
+    /** Direct manager, else the academic deputy of the school; null when nobody can decide (the request goes straight to the centre). */
+    public function resolveManager(Employee $employee): ?User
+    {
+        $supervisor = $employee->supervisor?->user;
+        if ($supervisor && $supervisor->id !== $employee->user_id) {
+            return $supervisor;
+        }
+        if (! $employee->school_id) {
             return null;
         }
 
-        $entry->update(['status' => 'promoted', 'promoted_at' => now()]);
-        $registration = $entry->registration;
-        $registration->update(['status' => Registration::STATUS_PENDING]);
+        $deputyId = RoleUser::whereHas('role', fn ($r) => $r->where('slug', Role::ACADEMIC_DEPUTY))->where('scope_type', 'school')->where('scope_id', $employee->school_id)
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->where('user_id', '!=', $employee->user_id)->pluck('user_id')->first();
+
+        return $deputyId ? User::where('status', 'active')->find($deputyId) : null;
+    }
+
+    /** The manager's decision on the first stage: approve (→ the centre) or reject with a note. */
+    public function managerDecision(Registration $registration, User $by, string $decision, ?string $note): Registration
+    {
+        if ($registration->status !== Registration::STATUS_PENDING_MANAGER) {
+            throw new BusinessRuleException(__('messages.registration.invalid_transition', ['from' => $registration->status, 'to' => $decision]), 'invalid_transition');
+        }
+        if ($decision === 'rejected' && ! filled($note)) {
+            throw new BusinessRuleException(__('messages.assignment.reason_required'), 'reason_required');
+        }
+        DB::transaction(function () use ($registration, $by, $decision, $note) {
+            $registration->update(['status' => $decision === 'approved' ? Registration::STATUS_PENDING : Registration::STATUS_REJECTED, 'manager_id' => $by->id, 'manager_decided_at' => now(), 'manager_note' => $note]);
+            if ($decision === 'rejected') {
+                $this->promoteFromWaitingList($registration->program, $registration->trainingGroup);
+            }
+        });
+        $registration->refresh();
         $this->notifyStatus($registration);
 
         return $registration;
+    }
+
+    /** Centre approval waits for the window to close and refuses a second overlapping approval (staff may override with a reason). */
+    private function assertCanApprove(Registration $registration, ?string $overrideReason): void
+    {
+        $registration->loadMissing(['program', 'trainingGroup', 'employee']);
+        $group = $registration->trainingGroup;
+        $override = filled($overrideReason);
+        $closes = $group?->registration_closes_at ?? $registration->program->registration_closes_at;
+        if (! $override && ($group?->approve_after_window ?? true) && $closes && $closes->isFuture() && $registration->source === Registration::SOURCE_SELF) {
+            throw new BusinessRuleException(__('messages.registration.window_open', ['date' => $closes->toDateTimeString()]), 'window_open', ['closes_at' => $closes->toIso8601String()]);
+        }
+        if (! $override) {
+            $clash = $this->conflicts->conflicts($registration->employee, $registration->program, $group, [Registration::STATUS_APPROVED], $registration->id);
+            if ($clash) {
+                throw new BusinessRuleException(__('messages.registration.time_conflict', ['program' => $clash[0]['program']]), 'time_conflict', ['conflicts' => $clash]);
+            }
+        }
     }
 
     private function addToWaitingList(Registration $registration): void
@@ -203,7 +312,9 @@ class RegistrationService
         $program = $registration->program;
 
         $labels = [
+            Registration::STATUS_PENDING_MANAGER => ['ar' => 'بانتظار موافقة المدير المباشر', 'en' => 'awaiting your direct manager\'s approval'],
             Registration::STATUS_PENDING => ['ar' => 'قيد المراجعة', 'en' => 'under review'],
+            Registration::STATUS_WITHDRAWN => ['ar' => 'منسحب', 'en' => 'withdrawn'],
             Registration::STATUS_APPROVED => ['ar' => 'معتمد', 'en' => 'approved'],
             Registration::STATUS_REJECTED => ['ar' => 'مرفوض', 'en' => 'rejected'],
             Registration::STATUS_WAITLISTED => ['ar' => 'في قائمة الانتظار', 'en' => 'on the waiting list'],
@@ -223,6 +334,14 @@ class RegistrationService
             ],
             ['registration_id' => $registration->id, 'program_id' => $program->id],
         );
+
+        // The first stage: the direct manager is asked to decide.
+        if ($registration->status === Registration::STATUS_PENDING_MANAGER && $registration->manager_id) {
+            $name = $registration->employee->user?->displayName('ar') ?? '—';
+            $this->notifications->send($registration->manager_id, 'registration.pending_manager', ['ar' => 'طلب تسجيل بانتظار موافقتك', 'en' => 'A registration awaits your approval'],
+                ['ar' => "طلب {$name} التسجيل في «{$program->title_ar}». وافق أو ارفض ليصل الطلب إلى مركز التدريب.", 'en' => "{$name} asked to join \"{$program->title_en}\". Approve or reject so it can reach the training centre."],
+                ['registration_id' => $registration->id, 'program_id' => $program->id, 'route' => '/admin/approvals']);
+        }
 
         // A request that needs a decision is announced to the center's team (the people who approve registrations).
         if ($registration->status === Registration::STATUS_PENDING) {

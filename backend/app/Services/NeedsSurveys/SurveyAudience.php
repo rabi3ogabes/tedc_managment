@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\DB;
  */
 class SurveyAudience
 {
-    public const LIST_FILTERS = ['school_ids', 'regions', 'school_types', 'stages', 'job_title_ids', 'specializations', 'nationalities', 'genders', 'qualifications'];
+    public const LIST_FILTERS = ['school_ids', 'regions', 'school_types', 'stages', 'job_title_ids', 'specializations', 'nationalities', 'genders', 'qualifications', 'grade_levels', 'subjects', 'grades_taught'];
+
+    public const RANGE_FILTERS = ['experience_min', 'experience_max', 'age_min', 'age_max', 'experience_moe_min', 'experience_moe_max', 'experience_outside_min', 'experience_outside_max'];
 
     public const AGE_BANDS = ['<30' => [0, 29], '30-39' => [30, 39], '40-49' => [40, 49], '50+' => [50, 120]];
 
@@ -33,6 +35,9 @@ class SurveyAudience
         $rules[$prefix.'experience_max'] = ['nullable', 'numeric', 'min:0', 'max:60'];
         $rules[$prefix.'age_min'] = ['nullable', 'integer', 'min:16', 'max:80'];
         $rules[$prefix.'age_max'] = ['nullable', 'integer', 'min:16', 'max:80'];
+        foreach (['experience_moe_min', 'experience_moe_max', 'experience_outside_min', 'experience_outside_max'] as $k) {
+            $rules[$prefix.$k] = ['nullable', 'numeric', 'min:0', 'max:60'];
+        }
 
         return $rules;
     }
@@ -48,7 +53,7 @@ class SurveyAudience
                 $clean[$key] = $values;
             }
         }
-        foreach (['experience_min', 'experience_max', 'age_min', 'age_max'] as $key) {
+        foreach (self::RANGE_FILTERS as $key) {
             if (isset($audience[$key]) && $audience[$key] !== '' && is_numeric($audience[$key])) {
                 $clean[$key] = str_starts_with($key, 'age') ? (int) $audience[$key] : (float) $audience[$key];
             }
@@ -76,6 +81,13 @@ class SurveyAudience
             ->when($a['nationalities'] ?? null, fn ($q, $v) => $q->whereIn('employees.nationality', $v))
             ->when($a['genders'] ?? null, fn ($q, $v) => $q->whereIn('employees.gender', $v))
             ->when($a['qualifications'] ?? null, fn ($q, $v) => $q->whereIn('employees.qualification', $v))
+            ->when($a['grade_levels'] ?? null, fn ($q, $v) => $q->whereIn('employees.grade_level', $v))
+            ->when($a['subjects'] ?? null, fn ($q, $v) => $q->where(fn ($w) => collect($v)->each(fn ($x) => $w->orWhereJsonContains('employees.subjects', $x))))
+            ->when($a['grades_taught'] ?? null, fn ($q, $v) => $q->where(fn ($w) => collect($v)->each(fn ($x) => $w->orWhereJsonContains('employees.grades_taught', $x))))
+            ->when(isset($a['experience_moe_min']), fn ($q) => $q->where('employees.experience_moe_years', '>=', $a['experience_moe_min']))
+            ->when(isset($a['experience_moe_max']), fn ($q) => $q->where('employees.experience_moe_years', '<=', $a['experience_moe_max']))
+            ->when(isset($a['experience_outside_min']), fn ($q) => $q->where('employees.experience_outside_years', '>=', $a['experience_outside_min']))
+            ->when(isset($a['experience_outside_max']), fn ($q) => $q->where('employees.experience_outside_years', '<=', $a['experience_outside_max']))
             ->when(isset($a['experience_min']), fn ($q) => $q->where('employees.experience_years', '>=', $a['experience_min']))
             ->when(isset($a['experience_max']), fn ($q) => $q->where('employees.experience_years', '<=', $a['experience_max']))
             // Age N means born on or before today-N years; at most N means born after today-(N+1) years.

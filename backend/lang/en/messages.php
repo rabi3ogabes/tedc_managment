@@ -2,6 +2,9 @@
 
 return [
     'registration' => [
+        'already_completed' => 'You already completed this program (or an equivalent one): :program.',
+        'time_conflict' => 'This overlaps in time with another program you are in: :program.',
+        'window_open' => 'The registration window is still open until :date. Approval starts after it closes.',
         'mode_not_allowed' => 'This registration method is not available for this program.',
         'closed' => 'Registration for this program is currently closed.',
         'duplicate' => 'The employee is already registered in this program.',
@@ -56,6 +59,9 @@ return [
     'plans' => ['exists' => 'A plan for :year already exists. Open it, or create a new version.', 'reason_required' => 'After approval every change needs a reason.', 'empty' => 'Add at least one item before submitting.', 'locked' => 'The plan cannot be edited in its current state.', 'invalid_state' => 'This step is not available while the plan is “:status”.'],
     'workshops' => ['school_required' => 'Your account is not linked to a school, so a workshop cannot be submitted.', 'not_pending' => 'This workshop has already been decided.', 'not_approved' => 'The centre has not approved this workshop yet.'],
     'needs' => ['cycle_closed' => 'The needs cycle is not open. Submissions are accepted only inside the cycle window.', 'not_owner' => 'Only the person who submitted this can change it.', 'not_your_staff' => 'You can only request programs for your own staff.', 'merge_target' => 'Choose the existing program to merge into.', 'instrument_not_approved' => 'This survey has not been approved by the head of planning yet.'],
+    'seats' => ['over_capacity' => 'The allocated seats (:total) exceed the group capacity (:capacity).'],
+    'withdrawal' => ['not_possible' => 'This registration cannot be withdrawn in its current state.', 'after_start' => 'Withdrawal is not allowed after the program has started.', 'reason_required' => 'Choose a reason for withdrawing.', 'attachment_required' => 'This reason needs a supporting document.', 'already_requested' => 'A withdrawal request is already waiting for a decision.', 'decided' => 'This request was already decided.'],
+    'external' => ['closed' => 'This form is not open for submissions.', 'code_invalid' => 'The verification code is wrong or expired. Request a new one.', 'account_exists' => 'An account with this email already exists. Sign in instead.', 'duplicate' => 'A request with these details is already being reviewed.', 'decided' => 'This request was already decided.', 'domain' => 'Use an email address from: :domains.', 'activation_invalid' => 'The activation link is invalid or expired.'],
     'structure' => ['one_level' => 'Only one level of sub-programs is allowed: a sub-program cannot have its own sub-programs.'],
     'grants' => ['attendance_denied' => 'You do not have the right to record attendance for this program. Ask the head of training to grant it.'],
     'roles' => [

@@ -86,36 +86,36 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 04 — Enrollment, Withdrawal & External Users  (15)
 
-- [ ] **EXT-01** ★ — Public e-form for non-Ministry users, shareable by link  
-  _Now:_ 🔴 Missing — Accounts are created by admins only.
-- [ ] **EXT-02** ★ — Approval workflow: notify admin, review, approve / reject with reason, email result  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EXT-03** — Configurable form fields, target categories and extra conditions  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **ENR-01** ★ — Beneficiary entities per program and seat allocation per entity  
-  _Now:_ 🔴 Missing — Only a global program capacity.
-- [ ] **ENR-02** ★ — Configurable registration-priority rules  
-  _Now:_ 🔴 Missing — First-come order only.
-- [ ] **ENR-04** — Block repeated or equivalent courses; configurable equivalents  
-  _Now:_ 🟡 Partial — “Completed program” rule exists; no equivalence mapping.
-- [ ] **ENR-06** ★ — Prevent time-conflicting registrations (switchable per course)  
-  _Now:_ 🔴 Missing — Clash-aware slot planning only; registration is not blocked.
-- [ ] **ENR-08** — Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal  
-  _Now:_ 🔴 Missing — Fields are not in the employee model.
-- [ ] **REG-02** — Two-stage approval: direct manager (within entity seats) → training centre  
-  _Now:_ 🟡 Partial — Single approval stage only.
-- [ ] **REG-06** — Acceptance tools: priority and prior-training analysis  
-  _Now:_ 🟡 Partial — Candidate list with eligibility; no prior-benefit analytics.
-- [ ] **REG-07** — No approval before the registration period closes  
-  _Now:_ 🔴 Missing — Not enforced.
-- [ ] **WDR-01** ★ — After manager approval, withdrawal needs the manager’s approval  
-  _Now:_ 🔴 Missing — Trainee cancels directly.
-- [ ] **WDR-02** ★ — After centre acceptance: manager then supervisor approval + reason form with attachments  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **WDR-03** — Record timing: during window / before start / after start  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **WDR-05** ★ — Withdrawal rules configurable without code  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **EXT-01** ★ — Public e-form for non-Ministry users, shareable by link  
+  _Now:_ ✅ Available — Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link.
+- [x] **EXT-02** ★ — Approval workflow: notify admin, review, approve / reject with reason, email result  
+  _Now:_ ✅ Available — Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked.
+- [x] **EXT-03** — Configurable form fields, target categories and extra conditions  
+  _Now:_ ✅ Available — Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record.
+- [x] **ENR-01** ★ — Beneficiary entities per program and seat allocation per entity  
+  _Now:_ ✅ Available — Seats per group split across schools, school groups, departments and job groups with an open pool (`group_seat_allocations`, `SeatAllocationService`); the total never exceeds capacity, full entities fall back to the open pool then the waiting list, and unused seats are released hourly (`tedc:seats-release`). Program page → Admission tab.
+- [x] **ENR-02** ★ — Configurable registration-priority rules  
+  _Now:_ ✅ Available — Configurable priority rules (`registration_priority_rules`: plan-targeted, approved need, time without training, appraisal, entity priority, job titles, registration date) rank applicants and promote the waiting list, with an explanation per person and a live preview in Admission rules.
+- [x] **ENR-04** — Block repeated or equivalent courses; configurable equivalents  
+  _Now:_ ✅ Available — Equivalent programs (one- or two-way) and a per-program repeat policy (block / warn / allow); staff can override with a reason.
+- [x] **ENR-06** ★ — Prevent time-conflicting registrations (switchable per course)  
+  _Now:_ ✅ Available — Time clashes are blocked at registration against approved programs and at approval of a second overlapping one; the group setting `allow_overlap_until_approved` controls registering in two overlapping groups before either is approved.
+- [x] **ENR-08** — Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal  
+  _Now:_ ✅ Available — Rule editor and audience builder gained Ministry / outside experience, years in the current title, job grade, subjects, grades taught, appraisal min/avg over 3 years and an equivalent-completed field; the licence criterion is hooked for Phase 09.
+- [x] **REG-02** — Two-stage approval: direct manager (within entity seats) → training centre  
+  _Now:_ ✅ Available — Self-registration goes to the direct manager (supervisor, else the school's academic deputy) and then the training centre; manager registrations skip the first stage; admin imports are approved; the group `approval_mode` can be center_only or auto; the approval path is shown to the trainee on web and in the app.
+- [x] **REG-06** — Acceptance tools: priority and prior-training analysis  
+  _Now:_ ✅ Available — Candidate list per group with priority score and explanation, completed programs in 12 months, hours this year vs the annual minimum, same-category completions and attendance; bulk acceptance stops at the seats.
+- [x] **REG-07** — No approval before the registration period closes  
+  _Now:_ ✅ Available — Centre approval of self-registrations is blocked until the registration window closes (`approve_after_window`), with a clear message and an audited override reason.
+- [x] **WDR-01** ★ — After manager approval, withdrawal needs the manager’s approval  
+  _Now:_ ✅ Available — A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted).
+- [x] **WDR-02** ★ — After centre acceptance: manager then supervisor approval + reason form with attachments  
+  _Now:_ ✅ Available — After the manager approved, withdrawing is a request the direct manager decides.
+- [x] **WDR-03** — Record timing: during window / before start / after start  
+  _Now:_ ✅ Available — For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes.
+- [x] **WDR-05** ★ — Withdrawal rules configurable without code  
+  _Now:_ ✅ Available — Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged.
 
 ### Phase 05 — Attendance, Rooms & Logistics  (10)
 
@@ -576,9 +576,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| EXT-01 ★ | Public e-form for non-Ministry users, shareable by link | 🔴 Missing | Accounts are created by admins only. | 4 |
-| EXT-02 ★ | Approval workflow: notify admin, review, approve / reject with reason, email result | 🔴 Missing | Not available. | 4 |
-| EXT-03 | Configurable form fields, target categories and extra conditions | 🔴 Missing | Not available. | 4 |
+| EXT-01 ★ | Public e-form for non-Ministry users, shareable by link | ✅ Available | Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link. | — |
+| EXT-02 ★ | Approval workflow: notify admin, review, approve / reject with reason, email result | ✅ Available | Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked. | — |
+| EXT-03 | Configurable form fields, target categories and extra conditions | ✅ Available | Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record. | — |
 
 ### NDS · Needs Assessment & Annual Plan — حصر الاحتياجات وبناء الخطة التدريبية السنوية
 
@@ -604,26 +604,26 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| ENR-01 ★ | Beneficiary entities per program and seat allocation per entity | 🔴 Missing | Only a global program capacity. | 4 |
-| ENR-02 ★ | Configurable registration-priority rules | 🔴 Missing | First-come order only. | 4 |
+| ENR-01 ★ | Beneficiary entities per program and seat allocation per entity | ✅ Available | Seats per group split across schools, school groups, departments and job groups with an open pool (`group_seat_allocations`, `SeatAllocationService`); the total never exceeds capacity, full entities fall back to the open pool then the waiting list, and unused seats are released hourly (`tedc:seats-release`). Program page → Admission tab. | — |
+| ENR-02 ★ | Configurable registration-priority rules | ✅ Available | Configurable priority rules (`registration_priority_rules`: plan-targeted, approved need, time without training, appraisal, entity priority, job titles, registration date) rank applicants and promote the waiting list, with an explanation per person and a live preview in Admission rules. | — |
 | ENR-03 ★ | Waiting list with automatic promotion | ✅ Available | FIFO waiting list, auto-promotion when a seat frees up. | — |
-| ENR-04 | Block repeated or equivalent courses; configurable equivalents | 🟡 Partial | “Completed program” rule exists; no equivalence mapping. | 4 |
+| ENR-04 | Block repeated or equivalent courses; configurable equivalents | ✅ Available | Equivalent programs (one- or two-way) and a per-program repeat policy (block / warn / allow); staff can override with a reason. | — |
 | ENR-05 | Prerequisites per course, editable by admin | ✅ Available | Eligibility rules completed / not-completed. | — |
-| ENR-06 ★ | Prevent time-conflicting registrations (switchable per course) | 🔴 Missing | Clash-aware slot planning only; registration is not blocked. | 4 |
+| ENR-06 ★ | Prevent time-conflicting registrations (switchable per course) | ✅ Available | Time clashes are blocked at registration against approved programs and at approval of a second overlapping one; the group setting `allow_overlap_until_approved` controls registering in two overlapping groups before either is approved. | — |
 | ENR-07 ★ | Target criteria: gender, entity, school, job title, job group, experience, nationality, stage, specialisation | ✅ Available | Smart Eligibility Engine with per-rule explanations. | — |
-| ENR-08 | Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal | 🔴 Missing | Fields are not in the employee model. | 4 |
+| ENR-08 | Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal | ✅ Available | Rule editor and audience builder gained Ministry / outside experience, years in the current title, job grade, subjects, grades taught, appraisal min/avg over 3 years and an equivalent-completed field; the licence criterion is hooked for Phase 09. | — |
 
 ### REG · Registration Mechanisms — آليات التسجيل في البرامج التدريبية
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | REG-01 ★ | Employee self-registration within the registration window | ✅ Available | Window enforced, eligibility explained. | — |
-| REG-02 | Two-stage approval: direct manager (within entity seats) → training centre | 🟡 Partial | Single approval stage only. | 4 |
+| REG-02 | Two-stage approval: direct manager (within entity seats) → training centre | ✅ Available | Self-registration goes to the direct manager (supervisor, else the school's academic deputy) and then the training centre; manager registrations skip the first stage; admin imports are approved; the group `approval_mode` can be center_only or auto; the approval path is shown to the trainee on web and in the app. | — |
 | REG-03 ★ | Registration by direct manager, then centre approval | ✅ Available | School nomination → pending → centre approval. | — |
 | REG-04 ★ | Registration by system admin, auto-approved, status editable later | ✅ Available | Centre nomination with audited override. | — |
 | REG-05 | Bulk registration by Excel import | ✅ Available | Excel / CSV import through the same rules. | — |
-| REG-06 | Acceptance tools: priority and prior-training analysis | 🟡 Partial | Candidate list with eligibility; no prior-benefit analytics. | 4 |
-| REG-07 | No approval before the registration period closes | 🔴 Missing | Not enforced. | 4 |
+| REG-06 | Acceptance tools: priority and prior-training analysis | ✅ Available | Candidate list per group with priority score and explanation, completed programs in 12 months, hours this year vs the annual minimum, same-category completions and attendance; bulk acceptance stops at the seats. | — |
+| REG-07 | No approval before the registration period closes | ✅ Available | Centre approval of self-registrations is blocked until the registration window closes (`approve_after_window`), with a clear message and an audited override reason. | — |
 | REG-08 | Approval / cancellation notices with program details and pass conditions | ✅ Available | Event templates per status. | — |
 | REG-09 | Configurable automatic notification rules (register, cancel, missing tasks, completion) | ✅ Available | Template per event with channel toggles. | — |
 
@@ -690,11 +690,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| WDR-01 ★ | After manager approval, withdrawal needs the manager’s approval | 🔴 Missing | Trainee cancels directly. | 4 |
-| WDR-02 ★ | After centre acceptance: manager then supervisor approval + reason form with attachments | 🔴 Missing | Not available. | 4 |
-| WDR-03 | Record timing: during window / before start / after start | 🔴 Missing | Not available. | 4 |
+| WDR-01 ★ | After manager approval, withdrawal needs the manager’s approval | ✅ Available | A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted). | — |
+| WDR-02 ★ | After centre acceptance: manager then supervisor approval + reason form with attachments | ✅ Available | After the manager approved, withdrawing is a request the direct manager decides. | — |
+| WDR-03 | Record timing: during window / before start / after start | ✅ Available | For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes. | — |
 | WDR-04 | Free withdrawal while not yet approved | ✅ Available | Trainee can cancel. | — |
-| WDR-05 ★ | Withdrawal rules configurable without code | 🔴 Missing | Not available. | 4 |
+| WDR-05 ★ | Withdrawal rules configurable without code | ✅ Available | Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged. | — |
 
 ### SRV · Surveys & Questionnaires — إدارة استطلاعات الرأي والاستبيانات
 

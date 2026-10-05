@@ -1,4 +1,4 @@
-import { CalendarPlus, Download, FileText, PlayCircle, Star } from 'lucide-react'
+import { CalendarPlus, Check, Download, FileText, PlayCircle, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { Button, Card, Empty, Field, Modal, PageHeader, Progress, Spinner, Statu
 import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { toast } from '@/lib/toast'
 import type { Registration } from '@/lib/types'
 
 type Material = { id: string; title: string; type: string; url?: string; has_file: boolean }
@@ -16,11 +17,7 @@ export default function MyTraining() {
   const [evaluating, setEvaluating] = useState<Registration | null>(null)
   const [materialsFor, setMaterialsFor] = useState<Registration | null>(null)
 
-  const cancel = async (r: Registration) => {
-    if (!window.confirm(t('portal.cancelRegistration') + '?')) return
-    await api.post(`/me/registrations/${r.id}/cancel`)
-    refetch()
-  }
+  const [withdrawing, setWithdrawing] = useState<Registration | null>(null)
 
   return (
     <>
@@ -36,6 +33,7 @@ export default function MyTraining() {
                 </div>
                 <StatusBadge status={r.status} />
               </div>
+              {['pending_manager', 'pending'].includes(r.status) && <ApprovalPath status={r.status} />}
               <div className="mt-4 grid grid-cols-3 gap-3 text-center text-xs">
                 <div><div className="mb-1 text-slate-500">{t('admin.registrations.attendance')}</div><Progress value={r.attendance_percent} tone={r.attendance_percent >= (r.program?.min_attendance_percent ?? 80) ? 'green' : 'gold'} /><div className="mt-1 font-bold">{fmt.percent(r.attendance_percent)}</div></div>
                 <div><div className="mb-1 text-slate-500">{t('admin.programs.tasks')}</div><StatusBadge status={r.tasks_completed ? 'approved' : 'pending'} /></div>
@@ -46,12 +44,13 @@ export default function MyTraining() {
                 {['approved', 'completed'].includes(r.status) && <Button size="sm" variant="outline" icon={<FileText className="size-4" />} onClick={() => setMaterialsFor(r)}>{t('admin.programs.materials')}</Button>}
                 {['approved', 'completed'].includes(r.status) && !r.evaluation_completed && <Button size="sm" variant="gold" icon={<Star className="size-4" />} onClick={() => setEvaluating(r)}>{t('portal.evaluate')}</Button>}
                 {r.certificate && <Button size="sm" variant="primary" icon={<Download className="size-4" />} onClick={() => downloadFile(`/certificates/${r.certificate!.id}/download`, 'certificate.pdf', true)}>PDF</Button>}
-                {['pending', 'approved', 'waitlisted'].includes(r.status) && <Button size="sm" variant="ghost" onClick={() => cancel(r)}>{t('portal.cancelRegistration')}</Button>}
+                {['pending_manager', 'pending', 'approved', 'waitlisted'].includes(r.status) && <Button size="sm" variant="ghost" onClick={() => setWithdrawing(r)}>{t('admission.withdraw.button')}</Button>}
               </div>
             </Card>
           ))}
         </div>
       )}
+      {withdrawing && <WithdrawModal registration={withdrawing} onClose={(changed) => { setWithdrawing(null); if (changed) refetch() }} />}
       {evaluating && <EvaluationModal registration={evaluating} onClose={() => { setEvaluating(null); refetch() }} />}
       {materialsFor && <MaterialsModal registration={materialsFor} onClose={() => setMaterialsFor(null)} />}
     </>
@@ -112,6 +111,64 @@ function MaterialsModal({ registration, onClose }: { registration: Registration;
           <li key={m.id}><button onClick={() => open(m)} className="flex w-full items-center gap-3 rounded-xl bg-ivory p-3 text-start text-sm font-semibold text-navy-800 hover:bg-gold-100"><FileText className="size-5 text-gold-600" />{m.title}<span className="ms-auto text-xs text-slate-400">{m.type}</span></button></li>
         ))}</ul>
       )}
+    </Modal>
+  )
+}
+
+/** Where the registration is on its way: direct manager, then the training centre. */
+function ApprovalPath({ status }: { status: string }) {
+  const { t } = useTranslation()
+  const steps = [{ id: 'manager', label: t('admission.path.manager'), done: status === 'pending' }, { id: 'center', label: t('admission.path.center'), done: false }]
+  return (
+    <ol className="mt-3 flex items-center gap-2 text-xs" aria-label={t('admission.path.title')}>
+      {steps.map((s, i) => (
+        <li key={s.id} className="flex items-center gap-2">
+          <span className={s.done ? 'grid size-5 place-items-center rounded-full bg-success text-white' : (i === (status === 'pending' ? 1 : 0) ? 'grid size-5 place-items-center rounded-full bg-gold-500 font-bold text-navy-950' : 'grid size-5 place-items-center rounded-full bg-navy-100 text-slate-500')}>{s.done ? <Check className="size-3" /> : i + 1}</span>
+          <span className={i === (status === 'pending' ? 1 : 0) ? 'font-bold text-navy-900' : 'text-slate-500'}>{s.label}</span>
+          {i < steps.length - 1 && <span className="h-px w-6 bg-navy-200" aria-hidden />}
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+type Reason = { code: string; label_ar: string; label_en: string; requires_attachment: boolean }
+
+/** Withdrawing: free before the manager approved, otherwise a request with a reason (and a document when the reason needs one). */
+function WithdrawModal({ registration, onClose }: { registration: Registration; onClose: (changed: boolean) => void }) {
+  const { t, i18n } = useTranslation()
+  const ar = i18n.language === 'ar'
+  const reasons = useGet<{ data: Reason[] }>('/me/withdrawal-reasons', undefined, { staleTime: 60_000 })
+  const free = ['pending_manager', 'waitlisted'].includes(registration.status)
+  const [code, setCode] = useState('')
+  const [text, setText] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [busy, setBusy] = useState(false)
+  const reason = reasons.data?.data.find((r) => r.code === code)
+  const send = async () => {
+    setBusy(true)
+    try {
+      const body = new FormData()
+      if (code) body.append('reason_code', code)
+      if (text) body.append('reason_text', text)
+      if (file) body.append('attachments[]', file)
+      const { data } = await api.post(`/me/registrations/${registration.id}/withdraw`, body)
+      toast(data.data.mode === 'direct' ? t('admission.withdraw.done') : t('admission.withdraw.requested')); onClose(true)
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
+  return (
+    <Modal open onClose={() => onClose(false)} title={`${t('admission.withdraw.title')} — ${registration.program?.title}`}>
+      <div className="space-y-4">
+        <p className="rounded-xl bg-ivory p-3 text-sm text-slate-600">{free ? t('admission.withdraw.free') : t('admission.withdraw.needs', { supervisor: registration.status === 'approved' ? t('admission.withdraw.supervisor') : '' })}</p>
+        {!free && (
+          <>
+            <Field label={t('admission.withdraw.reason')}><select className="input" value={code} onChange={(e) => setCode(e.target.value)}><option value="" />{reasons.data?.data.map((r) => <option key={r.code} value={r.code}>{ar ? r.label_ar : r.label_en}</option>)}</select></Field>
+            <Field label={t('admission.withdraw.details')}><textarea className="input min-h-20" value={text} onChange={(e) => setText(e.target.value)} /></Field>
+            <Field label={t('admission.withdraw.attach')} hint={reason?.requires_attachment ? t('admission.withdraw.attachRequired') : undefined}><input type="file" accept=".pdf,.jpg,.jpeg,.png" className="input" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></Field>
+          </>
+        )}
+        <Button variant="gold" loading={busy} disabled={!free && (!code || (!!reason?.requires_attachment && !file))} onClick={() => void send()}>{free ? t('admission.withdraw.button') : t('admission.withdraw.send')}</Button>
+      </div>
     </Modal>
   )
 }

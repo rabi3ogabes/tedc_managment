@@ -95,9 +95,10 @@ class RegistrationController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in([Registration::STATUS_APPROVED, Registration::STATUS_REJECTED, Registration::STATUS_CANCELLED, Registration::STATUS_WAITLISTED, Registration::STATUS_COMPLETED])],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'override_reason' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $this->registrations->transition($registration, $data['status'], $this->user(), $data['notes'] ?? null);
+        $this->registrations->transition($registration, $data['status'], $this->user(), $data['notes'] ?? null, $data['override_reason'] ?? null);
 
         return $this->show($registration->refresh());
     }

@@ -33,6 +33,8 @@ class EmployeeResource extends JsonResource
             'age' => $this->age(),
             'hire_date' => $this->hire_date?->toDateString(),
             'experience_years' => $this->experience_years,
+            'experience_moe_years' => $this->experience_moe_years, 'experience_outside_years' => $this->experience_outside_years, 'current_title_since' => $this->current_title_since?->toDateString(),
+            'grade_level' => $this->grade_level, 'subjects' => $this->subjects ?? [], 'grades_taught' => $this->grades_taught ?? [],
             'education_stage' => $this->education_stage,
             'qualification' => $this->qualification,
             'specialization' => $this->specialization,

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'birth_date', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status'])]
+#[Fillable(['user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'birth_date', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status', 'experience_moe_years', 'experience_outside_years', 'current_title_since', 'grade_level', 'subjects', 'grades_taught'])]
 #[Hidden(['national_id'])]
 class Employee extends Model
 {
@@ -22,7 +22,7 @@ class Employee extends Model
     {
         return [
             'national_id' => 'encrypted',
-            'hire_date' => 'date',
+            'hire_date' => 'date', 'current_title_since' => 'date', 'subjects' => 'array', 'grades_taught' => 'array',
             'birth_date' => 'date',
             'experience_years' => 'float',
         ];

@@ -58,6 +58,9 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(10)->by($request->ip()),
             Limit::perMinute(5)->by(strtolower((string) $request->input('email')).'|'.$request->ip()),
         ]);
+        // E-mail codes: few per address and per IP, so the form cannot be used to flood someone's inbox.
+        RateLimiter::for('external-code', fn (Request $request) => [Limit::perMinute(6)->by('code-ip:'.$request->ip()), Limit::perHour(5)->by('code-mail:'.strtolower((string) $request->input('email')))]);
+        RateLimiter::for('external-submit', fn (Request $request) => Limit::perMinute(10)->by('submit:'.$request->ip()));
         RateLimiter::for('verify', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
         RateLimiter::for('contact', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
         RateLimiter::for('scan', fn (Request $request) => Limit::perMinute(20)->by($key($request)));

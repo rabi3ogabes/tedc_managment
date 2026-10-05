@@ -14,12 +14,19 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'program_id', 'training_group_id', 'employee_id', 'nomination_id', 'source', 'status', 'eligibility_snapshot', 'approved_by', 'approved_at',
     'completed_at', 'attendance_percent', 'tasks_completed', 'evaluation_completed', 'certificate_status', 'impact_score', 'notes', 'course_percent', 'course_completed',
+    'manager_id', 'manager_decided_at', 'manager_note', 'center_decided_by', 'center_decided_at', 'seat_entity_type', 'seat_entity_id', 'priority_score', 'priority_explanation',
 ])]
 class Registration extends Model
 {
     use Auditable, HasFactory, HasUuids;
 
+    /** Waiting for the direct manager (first stage of the two-stage approval). */
+    public const STATUS_PENDING_MANAGER = 'pending_manager';
+
+    /** Waiting for the training centre (second stage). The value stays `pending` so every existing screen keeps working. */
     public const STATUS_PENDING = 'pending';
+
+    public const STATUS_WITHDRAWN = 'withdrawn';
 
     public const STATUS_APPROVED = 'approved';
 
@@ -32,7 +39,7 @@ class Registration extends Model
     public const STATUS_COMPLETED = 'completed';
 
     /** Registrations that occupy a seat in the program. */
-    public const SEAT_HOLDING = [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_COMPLETED];
+    public const SEAT_HOLDING = [self::STATUS_PENDING_MANAGER, self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_COMPLETED];
 
     public const SOURCE_SELF = 'self';
 
@@ -46,7 +53,7 @@ class Registration extends Model
     {
         return [
             'eligibility_snapshot' => 'array',
-            'approved_at' => 'datetime',
+            'approved_at' => 'datetime', 'manager_decided_at' => 'datetime', 'center_decided_at' => 'datetime', 'priority_explanation' => 'array', 'priority_score' => 'float',
             'completed_at' => 'datetime',
             'attendance_percent' => 'float',
             'impact_score' => 'float',

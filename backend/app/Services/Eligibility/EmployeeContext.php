@@ -3,6 +3,9 @@
 namespace App\Services\Eligibility;
 
 use App\Models\Employee;
+use App\Models\PerformanceAppraisal;
+use App\Models\Program;
+use App\Models\ProgramEquivalence;
 use App\Models\Registration;
 
 /**
@@ -31,6 +34,19 @@ final class EmployeeContext
         public readonly ?string $nationality = null,
         public readonly ?string $schoolId = null,
         public readonly ?int $age = null,
+        public readonly ?float $experienceMoe = null,
+        public readonly ?float $experienceOutside = null,
+        public readonly ?float $experienceCurrentTitle = null,
+        public readonly ?string $gradeLevel = null,
+        /** @var string[] */
+        public readonly array $subjects = [],
+        /** @var string[] */
+        public readonly array $gradesTaught = [],
+        public readonly ?float $appraisalMin = null,
+        public readonly ?float $appraisalAvg = null,
+        /** @var string[] program codes completed, plus the codes of their equivalents */
+        public readonly array $equivalentCompleted = [],
+        public readonly ?bool $hasLicence = null,
     ) {}
 
     public static function fromEmployee(Employee $employee): self
@@ -42,6 +58,15 @@ final class EmployeeContext
             ->join('programs', 'programs.id', '=', 'registrations.program_id')
             ->pluck('programs.code')
             ->all();
+
+        $ratings = PerformanceAppraisal::where('employee_id', $employee->id)->where('year', '>=', now()->year - 3)->pluck('rating_code')->map(fn ($c) => ['weak' => 1, 'acceptable' => 2, 'good' => 3, 'very_good' => 4, 'excellent' => 5][$c] ?? null)->filter();
+        $equivalent = $completed;
+        if ($completed) {
+            $ids = Program::whereIn('code', $completed)->pluck('id')->all();
+            $eq = ProgramEquivalence::whereIn('program_id', $ids)->orWhere(fn ($q) => $q->whereIn('equivalent_program_id', $ids)->where('bidirectional', true))->get();
+            $other = $eq->flatMap(fn ($e) => [$e->program_id, $e->equivalent_program_id])->unique()->all();
+            $equivalent = array_values(array_unique(array_merge($completed, Program::whereIn('id', $other)->pluck('code')->all())));
+        }
 
         return new self(
             jobTitle: $employee->jobTitle?->code,
@@ -62,6 +87,16 @@ final class EmployeeContext
             nationality: $employee->nationality,
             schoolId: $employee->school_id,
             age: $employee->age(),
+            experienceMoe: $employee->experience_moe_years === null ? null : (float) $employee->experience_moe_years,
+            experienceOutside: $employee->experience_outside_years === null ? null : (float) $employee->experience_outside_years,
+            experienceCurrentTitle: $employee->current_title_since ? round($employee->current_title_since->diffInDays(today()) / 365.25, 1) : null,
+            gradeLevel: $employee->grade_level,
+            subjects: array_map('mb_strtolower', $employee->subjects ?? []),
+            gradesTaught: array_map('strval', $employee->grades_taught ?? []),
+            appraisalMin: $ratings->isEmpty() ? null : (float) $ratings->min(),
+            appraisalAvg: $ratings->isEmpty() ? null : round((float) $ratings->avg(), 2),
+            equivalentCompleted: $equivalent,
+            hasLicence: null, // filled from the licence records in Phase 09
         );
     }
 
@@ -84,6 +119,16 @@ final class EmployeeContext
             'nationality' => $this->nationality,
             'school' => $this->schoolId,
             'age' => $this->age,
+            'experience_moe_years' => $this->experienceMoe,
+            'experience_outside_years' => $this->experienceOutside,
+            'experience_current_title_years' => $this->experienceCurrentTitle,
+            'grade_level' => $this->gradeLevel,
+            'subject' => $this->subjects,
+            'grade_taught' => $this->gradesTaught,
+            'appraisal_min_rating' => $this->appraisalMin,
+            'appraisal_avg_rating' => $this->appraisalAvg,
+            'equivalent_completed' => $this->equivalentCompleted,
+            'has_licence' => $this->hasLicence,
             default => null,
         };
     }

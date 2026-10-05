@@ -112,20 +112,12 @@ class RegistrationScreen extends ConsumerWidget {
                   ]),
                 ),
             ],
-            if (['pending', 'approved', 'waitlisted'].contains(r.str('status'))) ...[
+            if (['pending_manager', 'pending', 'approved', 'waitlisted'].contains(r.str('status'))) ...[
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () async {
-                  try {
-                    await ref.read(apiProvider).post('/me/registrations/$id/cancel');
-                    ref.invalidate(getProvider(path));
-                    ref.invalidate(getProvider('/me/registrations'));
-                  } catch (e) {
-                    if (context.mounted) showSnack(context, ApiException.from(e).message, error: true);
-                  }
-                },
+                onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => _WithdrawSheet(registrationId: id, free: ['pending_manager', 'waitlisted'].contains(r.str('status')))),
                 style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger),
-                child: Text(s.t('training.cancel')),
+                child: Text(s.t('withdraw.button')),
               ),
             ],
           ]);
@@ -241,3 +233,81 @@ class _EvaluationSheetState extends ConsumerState<_EvaluationSheet> {
 /// A past session without an attendance record: the registration's overall attendance tells whether the
 /// employee attended all sessions (100%), none (0%), or it is unknown for this session.
 String _inferredAttendance(num percent) => percent >= 100 ? 'present' : (percent <= 0 ? 'absent' : 'not_recorded');
+
+/// Withdraw: free before the manager approved, otherwise a request with a reason that goes to the manager (and the supervisor).
+class _WithdrawSheet extends ConsumerStatefulWidget {
+  const _WithdrawSheet({required this.registrationId, required this.free});
+
+  final String registrationId;
+  final bool free;
+
+  @override
+  ConsumerState<_WithdrawSheet> createState() => _WithdrawSheetState();
+}
+
+class _WithdrawSheetState extends ConsumerState<_WithdrawSheet> {
+  String? _code;
+  final _text = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    setState(() => _busy = true);
+    try {
+      final res = await ref.read(apiProvider).post('/me/registrations/${widget.registrationId}/withdraw', {
+        if (_code != null) 'reason_code': _code,
+        if (_text.text.trim().isNotEmpty) 'reason_text': _text.text.trim(),
+      });
+      ref.invalidate(getProvider('/me/registrations/${widget.registrationId}'));
+      ref.invalidate(getProvider('/me/registrations'));
+      if (mounted) {
+        final direct = res is Map && (res['data'] as Map?)?['mode'] == 'direct';
+        Navigator.of(context).pop();
+        showSnack(context, context.tr(direct ? 'withdraw.done' : 'withdraw.requested'));
+      }
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final ar = s.languageCode == 'ar';
+    final reasons = widget.free ? null : ref.watch(getProvider('/me/withdrawal-reasons')).value;
+    final list = reasons is Map ? Map<String, dynamic>.from(reasons).list('data') : <Json>[];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(s.t('withdraw.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 8),
+        Text(s.t(widget.free ? 'withdraw.free' : 'withdraw.needs'), style: const TextStyle(color: Colors.black54)),
+        if (!widget.free) ...[
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _code,
+            decoration: InputDecoration(labelText: s.t('withdraw.reason')),
+            items: [for (final r in list) DropdownMenuItem(value: r.str('code'), child: Text(r.str(ar ? 'label_ar' : 'label_en')))],
+            onChanged: (v) => setState(() => _code = v),
+          ),
+          const SizedBox(height: 8),
+          TextField(controller: _text, minLines: 2, maxLines: 4, decoration: InputDecoration(labelText: s.t('withdraw.details'))),
+        ],
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: _busy || (!widget.free && _code == null) ? null : _send,
+          style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+          child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text(s.t(widget.free ? 'withdraw.button' : 'withdraw.send')),
+        ),
+      ]),
+    );
+  }
+}

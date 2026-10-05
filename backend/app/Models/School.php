@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['code', 'name_en', 'name_ar', 'type', 'gender', 'stage', 'region', 'district', 'latitude', 'longitude', 'phone', 'email', 'logo_path', 'is_partner', 'status', 'moe_no', 'source', 'address', 'website', 'curriculum', 'synced_at'])]
@@ -36,5 +37,10 @@ class School extends Model
     public function trainingNeeds(): HasMany
     {
         return $this->hasMany(TrainingNeed::class);
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(SchoolGroup::class, 'school_group_school');
     }
 }

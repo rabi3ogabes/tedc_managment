@@ -20,7 +20,7 @@ const en: Dictionary = {
   },
   status: {
     draft: 'Draft', published: 'Published', registration_open: 'Registration open', in_progress: 'In progress', completed: 'Completed', archived: 'Archived', cancelled: 'Cancelled',
-    pending: 'Pending', approved: 'Approved', rejected: 'Rejected', waitlisted: 'Waitlisted', eligible: 'Eligible', blocked: 'Blocked', issued: 'Issued',
+    pending: 'Awaiting the centre', pending_manager: 'Awaiting your manager', withdrawn: 'Withdrawn', approved: 'Approved', rejected: 'Rejected', waitlisted: 'Waitlisted', eligible: 'Eligible', blocked: 'Blocked', issued: 'Issued',
     submitted: 'Submitted', changes_requested: 'Changes requested', under_review: 'Under review', planned: 'Planned', fulfilled: 'Fulfilled', valid: 'Valid', revoked: 'Revoked',
     present: 'Present', late: 'Late', absent: 'Absent', excused: 'Excused', scheduled: 'Scheduled', sent: 'Sent', expired: 'Expired', live: 'Live',
   },

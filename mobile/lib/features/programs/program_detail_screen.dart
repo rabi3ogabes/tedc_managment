@@ -107,6 +107,8 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                     final registration = e.obj('registration');
                     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       EligibilityPanel(e),
+                      const SizedBox(height: 10),
+                      _AdmissionNotes(e.obj('admission'), registration == null),
                       const SizedBox(height: 14),
                       if (groups.length > 1 && registration == null) ...[
                         Text(s.t('groups.choose'), style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -200,4 +202,38 @@ class _InfoPill extends StatelessWidget {
           Text(text, style: const TextStyle(fontSize: 12, color: AppColors.navy800)),
         ]),
       );
+}
+
+/// What the trainee should know before registering: clashes, repeats, seats for their entity and the approval path.
+class _AdmissionNotes extends StatelessWidget {
+  const _AdmissionNotes(this.a, this.show);
+
+  final Json? a;
+  final bool show;
+
+  @override
+  Widget build(BuildContext context) {
+    if (a == null || !show) return const SizedBox.shrink();
+    final s = context.s;
+    final conflicts = a!.list('conflicts');
+    final repeat = a!.obj('repeat');
+    final lines = <(IconData, String, Color)>[
+      for (final c in conflicts) (Icons.event_busy, '${s.t('admission.conflict')} ${c.str('program')}', AppColors.danger),
+      if (repeat != null) (Icons.history, '${s.t('admission.repeat')} ${repeat.str('program')}', AppColors.warning),
+      if (a!['seat_in_my_pool'] == false) (Icons.event_seat_outlined, s.t('admission.noSeat'), AppColors.warning),
+      (Icons.alt_route, s.t('admission.path'), Colors.black54),
+    ];
+
+    return Column(children: [
+      for (final (icon, text, color) in lines)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 8),
+            Expanded(child: Text(text, style: TextStyle(fontSize: 12.5, color: color))),
+          ]),
+        ),
+    ]);
+  }
 }

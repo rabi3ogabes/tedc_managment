@@ -12,9 +12,9 @@ class EligibilityRule extends Model
 {
     use HasUuids;
 
-    public const FIELDS = ['job_title', 'job_category', 'department', 'school_type', 'school_stage', 'education_stage', 'region', 'experience_years', 'completed_program', 'skill_level', 'qualification', 'specialization', 'gender', 'nationality', 'school', 'age'];
+    public const FIELDS = ['job_title', 'job_category', 'department', 'school_type', 'school_stage', 'education_stage', 'region', 'experience_years', 'completed_program', 'skill_level', 'qualification', 'specialization', 'gender', 'nationality', 'school', 'age', 'experience_moe_years', 'experience_outside_years', 'experience_current_title_years', 'grade_level', 'subject', 'grade_taught', 'appraisal_min_rating', 'appraisal_avg_rating', 'equivalent_completed', 'has_licence'];
 
-    public const OPERATORS = ['eq', 'neq', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'completed', 'not_completed', 'has_skill', 'lacks_skill'];
+    public const OPERATORS = ['eq', 'neq', 'in', 'not_in', 'gt', 'gte', 'lt', 'lte', 'completed', 'not_completed', 'has_skill', 'lacks_skill', 'includes', 'excludes'];
 
     protected $casts = ['value' => 'array', 'is_mandatory' => 'boolean', 'is_generated' => 'boolean'];
 

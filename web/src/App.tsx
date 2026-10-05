@@ -40,6 +40,10 @@ const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
 const NeedsHub = lazy(() => import('@/pages/admin/needshub/NeedsHub'))
 const MyNeeds = lazy(() => import('@/pages/portal/MyNeeds'))
+const ApprovalsInbox = lazy(() => import('@/pages/admin/ApprovalsInbox'))
+const AdmissionSettings = lazy(() => import('@/pages/admin/AdmissionSettings'))
+const JoinForm = lazy(() => import('@/pages/public/JoinForm'))
+const Activate = lazy(() => import('@/pages/public/JoinForm').then((m) => ({ default: m.Activate })))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
@@ -101,8 +105,12 @@ export default function App() {
           <Route path="programs" element={<Programs />} />
           <Route path="programs/:code" element={<ProgramDetail />} />
           <Route path="trainers" element={<Trainers />} />
+          <Route path="join/:slug" element={<JoinForm />} />
+          <Route path="activate" element={<Activate />} />
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
           <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
+          <Route path="approvals" element={<RequireAuth permission="registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review"><ApprovalsInbox /></RequireAuth>} />
+          <Route path="admission-rules" element={<RequireAuth permission="priority.manage|withdrawals.policy|external_forms.manage"><AdmissionSettings /></RequireAuth>} />
           <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
           <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
           <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />

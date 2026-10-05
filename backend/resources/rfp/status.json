@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 94,
-        "partial": 80,
-        "missing": 104,
+        "available": 109,
+        "partial": 77,
+        "missing": 92,
         "mandatory": 108,
-        "open": 184
+        "open": 169
     },
     "phases": [
         {
@@ -40,7 +40,7 @@
             "phase": 4,
             "title": "Enrollment, Withdrawal & External Users",
             "open": 15,
-            "items": 15,
+            "items": 0,
             "done": 0
         },
         {
@@ -650,25 +650,25 @@
                     "id": "EXT-01",
                     "mandatory": true,
                     "requirement": "Public e-form for non-Ministry users, shareable by link",
-                    "status": "missing",
-                    "evidence": "Accounts are created by admins only.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link.",
+                    "phase": null
                 },
                 {
                     "id": "EXT-02",
                     "mandatory": true,
                     "requirement": "Approval workflow: notify admin, review, approve / reject with reason, email result",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked.",
+                    "phase": null
                 },
                 {
                     "id": "EXT-03",
                     "mandatory": false,
                     "requirement": "Configurable form fields, target categories and extra conditions",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record.",
+                    "phase": null
                 }
             ]
         },
@@ -808,17 +808,17 @@
                     "id": "ENR-01",
                     "mandatory": true,
                     "requirement": "Beneficiary entities per program and seat allocation per entity",
-                    "status": "missing",
-                    "evidence": "Only a global program capacity.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Seats per group split across schools, school groups, departments and job groups with an open pool (`group_seat_allocations`, `SeatAllocationService`); the total never exceeds capacity, full entities fall back to the open pool then the waiting list, and unused seats are released hourly (`tedc:seats-release`). Program page → Admission tab.",
+                    "phase": null
                 },
                 {
                     "id": "ENR-02",
                     "mandatory": true,
                     "requirement": "Configurable registration-priority rules",
-                    "status": "missing",
-                    "evidence": "First-come order only.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Configurable priority rules (`registration_priority_rules`: plan-targeted, approved need, time without training, appraisal, entity priority, job titles, registration date) rank applicants and promote the waiting list, with an explanation per person and a live preview in Admission rules.",
+                    "phase": null
                 },
                 {
                     "id": "ENR-03",
@@ -832,9 +832,9 @@
                     "id": "ENR-04",
                     "mandatory": false,
                     "requirement": "Block repeated or equivalent courses; configurable equivalents",
-                    "status": "partial",
-                    "evidence": "“Completed program” rule exists; no equivalence mapping.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Equivalent programs (one- or two-way) and a per-program repeat policy (block / warn / allow); staff can override with a reason.",
+                    "phase": null
                 },
                 {
                     "id": "ENR-05",
@@ -848,9 +848,9 @@
                     "id": "ENR-06",
                     "mandatory": true,
                     "requirement": "Prevent time-conflicting registrations (switchable per course)",
-                    "status": "missing",
-                    "evidence": "Clash-aware slot planning only; registration is not blocked.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Time clashes are blocked at registration against approved programs and at approval of a second overlapping one; the group setting `allow_overlap_until_approved` controls registering in two overlapping groups before either is approved.",
+                    "phase": null
                 },
                 {
                     "id": "ENR-07",
@@ -864,9 +864,9 @@
                     "id": "ENR-08",
                     "mandatory": false,
                     "requirement": "Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal",
-                    "status": "missing",
-                    "evidence": "Fields are not in the employee model.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Rule editor and audience builder gained Ministry / outside experience, years in the current title, job grade, subjects, grades taught, appraisal min/avg over 3 years and an equivalent-completed field; the licence criterion is hooked for Phase 09.",
+                    "phase": null
                 }
             ]
         },
@@ -887,9 +887,9 @@
                     "id": "REG-02",
                     "mandatory": false,
                     "requirement": "Two-stage approval: direct manager (within entity seats) → training centre",
-                    "status": "partial",
-                    "evidence": "Single approval stage only.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Self-registration goes to the direct manager (supervisor, else the school's academic deputy) and then the training centre; manager registrations skip the first stage; admin imports are approved; the group `approval_mode` can be center_only or auto; the approval path is shown to the trainee on web and in the app.",
+                    "phase": null
                 },
                 {
                     "id": "REG-03",
@@ -919,17 +919,17 @@
                     "id": "REG-06",
                     "mandatory": false,
                     "requirement": "Acceptance tools: priority and prior-training analysis",
-                    "status": "partial",
-                    "evidence": "Candidate list with eligibility; no prior-benefit analytics.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Candidate list per group with priority score and explanation, completed programs in 12 months, hours this year vs the annual minimum, same-category completions and attendance; bulk acceptance stops at the seats.",
+                    "phase": null
                 },
                 {
                     "id": "REG-07",
                     "mandatory": false,
                     "requirement": "No approval before the registration period closes",
-                    "status": "missing",
-                    "evidence": "Not enforced.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Centre approval of self-registrations is blocked until the registration window closes (`approve_after_window`), with a clear message and an audited override reason.",
+                    "phase": null
                 },
                 {
                     "id": "REG-08",
@@ -1298,25 +1298,25 @@
                     "id": "WDR-01",
                     "mandatory": true,
                     "requirement": "After manager approval, withdrawal needs the manager’s approval",
-                    "status": "missing",
-                    "evidence": "Trainee cancels directly.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted).",
+                    "phase": null
                 },
                 {
                     "id": "WDR-02",
                     "mandatory": true,
                     "requirement": "After centre acceptance: manager then supervisor approval + reason form with attachments",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "After the manager approved, withdrawing is a request the direct manager decides.",
+                    "phase": null
                 },
                 {
                     "id": "WDR-03",
                     "mandatory": false,
                     "requirement": "Record timing: during window / before start / after start",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes.",
+                    "phase": null
                 },
                 {
                     "id": "WDR-04",
@@ -1330,9 +1330,9 @@
                     "id": "WDR-05",
                     "mandatory": true,
                     "requirement": "Withdrawal rules configurable without code",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 4
+                    "status": "available",
+                    "evidence": "Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged.",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T12:48:16+03:00"
+    "generated_at": "2026-10-05T13:15:39+03:00"
 }

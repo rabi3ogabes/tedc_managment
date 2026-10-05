@@ -88,6 +88,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/groups', label: t('groups.board.title'), icon: KanbanSquare, permission: 'programs.view' },
           { to: '/admin/internal-workshops', label: t('workshops.nav'), icon: School2, permission: 'workshops.internal|workshops.approve' },
           { to: '/admin/calendar', label: m('calendar'), icon: CalendarDays, permission: 'calendar.view' },
+          { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review' },
+          { to: '/admin/admission-rules', label: t('admission.rulesNav'), icon: Settings2, permission: 'priority.manage|withdrawals.policy|external_forms.manage' },
           { to: '/admin/registrations', label: m('registrations'), icon: ClipboardList, permission: 'registrations.view' },
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
           { to: '/admin/room-screens', label: t('studio.wall.nav'), icon: Monitor, permission: 'programs.view' },

@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
     'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
-    'parent_id', 'kind', 'axes', 'is_emergency', 'emergency_reason', 'owner_type', 'owner_school_id', 'approval_status',
+    'parent_id', 'kind', 'axes', 'is_emergency', 'emergency_reason', 'owner_type', 'owner_school_id', 'approval_status', 'repeat_policy',
     'remote', 'coordinator_id', 'certificate_template_id', 'trainer_certificate_template_id', 'has_course', 'course_sequential', 'course_completion_percent', 'course_auto_certificate',
 ])]
 class Program extends Model

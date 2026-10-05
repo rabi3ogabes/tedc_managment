@@ -374,7 +374,7 @@ class DemoScenarioSeeder extends Seeder
     private function decide(Program $program, Employee $employee, string $to, ?string $note = null): void
     {
         $r = Registration::where('program_id', $program->id)->where('employee_id', $employee->id)->first();
-        $r && $this->registrations->transition($r, $to, $this->center, $note);
+        $r && $this->registrations->transition($r, $to, $this->center, $note, 'demo scenario');
     }
 
     private function attend(ProgramSession $session, Employee $employee, string $status): void

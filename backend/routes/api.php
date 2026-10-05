@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\AdmissionController;
+use App\Http\Controllers\Api\V1\Admin\AdmissionRulesController;
 use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
@@ -17,6 +19,7 @@ use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
+use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
@@ -66,6 +69,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingGroupController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
+use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\FeaturesController;
@@ -80,6 +84,7 @@ use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
+use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SystemController;
@@ -164,10 +169,18 @@ Route::prefix('v1')->group(function () {
         Route::post('contact', 'contact')->middleware('throttle:contact');
     });
 
+    // External registration forms (public, never cached) ----------------------
+    Route::prefix('public/forms')->middleware('throttle:public')->controller(ExternalFormController::class)->group(function () {
+        Route::get('{slug}', 'show');
+        Route::post('{slug}/verify-email', 'verifyEmail')->middleware('throttle:external-code');
+        Route::post('{slug}/submit', 'submit')->middleware('throttle:external-submit');
+    });
+
     // Authentication ----------------------------------------------------------
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
         Route::post('login', 'login')->middleware('throttle:login');
         Route::post('refresh', 'refresh')->middleware('throttle:login');
+        Route::post('activate', 'activate')->middleware('throttle:10,1');
         Route::middleware(['auth:api', 'active.role'])->group(function () {
             Route::get('me', 'me');
             Route::post('active-role', 'switchRole');
@@ -206,6 +219,9 @@ Route::prefix('v1')->group(function () {
             Route::get('competencies', [NeedsToolsController::class, 'catalog']);
             Route::get('needs', [NeedsToolsController::class, 'mine']);
             Route::post('needs', [NeedsToolsController::class, 'declare']);
+            Route::post('registrations/{registration}/withdraw', [WithdrawalController::class, 'withdraw']);
+            Route::get('withdrawals', [WithdrawalController::class, 'mine']);
+            Route::get('withdrawal-reasons', [WithdrawalController::class, 'activeReasons']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -811,6 +827,46 @@ Route::prefix('v1')->group(function () {
             Route::post('needs-surveys/{needsSurvey}/submit-approval', [NeedsToolsController::class, 'submitApproval'])->middleware('permission:needs.manage');
             Route::post('needs-surveys/{needsSurvey}/approve', [NeedsToolsController::class, 'approve'])->middleware('permission:instruments.approve');
             Route::post('needs-surveys/{needsSurvey}/return', [NeedsToolsController::class, 'returnSurvey'])->middleware('permission:instruments.approve');
+            // Admission: seats per entity and the two approval stages.
+            Route::middleware('permission:programs.view')->get('groups/{group}/seats', [AdmissionController::class, 'seats']);
+            Route::middleware('permission:seats.manage|groups.manage')->put('groups/{group}/seats', [AdmissionController::class, 'updateSeats']);
+            Route::middleware('permission:priority.manage')->group(function () {
+                Route::get('priority-rules', [AdmissionRulesController::class, 'rules']);
+                Route::post('priority-rules', [AdmissionRulesController::class, 'saveRule']);
+                Route::put('priority-rules/{rule}', [AdmissionRulesController::class, 'saveRule']);
+                Route::delete('priority-rules/{rule}', [AdmissionRulesController::class, 'deleteRule']);
+                Route::post('priority-rules/preview', [AdmissionRulesController::class, 'preview']);
+            });
+            Route::get('programs/{program}/equivalences', [AdmissionRulesController::class, 'equivalences'])->middleware('permission:programs.view');
+            Route::put('programs/{program}/equivalences', [AdmissionRulesController::class, 'syncEquivalences'])->middleware('permission:programs.manage');
+            Route::get('groups/{group}/candidates', [AdmissionRulesController::class, 'candidates'])->middleware('permission:registrations.view');
+            Route::post('groups/{group}/accept', [AdmissionRulesController::class, 'accept'])->middleware('permission:registrations.manage|registrations.approve_center');
+            // External registration: form builder and review queue.
+            Route::middleware('permission:external_forms.manage')->group(function () {
+                Route::get('registration-forms', [ExternalRequestController::class, 'forms']);
+                Route::post('registration-forms', [ExternalRequestController::class, 'saveForm']);
+                Route::put('registration-forms/{form}', [ExternalRequestController::class, 'saveForm']);
+            });
+            Route::middleware('permission:external_requests.review')->group(function () {
+                Route::get('registration-requests', [ExternalRequestController::class, 'requests']);
+                Route::get('registration-requests/{registrationRequest}', [ExternalRequestController::class, 'show']);
+                Route::get('registration-requests/{registrationRequest}/snapshot', [ExternalRequestController::class, 'snapshot']);
+                Route::post('registration-requests/{registrationRequest}/approve', [ExternalRequestController::class, 'approve']);
+                Route::post('registration-requests/{registrationRequest}/reject', [ExternalRequestController::class, 'reject']);
+                Route::post('registration-requests/{registrationRequest}/request-info', [ExternalRequestController::class, 'requestInfo']);
+            });
+            // Withdrawal queues, policy and reasons.
+            Route::get('withdrawals', [WithdrawalController::class, 'index'])->middleware('permission:registrations.approve_manager|withdrawals.decide');
+            Route::post('withdrawals/{withdrawal}/decision', [WithdrawalController::class, 'decision'])->middleware('permission:registrations.approve_manager|withdrawals.decide');
+            Route::middleware('permission:withdrawals.policy')->group(function () {
+                Route::get('settings/withdrawal-policy', [WithdrawalController::class, 'policy']);
+                Route::put('settings/withdrawal-policy', [WithdrawalController::class, 'policy']);
+                Route::get('withdrawal-reasons', [WithdrawalController::class, 'reasons']);
+                Route::post('withdrawal-reasons', [WithdrawalController::class, 'saveReason']);
+                Route::put('withdrawal-reasons/{reason}', [WithdrawalController::class, 'saveReason']);
+            });
+            Route::get('approvals/{stage}', [AdmissionController::class, 'queue'])->middleware('permission:registrations.approve_manager|registrations.manage');
+            Route::post('registrations/{registration}/manager-decision', [AdmissionController::class, 'managerDecision']);
             // Annual training plan.
             Route::middleware('permission:plans.view')->group(function () {
                 Route::get('plans', [AnnualPlanController::class, 'index']);

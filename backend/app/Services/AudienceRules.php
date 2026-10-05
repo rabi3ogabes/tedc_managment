@@ -22,6 +22,9 @@ class AudienceRules
         'school_types' => ['school_type', 'in'],
         'regions' => ['region', 'in'],
         'school_ids' => ['school', 'in'],
+        'grade_levels' => ['grade_level', 'in'],
+        'subjects' => ['subject', 'includes'],
+        'grades_taught' => ['grade_taught', 'includes'],
     ];
 
     /** @return list<array{field: string, operator: string, value: mixed}> */
@@ -38,7 +41,7 @@ class AudienceRules
                 $rules[] = ['field' => $field, 'operator' => $operator, 'value' => $a[$key]];
             }
         }
-        foreach ([['experience_min', 'experience_years', 'gte'], ['experience_max', 'experience_years', 'lte'], ['age_min', 'age', 'gte'], ['age_max', 'age', 'lte']] as [$key, $field, $operator]) {
+        foreach ([['experience_min', 'experience_years', 'gte'], ['experience_max', 'experience_years', 'lte'], ['age_min', 'age', 'gte'], ['age_max', 'age', 'lte'], ['experience_moe_min', 'experience_moe_years', 'gte'], ['experience_moe_max', 'experience_moe_years', 'lte'], ['experience_outside_min', 'experience_outside_years', 'gte'], ['experience_outside_max', 'experience_outside_years', 'lte']] as [$key, $field, $operator]) {
             if (isset($a[$key])) {
                 $rules[] = ['field' => $field, 'operator' => $operator, 'value' => $a[$key]];
             }

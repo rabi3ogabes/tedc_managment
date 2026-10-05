@@ -12,6 +12,7 @@ use App\Support\ActiveRole;
 use App\Support\ScopeLabel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -33,6 +34,20 @@ class AuthController extends Controller
     }
 
     /** Locks the dashboard immediately (idle timeout reached in the browser). */
+    /** Sets the first password from the activation link e-mailed after an external registration was approved. */
+    public function activate(Request $request): JsonResponse
+    {
+        $d = $request->validate(['email' => ['required', 'email'], 'token' => ['required', 'string'], 'password' => ['required', 'string', 'min:10', 'confirmed']]);
+        $status = Password::reset($d, function ($user, string $password) {
+            $user->forceFill(['password' => $password])->save();
+        });
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => __('messages.external.activation_invalid'), 'code' => 'activation_invalid'], 422);
+        }
+
+        return response()->json(['data' => ['activated' => true]]);
+    }
+
     public function lock(Request $request): JsonResponse
     {
         $request->user()->forceFill(['locked_at' => now()])->saveQuietly();

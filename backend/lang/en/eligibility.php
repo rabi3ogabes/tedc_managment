@@ -26,8 +26,13 @@ return [
         'nationality' => 'Nationality',
         'school' => 'School',
         'age' => 'Age',
+        'experience_moe_years' => 'Years of experience in the Ministry', 'experience_outside_years' => 'Years of experience outside the Ministry', 'experience_current_title_years' => 'Years in the current job title',
+        'grade_level' => 'Job grade', 'subject' => 'Subjects taught', 'grade_taught' => 'Grades taught', 'appraisal_min_rating' => 'Lowest appraisal rating (last 3 years, 1-5)', 'appraisal_avg_rating' => 'Average appraisal rating (last 3 years, 1-5)',
+        'equivalent_completed' => 'Completed (or equivalent) programs', 'has_licence' => 'Holds a valid licence',
     ],
     'operators' => [
+        'includes' => 'includes any of',
+        'excludes' => 'includes none of',
         'eq' => 'equal to',
         'neq' => 'different from',
         'in' => 'one of',

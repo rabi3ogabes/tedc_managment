@@ -66,13 +66,14 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const _AccountEntry(),
               const _AssignmentsEntry(),
+              const _ApprovalsEntry(),
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   leading: const Icon(Icons.trending_up, color: AppColors.gold500),
-                  title: Text(context.tr('needs.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  title: Text(context.tr('myneeds.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-needs'),
                 ),
               ),
@@ -130,6 +131,30 @@ class ProfileScreen extends ConsumerWidget {
             ]),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Shown to a direct manager who has registrations waiting for their approval.
+class _ApprovalsEntry extends ConsumerWidget {
+  const _ApprovalsEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final raw = ref.watch(getProvider('/admin/approvals/manager')).value;
+    final n = raw is Map ? Map<String, dynamic>.from(raw).list('data').length : 0;
+    if (n == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: ListTile(
+        tileColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: const Icon(Icons.how_to_reg_outlined, color: AppColors.gold500),
+        title: Text(context.tr('approvals.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$n', style: const TextStyle(fontSize: 12, color: AppColors.navy950))),
+        onTap: () => context.push('/approvals'),
       ),
     );
   }

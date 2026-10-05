@@ -18,7 +18,7 @@ const ar = {
   },
   status: {
     draft: 'مسودة', published: 'منشور', registration_open: 'التسجيل مفتوح', in_progress: 'قيد التنفيذ', completed: 'مكتمل', archived: 'مؤرشف', cancelled: 'ملغى',
-    pending: 'قيد المراجعة', approved: 'معتمد', rejected: 'مرفوض', waitlisted: 'قائمة الانتظار', eligible: 'مؤهل للشهادة', blocked: 'محجوبة', issued: 'صادرة',
+    pending: 'بانتظار مركز التدريب', pending_manager: 'بانتظار المدير المباشر', withdrawn: 'منسحب', approved: 'معتمد', rejected: 'مرفوض', waitlisted: 'قائمة الانتظار', eligible: 'مؤهل للشهادة', blocked: 'محجوبة', issued: 'صادرة',
     submitted: 'مُرسل', changes_requested: 'مطلوب تعديل', under_review: 'قيد الدراسة', planned: 'مخطط', fulfilled: 'منجز', valid: 'سارية', revoked: 'ملغاة',
     present: 'حاضر', late: 'متأخر', absent: 'غائب', excused: 'معذور', scheduled: 'مجدولة', sent: 'مرسلة', expired: 'منتهية', live: 'مباشرة',
   },

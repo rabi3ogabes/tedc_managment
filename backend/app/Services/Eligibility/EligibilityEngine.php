@@ -67,6 +67,8 @@ class EligibilityEngine
             'gte' => is_numeric($actual) && (float) $actual >= (float) $expected,
             'lt' => is_numeric($actual) && (float) $actual < (float) $expected,
             'lte' => is_numeric($actual) && (float) $actual <= (float) $expected,
+            'includes' => count(array_intersect(array_map('mb_strtolower', array_map('strval', (array) $actual)), array_map('mb_strtolower', array_map('strval', (array) $expected)))) > 0,
+            'excludes' => count(array_intersect(array_map('mb_strtolower', array_map('strval', (array) $actual)), array_map('mb_strtolower', array_map('strval', (array) $expected)))) === 0,
             'completed' => count(array_intersect((array) $expected, $context->completedPrograms)) === count((array) $expected),
             'not_completed' => count(array_intersect((array) $expected, $context->completedPrograms)) === 0,
             'has_skill' => ($context->skills[$expected['skill'] ?? ''] ?? 0) >= (int) ($expected['min_level'] ?? 1),

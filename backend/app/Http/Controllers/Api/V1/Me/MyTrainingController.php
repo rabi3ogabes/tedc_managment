@@ -10,10 +10,13 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\TrainingGroup;
 use App\Services\AttendanceService;
+use App\Services\ConflictService;
 use App\Services\Eligibility\EligibilityEngine;
 use App\Services\FileStorage;
 use App\Services\Notifications\ProgramSurvey;
+use App\Services\RegistrationPriorityService;
 use App\Services\RegistrationService;
+use App\Services\SeatAllocationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -27,16 +30,28 @@ use Illuminate\Validation\Rule;
  */
 class MyTrainingController extends MeController
 {
-    public function eligibility(Program $program, EligibilityEngine $engine): JsonResponse
+    public function eligibility(Program $program, EligibilityEngine $engine, RegistrationService $service): JsonResponse
     {
         $employee = $this->employee();
         $registration = Registration::where('program_id', $program->id)->where('employee_id', $employee->id)->first();
+        $group = $program->primaryGroup();
+        $conflicts = app(ConflictService::class);
+        $clash = $conflicts->conflicts($employee, $program, $group, [Registration::STATUS_APPROVED]);
+        $done = $conflicts->completedEquivalent($employee, $program);
+        $manager = ($group?->approval_mode ?? 'manager_then_center') === 'manager_then_center' ? $service->resolveManager($employee) : null;
+        $rank = app(RegistrationPriorityService::class)->score($employee, $program, $group);
+        $pool = $group ? app(SeatAllocationService::class)->claim($group, $employee) : ['open', null];
 
         return response()->json(['data' => $engine->evaluate($program, $employee)->jsonSerialize() + [
             'registration_open' => $program->isRegistrationOpen(),
             'self_registration' => $program->allowsMode(Registration::SOURCE_SELF),
             'seats_available' => $program->seatsAvailable(),
             'registration' => $registration ? ['id' => $registration->id, 'status' => $registration->status] : null,
+            'admission' => [
+                'conflicts' => $clash, 'repeat' => $done ? ['program' => $done->program->translate('title'), 'policy' => $program->repeat_policy] : null,
+                'approval_path' => array_values(array_filter([$manager ? 'manager' : null, ($group?->approval_mode ?? 'manager_then_center') === 'auto' ? null : 'center'])),
+                'seat_in_my_pool' => $pool !== null, 'priority_score' => $rank['score'], 'priority_explanation' => $rank['explanation'],
+            ],
         ]]);
     }
 
