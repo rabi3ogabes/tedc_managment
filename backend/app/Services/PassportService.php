@@ -5,6 +5,10 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Certificate;
 use App\Models\Employee;
+use App\Models\EmployeePathProgress;
+use App\Models\KnowledgeTransfer;
+use App\Models\PdActivity;
+use App\Models\ProfessionalLicence;
 use App\Models\Registration;
 
 /**
@@ -81,6 +85,12 @@ class PassportService
                 'attendance_percent' => $r->attendance_percent,
                 'start_date' => $r->program->start_date?->toDateString(),
             ]),
+            // Phase 09: every source of professional growth in one place.
+            'hours_this_year' => app(AnnualHoursService::class)->summary($employee),
+            'external_pd' => PdActivity::with('type:id,name_ar,name_en')->where('employee_id', $employee->id)->where('status', 'approved')->orderByDesc('starts_on')->limit(50)->get()->map(fn ($a) => ['title' => $a->title, 'type' => $a->type?->translate('name'), 'date' => $a->starts_on->toDateString(), 'hours' => (float) ($a->approved_hours ?? $a->computed_hours)])->values(),
+            'knowledge_transfers' => KnowledgeTransfer::where('employee_id', $employee->id)->where('status', 'approved')->get()->map(fn ($k) => ['date' => $k->delivered_on?->toDateString(), 'hours' => $k->hours, 'beneficiaries' => $k->beneficiary_count])->values(),
+            'licences' => ProfessionalLicence::with('path:id,title_ar,title_en')->where('employee_id', $employee->id)->orderByDesc('issued_at')->get()->map(fn ($l) => ['licence_no' => $l->licence_no, 'level' => $l->level_no, 'path' => $l->path?->translate('title'), 'status' => $l->status, 'expires_at' => $l->expires_at?->toDateString()])->values(),
+            'paths' => EmployeePathProgress::with('path:id,type,title_ar,title_en')->where('employee_id', $employee->id)->get()->map(fn ($p) => ['title' => $p->path?->translate('title'), 'type' => $p->path?->type, 'current_level' => $p->current_level_no, 'status' => $p->status])->values(),
         ];
     }
 }

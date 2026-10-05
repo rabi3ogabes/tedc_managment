@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\Attendance;
+use App\Models\KnowledgeTransfer;
 use App\Models\PassException;
 use App\Models\PassingPolicy;
 use App\Models\Program;
@@ -20,7 +21,7 @@ use Illuminate\Support\Collection;
  */
 class PassingPolicyService
 {
-    public const KEYS = ['attendance', 'participation', 'tasks', 'assessments', 'course', 'evaluation'];
+    public const KEYS = ['attendance', 'participation', 'tasks', 'assessments', 'course', 'evaluation', 'knowledge_transfer'];
 
     public function __construct(private readonly NotificationService $notifications) {}
 
@@ -161,8 +162,17 @@ class PassingPolicyService
             'tasks' => $this->tasks($r),
             'assessments' => $this->assessments($r, $policy),
             'course' => ['value' => (float) $r->course_percent, 'applicable' => (bool) $p->has_course, 'evidence' => ['percent' => round((float) $r->course_percent)]],
+            'knowledge_transfer' => $this->knowledgeTransfer($r),
             'evaluation' => ['value' => $r->evaluation()->exists() ? 100.0 : 0.0, 'applicable' => true, 'evidence' => ['done' => $r->evaluation()->exists()]],
         };
+    }
+
+    private function knowledgeTransfer(Registration $r): array
+    {
+        $required = (bool) ($r->program->knowledge_transfer['required'] ?? false);
+        $ok = KnowledgeTransfer::where('registration_id', $r->id)->where('status', 'approved')->exists();
+
+        return ['value' => $ok ? 100.0 : 0.0, 'applicable' => $required, 'evidence' => ['done' => $ok]];
     }
 
     private function attendance(Registration $r): array

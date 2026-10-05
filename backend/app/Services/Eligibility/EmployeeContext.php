@@ -3,10 +3,14 @@
 namespace App\Services\Eligibility;
 
 use App\Models\Employee;
+use App\Models\EmployeePathProgress;
+use App\Models\PdRecognitionRequest;
 use App\Models\PerformanceAppraisal;
+use App\Models\ProfessionalLicence;
 use App\Models\Program;
 use App\Models\ProgramEquivalence;
 use App\Models\Registration;
+use App\Services\AnnualHoursService;
 
 /**
  * Flattened, rule-friendly view of an employee profile.
@@ -47,6 +51,9 @@ final class EmployeeContext
         /** @var string[] program codes completed, plus the codes of their equivalents */
         public readonly array $equivalentCompleted = [],
         public readonly ?bool $hasLicence = null,
+        public readonly ?int $licenceLevel = null,
+        public readonly ?int $pathLevel = null,
+        public readonly ?float $pdHours = null,
     ) {}
 
     public static function fromEmployee(Employee $employee): self
@@ -60,6 +67,12 @@ final class EmployeeContext
             ->all();
 
         $ratings = PerformanceAppraisal::where('employee_id', $employee->id)->where('year', '>=', now()->year - 3)->pluck('rating_code')->map(fn ($c) => ['weak' => 1, 'acceptable' => 2, 'good' => 3, 'very_good' => 4, 'excellent' => 5][$c] ?? null)->filter();
+        // A recognised external activity counts as having completed the programs the centre named as its equivalents.
+        $recognised = PdRecognitionRequest::where('center_decision', 'approved')->whereHas('activity', fn ($q) => $q->where('employee_id', $employee->id))->pluck('equivalent_program_ids')->flatten()->filter()->unique()->all();
+        if ($recognised) {
+            $completed = array_values(array_unique(array_merge($completed, Program::whereIn('id', $recognised)->pluck('code')->all())));
+        }
+        $licences = ProfessionalLicence::where('employee_id', $employee->id)->where('status', 'active')->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', today()))->get();
         $equivalent = $completed;
         if ($completed) {
             $ids = Program::whereIn('code', $completed)->pluck('id')->all();
@@ -96,7 +109,10 @@ final class EmployeeContext
             appraisalMin: $ratings->isEmpty() ? null : (float) $ratings->min(),
             appraisalAvg: $ratings->isEmpty() ? null : round((float) $ratings->avg(), 2),
             equivalentCompleted: $equivalent,
-            hasLicence: null, // filled from the licence records in Phase 09
+            hasLicence: $licences->isNotEmpty(),
+            licenceLevel: $licences->max('level_no') ?? 0,
+            pathLevel: (int) (EmployeePathProgress::where('employee_id', $employee->id)->whereHas('path', fn ($q) => $q->where('type', 'promotion'))->max('current_level_no') ?? 0),
+            pdHours: app(AnnualHoursService::class)->allTime($employee),
         );
     }
 
@@ -129,6 +145,9 @@ final class EmployeeContext
             'appraisal_avg_rating' => $this->appraisalAvg,
             'equivalent_completed' => $this->equivalentCompleted,
             'has_licence' => $this->hasLicence,
+            'licence_level' => $this->licenceLevel,
+            'path_level' => $this->pathLevel,
+            'pd_hours' => $this->pdHours,
             default => null,
         };
     }

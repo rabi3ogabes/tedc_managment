@@ -69,10 +69,11 @@ class CertificateService
             'tasks' => fn ($c) => __('messages.certificate.tasks', ['done' => $c['evidence']['done'] ?? 0, 'total' => $c['evidence']['total'] ?? 0]),
             'evaluation' => fn () => __('messages.certificate.evaluation'),
             'course' => fn ($c) => __('messages.certificate.course', ['percent' => round($c['value']), 'required' => round($c['min'])]),
+            'knowledge_transfer' => fn () => __('messages.passing.names.knowledge_transfer'),
             'participation' => fn ($c) => __('messages.passing.participation', ['actual' => round($c['value']), 'required' => round($c['min'])]),
             'assessments' => fn ($c) => __('messages.passing.assessments', ['actual' => round($c['value']), 'required' => round($c['min'])]),
         ];
-        foreach (['attendance', 'tasks', 'evaluation', 'course', 'participation', 'assessments'] as $key) {
+        foreach (['attendance', 'tasks', 'evaluation', 'course', 'participation', 'assessments', 'knowledge_transfer'] as $key) {
             $c = $byKey->get($key);
             if (! $c) {
                 if (in_array($key, ['attendance', 'tasks', 'evaluation'], true)) {
@@ -202,7 +203,11 @@ class CertificateService
         $path = $this->storage->put('certificates', "{$certificate->program_id}/{$certificate->certificate_no}.pdf", $this->render($certificate), 'application/pdf');
         $certificate->update(['file_path' => $path]);
 
-        $isMain && app(ImpactService::class)->scheduleFollowUps($registration);
+        if ($isMain) {
+            app(ImpactService::class)->scheduleFollowUps($registration);
+            app(KnowledgeTransferService::class)->createFor($registration);
+            app(CareerPathEngine::class)->evaluate($registration->employee);
+        }
 
         if ($this->downloadable($certificate)) {
             $this->announce($certificate);

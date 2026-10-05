@@ -28,7 +28,7 @@ return [
         'age' => 'العمر',
         'experience_moe_years' => 'سنوات الخبرة في الوزارة', 'experience_outside_years' => 'سنوات الخبرة خارج الوزارة', 'experience_current_title_years' => 'سنوات الخبرة في المسمى الحالي',
         'grade_level' => 'الدرجة الوظيفية', 'subject' => 'المواد التي يدرّسها', 'grade_taught' => 'الصفوف التي يدرّسها', 'appraisal_min_rating' => 'أدنى تقييم أداء (آخر 3 سنوات، 1-5)', 'appraisal_avg_rating' => 'متوسط تقييم الأداء (آخر 3 سنوات، 1-5)',
-        'equivalent_completed' => 'برامج منجزة (أو مكافئة)', 'has_licence' => 'يحمل رخصة سارية',
+        'equivalent_completed' => 'برامج منجزة (أو مكافئة)', 'has_licence' => 'يحمل رخصة سارية', 'licence_level' => 'مستوى الرخصة المهنية', 'path_level' => 'مستوى المسار الوظيفي', 'pd_hours' => 'إجمالي ساعات التطوير المهني',
     ],
     'operators' => [
         'includes' => 'يتضمن أياً من',

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceMethodsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
+use App\Http\Controllers\Api\V1\Admin\CareerAdminController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
 use App\Http\Controllers\Api\V1\Admin\CertificateController;
 use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
@@ -48,6 +49,7 @@ use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
 use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PassingController;
+use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
@@ -92,6 +94,7 @@ use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
 use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
+use App\Http\Controllers\Api\V1\Me\MyCareerController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
@@ -245,6 +248,21 @@ Route::prefix('v1')->group(function () {
             Route::get('excuses', [AbsenceController::class, 'myExcuses']);
             Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
             Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
+            Route::get('paths', [MyCareerController::class, 'paths']);
+            Route::get('paths/{path}', [MyCareerController::class, 'showPath']);
+            Route::get('licences', [MyCareerController::class, 'licences']);
+            Route::get('pd-hours', [MyCareerController::class, 'hoursSummary']);
+            Route::get('pd-activity-types', [MyCareerController::class, 'types']);
+            Route::get('pd-activities', [MyCareerController::class, 'activities']);
+            Route::post('pd-activities/preview', [MyCareerController::class, 'preview']);
+            Route::post('pd-activities', [MyCareerController::class, 'saveActivity']);
+            Route::post('pd-activities/{activity}', [MyCareerController::class, 'saveActivity']);
+            Route::post('pd-activities/{activity}/submit', [MyCareerController::class, 'submitActivity']);
+            Route::get('knowledge-transfers', [MyCareerController::class, 'transfers']);
+            Route::post('knowledge-transfers/{transfer}', [MyCareerController::class, 'submitTransfer'])->middleware('throttle:30,1');
+            Route::get('colleagues', [MyCareerController::class, 'colleagues'])->middleware('throttle:60,1');
+            Route::get('team/pd-activities', [MyCareerController::class, 'teamActivities'])->middleware('permission:impact.supervise');
+            Route::post('team/pd-activities/{activity}/decision', [PdAdminController::class, 'decide'])->middleware('permission:impact.supervise');
             Route::get('evaluations', [MyEvaluationController::class, 'index']);
             Route::get('evaluations/{assignment}', [MyEvaluationController::class, 'show']);
             Route::post('evaluations/{assignment}', [MyEvaluationController::class, 'submit'])->middleware('throttle:30,1');
@@ -902,6 +920,44 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
             Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Career paths, licences, professional development and knowledge transfer.
+            Route::middleware('permission:paths.manage|licences.manage')->group(function () {
+                Route::get('career-paths', [CareerAdminController::class, 'index']);
+                Route::get('career-paths/{path}/compliance', [CareerAdminController::class, 'compliance']);
+            });
+            Route::middleware('permission:paths.manage')->group(function () {
+                Route::post('career-paths', [CareerAdminController::class, 'store']);
+                Route::put('career-paths/{path}', [CareerAdminController::class, 'update']);
+                Route::put('career-paths/{path}/levels', [CareerAdminController::class, 'levels']);
+                Route::post('career-paths/evaluate', [CareerAdminController::class, 'evaluate']);
+                Route::post('career-paths/{path}/achieve', [CareerAdminController::class, 'achieve']);
+            });
+            Route::middleware('permission:licences.manage')->group(function () {
+                Route::get('licences', [CareerAdminController::class, 'licences']);
+                Route::post('licences', [CareerAdminController::class, 'saveLicence']);
+                Route::put('licences/{licence}', [CareerAdminController::class, 'saveLicence']);
+                Route::post('licences/import', [CareerAdminController::class, 'importLicences'])->middleware('throttle:20,1');
+            });
+            Route::middleware('permission:pd.types.manage')->group(function () {
+                Route::post('pd-activity-types', [PdAdminController::class, 'saveType']);
+                Route::put('pd-activity-types/{type}', [PdAdminController::class, 'saveType']);
+            });
+            Route::get('pd-activity-types', [PdAdminController::class, 'types'])->middleware('permission:pd.types.manage|pd.recognise');
+            Route::middleware('permission:pd.recognise|pd.approve')->group(function () {
+                Route::get('pd-activities', [PdAdminController::class, 'activities']);
+                Route::post('pd-activities/{activity}/decision', [PdAdminController::class, 'decide']);
+                Route::get('pd-recognitions', [PdAdminController::class, 'recognitions']);
+                Route::get('pd-reports', [PdAdminController::class, 'report']);
+            });
+            Route::post('pd-recognitions/{recognition}/decision', [PdAdminController::class, 'recognise'])->middleware('permission:pd.recognise');
+            Route::get('pd-targets', [PdAdminController::class, 'targets'])->middleware('permission:pd.targets.manage|pd.recognise');
+            Route::put('pd-targets', [PdAdminController::class, 'saveTargets'])->middleware('permission:pd.targets.manage');
+            Route::middleware('permission:knowledge_transfer.review')->group(function () {
+                Route::get('knowledge-transfers', [PdAdminController::class, 'transfers']);
+                Route::post('knowledge-transfers/{transfer}/decision', [PdAdminController::class, 'decideTransfer']);
+                Route::get('programs/{program}/knowledge-transfer', [PdAdminController::class, 'reach']);
+            });
+            Route::put('programs/{program}/knowledge-transfer', [PdAdminController::class, 'saveKnowledgeTransferSetting'])->middleware('permission:programs.manage');
             // Evaluation: forms and approval, settings, the evaluation centre, interviews, reports, alerts and exports.
             Route::middleware('permission:evaluations.manage')->group(function () {
                 Route::get('evaluation-forms', [EvaluationFormController::class, 'index']);
