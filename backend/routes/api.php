@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\AbsenceController;
 use App\Http\Controllers\Api\V1\Admin\AdmissionController;
 use App\Http\Controllers\Api\V1\Admin\AdmissionRulesController;
 use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
@@ -8,6 +9,8 @@ use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceMethodsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
 use App\Http\Controllers\Api\V1\Admin\CatalogController;
@@ -55,6 +58,7 @@ use App\Http\Controllers\Api\V1\Admin\RfpStatusController;
 use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
+use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
@@ -176,6 +180,9 @@ Route::prefix('v1')->group(function () {
         Route::post('{slug}/submit', 'submit')->middleware('throttle:external-submit');
     });
 
+    // Fingerprint devices push signed punches (no user session).
+    Route::post('integrations/fingerprint/{device}/punches', [AttendanceDeviceController::class, 'webhook'])->middleware('throttle:public');
+
     // Authentication ----------------------------------------------------------
     Route::prefix('auth')->controller(AuthController::class)->group(function () {
         Route::post('login', 'login')->middleware('throttle:login');
@@ -222,6 +229,8 @@ Route::prefix('v1')->group(function () {
             Route::post('registrations/{registration}/withdraw', [WithdrawalController::class, 'withdraw']);
             Route::get('withdrawals', [WithdrawalController::class, 'mine']);
             Route::get('withdrawal-reasons', [WithdrawalController::class, 'activeReasons']);
+            Route::post('registrations/{registration}/excuses', [AbsenceController::class, 'submitExcuse']);
+            Route::get('excuses', [AbsenceController::class, 'myExcuses']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -244,6 +253,8 @@ Route::prefix('v1')->group(function () {
             Route::post('sessions/{session}/join', [MyTrainingController::class, 'joinSession'])->middleware('throttle:scan');
             Route::post('sessions/{session}/leave', [MyTrainingController::class, 'leaveSession'])->middleware('throttle:scan');
             Route::post('attendance/scan', [MyTrainingController::class, 'scan'])->middleware('throttle:scan');
+            Route::get('attendance-qr', [AttendanceMethodsController::class, 'myQr']);
+            Route::post('trainer-attendance/scan', [AttendanceMethodsController::class, 'trainerScan'])->middleware('throttle:scan');
 
             Route::get('tasks', [MyOutcomesController::class, 'tasks']);
             Route::post('tasks/{task}/submit', [MyOutcomesController::class, 'submitTask']);
@@ -507,6 +518,14 @@ Route::prefix('v1')->group(function () {
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
                 Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
                 Route::post('sessions/{session}/attendance', [SessionController::class, 'mark']);
+                Route::get('sessions/{session}/attendance/export', [AttendanceMethodsController::class, 'exportSession']);
+                Route::get('groups/{group}/attendance/export', [AttendanceMethodsController::class, 'exportGroup']);
+                Route::get('sessions/{session}/sheet.pdf', [AttendanceMethodsController::class, 'blankSheet']);
+                Route::get('sessions/{session}/kiosk', [AttendanceMethodsController::class, 'kiosk']);
+                Route::post('sessions/{session}/signatures', [AttendanceMethodsController::class, 'sign']);
+                Route::post('sessions/{session}/staff-scan', [AttendanceMethodsController::class, 'staffScan'])->middleware('throttle:scan');
+                Route::get('sessions/{session}/trainer-attendance', [AttendanceMethodsController::class, 'trainerRows']);
+                Route::post('sessions/{session}/trainer-attendance', [AttendanceMethodsController::class, 'markTrainer']);
             });
 
             // Tasks
@@ -827,6 +846,50 @@ Route::prefix('v1')->group(function () {
             Route::post('needs-surveys/{needsSurvey}/submit-approval', [NeedsToolsController::class, 'submitApproval'])->middleware('permission:needs.manage');
             Route::post('needs-surveys/{needsSurvey}/approve', [NeedsToolsController::class, 'approve'])->middleware('permission:instruments.approve');
             Route::post('needs-surveys/{needsSurvey}/return', [NeedsToolsController::class, 'returnSurvey'])->middleware('permission:instruments.approve');
+            // Places, buildings, bookings, seating plans and logistics.
+            Route::middleware('permission:programs.view|rooms.book|logistics.manage')->group(function () {
+                Route::get('places', [RoomsOpsController::class, 'places']);
+                Route::get('room-bookings', [RoomsOpsController::class, 'bookings']);
+                Route::get('rooms/calendar', [RoomsOpsController::class, 'calendar']);
+                Route::get('rooms/{room}/seating', [RoomsOpsController::class, 'seat']);
+            });
+            Route::middleware('permission:places.manage')->group(function () {
+                Route::post('places', [RoomsOpsController::class, 'savePlace']);
+                Route::put('places/{place}', [RoomsOpsController::class, 'savePlace']);
+                Route::post('buildings', [RoomsOpsController::class, 'saveBuilding']);
+                Route::put('buildings/{building}', [RoomsOpsController::class, 'saveBuilding']);
+            });
+            Route::middleware('permission:rooms.book|rooms.manage')->group(function () {
+                Route::post('room-bookings', [RoomsOpsController::class, 'storeBooking']);
+                Route::put('room-bookings/{booking}', [RoomsOpsController::class, 'updateBooking']);
+                Route::delete('room-bookings/{booking}', [RoomsOpsController::class, 'cancelBooking']);
+            });
+            Route::middleware('permission:seating.manage')->group(function () {
+                Route::put('rooms/{room}/seating', [RoomsOpsController::class, 'saveSeating']);
+                Route::post('rooms/{room}/seating/auto', [RoomsOpsController::class, 'autoSeat']);
+            });
+            Route::middleware('permission:programs.view|logistics.manage')->group(function () {
+                Route::get('logistics-requests', [RoomsOpsController::class, 'logisticsIndex']);
+                Route::post('logistics-requests', [RoomsOpsController::class, 'logisticsStore']);
+                Route::put('logistics-requests/{logisticsRequest}', [RoomsOpsController::class, 'logisticsUpdate']);
+            });
+            // Absence alerts, excuses and leaves.
+            Route::get('absence-alerts', [AbsenceController::class, 'alerts'])->middleware('permission:attendance.manage');
+            Route::put('absence-alerts/{alert}', [AbsenceController::class, 'updateAlert'])->middleware('permission:attendance.manage');
+            Route::get('excuses', [AbsenceController::class, 'excuses'])->middleware('permission:registrations.approve_manager|excuses.decide');
+            Route::post('excuses/{excuse}/decision', [AbsenceController::class, 'decideExcuse']);
+            Route::post('attendance/{attendance}/leaves', [AbsenceController::class, 'storeLeave'])->middleware('permission:leaves.manage|attendance.manage');
+            Route::delete('attendance-leaves/{leave}', [AbsenceController::class, 'destroyLeave'])->middleware('permission:leaves.manage|attendance.manage');
+            // Attendance devices (fingerprint / badge).
+            Route::middleware('permission:attendance.devices')->group(function () {
+                Route::get('attendance-devices', [AttendanceDeviceController::class, 'index']);
+                Route::post('attendance-devices', [AttendanceDeviceController::class, 'save']);
+                Route::put('attendance-devices/{device}', [AttendanceDeviceController::class, 'save']);
+                Route::delete('attendance-devices/{device}', [AttendanceDeviceController::class, 'destroy']);
+                Route::post('attendance-devices/{device}/test', [AttendanceDeviceController::class, 'test']);
+                Route::post('attendance-devices/{device}/import', [AttendanceDeviceController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('attendance-devices/{device}/log', [AttendanceDeviceController::class, 'log']);
+            });
             // Admission: seats per entity and the two approval stages.
             Route::middleware('permission:programs.view')->get('groups/{group}/seats', [AdmissionController::class, 'seats']);
             Route::middleware('permission:seats.manage|groups.manage')->put('groups/{group}/seats', [AdmissionController::class, 'updateSeats']);

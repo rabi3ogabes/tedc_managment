@@ -8,6 +8,7 @@ use App\Models\AttendanceAttempt;
 use App\Models\Employee;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
@@ -144,8 +145,13 @@ class AttendanceService
         }
 
         $place = $this->geofence->verify($session, $location);
+        $settings = app(AttendanceSettings::class)->all();
 
         if (! $attendance->exists || ! $attendance->check_in_at) {
+            $window = $session->checkin_window_minutes ?? $settings['checkin_window_minutes'];
+            if ($window !== null && $now->gt($session->starts_at->copy()->addMinutes($window))) {
+                throw new BusinessRuleException(__('messages.attendance.checkin_window_closed', ['minutes' => $window]), 'checkin_window_closed');
+            }
             $late = $now->gt($session->starts_at->copy()->addMinutes(config('tedc.attendance.late_after_minutes')));
             $attendance->fill([
                 'employee_id' => $employee->id,
@@ -163,6 +169,10 @@ class AttendanceService
             ])->save();
             $action = 'check_in';
         } elseif (! $attendance->check_out_at) {
+            $window = $session->checkout_window_minutes ?? $settings['checkout_window_minutes'];
+            if ($window !== null && $now->lt($session->ends_at->copy()->subMinutes($window))) {
+                throw new BusinessRuleException(__('messages.attendance.checkout_window_closed', ['minutes' => $window]), 'checkout_window_closed');
+            }
             $attendance->check_out_at = $now;
             $attendance->minutes_attended = $this->overlapMinutes($session, $attendance->check_in_at, $now);
             $attendance->save();
@@ -253,6 +263,7 @@ class AttendanceService
      */
     public function mark(ProgramSession $session, Registration $registration, string $status, User $actor, ?int $minutes = null): Attendance
     {
+        $this->assertManualWindow($session, $actor);
         $full = $session->durationMinutes();
         $minutes ??= match ($status) {
             'present', 'excused' => $full,
@@ -279,6 +290,18 @@ class AttendanceService
         return $attendance;
     }
 
+    /** Trainers and school staff may enter attendance by hand only for a short while after the session starts; centre staff are not limited. */
+    public function assertManualWindow(ProgramSession $session, User $actor): void
+    {
+        $window = app(AttendanceSettings::class)->all()['manual_window_minutes'];
+        if ($window === null || $actor->roles->pluck('slug')->intersect(Role::CENTER_STAFF)->isNotEmpty()) {
+            return;
+        }
+        if (now()->gt($session->starts_at->copy()->addMinutes($window))) {
+            throw new BusinessRuleException(__('messages.attendance.manual_window_closed', ['minutes' => $window]), 'manual_window_closed');
+        }
+    }
+
     /**
      * Attendance % = attended minutes / scheduled minutes across all non-cancelled sessions.
      * Excused sessions are removed from the denominator. Open check-ins (no check-out) of
@@ -295,6 +318,12 @@ class AttendanceService
         foreach ($sessions as $session) {
             $record = $records->get($session->id);
             if ($record?->status === 'excused') {
+                // By policy an excused day is left out of the maths, or counts as fully attended.
+                if (app(AttendanceSettings::class)->all()['excuse_counts_as_attended']) {
+                    $scheduled += $session->durationMinutes();
+                    $attended += $session->durationMinutes();
+                }
+
                 continue;
             }
 

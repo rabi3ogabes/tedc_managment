@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-#[Fillable(['program_id', 'training_group_id', 'trainer_id', 'training_room_id', 'sequence', 'title_en', 'title_ar', 'description', 'starts_at', 'ends_at', 'location_text', 'online_url', 'activities', 'status', 'mode', 'online_platform', 'online_passcode', 'recording_url'])]
+#[Fillable(['program_id', 'training_group_id', 'trainer_id', 'training_room_id', 'sequence', 'title_en', 'title_ar', 'description', 'starts_at', 'ends_at', 'location_text', 'online_url', 'activities', 'status', 'mode', 'online_platform', 'online_passcode', 'recording_url', 'checkin_window_minutes', 'checkout_window_minutes'])]
 #[Hidden(['qr_secret'])]
 class ProgramSession extends Model
 {
@@ -35,6 +35,11 @@ class ProgramSession extends Model
     public function trainer(): BelongsTo
     {
         return $this->belongsTo(Trainer::class);
+    }
+
+    public function trainingGroup(): BelongsTo
+    {
+        return $this->belongsTo(TrainingGroup::class, 'training_group_id');
     }
 
     public function room(): BelongsTo

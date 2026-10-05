@@ -32,7 +32,7 @@ class SystemEndpointsTest extends TestCase
 
         $this->getJson('/api/v1/system/cron', ['Authorization' => 'Bearer right-secret'])
             ->assertOk()
-            ->assertJsonPath('data', ['tedc:program-lifecycle' => 'ok', 'tedc:group-lifecycle' => 'ok', 'tedc:plan-deviations' => 'ok', 'tedc:needs-cycles' => 'ok', 'tedc:needs-daily' => 'ok', 'tedc:seats-release' => 'ok', 'tedc:session-reminders' => 'ok', 'tedc:dispatch-surveys' => 'ok', 'tedc:self-heal' => 'ok']);
+            ->assertJsonPath('data', ['tedc:program-lifecycle' => 'ok', 'tedc:group-lifecycle' => 'ok', 'tedc:plan-deviations' => 'ok', 'tedc:needs-cycles' => 'ok', 'tedc:needs-daily' => 'ok', 'tedc:seats-release' => 'ok', 'tedc:operations-hourly' => 'ok', 'tedc:session-reminders' => 'ok', 'tedc:dispatch-surveys' => 'ok', 'tedc:self-heal' => 'ok']);
     }
 
     public function test_setup_migrates_and_can_sync_supabase_users(): void

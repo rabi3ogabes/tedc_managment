@@ -289,6 +289,15 @@ class RegistrationService
             throw new BusinessRuleException(__('messages.registration.window_open', ['date' => $closes->toDateTimeString()]), 'window_open', ['closes_at' => $closes->toIso8601String()]);
         }
         if (! $override) {
+            // The room, the building and the place limit how many people can be approved, however many seats the group has.
+            $room = $group?->room ?? ($registration->program->sessions()->whereNotNull('training_room_id')->first()?->room);
+            if ($room) {
+                $cap = min(array_filter([$group?->capacity, app(RoomService::class)->effectiveCapacity($room)]));
+                $taken = Registration::where('program_id', $registration->program_id)->when($group, fn ($q) => $q->where('training_group_id', $group->id))->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->count();
+                if ($taken >= $cap) {
+                    throw new BusinessRuleException(__('messages.room.over_capacity', ['room' => $room->translate('name'), 'capacity' => $cap, 'needed' => $taken + 1]), 'room_capacity', ['capacity' => $cap]);
+                }
+            }
             $clash = $this->conflicts->conflicts($registration->employee, $registration->program, $group, [Registration::STATUS_APPROVED], $registration->id);
             if ($clash) {
                 throw new BusinessRuleException(__('messages.registration.time_conflict', ['program' => $clash[0]['program']]), 'time_conflict', ['conflicts' => $clash]);

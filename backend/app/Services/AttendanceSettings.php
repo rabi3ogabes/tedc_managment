@@ -20,6 +20,14 @@ class AttendanceSettings
             'geofence_enabled' => (bool) config('tedc.attendance.geofence.enabled'),
             'radius_m' => (int) config('tedc.attendance.geofence.radius_m'),
             'max_accuracy_m' => (int) config('tedc.attendance.geofence.max_accuracy_m'),
+            // Phase 05: windows (null = no limit), absence alerts and the excuse / leave policy.
+            'checkin_window_minutes' => null,
+            'checkout_window_minutes' => null,
+            'manual_window_minutes' => null,
+            'absence_warning_percent' => 10,
+            'absence_breach_percent' => null,
+            'excuse_counts_as_attended' => false,
+            'leave_notifies_trainee' => true,
         ];
     }
 
@@ -34,6 +42,12 @@ class AttendanceSettings
         $next['geofence_enabled'] = (bool) $next['geofence_enabled'];
         $next['radius_m'] = (int) $next['radius_m'];
         $next['max_accuracy_m'] = (int) $next['max_accuracy_m'];
+        foreach (['checkin_window_minutes', 'checkout_window_minutes', 'manual_window_minutes', 'absence_breach_percent'] as $k) {
+            $next[$k] = isset($next[$k]) && $next[$k] !== '' && (int) $next[$k] > 0 ? (int) $next[$k] : null;
+        }
+        $next['absence_warning_percent'] = max(1, min(100, (int) $next['absence_warning_percent']));
+        $next['excuse_counts_as_attended'] = (bool) $next['excuse_counts_as_attended'];
+        $next['leave_notifies_trainee'] = (bool) $next['leave_notifies_trainee'];
 
         SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $next, 'updated_by' => $by?->id]);
         Cache::forget(self::CACHE);

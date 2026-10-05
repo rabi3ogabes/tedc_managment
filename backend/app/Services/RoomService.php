@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\ProgramSession;
+use App\Models\RoomBooking;
 use App\Models\TrainingRoom;
+use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -29,6 +31,42 @@ class RoomService
             ->get();
     }
 
+    /** Bookings (meetings, exams, events…) overlapping [start, end) in the room. */
+    public function bookingConflicts(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptBookingId = null): Collection
+    {
+        return RoomBooking::with('booker:id,name,name_ar')->where('room_id', $roomId)->where('status', 'confirmed')->where('starts_at', '<', $end)->where('ends_at', '>', $start)
+            ->when($exceptBookingId, fn ($q, $id) => $q->where('id', '!=', $id))->orderBy('starts_at')->get();
+    }
+
+    /** True when neither a session nor a booking holds the room in that time. */
+    public function isFree(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptSessionId = null): bool
+    {
+        return $this->conflicts($roomId, $start, $end, $exceptSessionId)->isEmpty() && $this->bookingConflicts($roomId, $start, $end)->isEmpty();
+    }
+
+    /** Who holds the room: sessions (with their program and supervisor) and bookings (with the person who booked). @return list<array<string, mixed>> */
+    public function occupants(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptSessionId = null, ?string $exceptBookingId = null): array
+    {
+        $out = [];
+        foreach ($this->conflicts($roomId, $start, $end, $exceptSessionId) as $s) {
+            $supervisor = $s->trainingGroup?->supervisor ?? ($s->program?->coordinator_id ? User::find($s->program->coordinator_id) : null);
+            $out[] = ['type' => 'session', 'id' => $s->id, 'title' => $s->translate('title'), 'program' => $s->program?->translate('title'), 'supervisor' => $supervisor?->displayName(), 'starts_at' => $s->starts_at->toIso8601String(), 'ends_at' => $s->ends_at->toIso8601String()];
+        }
+        foreach ($this->bookingConflicts($roomId, $start, $end, $exceptBookingId) as $b) {
+            $out[] = ['type' => 'booking', 'id' => $b->id, 'title' => $b->title, 'purpose' => $b->purpose, 'supervisor' => $b->booker?->displayName(), 'starts_at' => $b->starts_at->toIso8601String(), 'ends_at' => $b->ends_at->toIso8601String()];
+        }
+
+        return $out;
+    }
+
+    /** The most people the room may hold: its own capacity, the building's limit and the place's limit, whichever is lowest. */
+    public function effectiveCapacity(TrainingRoom $room): int
+    {
+        $room->loadMissing(['buildingModel', 'place']);
+
+        return (int) min(array_filter([$room->capacity, $room->buildingModel?->capacity_limit, $room->place?->capacity_limit], fn ($v) => $v !== null && $v > 0) ?: [PHP_INT_MAX]);
+    }
+
     /** @return array{0: CarbonInterface, 1: CarbonInterface} */
     private function span(CarbonInterface $start, CarbonInterface $end): array
     {
@@ -44,21 +82,22 @@ class RoomService
     /**
      * @throws BusinessRuleException when the room is already booked or unavailable
      */
-    public function assertBookable(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptSessionId = null): void
+    public function assertBookable(string $roomId, CarbonInterface $start, CarbonInterface $end, ?string $exceptSessionId = null, ?int $attendees = null, ?string $exceptBookingId = null): void
     {
         $room = TrainingRoom::findOrFail($roomId);
         if ($room->status !== 'active') {
             throw new BusinessRuleException(__('messages.room.unavailable', ['room' => $room->translate('name')]), 'room_unavailable');
         }
 
-        $conflicts = $this->conflicts($roomId, $start, $end, $exceptSessionId);
-        if ($conflicts->isNotEmpty()) {
+        $occupants = $this->occupants($roomId, $start, $end, $exceptSessionId, $exceptBookingId);
+        if ($occupants) {
             throw new BusinessRuleException(__('messages.room.booked', ['room' => $room->translate('name')]), 'room_conflict', [
-                'sessions' => $conflicts->map(fn ($s) => [
-                    'id' => $s->id, 'title' => $s->translate('title'), 'program' => $s->program?->translate('title'),
-                    'starts_at' => $s->starts_at->toIso8601String(), 'ends_at' => $s->ends_at->toIso8601String(),
-                ])->all(),
+                'occupants' => $occupants,
+                'sessions' => collect($occupants)->where('type', 'session')->map(fn ($o) => ['id' => $o['id'], 'title' => $o['title'], 'program' => $o['program'], 'starts_at' => $o['starts_at'], 'ends_at' => $o['ends_at']])->values()->all(),
             ]);
+        }
+        if ($attendees !== null && $attendees > $this->effectiveCapacity($room)) {
+            throw new BusinessRuleException(__('messages.room.over_capacity', ['room' => $room->translate('name'), 'capacity' => $this->effectiveCapacity($room), 'needed' => $attendees]), 'room_capacity', ['capacity' => $this->effectiveCapacity($room)]);
         }
     }
 

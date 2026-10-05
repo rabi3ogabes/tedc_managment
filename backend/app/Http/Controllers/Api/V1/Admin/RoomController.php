@@ -163,6 +163,8 @@ class RoomController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'place_id' => ['nullable', 'uuid', 'exists:training_places,id'],
+            'building_id' => ['nullable', 'uuid', 'exists:buildings,id'],
         ]);
 
         foreach (array_keys($data['layouts'] ?? []) as $key) {

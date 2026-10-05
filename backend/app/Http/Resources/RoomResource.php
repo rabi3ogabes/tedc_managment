@@ -24,7 +24,7 @@ class RoomResource extends JsonResource
             'building' => $this->building,
             'location' => $this->location,
             'floor' => $this->floor,
-            'capacity' => $this->capacity,
+            'capacity' => $this->capacity, 'effective_capacity' => app(\App\Services\RoomService::class)->effectiveCapacity($this->resource), 'place_id' => $this->place_id, 'building_id' => $this->building_id,
             'area_m2' => $this->area_m2,
             'layout' => $this->layout,
             'layouts' => collect($this->layouts ?? [])->map(fn ($cap, $key) => [

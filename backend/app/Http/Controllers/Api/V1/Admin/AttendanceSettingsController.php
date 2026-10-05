@@ -24,6 +24,13 @@ class AttendanceSettingsController extends Controller
             'geofence_enabled' => ['sometimes', 'boolean'],
             'radius_m' => ['sometimes', 'integer', 'min:20', 'max:5000'],
             'max_accuracy_m' => ['sometimes', 'integer', 'min:20', 'max:2000'],
+            'checkin_window_minutes' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:600'],
+            'checkout_window_minutes' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:600'],
+            'manual_window_minutes' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:600'],
+            'absence_warning_percent' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'absence_breach_percent' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:100'],
+            'excuse_counts_as_attended' => ['sometimes', 'boolean'],
+            'leave_notifies_trainee' => ['sometimes', 'boolean'],
         ]);
         $this->settings->update($data, $request->user());
 

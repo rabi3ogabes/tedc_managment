@@ -35,7 +35,7 @@ class SessionController extends Controller
     {
         $data = $this->validated($request);
         $this->guardCalendar($request, $data['starts_at'], $data['ends_at']);
-        $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null, $data['trainer_id'] ?? null);
+        $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null, $data['trainer_id'] ?? null, null, $program->id);
         // A session of a remote program is an online meeting using the program's link unless it has its own.
         $remote = $program->delivery_mode === 'online' || ($data['mode'] ?? null) === 'online';
         if ($remote) {
@@ -60,7 +60,7 @@ class SessionController extends Controller
             if ($moved) {
                 $this->guardCalendar($request, $start, $end);
             }
-            $this->guardResources($start, $end, $roomId, $trainerId, $session->id);
+            $this->guardResources($start, $end, $roomId, $trainerId, $session->id, $session->program_id);
         }
         $session->update(Arr::except($data, 'calendar_approval_reason'));
         // Marking a session delivered can complete a trainer's hours: issue their certificate straight away.
@@ -130,13 +130,14 @@ class SessionController extends Controller
     }
 
     /** The room and the trainer must be active and free for the whole session. */
-    private function guardResources(mixed $startsAt, mixed $endsAt, ?string $roomId, ?string $trainerId, ?string $exceptSessionId = null): void
+    private function guardResources(mixed $startsAt, mixed $endsAt, ?string $roomId, ?string $trainerId, ?string $exceptSessionId = null, ?string $programId = null): void
     {
         $start = Carbon::parse($startsAt);
         $end = Carbon::parse($endsAt);
         app(TrainingDaySettings::class)->assertWithinDay($start, $end);
         if ($roomId) {
-            $this->rooms->assertBookable($roomId, $start, $end, $exceptSessionId);
+            $attendees = $programId ? Registration::where('program_id', $programId)->where('status', Registration::STATUS_APPROVED)->count() : null;
+            $this->rooms->assertBookable($roomId, $start, $end, $exceptSessionId, $attendees);
         }
         if ($trainerId) {
             $this->trainers->assertAssignable($trainerId, $start, $end, $exceptSessionId);

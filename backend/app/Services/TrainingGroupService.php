@@ -83,7 +83,7 @@ class TrainingGroupService
             $range = $this->range($c['date'], $pattern);
             $free = null;
             if ($roomId) {
-                $free = $this->rooms->conflicts($roomId, $range[0], $range[1])->isEmpty();
+                $free = $this->rooms->isFree($roomId, $range[0], $range[1]);
             }
 
             return [
@@ -122,7 +122,7 @@ class TrainingGroupService
 
                     continue;
                 }
-                $roomId = $s->training_room_id && $this->rooms->conflicts($s->training_room_id, $start, $end)->isEmpty() ? $s->training_room_id : null;
+                $roomId = $s->training_room_id && $this->rooms->isFree($s->training_room_id, $start, $end) ? $s->training_room_id : null;
                 $copy->sessions()->create([
                     'program_id' => $program->id, 'title_ar' => $s->title_ar, 'title_en' => $s->title_en, 'description' => $s->description, 'sequence' => $s->sequence,
                     'starts_at' => $start, 'ends_at' => $end, 'training_room_id' => $roomId, 'mode' => $s->mode, 'online_platform' => $s->online_platform, 'status' => 'scheduled',
@@ -361,7 +361,7 @@ class TrainingGroupService
                 continue;
             }
             $n++;
-            $room = $roomId && $this->rooms->conflicts($roomId, $start, $end)->isEmpty() ? $roomId : null;
+            $room = $roomId && $this->rooms->isFree($roomId, $start, $end) ? $roomId : null;
             if ($roomId && ! $room) {
                 $skipped[] = ['date' => $c['date'], 'reason' => 'room_busy', 'assigned' => true];
             }

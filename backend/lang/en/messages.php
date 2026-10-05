@@ -16,6 +16,11 @@ return [
     'account' => ['unknown_field' => 'This field cannot be changed from here.', 'already_pending' => 'You already have a pending request for this field.', 'invalid_value' => 'The value you entered is not valid for this field.', 'already_reviewed' => 'This request was already reviewed.'],
     'survey' => ['closed' => 'The survey of this program is not open yet.'],
     'attendance' => [
+        'not_your_session' => 'This session is not assigned to you.',
+        'bad_signature' => 'The signature image is not valid.',
+        'checkin_window_closed' => 'Check-in closed :minutes minutes after the start.',
+        'checkout_window_closed' => 'Check-out opens :minutes minutes before the end.',
+        'manual_window_closed' => 'Manual entry is only allowed in the first :minutes minutes of the session.',
         'not_online' => 'This session is not online.',
         'joined' => 'Your attendance is recorded. Enjoy the session!',
         'invalid_qr' => 'The attendance code is invalid or has expired.',
@@ -62,6 +67,9 @@ return [
     'seats' => ['over_capacity' => 'The allocated seats (:total) exceed the group capacity (:capacity).'],
     'withdrawal' => ['not_possible' => 'This registration cannot be withdrawn in its current state.', 'after_start' => 'Withdrawal is not allowed after the program has started.', 'reason_required' => 'Choose a reason for withdrawing.', 'attachment_required' => 'This reason needs a supporting document.', 'already_requested' => 'A withdrawal request is already waiting for a decision.', 'decided' => 'This request was already decided.'],
     'external' => ['closed' => 'This form is not open for submissions.', 'code_invalid' => 'The verification code is wrong or expired. Request a new one.', 'account_exists' => 'An account with this email already exists. Sign in instead.', 'duplicate' => 'A request with these details is already being reviewed.', 'decided' => 'This request was already decided.', 'domain' => 'Use an email address from: :domains.', 'activation_invalid' => 'The activation link is invalid or expired.'],
+    'excuse' => ['when_required' => 'Choose the session, or the first and last day of the absence.', 'bad_session' => 'That session does not belong to this program.', 'decided' => 'This excuse was already decided.'],
+    'leave' => ['bad_minutes' => 'The leave minutes must be between 1 and the minutes the trainee attended.'],
+    'seating' => ['duplicate' => 'A person can sit in one seat only.', 'no_layout' => 'Design the seat grid first.', 'insufficient' => 'The room has :seats usable seats for :people people.'],
     'structure' => ['one_level' => 'Only one level of sub-programs is allowed: a sub-program cannot have its own sub-programs.'],
     'grants' => ['attendance_denied' => 'You do not have the right to record attendance for this program. Ask the head of training to grant it.'],
     'roles' => [
@@ -108,6 +116,7 @@ return [
         ],
     ],
     'room' => [
+        'over_capacity' => ':room holds at most :capacity people here, but :needed are needed.',
         'unavailable' => 'Room ":room" is not available (maintenance or inactive).',
         'booked' => 'Room ":room" is already booked at this time.',
         'capacity' => 'Room ":room" seats :capacity, fewer than the program needs (:needed).',
