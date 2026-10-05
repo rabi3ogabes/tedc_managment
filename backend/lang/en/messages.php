@@ -97,6 +97,18 @@ return [
         'exception_attachment' => 'Attach the document that supports the exception.',
         'not_registered' => 'You are not registered in this program.',
     ],
+    'evaluation' => [
+        'submitted' => 'This form was already filled in.',
+        'expired' => 'This form has expired.',
+        'no_evidence' => 'This question does not accept attached evidence.',
+        'too_many_files' => 'At most :max attachments per question.',
+        'bad_file' => 'Attachment not accepted: use a PDF, an image, an Office file or an MP4 up to 10 MB, or a link starting with http.',
+        'system_form' => 'This form belongs to an existing instrument and is not edited here.',
+        'form_in_use' => 'A default or used form cannot be deleted.',
+        'report_locked' => 'The report is approved and cannot be edited.',
+        'report_not_reviewed' => 'The report must be reviewed before it is approved.',
+        'too_few' => 'Results are not shown before at least :n responses arrive (confidentiality).',
+    ],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'survey_first' => 'Fill in the program survey first to download your certificate.',

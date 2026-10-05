@@ -16,8 +16,10 @@ use App\Models\TaskSubmission;
 use App\Models\TrainerCertificate;
 use App\Services\Assessment\KnowledgeService;
 use App\Services\CertificateService;
+use App\Services\EvaluationService;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Services\SatisfactionAlertService;
 use App\Services\TaskApprovalService;
 use App\Services\TrainerCertificateService;
 use Illuminate\Http\JsonResponse;
@@ -154,6 +156,8 @@ class MyOutcomesController extends MyTrainingController
 
         $certificates->refreshStatus($registration);
         $impact->score($registration);
+        // A low average with enough answers raises the leadership alert (once per group).
+        app(SatisfactionAlertService::class)->check($registration);
         // The survey unlocks an already issued certificate: tell the trainee it can be downloaded.
         if ($certificate = $registration->certificate) {
             $certificates->announce($certificate);
@@ -278,9 +282,15 @@ class MyOutcomesController extends MyTrainingController
             'skills_improved.*' => ['string', 'max:120'],
             'needs_support' => ['required', 'boolean'],
             'support_details' => ['nullable', 'required_if:needs_support,true', 'string', 'max:2000'],
+            'evidence' => ['sometimes', 'array', 'max:5'],
+            'evidence.*' => ['nullable'],
         ]);
 
-        return response()->json(['data' => $impact->submitSurvey($survey, $data)]);
+        $evidence = $this->evidence($request, "impact/{$survey->id}");
+        $result = $impact->submitSurvey($survey, collect($data)->except('evidence')->all());
+        $evidence && $result->update(['evidence' => $evidence]);
+
+        return response()->json(['data' => $result->refresh()]);
     }
 
     // Supervisor -------------------------------------------------------------
@@ -312,8 +322,22 @@ class MyOutcomesController extends MyTrainingController
             'behavior_change' => ['nullable', 'string', 'max:3000'],
             'comments' => ['nullable', 'string', 'max:3000'],
             'recommendations' => ['nullable', 'string', 'max:3000'],
+            'evidence' => ['sometimes', 'array', 'max:5'],
+            'evidence.*' => ['nullable'],
         ]);
 
-        return response()->json(['data' => $impact->submitSupervisorEvaluation($registration, $this->user(), $data)], 201);
+        $evidence = $this->evidence($request, "manager/{$registration->id}");
+        $result = $impact->submitSupervisorEvaluation($registration, $this->user(), collect($data)->except('evidence')->all());
+        $evidence && $result->update(['evidence' => $evidence]);
+
+        return response()->json(['data' => $result->refresh()], 201);
+    }
+
+    /** Evidence sent with an impact form: files (`evidence[]` uploads) and http(s) links (`evidence[]` strings). @return list<array<string, mixed>> */
+    private function evidence(Request $request, string $directory): array
+    {
+        $items = array_merge($request->file('evidence', []) ?: [], array_filter((array) $request->input('evidence', []), 'is_string'));
+
+        return $items ? app(EvaluationService::class)->evidenceItems($items, $directory, 5) : [];
     }
 }

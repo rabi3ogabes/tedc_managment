@@ -57,6 +57,14 @@ class SurveySchema
                 'required' => $type !== 'section' && (bool) ($q['required'] ?? false),
             ];
 
+            // Bilingual titles and evidence uploads are used by the evaluation forms; surveys that do not set them are unchanged.
+            if (self::text($q['title_en'] ?? null) !== null) {
+                $item['title_en'] = Str::limit(trim((string) $q['title_en']), 500, '');
+            }
+            if (! empty($q['evidence'])) {
+                $item['evidence'] = true;
+            }
+
             if (in_array($type, self::CHOICE_TYPES, true)) {
                 $item['options'] = self::items($q['options'] ?? [], 'o');
                 if (count($item['options']) < 2) {

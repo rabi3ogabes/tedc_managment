@@ -22,6 +22,11 @@ class Evaluation extends Model
         return $this->belongsTo(Program::class);
     }
 
+    public function registration(): BelongsTo
+    {
+        return $this->belongsTo(Registration::class);
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

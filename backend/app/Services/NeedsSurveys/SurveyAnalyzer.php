@@ -88,8 +88,18 @@ class SurveyAnalyzer
 
     private function questions(NeedsSurvey $survey, Collection $responses): array
     {
+        return $this->questionStats($survey->questions, $responses);
+    }
+
+    /**
+     * Per-question statistics for any list of questions and any responses that carry `answers`.
+     *
+     * @param  array<int, array<string, mixed>>  $questions
+     */
+    public function questionStats(array $questions, Collection $responses): array
+    {
         $out = [];
-        foreach ($survey->questions as $q) {
+        foreach ($questions as $q) {
             if ($q['type'] === 'section') {
                 continue;
             }

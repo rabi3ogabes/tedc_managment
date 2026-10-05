@@ -25,6 +25,7 @@ class NotificationRoute
         return match (true) {
             $group === 'session' && $id('session_id') !== null => '/sessions/'.$id('session_id'),
             $group === 'task' && $id('task_id') !== null => '/tasks/'.$id('task_id'),
+            in_array($type, ['evaluation.assigned', 'evaluation.reminder', 'impact.manager_due']) && $id('assignment_id') !== null => '/evaluations/'.$id('assignment_id'),
             $type === 'impact.survey' && $id('survey_id') !== null => '/surveys/'.$id('survey_id'),
             $group === 'needs_survey' && $id('needs_survey_id') !== null => '/needs-surveys/'.$id('needs_survey_id'),
             $group === 'course' && $id('registration_id') !== null => '/courses/'.$id('registration_id'),

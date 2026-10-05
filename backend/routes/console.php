@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('tedc:program-lifecycle')->hourly()->withoutOverlapping();
 Schedule::command('tedc:group-lifecycle')->hourly()->withoutOverlapping();
 Schedule::command('tedc:operations-hourly')->hourly()->withoutOverlapping();
+Schedule::command('tedc:evaluations-hourly')->hourly()->withoutOverlapping();
 Schedule::command('tedc:seats-release')->hourly()->withoutOverlapping();
 Schedule::command('tedc:needs-daily')->dailyAt('02:00')->withoutOverlapping();
 Schedule::command('tedc:needs-cycles')->dailyAt('06:30')->withoutOverlapping();

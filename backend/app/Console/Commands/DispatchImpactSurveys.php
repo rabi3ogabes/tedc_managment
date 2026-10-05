@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\EvaluationService;
 use App\Services\ImpactService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -14,7 +15,8 @@ class DispatchImpactSurveys extends Command
     public function handle(ImpactService $impact): int
     {
         $result = $impact->dispatchDue();
-        $this->info("Sent {$result['sent']} surveys, expired {$result['expired']}.");
+        $managers = app(EvaluationService::class)->dispatchManagerImpact();
+        $this->info("Sent {$result['sent']} surveys, expired {$result['expired']}, asked {$managers} manager(s).");
 
         return self::SUCCESS;
     }

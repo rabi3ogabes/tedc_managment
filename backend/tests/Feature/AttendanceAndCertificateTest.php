@@ -11,6 +11,7 @@ use App\Models\Skill;
 use App\Models\Task;
 use App\Models\TaskSubmission;
 use App\Services\AttendanceService;
+use App\Services\EvaluationSettings;
 use App\Services\ImpactService;
 use Tests\TestCase;
 
@@ -169,7 +170,8 @@ class AttendanceAndCertificateTest extends TestCase
         $certificate = Certificate::first();
         $this->assertNotNull($certificate->file_path);
         $this->assertSame(Registration::STATUS_COMPLETED, $registration->fresh()->status);
-        $this->assertSame(3, ImpactSurvey::where('registration_id', $registration->id)->count());
+        // One trainee impact form by default (at 45 days); the optional second one is a setting.
+        $this->assertSame(1, ImpactSurvey::where('registration_id', $registration->id)->count());
         $this->assertSame(4, (int) $registration->employee->skills()->where('skills.id', $skill->id)->first()->pivot->level);
 
         // Public verification & PDF download.
@@ -181,11 +183,13 @@ class AttendanceAndCertificateTest extends TestCase
     public function test_impact_score_blends_available_signals(): void
     {
         $registration = $this->approvedRegistration();
-        $registration->update(['attendance_percent' => 100, 'status' => Registration::STATUS_COMPLETED, 'completed_at' => now()->subDays(40)]);
+        $registration->update(['attendance_percent' => 100, 'status' => Registration::STATUS_COMPLETED, 'completed_at' => now()->subDays(50)]);
+        // The trainee form goes out at least one and a half months after the program (45 days by default); a second one at 90 days is optional.
+        app(EvaluationSettings::class)->update(['impact' => ['optional_days' => 90]]);
         $service = app(ImpactService::class);
         $service->scheduleFollowUps($registration);
 
-        $survey = ImpactSurvey::where('registration_id', $registration->id)->where('stage_days', 30)->first();
+        $survey = ImpactSurvey::where('registration_id', $registration->id)->where('stage_days', 45)->first();
         $this->asUser($registration->employee->user)->postJson("/api/v1/me/surveys/{$survey->id}", [
             'applied_learning' => 'yes', 'application_score' => 80, 'needs_support' => false,
         ])->assertOk();

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\EvaluationAssignment;
 use App\Models\ImpactSurvey;
 use App\Models\Program;
 use App\Models\Registration;
@@ -25,13 +26,15 @@ use App\Models\User;
  */
 class ImpactService
 {
-    public function __construct(private readonly NotificationService $notifications) {}
+    public function __construct(private readonly NotificationService $notifications, private readonly EvaluationSettings $settings) {}
 
     public function scheduleFollowUps(Registration $registration): void
     {
         $base = ($registration->completed_at ?? now())->copy()->startOfDay();
 
-        foreach (ImpactSurvey::STAGES as $days) {
+        // The trainee form goes out at least one and a half months after the program (45 days by default); a second one is optional.
+        $impact = $this->settings->get('impact');
+        foreach (array_filter([(int) $impact['trainee_days'], (int) ($impact['optional_days'] ?? 0)]) as $days) {
             ImpactSurvey::firstOrCreate(
                 ['registration_id' => $registration->id, 'stage_days' => $days],
                 [
@@ -70,24 +73,12 @@ class ImpactService
                         ['survey_id' => $survey->id],
                     );
 
-                    // Supervisors are asked for their observation at the 60-day checkpoint.
-                    if ($survey->stage_days === 60 && ($supervisorUser = $survey->employee->supervisor?->user)) {
-                        $this->notifications->send(
-                            $supervisorUser->id,
-                            'impact.supervisor_request',
-                            ['ar' => 'تقييم أثر التدريب لأحد الموظفين', 'en' => 'Evaluate training impact for a team member'],
-                            [
-                                'ar' => "يرجى تقييم تطبيق {$survey->employee->user->displayName('ar')} لبرنامج «{$survey->program->title_ar}».",
-                                'en' => "Please evaluate how {$survey->employee->user->name} applies \"{$survey->program->title_en}\".",
-                            ],
-                            ['registration_id' => $survey->registration_id],
-                        );
-                    }
+                    // The direct manager is asked on the manager's own schedule (EvaluationService::dispatchManagerImpact).
                     $sent++;
                 }
             });
 
-        $expired = ImpactSurvey::where('status', 'sent')->where('sent_at', '<', now()->subDays(30))->update(['status' => 'expired']);
+        $expired = ImpactSurvey::where('status', 'sent')->where('sent_at', '<', now()->subDays((int) $this->settings->get('impact.expiry_days', 30)))->update(['status' => 'expired']);
 
         return ['sent' => $sent, 'expired' => $expired];
     }
@@ -136,6 +127,8 @@ class ImpactService
             'submitted_at' => now(),
         ]);
 
+        // The same instrument can be tracked as an assignment (the manager's impact form).
+        EvaluationAssignment::where('subject_registration_id', $registration->id)->where('respondent_user_id', $supervisor->id)->where('respondent_type', 'manager')->where('status', 'pending')->update(['status' => 'submitted']);
         $this->score($registration);
 
         return $evaluation;
@@ -195,7 +188,7 @@ class ImpactService
             'impact_score' => $registrations->whereNotNull('impact_score')->avg('impact_score') ? round($registrations->whereNotNull('impact_score')->avg('impact_score'), 1) : null,
             'applied_rate' => $surveys->isNotEmpty() ? round($surveys->whereIn('applied_learning', ['yes', 'partially'])->count() / $surveys->count() * 100, 1) : null,
             'needs_support' => $surveys->where('needs_support', true)->count(),
-            'by_stage' => collect(ImpactSurvey::STAGES)->mapWithKeys(fn ($d) => [$d => [
+            'by_stage' => $surveys->pluck('stage_days')->unique()->sort()->values()->mapWithKeys(fn ($d) => [$d => [
                 'responses' => $surveys->where('stage_days', $d)->count(),
                 'avg_application' => round((float) $surveys->where('stage_days', $d)->avg('application_score'), 1),
             ]]),

@@ -23,8 +23,12 @@ use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationFormController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationInsightsController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationReportController;
 use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
+use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -66,6 +70,7 @@ use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
+use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
@@ -88,6 +93,7 @@ use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
 use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
+use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
@@ -239,6 +245,9 @@ Route::prefix('v1')->group(function () {
             Route::get('excuses', [AbsenceController::class, 'myExcuses']);
             Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
             Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
+            Route::get('evaluations', [MyEvaluationController::class, 'index']);
+            Route::get('evaluations/{assignment}', [MyEvaluationController::class, 'show']);
+            Route::post('evaluations/{assignment}', [MyEvaluationController::class, 'submit'])->middleware('throttle:30,1');
             Route::get('assessments', [MyAssessmentController::class, 'index']);
             Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
             Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
@@ -893,6 +902,49 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
             Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Evaluation: forms and approval, settings, the evaluation centre, interviews, reports, alerts and exports.
+            Route::middleware('permission:evaluations.manage')->group(function () {
+                Route::get('evaluation-forms', [EvaluationFormController::class, 'index']);
+                Route::post('evaluation-forms', [EvaluationFormController::class, 'store']);
+                Route::put('evaluation-forms/{form}', [EvaluationFormController::class, 'update']);
+                Route::delete('evaluation-forms/{form}', [EvaluationFormController::class, 'destroy']);
+                Route::post('evaluation-forms/{form}/submit-approval', [EvaluationFormController::class, 'submitApproval']);
+                Route::get('settings/evaluation', [EvaluationFormController::class, 'settings']);
+                Route::put('settings/evaluation', [EvaluationFormController::class, 'updateSettings']);
+                Route::get('settings/impact-schedule', [EvaluationFormController::class, 'settings'])->defaults('part', 'impact');
+                Route::put('settings/impact-schedule', [EvaluationFormController::class, 'updateSettings'])->defaults('part', 'impact');
+                Route::post('programs/{program}/evaluations/assign', [GroupEvaluationController::class, 'assign']);
+                Route::post('evaluation-assignments/{assignment}/remind', [GroupEvaluationController::class, 'remind']);
+                Route::get('evaluations/assignable-users', [GroupEvaluationController::class, 'assignable']);
+            });
+            Route::post('evaluation-forms/{form}/{decision}', [EvaluationFormController::class, 'decide'])->where('decision', 'approve|return')->middleware('permission:instruments.approve');
+            Route::get('settings/satisfaction-alerts', [EvaluationFormController::class, 'settings'])->defaults('part', 'alerts')->middleware('permission:satisfaction_alerts.manage|evaluations.manage');
+            Route::put('settings/satisfaction-alerts', [EvaluationFormController::class, 'updateSettings'])->defaults('part', 'alerts')->middleware('permission:satisfaction_alerts.manage');
+            Route::middleware('permission:evaluations.manage|evaluation_reports.prepare|impact.view')->group(function () {
+                Route::get('programs/{program}/evaluations', [GroupEvaluationController::class, 'board']);
+                Route::get('programs/{program}/evaluations/{kind}/results', [GroupEvaluationController::class, 'results']);
+                Route::get('evaluation-responses/{response}/evidence/{question}/{index}', [GroupEvaluationController::class, 'evidenceUrl']);
+                Route::get('programs/{program}/comparative', [EvaluationInsightsController::class, 'comparative']);
+                Route::get('programs/{program}/satisfaction-alerts', [EvaluationInsightsController::class, 'alerts']);
+                Route::get('evaluations/satisfaction-ranking', [GroupEvaluationController::class, 'ranking']);
+                Route::get('programs/{program}/evaluation-reports', [EvaluationReportController::class, 'index']);
+                Route::get('programs/{program}/evaluation-reports/preview', [EvaluationReportController::class, 'preview']);
+                Route::get('evaluation-reports/{report}/export', [EvaluationReportController::class, 'export']);
+                Route::get('programs/{program}/satisfaction/export', [SurveyExportController::class, 'satisfaction']);
+                Route::get('evaluation-forms/{form}/export', [SurveyExportController::class, 'form']);
+            });
+            Route::middleware('permission:evaluation_reports.prepare')->group(function () {
+                Route::post('programs/{program}/evaluation-reports', [EvaluationReportController::class, 'store']);
+                Route::put('evaluation-reports/{report}', [EvaluationReportController::class, 'update']);
+            });
+            Route::post('evaluation-reports/{report}/approve', [EvaluationReportController::class, 'approve'])->middleware('permission:evaluation_reports.approve');
+            Route::middleware('permission:interviews.manage')->group(function () {
+                Route::get('programs/{program}/interviews', [EvaluationInsightsController::class, 'interviews']);
+                Route::post('programs/{program}/interviews', [EvaluationInsightsController::class, 'storeInterview']);
+                Route::put('interviews/{interview}', [EvaluationInsightsController::class, 'updateInterview']);
+                Route::delete('interviews/{interview}', [EvaluationInsightsController::class, 'destroyInterview']);
+            });
+            Route::get('surveys/{needsSurvey}/export', [SurveyExportController::class, 'needs'])->middleware('permission:needs.view|needs.manage');
             // Passing policies, exceptions and the final approval of tasks.
             Route::middleware('permission:passing.manage')->group(function () {
                 Route::get('passing-policies/{scope}/{id?}', [PassingController::class, 'show'])->where('scope', 'global|program|group');
