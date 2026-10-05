@@ -48,6 +48,9 @@ const Kiosk = lazy(() => import('@/pages/admin/Kiosk'))
 const AttendanceOps = lazy(() => import('@/pages/admin/AttendanceOps'))
 const RoomsOps = lazy(() => import('@/pages/admin/RoomsOps'))
 const Logistics = lazy(() => import('@/pages/admin/Logistics'))
+const PortalAssessments = lazy(() => import('@/pages/portal/Assessments'))
+const ExamRunner = lazy(() => import('@/pages/portal/ExamRunner'))
+const AttemptResult = lazy(() => import('@/pages/portal/ExamRunner').then((m) => ({ default: m.AttemptResult })))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
@@ -134,6 +137,7 @@ export default function App() {
         <Route path="room-screen/:token" element={<RoomScreen />} />
         <Route path="lobby-screen/:token" element={<LobbyScreen />} />
         <Route path="admin/rooms/:id/screen" element={<RequireAuth permission="programs.view"><RoomScreen admin /></RequireAuth>} />
+        <Route path="portal/assessments/:id/take" element={<RequireAuth><ExamRunner /></RequireAuth>} />
         <Route path="kiosk/sessions/:id" element={<RequireAuth permission="attendance.manage"><Kiosk /></RequireAuth>} />
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
@@ -184,6 +188,8 @@ export default function App() {
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
           <Route path="needs" element={<MyNeeds />} />
+          <Route path="assessments" element={<PortalAssessments />} />
+          <Route path="attempts/:id" element={<AttemptResult />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="profile" element={<Profile />} />
         </Route>

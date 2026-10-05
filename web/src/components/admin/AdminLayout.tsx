@@ -69,6 +69,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList },
           { to: '/portal/surveys', label: t('portal.surveys'), icon: Target },
           { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap },
+          { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
       }]
