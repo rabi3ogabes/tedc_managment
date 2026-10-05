@@ -20,7 +20,7 @@ class SystemController extends Controller
         set_time_limit(0);
 
         $results = [];
-        foreach (['tedc:program-lifecycle', 'tedc:session-reminders', 'tedc:dispatch-surveys', 'tedc:self-heal'] as $command) {
+        foreach (['tedc:program-lifecycle', 'tedc:group-lifecycle', 'tedc:plan-deviations', 'tedc:session-reminders', 'tedc:dispatch-surveys', 'tedc:self-heal'] as $command) {
             $results[$command] = Artisan::call($command) === 0 ? 'ok' : 'failed';
         }
 

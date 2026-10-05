@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
-    'program_id', 'employee_id', 'nomination_id', 'source', 'status', 'eligibility_snapshot', 'approved_by', 'approved_at',
+    'program_id', 'training_group_id', 'employee_id', 'nomination_id', 'source', 'status', 'eligibility_snapshot', 'approved_by', 'approved_at',
     'completed_at', 'attendance_percent', 'tasks_completed', 'evaluation_completed', 'certificate_status', 'impact_score', 'notes', 'course_percent', 'course_completed',
 ])]
 class Registration extends Model
@@ -55,6 +55,18 @@ class Registration extends Model
             'course_completed' => 'boolean',
             'course_percent' => 'float',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Registration $registration) {
+            $registration->training_group_id ??= Program::find($registration->program_id)?->primaryGroup()?->id;
+        });
+    }
+
+    public function trainingGroup(): BelongsTo
+    {
+        return $this->belongsTo(TrainingGroup::class);
     }
 
     public function program(): BelongsTo

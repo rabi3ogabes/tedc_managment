@@ -20,12 +20,36 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
     'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
+    'parent_id', 'kind', 'axes', 'is_emergency', 'emergency_reason', 'owner_type', 'owner_school_id', 'approval_status',
     'remote', 'coordinator_id', 'certificate_template_id', 'trainer_certificate_template_id', 'has_course', 'course_sequential', 'course_completion_percent', 'course_auto_certificate',
 ])]
 class Program extends Model
 {
     protected static function booted(): void
     {
+        // Every program has at least one group (its first run); a program edited as a whole keeps a single group in step.
+        static::created(fn (Program $program) => TrainingGroup::create([
+            'program_id' => $program->id, 'code' => $program->code.'-G1', 'sequence' => 1, 'delivery_mode' => TrainingGroup::modeFor($program->delivery_mode ?? 'in_person'),
+            'start_date' => $program->start_date, 'end_date' => $program->end_date, 'registration_opens_at' => $program->registration_opens_at, 'registration_closes_at' => $program->registration_closes_at,
+            'capacity' => $program->capacity ?? 30, 'min_attendance_percent' => $program->min_attendance_percent, 'status' => TrainingGroup::statusFor($program->status ?? self::STATUS_DRAFT),
+            'is_emergency' => (bool) $program->is_emergency, 'supervisor_id' => $program->coordinator_id,
+            'published_at' => ($program->status ?? self::STATUS_DRAFT) === self::STATUS_DRAFT ? null : now(),
+        ]));
+        static::saved(function (Program $program) {
+            if (! $program->wasChanged(['start_date', 'end_date', 'registration_opens_at', 'registration_closes_at', 'capacity', 'min_attendance_percent', 'delivery_mode', 'status', 'coordinator_id', 'is_emergency'])) {
+                return;
+            }
+            $groups = $program->groups()->get();
+            if ($groups->count() !== 1) {
+                return;
+            }
+            $groups->first()->update([
+                'start_date' => $program->start_date, 'end_date' => $program->end_date, 'registration_opens_at' => $program->registration_opens_at, 'registration_closes_at' => $program->registration_closes_at,
+                'capacity' => $program->capacity, 'min_attendance_percent' => $program->min_attendance_percent, 'delivery_mode' => TrainingGroup::modeFor($program->delivery_mode ?? 'in_person'),
+                'status' => TrainingGroup::statusFor($program->status ?? self::STATUS_DRAFT), 'supervisor_id' => $program->coordinator_id, 'is_emergency' => (bool) $program->is_emergency,
+                'published_at' => $program->status === self::STATUS_DRAFT ? null : ($groups->first()->published_at ?? now()),
+            ]);
+        });
         // Changing how a program is delivered changes the type of its kits with it.
         static::saved(function (Program $program) {
             if ($program->wasChanged('delivery_mode') && in_array($program->delivery_mode, TrainingKit::DELIVERIES, true)) {
@@ -61,6 +85,8 @@ class Program extends Model
     {
         return [
             'objectives' => 'array',
+            'axes' => 'array',
+            'is_emergency' => 'boolean',
             'audience' => 'array',
             'remote' => 'array',
             'has_course' => 'boolean',
@@ -85,7 +111,12 @@ class Program extends Model
     /** Programs shown on the public website (the internal TEST-* programs used to try the mobile app are never listed). */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->whereIn('status', self::VISIBLE)->where('code', 'not like', 'TEST-%');
+        return $query->whereIn('status', self::VISIBLE)->where('code', 'not like', 'TEST-%')->where('owner_type', 'center');
+    }
+
+    public function ownerSchool(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'owner_school_id');
     }
 
     public function category(): BelongsTo
@@ -156,6 +187,40 @@ class Program extends Model
     public function allowsMode(string $mode): bool
     {
         return in_array($mode, $this->registration_modes ?? self::MODES, true);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /** Sub-programs (one level only). */
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(TrainingGroup::class)->orderBy('sequence');
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProgramUnit::class)->orderBy('sort_order');
+    }
+
+    /** The group a registration goes to when none is chosen: the first one open for registration, else the first. */
+    public function primaryGroup(): ?TrainingGroup
+    {
+        $groups = $this->groups()->get();
+
+        return $groups->first(fn (TrainingGroup $g) => $g->isRegistrationOpen()) ?? $groups->first();
+    }
+
+    public function hasSingleGroup(): bool
+    {
+        return $this->groups()->count() <= 1;
     }
 
     public function isRegistrationOpen(): bool

@@ -9,7 +9,7 @@ namespace App\Services\Notifications;
 class NotificationCatalog
 {
     /** Placeholders usable in a template. */
-    public const VARIABLES = ['name', 'program', 'program_code', 'session', 'date', 'time', 'status', 'center'];
+    public const VARIABLES = ['name', 'program', 'program_code', 'session', 'date', 'time', 'status', 'center', 'group', 'reason'];
 
     /** @return array<string, array{group: string, name_ar: string, name_en: string, title_ar: string, title_en: string, body_ar: string, body_en: string}> */
     public static function events(): array
@@ -19,6 +19,42 @@ class NotificationCatalog
             'body_ar' => 'تسجيلك في برنامج «{{program}}» {{status}}.', 'body_en' => 'Your registration for "{{program}}" is {{status}}.'];
 
         return [
+            'trainer.assignment_proposed' => ['group' => 'program', 'name_ar' => 'اقتراح إسناد مدرب (يتطلب تعبئة نموذج)', 'name_en' => 'Trainer assignment proposed (form required)',
+                'title_ar' => 'رُشّحت لتدريب مجموعة', 'title_en' => 'You were proposed for a group',
+                'body_ar' => 'رُشّحت لمجموعة «{{group}}» من برنامج «{{program}}». عبّئ نموذج الإسناد لاستكمال الاعتماد.', 'body_en' => 'You were proposed for group "{{group}}" of "{{program}}". Fill in the assignment form to proceed.'],
+            'trainer.assignment_decided' => ['group' => 'program', 'name_ar' => 'قرار إسناد مدرب', 'name_en' => 'Trainer assignment decision',
+                'title_ar' => 'قرار بشأن إسنادك', 'title_en' => 'Decision on your assignment',
+                'body_ar' => 'مجموعة «{{group}}» من برنامج «{{program}}»: {{status}}.', 'body_en' => 'Group "{{group}}" of "{{program}}": {{status}}.'],
+            'kit.developer_assigned' => ['group' => 'program', 'name_ar' => 'إسناد تطوير حقيبة تدريبية', 'name_en' => 'Kit development assigned',
+                'title_ar' => 'أُسند إليك تطوير حقيبة تدريبية', 'title_en' => 'You were assigned to develop a training kit',
+                'body_ar' => 'مطلوب تطوير حقيبة برنامج «{{program}}» — الموعد النهائي {{date}}.', 'body_en' => 'Develop the kit of "{{program}}" — due {{date}}.'],
+            'plan.submitted' => ['group' => 'program', 'name_ar' => 'خطة تدريبية بانتظار المراجعة', 'name_en' => 'A training plan awaits review',
+                'title_ar' => 'خطة تدريبية بانتظار المراجعة', 'title_en' => 'A training plan awaits review',
+                'body_ar' => '{{plan}}', 'body_en' => '{{plan}}'],
+            'plan.returned' => ['group' => 'program', 'name_ar' => 'أُعيدت الخطة التدريبية للتعديل', 'name_en' => 'The training plan was returned for changes',
+                'title_ar' => 'أُعيدت الخطة التدريبية للتعديل', 'title_en' => 'The training plan was returned for changes',
+                'body_ar' => '{{plan}}', 'body_en' => '{{plan}}'],
+            'plan.approved' => ['group' => 'program', 'name_ar' => 'اعتُمدت الخطة التدريبية', 'name_en' => 'The training plan was approved',
+                'title_ar' => 'اعتُمدت الخطة التدريبية', 'title_en' => 'The training plan was approved',
+                'body_ar' => '{{plan}}', 'body_en' => '{{plan}}'],
+            'plan.deviation_detected' => ['group' => 'program', 'name_ar' => 'انحراف في الخطة التدريبية', 'name_en' => 'Deviation in the training plan',
+                'title_ar' => 'انحراف في الخطة التدريبية', 'title_en' => 'Deviation in the training plan',
+                'body_ar' => '{{plan}}', 'body_en' => '{{plan}}'],
+            'internal_workshop.submitted' => ['group' => 'program', 'name_ar' => 'ورشة داخلية بانتظار الاعتماد', 'name_en' => 'Internal workshop awaiting approval',
+                'title_ar' => 'ورشة داخلية بانتظار الاعتماد', 'title_en' => 'An internal workshop awaits approval',
+                'body_ar' => 'ورشة «{{program}}» بانتظار قرار المركز.', 'body_en' => 'Workshop "{{program}}" awaits the centre\'s decision.'],
+            'internal_workshop.decided' => ['group' => 'program', 'name_ar' => 'قرار بشأن ورشة داخلية', 'name_en' => 'Internal workshop decision',
+                'title_ar' => 'قرار بشأن ورشتك الداخلية', 'title_en' => 'Decision on your internal workshop',
+                'body_ar' => 'صدر قرار المركز بشأن ورشة «{{program}}».', 'body_en' => 'The centre has decided on workshop "{{program}}".'],
+            'group.status_changed' => ['group' => 'program', 'name_ar' => 'تغيير حالة مجموعة تدريبية', 'name_en' => 'Training group status changed',
+                'title_ar' => 'تغيّرت حالة مجموعة تدريبية', 'title_en' => 'A training group changed status',
+                'body_ar' => 'مجموعة «{{group}}» من برنامج «{{program}}»: {{status}}.', 'body_en' => 'Group "{{group}}" of "{{program}}": {{status}}.'],
+            'group.postponed' => ['group' => 'program', 'name_ar' => 'تأجيل مجموعة تدريبية', 'name_en' => 'Training group postponed',
+                'title_ar' => 'تم تأجيل مجموعة تدريبية', 'title_en' => 'A training group was postponed',
+                'body_ar' => 'تأجّلت مجموعة «{{group}}» من برنامج «{{program}}». السبب: {{reason}}.', 'body_en' => 'Group "{{group}}" of "{{program}}" was postponed. Reason: {{reason}}.'],
+            'group.cancelled' => ['group' => 'program', 'name_ar' => 'إلغاء مجموعة تدريبية', 'name_en' => 'Training group cancelled',
+                'title_ar' => 'تم إلغاء مجموعة تدريبية', 'title_en' => 'A training group was cancelled',
+                'body_ar' => 'أُلغيت مجموعة «{{group}}» من برنامج «{{program}}». السبب: {{reason}}.', 'body_en' => 'Group "{{group}}" of "{{program}}" was cancelled. Reason: {{reason}}.'],
             'program.assigned' => ['group' => 'registration', 'name_ar' => 'إسناد برنامج إلى متدرب', 'name_en' => 'Program assigned to a trainee',
                 'title_ar' => 'تم إسنادك إلى برنامج تدريبي', 'title_en' => 'You have been assigned to a program',
                 'body_ar' => 'تم تسجيلك في برنامج «{{program}}» — يبدأ {{date}}. راجع تفاصيله في تطبيقك.', 'body_en' => 'You have been enrolled in "{{program}}" — it starts {{date}}. See the details in your app.'],

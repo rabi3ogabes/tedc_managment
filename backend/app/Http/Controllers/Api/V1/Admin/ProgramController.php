@@ -45,7 +45,7 @@ class ProgramController extends Controller
 
     public function show(Program $program): ProgramResource
     {
-        $program->load(['category', 'coordinator:id,name,name_ar', 'skills', 'trainers', 'sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'eligibilityRules'])
+        $program->load(['category', 'coordinator:id,name,name_ar', 'skills', 'trainers', 'sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'eligibilityRules', 'units.skills'])
             ->loadCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)]);
 
         return new ProgramResource($program);

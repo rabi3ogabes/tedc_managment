@@ -65,6 +65,7 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const _AccountEntry(),
+              const _AssignmentsEntry(),
               const SizedBox(height: 16),
               if (employee != null)
                 passport.when(
@@ -119,6 +120,30 @@ class ProfileScreen extends ConsumerWidget {
             ]),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Shown to a trainer who has been proposed for a group: opens the assignment form.
+class _AssignmentsEntry extends ConsumerWidget {
+  const _AssignmentsEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final raw = ref.watch(getProvider('/me/assignments')).value;
+    final open = raw is Map ? Map<String, dynamic>.from(raw).list('data').where((a) => a.str('status') == 'proposed').length : 0;
+    if (open == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: ListTile(
+        tileColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: const Icon(Icons.assignment_ind_outlined, color: AppColors.gold500),
+        title: Text(context.tr('assignments.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$open', style: const TextStyle(fontSize: 12, color: AppColors.navy950))),
+        onTap: () => context.push('/assignments'),
       ),
     );
   }

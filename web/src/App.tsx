@@ -34,6 +34,10 @@ const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
+const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
+const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
+const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
+const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
@@ -70,7 +74,7 @@ function RequireAuth({ children, permission }: { children: ReactNode; permission
   const location = useLocation()
   if (loading) return <Spinner className="min-h-screen" />
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  if (permission && !can(permission)) return <Navigate to="/portal" replace />
+  if (permission && !permission.split('|').some((x) => can(x))) return <Navigate to="/portal" replace />
   return <>{children}</>
 }
 
@@ -95,6 +99,10 @@ export default function App() {
           <Route path="programs" element={<Programs />} />
           <Route path="programs/:code" element={<ProgramDetail />} />
           <Route path="trainers" element={<Trainers />} />
+          <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
+          <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
+          <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
+          <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="verify" element={<Verify />} />
           <Route path="verify/:code" element={<Verify />} />

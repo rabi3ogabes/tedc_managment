@@ -3,7 +3,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -81,6 +81,10 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
           { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
           { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
+          { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
+          { to: '/admin/plans', label: t('plans.nav'), icon: CalendarRange, permission: 'plans.view' },
+          { to: '/admin/groups', label: t('groups.board.title'), icon: KanbanSquare, permission: 'programs.view' },
+          { to: '/admin/internal-workshops', label: t('workshops.nav'), icon: School2, permission: 'workshops.internal|workshops.approve' },
           { to: '/admin/calendar', label: m('calendar'), icon: CalendarDays, permission: 'calendar.view' },
           { to: '/admin/registrations', label: m('registrations'), icon: ClipboardList, permission: 'registrations.view' },
           { to: '/admin/certificates', label: m('certificates'), icon: Award, permission: 'certificates.view' },
@@ -112,7 +116,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         ] },
       ]
 
-  const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || can(i.permission)) })).filter((g) => g.items.length)
+  const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || i.permission.split('|').some((x) => can(x))) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
   const [searchOpen, setSearchOpen] = useState(false)
   useSearchShortcut(() => setSearchOpen((v) => !v))

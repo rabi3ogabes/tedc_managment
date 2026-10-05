@@ -67,6 +67,10 @@ class RolePermissionSeeder extends Seeder
         'pd.approve' => ['planning', 'اعتماد سجلات التطوير المهني', 'Approve professional-development records'],
         'workshops.internal' => ['programs', 'ورش العمل الداخلية للمدرسة', 'School internal workshops'],
         'search.global' => ['general', 'البحث الشامل', 'Global search'],
+        'groups.manage' => ['programs', 'إدارة المجموعات التدريبية', 'Manage training groups'],
+        'groups.status' => ['programs', 'تغيير حالة المجموعات التدريبية', 'Change the status of training groups'],
+        'trainers.respond' => ['programs', 'الرد على ترشيحات التدريب', 'Respond to training proposals'],
+        'workshops.approve' => ['programs', 'اعتماد الورش الداخلية للمدارس', 'Approve school internal workshops'],
     ];
 
     /** Which scopes a role may be granted at (null = any). A role without Ministry here is limited to its school unless granted wider. */
@@ -92,9 +96,9 @@ class RolePermissionSeeder extends Seeder
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
             'announcements.manage', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
-            'plans.view', 'search.global',
+            'plans.view', 'search.global', 'groups.manage', 'groups.status', 'workshops.approve', 'trainers.assign',
         ]],
-        Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'search.global']],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'search.global']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
@@ -111,6 +115,7 @@ class RolePermissionSeeder extends Seeder
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
+            'groups.manage', 'groups.status', 'workshops.approve',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -118,7 +123,7 @@ class RolePermissionSeeder extends Seeder
         ]],
         Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, [
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view', 'impact.view', 'needs.view', 'ai.assistant',
-            'reports.view', 'trainers.approve', 'plans.view', 'search.global',
+            'reports.view', 'trainers.approve', 'plans.view', 'plans.approve', 'search.global',
         ]],
         Role::PLANNING_HEAD => ['رئيس قسم التخطيط', 'Head of Planning', 66, [
             'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'ai.assistant', 'reports.view',
@@ -173,10 +178,18 @@ class RolePermissionSeeder extends Seeder
             $slugs = in_array('*', $grants, true) ? $all->keys()->all() : $grants;
             $slugs = array_diff($slugs, array_map(fn ($g) => ltrim($g, '-'), array_filter($grants, fn ($g) => str_starts_with($g, '-'))));
             // Only the permissions introduced in this release are attached to existing roles; a new role gets its whole set.
-            $role->permissions()->syncWithoutDetaching($all->only($created ? $slugs : array_intersect($slugs, self::NEW_IN_PHASE_01))->values());
+            $role->permissions()->syncWithoutDetaching($all->only($created ? $slugs : array_intersect($slugs, self::ADDITIVE))->values());
         }
     }
 
-    /** Permissions added by Phase 01, so a deploy attaches them to existing roles without touching the rest. */
-    private const NEW_IN_PHASE_01 = ['scopes.manage', 'roles.create', 'program_grants.manage', 'trainers.assign', 'trainers.approve', 'rooms.book', 'logistics.manage', 'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'pd.approve', 'workshops.internal', 'search.global'];
+    /**
+     * Permissions introduced by the RFP phases, so a deploy attaches them to existing roles without touching the rest.
+     * Every phase appends its new permissions here.
+     */
+    private const ADDITIVE = [
+        // Phase 01
+        'scopes.manage', 'roles.create', 'program_grants.manage', 'trainers.assign', 'trainers.approve', 'rooms.book', 'logistics.manage', 'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'pd.approve', 'workshops.internal', 'search.global',
+        // Phase 02
+        'groups.manage', 'groups.status', 'workshops.approve', 'trainers.respond',
+    ];
 }

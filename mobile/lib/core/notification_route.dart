@@ -7,7 +7,7 @@ class NotificationRoute {
   static const tabs = ['/home', '/programs', '/training', '/certificates', '/profile'];
 
   static const _allowed = [
-    '/home', '/programs', '/training', '/certificates', '/profile', '/notifications', '/account', '/scan', '/school',
+    '/home', '/programs', '/training', '/certificates', '/profile', '/notifications', '/account', '/assignments', '/scan', '/school',
     '/sessions/', '/courses/', '/lessons/', '/registrations/', '/tasks/', '/surveys/', '/needs-surveys', '/my-program/',
   ];
 

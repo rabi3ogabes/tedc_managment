@@ -44,28 +44,28 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 02 — Training Structure & Annual Plan  (11)
 
-- [ ] **TYP-20** — School internal workshops approved by the centre: create, register, attendance, results, certificates  
-  _Now:_ 🔴 Missing — Schools can nominate only; they cannot run their own workshops.
-- [ ] **STR-02** — Main program → optional sub-programs  
-  _Now:_ 🔴 Missing — No sub-program level.
-- [ ] **STR-03** — Training groups (cohorts) under a program with own dates, trainers, seats  
-  _Now:_ 🔴 Missing — A program is a single run; multiple groups are not modelled.
-- [ ] **STR-05** — Assign trainers and kit developers per group / program with an assignment form and leadership approval  
-  _Now:_ 🟡 Partial — Trainers can be attached to programs and sessions; no assignment form or approval.
-- [ ] **NDS-07** ★ — Generate the annual plan (program, audience, priority) with review and approval  
-  _Now:_ 🔴 Missing — Program builder creates programs from needs; no plan entity or approval.
-- [ ] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
-  _Now:_ 🟡 Partial — Configurable categories; no year-specific planning rules.
-- [ ] **NDS-09** — Program objectives, axes, units, competencies and summary  
-  _Now:_ 🟡 Partial — Objectives and skills; no structured axes / units.
-- [ ] **NDS-11** — Publish / cancel programs and edit group details  
-  _Now:_ 🟡 Partial — Program statuses exist; groups are not modelled.
-- [ ] **NDS-12** — Flag emergency (unplanned) programs for reporting  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **NDS-13** — Central status board: planned, ongoing, incomplete, postponed, cancelled, completed  
-  _Now:_ 🟡 Partial — Draft / published / open / in-progress / completed / archived / cancelled; no postponed or incomplete.
-- [ ] **NDS-14** — Real-time plan execution tracking and deviation detection  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **TYP-20** — School internal workshops approved by the centre: create, register, attendance, results, certificates  
+  _Now:_ 🟡 Partial — Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09.
+- [x] **STR-02** — Main program → optional sub-programs  
+  _Now:_ ✅ Available — Main program → sub-program (one level, enforced) with roll-ups: `POST /admin/programs/{id}/sub-programs`, `GET .../tree`; program page → Structure tab.
+- [x] **STR-03** — Training groups (cohorts) under a program with own dates, trainers, seats  
+  _Now:_ ✅ Available — Training groups with own dates, seats, supervisor, room, trainers, sessions and status (`training_groups`, `TrainingGroupService`); group-aware registration, waiting list, attendance and certificates; program page → Groups tab; mobile group picker.
+- [x] **STR-05** — Assign trainers and kit developers per group / program with an assignment form and leadership approval  
+  _Now:_ ✅ Available — Trainer proposal per group → trainer fills the assignment form (web + app) → leadership approves with the competent authority reference (`TrainerAssignmentService`); kit developers assigned with a due date (`POST /admin/programs/{id}/kit-developers`).
+- [x] **NDS-07** ★ — Generate the annual plan (program, audience, priority) with review and approval  
+  _Now:_ ✅ Available — Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`).
+- [x] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
+  _Now:_ 🟡 Partial — Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced.
+- [x] **NDS-09** — Program objectives, axes, units, competencies and summary  
+  _Now:_ ✅ Available — Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills.
+- [x] **NDS-11** — Publish / cancel programs and edit group details  
+  _Now:_ ✅ Available — Groups are created, edited, cloned, published/unpublished and cancelled with a mandatory reason and notifications to registrants, supervisor and managers; the public catalogue lists only published groups.
+- [x] **NDS-12** — Flag emergency (unplanned) programs for reporting  
+  _Now:_ ✅ Available — Groups and plan items can be flagged emergency with a reason; the plan execution view splits planned and emergency work and lists unplanned groups as deviations.
+- [x] **NDS-13** — Central status board: planned, ongoing, incomplete, postponed, cancelled, completed  
+  _Now:_ ✅ Available — Status board (`/admin/groups`): planned, registration open, ongoing, incomplete, postponed, cancelled, completed; drag a card to change status with the reason dialog; table view and filters; hourly lifecycle job.
+- [x] **NDS-14** — Real-time plan execution tracking and deviation detection  
+  _Now:_ ✅ Available — Plan execution (`GET /admin/plans/{id}/execution`): planned vs created vs executed groups, seats and hours, % execution, % changed after approval, emergency share and a deviation list (late, under-filled, cancelled, postponed, unplanned); daily job `tedc:plan-deviations` notifies planning staff.
 
 ### Phase 03 — Needs Assessment & Gap Analysis  (7)
 
@@ -550,17 +550,17 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-17 | Advertise and register for programs on other platforms (e.g., I-earn) | 🔴 Missing | No external-program listing type. | 10 |
 | TYP-18 ★ | Blended programs (in-person + synchronous + self-paced) | ✅ Available | Per-session mode (in-person / online) plus an attached e-course. | — |
 | TYP-19 | Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline | 🔴 Missing | No knowledge-transfer records. | 9 |
-| TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | 🔴 Missing | Schools can nominate only; they cannot run their own workshops. | 2 |
+| TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | 🟡 Partial | Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09. | 2 |
 
 ### STR · Training Structure — هيكلية التدريب
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | STR-01 | Category level | ✅ Available | Configurable program categories. | — |
-| STR-02 | Main program → optional sub-programs | 🔴 Missing | No sub-program level. | 2 |
-| STR-03 | Training groups (cohorts) under a program with own dates, trainers, seats | 🔴 Missing | A program is a single run; multiple groups are not modelled. | 2 |
+| STR-02 | Main program → optional sub-programs | ✅ Available | Main program → sub-program (one level, enforced) with roll-ups: `POST /admin/programs/{id}/sub-programs`, `GET .../tree`; program page → Structure tab. | — |
+| STR-03 | Training groups (cohorts) under a program with own dates, trainers, seats | ✅ Available | Training groups with own dates, seats, supervisor, room, trainers, sessions and status (`training_groups`, `TrainingGroupService`); group-aware registration, waiting list, attendance and certificates; program page → Groups tab; mobile group picker. | — |
 | STR-04 | Workshop / training-day level | ✅ Available | Program sessions act as training days. | — |
-| STR-05 | Assign trainers and kit developers per group / program with an assignment form and leadership approval | 🟡 Partial | Trainers can be attached to programs and sessions; no assignment form or approval. | 2 |
+| STR-05 | Assign trainers and kit developers per group / program with an assignment form and leadership approval | ✅ Available | Trainer proposal per group → trainer fills the assignment form (web + app) → leadership approves with the competent authority reference (`TrainerAssignmentService`); kit developers assigned with a due date (`POST /admin/programs/{id}/kit-developers`). | — |
 
 ### CAR · Career Paths & Professional Licences — المسارات التدريبية والترقي الوظيفي
 
@@ -590,14 +590,14 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NDS-04 | Individual needs surveys linked to job competencies + manager approval | 🟡 Partial | Surveys exist; no competency mapping or manager approval. | 3 |
 | NDS-05 | Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies | 🔴 Missing | No appraisal / observation data or rules. | 3 |
 | NDS-06 | Automatic gap analysis vs competency framework & licence requirements, prioritised | 🟡 Partial | Survey analyzer, needs analytics and AI assistant; no competency framework. | 3 |
-| NDS-07 ★ | Generate the annual plan (program, audience, priority) with review and approval | 🔴 Missing | Program builder creates programs from needs; no plan entity or approval. | 2 |
-| NDS-08 | Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير) | 🟡 Partial | Configurable categories; no year-specific planning rules. | 2 |
-| NDS-09 | Program objectives, axes, units, competencies and summary | 🟡 Partial | Objectives and skills; no structured axes / units. | 2 |
+| NDS-07 ★ | Generate the annual plan (program, audience, priority) with review and approval | ✅ Available | Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`). | — |
+| NDS-08 | Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير) | 🟡 Partial | Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced. | 2 |
+| NDS-09 | Program objectives, axes, units, competencies and summary | ✅ Available | Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills. | — |
 | NDS-10 | Program & group catalogue with tabs per category and full details | ✅ Available | Public catalogue with categories, details and eligibility check. | — |
-| NDS-11 | Publish / cancel programs and edit group details | 🟡 Partial | Program statuses exist; groups are not modelled. | 2 |
-| NDS-12 | Flag emergency (unplanned) programs for reporting | 🔴 Missing | Not available. | 2 |
-| NDS-13 | Central status board: planned, ongoing, incomplete, postponed, cancelled, completed | 🟡 Partial | Draft / published / open / in-progress / completed / archived / cancelled; no postponed or incomplete. | 2 |
-| NDS-14 | Real-time plan execution tracking and deviation detection | 🔴 Missing | Not available. | 2 |
+| NDS-11 | Publish / cancel programs and edit group details | ✅ Available | Groups are created, edited, cloned, published/unpublished and cancelled with a mandatory reason and notifications to registrants, supervisor and managers; the public catalogue lists only published groups. | — |
+| NDS-12 | Flag emergency (unplanned) programs for reporting | ✅ Available | Groups and plan items can be flagged emergency with a reason; the plan execution view splits planned and emergency work and lists unplanned groups as deviations. | — |
+| NDS-13 | Central status board: planned, ongoing, incomplete, postponed, cancelled, completed | ✅ Available | Status board (`/admin/groups`): planned, registration open, ongoing, incomplete, postponed, cancelled, completed; drag a card to change status with the reason dialog; table view and filters; hourly lifecycle job. | — |
+| NDS-14 | Real-time plan execution tracking and deviation detection | ✅ Available | Plan execution (`GET /admin/plans/{id}/execution`): planned vs created vs executed groups, seats and hours, % execution, % changed after approval, emergency share and a deviation list (late, under-filled, cancelled, postponed, unplanned); daily job `tedc:plan-deviations` notifies planning staff. | — |
 | NDS-15 | Approve needs and evaluation instruments before they are distributed | 🔴 Missing | Surveys are published directly. | 3 |
 
 ### ENR · Course Management & Admission Rules — إدارة الدورات التدريبية وضوابط الالتحاق

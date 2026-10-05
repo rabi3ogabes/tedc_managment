@@ -17,6 +17,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\School;
 use App\Models\Trainer;
+use App\Models\TrainingGroup;
 use App\Services\CertificateService;
 use App\Services\FileStorage;
 use Illuminate\Http\JsonResponse;
@@ -84,7 +85,8 @@ class PublicController extends Controller
     public function program(string $idOrCode): ProgramResource
     {
         $program = $this->programQuery()
-            ->with(['sessions.trainer', 'sessions.room', 'targetGroups.jobTitle'])
+            ->with(['sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'units.skills', 'children' => fn ($q) => $q->visible(),
+                'groups' => fn ($q) => $q->whereNotNull('published_at')->whereIn('status', [TrainingGroup::PLANNED, TrainingGroup::REGISTRATION_OPEN, TrainingGroup::ONGOING])])
             ->where(fn ($q) => Str::isUuid($idOrCode) ? $q->whereKey($idOrCode) : $q->where('code', $idOrCode))
             ->firstOrFail();
 
@@ -193,8 +195,9 @@ class PublicController extends Controller
 
     private function programQuery()
     {
-        return Program::visible()
+        return Program::visible()->whereNull('parent_id')
             ->with(['category', 'skills', 'trainers'])
+            ->withCount(['groups as open_groups' => fn ($q) => $q->whereNotNull('published_at')->whereIn('status', [TrainingGroup::PLANNED, TrainingGroup::REGISTRATION_OPEN])])
             ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)]);
     }
 

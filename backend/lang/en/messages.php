@@ -48,6 +48,14 @@ return [
         'one_correct' => 'Question :n needs a correct answer (exactly one for this type).',
     ],
     'training_day' => ['outside' => 'A session must fall within the training day (:from to :to).', 'order' => 'The day must end after it starts.'],
+    'groups' => [
+        'emergency_reason' => 'Write why this group is an emergency (unplanned) one.', 'invalid_transition' => 'The group cannot move from “:from” to “:to”.', 'reason_required' => 'A reason is required for this change.',
+        'not_of_program' => 'This group does not belong to this program.', 'pattern_start' => 'Choose the date the sessions start.', 'has_registrations' => 'This is not possible because people are registered in the group.', 'not_held' => 'The group ended without attendance recorded for any session.',
+    ],
+    'assignment' => ['duplicate' => 'This trainer is already proposed for this group.', 'form_missing' => 'The trainer has not filled in the assignment form yet.', 'approval_ref_required' => 'Enter the reference of the competent authority approval first.', 'decided' => 'This proposal has already been decided.', 'reason_required' => 'Write the reason for rejecting.'],
+    'plans' => ['exists' => 'A plan for :year already exists. Open it, or create a new version.', 'reason_required' => 'After approval every change needs a reason.', 'empty' => 'Add at least one item before submitting.', 'locked' => 'The plan cannot be edited in its current state.', 'invalid_state' => 'This step is not available while the plan is “:status”.'],
+    'workshops' => ['school_required' => 'Your account is not linked to a school, so a workshop cannot be submitted.', 'not_pending' => 'This workshop has already been decided.', 'not_approved' => 'The centre has not approved this workshop yet.'],
+    'structure' => ['one_level' => 'Only one level of sub-programs is allowed: a sub-program cannot have its own sub-programs.'],
     'grants' => ['attendance_denied' => 'You do not have the right to record attendance for this program. Ask the head of training to grant it.'],
     'roles' => [
         'scope_not_allowed' => 'This role cannot be granted at this scope.', 'scope_required' => 'Choose the school, group or department for this scope.', 'already_granted' => 'This role is already granted at this scope.',

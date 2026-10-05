@@ -15,6 +15,10 @@ class RegistrationResource extends JsonResource
             'id' => $this->id,
             'program_id' => $this->program_id,
             'program' => new ProgramResource($this->whenLoaded('program')),
+            'group' => $this->whenLoaded('trainingGroup', fn () => $this->trainingGroup ? [
+                'id' => $this->trainingGroup->id, 'code' => $this->trainingGroup->code, 'title' => $this->trainingGroup->displayTitle(), 'status' => $this->trainingGroup->status,
+                'status_reason' => $this->trainingGroup->status_reason, 'postponed_to' => $this->trainingGroup->postponed_to?->toDateString(), 'start_date' => $this->trainingGroup->start_date?->toDateString(),
+            ] : null),
             'employee_id' => $this->employee_id,
             'employee' => new EmployeeResource($this->whenLoaded('employee')),
             'source' => $this->source,

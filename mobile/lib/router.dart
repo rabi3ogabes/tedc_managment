@@ -25,6 +25,7 @@ import 'features/search/search_screen.dart';
 import 'features/security/unlock_screen.dart';
 import 'features/shell/app_nav_bar.dart';
 import 'features/shell/home_shell.dart';
+import 'features/profile/assignments_screen.dart';
 import 'features/training/my_training_screen.dart';
 import 'features/training/registration_screen.dart';
 import 'features/training/survey_screen.dart';
@@ -64,6 +65,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
           GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
           GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
+          GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),
           GoRoute(path: '/courses/:id', builder: (_, s) => CourseScreen(registrationId: s.pathParameters['id']!)),
           GoRoute(path: '/lessons/:id', builder: (_, s) => LessonScreen(id: s.pathParameters['id']!, registrationId: s.uri.queryParameters['registration'])),

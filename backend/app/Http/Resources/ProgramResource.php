@@ -102,6 +102,12 @@ class ProgramResource extends JsonResource
                 'description' => $g->description,
             ])),
             'eligibility_rules' => $this->whenLoaded('eligibilityRules'),
+            'kind' => $this->kind, 'parent_id' => $this->parent_id, 'axes' => $this->axes ?? [], 'is_emergency' => (bool) $this->is_emergency, 'emergency_reason' => $this->emergency_reason,
+            'owner_type' => $this->owner_type, 'owner_school_id' => $this->owner_school_id, 'approval_status' => $this->approval_status,
+            'groups_count' => $this->whenCounted('groups'), 'open_groups' => $this->whenCounted('open_groups'),
+            'groups' => $this->whenLoaded('groups', fn () => TrainingGroupResource::collection($this->groups)),
+            'units' => $this->whenLoaded('units', fn () => $this->units->map(fn ($u) => ['id' => $u->id, 'title' => $u->translate('title'), 'title_ar' => $u->title_ar, 'title_en' => $u->title_en, 'hours' => $u->hours, 'objectives' => $u->objectives ?? [], 'summary' => $u->translate('summary'), 'skills' => $u->skills->map(fn ($s) => ['id' => $s->id, 'code' => $s->code, 'name' => $s->translate('name')])->values()])),
+            'children' => $this->whenLoaded('children', fn () => $this->children->map(fn ($c) => ['id' => $c->id, 'code' => $c->code, 'title' => $c->translate('title'), 'total_hours' => $c->total_hours, 'status' => $c->status])),
             'registrations_count' => $this->whenCounted('registrations'),
             'created_at' => $this->created_at?->toIso8601String(),
         ];

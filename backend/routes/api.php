@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
 use App\Http\Controllers\Api\V1\Admin\CalendarController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
+use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
@@ -36,6 +38,7 @@ use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
+use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
@@ -52,8 +55,10 @@ use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
+use App\Http\Controllers\Api\V1\Admin\TrainerAssignmentController;
 use App\Http\Controllers\Api\V1\Admin\TrainerController;
 use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
+use App\Http\Controllers\Api\V1\Admin\TrainingGroupController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
@@ -64,6 +69,7 @@ use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
+use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
@@ -193,6 +199,8 @@ Route::prefix('v1')->group(function () {
             Route::post('notifications/seen', [MeController::class, 'seenNotifications']);
             Route::post('notifications/{notification}/read', [MeController::class, 'readNotification']);
 
+            Route::get('assignments', [MyAssignmentsController::class, 'index']);
+            Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
             Route::post('programs/{program}/register', [MyTrainingController::class, 'register']);
             Route::get('registrations', [MyTrainingController::class, 'registrations']);
@@ -723,6 +731,66 @@ Route::prefix('v1')->group(function () {
                 Route::delete('roles/{role}', [RoleAdminController::class, 'destroy']);
             });
             Route::get('staff-lookup', [UserRoleController::class, 'lookup'])->middleware('permission:program_grants.manage|users.manage');
+            // School internal workshops: school submits and runs them, the centre approves.
+            Route::middleware('permission:workshops.internal|workshops.approve')->group(function () {
+                Route::get('internal-workshops', [InternalWorkshopController::class, 'index']);
+            });
+            Route::middleware('permission:workshops.internal')->group(function () {
+                Route::post('internal-workshops', [InternalWorkshopController::class, 'store']);
+                Route::post('internal-workshops/{program}/register', [InternalWorkshopController::class, 'register']);
+            });
+            Route::post('internal-workshops/{program}/decision', [InternalWorkshopController::class, 'decision'])->middleware('permission:workshops.approve');
+            // Annual training plan.
+            Route::middleware('permission:plans.view')->group(function () {
+                Route::get('plans', [AnnualPlanController::class, 'index']);
+                Route::get('plans/{plan}', [AnnualPlanController::class, 'show']);
+                Route::get('plans/{plan}/execution', [AnnualPlanController::class, 'execution']);
+                Route::get('plans/{plan}/changes', [AnnualPlanController::class, 'changes']);
+                Route::get('plans/{plan}/export', [AnnualPlanController::class, 'export']);
+            });
+            Route::middleware('permission:plans.manage')->group(function () {
+                Route::post('plans', [AnnualPlanController::class, 'store']);
+                Route::put('plans/{plan}', [AnnualPlanController::class, 'update']);
+                Route::put('plans/{plan}/rules', [AnnualPlanController::class, 'rules']);
+                Route::post('plans/{plan}/generate', [AnnualPlanController::class, 'generate']);
+                Route::post('plans/{plan}/items', [AnnualPlanController::class, 'storeItem']);
+                Route::put('plans/{plan}/items/{item}', [AnnualPlanController::class, 'updateItem']);
+                Route::delete('plans/{plan}/items/{item}', [AnnualPlanController::class, 'destroyItem']);
+                Route::post('plans/{plan}/submit', [AnnualPlanController::class, 'submit']);
+            });
+            Route::middleware('permission:plans.approve')->group(function () {
+                Route::post('plans/{plan}/return', [AnnualPlanController::class, 'return']);
+                Route::post('plans/{plan}/approve', [AnnualPlanController::class, 'approve']);
+                Route::post('plans/{plan}/activate', [AnnualPlanController::class, 'activate']);
+                Route::post('plans/{plan}/close', [AnnualPlanController::class, 'close']);
+            });
+            // Training groups: every program runs as one or more groups.
+            Route::middleware('permission:programs.view')->group(function () {
+                Route::get('programs/{program}/groups', [TrainingGroupController::class, 'index']);
+                Route::get('groups/board', [TrainingGroupController::class, 'board']);
+                Route::get('groups/{group}', [TrainingGroupController::class, 'show']);
+                Route::get('groups/{group}/sessions', [TrainingGroupController::class, 'sessions']);
+                Route::get('groups/{group}/participants', [TrainingGroupController::class, 'participants']);
+            });
+            Route::middleware('permission:groups.manage')->group(function () {
+                Route::post('programs/{program}/groups', [TrainingGroupController::class, 'store']);
+                Route::post('programs/{program}/groups/preview', [TrainingGroupController::class, 'preview']);
+                Route::put('groups/{group}', [TrainingGroupController::class, 'update']);
+                Route::delete('groups/{group}', [TrainingGroupController::class, 'destroy']);
+                Route::post('groups/{group}/clone', [TrainingGroupController::class, 'clone']);
+                Route::post('groups/{group}/publish', [TrainingGroupController::class, 'publish']);
+                Route::post('groups/{group}/unpublish', [TrainingGroupController::class, 'unpublish']);
+                Route::post('groups/{group}/trainers', [TrainerAssignmentController::class, 'store']);
+                Route::delete('group-trainers/{groupTrainer}', [TrainerAssignmentController::class, 'destroy']);
+                Route::post('programs/{program}/kit-developers', [TrainerAssignmentController::class, 'kitDevelopers']);
+            });
+            Route::post('group-trainers/{groupTrainer}/decision', [TrainerAssignmentController::class, 'decision'])->middleware('permission:trainers.approve|groups.status');
+            Route::post('groups/{group}/status', [TrainingGroupController::class, 'status'])->middleware('permission:groups.status');
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::post('programs/{program}/sub-programs', [ProgramStructureController::class, 'storeSub']);
+                Route::put('programs/{program}/units', [ProgramStructureController::class, 'syncUnits']);
+            });
+            Route::get('programs/{program}/tree', [ProgramStructureController::class, 'tree'])->middleware('permission:programs.view');
             Route::middleware('permission:program_grants.manage')->group(function () {
                 Route::get('programs/{program}/grants', [ProgramGrantController::class, 'index']);
                 Route::post('programs/{program}/grants', [ProgramGrantController::class, 'store']);

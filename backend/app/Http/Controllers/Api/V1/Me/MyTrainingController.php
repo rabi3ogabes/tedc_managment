@@ -8,6 +8,7 @@ use App\Models\Material;
 use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\TrainingGroup;
 use App\Services\AttendanceService;
 use App\Services\Eligibility\EligibilityEngine;
 use App\Services\FileStorage;
@@ -39,11 +40,13 @@ class MyTrainingController extends MeController
         ]]);
     }
 
-    public function register(Program $program, RegistrationService $service): JsonResponse
+    public function register(Request $request, Program $program, RegistrationService $service): JsonResponse
     {
-        $registration = $service->register($program, $this->employee(), Registration::SOURCE_SELF, $this->user());
+        $data = $request->validate(['group_id' => ['nullable', 'uuid', 'exists:training_groups,id']]);
+        $group = isset($data['group_id']) ? TrainingGroup::findOrFail($data['group_id']) : null;
+        $registration = $service->register($program, $this->employee(), Registration::SOURCE_SELF, $this->user(), null, false, $group);
 
-        return (new RegistrationResource($registration->load('program')))->response()->setStatusCode(201);
+        return (new RegistrationResource($registration->load(['program', 'trainingGroup'])))->response()->setStatusCode(201);
     }
 
     public function cancel(Registration $registration, RegistrationService $service): RegistrationResource
@@ -56,7 +59,7 @@ class MyTrainingController extends MeController
 
     public function registrations(Request $request): AnonymousResourceCollection
     {
-        return RegistrationResource::collection(Registration::with(['program.category', 'certificate'])
+        return RegistrationResource::collection(Registration::with(['program.category', 'certificate', 'trainingGroup'])
             ->where('employee_id', $this->employee()->id)
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
             ->latest()

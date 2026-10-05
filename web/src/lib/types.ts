@@ -63,6 +63,8 @@ export type Program = {
   skills?: Skill[]; trainers?: Trainer[]; sessions?: Session[]
   target_groups?: { id: string; job_title_id?: string | null; job_title?: string | null; school_type?: string | null; education_stage?: string | null; description?: string | null }[]
   eligibility_rules?: EligibilityRule[]
+  units?: { id: string; title_ar: string; title_en: string; hours: number; objectives: string[]; summary?: string | null }[]
+  kind?: 'main' | 'sub'; parent_id?: string | null; is_emergency?: boolean
 }
 
 export type EligibilityRule = {

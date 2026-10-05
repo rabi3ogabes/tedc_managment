@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['program_id', 'employee_id', 'registration_id', 'position', 'status', 'promoted_at'])]
+#[Fillable(['program_id', 'training_group_id', 'employee_id', 'registration_id', 'position', 'status', 'promoted_at'])]
 class WaitingList extends Model
 {
     use HasUuids;

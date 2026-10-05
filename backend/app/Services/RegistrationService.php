@@ -8,6 +8,7 @@ use App\Models\Nomination;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Models\WaitingList;
 use App\Services\Eligibility\EligibilityEngine;
@@ -37,13 +38,24 @@ class RegistrationService
     /**
      * @param  bool  $override  training-center staff may bypass the window / eligibility (recorded in the snapshot)
      */
-    public function register(Program $program, Employee $employee, string $source, ?User $actor = null, ?Nomination $nomination = null, bool $override = false): Registration
+    public function register(Program $program, Employee $employee, string $source, ?User $actor = null, ?Nomination $nomination = null, bool $override = false, ?TrainingGroup $group = null): Registration
     {
+        if ($group && $group->program_id !== $program->id) {
+            throw new BusinessRuleException(__('messages.groups.not_of_program'), 'group_mismatch');
+        }
+        // A program that runs several groups registers into one of them (the chosen one, else the first open); a single-group program behaves as before.
+        $multi = ! $program->hasSingleGroup();
+        $group ??= $multi ? $program->primaryGroup() : null;
+
+        if (in_array($program->approval_status, ['pending', 'rejected'], true)) {
+            throw new BusinessRuleException(__('messages.workshops.not_approved'), 'workshop_not_approved');
+        }
+
         if (! $program->allowsMode($source)) {
             throw new BusinessRuleException(__('messages.registration.mode_not_allowed'), 'mode_not_allowed');
         }
 
-        if (! $override && ! $program->isRegistrationOpen()) {
+        if (! $override && ! ($multi ? $group?->isRegistrationOpen() : $program->isRegistrationOpen())) {
             throw new BusinessRuleException(__('messages.registration.closed'), 'registration_closed');
         }
 
@@ -52,7 +64,7 @@ class RegistrationService
             throw new BusinessRuleException(__('messages.registration.not_eligible'), 'not_eligible', $result->jsonSerialize());
         }
 
-        return DB::transaction(function () use ($program, $employee, $source, $actor, $nomination, $override, $result) {
+        return DB::transaction(function () use ($program, $employee, $source, $actor, $nomination, $override, $result, $multi, $group) {
             // Serialize seat allocation per program.
             Program::whereKey($program->id)->lockForUpdate()->first();
 
@@ -61,7 +73,7 @@ class RegistrationService
                 throw new BusinessRuleException(__('messages.registration.duplicate'), 'duplicate');
             }
 
-            $hasSeat = $program->seatsAvailable() > 0;
+            $hasSeat = ($multi ? $group->seatsAvailable() : $program->seatsAvailable()) > 0;
             $autoApprove = in_array($source, [Registration::SOURCE_CENTER, Registration::SOURCE_BULK], true);
 
             $status = match (true) {
@@ -71,6 +83,7 @@ class RegistrationService
             };
 
             $attributes = [
+                'training_group_id' => $multi ? $group->id : ($group?->id ?? $program->primaryGroup()?->id),
                 'source' => $source,
                 'status' => $status,
                 'nomination_id' => $nomination?->id,
@@ -97,11 +110,11 @@ class RegistrationService
         });
     }
 
-    public function nominate(Program $program, Employee $employee, User $actor, string $nominatorType, ?string $justification = null, bool $override = false): Registration
+    public function nominate(Program $program, Employee $employee, User $actor, string $nominatorType, ?string $justification = null, bool $override = false, ?TrainingGroup $group = null): Registration
     {
         $source = $nominatorType === 'school_admin' ? Registration::SOURCE_SCHOOL : Registration::SOURCE_CENTER;
 
-        return DB::transaction(function () use ($program, $employee, $actor, $nominatorType, $justification, $override, $source) {
+        return DB::transaction(function () use ($program, $employee, $actor, $nominatorType, $justification, $override, $source, $group) {
             $nomination = Nomination::create([
                 'program_id' => $program->id,
                 'employee_id' => $employee->id,
@@ -112,7 +125,7 @@ class RegistrationService
                 'status' => 'pending',
             ]);
 
-            $registration = $this->register($program, $employee, $source, $actor, $nomination, $override);
+            $registration = $this->register($program, $employee, $source, $actor, $nomination, $override, $group);
             $nomination->update(['status' => 'converted', 'decided_at' => now()]);
 
             return $registration;
@@ -141,7 +154,7 @@ class RegistrationService
             }
 
             if (in_array($from, Registration::SEAT_HOLDING, true) && in_array($to, [Registration::STATUS_CANCELLED, Registration::STATUS_REJECTED], true)) {
-                $this->promoteFromWaitingList($registration->program);
+                $this->promoteFromWaitingList($registration->program, $registration->trainingGroup);
             }
         });
 
@@ -153,13 +166,15 @@ class RegistrationService
     /**
      * Moves the first waiting employee into a freed seat.
      */
-    public function promoteFromWaitingList(Program $program): ?Registration
+    public function promoteFromWaitingList(Program $program, ?TrainingGroup $group = null): ?Registration
     {
-        if ($program->seatsAvailable() <= 0) {
+        // With several groups each one has its own seats and its own waiting list.
+        $perGroup = $group !== null && ! $program->hasSingleGroup();
+        if (($perGroup ? $group->seatsAvailable() : $program->seatsAvailable()) <= 0) {
             return null;
         }
 
-        $entry = WaitingList::where('program_id', $program->id)->where('status', 'waiting')->orderBy('position')->first();
+        $entry = WaitingList::where('program_id', $program->id)->where('status', 'waiting')->when($perGroup, fn ($q) => $q->where('training_group_id', $group->id))->orderBy('position')->first();
         if (! $entry) {
             return null;
         }
@@ -174,11 +189,11 @@ class RegistrationService
 
     private function addToWaitingList(Registration $registration): void
     {
-        $position = (int) WaitingList::where('program_id', $registration->program_id)->max('position') + 1;
+        $position = (int) WaitingList::where('program_id', $registration->program_id)->when($registration->training_group_id, fn ($q, $g) => $q->where('training_group_id', $g))->max('position') + 1;
 
         WaitingList::updateOrCreate(
             ['program_id' => $registration->program_id, 'employee_id' => $registration->employee_id],
-            ['registration_id' => $registration->id, 'position' => $position, 'status' => 'waiting', 'promoted_at' => null],
+            ['registration_id' => $registration->id, 'training_group_id' => $registration->training_group_id, 'position' => $position, 'status' => 'waiting', 'promoted_at' => null],
         );
     }
 

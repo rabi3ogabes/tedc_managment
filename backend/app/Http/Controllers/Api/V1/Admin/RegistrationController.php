@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\TrainingGroup;
 use App\Services\BulkImportService;
 use App\Services\RecommendationEngine;
 use App\Services\RegistrationService;
@@ -57,7 +58,9 @@ class RegistrationController extends Controller
             'employee_ids.*' => ['uuid', 'exists:employees,id'],
             'justification' => ['nullable', 'string', 'max:1000'],
             'override' => ['sometimes', 'boolean'],
+            'group_id' => ['nullable', 'uuid', 'exists:training_groups,id'],
         ]);
+        $group = isset($data['group_id']) ? TrainingGroup::findOrFail($data['group_id']) : null;
 
         $user = $this->user();
         $isCenter = $this->isCenterStaff($user);
@@ -76,6 +79,7 @@ class RegistrationController extends Controller
                     $isCenter ? 'training_center' : 'school_admin',
                     $data['justification'] ?? null,
                     $isCenter && ($data['override'] ?? false),
+                    $group,
                 );
                 $results[] = ['employee_id' => $employee->id, 'ok' => true, 'status' => $registration->status, 'registration_id' => $registration->id];
             } catch (BusinessRuleException $e) {

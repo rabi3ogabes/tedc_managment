@@ -16,11 +16,13 @@ import MaterialsTab from './program/MaterialsTab'
 import ParticipantsTab from './program/ParticipantsTab'
 import RulesTab from './program/RulesTab'
 import SessionsTab from './program/SessionsTab'
+import GroupsTab from './program/GroupsTab'
 import StaffTab from './program/StaffTab'
+import StructureTab from './program/StructureTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff'
+type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff' | 'groups' | 'structure'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -57,6 +59,8 @@ export default function ProgramManage() {
       {notice && <div className="mb-4 rounded-xl bg-gold-100 p-3 text-sm text-navy-900">{notice}</div>}
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[
         { id: 'participants', label: t('admin.programs.participants') },
+        { id: 'groups', label: t('groups.tab') },
+        { id: 'structure', label: t('structure.tab') },
         { id: 'sessions', label: t('admin.programs.sessions') },
         { id: 'course', label: t('course.tab') },
         ...(p.delivery_mode !== 'in_person' ? [{ id: 'remote' as const, label: t('studio.tracking.tab') }] : []),
@@ -69,6 +73,8 @@ export default function ProgramManage() {
         ...(can('program_grants.manage') ? [{ id: 'staff' as const, label: t('grants.tab') }] : []),
       ]} />
       {tab === 'participants' && <ParticipantsTab program={p} />}
+      {tab === 'groups' && <GroupsTab program={p} />}
+      {tab === 'structure' && <StructureTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}
       {tab === 'course' && <CourseTab program={p} />}
       {tab === 'remote' && <RemoteTab program={p} />}

@@ -21,11 +21,12 @@ class ProgramDetailScreen extends ConsumerStatefulWidget {
 
 class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
   bool _registering = false;
+  String? _groupId;
 
   Future<void> _register(String programId) async {
     setState(() => _registering = true);
     try {
-      await ref.read(apiProvider).post('/me/programs/$programId/register');
+      await ref.read(apiProvider).post('/me/programs/$programId/register', _groupId == null ? null : {'group_id': _groupId});
       ref.invalidate(getProvider('/me/programs/$programId/eligibility'));
       ref.invalidate(getProvider('/me/registrations'));
       ref.invalidate(getProvider('/me/home'));
@@ -63,6 +64,7 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
           final category = p.obj('category');
           final eligibility = ref.watch(getProvider('/me/programs/${p.str('id')}/eligibility'));
           final sessions = p.list('sessions');
+          final groups = p.list('groups');
           final objectives = (p['objectives'] as List? ?? const []).map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
 
           return CustomScrollView(slivers: [
@@ -106,6 +108,19 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       EligibilityPanel(e),
                       const SizedBox(height: 14),
+                      if (groups.length > 1 && registration == null) ...[
+                        Text(s.t('groups.choose'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Wrap(spacing: 8, runSpacing: 8, children: [
+                          for (final g in groups)
+                            ChoiceChip(
+                              label: Text('${g.str('title')} · ${fmt.date(g.date('start_date'))} · ${fmt.number(g.number('seats_available'))} ${s.t('common.seats')}'),
+                              selected: (_groupId ?? groups.first.str('id')) == g.str('id'),
+                              onSelected: (_) => setState(() => _groupId = g.str('id')),
+                            ),
+                        ]),
+                        const SizedBox(height: 14),
+                      ],
                       if (registration != null)
                         Container(
                           padding: const EdgeInsets.all(14),

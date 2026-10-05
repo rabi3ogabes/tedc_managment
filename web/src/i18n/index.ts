@@ -4,6 +4,7 @@ import ar from './ar'
 import en from './en'
 import { courseAr, courseEn } from './course'
 import { accessAr, accessEn } from './access'
+import { structureAr, structureEn } from './structure'
 import { opsAr, opsEn } from './ops'
 import { kitsAr, kitsEn } from './kits'
 import { mgmtAr, mgmtEn } from './management'
@@ -29,7 +30,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn } } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr, ...structureAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn, ...structureEn } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },

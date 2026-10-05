@@ -8,8 +8,11 @@ use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Task;
+use App\Models\TrainingGroup;
+use App\Models\TrainingPlan;
 use App\Models\User;
 use App\Services\ThemeService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -93,7 +96,9 @@ class NotificationTemplates
     {
         $registration = isset($data['registration_id']) ? Registration::with('program')->find($data['registration_id']) : null;
         $session = isset($data['session_id']) ? ProgramSession::find($data['session_id']) : null;
-        $program ??= $registration?->program ?? (isset($data['program_id']) ? Program::find($data['program_id']) : ($session?->program));
+        $group = isset($data['group_id']) ? TrainingGroup::with('program')->find($data['group_id']) : null;
+        $program ??= $registration?->program ?? $group?->program ?? (isset($data['program_id']) ? Program::find($data['program_id']) : ($session?->program));
+        $plan = isset($data['plan_id']) ? TrainingPlan::find($data['plan_id']) : null;
         $task = isset($data['task_id']) ? Task::find($data['task_id']) : null;
         $certificate = isset($data['certificate_id']) ? Certificate::with('program')->find($data['certificate_id']) : null;
         $program ??= $certificate?->program;
@@ -103,6 +108,7 @@ class NotificationTemplates
         $status = ['ar' => ['pending' => 'قيد المراجعة', 'approved' => 'معتمد', 'rejected' => 'مرفوض', 'waitlisted' => 'في قائمة الانتظار', 'cancelled' => 'ملغى', 'completed' => 'مكتمل'],
             'en' => ['pending' => 'under review', 'approved' => 'approved', 'rejected' => 'rejected', 'waitlisted' => 'on the waiting list', 'cancelled' => 'cancelled', 'completed' => 'completed']];
         $suffix = str_contains($event, '.') ? substr($event, strrpos($event, '.') + 1) : '';
+        $groupStatus = ['ar' => ['postponed' => 'مؤجلة', 'cancelled' => 'ملغاة', 'ongoing' => 'جارية', 'completed' => 'مكتملة', 'incomplete' => 'غير مكتملة', 'registration_open' => 'التسجيل مفتوح', 'planned' => 'مخطط لها'], 'en' => ['postponed' => 'postponed', 'cancelled' => 'cancelled', 'ongoing' => 'ongoing', 'completed' => 'completed', 'incomplete' => 'incomplete', 'registration_open' => 'open for registration', 'planned' => 'planned']];
 
         $out = [];
         foreach (['ar', 'en'] as $lang) {
@@ -112,10 +118,13 @@ class NotificationTemplates
                 'program' => $program ? $program->{"title_{$lang}"} : ($task ? $task->{"title_{$lang}"} : ''),
                 'program_code' => $program?->code ?? '',
                 'session' => $session ? $session->{"title_{$lang}"} : '',
-                'date' => $when ? $when->copy()->locale($lang)->translatedFormat('j F Y') : '',
+                'date' => isset($data['due_at']) ? Carbon::parse($data['due_at'])->locale($lang)->translatedFormat('j F Y') : ($when ? $when->copy()->locale($lang)->translatedFormat('j F Y') : ''),
                 'time' => $session ? $session->starts_at->timezone(config('app.timezone'))->format('H:i') : '',
-                'status' => $status[$lang][$suffix] ?? '',
+                'status' => $status[$lang][$data['decision'] ?? $suffix] ?? ($group ? ($groupStatus[$lang][$group->status] ?? '') : ''),
                 'center' => (string) ($center ?? ''),
+                'group' => $group ? $group->displayTitle($lang) : '',
+                'reason' => (string) ($data['reason'] ?? ''),
+                'plan' => $plan ? '«'.$plan->{"title_{$lang}"}.'» ('.$plan->year.')' : '',
             ];
         }
 
