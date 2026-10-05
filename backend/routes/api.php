@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
 use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
+use App\Http\Controllers\Api\V1\Admin\QuestionBankController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
@@ -872,6 +873,24 @@ Route::prefix('v1')->group(function () {
                 Route::get('logistics-requests', [RoomsOpsController::class, 'logisticsIndex']);
                 Route::post('logistics-requests', [RoomsOpsController::class, 'logisticsStore']);
                 Route::put('logistics-requests/{logisticsRequest}', [RoomsOpsController::class, 'logisticsUpdate']);
+            });
+            // Question banks.
+            Route::middleware('permission:banks.manage|assessments.manage')->group(function () {
+                Route::get('question-types', [QuestionBankController::class, 'types']);
+                Route::get('question-banks', [QuestionBankController::class, 'index']);
+                Route::post('question-banks', [QuestionBankController::class, 'store']);
+                Route::put('question-banks/{bank}', [QuestionBankController::class, 'update']);
+                Route::delete('question-banks/{bank}', [QuestionBankController::class, 'destroy']);
+                Route::get('question-banks/{bank}/categories', [QuestionBankController::class, 'categories']);
+                Route::post('question-banks/{bank}/categories', [QuestionBankController::class, 'saveCategory']);
+                Route::put('question-banks/{bank}/categories/{category}', [QuestionBankController::class, 'saveCategory']);
+                Route::get('question-banks/{bank}/questions', [QuestionBankController::class, 'questions']);
+                Route::post('question-banks/{bank}/questions', [QuestionBankController::class, 'storeQuestion']);
+                Route::post('question-banks/{bank}/questions/bulk', [QuestionBankController::class, 'bulk']);
+                Route::post('question-banks/{bank}/import', [QuestionBankController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('question-banks/{bank}/export', [QuestionBankController::class, 'export']);
+                Route::put('questions/{question}', [QuestionBankController::class, 'updateQuestion']);
+                Route::delete('questions/{question}', [QuestionBankController::class, 'destroyQuestion']);
             });
             // Absence alerts, excuses and leaves.
             Route::get('absence-alerts', [AbsenceController::class, 'alerts'])->middleware('permission:attendance.manage');

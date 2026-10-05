@@ -70,6 +70,7 @@ return [
     'excuse' => ['when_required' => 'Choose the session, or the first and last day of the absence.', 'bad_session' => 'That session does not belong to this program.', 'decided' => 'This excuse was already decided.'],
     'leave' => ['bad_minutes' => 'The leave minutes must be between 1 and the minutes the trainee attended.'],
     'seating' => ['duplicate' => 'A person can sit in one seat only.', 'no_layout' => 'Design the seat grid first.', 'insufficient' => 'The room has :seats usable seats for :people people.'],
+    'assessment' => ['unknown_type' => 'Unknown question type.', 'one_correct' => 'Mark the correct answer.', 'options_invalid' => 'Give at least two distinct, non-empty options.', 'blanks_required' => 'Add at least one blank.', 'accepted_required' => 'Give at least one accepted answer.', 'pairs_invalid' => 'Give at least two valid items.', 'areas_invalid' => 'Add an image and at least one correct area.', 'number_required' => 'Give the correct number.', 'h5p_required' => 'Give the H5P content link or id.'],
     'structure' => ['one_level' => 'Only one level of sub-programs is allowed: a sub-program cannot have its own sub-programs.'],
     'grants' => ['attendance_denied' => 'You do not have the right to record attendance for this program. Ask the head of training to grant it.'],
     'roles' => [
