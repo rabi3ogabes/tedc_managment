@@ -177,18 +177,18 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 07 — Passing Rules & Certificates  (6)
 
-- [ ] **PAS-01** ★ — Pass criteria with relative weights (attendance, participation, tasks, tests)  
-  _Now:_ 🟡 Partial — Pass/fail checks (attendance, tasks, evaluation, course); no weights or participation %.
-- [ ] **PAS-05** — Final approval by course supervisor; auto-approval for self-learning  
-  _Now:_ 🟡 Partial — One review stage only.
-- [ ] **PAS-07** — Pass via a comprehensive skills test without attending  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PAS-09** — Certificate hours: total vs actually attended  
-  _Now:_ 🟡 Partial — Hours stored; no switch.
-- [ ] **PAS-10** ★ — Attendance certificate vs pass certificate (or both)  
-  _Now:_ 🔴 Missing — One certificate type.
-- [ ] **PAS-13** — Manual exception from the attendance condition, documented  
-  _Now:_ 🟡 Partial — Audited eligibility override; no certificate-level exception.
+- [x] **PAS-01** ★ — Pass criteria with relative weights (attendance, participation, tasks, tests)  
+  _Now:_ ✅ Available — Weighted/all-required passing policy per group, program or global — docs/rfp/phase-07-passing-rules.md
+- [x] **PAS-05** — Final approval by course supervisor; auto-approval for self-learning  
+  _Now:_ ✅ Available — Trainer-then-supervisor task approval; automatic for self-assessed tasks
+- [x] **PAS-07** — Pass via a comprehensive skills test without attending  
+  _Now:_ ✅ Available — Pass by the comprehensive skills test without attending (test-out)
+- [x] **PAS-09** — Certificate hours: total vs actually attended  
+  _Now:_ ✅ Available — Total or actual attended hours on the certificate
+- [x] **PAS-10** ★ — Attendance certificate vs pass certificate (or both)  
+  _Now:_ ✅ Available — Attendance, pass or both certificate types with their own templates
+- [x] **PAS-13** — Manual exception from the attendance condition, documented  
+  _Now:_ ✅ Available — Documented, audited, revocable exceptions with reason and attachment
 
 ### Phase 08 — Evaluation, Surveys & Impact  (11)
 
@@ -657,19 +657,19 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| PAS-01 ★ | Pass criteria with relative weights (attendance, participation, tasks, tests) | 🟡 Partial | Pass/fail checks (attendance, tasks, evaluation, course); no weights or participation %. | 7 |
+| PAS-01 ★ | Pass criteria with relative weights (attendance, participation, tasks, tests) | ✅ Available | Weighted/all-required passing policy per group, program or global — docs/rfp/phase-07-passing-rules.md | — |
 | PAS-02 | Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop | ✅ Available | Pass mark, attempts, cooldown, restudy rule per assessment | — |
 | PAS-03 | Required tasks set per course and submitted electronically | ✅ Available | Tasks with file / text submissions and versions. | — |
 | PAS-04 | Trainer approves, rejects or returns tasks with notes | ✅ Available | Submission review. | — |
-| PAS-05 | Final approval by course supervisor; auto-approval for self-learning | 🟡 Partial | One review stage only. | 7 |
+| PAS-05 | Final approval by course supervisor; auto-approval for self-learning | ✅ Available | Trainer-then-supervisor task approval; automatic for self-assessed tasks | — |
 | PAS-06 | Objective questions auto-graded; essays graded manually | ✅ Available | Manual grading queue, regrade with replacement, release of results | — |
-| PAS-07 | Pass via a comprehensive skills test without attending | 🔴 Missing | Not available. | 7 |
+| PAS-07 | Pass via a comprehensive skills test without attending | ✅ Available | Pass by the comprehensive skills test without attending (test-out) | — |
 | PAS-08 ★ | Certificate designer: logos, background, watermark, text, e-signature | ✅ Available | Designer from PDF / image templates, bilingual PDF (mPDF). | — |
-| PAS-09 | Certificate hours: total vs actually attended | 🟡 Partial | Hours stored; no switch. | 7 |
-| PAS-10 ★ | Attendance certificate vs pass certificate (or both) | 🔴 Missing | One certificate type. | 7 |
+| PAS-09 | Certificate hours: total vs actually attended | ✅ Available | Total or actual attended hours on the certificate | — |
+| PAS-10 ★ | Attendance certificate vs pass certificate (or both) | ✅ Available | Attendance, pass or both certificate types with their own templates | — |
 | PAS-11 | Satisfaction survey required before viewing / printing | ✅ Available | Download unlocked after the survey. | — |
 | PAS-12 | Keep graduates’ records after they leave; archive and reprint | ✅ Available | Records retained; certificates re-renderable. | — |
-| PAS-13 | Manual exception from the attendance condition, documented | 🟡 Partial | Audited eligibility override; no certificate-level exception. | 7 |
+| PAS-13 | Manual exception from the attendance condition, documented | ✅ Available | Documented, audited, revocable exceptions with reason and attachment | — |
 | PAS-14 ★ | Public verification by certificate number or QR | ✅ Available | /verify page with QR. | — |
 
 ### ROM · Training Rooms & Logistics — إدارة القاعات التدريبية

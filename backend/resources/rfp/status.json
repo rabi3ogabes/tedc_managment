@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 133,
-        "partial": 65,
-        "missing": 80,
+        "available": 139,
+        "partial": 61,
+        "missing": 78,
         "mandatory": 108,
-        "open": 145
+        "open": 139
     },
     "phases": [
         {
@@ -61,7 +61,7 @@
             "phase": 7,
             "title": "Passing Rules & Certificates",
             "open": 6,
-            "items": 6,
+            "items": 0,
             "done": 0
         },
         {
@@ -1100,9 +1100,9 @@
                     "id": "PAS-01",
                     "mandatory": true,
                     "requirement": "Pass criteria with relative weights (attendance, participation, tasks, tests)",
-                    "status": "partial",
-                    "evidence": "Pass/fail checks (attendance, tasks, evaluation, course); no weights or participation %.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Weighted/all-required passing policy per group, program or global — docs/rfp/phase-07-passing-rules.md",
+                    "phase": null
                 },
                 {
                     "id": "PAS-02",
@@ -1132,9 +1132,9 @@
                     "id": "PAS-05",
                     "mandatory": false,
                     "requirement": "Final approval by course supervisor; auto-approval for self-learning",
-                    "status": "partial",
-                    "evidence": "One review stage only.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Trainer-then-supervisor task approval; automatic for self-assessed tasks",
+                    "phase": null
                 },
                 {
                     "id": "PAS-06",
@@ -1148,9 +1148,9 @@
                     "id": "PAS-07",
                     "mandatory": false,
                     "requirement": "Pass via a comprehensive skills test without attending",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Pass by the comprehensive skills test without attending (test-out)",
+                    "phase": null
                 },
                 {
                     "id": "PAS-08",
@@ -1164,17 +1164,17 @@
                     "id": "PAS-09",
                     "mandatory": false,
                     "requirement": "Certificate hours: total vs actually attended",
-                    "status": "partial",
-                    "evidence": "Hours stored; no switch.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Total or actual attended hours on the certificate",
+                    "phase": null
                 },
                 {
                     "id": "PAS-10",
                     "mandatory": true,
                     "requirement": "Attendance certificate vs pass certificate (or both)",
-                    "status": "missing",
-                    "evidence": "One certificate type.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Attendance, pass or both certificate types with their own templates",
+                    "phase": null
                 },
                 {
                     "id": "PAS-11",
@@ -1196,9 +1196,9 @@
                     "id": "PAS-13",
                     "mandatory": false,
                     "requirement": "Manual exception from the attendance condition, documented",
-                    "status": "partial",
-                    "evidence": "Audited eligibility override; no certificate-level exception.",
-                    "phase": 7
+                    "status": "available",
+                    "evidence": "Documented, audited, revocable exceptions with reason and attachment",
+                    "phase": null
                 },
                 {
                     "id": "PAS-14",
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T14:01:30+03:00"
+    "generated_at": "2026-10-05T14:18:42+03:00"
 }

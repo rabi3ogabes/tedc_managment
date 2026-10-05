@@ -90,7 +90,7 @@ class WalletScreen extends ConsumerWidget {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [const OfficialEmblem(size: 44), const Spacer(), if (locked) const Icon(Icons.lock_outline, color: AppColors.gold300) else StatusChip(c.str('status'))]),
                         const SizedBox(height: 18),
-                        Text(s.t(trainer ? 'certs.trainerKind' : 'certs.traineeKind'), style: const TextStyle(color: AppColors.gold300, fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text(s.t(trainer ? 'certs.trainerKind' : (c.str('type') == 'attendance' ? 'certs.attendanceKind' : 'certs.traineeKind')), style: const TextStyle(color: AppColors.gold300, fontSize: 12, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
                         Text(c.obj('program')?.str('title') ?? '', style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),

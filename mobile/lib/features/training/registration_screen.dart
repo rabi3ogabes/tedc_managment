@@ -112,6 +112,13 @@ class RegistrationScreen extends ConsumerWidget {
                   ]),
                 ),
             ],
+            if (['approved', 'completed'].contains(r.str('status'))) ...[
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => _PassProgressSheet(registrationId: id)),
+                child: Text(s.t('pass.title')),
+              ),
+            ],
             if (r.str('status') == 'approved') ...[
               const SizedBox(height: 12),
               OutlinedButton(
@@ -400,6 +407,75 @@ class _ExcuseSheetState extends ConsumerState<_ExcuseSheet> {
           child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text(s.t('excuse.send')),
         ),
       ]),
+    );
+  }
+}
+
+
+/// The criteria of the passing policy with the trainee's progress on each, and the way to pass by the comprehensive test.
+class _PassProgressSheet extends ConsumerWidget {
+  const _PassProgressSheet({required this.registrationId});
+
+  final String registrationId;
+
+  String _step(BuildContext context, Json c) {
+    final s = context.s;
+    if (!c.flag('applicable') || c.flag('met')) return '';
+    final key = c.str('key');
+    if (key == 'attendance') return s.t('pass.attendNext').replaceAll('{n}', '${(c.number('min') - c.number('value')).ceil().clamp(1, 100)}');
+    if (key == 'tasks') return s.t('pass.submitTask').replaceAll('{done}', '${c.obj('evidence')?.number('done') ?? 0}').replaceAll('{total}', '${c.obj('evidence')?.number('total') ?? 0}');
+    if (key == 'course') return s.t('pass.finishCourse');
+    if (key == 'evaluation') return s.t('pass.fillSurvey');
+    return '';
+  }
+
+  Future<void> _testOut(BuildContext context, WidgetRef ref, String programId) async {
+    try {
+      final res = await ref.read(apiProvider).post('/me/programs/$programId/test-out/start');
+      final id = ((res as Map)['data'] as Map)['assessment_id'].toString();
+      if (context.mounted) {
+        Navigator.pop(context);
+        context.push('/assessments/$id/take');
+      }
+    } catch (e) {
+      if (context.mounted) showSnack(context, e.toString(), error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final res = ref.watch(getProvider('/me/registrations/$registrationId/progress'));
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: AsyncView(
+          value: res,
+          onRetry: () => ref.invalidate(getProvider('/me/registrations/$registrationId/progress')),
+          builder: (raw) {
+            final d = Map<String, dynamic>.from((raw as Map)['data'] as Map);
+            final criteria = d.list('criteria');
+            return ListView(shrinkWrap: true, children: [
+              Text(s.t('pass.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 6),
+              Text(s.t('pass.status.${d.str('pass_status')}'), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.gold700)),
+              if (d.str('mode') == 'weighted' && d['weighted_score'] != null) Text('${s.t('pass.score')}: ${d.number('weighted_score').toStringAsFixed(1)}% / ${d.number('pass_threshold').round()}%'),
+              const SizedBox(height: 12),
+              for (final c in criteria) ...[
+                Row(children: [
+                  Expanded(child: Text(s.t('pass.key.${c.str('key')}'), style: const TextStyle(fontWeight: FontWeight.w700))),
+                  if (!c.flag('applicable')) Text(s.t('pass.na')) else if (c.flag('met')) Text(s.t(c.flag('exempted') ? 'pass.exempt' : 'pass.met'), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w700)) else Text('${c.number('value').round()}% / ${c.number('min').round()}%'),
+                ]),
+                if (c.flag('applicable')) Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: ProgressBar(c.flag('exempted') ? 100 : c.number('value').toDouble(), color: c.flag('met') ? Colors.green : AppColors.gold500)),
+                if (_step(context, c).isNotEmpty) Text('${s.t('pass.next')}: ${_step(context, c)}', style: const TextStyle(fontSize: 12, color: AppColors.gold700)),
+                const SizedBox(height: 10),
+              ],
+              if (d.flag('can_test_out'))
+                FilledButton(onPressed: () => _testOut(context, ref, d.str('program_id')), child: Text(s.t('pass.startTestOut'))),
+            ]);
+          },
+        ),
+      ),
     );
   }
 }
