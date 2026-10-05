@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/api/api_client.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
@@ -115,7 +114,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> with WidgetsBindingObse
       }
     }
     try {
-      final res = await ref.read(apiProvider).post('/me/assessments/${widget.id}/start', {if (accessCode != null) 'access_code': accessCode});
+      final res = await ref.read(apiProvider).post('/me/assessments/${widget.id}/start', {'access_code': ?accessCode});
       final a = Map<String, dynamic>.from((res as Map)['data'] as Map);
       final saved = a.obj('answers') ?? {};
       if (!mounted) return;

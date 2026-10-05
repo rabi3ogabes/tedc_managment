@@ -23,12 +23,15 @@ return new class extends Migration
         Schema::create('bank_categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('bank_id')->constrained('question_banks')->cascadeOnDelete();
-            $table->foreignUuid('parent_id')->nullable()->constrained('bank_categories')->nullOnDelete();
+            $table->uuid('parent_id')->nullable()->index();
             $table->string('name_ar');
             $table->string('name_en');
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
         });
+
+        // A self-referencing key is added once the table (and its primary key) exist: PostgreSQL needs that order.
+        Schema::table('bank_categories', fn (Blueprint $table) => $table->foreign('parent_id')->references('id')->on('bank_categories')->nullOnDelete());
 
         Schema::create('questions', function (Blueprint $table) {
             $table->uuid('id')->primary();
