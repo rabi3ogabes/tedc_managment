@@ -2,10 +2,15 @@ import clsx from 'clsx'
 import { Maximize, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import QuestionInput from '@/components/assessment/QuestionInput'
 import { api } from '@/lib/api'
+import { Button } from '@/components/ui'
 import { clock, type LessonDetail, type ProgressResult } from './types'
 
 const BEAT_MS = 10_000
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Interaction = { id: string; at_seconds: number; type: string; prompt_ar: string | null; prompt_en: string | null; required: boolean; blocks_progress: boolean; require_correct: boolean; allow_skip?: boolean; question: any | null; answered: boolean; correct: boolean | null }
 
 /**
  * A video player that reports what was really watched. Every ten seconds of playback (and on pause) it tells the
@@ -13,7 +18,7 @@ const BEAT_MS = 10_000
  * cannot go beyond the furthest point reached. The seek bar shows the parts already watched.
  */
 export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDetail; onProgress: (r: ProgressResult) => void }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const media = lesson.media
   const video = useRef<HTMLVideoElement>(null)
   const box = useRef<HTMLDivElement>(null)
@@ -30,6 +35,12 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
   const [percent, setPercent] = useState(lesson.progress.percent)
   const [notice, setNotice] = useState<string | null>(null)
   const [done, setDone] = useState(lesson.progress.status === 'completed')
+  const [items, setItems] = useState<Interaction[]>([])
+  const [active, setActive] = useState<Interaction | null>(null)
+  const [reply, setReply] = useState<any>(undefined)
+  const [verdict, setVerdict] = useState<{ correct: boolean | null; unlocked: boolean; explanation: string | null } | null>(null)
+  const shown = useRef<Set<string>>(new Set())
+  useEffect(() => { api.get<{ data: Interaction[] }>(`/me/lessons/${lesson.id}/interactions`).then((r) => setItems(r.data.data)).catch(() => undefined) }, [lesson.id])
 
   const beat = useCallback(async (force = false) => {
     const el = video.current
@@ -41,12 +52,14 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
     sent.current = to
     if (to <= from) return
     try {
-      const res = await api.post<{ data: ProgressResult }>(`/me/lessons/${lesson.id}/heartbeat`, { from, to, duration: el.duration || undefined, rate: el.playbackRate })
+      const res = await api.post<{ data: ProgressResult }>(`/me/lessons/${lesson.id}/heartbeat`, { from, to, duration: el.duration || undefined, rate: el.playbackRate, visible: !document.hidden })
       const r = res.data.data
       setPercent(r.percent)
       setDone(r.completed)
       onProgress(r)
       if (r.furthest != null) furthest.current = r.furthest
+      const blockedAt = (r as unknown as { blocked_at?: number | null }).blocked_at
+      if (blockedAt != null && el.currentTime > blockedAt + 1) { el.currentTime = blockedAt; sent.current = blockedAt }
       // The server reached a lower point than the player (a skip): bring the learner back.
       if (!lesson.rules.allow_seeking && r.position != null && el.currentTime > r.position + 8) {
         el.currentTime = r.position
@@ -120,12 +133,30 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
           // Continuous playback moves the reachable point forward; a jump does not.
           if (!el.seeking && cur >= lastTick.current && cur - lastTick.current < 2) furthest.current = Math.max(furthest.current, cur)
           lastTick.current = cur
+          // An interaction opens the first time its moment is reached.
+          const due = items.find((i) => !i.answered && !shown.current.has(i.id) && cur >= i.at_seconds && cur < i.at_seconds + 3)
+          if (due && !active) { shown.current.add(due.id); el.pause(); setReply(undefined); setVerdict(null); setActive(due) }
           if (!lesson.rules.allow_seeking && !el.seeking && cur > furthest.current + 2) el.currentTime = furthest.current
         }}
         onSeeking={() => { const el = video.current; if (el && !lesson.rules.allow_seeking && el.currentTime > furthest.current + 2) { setNotice(t('learn.noSeek')); el.currentTime = furthest.current } }}
         onRateChange={() => setRate(video.current?.playbackRate ?? 1)}
       />
       {!playing && <button type="button" aria-label="play" onClick={toggle} className="absolute inset-0 grid place-items-center bg-black/25 transition hover:bg-black/35"><span className="grid size-20 place-items-center rounded-full bg-white/95 text-navy-900 shadow-xl"><Play className="size-9 translate-x-0.5" /></span></button>}
+      {active && (
+        <div role="dialog" aria-modal="true" className="absolute inset-0 z-10 grid place-items-center overflow-y-auto bg-navy-950/90 p-4 text-white">
+          <div className="w-full max-w-xl space-y-4 rounded-2xl bg-white p-5 text-navy-900" dir="auto">
+            {active.question ? <QuestionInput q={{ id: active.id, type: active.question.type, stem_ar: active.question.stem_ar, stem_en: active.question.stem_en, media: active.question.media, points: 1, payload: active.question.payload }} value={reply} onChange={setReply} disabled={!!verdict?.unlocked} />
+              : <><p className="font-semibold">{(i18n.language === 'ar' ? active.prompt_ar : active.prompt_en) || active.prompt_ar || active.prompt_en}</p>{active.type === 'reflection' && <textarea className="w-full rounded-xl border border-navy-100 p-2 text-sm" rows={3} value={reply ?? ''} onChange={(e) => setReply(e.target.value)} />}</>}
+            {verdict && <p className={clsx('rounded-xl p-2 text-sm', verdict.correct === false ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-emerald-800')}>{verdict.correct === false ? t('assess.video.wrongMsg') : verdict.correct ? t('assess.video.correctMsg') : ''} {verdict.explanation}</p>}
+            <div className="flex gap-2">
+              {!verdict?.unlocked && <Button variant="gold" onClick={async () => {
+                try { const { data } = await api.post(`/me/lessons/${lesson.id}/interactions/${active.id}/answer`, { answer: reply ?? '' }); const d = data.data; setVerdict({ correct: d.correct, unlocked: d.unlocked, explanation: (i18n.language === 'ar' ? d.explanation_ar : d.explanation_en) ?? null }); if (d.unlocked) setItems((x) => x.map((i) => (i.id === active.id ? { ...i, answered: true } : i))) } catch { setNotice(t('learn.noSeek')) }
+              }}>{t('assess.video.submit')}</Button>}
+              {(verdict?.unlocked || (!active.required && active.allow_skip !== false)) && <Button variant="outline" onClick={() => { setActive(null); void video.current?.play() }}>{verdict?.unlocked ? t('assess.video.continue') : t('assess.video.skip')}</Button>}
+            </div>
+          </div>
+        </div>
+      )}
       {notice && <div className="absolute inset-x-0 top-3 mx-auto w-fit rounded-full bg-navy-950/90 px-4 py-1.5 text-sm text-white shadow">{notice}</div>}
       {done && <div className="absolute end-3 top-3 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow">{t('learn.lessonDone')}</div>}
 

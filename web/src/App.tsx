@@ -38,6 +38,7 @@ const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
 const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
+const QuestionBanks = lazy(() => import('@/pages/admin/QuestionBanks'))
 const NeedsHub = lazy(() => import('@/pages/admin/needshub/NeedsHub'))
 const MyNeeds = lazy(() => import('@/pages/portal/MyNeeds'))
 const ApprovalsInbox = lazy(() => import('@/pages/admin/ApprovalsInbox'))
@@ -115,6 +116,7 @@ export default function App() {
           <Route path="join/:slug" element={<JoinForm />} />
           <Route path="activate" element={<Activate />} />
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
+          <Route path="question-banks" element={<RequireAuth permission="banks.manage|assessments.manage"><QuestionBanks /></RequireAuth>} />
           <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
           <Route path="approvals" element={<RequireAuth permission="registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review"><ApprovalsInbox /></RequireAuth>} />
           <Route path="admission-rules" element={<RequireAuth permission="priority.manage|withdrawals.policy|external_forms.manage"><AdmissionSettings /></RequireAuth>} />

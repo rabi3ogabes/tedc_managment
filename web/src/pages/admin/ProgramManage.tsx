@@ -17,13 +17,14 @@ import ParticipantsTab from './program/ParticipantsTab'
 import RulesTab from './program/RulesTab'
 import SessionsTab from './program/SessionsTab'
 import AdmissionTab from './program/AdmissionTab'
+import AssessmentsTab from './program/AssessmentsTab'
 import GroupsTab from './program/GroupsTab'
 import StaffTab from './program/StaffTab'
 import StructureTab from './program/StructureTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff' | 'groups' | 'structure' | 'admission'
+type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff' | 'groups' | 'structure' | 'admission' | 'assessments'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -63,6 +64,7 @@ export default function ProgramManage() {
         { id: 'groups', label: t('groups.tab') },
         { id: 'structure', label: t('structure.tab') },
         ...(can('registrations.view') ? [{ id: 'admission' as const, label: t('admission.tab') }] : []),
+        ...(can('assessments.manage') || can('assessments.grade') || can('assessments.invigilate') ? [{ id: 'assessments' as const, label: t('assess.builder.tab') }] : []),
         { id: 'sessions', label: t('admin.programs.sessions') },
         { id: 'course', label: t('course.tab') },
         ...(p.delivery_mode !== 'in_person' ? [{ id: 'remote' as const, label: t('studio.tracking.tab') }] : []),
@@ -78,6 +80,7 @@ export default function ProgramManage() {
       {tab === 'groups' && <GroupsTab program={p} />}
       {tab === 'structure' && <StructureTab program={p} />}
       {tab === 'admission' && can('registrations.view') && <AdmissionTab program={p} />}
+      {tab === 'assessments' && <AssessmentsTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}
       {tab === 'course' && <CourseTab program={p} />}
       {tab === 'remote' && <RemoteTab program={p} />}

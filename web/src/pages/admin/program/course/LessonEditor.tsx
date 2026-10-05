@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Field } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { fmtDuration, fmtSize, uploadLessonFile, videoDuration, type Lesson, type LessonSettings } from './api'
+import InteractionsEditor from './InteractionsEditor'
 import { QuizEditor, SurveyEditor } from './QuestionEditors'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
@@ -191,8 +192,12 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
               <Toggle label={t('course.rules.pauseHidden')} hint={t('course.rules.pauseHiddenHint')} value={s.pause_when_hidden ?? true} onChange={(v) => rule('pause_when_hidden', v)} />
               <Num label={t('course.rules.minWatch')} value={s.min_watch_percent ?? 90} min={1} max={100} suffix="%" onChange={(v) => rule('min_watch_percent', v ?? 90)} />
               <Num label={t('course.rules.maxSpeed')} value={s.max_speed ?? 2} min={1} max={3} step={0.25} suffix="×" onChange={(v) => rule('max_speed', v ?? 2)} />
+              <Toggle label={t('assess.video.requireVisible')} value={s.require_visible ?? true} onChange={(v) => rule('require_visible', v)} />
+              <Toggle label={t('assess.video.requireFullscreen')} value={s.require_fullscreen ?? false} onChange={(v) => rule('require_fullscreen', v)} />
+              <Num label={t('assess.video.lockPause')} value={s.lock_pause ?? null} min={0} max={50} onChange={(v) => rule('lock_pause', v)} />
             </div>
           </Card>
+          {lesson.id && <InteractionsEditor lessonId={lesson.id} />}
         </>
       )}
 
