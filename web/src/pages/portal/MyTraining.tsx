@@ -1,4 +1,5 @@
-import { CalendarPlus, Check, Download, FileText, PlayCircle, Star } from 'lucide-react'
+import { CalendarPlus, Check, Download, FileText, PlayCircle, QrCode, Star } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -18,10 +19,12 @@ export default function MyTraining() {
   const [materialsFor, setMaterialsFor] = useState<Registration | null>(null)
 
   const [withdrawing, setWithdrawing] = useState<Registration | null>(null)
+  const [excusing, setExcusing] = useState<Registration | null>(null)
+  const [showQr, setShowQr] = useState(false)
 
   return (
     <>
-      <PageHeader title={t('portal.myTraining')} actions={<Button variant="outline" icon={<CalendarPlus className="size-4" />} onClick={() => downloadFile('/me/calendar.ics', 'tedc-training.ics')}>{t('portal.calendarFeed')}</Button>} />
+      <PageHeader title={t('portal.myTraining')} actions={<div className="flex gap-2"><Button variant="outline" icon={<QrCode className="size-4" />} onClick={() => setShowQr(true)}>{t('ops.my.qr')}</Button><Button variant="outline" icon={<CalendarPlus className="size-4" />} onClick={() => downloadFile('/me/calendar.ics', 'tedc-training.ics')}>{t('portal.calendarFeed')}</Button></div>} />
       {isLoading ? <Spinner /> : !data?.data.length ? <Card><Empty /></Card> : (
         <div className="grid gap-4 lg:grid-cols-2">
           {data.data.map((r) => (
@@ -44,12 +47,15 @@ export default function MyTraining() {
                 {['approved', 'completed'].includes(r.status) && <Button size="sm" variant="outline" icon={<FileText className="size-4" />} onClick={() => setMaterialsFor(r)}>{t('admin.programs.materials')}</Button>}
                 {['approved', 'completed'].includes(r.status) && !r.evaluation_completed && <Button size="sm" variant="gold" icon={<Star className="size-4" />} onClick={() => setEvaluating(r)}>{t('portal.evaluate')}</Button>}
                 {r.certificate && <Button size="sm" variant="primary" icon={<Download className="size-4" />} onClick={() => downloadFile(`/certificates/${r.certificate!.id}/download`, 'certificate.pdf', true)}>PDF</Button>}
+                {r.status === 'approved' && <Button size="sm" variant="ghost" onClick={() => setExcusing(r)}>{t('ops.my.excuse')}</Button>}
                 {['pending_manager', 'pending', 'approved', 'waitlisted'].includes(r.status) && <Button size="sm" variant="ghost" onClick={() => setWithdrawing(r)}>{t('admission.withdraw.button')}</Button>}
               </div>
             </Card>
           ))}
         </div>
       )}
+      {excusing && <ExcuseModal registration={excusing} onClose={() => setExcusing(null)} />}
+      {showQr && <MyQrModal onClose={() => setShowQr(false)} />}
       {withdrawing && <WithdrawModal registration={withdrawing} onClose={(changed) => { setWithdrawing(null); if (changed) refetch() }} />}
       {evaluating && <EvaluationModal registration={evaluating} onClose={() => { setEvaluating(null); refetch() }} />}
       {materialsFor && <MaterialsModal registration={materialsFor} onClose={() => setMaterialsFor(null)} />}
@@ -168,6 +174,45 @@ function WithdrawModal({ registration, onClose }: { registration: Registration; 
           </>
         )}
         <Button variant="gold" loading={busy} disabled={!free && (!code || (!!reason?.requires_attachment && !file))} onClick={() => void send()}>{free ? t('admission.withdraw.button') : t('admission.withdraw.send')}</Button>
+      </div>
+    </Modal>
+  )
+}
+
+/** My personal attendance QR: authorised staff scan it to record attendance. */
+function MyQrModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const { data, isLoading } = useGet<{ data: { payload: string } }>('/me/attendance-qr', undefined, { staleTime: 0 })
+  return (
+    <Modal open onClose={onClose} title={t('ops.my.qr')}>
+      {isLoading || !data ? <Spinner /> : <div className="space-y-3 text-center"><div className="mx-auto w-fit rounded-2xl bg-white p-4 shadow"><QRCodeSVG value={data.data.payload} size={220} /></div><p className="text-sm text-slate-500">{t('ops.my.qrHint')}</p></div>}
+    </Modal>
+  )
+}
+
+/** An absence excuse for the manager to decide: reason, the day(s) and an optional document. */
+function ExcuseModal({ registration, onClose }: { registration: Registration; onClose: () => void }) {
+  const { t } = useTranslation()
+  const [f, setF] = useState({ reason_code: 'sick_leave', reason_text: '', from_date: '', to_date: '' })
+  const [file, setFile] = useState<File | null>(null)
+  const [busy, setBusy] = useState(false)
+  const send = async () => {
+    setBusy(true)
+    try {
+      const body = new FormData()
+      Object.entries(f).forEach(([k, v]) => v && body.append(k, v))
+      if (file) body.append('attachments[]', file)
+      await api.post(`/me/registrations/${registration.id}/excuses`, body); toast(t('ops.my.excuseSent')); onClose()
+    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
+  }
+  return (
+    <Modal open onClose={onClose} title={`${t('ops.my.excuse')} — ${registration.program?.title}`}>
+      <div className="space-y-4">
+        <Field label={t('admission.withdraw.reason')}><select className="input" value={f.reason_code} onChange={(e) => setF({ ...f, reason_code: e.target.value })}>{['sick_leave', 'bereavement', 'work_assignment', 'other'].map((c) => <option key={c} value={c}>{t(`ops.absence.excuseReason.${c}`)}</option>)}</select></Field>
+        <div className="grid gap-4 sm:grid-cols-2"><Field label={t('ops.rooms.from')}><input type="date" className="input" value={f.from_date} onChange={(e) => setF({ ...f, from_date: e.target.value })} /></Field><Field label={t('ops.rooms.to')}><input type="date" className="input" value={f.to_date} onChange={(e) => setF({ ...f, to_date: e.target.value })} /></Field></div>
+        <Field label={t('admission.withdraw.details')}><textarea className="input min-h-20" value={f.reason_text} onChange={(e) => setF({ ...f, reason_text: e.target.value })} /></Field>
+        <Field label={t('admission.withdraw.attach')}><input type="file" accept=".pdf,.jpg,.jpeg,.png" className="input" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></Field>
+        <Button variant="gold" loading={busy} disabled={!f.from_date || !f.to_date} onClick={() => void send()}>{t('admission.withdraw.send')}</Button>
       </div>
     </Modal>
   )

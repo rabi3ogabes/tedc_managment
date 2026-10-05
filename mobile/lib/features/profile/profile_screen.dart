@@ -65,6 +65,16 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const _AccountEntry(),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  leading: const Icon(Icons.qr_code_2, color: AppColors.gold500),
+                  title: Text(context.tr('myqr.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  onTap: () => context.push('/my-qr'),
+                ),
+              ),
               const _AssignmentsEntry(),
               const _ApprovalsEntry(),
               Padding(

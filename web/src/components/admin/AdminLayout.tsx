@@ -97,6 +97,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         ] },
         { title: m('groups.insights'), items: [
           { to: '/admin/live', label: m('live'), icon: Radio, permission: 'analytics.view' },
+          { to: '/admin/absence', label: t('ops.absence.title'), icon: ShieldAlert, permission: 'attendance.manage|attendance.devices' },
           { to: '/admin/attendance-attempts', label: t('attempts.nav'), icon: ShieldAlert, permission: 'attendance.manage' },
           { to: '/admin/geo', label: m('geo'), icon: Map, permission: 'analytics.view' },
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
@@ -110,6 +111,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/profile-requests', label: m('profileRequests'), icon: FilePenLine, permission: 'employees.manage', badge: requests.data?.data.pending },
           { to: '/admin/trainers', label: m('trainers'), icon: GraduationCap, permission: 'programs.view' },
           { to: '/admin/rooms', label: m('rooms'), icon: DoorOpen, permission: 'programs.view' },
+          { to: '/admin/room-ops', label: t('ops.rooms.title'), icon: CalendarRange, permission: 'programs.view|rooms.book' },
+          { to: '/admin/logistics', label: t('ops.logistics.title'), icon: PackageOpen, permission: 'programs.view|logistics.manage' },
         ] },
         { title: m('groups.security'), items: [
           { to: '/admin/users', label: m('users'), icon: UserCog, permission: 'users.manage' },

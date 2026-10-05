@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 109,
-        "partial": 77,
-        "missing": 92,
+        "available": 118,
+        "partial": 75,
+        "missing": 85,
         "mandatory": 108,
-        "open": 169
+        "open": 160
     },
     "phases": [
         {
@@ -47,7 +47,7 @@
             "phase": 5,
             "title": "Attendance, Rooms & Logistics",
             "open": 10,
-            "items": 10,
+            "items": 1,
             "done": 0
         },
         {
@@ -974,9 +974,9 @@
                     "id": "ATT-03",
                     "mandatory": false,
                     "requirement": "Electronic signature on a tablet",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Tablet kiosk (`/kiosk/sessions/{id}`): large touch targets, the trainee finds their name and signs on screen to check in or out; signatures are stored privately with the record, the kiosk opening is audited, and manual entry by non-centre staff can be limited to the first N minutes.",
+                    "phase": null
                 },
                 {
                     "id": "ATT-04",
@@ -990,17 +990,17 @@
                     "id": "ATT-05",
                     "mandatory": false,
                     "requirement": "Fingerprint attendance-system integration (trainees and trainers)",
-                    "status": "missing",
-                    "evidence": "Phone biometrics confirm identity at check-in; no attendance-device integration.",
+                    "status": "partial",
+                    "evidence": "Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access.",
                     "phase": 5
                 },
                 {
                     "id": "ATT-06",
                     "mandatory": false,
                     "requirement": "Trainer attendance and staff scanning of trainee / trainer QR",
-                    "status": "missing",
-                    "evidence": "Trainer attendance is not recorded.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report.",
+                    "phase": null
                 },
                 {
                     "id": "ATT-07",
@@ -1014,25 +1014,25 @@
                     "id": "ATT-08",
                     "mandatory": false,
                     "requirement": "Absence-threshold alert to supervisor; email to trainee & manager with notes",
-                    "status": "partial",
-                    "evidence": "Attendance nudges exist; no threshold escalation chain.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page.",
+                    "phase": null
                 },
                 {
                     "id": "ATT-09",
                     "mandatory": false,
                     "requirement": "Absence excuses with documents and manager approval workflow",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended.",
+                    "phase": null
                 },
                 {
                     "id": "ATT-10",
                     "mandatory": false,
                     "requirement": "Leave / permission (استئذان) entry with attachments and notification",
-                    "status": "partial",
-                    "evidence": "“Excused” status only; no attachments or early leave.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them.",
+                    "phase": null
                 },
                 {
                     "id": "ATT-11",
@@ -1243,9 +1243,9 @@
                     "id": "ROM-04",
                     "mandatory": false,
                     "requirement": "Book rooms for non-training use by authorised users",
-                    "status": "missing",
-                    "evidence": "Bookings exist only as sessions.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Authorised staff book rooms for meetings, exams, events or maintenance (`/admin/room-bookings`); conflicts are checked against sessions and other bookings and show who holds the room; the occupancy calendar shows sessions and bookings together.",
+                    "phase": null
                 },
                 {
                     "id": "ROM-05",
@@ -1259,17 +1259,17 @@
                     "id": "ROM-06",
                     "mandatory": false,
                     "requirement": "Never approve more trainees than room capacity; capacity per room / place / building",
-                    "status": "partial",
-                    "evidence": "Capacity checked at program level, not against room or building.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Effective capacity = the lowest of the room, its building and its place; assigning a room to a session and approving registrations both refuse to exceed it (override with a reason); places → buildings → rooms hierarchy.",
+                    "phase": null
                 },
                 {
                     "id": "ROM-07",
                     "mandatory": false,
                     "requirement": "Seating plan inside the room",
-                    "status": "missing",
-                    "evidence": "Room layouts are arrangement types, not seat maps.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Seating designer per room and session or group: grid with blocked seats, manual assignment, automatic assignment (alphabetical, by school, random) with an 'insufficient seats' check, and a printable plan.",
+                    "phase": null
                 },
                 {
                     "id": "ROM-08",
@@ -1283,9 +1283,9 @@
                     "id": "ROM-09",
                     "mandatory": false,
                     "requirement": "Logistics requirements routed automatically to the logistics team",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 5
+                    "status": "available",
+                    "evidence": "Logistics requests (equipment, catering, printing, IT, arrangement) go to the logistics team's queue, are tracked New → In progress → Done with notifications to the requester, and overdue ones escalate hourly.",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T13:15:39+03:00"
+    "generated_at": "2026-10-05T13:36:27+03:00"
 }

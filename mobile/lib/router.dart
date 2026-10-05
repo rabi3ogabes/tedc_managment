@@ -26,6 +26,7 @@ import 'features/security/unlock_screen.dart';
 import 'features/shell/app_nav_bar.dart';
 import 'features/shell/home_shell.dart';
 import 'features/profile/approvals_screen.dart';
+import 'features/profile/my_qr_screen.dart';
 import 'features/profile/assignments_screen.dart';
 import 'features/profile/needs_screen.dart';
 import 'features/training/my_training_screen.dart';
@@ -63,10 +64,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (_, state, child) => DetailShell(location: state.matchedLocation, child: child),
         routes: [
-          GoRoute(path: '/scan', builder: (_, s) => ScanScreen(biometric: s.uri.queryParameters['biometric'] == '1')),
+          GoRoute(path: '/scan', builder: (_, s) => ScanScreen(biometric: s.uri.queryParameters['biometric'] == '1', trainer: s.uri.queryParameters['trainer'] == '1')),
           GoRoute(path: '/search', builder: (_, _) => const SearchScreen()),
           GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
           GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
+          GoRoute(path: '/my-qr', builder: (_, _) => const MyQrScreen()),
           GoRoute(path: '/approvals', builder: (_, _) => const ApprovalsScreen()),
           GoRoute(path: '/my-needs', builder: (_, _) => const NeedsScreen()),
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),

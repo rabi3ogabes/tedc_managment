@@ -44,6 +44,10 @@ const ApprovalsInbox = lazy(() => import('@/pages/admin/ApprovalsInbox'))
 const AdmissionSettings = lazy(() => import('@/pages/admin/AdmissionSettings'))
 const JoinForm = lazy(() => import('@/pages/public/JoinForm'))
 const Activate = lazy(() => import('@/pages/public/JoinForm').then((m) => ({ default: m.Activate })))
+const Kiosk = lazy(() => import('@/pages/admin/Kiosk'))
+const AttendanceOps = lazy(() => import('@/pages/admin/AttendanceOps'))
+const RoomsOps = lazy(() => import('@/pages/admin/RoomsOps'))
+const Logistics = lazy(() => import('@/pages/admin/Logistics'))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
@@ -111,6 +115,9 @@ export default function App() {
           <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
           <Route path="approvals" element={<RequireAuth permission="registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review"><ApprovalsInbox /></RequireAuth>} />
           <Route path="admission-rules" element={<RequireAuth permission="priority.manage|withdrawals.policy|external_forms.manage"><AdmissionSettings /></RequireAuth>} />
+          <Route path="absence" element={<RequireAuth permission="attendance.manage|attendance.devices"><AttendanceOps /></RequireAuth>} />
+          <Route path="room-ops" element={<RequireAuth permission="programs.view|rooms.book"><RoomsOps /></RequireAuth>} />
+          <Route path="logistics" element={<RequireAuth permission="programs.view|logistics.manage"><Logistics /></RequireAuth>} />
           <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
           <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
           <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
@@ -127,6 +134,7 @@ export default function App() {
         <Route path="room-screen/:token" element={<RoomScreen />} />
         <Route path="lobby-screen/:token" element={<LobbyScreen />} />
         <Route path="admin/rooms/:id/screen" element={<RequireAuth permission="programs.view"><RoomScreen admin /></RequireAuth>} />
+        <Route path="kiosk/sessions/:id" element={<RequireAuth permission="attendance.manage"><Kiosk /></RequireAuth>} />
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />

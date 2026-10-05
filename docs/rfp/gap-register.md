@@ -119,26 +119,26 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 05 — Attendance, Rooms & Logistics  (10)
 
-- [ ] **ATT-03** — Electronic signature on a tablet  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **ATT-05** — Fingerprint attendance-system integration (trainees and trainers)  
-  _Now:_ 🔴 Missing — Phone biometrics confirm identity at check-in; no attendance-device integration.
-- [ ] **ATT-06** — Trainer attendance and staff scanning of trainee / trainer QR  
-  _Now:_ 🔴 Missing — Trainer attendance is not recorded.
-- [ ] **ATT-08** — Absence-threshold alert to supervisor; email to trainee & manager with notes  
-  _Now:_ 🟡 Partial — Attendance nudges exist; no threshold escalation chain.
-- [ ] **ATT-09** — Absence excuses with documents and manager approval workflow  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **ATT-10** — Leave / permission (استئذان) entry with attachments and notification  
-  _Now:_ 🟡 Partial — “Excused” status only; no attachments or early leave.
-- [ ] **ROM-04** — Book rooms for non-training use by authorised users  
-  _Now:_ 🔴 Missing — Bookings exist only as sessions.
-- [ ] **ROM-06** — Never approve more trainees than room capacity; capacity per room / place / building  
-  _Now:_ 🟡 Partial — Capacity checked at program level, not against room or building.
-- [ ] **ROM-07** — Seating plan inside the room  
-  _Now:_ 🔴 Missing — Room layouts are arrangement types, not seat maps.
-- [ ] **ROM-09** — Logistics requirements routed automatically to the logistics team  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **ATT-03** — Electronic signature on a tablet  
+  _Now:_ ✅ Available — Tablet kiosk (`/kiosk/sessions/{id}`): large touch targets, the trainee finds their name and signs on screen to check in or out; signatures are stored privately with the record, the kiosk opening is audited, and manual entry by non-centre staff can be limited to the first N minutes.
+- [x] **ATT-05** — Fingerprint attendance-system integration (trainees and trainers)  
+  _Now:_ 🟡 Partial — Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access.
+- [x] **ATT-06** — Trainer attendance and staff scanning of trainee / trainer QR  
+  _Now:_ ✅ Available — Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report.
+- [x] **ATT-08** — Absence-threshold alert to supervisor; email to trainee & manager with notes  
+  _Now:_ ✅ Available — After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page.
+- [x] **ATT-09** — Absence excuses with documents and manager approval workflow  
+  _Now:_ ✅ Available — Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended.
+- [x] **ATT-10** — Leave / permission (استئذان) entry with attachments and notification  
+  _Now:_ ✅ Available — Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them.
+- [x] **ROM-04** — Book rooms for non-training use by authorised users  
+  _Now:_ ✅ Available — Authorised staff book rooms for meetings, exams, events or maintenance (`/admin/room-bookings`); conflicts are checked against sessions and other bookings and show who holds the room; the occupancy calendar shows sessions and bookings together.
+- [x] **ROM-06** — Never approve more trainees than room capacity; capacity per room / place / building  
+  _Now:_ ✅ Available — Effective capacity = the lowest of the room, its building and its place; assigning a room to a session and approving registrations both refuse to exceed it (override with a reason); places → buildings → rooms hierarchy.
+- [x] **ROM-07** — Seating plan inside the room  
+  _Now:_ ✅ Available — Seating designer per room and session or group: grid with blocked seats, manual assignment, automatic assignment (alphabetical, by school, random) with an 'insufficient seats' check, and a printable plan.
+- [x] **ROM-09** — Logistics requirements routed automatically to the logistics team  
+  _Now:_ ✅ Available — Logistics requests (equipment, catering, printing, IT, arrangement) go to the logistics team's queue, are tracked New → In progress → Done with notifications to the requester, and overdue ones escalate hourly.
 
 ### Phase 06 — Assessment Engine & Interactive Learning  (16)
 
@@ -633,14 +633,14 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | ATT-01 | Paper sign-in sheets, then manual entry by an authorised supervisor | ✅ Available | Manual marking with recorded_by. | — |
 | ATT-02 ★ | Direct marking by trainer / supervisor, audited | ✅ Available | Session attendance screen. | — |
-| ATT-03 | Electronic signature on a tablet | 🔴 Missing | Not available. | 5 |
+| ATT-03 | Electronic signature on a tablet | ✅ Available | Tablet kiosk (`/kiosk/sessions/{id}`): large touch targets, the trainee finds their name and signs on screen to check in or out; signatures are stored privately with the record, the kiosk opening is audited, and manual entry by non-centre staff can be limited to the first N minutes. | — |
 | ATT-04 | QR code per workshop / day with a configurable time window | ✅ Available | HMAC-signed QR rotating every 30 s, check-in/out, lateness. | — |
-| ATT-05 | Fingerprint attendance-system integration (trainees and trainers) | 🔴 Missing | Phone biometrics confirm identity at check-in; no attendance-device integration. | 5 |
-| ATT-06 | Trainer attendance and staff scanning of trainee / trainer QR | 🔴 Missing | Trainer attendance is not recorded. | 5 |
+| ATT-05 | Fingerprint attendance-system integration (trainees and trainers) | 🟡 Partial | Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access. | 5 |
+| ATT-06 | Trainer attendance and staff scanning of trainee / trainer QR | ✅ Available | Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report. | — |
 | ATT-07 ★ | Teams attendance % from total participation time | 🟡 Partial | In-app join/leave duration; not read from Teams. | 13 |
-| ATT-08 | Absence-threshold alert to supervisor; email to trainee & manager with notes | 🟡 Partial | Attendance nudges exist; no threshold escalation chain. | 5 |
-| ATT-09 | Absence excuses with documents and manager approval workflow | 🔴 Missing | Not available. | 5 |
-| ATT-10 | Leave / permission (استئذان) entry with attachments and notification | 🟡 Partial | “Excused” status only; no attachments or early leave. | 5 |
+| ATT-08 | Absence-threshold alert to supervisor; email to trainee & manager with notes | ✅ Available | After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page. | — |
+| ATT-09 | Absence excuses with documents and manager approval workflow | ✅ Available | Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended. | — |
+| ATT-10 | Leave / permission (استئذان) entry with attachments and notification | ✅ Available | Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them. | — |
 | ATT-11 | Attendance records and reports; Excel and PDF export | 🟡 Partial | Session sheets + CSV presence export; no attendance PDF / Excel reports. | 12 |
 
 ### CNT · Content Management & Digital Library — إدارة المحتوى التدريبي
@@ -679,12 +679,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ROM-01 | Training places with map / website link | ✅ Available | Coordinates and location details. | — |
 | ROM-02 | Room details: name, type, capacity, description, floor/building, equipment | ✅ Available | Rich room catalogue. | — |
 | ROM-03 | Allocate rooms to workshops by schedule | ✅ Available | Session room assignment. | — |
-| ROM-04 | Book rooms for non-training use by authorised users | 🔴 Missing | Bookings exist only as sessions. | 5 |
+| ROM-04 | Book rooms for non-training use by authorised users | ✅ Available | Authorised staff book rooms for meetings, exams, events or maintenance (`/admin/room-bookings`); conflicts are checked against sessions and other bookings and show who holds the room; the occupancy calendar shows sessions and bookings together. | — |
 | ROM-05 | Block double booking and show the occupying program | ✅ Available | Conflict error lists the occupying sessions. | — |
-| ROM-06 | Never approve more trainees than room capacity; capacity per room / place / building | 🟡 Partial | Capacity checked at program level, not against room or building. | 5 |
-| ROM-07 | Seating plan inside the room | 🔴 Missing | Room layouts are arrangement types, not seat maps. | 5 |
+| ROM-06 | Never approve more trainees than room capacity; capacity per room / place / building | ✅ Available | Effective capacity = the lowest of the room, its building and its place; assigning a room to a session and approving registrations both refuse to exceed it (override with a reason); places → buildings → rooms hierarchy. | — |
+| ROM-07 | Seating plan inside the room | ✅ Available | Seating designer per room and session or group: grid with blocked seats, manual assignment, automatic assignment (alphabetical, by school, random) with an 'insufficient seats' check, and a printable plan. | — |
 | ROM-08 ★ | Weekly / monthly occupancy calendar, live free / booked view | ✅ Available | Room wall, availability view, door screens. | — |
-| ROM-09 | Logistics requirements routed automatically to the logistics team | 🔴 Missing | Not available. | 5 |
+| ROM-09 | Logistics requirements routed automatically to the logistics team | ✅ Available | Logistics requests (equipment, catering, printing, IT, arrangement) go to the logistics team's queue, are tracked New → In progress → Done with notifications to the requester, and overdue ones escalate hourly. | — |
 
 ### WDR · Withdrawal Paths — مسارات الانسحاب
 

@@ -368,6 +368,9 @@ class AttendanceService
             'minutes' => $records->get($r->id)?->minutes_attended ?? 0,
             'location_status' => $records->get($r->id)?->location_status,
             'distance_m' => $records->get($r->id)?->distance_m,
+            'attendance_id' => $records->get($r->id)?->id,
+            'method' => $records->get($r->id)?->method,
+            'leave_minutes' => $records->get($r->id)?->leave_minutes ?? 0,
         ])->values();
 
         return [

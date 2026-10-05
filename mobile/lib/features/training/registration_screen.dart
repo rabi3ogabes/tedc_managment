@@ -112,6 +112,13 @@ class RegistrationScreen extends ConsumerWidget {
                   ]),
                 ),
             ],
+            if (r.str('status') == 'approved') ...[
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => _ExcuseSheet(registrationId: id)),
+                child: Text(s.t('excuse.title')),
+              ),
+            ],
             if (['pending_manager', 'pending', 'approved', 'waitlisted'].contains(r.str('status'))) ...[
               const SizedBox(height: 12),
               OutlinedButton(
@@ -306,6 +313,91 @@ class _WithdrawSheetState extends ConsumerState<_WithdrawSheet> {
           onPressed: _busy || (!widget.free && _code == null) ? null : _send,
           style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
           child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text(s.t(widget.free ? 'withdraw.button' : 'withdraw.send')),
+        ),
+      ]),
+    );
+  }
+}
+
+/// An absence excuse for the direct manager to decide.
+class _ExcuseSheet extends ConsumerStatefulWidget {
+  const _ExcuseSheet({required this.registrationId});
+
+  final String registrationId;
+
+  @override
+  ConsumerState<_ExcuseSheet> createState() => _ExcuseSheetState();
+}
+
+class _ExcuseSheetState extends ConsumerState<_ExcuseSheet> {
+  String _reason = 'sick_leave';
+  DateTime? _from;
+  DateTime? _to;
+  final _text = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  String _fmt(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _pick(bool from) async {
+    final now = DateTime.now();
+    final d = await showDatePicker(context: context, initialDate: now, firstDate: now.subtract(const Duration(days: 60)), lastDate: now.add(const Duration(days: 60)));
+    if (d != null && mounted) setState(() => from ? _from = d : _to = d);
+  }
+
+  Future<void> _send() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(apiProvider).post('/me/registrations/${widget.registrationId}/excuses', {
+        'reason_code': _reason,
+        'from_date': _fmt(_from!),
+        'to_date': _fmt(_to!),
+        if (_text.text.trim().isNotEmpty) 'reason_text': _text.text.trim(),
+      });
+      if (mounted) {
+        Navigator.of(context).pop();
+        showSnack(context, context.tr('excuse.sent'));
+      }
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(s.t('excuse.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _reason,
+          decoration: InputDecoration(labelText: s.t('excuse.reason')),
+          items: [for (final r in ['sick_leave', 'bereavement', 'work_assignment', 'other']) DropdownMenuItem(value: r, child: Text(s.t('excuse.reason.$r')))],
+          onChanged: (v) => setState(() => _reason = v ?? 'other'),
+        ),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: OutlinedButton(onPressed: () => _pick(true), child: Text(_from == null ? s.t('excuse.from') : _fmt(_from!)))),
+          const SizedBox(width: 8),
+          Expanded(child: OutlinedButton(onPressed: () => _pick(false), child: Text(_to == null ? s.t('excuse.to') : _fmt(_to!)))),
+        ]),
+        const SizedBox(height: 8),
+        TextField(controller: _text, minLines: 2, maxLines: 4, decoration: InputDecoration(labelText: s.t('withdraw.details'))),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: _busy || _from == null || _to == null ? null : _send,
+          style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+          child: _busy ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text(s.t('excuse.send')),
         ),
       ]),
     );

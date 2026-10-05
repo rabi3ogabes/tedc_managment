@@ -14,7 +14,7 @@ int tabIndexFor(String location) {
   }
   const training = ['/sessions', '/registrations', '/courses', '/lessons', '/tasks', '/surveys', '/my-program', '/scan'];
   if (training.any((p) => location == p || location.startsWith('$p/'))) return 2;
-  if (location.startsWith('/account') || location.startsWith('/assignments') || location.startsWith('/my-needs') || location.startsWith('/approvals') || location.startsWith('/school') || location.startsWith('/needs-surveys')) return 4;
+  if (location.startsWith('/account') || location.startsWith('/assignments') || location.startsWith('/my-needs') || location.startsWith('/approvals') || location.startsWith('/my-qr') || location.startsWith('/school') || location.startsWith('/needs-surveys')) return 4;
   return 0;   // notifications and anything else belong to home
 }
 

@@ -13,10 +13,13 @@ import '../../core/theme/app_theme.dart';
 /// or out (second scan). The server validates the time-window signature, and the phone's position is sent
 /// with the code so attendance is only recorded at the training venue.
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key, this.biometric = false});
+  const ScanScreen({super.key, this.biometric = false, this.trainer = false});
 
   /// The program asks for the phone's security check before the camera opens.
   final bool biometric;
+
+  /// A trainer scanning the session code to record their own attendance.
+  final bool trainer;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -81,6 +84,29 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       _locating = true;
       _issue = null;
     });
+    if (widget.trainer) {
+      try {
+        final res = await ref.read(apiProvider).post('/me/trainer-attendance/scan', {'payload': value});
+        if (!mounted) return;
+        final action = res['data']['action'].toString();
+        setState(() => _result = (ok: true, message: context.s.t(action == 'check_in' ? 'trainerScan.in' : 'trainerScan.out'), already: false));
+      } catch (e) {
+        if (mounted) setState(() => _result = (ok: false, message: ApiException.from(e).message, already: false));
+      } finally {
+        if (mounted) {
+          try {
+            await _controller.stop();
+          } catch (_) {
+            // The camera was already released.
+          }
+          setState(() {
+            _busy = false;
+            _locating = false;
+          });
+        }
+      }
+      return;
+    }
     try {
       // Attendance must happen at the venue: read the position first and let the server compare it with the room.
       final place = await LocationService.current();

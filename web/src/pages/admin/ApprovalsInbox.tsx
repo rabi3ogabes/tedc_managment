@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
-type Tab = 'manager' | 'center' | 'withdrawals' | 'external'
+type Tab = 'manager' | 'center' | 'withdrawals' | 'excuses' | 'external'
 type Reg = { id: string; status: string; program: { title: string; code: string; closes_at: string | null }; group: string | null; employee: string; school: string | null; priority_score: number | null; priority_explanation: { ar: string; en: string; points: number }[] | null; manager_note: string | null }
 type Wd = { id: string; program: string; employee: string; reason_code: string | null; reason_text: string | null; timing: string; stage: string; is_late: boolean; attachments: { name: string }[]; manager_note: string | null }
 type Ext = { id: string; number: string; email: string; status: string; form: { title_ar: string; title_en: string; audience: string } | null; created_at: string; has_snapshot: boolean; data?: Record<string, unknown>; fields?: { key: string; label_ar: string; label_en: string }[] }
@@ -20,6 +20,7 @@ export default function ApprovalsInbox() {
     { id: 'manager', show: can('registrations.approve_manager') || can('registrations.manage') },
     { id: 'center', show: can('registrations.manage') || can('registrations.approve_center') },
     { id: 'withdrawals', show: can('registrations.approve_manager') || can('withdrawals.decide') },
+    { id: 'excuses', show: can('registrations.approve_manager') || can('excuses.decide') },
     { id: 'external', show: can('external_requests.review') },
   ]
   const visible = tabs.filter((x) => x.show)
@@ -30,6 +31,7 @@ export default function ApprovalsInbox() {
       <Tabs<Tab> value={tab} onChange={setTab} tabs={visible.map((x) => ({ id: x.id, label: t(`admission.tabs.${x.id}`) }))} />
       {(tab === 'manager' || tab === 'center') && <RegistrationQueue stage={tab} />}
       {tab === 'withdrawals' && <WithdrawalQueue />}
+      {tab === 'excuses' && <ExcuseQueue />}
       {tab === 'external' && <ExternalQueue />}
     </div>
   )
@@ -115,6 +117,35 @@ function WithdrawalQueue() {
             <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{w.employee}</div><div className="text-sm text-slate-700">{w.program}</div><p className="text-xs text-slate-500">{w.reason_code} {w.reason_text && `— ${w.reason_text}`}</p>{w.attachments.length > 0 && <p className="text-xs text-slate-400">{w.attachments.map((a) => a.name).join(', ')}</p>}</div>
             <Badge color="navy">{t(`admission.stage.${w.stage}`)}</Badge>{w.is_late && <Badge color="red">{t('admission.withdraw.late')}</Badge>}
             <Button size="sm" variant="outline" onClick={() => setTarget(w)}>{t('admission.approve')} / {t('admission.reject')}</Button>
+          </li>))}</ul>
+      )}</Card>
+      <Modal open={!!target} onClose={() => setTarget(null)} title={target?.employee ?? ''}>
+        <div className="space-y-4"><Field label={t('admission.note')}><textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} /></Field>
+          <div className="flex gap-2"><Button variant="gold" onClick={() => void decide('approved')}>{t('admission.approve')}</Button><Button variant="outline" disabled={!note.trim()} onClick={() => void decide('rejected')}>{t('admission.reject')}</Button></div></div>
+      </Modal>
+    </>
+  )
+}
+
+type Exc = { id: string; program: string | null; employee: string | null; reason_code: string; reason_text: string | null; from_date: string | null; to_date: string | null; attachments: { name: string }[] }
+
+function ExcuseQueue() {
+  const { t } = useTranslation()
+  const list = useGet<{ data: Exc[] }>('/admin/excuses', { status: 'pending' }, { staleTime: 0 })
+  const [target, setTarget] = useState<Exc | null>(null)
+  const [note, setNote] = useState('')
+  const decide = async (decision: 'approved' | 'rejected') => {
+    if (!target) return
+    try { await api.post(`/admin/excuses/${target.id}/decision`, { decision, note: note || undefined }); toast(t('admission.decided')); setTarget(null); setNote(''); await list.refetch() } catch (e) { toast(errorMessage(e), 'error') }
+  }
+  if (list.isLoading || !list.data) return <Spinner />
+  return (
+    <>
+      <Card padded={false}>{list.data.data.length === 0 ? <Empty text={t('admission.empty')} /> : (
+        <ul className="divide-y divide-navy-50">{list.data.data.map((e) => (
+          <li key={e.id} className="flex flex-wrap items-start gap-3 px-5 py-4">
+            <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{e.employee}</div><div className="text-sm text-slate-700">{e.program}</div><p className="text-xs text-slate-500">{t(`ops.absence.excuseReason.${e.reason_code}`)} {e.reason_text && `— ${e.reason_text}`} {e.from_date && `· ${fmt.date(e.from_date)} → ${fmt.date(e.to_date)}`}</p>{e.attachments.length > 0 && <p className="text-xs text-slate-400">{e.attachments.map((a) => a.name).join(', ')}</p>}</div>
+            <Button size="sm" variant="outline" onClick={() => setTarget(e)}>{t('admission.approve')} / {t('admission.reject')}</Button>
           </li>))}</ul>
       )}</Card>
       <Modal open={!!target} onClose={() => setTarget(null)} title={target?.employee ?? ''}>
