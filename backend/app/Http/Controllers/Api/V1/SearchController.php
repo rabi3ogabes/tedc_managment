@@ -38,7 +38,7 @@ class SearchController extends Controller
         if ($wants('programs')) {
             $rows = Program::query()
                 ->when(! $staff, fn ($w) => $w->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN, Program::STATUS_IN_PROGRESS]))
-                ->where(fn ($w) => $w->where('title_ar', 'like', $like)->orWhere('title_en', 'like', $like)->orWhere('code', 'like', $like))
+                ->where(fn ($w) => $w->whereLike('title_ar', $like, caseSensitive: false)->orWhereLike('title_en', $like, caseSensitive: false)->orWhereLike('code', $like, caseSensitive: false))
                 ->orderBy('title_ar')->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'programs', 'items' => $rows->map(fn (Program $p) => [
                 'id' => $p->id, 'code' => $p->code, 'title' => $p->translate('title'), 'subtitle' => $p->code, 'url' => $staff ? "/admin/programs/{$p->id}" : "/programs/{$p->code}",
@@ -46,27 +46,27 @@ class SearchController extends Controller
         }
         if ($wants('people') && $user->hasPermission('employees.view')) {
             $scope = $this->scope();
-            $rows = $scope->constrainEmployees(Employee::with(['user:id,name,name_ar', 'school:id,name_ar,name_en'])->where(fn ($w) => $w->where('employee_no', 'like', $like)
-                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $like)->orWhere('name_ar', 'like', $like))))->limit(self::LIMIT)->get();
+            $rows = $scope->constrainEmployees(Employee::with(['user:id,name,name_ar', 'school:id,name_ar,name_en'])->where(fn ($w) => $w->whereLike('employee_no', $like, caseSensitive: false)
+                ->orWhereHas('user', fn ($u) => $u->whereLike('name', $like, caseSensitive: false)->orWhereLike('name_ar', $like, caseSensitive: false))))->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'people', 'items' => $rows->map(fn (Employee $e) => [
                 'id' => $e->id, 'title' => $e->user?->displayName() ?? $e->employee_no, 'subtitle' => trim($e->employee_no.' · '.($e->school?->translate('name') ?? ''), ' ·'), 'url' => "/admin/employees/{$e->id}",
             ])->all()];
         }
         if ($wants('trainers') && ($user->hasPermission('programs.view') || $user->hasPermission('trainers.manage'))) {
-            $rows = Trainer::where(fn ($w) => $w->where('name_ar', 'like', $like)->orWhere('name_en', 'like', $like))->limit(self::LIMIT)->get();
+            $rows = Trainer::where(fn ($w) => $w->whereLike('name_ar', $like, caseSensitive: false)->orWhereLike('name_en', $like, caseSensitive: false))->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'trainers', 'items' => $rows->map(fn (Trainer $t) => ['id' => $t->id, 'title' => $t->translate('name'), 'subtitle' => $t->organization, 'url' => '/admin/trainers'])->all()];
         }
         if ($wants('kits') && $user->hasPermission('kits.view')) {
-            $rows = KitAccess::scope(TrainingKit::query(), $user)->where(fn ($w) => $w->where('title_ar', 'like', $like)->orWhere('title_en', 'like', $like)->orWhere('code', 'like', $like))->limit(self::LIMIT)->get();
+            $rows = KitAccess::scope(TrainingKit::query(), $user)->where(fn ($w) => $w->whereLike('title_ar', $like, caseSensitive: false)->orWhereLike('title_en', $like, caseSensitive: false)->orWhereLike('code', $like, caseSensitive: false))->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'kits', 'items' => $rows->map(fn (TrainingKit $k) => ['id' => $k->id, 'code' => $k->code, 'title' => $k->translate('title'), 'subtitle' => $k->code, 'url' => '/admin/kits'])->all()];
         }
         if ($wants('certificates') && $user->hasPermission('certificates.view')) {
-            $rows = $this->scope()->constrainThroughEmployee(Certificate::with('program:id,title_ar,title_en')->where('certificate_no', 'like', $like))->limit(self::LIMIT)->get();
+            $rows = $this->scope()->constrainThroughEmployee(Certificate::with('program:id,title_ar,title_en')->whereLike('certificate_no', $like, caseSensitive: false))->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'certificates', 'items' => $rows->map(fn (Certificate $c) => ['id' => $c->id, 'title' => $c->certificate_no, 'subtitle' => $c->program?->translate('title'), 'url' => '/admin/certificates?q='.urlencode($c->certificate_no)])->all()];
         }
         if ($wants('news')) {
             $rows = Announcement::where('is_public', true)->whereNotNull('published_at')->where('published_at', '<=', now())
-                ->where(fn ($w) => $w->where('title_ar', 'like', $like)->orWhere('title_en', 'like', $like))->latest('published_at')->limit(self::LIMIT)->get();
+                ->where(fn ($w) => $w->whereLike('title_ar', $like, caseSensitive: false)->orWhereLike('title_en', $like, caseSensitive: false))->latest('published_at')->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'news', 'items' => $rows->map(fn (Announcement $a) => ['id' => $a->id, 'title' => $a->translate('title'), 'subtitle' => $a->published_at?->toDateString(), 'url' => "/news/{$a->id}"])->all()];
         }
 
