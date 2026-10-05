@@ -97,6 +97,16 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/my-assessments'),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  leading: const Icon(Icons.rate_review_outlined, color: AppColors.gold500),
+                  title: Text(context.tr('evalc.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  onTap: () => context.push('/my-evaluations'),
+                ),
+              ),
               const SizedBox(height: 16),
               if (employee != null)
                 passport.when(

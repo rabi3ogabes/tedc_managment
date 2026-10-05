@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import EvidenceInput, { noEvidence, type Evidence } from '@/components/EvidenceInput'
 import { NeedsSurveys } from '@/components/surveys/NeedsSurveys'
 import { Badge, Button, Card, Empty, Field, PageHeader, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -28,11 +29,20 @@ function SurveyCard({ survey, onDone }: { survey: Survey; onDone: () => void }) 
   const { t } = useTranslation()
   const [form, setForm] = useState({ applied_learning: 'yes', changes_observed: '', skills: '', needs_support: false, support_details: '' })
   const [error, setError] = useState<string | null>(null)
+  const [evidence, setEvidence] = useState<Evidence>(noEvidence())
   const done = survey.status === 'completed'
 
   const submit = async () => {
     try {
-      await api.post(`/me/surveys/${survey.id}`, { ...form, skills_improved: form.skills.split(/[,،]/).map((s) => s.trim()).filter(Boolean) })
+      const skills = form.skills.split(/[,،]/).map((s) => s.trim()).filter(Boolean)
+      if (evidence.files.length + evidence.links.length === 0) await api.post(`/me/surveys/${survey.id}`, { ...form, skills_improved: skills })
+      else {
+        const fd = new FormData()
+        fd.append('applied_learning', form.applied_learning); fd.append('changes_observed', form.changes_observed); fd.append('needs_support', form.needs_support ? '1' : '0'); fd.append('support_details', form.support_details)
+        skills.forEach((s, i) => fd.append(`skills_improved[${i}]`, s))
+        evidence.files.forEach((f, i) => fd.append(`evidence[${i}]`, f)); evidence.links.forEach((l, i) => fd.append(`evidence[${evidence.files.length + i}]`, l))
+        await api.post(`/me/surveys/${survey.id}`, fd)
+      }
       onDone()
     } catch (e) { setError(errorMessage(e)) }
   }
@@ -57,6 +67,7 @@ function SurveyCard({ survey, onDone }: { survey: Survey; onDone: () => void }) 
           <Field label={t('portal.survey.skills')}><input className="input" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} /></Field>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={form.needs_support} onChange={(e) => setForm({ ...form, needs_support: e.target.checked })} />{t('portal.survey.support')}</label>
           {form.needs_support && <textarea className="input" placeholder={t('portal.survey.supportDetails')} value={form.support_details} onChange={(e) => setForm({ ...form, support_details: e.target.value })} />}
+          <div><span className="label">{t('evalc.impact.evidence')}</span><EvidenceInput max={5} value={evidence} onChange={setEvidence} /></div>
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button variant="gold" onClick={submit}>{t('common.submit')}</Button>
         </div>

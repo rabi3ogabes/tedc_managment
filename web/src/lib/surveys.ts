@@ -12,6 +12,8 @@ export type Question = {
   id: string
   type: QuestionType
   title: string
+  title_en?: string | null
+  evidence?: boolean
   description?: string | null
   required?: boolean
   options?: Choice[]

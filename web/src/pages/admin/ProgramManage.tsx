@@ -18,6 +18,7 @@ import RulesTab from './program/RulesTab'
 import SessionsTab from './program/SessionsTab'
 import AdmissionTab from './program/AdmissionTab'
 import AssessmentsTab from './program/AssessmentsTab'
+import EvaluationTab from './program/EvaluationTab'
 import PassingTab from './program/PassingTab'
 import GroupsTab from './program/GroupsTab'
 import StaffTab from './program/StaffTab'
@@ -25,7 +26,7 @@ import StructureTab from './program/StructureTab'
 import SurveyTab from './program/SurveyTab'
 import TasksTab from './program/TasksTab'
 
-type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff' | 'groups' | 'structure' | 'admission' | 'assessments' | 'passing'
+type Tab = 'participants' | 'sessions' | 'course' | 'remote' | 'rules' | 'tasks' | 'materials' | 'survey' | 'certificates' | 'impact' | 'staff' | 'groups' | 'structure' | 'admission' | 'assessments' | 'passing' | 'evaluation'
 
 export default function ProgramManage() {
   const { id } = useParams()
@@ -67,6 +68,7 @@ export default function ProgramManage() {
         ...(can('registrations.view') ? [{ id: 'admission' as const, label: t('admission.tab') }] : []),
         ...(can('assessments.manage') || can('assessments.grade') || can('assessments.invigilate') ? [{ id: 'assessments' as const, label: t('assess.builder.tab') }] : []),
         ...(can('passing.manage') ? [{ id: 'passing' as const, label: t('passing.tab') }] : []),
+        ...(can('evaluations.manage') || can('evaluation_reports.prepare') || can('impact.view') ? [{ id: 'evaluation' as const, label: t('evalc.tab') }] : []),
         { id: 'sessions', label: t('admin.programs.sessions') },
         { id: 'course', label: t('course.tab') },
         ...(p.delivery_mode !== 'in_person' ? [{ id: 'remote' as const, label: t('studio.tracking.tab') }] : []),
@@ -82,6 +84,7 @@ export default function ProgramManage() {
       {tab === 'groups' && <GroupsTab program={p} />}
       {tab === 'structure' && <StructureTab program={p} />}
       {tab === 'admission' && can('registrations.view') && <AdmissionTab program={p} />}
+      {tab === 'evaluation' && <EvaluationTab program={p} />}
       {tab === 'passing' && can('passing.manage') && <PassingTab program={p} />}
       {tab === 'assessments' && <AssessmentsTab program={p} />}
       {tab === 'sessions' && <SessionsTab program={p} />}

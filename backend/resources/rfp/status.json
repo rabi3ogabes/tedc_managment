@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 139,
-        "partial": 61,
-        "missing": 78,
+        "available": 150,
+        "partial": 57,
+        "missing": 71,
         "mandatory": 108,
-        "open": 139
+        "open": 128
     },
     "phases": [
         {
@@ -68,7 +68,7 @@
             "phase": 8,
             "title": "Evaluation, Surveys & Impact",
             "open": 11,
-            "items": 11,
+            "items": 0,
             "done": 0
         },
         {
@@ -1361,17 +1361,17 @@
                     "id": "SRV-03",
                     "mandatory": false,
                     "requirement": "Planning-team program evaluation form",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Planning-team evaluation form assigned by the planning head — docs/rfp/phase-08-evaluation.md",
+                    "phase": null
                 },
                 {
                     "id": "SRV-04",
                     "mandatory": false,
                     "requirement": "Trainer self-reflection form",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Trainer self-reflection assigned at group end; results notify planning",
+                    "phase": null
                 },
                 {
                     "id": "SRV-05",
@@ -1401,9 +1401,9 @@
                     "id": "SRV-08",
                     "mandatory": true,
                     "requirement": "Export results to Excel, PDF and Word",
-                    "status": "partial",
-                    "evidence": "CSV only.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Excel / PDF / Word / CSV export for satisfaction, evaluation forms and needs surveys",
+                    "phase": null
                 }
             ]
         },
@@ -1732,17 +1732,17 @@
                     "id": "EVL-01",
                     "mandatory": true,
                     "requirement": "Trainee impact form after ≥ 1.5 months, with evidence uploads",
-                    "status": "partial",
-                    "evidence": "Surveys at 30 / 60 / 90 days; no evidence attachments; timing fixed.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Trainee impact form at 45 days (configurable) with evidence",
+                    "phase": null
                 },
                 {
                     "id": "EVL-02",
                     "mandatory": true,
                     "requirement": "Manager impact form with evidence",
-                    "status": "partial",
-                    "evidence": "Supervisor evaluation at 60 days; no attachments.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Manager impact form requested at 60 days (configurable) with evidence",
+                    "phase": null
                 },
                 {
                     "id": "EVL-03",
@@ -1756,41 +1756,41 @@
                     "id": "EVL-04",
                     "mandatory": false,
                     "requirement": "Program-supervisor feedback",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Program supervisor feedback form",
+                    "phase": null
                 },
                 {
                     "id": "EVL-05",
                     "mandatory": false,
                     "requirement": "Planning-specialist feedback",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Planning specialist feedback form",
+                    "phase": null
                 },
                 {
                     "id": "EVL-06",
                     "mandatory": true,
                     "requirement": "Pre / post comparative analysis (knowledge gain)",
-                    "status": "missing",
-                    "evidence": "No real tests to compare.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Pre/post comparison, knowledge gain vs 35% target, distribution, per-skill, significance hint",
+                    "phase": null
                 },
                 {
                     "id": "EVL-07",
                     "mandatory": false,
                     "requirement": "Personal interviews log",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Interviews log with sentiment and attachments",
+                    "phase": null
                 },
                 {
                     "id": "EVL-08",
                     "mandatory": false,
                     "requirement": "Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations",
-                    "status": "partial",
-                    "evidence": "Weighted Training Impact Score per registration; no program classification report.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Program evaluation report with classification, recommendations, approval and export",
+                    "phase": null
                 }
             ]
         },
@@ -1930,9 +1930,9 @@
                     "id": "RPT-10",
                     "mandatory": false,
                     "requirement": "Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds)",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 8
+                    "status": "available",
+                    "evidence": "Low-satisfaction alert (response ≥80% and average <50%, editable), once per group",
+                    "phase": null
                 },
                 {
                     "id": "RPT-11",
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T14:18:42+03:00"
+    "generated_at": "2026-10-05T17:45:55+03:00"
 }

@@ -192,28 +192,28 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 08 — Evaluation, Surveys & Impact  (11)
 
-- [ ] **SRV-03** — Planning-team program evaluation form  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **SRV-04** — Trainer self-reflection form  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **SRV-08** ★ — Export results to Excel, PDF and Word  
-  _Now:_ 🟡 Partial — CSV only.
-- [ ] **EVL-01** ★ — Trainee impact form after ≥ 1.5 months, with evidence uploads  
-  _Now:_ 🟡 Partial — Surveys at 30 / 60 / 90 days; no evidence attachments; timing fixed.
-- [ ] **EVL-02** ★ — Manager impact form with evidence  
-  _Now:_ 🟡 Partial — Supervisor evaluation at 60 days; no attachments.
-- [ ] **EVL-04** — Program-supervisor feedback  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EVL-05** — Planning-specialist feedback  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EVL-06** ★ — Pre / post comparative analysis (knowledge gain)  
-  _Now:_ 🔴 Missing — No real tests to compare.
-- [ ] **EVL-07** — Personal interviews log  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **EVL-08** — Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations  
-  _Now:_ 🟡 Partial — Weighted Training Impact Score per registration; no program classification report.
-- [ ] **RPT-10** — Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds)  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **SRV-03** — Planning-team program evaluation form  
+  _Now:_ ✅ Available — Planning-team evaluation form assigned by the planning head — docs/rfp/phase-08-evaluation.md
+- [x] **SRV-04** — Trainer self-reflection form  
+  _Now:_ ✅ Available — Trainer self-reflection assigned at group end; results notify planning
+- [x] **SRV-08** ★ — Export results to Excel, PDF and Word  
+  _Now:_ ✅ Available — Excel / PDF / Word / CSV export for satisfaction, evaluation forms and needs surveys
+- [x] **EVL-01** ★ — Trainee impact form after ≥ 1.5 months, with evidence uploads  
+  _Now:_ ✅ Available — Trainee impact form at 45 days (configurable) with evidence
+- [x] **EVL-02** ★ — Manager impact form with evidence  
+  _Now:_ ✅ Available — Manager impact form requested at 60 days (configurable) with evidence
+- [x] **EVL-04** — Program-supervisor feedback  
+  _Now:_ ✅ Available — Program supervisor feedback form
+- [x] **EVL-05** — Planning-specialist feedback  
+  _Now:_ ✅ Available — Planning specialist feedback form
+- [x] **EVL-06** ★ — Pre / post comparative analysis (knowledge gain)  
+  _Now:_ ✅ Available — Pre/post comparison, knowledge gain vs 35% target, distribution, per-skill, significance hint
+- [x] **EVL-07** — Personal interviews log  
+  _Now:_ ✅ Available — Interviews log with sentiment and attachments
+- [x] **EVL-08** — Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations  
+  _Now:_ ✅ Available — Program evaluation report with classification, recommendations, approval and export
+- [x] **RPT-10** — Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds)  
+  _Now:_ ✅ Available — Low-satisfaction alert (response ≥80% and average <50%, editable), once per group
 
 ### Phase 09 — Career Paths, Licences & CPD  (11)
 
@@ -702,12 +702,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | SRV-01 ★ | Trainee satisfaction survey | ✅ Available | Program survey (auto / manual opening) + evaluation. | — |
 | SRV-02 ★ | Training-impact surveys | ✅ Available | 30 / 60 / 90-day surveys. | — |
-| SRV-03 | Planning-team program evaluation form | 🔴 Missing | Not available. | 8 |
-| SRV-04 | Trainer self-reflection form | 🔴 Missing | Not available. | 8 |
+| SRV-03 | Planning-team program evaluation form | ✅ Available | Planning-team evaluation form assigned by the planning head — docs/rfp/phase-08-evaluation.md | — |
+| SRV-04 | Trainer self-reflection form | ✅ Available | Trainer self-reflection assigned at group end; results notify planning | — |
 | SRV-05 | Edit questions; create surveys for any purpose | ✅ Available | Survey Studio with templates. | — |
 | SRV-06 | Question types: choice, rating / stars, open, etc. | ✅ Available | Rating, NPS, choice, multiple, text. | — |
 | SRV-07 ★ | Results per option with charts and tables | ✅ Available | Survey report with charts. | — |
-| SRV-08 ★ | Export results to Excel, PDF and Word | 🟡 Partial | CSV only. | 8 |
+| SRV-08 ★ | Export results to Excel, PDF and Word | ✅ Available | Excel / PDF / Word / CSV export for satisfaction, evaluation forms and needs surveys | — |
 
 ### EXM · Exams & Question Banks — إدارة الاختبارات
 
@@ -769,14 +769,14 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| EVL-01 ★ | Trainee impact form after ≥ 1.5 months, with evidence uploads | 🟡 Partial | Surveys at 30 / 60 / 90 days; no evidence attachments; timing fixed. | 8 |
-| EVL-02 ★ | Manager impact form with evidence | 🟡 Partial | Supervisor evaluation at 60 days; no attachments. | 8 |
+| EVL-01 ★ | Trainee impact form after ≥ 1.5 months, with evidence uploads | ✅ Available | Trainee impact form at 45 days (configurable) with evidence | — |
+| EVL-02 ★ | Manager impact form with evidence | ✅ Available | Manager impact form requested at 60 days (configurable) with evidence | — |
 | EVL-03 ★ | Trainee satisfaction | ✅ Available | Program survey. | — |
-| EVL-04 | Program-supervisor feedback | 🔴 Missing | Not available. | 8 |
-| EVL-05 | Planning-specialist feedback | 🔴 Missing | Not available. | 8 |
-| EVL-06 ★ | Pre / post comparative analysis (knowledge gain) | 🔴 Missing | No real tests to compare. | 8 |
-| EVL-07 | Personal interviews log | 🔴 Missing | Not available. | 8 |
-| EVL-08 | Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations | 🟡 Partial | Weighted Training Impact Score per registration; no program classification report. | 8 |
+| EVL-04 | Program-supervisor feedback | ✅ Available | Program supervisor feedback form | — |
+| EVL-05 | Planning-specialist feedback | ✅ Available | Planning specialist feedback form | — |
+| EVL-06 ★ | Pre / post comparative analysis (knowledge gain) | ✅ Available | Pre/post comparison, knowledge gain vs 35% target, distribution, per-skill, significance hint | — |
+| EVL-07 | Personal interviews log | ✅ Available | Interviews log with sentiment and attachments | — |
+| EVL-08 | Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations | ✅ Available | Program evaluation report with classification, recommendations, approval and export | — |
 
 ### CPD · Comprehensive Professional Development — منظومة التطوير المهني الشامل
 
@@ -802,7 +802,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | RPT-07 | Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history) | 🟡 Partial | Portal, passport and ICS; no annual hours report. | 12 |
 | RPT-08 | QA and kit-developer reports | 🟡 Partial | Kit board and stats; no exportable report. | 12 |
 | RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | 🟡 Partial | Volume, completion, satisfaction; no plan % or satisfaction ranking. | 12 |
-| RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | 🔴 Missing | Not available. | 8 |
+| RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | ✅ Available | Low-satisfaction alert (response ≥80% and average <50%, editable), once per group | — |
 | RPT-11 | Predictive analytics and reports | 🔴 Missing | Not available. | 15 |
 
 ### UTR · User Training, Help & Support — تدريب المستخدمين والدعم الفني
