@@ -115,7 +115,7 @@ class FeatureSettings
         $this->flush();
 
         AuditLog::create([
-            'user_id' => $by->id, 'action' => 'feature_toggled', 'auditable_type' => SiteSetting::class, 'auditable_id' => self::KEY,
+            'user_id' => $by->id, 'action' => 'feature_toggled', 'auditable_type' => SiteSetting::class, 'auditable_id' => null,
             'old_values' => ['key' => $key, 'enabled' => $before], 'new_values' => ['key' => $key, 'enabled' => $enabled, 'reason' => $reason, 'unsafe' => $unsafe, 'environment' => app()->environment()],
             'ip_address' => $request?->ip(), 'user_agent' => $request ? substr((string) $request->userAgent(), 0, 255) : null, 'url' => $request?->fullUrl(),
         ]);
