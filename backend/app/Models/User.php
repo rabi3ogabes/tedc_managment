@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 
 #[Fillable(['auth_id', 'name', 'name_ar', 'email', 'phone', 'password', 'locale', 'avatar_path', 'status', 'last_login_at', 'active_role_user_id'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'mfa_secret', 'mfa_recovery'])]
 class User extends Authenticatable
 {
     use Auditable, HasFactory, HasUuids, SoftDeletes;
@@ -30,6 +30,11 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
             'locked_at' => 'datetime',
+            'locked_until' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'mfa_confirmed_at' => 'datetime',
+            'mfa_enabled' => 'boolean',
+            'mfa_recovery' => 'array',
             'password' => 'hashed',
         ];
     }

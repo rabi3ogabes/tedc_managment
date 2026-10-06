@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\PermissionOrGrant;
 use App\Http\Middleware\RecordRequestMetrics;
 use App\Http\Middleware\RequireFeature;
+use App\Http\Middleware\RequireStepUp;
 use App\Http\Middleware\ResolveActiveRole;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -36,7 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->api(prepend: [CompactJson::class, SetLocale::class, ChooseNotifyChannels::class], append: [RecordRequestMetrics::class]);
         $middleware->append(SecurityHeaders::class);
-        $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class, 'unlocked' => EnforceSessionLock::class, 'feature' => RequireFeature::class, 'active.role' => ResolveActiveRole::class, 'can_or_grant' => PermissionOrGrant::class]);
+        $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class, 'unlocked' => EnforceSessionLock::class, 'feature' => RequireFeature::class, 'active.role' => ResolveActiveRole::class, 'can_or_grant' => PermissionOrGrant::class, 'step_up' => RequireStepUp::class]);
         $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -2,6 +2,10 @@
 
 namespace App\Integrations;
 
+use App\Integrations\Ministry\HrSync;
+use App\Integrations\Ministry\LicenceSync;
+use App\Integrations\Ministry\SaeedTickets;
+
 /** Hands a verified inbound message to the code that understands it. Systems that send nothing we act on are acknowledged and ignored. */
 class InboundRouter
 {
@@ -9,9 +13,9 @@ class InboundRouter
     public function handle(string $source, array $payload): string
     {
         return match ($source) {
-            'hr', 'mawared' => app(\App\Integrations\Ministry\HrSync::class)->applyInbound($source, $payload),
-            'licences' => app(\App\Integrations\Ministry\LicenceSync::class)->applyInbound($payload),
-            'saaed' => app(\App\Integrations\Ministry\SaeedTickets::class)->applyInbound($payload),
+            'hr', 'mawared' => app(HrSync::class)->applyInbound($source, $payload),
+            'licences' => app(LicenceSync::class)->applyInbound($payload),
+            'saaed' => app(SaeedTickets::class)->applyInbound($payload),
             default => 'ignored',
         };
     }

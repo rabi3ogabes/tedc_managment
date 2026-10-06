@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Integrations\EventBus;
 use App\Integrations\IntegrationManager;
+use App\Integrations\IntegrationRegistry;
 use App\Integrations\IntegrationUnavailable;
 use App\Integrations\WebhookSignature;
 use App\Models\AppNotification;
+use App\Models\InboundEvent;
 use App\Models\Integration;
 use App\Models\IntegrationLog;
 use App\Models\OutboxEvent;
@@ -48,7 +50,7 @@ class IntegrationHubTest extends TestCase
         $this->assertArrayNotHasKey('api_key', Integration::find('saaed')->settings());
 
         $this->asUser($admin)->putJson('/api/v1/admin/integrations/saaed', ['driver' => 'telepathy'])->assertStatus(422);
-        $this->asUser($admin)->getJson('/api/v1/admin/integrations')->assertOk()->assertJsonCount(count(\App\Integrations\IntegrationRegistry::all()), 'data');
+        $this->asUser($admin)->getJson('/api/v1/admin/integrations')->assertOk()->assertJsonCount(count(IntegrationRegistry::all()), 'data');
         $this->asUser($this->makeUser(Role::EMPLOYEE))->getJson('/api/v1/admin/integrations')->assertForbidden();
         $this->asUser($admin)->putJson('/api/v1/admin/integrations/nope', [])->assertNotFound();
     }
@@ -129,7 +131,9 @@ class IntegrationHubTest extends TestCase
         Http::fake(['hooks.test/*' => function ($request) use (&$seen, &$mode) {
             $seen[] = ['headers' => $request->headers(), 'body' => $request->body()];
 
-            return match ($mode) { 'flaky' => count($seen) < 3 ? Http::response('busy', 503) : Http::response('ok', 200), 'down' => Http::response('no', 500), default => Http::response('ok', 200) };
+            return match ($mode) {
+                'flaky' => count($seen) < 3 ? Http::response('busy', 503) : Http::response('ok', 200), 'down' => Http::response('no', 500), default => Http::response('ok', 200)
+            };
         }]);
         $bus = app(EventBus::class);
         $this->assertSame(['delivered' => 0, 'retried' => 1, 'dead' => 0], $bus->deliverDue());
@@ -195,7 +199,7 @@ class IntegrationHubTest extends TestCase
         $send('not json')->assertStatus(422);
         $send(json_encode(['type' => 'no id']))->assertStatus(422);                      // an idempotency key is required
         $send(json_encode(['type' => 'x']), 'shared-1', null, ['Idempotency-Key' => 'k-9'])->assertOk();
-        $this->assertSame(2, \App\Models\InboundEvent::count());
+        $this->assertSame(2, InboundEvent::count());
         $this->assertGreaterThanOrEqual(3, IntegrationLog::where('integration_key', 'nsis')->where('direction', 'in')->count());
         $this->postJson('/api/v1/integrations/ghost/inbound')->assertNotFound();
     }

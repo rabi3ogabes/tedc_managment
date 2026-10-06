@@ -7,9 +7,6 @@ use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
-use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
-use App\Http\Controllers\Api\V1\Admin\WebhooksController;
-use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
@@ -38,6 +35,7 @@ use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
+use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
@@ -85,6 +83,7 @@ use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
+use App\Http\Controllers\Api\V1\Admin\SecurityPolicyController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
@@ -100,13 +99,16 @@ use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
 use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
+use App\Http\Controllers\Api\V1\Admin\WebhooksController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AuthSecurityController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\HudhudReceiptController;
+use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\LtiController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
@@ -269,7 +271,21 @@ Route::prefix('v1')->group(function () {
         Route::post('login', 'login')->middleware('throttle:login');
         Route::post('refresh', 'refresh')->middleware('throttle:login');
         Route::post('activate', 'activate')->middleware('throttle:10,1');
+        // Second factor, single sign-on and directory sign-in (before there is a session).
+        Route::controller(AuthSecurityController::class)->group(function () {
+            Route::get('options', 'options')->middleware('throttle:public');
+            Route::post('mfa/send', 'mfaSend')->middleware('throttle:login');
+            Route::post('mfa/verify', 'mfaVerify')->middleware('throttle:login');
+            Route::post('mfa/totp/setup', 'mfaSetupPending')->middleware('throttle:login');
+            Route::post('mfa/totp/confirm', 'mfaConfirmPending')->middleware('throttle:login');
+            Route::get('sso/start', 'ssoStart')->middleware('throttle:login');
+            Route::get('sso/callback', 'ssoCallback')->middleware('throttle:login');
+            Route::post('sso/exchange', 'ssoExchange')->middleware('throttle:login');
+            Route::post('ldap/login', 'ldapLogin')->middleware('throttle:login');
+        });
         Route::middleware(['auth:api', 'active.role'])->group(function () {
+            Route::post('logout', [AuthSecurityController::class, 'logout']);
+            Route::post('step-up', [AuthSecurityController::class, 'stepUp'])->middleware('throttle:10,1');
             Route::get('me', 'me');
             Route::post('active-role', 'switchRole');
             Route::patch('me', 'updateProfile');
@@ -304,6 +320,14 @@ Route::prefix('v1')->group(function () {
             Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
+            Route::get('mfa', [AuthSecurityController::class, 'mfaStatus']);
+            Route::post('mfa/totp/setup', [AuthSecurityController::class, 'mfaSetup'])->middleware('throttle:10,1');
+            Route::post('mfa/totp/confirm', [AuthSecurityController::class, 'mfaConfirm'])->middleware('throttle:10,1');
+            Route::post('mfa/disable', [AuthSecurityController::class, 'mfaDisable'])->middleware('throttle:10,1');
+            Route::post('mfa/recovery-codes', [AuthSecurityController::class, 'mfaRecovery'])->middleware('throttle:10,1');
+            Route::get('sessions', [AuthSecurityController::class, 'sessions']);
+            Route::delete('sessions/{sid}', [AuthSecurityController::class, 'endSession'])->whereUuid('sid');
+            Route::post('password', [AuthSecurityController::class, 'changePassword'])->middleware('throttle:10,1');
             Route::get('reports', [MyReportsController::class, 'index']);
             Route::get('reports/{key}', [MyReportsController::class, 'show']);
             Route::get('reports/{key}/export', [MyReportsController::class, 'export']);
@@ -807,13 +831,24 @@ Route::prefix('v1')->group(function () {
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
             });
 
+            // Security: password policy, MFA, sessions, unlocking.
+            Route::get('security-policy', [SecurityPolicyController::class, 'show'])->middleware('permission:security.policy|sessions.manage');
+            Route::put('security-policy', [SecurityPolicyController::class, 'update'])->middleware(['permission:security.policy', 'step_up']);
+            Route::middleware('permission:sessions.manage')->group(function () {
+                Route::get('auth-sessions', [SecurityPolicyController::class, 'sessions']);
+                Route::delete('auth-sessions/{authSession}', [SecurityPolicyController::class, 'terminate'])->middleware('step_up');
+                Route::post('users/{user}/sessions/terminate', [SecurityPolicyController::class, 'terminateAll'])->middleware('step_up');
+                Route::post('users/{user}/unlock', [SecurityPolicyController::class, 'unlock']);
+                Route::post('users/{user}/mfa/reset', [SecurityPolicyController::class, 'resetMfa'])->middleware('step_up');
+            });
+
             // Integration hub, webhooks and the event bus.
             Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
                 Route::get('integrations', [IntegrationsController::class, 'index']);
                 Route::get('integrations/{key}/logs', [IntegrationsController::class, 'logs'])->where('key', '[a-z_]+');
             });
+            Route::put('integrations/{key}', [IntegrationsController::class, 'update'])->where('key', '[a-z_]+')->middleware(['permission:integrations.manage|sso.manage', 'step_up']);
             Route::middleware('permission:integrations.manage')->group(function () {
-                Route::put('integrations/{key}', [IntegrationsController::class, 'update'])->where('key', '[a-z_]+');
                 Route::post('integrations/{key}/check', [IntegrationsController::class, 'check'])->where('key', '[a-z_]+')->middleware('throttle:20,1');
                 Route::post('integrations/{key}/sync', [IntegrationsController::class, 'sync'])->where('key', '[a-z_]+')->middleware('throttle:6,1');
             });

@@ -8,6 +8,13 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\AuditLog;
 use App\Models\RoleUser;
 use App\Models\User;
+use App\Security\AuthSessions;
+use App\Security\LoginGuard;
+use App\Security\MfaService;
+use App\Security\PasswordService;
+use App\Security\PendingLogin;
+use App\Security\SecurityPolicy;
+use App\Security\Sso\SsoService;
 use App\Support\ActiveRole;
 use App\Support\ScopeLabel;
 use Illuminate\Http\JsonResponse;
@@ -17,17 +24,45 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function __construct(private readonly AuthService $auth) {}
+    public function __construct(protected readonly AuthService $auth) {}
 
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, LoginGuard $guard, SecurityPolicy $policy, MfaService $mfa, PendingLogin $pending, SsoService $sso, AuthSessions $sessions): JsonResponse
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'device_token' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $session = $this->auth->login($data['email'], $data['password']);
-        // A fresh sign-in is real activity and clears any idle lock.
+        $user = User::with('roles')->where('email', strtolower($data['email']))->first();
+        $guard->assertOpen($user);   // a locked account says so before the password is even tried
+        try {
+            $session = $this->auth->login($data['email'], $data['password']);
+        } catch (ValidationException $e) {
+            $guard->failed($user, $request);
+
+            throw $e;
+        }
+        $guard->succeeded($session['user']);
+
+        // With single sign-on in force, local passwords are for external users and break-glass administrators only.
+        if (! $sso->localLoginAllowed($session['user'])) {
+            if (! empty($session['session_id'])) {
+                $sessions->revokeAll($session['user'], 'logout');
+            }
+
+            throw ValidationException::withMessages(['email' => __('auth.sso_domain')])->status(403);
+        }
+        if ($policy->mfaRequired($session['user']) && ! $mfa->trustedDevice($session['user'], $data['device_token'] ?? null)) {
+            return response()->json(['mfa_required' => true, 'mfa_token' => $pending->hold($session['user'], $session), 'methods' => $mfa->methods($session['user']), 'enrolled' => (bool) $session['user']->mfa_enabled]);
+        }
+
+        return $this->complete($session);
+    }
+
+    /** A signed-in session is real activity: it clears any idle lock. */
+    protected function complete(array $session): JsonResponse
+    {
         $session['user']->forceFill(['last_active_at' => now(), 'locked_at' => null])->saveQuietly();
 
         return $this->session($session);
@@ -37,9 +72,10 @@ class AuthController extends Controller
     /** Sets the first password from the activation link e-mailed after an external registration was approved. */
     public function activate(Request $request): JsonResponse
     {
-        $d = $request->validate(['email' => ['required', 'email'], 'token' => ['required', 'string'], 'password' => ['required', 'string', 'min:10', 'confirmed']]);
+        $d = $request->validate(['email' => ['required', 'email'], 'token' => ['required', 'string'], 'password' => ['required', 'string', 'confirmed']]);
+        app(PasswordService::class)->assert($d['password'], User::where('email', strtolower($d['email']))->first());
         $status = Password::reset($d, function ($user, string $password) {
-            $user->forceFill(['password' => $password])->save();
+            app(PasswordService::class)->set($user, $password);
         });
         if ($status !== Password::PASSWORD_RESET) {
             return response()->json(['message' => __('messages.external.activation_invalid'), 'code' => 'activation_invalid'], 422);
@@ -110,9 +146,10 @@ class AuthController extends Controller
         return response()->json(['data' => $this->profile($request->user()->refresh())]);
     }
 
-    private function session(array $session): JsonResponse
+    protected function session(array $session): JsonResponse
     {
         return response()->json([
+            'password_expired' => app(PasswordService::class)->expired($session['user']),
             'access_token' => $session['access_token'],
             'refresh_token' => $session['refresh_token'],
             'token_type' => 'bearer',

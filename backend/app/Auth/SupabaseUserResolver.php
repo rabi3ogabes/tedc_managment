@@ -4,6 +4,7 @@ namespace App\Auth;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Security\AuthSessions;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -39,7 +40,22 @@ class SupabaseUserResolver
             $user = $this->provision($subject, $claims);
         }
 
-        return $user && $user->status === 'active' ? $user : null;
+        if (! $user || $user->status !== 'active') {
+            return null;
+        }
+
+        // A session that idled out, reached its lifetime or was ended / terminated no longer works. Tokens without a session id (older ones) are not tracked.
+        $sid = $claims->sid ?? null;
+        $external = $claims->session_id ?? null;
+        if ($sid || $external) {
+            $session = app(AuthSessions::class)->touch((string) ($sid ?? $external), $user, $request, $sid ? null : (string) $external);
+            if (! $session) {
+                return null;
+            }
+            $request->attributes->set('auth_session', $session);
+        }
+
+        return $user;
     }
 
     /**

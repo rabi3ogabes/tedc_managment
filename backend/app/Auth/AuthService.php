@@ -2,7 +2,9 @@
 
 namespace App\Auth;
 
+use App\Models\AuthSession;
 use App\Models\User;
+use App\Security\AuthSessions;
 use App\Support\Supabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Hash;
@@ -46,17 +48,33 @@ class AuthService
 
     public function refresh(string $refreshToken): array
     {
-        if ($this->usesSupabase()) {
-            return $this->supabaseGrant('refresh_token', ['refresh_token' => $refreshToken]);
-        }
-
+        // Sessions the platform opened itself (local, SSO, LDAP, after a second factor) carry a platform refresh token even when Supabase is the main identity store.
+        $claims = null;
         try {
             $claims = $this->verifier->decodeRefresh($refreshToken);
         } catch (Throwable) {
-            throw ValidationException::withMessages(['refresh_token' => __('auth.invalid_refresh')]);
+            if (! $this->usesSupabase()) {
+                throw ValidationException::withMessages(['refresh_token' => __('auth.invalid_refresh')]);
+            }
+        }
+        if ($claims === null) {
+            return $this->supabaseGrant('refresh_token', ['refresh_token' => $refreshToken]);
         }
 
-        $user = User::whereKey($claims->sub)->where('status', 'active')->firstOrFail();
+        $user = User::whereKey($claims->sub)->where('status', 'active')->first();
+        if (! $user) {
+            throw ValidationException::withMessages(['refresh_token' => __('auth.invalid_refresh')]);
+        }
+        // A session that timed out, ended or was terminated cannot be renewed.
+        $sid = $claims->sid ?? null;
+        if ($sid) {
+            $session = app(AuthSessions::class)->touch((string) $sid, $user);
+            if (! $session) {
+                throw ValidationException::withMessages(['refresh_token' => __('auth.session_ended')]);
+            }
+
+            return $this->issueLocal($user, $session->method, $session);
+        }
 
         return $this->issueLocal($user);
     }
@@ -74,17 +92,40 @@ class AuthService
         return $this->issueLocal($user);
     }
 
-    private function issueLocal(User $user): array
+    /** Signs a platform session for someone already verified (password, second factor, SSO, LDAP). */
+    public function issueForUser(User $user, string $method = 'password'): array
+    {
+        $user->forceFill(['last_login_at' => now(), 'last_active_at' => now(), 'locked_at' => null])->saveQuietly();
+
+        return $this->issueLocal($user, $method);
+    }
+
+    private function issueLocal(User $user, string $method = 'password', ?AuthSession $session = null): array
     {
         $ttl = config('tedc.auth.token_ttl');
-        $claims = ['sub' => $user->auth_id ?? $user->id, 'email' => $user->email];
+        $session ??= app(AuthSessions::class)->open($user, request(), $method);
+        $claims = ['sub' => $user->auth_id ?? $user->id, 'email' => $user->email, 'sid' => $session->id];
+        // The refresh token never outlives the session's absolute lifetime.
+        $refreshTtl = max(60, min((int) config('tedc.auth.refresh_ttl'), (int) now()->diffInSeconds($session->expires_at, false)));
 
         return [
             'user' => $user,
             'access_token' => $this->verifier->issue($claims + ['typ' => 'access'], $ttl),
-            'refresh_token' => $this->verifier->issue(['sub' => $user->id, 'typ' => 'refresh'], config('tedc.auth.refresh_ttl')),
+            'refresh_token' => $this->verifier->issue(['sub' => $user->id, 'typ' => 'refresh', 'sid' => $session->id], $refreshTtl),
             'expires_in' => $ttl,
+            'session_id' => $session->id,
         ];
+    }
+
+    /** Records the provider's session (Supabase `session_id`) in the registry so it can expire and be terminated. */
+    private function register(User $user, string $accessToken): void
+    {
+        $parts = explode('.', $accessToken);
+        $payload = isset($parts[1]) ? json_decode((string) base64_decode(strtr($parts[1], '-_', '+/')), true) : null;
+        $external = $payload['session_id'] ?? null;
+        if ($external) {
+            app(AuthSessions::class)->open($user, request(), 'password', (string) $external);
+        }
     }
 
     private function supabaseGrant(string $grant, array $payload): array
@@ -128,6 +169,7 @@ class AuthService
         }
 
         $user->forceFill(['auth_id' => $authUser['id'], 'last_login_at' => now()])->save();
+        $this->register($user, $data['access_token']);
 
         return [
             'user' => $user,

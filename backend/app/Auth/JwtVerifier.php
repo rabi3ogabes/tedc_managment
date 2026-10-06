@@ -57,6 +57,17 @@ class JwtVerifier
         ], $claims), $this->secret(), 'HS256');
     }
 
+    /** A short-lived platform token with its own purpose (`mfa`, `sso`…), never accepted as an access token. */
+    public function decodeTyped(string $jwt, string $typ): object
+    {
+        $claims = JWT::decode($jwt, new Key($this->secret(), 'HS256'));
+        if (($claims->typ ?? null) !== $typ) {
+            throw new UnexpectedValueException("Not a {$typ} token.");
+        }
+
+        return $claims;
+    }
+
     public function decodeRefresh(string $jwt): object
     {
         $claims = JWT::decode($jwt, new Key($this->secret(), 'HS256'));

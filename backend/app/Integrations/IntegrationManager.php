@@ -2,6 +2,8 @@
 
 namespace App\Integrations;
 
+use App\Integrations\Identity\LdapDirectory;
+use App\Integrations\Teams\GraphClient;
 use App\Models\Integration;
 use App\Models\IntegrationLog;
 use App\Models\Role;
@@ -216,11 +218,11 @@ class IntegrationManager
 
             return $r->successful() ? 'ok' : 'down';
         }
-        if ($key === 'teams' && class_exists(\App\Integrations\Teams\GraphClient::class)) {
-            return app(\App\Integrations\Teams\GraphClient::class)->ping($s) ? 'ok' : 'down';
+        if ($key === 'teams' && class_exists(GraphClient::class)) {
+            return app(GraphClient::class)->ping($s) ? 'ok' : 'down';
         }
-        if ($key === 'ldap' && class_exists(\App\Integrations\Identity\LdapDirectory::class)) {
-            return app(\App\Integrations\Identity\LdapDirectory::class)->ping($s) ? 'ok' : 'down';
+        if ($key === 'ldap' && class_exists(LdapDirectory::class)) {
+            return app(LdapDirectory::class)->ping($s) ? 'ok' : 'down';
         }
         $base = rtrim((string) ($s['base_url'] ?? ''), '/');
         if ($base === '') {

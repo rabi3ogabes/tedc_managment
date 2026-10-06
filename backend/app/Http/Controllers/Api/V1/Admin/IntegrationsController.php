@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Integrations\IntegrationManager;
 use App\Integrations\IntegrationRegistry;
+use App\Integrations\Ministry\HrSync;
+use App\Integrations\Ministry\LicenceSync;
+use App\Integrations\Ministry\NsisSync;
+use App\Integrations\Ministry\QnedsPublisher;
+use App\Integrations\Ministry\SijilArchive;
 use App\Models\IntegrationLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +28,8 @@ class IntegrationsController extends Controller
     public function update(Request $request, string $key): JsonResponse
     {
         abort_unless(isset(IntegrationRegistry::all()[$key]), 404);
+        // Identity settings can also be managed by whoever may manage single sign-on.
+        abort_unless($this->user()->hasPermission('integrations.manage') || (in_array($key, ['entra', 'ldap'], true) && $this->user()->hasPermission('sso.manage')), 403);
         $d = $request->validate(['driver' => ['sometimes', Rule::in(IntegrationRegistry::all()[$key]['drivers'])], 'enabled' => ['sometimes', 'boolean'], 'settings' => ['sometimes', 'array'], 'clear' => ['sometimes', 'array']]);
 
         return response()->json(['data' => $this->hub->update($key, $d)]);
@@ -41,11 +48,11 @@ class IntegrationsController extends Controller
     {
         abort_unless(isset(IntegrationRegistry::all()[$key]), 404);
         $result = match ($key) {
-            'hr', 'mawared' => app(\App\Integrations\Ministry\HrSync::class)->run($key),
-            'licences' => app(\App\Integrations\Ministry\LicenceSync::class)->run(),
-            'nsis' => app(\App\Integrations\Ministry\NsisSync::class)->run(),
-            'qneds' => app(\App\Integrations\Ministry\QnedsPublisher::class)->publish(),
-            'sijil' => app(\App\Integrations\Ministry\SijilArchive::class)->run(),
+            'hr', 'mawared' => app(HrSync::class)->run($key),
+            'licences' => app(LicenceSync::class)->run(),
+            'nsis' => app(NsisSync::class)->run(),
+            'qneds' => app(QnedsPublisher::class)->publish(),
+            'sijil' => app(SijilArchive::class)->run(),
             default => abort(422, 'This system has nothing to sync.'),
         };
 
