@@ -1,4 +1,5 @@
 import { Award, BookOpen, CalendarClock, ClipboardList, Clock, MapPin, Sparkles, Target } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import RoleDashboard from '@/components/dashboard/RoleDashboard'
@@ -6,10 +7,12 @@ import { ProgramCover } from '@/components/public/ProgramCard'
 import { PendingSurveysBanner } from '@/components/surveys/NeedsSurveys'
 import { Badge, Card, CardTitle, Empty, PageHeader, Progress, Spinner, StatCard } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { api } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
 
-export type Recommendation = { program: Program; score: number; reasons: string[] }
+export type Recommendation = { program: Program; score: number; reasons: string[]; variant?: string }
 type HomeData = {
   greeting_name: string
   stats: Record<string, number>
@@ -70,19 +73,29 @@ export default function PortalHome() {
 
 export function RecommendationGrid({ items }: { items: Recommendation[] }) {
   const { t } = useTranslation()
+  const [hidden, setHidden] = useState<string[]>([])
+  const send = (id: string, event: 'clicked' | 'dismissed' | 'liked') => { api.post(`/me/recommendations/${id}/feedback`, { event }).catch(() => undefined) }
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-      {items.map((r) => (
-        <Link key={r.program.id} to={`/programs/${r.program.code}`} className="group overflow-hidden rounded-2xl border border-navy-100 bg-white transition hover:-translate-y-1 hover:shadow-glass">
-          <ProgramCover program={r.program} className="h-28" />
-          <div className="p-4">
-            <div className="flex items-center justify-between"><Badge color="gold">{fmt.number(r.score)}%</Badge><span className="text-xs text-slate-400">{t(`modes.${r.program.delivery_mode}`)}</span></div>
-            <h4 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-link">{r.program.title}</h4>
-            <Progress value={r.score} className="mt-3" />
-            <div className="mt-3 text-xs font-bold text-slate-500">{t('portal.why')}</div>
-            <ul className="mt-1 space-y-1">{r.reasons.slice(0, 3).map((x) => <li key={x} className="text-xs text-slate-500">• {x}</li>)}</ul>
-          </div>
-        </Link>
+      {items.filter((r) => !hidden.includes(r.program.id)).map((r) => (
+        <div key={r.program.id} className="group relative overflow-hidden rounded-2xl border border-navy-100 bg-white transition hover:-translate-y-1 hover:shadow-glass">
+          <Link to={`/programs/${r.program.code}`} onClick={() => send(r.program.id, 'clicked')} className="block">
+            <ProgramCover program={r.program} className="h-28" />
+            <div className="p-4 pb-2">
+              <div className="flex items-center justify-between"><Badge color="gold">{fmt.number(r.score)}%</Badge><span className="text-xs text-slate-400">{t(`modes.${r.program.delivery_mode}`)}</span></div>
+              <h4 className="mt-2 font-bold leading-snug text-navy-900 group-hover:text-link">{r.program.title}</h4>
+              <Progress value={r.score} className="mt-3" />
+              <div className="mt-3 text-xs font-bold text-slate-500">{t('portal.why')}</div>
+              <ul className="mt-1 space-y-1">{r.reasons.slice(0, 3).map((x) => <li key={x} className="text-xs text-slate-500">• {x}</li>)}</ul>
+            </div>
+          </Link>
+          {r.variant && (
+            <div className="flex justify-end gap-2 px-4 pb-3 text-xs">
+              <button type="button" className="font-semibold text-slate-400 hover:text-emerald-700" onClick={() => { send(r.program.id, 'liked'); toast(String(t('aix.rec.helpful'))) }}>{t('aix.rec.helpful')}</button>
+              <button type="button" className="font-semibold text-slate-400 hover:text-danger" onClick={() => { send(r.program.id, 'dismissed'); setHidden((h) => [...h, r.program.id]); toast(String(t('aix.rec.dismissed'))) }}>{t('aix.rec.dismiss')}</button>
+            </div>
+          )}
+        </div>
       ))}
     </div>
   )

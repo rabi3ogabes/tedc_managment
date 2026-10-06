@@ -26,8 +26,12 @@ class AiModelSettings
         'openrouter' => 'https://openrouter.ai/api/v1',
         'openai' => 'https://api.openai.com/v1',
         'anthropic' => 'https://api.anthropic.com',
+        'azure' => null,
         'custom' => null,
     ];
+
+    /** Where a connection's servers are: inside Qatar, in another region the Ministry approved, or elsewhere. */
+    public const RESIDENCY = ['qatar', 'approved', 'external'];
 
     public static function defaults(): array
     {
@@ -74,6 +78,23 @@ class AiModelSettings
         return $c ? $c + ['base_url_resolved' => rtrim((string) ($c['base_url'] ?: (self::DRIVERS[$c['driver']] ?? '')), '/')] : null;
     }
 
+    /**
+     * A specific model ready to call (for features that have their own model), under the same rules as resolve().
+     *
+     * @return array{model: array<string, mixed>, connection: array<string, mixed>, key: string}|null
+     */
+    public function resolveModel(?string $modelId, string $task = 'text'): ?array
+    {
+        $model = $modelId ? $this->model($modelId) : null;
+        if (! $model || ! ($model['enabled'] ?? true) || ! in_array($task, $model['tasks'] ?? [], true)) {
+            return null;
+        }
+        $connection = $this->connection($model['connection_id']);
+        $key = $connection ? $this->key($connection['id']) : null;
+
+        return $connection && ($connection['enabled'] ?? true) && filled($key) ? ['model' => $model, 'connection' => $connection, 'key' => $key] : null;
+    }
+
     public function key(string $connectionId): ?string
     {
         return $this->secrets()[$connectionId] ?? null;
@@ -114,8 +135,10 @@ class AiModelSettings
         $driver = in_array($in['driver'] ?? $existing['driver'] ?? null, array_keys(self::DRIVERS), true) ? ($in['driver'] ?? $existing['driver']) : 'openrouter';
         $row = [
             'id' => $id, 'name' => mb_substr(trim((string) ($in['name'] ?? $existing['name'] ?? ucfirst($driver))), 0, 80), 'driver' => $driver,
-            'base_url' => $driver === 'custom' ? mb_substr(rtrim((string) ($in['base_url'] ?? $existing['base_url'] ?? ''), '/'), 0, 300) : null,
+            'base_url' => in_array($driver, ['custom', 'azure'], true) ? mb_substr(rtrim((string) ($in['base_url'] ?? $existing['base_url'] ?? ''), '/'), 0, 300) : null,
             'enabled' => (bool) ($in['enabled'] ?? $existing['enabled'] ?? true),
+            'data_residency' => in_array($in['data_residency'] ?? $existing['data_residency'] ?? null, self::RESIDENCY, true) ? ($in['data_residency'] ?? $existing['data_residency']) : ($driver === 'azure' ? 'approved' : 'external'),
+            'api_version' => mb_substr(trim((string) ($in['api_version'] ?? $existing['api_version'] ?? '2024-10-21')), 0, 20),
         ];
         $all['connections'] = $existing ? array_map(fn ($c) => $c['id'] === $id ? $row : $c, $all['connections']) : [...$all['connections'], $row];
 

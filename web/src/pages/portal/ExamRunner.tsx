@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import SmartFeedbackCard from '@/components/ai/SmartFeedbackCard'
 import clsx from 'clsx'
 import { Check, Flag, Maximize } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -151,6 +152,7 @@ export function AttemptResult() {
         {r.feedback && <p className="rounded-xl bg-ivory p-3 text-sm"><b>{t('assess.runner.feedback')}:</b> {r.feedback}</p>}
         <Link to="/portal/assessments" className="font-bold text-link">{t('assess.runner.back')}</Link>
       </Card>
+      {r.review.length > 0 && id && <SmartFeedbackCard attemptId={id} review={r.review} />}
       {r.review.length > 0 && (
         <Card className="space-y-4"><h2 className="font-bold text-navy-900">{t('assess.runner.review')}</h2>
           {r.review.map((x, i) => (

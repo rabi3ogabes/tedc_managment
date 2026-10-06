@@ -127,6 +127,17 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/library'),
                 ),
               ),
+              if (featureOn(ref, 'ai'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.smart_toy_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('ai.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/assistant'),
+                  ),
+                ),
               if (featureOn(ref, 'plc') || featureOn(ref, 'forums'))
                 Padding(
                   padding: const EdgeInsets.only(top: 12),

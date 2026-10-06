@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Ai\AiHooks;
 use App\Auth\SupabaseUserResolver;
 use App\Gamification\GamificationListener;
 use App\Integrations\EventBus;
@@ -48,10 +49,11 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating'] as $param) {
+        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         GamificationListener::register();
+        AiHooks::register();
         // Domain events for other systems (webhooks / outbox): written only when someone subscribes.
         Registration::updated(function (Registration $r) {
             if ($r->wasChanged('status') && in_array($r->status, ['approved', 'completed'], true)) {

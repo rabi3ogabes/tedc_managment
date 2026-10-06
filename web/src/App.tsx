@@ -88,6 +88,8 @@ const Achievements = lazy(() => import('@/pages/Achievements'))
 const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
 const GamificationStudio = lazy(() => import('@/pages/admin/GamificationStudio'))
+const AdaptiveRules = lazy(() => import('@/pages/admin/AdaptiveRules'))
+const ForecastRisks = lazy(() => import('@/pages/admin/ForecastRisks'))
 const Certificates = lazy(() => import('@/pages/admin/Certificates'))
 const CertificateTemplates = lazy(() => import('@/pages/admin/certificates/Templates'))
 const CertificateDesigner = lazy(() => import('@/pages/admin/certificates/Designer'))
@@ -195,6 +197,8 @@ export default function App() {
           <Route path="trainers" element={<RequireAuth permission="programs.view"><TrainersAdmin /></RequireAuth>} />
           <Route path="calendar" element={<RequireAuth permission="calendar.view"><TrainingCalendar /></RequireAuth>} />
           <Route path="programs/:id/edit" element={<ProgramEditor />} />
+          <Route path="programs/:id/adaptive" element={<RequireAuth permission="adaptive.manage"><AdaptiveRules /></RequireAuth>} />
+          <Route path="forecasts" element={<RequireAuth permission="ai.forecasts.view"><ForecastRisks /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="needs" element={<TrainingNeeds />} />

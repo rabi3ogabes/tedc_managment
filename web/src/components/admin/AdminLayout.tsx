@@ -14,6 +14,7 @@ import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { useGet } from '@/hooks/useApi'
+import AssistantPanel from '@/components/ai/AssistantPanel'
 import { useFeatures } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
@@ -132,6 +133,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/migration', label: t('idn.navMigration'), icon: PackageOpen, permission: 'migration.run' },
           { to: '/admin/security-policy', label: t('idn.navSecurityAdmin'), icon: Shield, permission: 'security.policy|sessions.manage' },
           { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
+          { to: '/admin/forecasts', label: t('aix.nav.forecasts'), icon: LineChart, permission: 'ai.forecasts.view', feature: 'ai' },
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
           { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
           { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined },
@@ -292,6 +294,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         </header>
         <main className="flex-1 px-4 py-8 sm:px-8">
           <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
+          {portal && <AssistantPanel portal />}
           <ReportProblem />
         </main>
       </div>

@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Api\V1\Me;
 
+use App\Ai\AiPolicy;
+use App\Ai\Recommend\HybridRecommender;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NotificationResource;
 use App\Http\Resources\ProgramResource;
 use App\Models\AppNotification;
 use App\Models\Employee;
 use App\Models\ImpactSurvey;
+use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\TaskSubmission;
+use App\Services\FeatureSettings;
 use App\Services\PassportService;
 use App\Services\RecommendationEngine;
 use App\Support\Nationalities;
@@ -68,13 +72,13 @@ class MeController extends Controller
             'next_session' => $nextSession ? $card($nextSession) : null,
             'current_session' => $current ? $card($current) + ['live' => now()->gte($current->starts_at)] : null,
             'upcoming_sessions' => $upcoming->reject(fn ($x) => $x->id === $current?->id)->take(5)->map($card)->values(),
-            'recommended' => $this->recommendationPayload($engine->forEmployee($employee, 4)),
+            'recommended' => $this->recommended($engine, 4),
         ]]);
     }
 
     public function recommendations(RecommendationEngine $engine): JsonResponse
     {
-        return response()->json(['data' => $this->recommendationPayload($engine->forEmployee($this->employee(), 10))]);
+        return response()->json(['data' => $this->recommended($engine, 10)]);
     }
 
     public function passport(PassportService $passport): JsonResponse
@@ -133,6 +137,25 @@ class MeController extends Controller
         $count = $this->user()->appNotifications()->whereNull('read_at')->update(['read_at' => now(), 'seen_at' => now()]);
 
         return response()->json(['data' => ['updated' => $count]]);
+    }
+
+    /** "For you": the hybrid recommender when AI is on for it, the rule engine alone otherwise (and whenever the hybrid has nothing to say). */
+    private function recommended(RecommendationEngine $engine, int $limit): array
+    {
+        if (app(FeatureSettings::class)->enabled('ai') && app(AiPolicy::class)->feature('recommendations')['enabled']) {
+            $res = app(HybridRecommender::class)->forUser($this->user(), $limit);
+            $programs = Program::whereIn('id', array_column($res['items'], 'id'))->get()->keyBy('id');
+            $rows = [];
+            foreach ($res['items'] as $i) {
+                if (isset($programs[$i['id']])) {
+                    $rows[] = ['program' => (new ProgramResource($programs[$i['id']]))->resolve(), 'score' => $i['score'], 'reasons' => $i['reasons'], 'variant' => $res['variant'], 'components' => $i['components']];
+                }
+            }
+
+            return $rows;
+        }
+
+        return $this->recommendationPayload($engine->forEmployee($this->employee(), $limit));
     }
 
     private function recommendationPayload($recommendations): array

@@ -103,6 +103,8 @@ use App\Http\Controllers\Api\V1\Admin\UserRoleController;
 use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
 use App\Http\Controllers\Api\V1\Admin\WebhooksController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
+use App\Http\Controllers\Api\V1\Ai\AiAdminController;
+use App\Http\Controllers\Api\V1\Ai\AiLearnerController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AuthSecurityController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
@@ -489,6 +491,16 @@ Route::prefix('v1')->group(function () {
             Route::post('attempts/{attempt}/snapshot', [MyAssessmentController::class, 'snapshot'])->middleware('throttle:60,1');
             Route::post('attempts/{attempt}/submit', [MyAssessmentController::class, 'submit']);
             Route::get('attempts/{attempt}/result', [MyAssessmentController::class, 'result']);
+            Route::middleware('feature:ai')->group(function () {
+                Route::post('recommendations/{program}/feedback', [AiLearnerController::class, 'recommendationFeedback'])->middleware('throttle:60,1');
+                Route::get('attempts/{attempt}/smart-feedback', [AiLearnerController::class, 'smartFeedback']);
+                Route::get('courses/{registration}/path', [AiLearnerController::class, 'path']);
+                Route::post('assistant/messages', [AiLearnerController::class, 'ask'])->middleware('throttle:20,1');
+                Route::get('assistant/conversations', [AiLearnerController::class, 'conversations']);
+                Route::get('assistant/conversations/{conversation}', [AiLearnerController::class, 'conversation']);
+                Route::post('assistant/messages/{message}/feedback', [AiLearnerController::class, 'messageFeedback'])->middleware('throttle:60,1');
+                Route::post('assistant/messages/{message}/escalate', [AiLearnerController::class, 'escalate'])->middleware('throttle:10,1');
+            });
             Route::get('lessons/{lesson}/interactions', [VideoInteractionController::class, 'mine']);
             Route::post('lessons/{lesson}/interactions/{interaction}/answer', [VideoInteractionController::class, 'answer']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
@@ -1077,6 +1089,34 @@ Route::prefix('v1')->group(function () {
                 Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
                 Route::get('public-stats', [CmsController::class, 'stats']);
                 Route::put('public-stats', [CmsController::class, 'saveStats']);
+            });
+
+            // AI: settings, drafts, adaptive rules, forecasts (Phase 15)
+            Route::middleware('feature:ai')->group(function () {
+                Route::middleware('permission:ai.settings')->group(function () {
+                    Route::get('settings/ai', [AiAdminController::class, 'settings']);
+                    Route::put('settings/ai', [AiAdminController::class, 'saveSettings']);
+                    Route::get('ai/logs', [AiAdminController::class, 'logs']);
+                    Route::get('ai/recommendation-stats', [AiAdminController::class, 'recommendationStats']);
+                    Route::post('assistant/reindex', [AiAdminController::class, 'reindex'])->middleware('throttle:6,1');
+                });
+                Route::middleware('permission:ai.feedback.review|assessments.grade')->group(function () {
+                    Route::get('attempts/{attempt}/ai-feedback', [AiAdminController::class, 'drafts']);
+                    Route::post('ai-feedback/{aiDraft}/{action}', [AiAdminController::class, 'review'])->where('action', 'accept|edit|reject');
+                });
+                Route::middleware('permission:adaptive.manage')->group(function () {
+                    Route::get('adaptive/skills', [AiAdminController::class, 'skills']);
+                    Route::get('programs/{program}/adaptive-rules', [AiAdminController::class, 'rules']);
+                    Route::put('programs/{program}/adaptive-rules', [AiAdminController::class, 'saveRules']);
+                    Route::post('programs/{program}/adaptive/remedial', [AiAdminController::class, 'remedial'])->middleware('throttle:20,1');
+                });
+                Route::middleware('permission:ai.forecasts.view')->group(function () {
+                    Route::get('forecasts', [AiAdminController::class, 'forecasts']);
+                    Route::get('risks', [AiAdminController::class, 'risks']);
+                    Route::post('risks/{riskFlag}/resolve', [AiAdminController::class, 'resolveRisk']);
+                    Route::post('forecasts/run', [AiAdminController::class, 'runForecasts'])->middleware('throttle:6,1');
+                    Route::post('forecasts/to-plan', [AiAdminController::class, 'toPlan'])->middleware('permission:plans.manage');
+                });
             });
 
             // AI assistant

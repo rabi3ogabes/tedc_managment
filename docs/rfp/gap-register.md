@@ -393,18 +393,18 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 15 — AI Completion  (6)
 
-- [ ] **RPT-11** — Predictive analytics and reports  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **AI-01** ★ — Behavioural analytics and personalised recommendations  
-  _Now:_ 🟡 Partial — Explainable rule-based engine (skills, role, needs, peers); no behavioural model.
-- [ ] **AI-02** ★ — Smart assessment with instant feedback from answer analysis  
-  _Now:_ 🔴 Missing — Static explanations only.
-- [ ] **AI-03** ★ — Adaptive content that adjusts to each learner  
-  _Now:_ 🔴 Missing — AI helps authors build decks / images / audio; no learner-adaptive paths.
-- [ ] **AI-04** ★ — Predictive reports on future PD needs  
-  _Now:_ 🟡 Partial — AI assistant suggests programs from aggregated data; no forecasting.
-- [ ] **AI-05** ★ — ML assistant that answers trainees’ questions  
-  _Now:_ 🟡 Partial — Public website chatbot and admin assistant; no in-portal trainee assistant.
+- [x] **RPT-11** — Predictive analytics and reports  
+  _Now:_ 🟡 Partial — Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.
+- [x] **AI-01** ★ — Behavioural analytics and personalised recommendations  
+  _Now:_ ✅ Available — Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.
+- [x] **AI-02** ★ — Smart assessment with instant feedback from answer analysis  
+  _Now:_ ✅ Available — Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15.
+- [x] **AI-03** ★ — Adaptive content that adjusts to each learner  
+  _Now:_ 🟡 Partial — Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.
+- [x] **AI-04** ★ — Predictive reports on future PD needs  
+  _Now:_ ✅ Available — Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15.
+- [x] **AI-05** ★ — ML assistant that answers trainees’ questions  
+  _Now:_ 🟡 Partial — Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.
 
 ### Phase 16 — Course Purchasing & Payments  (4)
 
@@ -803,7 +803,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | RPT-08 | QA and kit-developer reports | ✅ Available | Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12). | — |
 | RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | ✅ Available | Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12). | — |
 | RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | ✅ Available | Low-satisfaction alert (response ≥80% and average <50%, editable), once per group | — |
-| RPT-11 | Predictive analytics and reports | 🔴 Missing | Not available. | 15 |
+| RPT-11 | Predictive analytics and reports | 🟡 Partial | Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15. | 15 |
 
 ### UTR · User Training, Help & Support — تدريب المستخدمين والدعم الفني
 
@@ -850,11 +850,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| AI-01 ★ | Behavioural analytics and personalised recommendations | 🟡 Partial | Explainable rule-based engine (skills, role, needs, peers); no behavioural model. | 15 |
-| AI-02 ★ | Smart assessment with instant feedback from answer analysis | 🔴 Missing | Static explanations only. | 15 |
-| AI-03 ★ | Adaptive content that adjusts to each learner | 🔴 Missing | AI helps authors build decks / images / audio; no learner-adaptive paths. | 15 |
-| AI-04 ★ | Predictive reports on future PD needs | 🟡 Partial | AI assistant suggests programs from aggregated data; no forecasting. | 15 |
-| AI-05 ★ | ML assistant that answers trainees’ questions | 🟡 Partial | Public website chatbot and admin assistant; no in-portal trainee assistant. | 15 |
+| AI-01 ★ | Behavioural analytics and personalised recommendations | ✅ Available | Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15. | — |
+| AI-02 ★ | Smart assessment with instant feedback from answer analysis | ✅ Available | Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15. | — |
+| AI-03 ★ | Adaptive content that adjusts to each learner | 🟡 Partial | Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15. | 15 |
+| AI-04 ★ | Predictive reports on future PD needs | ✅ Available | Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15. | — |
+| AI-05 ★ | ML assistant that answers trainees’ questions | 🟡 Partial | Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15. | 15 |
 
 ### GAM · Phase 2 · Gamification — المرحلة الثانية · التلعيب
 

@@ -241,7 +241,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                 if (p.obj('poll') != null) ..._poll(context, p.obj('poll')!),
                 const SizedBox(height: 8),
                 Row(children: [
-                  TextButton.icon(onPressed: () => _like('post', widget.id), icon: Icon(p.str('my_reaction').isEmpty ? Icons.thumb_up_alt_outlined : Icons.thumb_up_alt), label: Text('${p.str('reactions_count')}')),
+                  TextButton.icon(onPressed: () => _like('post', widget.id), icon: Icon(p.str('my_reaction').isEmpty ? Icons.thumb_up_alt_outlined : Icons.thumb_up_alt), label: Text(p.str('reactions_count'))),
                 ]),
                 const Divider(),
                 for (final c in comments)
@@ -255,7 +255,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                           if (c.flag('accepted')) const Icon(Icons.check_circle, size: 18, color: Colors.green),
                         ]),
                         Text(c.str('body').isEmpty ? context.tr('soc.hidden') : _plain(c.str('body'))),
-                        Align(alignment: AlignmentDirectional.centerEnd, child: TextButton.icon(onPressed: () => _like('comment', c.str('id')), icon: const Icon(Icons.thumb_up_alt_outlined, size: 16), label: Text('${c.str('reactions')}'))),
+                        Align(alignment: AlignmentDirectional.centerEnd, child: TextButton.icon(onPressed: () => _like('comment', c.str('id')), icon: const Icon(Icons.thumb_up_alt_outlined, size: 16), label: Text(c.str('reactions')))),
                       ]),
                     ),
                   ),
@@ -290,13 +290,13 @@ class _PostScreenState extends ConsumerState<PostScreen> {
           contentPadding: EdgeInsets.zero,
           leading: Icon(mine.contains(o.str('id')) ? Icons.radio_button_checked : Icons.radio_button_off, color: AppColors.gold500),
           title: Text(o.str('text')),
-          trailing: Text('${o.str('votes')}'),
+          trailing: Text(o.str('votes')),
           onTap: () async {
             try {
               await ref.read(apiProvider).post('/social/polls/${poll.str('id')}/vote', {'option_ids': [o.str('id')]});
               ref.invalidate(getProvider('/social/posts/${widget.id}'));
             } catch (e) {
-              if (mounted) showSnack(context, e.toString(), error: true);
+              if (context.mounted) showSnack(context, e.toString(), error: true);
             }
           },
         ),

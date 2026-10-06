@@ -143,6 +143,10 @@ class RolePermissionSeeder extends Seeder
         'ratings.moderate' => ['collaboration', 'الإشراف على التقييمات والمراجعات', 'Moderate ratings and reviews'],
         'gamification.manage' => ['collaboration', 'إدارة التحفيز (النقاط والشارات والتحديات)', 'Manage gamification (points, badges, challenges)'],
         'rewards.manage' => ['collaboration', 'إدارة المكافآت', 'Manage rewards'],
+        'ai.settings' => ['ai', 'إعدادات الذكاء الاصطناعي والخصوصية', 'AI settings, privacy and logs'],
+        'ai.forecasts.view' => ['ai', 'عرض التوقعات والمخاطر', 'View forecasts and risks'],
+        'ai.feedback.review' => ['ai', 'مراجعة مسودات الملاحظات الذكية', 'Review AI feedback drafts'],
+        'adaptive.manage' => ['ai', 'إدارة قواعد التعلّم التكيّفي', 'Manage adaptive learning rules'],
     ];
 
     /** Which scopes a role may be granted at (null = any). A role without Ministry here is limited to its school unless granted wider. */
@@ -175,8 +179,9 @@ class RolePermissionSeeder extends Seeder
             'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
             'passing.manage', 'tasks.final_approve',
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
+            'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
         ]],
-        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create']],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
@@ -185,7 +190,7 @@ class RolePermissionSeeder extends Seeder
         Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
             'kpi.view', 'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
-            'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global',
+            'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global', 'ai.forecasts.view',
         ]],
         Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['packages.manage', 'library.view', 'programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
         Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review', 'search.global']],
@@ -199,6 +204,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
             'passing.manage', 'tasks.final_approve', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
+            'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -212,7 +218,7 @@ class RolePermissionSeeder extends Seeder
         Role::PLANNING_HEAD => ['رئيس قسم التخطيط', 'Head of Planning', 66, [
             'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'evaluation_reports.approve', 'evaluations.respond_planning', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'ai.assistant', 'reports.view',
             'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'search.global',
-            'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import',
+            'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import', 'ai.forecasts.view',
         ]],
         Role::PLANNING_SPECIALIST => ['أخصائي التخطيط', 'Planning Specialist', 58, [
             'paths.manage', 'pd.recognise', 'evaluation_reports.prepare', 'evaluations.respond_planning', 'interviews.manage', 'dashboard.view', 'schools.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'reports.view', 'plans.view', 'plans.manage', 'search.global',
@@ -301,5 +307,7 @@ class RolePermissionSeeder extends Seeder
         'evaluations.manage', 'evaluations.respond_planning', 'evaluation_reports.prepare', 'evaluation_reports.approve', 'interviews.manage', 'satisfaction_alerts.manage',
         // Phase 14
         'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
+        // Phase 15
+        'ai.settings', 'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
     ];
 }

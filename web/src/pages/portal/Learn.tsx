@@ -7,6 +7,7 @@ import { Badge, Button, Card, ErrorState, Progress, Spinner } from '@/components
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import AdaptivePathCard from '@/components/ai/AdaptivePathCard'
 import LessonSocial from '@/components/social/LessonSocial'
 import PackagePlayer from './learn/PackagePlayer'
 import Article from './learn/Article'
@@ -142,6 +143,7 @@ export default function Learn() {
         </div>
 
         <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <AdaptivePathCard registrationId={registrationId!} />
           <h3 className="font-bold text-navy-900">{t('learn.outline')}</h3>
           {o.modules.map((m, mi) => (
             <div key={m.id} className="overflow-hidden rounded-2xl border border-navy-100 bg-white">

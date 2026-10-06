@@ -59,13 +59,19 @@ class AiGateway
         return $r ? $this->safely(fn () => $this->speak($r, $text, $voice)) : null;
     }
 
+    /** Runs a chat for an already resolved model (the feature guard picks the model and checks residency first). Returns null when the call fails. */
+    public function complete(array $resolved, string $system, array|string $messages, ?int $maxTokens = null): ?string
+    {
+        return $this->safely(fn () => $this->chat($resolved, $system, $messages, $maxTokens));
+    }
+
     /** The models a connection offers (for the picker). @return list<array<string, mixed>> */
     public function catalog(string $connectionId): array
     {
         $c = $this->settings->connection($connectionId);
         $key = $this->settings->key($connectionId);
-        if (! $c || $c['driver'] === 'anthropic' && ! $key) {
-            return [];
+        if (! $c || $c['driver'] === 'azure' || $c['driver'] === 'anthropic' && ! $key) {
+            return [];   // Azure deployments are not listed with a key: the deployment name is typed in
         }
         $response = $this->http($c, (string) $key, 20)->get($c['base_url_resolved'].'/models')->throw()->json('data') ?? [];
 
@@ -122,6 +128,10 @@ class AiGateway
     {
         $req = Http::timeout($timeout)->acceptJson();
 
+        if ($c['driver'] === 'azure') {
+            return $req->withHeaders(['api-key' => $key]);
+        }
+
         return $c['driver'] === 'anthropic'
             ? $req->withHeaders(['x-api-key' => $key, 'anthropic-version' => '2023-06-01'])
             : $req->withToken($key)->withHeaders($c['driver'] === 'openrouter' ? ['HTTP-Referer' => (string) config('app.url'), 'X-Title' => 'TEDC'] : []);
@@ -142,7 +152,11 @@ class AiGateway
         }
 
         $body = ['model' => $m['model'], 'max_tokens' => $max, 'messages' => [['role' => 'system', 'content' => $system], ...$messages]] + ($temperature !== null ? ['temperature' => $temperature] : []);
-        $text = $this->http($c, $key, 120)->post($c['base_url_resolved'].'/chat/completions', $body)->throw()->json('choices.0.message.content');
+        // Azure OpenAI: the model name is the deployment, in the path, and the API version is a query parameter.
+        $url = $c['driver'] === 'azure'
+            ? $c['base_url_resolved'].'/openai/deployments/'.rawurlencode($m['model']).'/chat/completions?api-version='.rawurlencode($c['api_version'] ?? '2024-10-21')
+            : $c['base_url_resolved'].'/chat/completions';
+        $text = $this->http($c, $key, 120)->post($url, $body)->throw()->json('choices.0.message.content');
         if (! is_string($text) || trim($text) === '') {
             throw new RuntimeException('empty_answer');
         }

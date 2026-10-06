@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import AiDraftBox from '@/components/ai/AiDraftBox'
 import { Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -119,7 +120,7 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
           <tr key={r.id}><Td>{r.employee}<div className="text-xs text-slate-400">{r.status}{r.remaining_seconds !== null && ` · ${Math.floor(r.remaining_seconds / 60)}′`}</div></Td><Td>{r.answered}/{r.total}</Td><Td>{(r.flags ?? []).length ? <Badge color="red">{(r.flags ?? []).join(', ')}</Badge> : '—'}</Td>
             <Td><div className="flex gap-1">{r.status === 'in_progress' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={() => { const reason = window.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
       {tab === 'grading' && (!grading.data ? <Spinner /> : !grading.data.data.length ? <Empty text={tx('noAttempts')} /> : grading.data.data.map((g: any) => (
-        <Card key={g.attempt_id} className="space-y-3"><div className="font-bold">{g.employee}</div>
+        <Card key={g.attempt_id} className="space-y-3"><div className="font-bold">{g.employee}</div><AiDraftBox attemptId={g.attempt_id} onGraded={() => void grading.refetch()} />
           {g.items.map((it: any) => { const k = `${g.attempt_id}:${it.question_id}`; return (
             <div key={k} className="space-y-2 rounded-xl bg-ivory p-3 text-sm"><div className="font-semibold" dir="auto">{ar ? it.stem_ar : it.stem_en || it.stem_ar}</div><div className="whitespace-pre-wrap rounded-lg bg-white p-2" dir="auto">{typeof it.answer === 'string' ? it.answer : JSON.stringify(it.answer)}</div>
               <div className="flex gap-2"><input className={`${input} max-w-28`} type="number" min="0" max={it.max_points} step="0.5" placeholder={`/ ${it.max_points}`} value={grades[k]?.points ?? ''} onChange={(e) => setGrades({ ...grades, [k]: { points: e.target.value, comment: grades[k]?.comment ?? '' } })} /><input className={input} placeholder={tx('comment')} value={grades[k]?.comment ?? ''} onChange={(e) => setGrades({ ...grades, [k]: { points: grades[k]?.points ?? '', comment: e.target.value } })} /></div></div>) })}
@@ -146,7 +147,7 @@ export default function AssessmentsTab({ program }: { program: Program }) {
   const g = gain.data?.data
   return (
     <div className="space-y-5">
-      {manage && <div className="flex justify-end"><Button icon={<Plus className="size-4" />} onClick={() => setEdit('new')}>{t('assess.builder.new')}</Button></div>}
+      {(manage || can('adaptive.manage')) && <div className="flex flex-wrap justify-end gap-2">{can('adaptive.manage') && <Button variant="outline" to={`/admin/programs/${program.id}/adaptive`}>{t('aix.nav.adaptive')}</Button>}{manage && <Button icon={<Plus className="size-4" />} onClick={() => setEdit('new')}>{t('assess.builder.new')}</Button>}</div>}
       {g && g.rows.length > 0 && <Card className="space-y-2"><div className="flex items-center justify-between"><h3 className="font-bold text-navy-900">{t('assess.builder.gain')}</h3>{g.average_gain_percent !== null && <Badge color={g.average_gain_percent >= g.target_percent ? 'green' : 'gold'}>{fmt.number(g.average_gain_percent, 1)}% · {t('assess.builder.target', { n: g.target_percent })}</Badge>}</div>
         <Table head={['', t('assess.builder.pre'), t('assess.builder.post'), t('assess.builder.gainPercent')]}>{g.rows.map((r: any) => <tr key={r.registration_id}><Td>{r.employee}</Td><Td>{r.pre ?? '—'}</Td><Td>{r.post ?? '—'}</Td><Td>{r.gain_percent ?? '—'}</Td></tr>)}</Table></Card>}
       {!rows.length ? <Empty text={t('assess.builder.empty')} /> : rows.map((a) => (

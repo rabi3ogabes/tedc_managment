@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 212,
+        "available": 215,
         "partial": 44,
-        "missing": 22,
+        "missing": 19,
         "mandatory": 108,
-        "open": 66
+        "open": 63
     },
     "phases": [
         {
@@ -117,7 +117,7 @@
             "phase": 15,
             "title": "AI Completion",
             "open": 6,
-            "items": 6,
+            "items": 3,
             "done": 0
         },
         {
@@ -1938,8 +1938,8 @@
                     "id": "RPT-11",
                     "mandatory": false,
                     "requirement": "Predictive analytics and reports",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.",
                     "phase": 15
                 }
             ]
@@ -2116,40 +2116,40 @@
                     "id": "AI-01",
                     "mandatory": true,
                     "requirement": "Behavioural analytics and personalised recommendations",
-                    "status": "partial",
-                    "evidence": "Explainable rule-based engine (skills, role, needs, peers); no behavioural model.",
-                    "phase": 15
+                    "status": "available",
+                    "evidence": "Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.",
+                    "phase": null
                 },
                 {
                     "id": "AI-02",
                     "mandatory": true,
                     "requirement": "Smart assessment with instant feedback from answer analysis",
-                    "status": "missing",
-                    "evidence": "Static explanations only.",
-                    "phase": 15
+                    "status": "available",
+                    "evidence": "Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15.",
+                    "phase": null
                 },
                 {
                     "id": "AI-03",
                     "mandatory": true,
                     "requirement": "Adaptive content that adjusts to each learner",
-                    "status": "missing",
-                    "evidence": "AI helps authors build decks / images / audio; no learner-adaptive paths.",
+                    "status": "partial",
+                    "evidence": "Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.",
                     "phase": 15
                 },
                 {
                     "id": "AI-04",
                     "mandatory": true,
                     "requirement": "Predictive reports on future PD needs",
-                    "status": "partial",
-                    "evidence": "AI assistant suggests programs from aggregated data; no forecasting.",
-                    "phase": 15
+                    "status": "available",
+                    "evidence": "Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15.",
+                    "phase": null
                 },
                 {
                     "id": "AI-05",
                     "mandatory": true,
                     "requirement": "ML assistant that answers trainees’ questions",
                     "status": "partial",
-                    "evidence": "Public website chatbot and admin assistant; no in-portal trainee assistant.",
+                    "evidence": "Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.",
                     "phase": 15
                 }
             ]
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-06T12:35:21+03:00"
+    "generated_at": "2026-10-06T12:57:19+03:00"
 }
