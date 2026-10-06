@@ -5,7 +5,7 @@
 ## 1. Automated suite
 
 - Test files: **99**; test methods: **633**.
-- No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
+- Last recorded run: **632 of 633 passed**, 10058 assertions.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
 ## 2. Requirement status behind the tests
