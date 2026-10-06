@@ -209,11 +209,11 @@
 | RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | ✅ Available | Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction aler | `DashboardsKpiPhase12Test.php`, `ReportsPhase12Test.php` |
 | RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | ✅ Available | Low-satisfaction alert (response ≥80% and average <50%, editable), once per group | `AttendanceAndCertificateTest.php`, `EvaluationSuiteTest.php` |
 | RPT-11 | Predictive analytics and reports | 🟡 Partial | Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15. | `AiCompletionTest.php` |
-| UTR-01 | Role-tailored manuals with screenshots, videos and a downloadable PDF | 🔴 Missing | Only a demo scenario guide for admins. | `EKitsTest.php`, `HelpCentreTest.php` |
-| UTR-02 | Staff training and Train-the-Trainer plan | 🔴 Missing | Service deliverable not prepared. | `EKitsTest.php`, `HelpCentreTest.php` |
-| UTR-03 | Support channels (phone, email, Saaed) | 🔴 Missing | Not defined in the product. | `EKitsTest.php`, `HelpCentreTest.php` |
+| UTR-01 | Role-tailored manuals with screenshots, videos and a downloadable PDF | 🟡 Partial | `pages/HelpCentre.tsx`, `components/help/*`, `docs/rfp/phase-18-adoption-help-deliverables.md` | `HelpCentreTest.php`, `DeliverablesTest.php`, `EKitsTest.php` |
+| UTR-02 | Staff training and Train-the-Trainer plan | ✅ Available | `docs/deliverables/05-training-adoption-plan.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| UTR-03 | Support channels (phone, email, Saaed) | 🟡 Partial | Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
 | UTR-04 | In-portal issue-reporting page linked to Saaed | ✅ Available | Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status | `DataMigrationTest.php`, `IdentitySecurityTest.php`, `IntegrationHubTest.php`, `MinistryIntegrationsTest.php` |
-| EKT-01 | Two interactive e-learning kits produced with the centre for phase 1 | 🟡 Partial | Sample-kit generator and demo courses exist; the two interactive (SCORM / H5P) kits are not produced. | `EKitsTest.php`, `HelpCentreTest.php` |
+| EKT-01 | Two interactive e-learning kits produced with the centre for phase 1 | 🟡 Partial | `content/e-kits` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
 | APP-01 | Fast multi-platform app, fully responsive on phones, tablets, computers | ✅ Available | Flutter app (Android APK via CI, iOS-ready) + responsive web. | — |
 | PAY-01 | Browse catalogue, add courses to a cart, check out | ✅ Available | Catalogue prices, cart with seat holds, discount codes, VAT, checkout, invoices, receipts, orders and refund requests (web and app). Phase 16. | `PaymentsTest.php` |
 | PAY-02 | Pay through the Ministry e-payment gateway | 🟡 Partial | Hosted-page redirect with signed server-to-server callback (idempotent), refunds, reconciliation, training gateway; the Ministry gateway's real specification is | `PaymentsTest.php` |
@@ -273,13 +273,13 @@
 | TEC-15 | Cost-effective licensing (perpetual preferred) | ✅ Available | Custom-built, owned source code; no per-user licence. | — |
 | TEC-16 | Automatic patching without user impact | 🟡 Partial | Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17. | `AzureStorageTest.php`, `OpsSecurityTest.php` |
 | TEC-17 | Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security | ✅ Available | Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthl | `DashboardsKpiPhase12Test.php`, `ReportsPhase12Test.php` |
-| DLV-01 | As-Is and To-Be process analysis documents | 🔴 Missing | Not prepared. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-02 | Needs assessment, scope document, project plan, BRD | 🔴 Missing | Not prepared. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-03 | UX design and system architecture | 🟡 Partial | ARCHITECTURE.md and API.md exist. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-04 | Alpha, Beta and Final releases | 🟡 Partial | Working build and APK releases; no formal release gates. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-05 | User manuals and training & adoption plan | 🔴 Missing | Not prepared. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-06 | Test plan, test reports, bug tracker | 🟡 Partial | 199 automated tests in 40 feature files + CI; no formal plan or report. | `EKitsTest.php`, `HelpCentreTest.php` |
-| DLV-07 | Go-live plan, handover report, QA certificate, SLA | 🔴 Missing | Not prepared. | `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-01 | As-Is and To-Be process analysis documents | 🟡 Partial | `docs/deliverables/01-as-is-to-be.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-02 | Needs assessment, scope document, project plan, BRD | 🟡 Partial | `02-needs-scope-plan.md`, `brd.generated.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-03 | UX design and system architecture | 🟡 Partial | `03-ux-and-architecture.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-04 | Alpha, Beta and Final releases | 🟡 Partial | `04-release-management.md`, `CHANGELOG.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-05 | User manuals and training & adoption plan | 🟡 Partial | `05-training-adoption-plan.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-06 | Test plan, test reports, bug tracker | 🟡 Partial | `06-test-plan.md`, `test-report.generated.md`, `traceability.generated.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
+| DLV-07 | Go-live plan, handover report, QA certificate, SLA | 🟡 Partial | `07-go-live-handover-sla.md` | `DeliverablesTest.php`, `EKitsTest.php`, `HelpCentreTest.php` |
 | DLV-08 | Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer) | ✅ Available | Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware | `DataMigrationTest.php`, `IdentitySecurityTest.php`, `IntegrationHubTest.php`, `MinistryIntegrationsTest.php` |
 | DLV-09 | Compliance sheet and RFP traceability matrix | ✅ Available | `pages/admin/RfpCompliance.tsx`, `GET /admin/rfp-status`, `docs/rfp/compliance-sheet.md` | `RfpStatusTest.php`, `FeatureFlagsTest.php`, `ProductionSafetyTest.php` |
 

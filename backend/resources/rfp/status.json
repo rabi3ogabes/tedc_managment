@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 222,
-        "partial": 49,
-        "missing": 7,
+        "available": 223,
+        "partial": 55,
+        "missing": 0,
         "mandatory": 108,
-        "open": 56
+        "open": 55
     },
     "phases": [
         {
@@ -138,7 +138,7 @@
             "phase": 18,
             "title": "Adoption, Help Centre & Deliverables",
             "open": 11,
-            "items": 11,
+            "items": 10,
             "done": 0
         }
     ],
@@ -1953,24 +1953,24 @@
                     "id": "UTR-01",
                     "mandatory": false,
                     "requirement": "Role-tailored manuals with screenshots, videos and a downloadable PDF",
-                    "status": "missing",
-                    "evidence": "Only a demo scenario guide for admins.",
+                    "status": "partial",
+                    "evidence": "Help centre with 28 bilingual articles for 17 roles, contextual «?» panel by page, versioned editor with screenshot/video upload, role manuals as branded PDF (Arabic or English) built from current versions, guided tours, mobile help (`pages/HelpCentre.tsx`, `components/help/*`, `HelpService`, `HelpCentreTest`). **Not done:** real annotated screenshots and screen-recording videos have not been captured; someone must produce them with the centre (see `docs/rfp/phase-18-adoption-help-deliverables.md`).",
                     "phase": 18
                 },
                 {
                     "id": "UTR-02",
                     "mandatory": false,
                     "requirement": "Staff training and Train-the-Trainer plan",
-                    "status": "missing",
-                    "evidence": "Service deliverable not prepared.",
-                    "phase": 18
+                    "status": "available",
+                    "evidence": "Staff training and Train-the-Trainer plan (`docs/deliverables/05-training-adoption-plan.md`): audiences, schedule, materials, assessments, adoption KPIs, change and communication plan, risks. The sessions themselves are delivered as a service with the centre.",
+                    "phase": null
                 },
                 {
                     "id": "UTR-03",
                     "mandatory": false,
                     "requirement": "Support channels (phone, email, Saaed)",
-                    "status": "missing",
-                    "evidence": "Not defined in the product.",
+                    "status": "partial",
+                    "evidence": "Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. **The centre must supply the phone, email and Saaed link** (`TEDC_SUPPORT_PHONE`, `TEDC_SUPPORT_EMAIL`, `TEDC_SUPPORT_SAAED_URL`); until then the page says «Set by the centre».",
                     "phase": 18
                 },
                 {
@@ -1993,7 +1993,7 @@
                     "mandatory": false,
                     "requirement": "Two interactive e-learning kits produced with the centre for phase 1",
                     "status": "partial",
-                    "evidence": "Sample-kit generator and demo courses exist; the two interactive (SCORM / H5P) kits are not produced.",
+                    "evidence": "Two interactive kits in `content/e-kits` (portal use; effective classroom questioning) with trainer/trainee guides and session plan; `tedc:ekits-build` publishes them as e-courses (chapter reading + knowledge checks, final assessment drawn from a question bank, certificate) and exports SCORM 2004 packages in Arabic and English (`EKitsTest`: published and completed end to end as a trainee; manifest parsed). **Not done:** the topics are proposals to agree with the centre; content is a compact first version; no H5P interactions, interactive video, drag-and-drop, captions or xAPI; the package was not run in a real LMS.",
                     "phase": 18
                 }
             ]
@@ -2528,16 +2528,16 @@
                     "id": "DLV-01",
                     "mandatory": false,
                     "requirement": "As-Is and To-Be process analysis documents",
-                    "status": "missing",
-                    "evidence": "Not prepared.",
+                    "status": "partial",
+                    "evidence": "As-Is / To-Be document drafted in Arabic with an English copy (`docs/deliverables/01-as-is-to-be.md`): every automated workflow described. **As-Is items are marked ⚑ and need confirming in workshops with the centre.**",
                     "phase": 18
                 },
                 {
                     "id": "DLV-02",
                     "mandatory": false,
                     "requirement": "Needs assessment, scope document, project plan, BRD",
-                    "status": "missing",
-                    "evidence": "Not prepared.",
+                    "status": "partial",
+                    "evidence": "Needs assessment, scope and project plan drafted (`02-needs-scope-plan.md`); BRD generated from the register by `php artisan tedc:deliverables` (`brd.generated.md`: a section per module, acceptance criteria, open items). The needs assessment must be validated with the centre's data.",
                     "phase": 18
                 },
                 {
@@ -2545,7 +2545,7 @@
                     "mandatory": false,
                     "requirement": "UX design and system architecture",
                     "status": "partial",
-                    "evidence": "ARCHITECTURE.md and API.md exist.",
+                    "evidence": "UX design and architecture document (`03-ux-and-architecture.md`) linking the Phase 17 HLD/LLD and security docs. It contains no screenshots yet.",
                     "phase": 18
                 },
                 {
@@ -2553,15 +2553,15 @@
                     "mandatory": false,
                     "requirement": "Alpha, Beta and Final releases",
                     "status": "partial",
-                    "evidence": "Working build and APK releases; no formal release gates.",
+                    "evidence": "Alpha / Beta / Final gates, exit criteria and sign-off defined (`04-release-management.md`), `CHANGELOG.md`. **No release has been tagged**: tags are cut at each milestone with the centre.",
                     "phase": 18
                 },
                 {
                     "id": "DLV-05",
                     "mandatory": false,
                     "requirement": "User manuals and training & adoption plan",
-                    "status": "missing",
-                    "evidence": "Not prepared.",
+                    "status": "partial",
+                    "evidence": "User manuals = help-centre PDFs per role (always current); training and adoption plan with Train-the-Trainer (`05-training-adoption-plan.md`). Training has not been delivered; manuals have no real screenshots yet.",
                     "phase": 18
                 },
                 {
@@ -2569,15 +2569,15 @@
                     "mandatory": false,
                     "requirement": "Test plan, test reports, bug tracker",
                     "status": "partial",
-                    "evidence": "199 automated tests in 40 feature files + CI; no formal plan or report.",
+                    "evidence": "Test plan (`06-test-plan.md`), generated test report and traceability matrix (`test-report.generated.md`, `traceability.generated.md`), UAT script template, bug-tracker conventions aligned to the SLA matrix. **UAT has not been executed, no load test has been run, no independent VAPT yet.**",
                     "phase": 18
                 },
                 {
                     "id": "DLV-07",
                     "mandatory": false,
                     "requirement": "Go-live plan, handover report, QA certificate, SLA",
-                    "status": "missing",
-                    "evidence": "Not prepared.",
+                    "status": "partial",
+                    "evidence": "Go-live plan, handover report outline, QA certificate template and the SLA (P1–P4 response and resolution, penalty formula, escalation) drafted (`07-go-live-handover-sla.md`); they are completed with real dates, names and evidence at go-live.",
                     "phase": 18
                 },
                 {
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-06T17:08:59+03:00"
+    "generated_at": "2026-10-06T17:31:53+03:00"
 }

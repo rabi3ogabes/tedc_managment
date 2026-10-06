@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 687 columns
-- Internal: 1906 columns
+- Public: 699 columns
+- Internal: 1933 columns
 - Confidential: 469 columns
 - Restricted: 19 columns
 
@@ -1389,6 +1389,54 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `decision_note` | Internal | — |
 | `external_approval_ref` | Internal | — |
 | `external_approval_path` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `help_article_versions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `article_id` | Internal | — |
+| `version` | Internal | — |
+| `snapshot` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `help_articles`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `slug` | Internal | — |
+| `title_ar` | Internal | — |
+| `title_en` | Internal | — |
+| `body_ar` | Internal | — |
+| `body_en` | Internal | — |
+| `roles` | Internal | — |
+| `module` | Internal | — |
+| `related_routes` | Internal | — |
+| `video_url` | Internal | — |
+| `video_asset` | Internal | — |
+| `screenshots` | Internal | — |
+| `sort_order` | Internal | — |
+| `status` | Internal | — |
+| `version` | Internal | — |
+| `updated_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `help_feedback`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `article_id` | Internal | — |
+| `user_id` | Internal | — |
+| `helpful` | Internal | — |
+| `comment` | Internal | — |
+| `article_version` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
@@ -4217,6 +4265,17 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `event_group` | Internal | — |
 | `channel` | Internal | — |
 | `enabled` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `user_tours`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `user_id` | Internal | — |
+| `tour_key` | Internal | — |
+| `state` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 

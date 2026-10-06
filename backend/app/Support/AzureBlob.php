@@ -176,7 +176,8 @@ class AzureBlob
         $date = gmdate('D, d M Y H:i:s').' GMT';
         $url = $this->url($container).'?restype=container';
         $path = (string) parse_url($url, PHP_URL_PATH);
-        $toSign = "PUT\n\n\n\n\n\n\n\n\n\n\n\nx-ms-date:{$date}\nx-ms-version:{$this->version}\n/{$this->account}{$path}\nrestype:container";
+        // VERB, Content-Encoding, Content-Language, Content-Length (empty when zero), Content-MD5, Content-Type, Date, If-* (4), Range: the real service signs the Content-Type that is sent.
+        $toSign = implode("\n", ['PUT', '', '', '', '', 'application/octet-stream', '', '', '', '', '', ''])."\nx-ms-date:{$date}\nx-ms-version:{$this->version}\n/{$this->account}{$path}\nrestype:container";
         $sig = base64_encode(hash_hmac('sha256', $toSign, (string) base64_decode($this->key, true), true));
         $r = Http::timeout(30)->withHeaders(['x-ms-date' => $date, 'x-ms-version' => $this->version, 'Authorization' => "SharedKey {$this->account}:{$sig}"])->withBody('', 'application/octet-stream')->put($url);
         if ($r->status() !== 409) {   // 409: the container exists already

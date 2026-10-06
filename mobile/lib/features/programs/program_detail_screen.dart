@@ -188,7 +188,7 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                     Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
-                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text(session.number('sequence'), style: const TextStyle(color: AppColors.gold300))),
+                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${session.number('sequence')}', style: const TextStyle(color: AppColors.gold300))),
                         title: Text(session.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                         subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}\n${session.str('location')}'),
                         isThreeLine: true,

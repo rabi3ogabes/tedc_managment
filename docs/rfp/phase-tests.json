@@ -93,6 +93,7 @@
   "OpsSecurityTest.php"
  ],
  "18": [
+  "DeliverablesTest.php",
   "EKitsTest.php",
   "HelpCentreTest.php"
  ]

@@ -149,4 +149,13 @@ return [
         'max_tokens' => (int) env('TEDC_AI_MAX_TOKENS', 16000),
         'timeout' => 120,
     ],
+
+    // The help centre's support channels (Phase 18): the centre's own contact details; empty until supplied.
+    'support' => [
+        'phone' => env('TEDC_SUPPORT_PHONE', ''),
+        'email' => env('TEDC_SUPPORT_EMAIL', ''),
+        'saaed_url' => env('TEDC_SUPPORT_SAAED_URL', ''),
+        'hours_ar' => env('TEDC_SUPPORT_HOURS_AR', 'الأحد – الخميس، 7:00 ص – 3:00 م'),
+        'hours_en' => env('TEDC_SUPPORT_HOURS_EN', 'Sunday – Thursday, 7:00 – 15:00'),
+    ],
 ];

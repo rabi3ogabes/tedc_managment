@@ -184,4 +184,13 @@ class HelpCentreTest extends TestCase
         $this->asUser($admin)->deleteJson("/api/v1/admin/help/articles/{$a->id}/screenshots/0")->assertOk()->assertJsonCount(0, 'data.screenshots');
         $this->asUser($admin)->post("/api/v1/admin/help/articles/{$a->id}/video", ['file' => UploadedFile::fake()->create('clip.mp4', 100, 'video/mp4')], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('data.has_video', true);
     }
+
+    public function test_support_values_come_from_the_centre_s_configuration(): void
+    {
+        config(['tedc.support' => ['phone' => '+974 4000 0000', 'email' => 'help@example.qa', 'saaed_url' => 'https://saaed.example.qa']]);
+        $channels = collect($this->asUser($this->makeUser())->getJson('/api/v1/me/help/articles')->json('support.channels'))->keyBy('key');
+        $this->assertSame('+974 4000 0000', $channels['phone']['value']);
+        $this->assertSame('help@example.qa', $channels['email']['value']);
+        $this->assertSame('https://saaed.example.qa', $channels['saaed']['value']);
+    }
 }

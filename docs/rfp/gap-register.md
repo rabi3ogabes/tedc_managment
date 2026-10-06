@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 78 | 88 | 112 | 200 |
+| 278 | 223 | 55 | 0 | 55 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -460,28 +460,28 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 18 — Adoption, Help Centre & Deliverables  (11)
 
-- [ ] **UTR-01** — Role-tailored manuals with screenshots, videos and a downloadable PDF  
-  _Now:_ 🔴 Missing — Only a demo scenario guide for admins.
-- [ ] **UTR-02** — Staff training and Train-the-Trainer plan  
-  _Now:_ 🔴 Missing — Service deliverable not prepared.
-- [ ] **UTR-03** — Support channels (phone, email, Saaed)  
-  _Now:_ 🔴 Missing — Not defined in the product.
-- [ ] **EKT-01** — Two interactive e-learning kits produced with the centre for phase 1  
-  _Now:_ 🟡 Partial — Sample-kit generator and demo courses exist; the two interactive (SCORM / H5P) kits are not produced.
-- [ ] **DLV-01** — As-Is and To-Be process analysis documents  
-  _Now:_ 🔴 Missing — Not prepared.
-- [ ] **DLV-02** — Needs assessment, scope document, project plan, BRD  
-  _Now:_ 🔴 Missing — Not prepared.
-- [ ] **DLV-03** — UX design and system architecture  
-  _Now:_ 🟡 Partial — ARCHITECTURE.md and API.md exist.
-- [ ] **DLV-04** — Alpha, Beta and Final releases  
-  _Now:_ 🟡 Partial — Working build and APK releases; no formal release gates.
-- [ ] **DLV-05** — User manuals and training & adoption plan  
-  _Now:_ 🔴 Missing — Not prepared.
-- [ ] **DLV-06** — Test plan, test reports, bug tracker  
-  _Now:_ 🟡 Partial — 199 automated tests in 40 feature files + CI; no formal plan or report.
-- [ ] **DLV-07** — Go-live plan, handover report, QA certificate, SLA  
-  _Now:_ 🔴 Missing — Not prepared.
+- [x] **UTR-01** — Role-tailored manuals with screenshots, videos and a downloadable PDF  
+  _Now:_ 🟡 Partial — Help centre with 28 bilingual articles for 17 roles, contextual «?» panel by page, versioned editor with screenshot/video upload, role manuals as branded PDF (Arabic or English) built from current versions, guided tours, mobile help (`pages/HelpCentre.tsx`, `components/help/*`, `HelpService`, `HelpCentreTest`). **Not done:** real annotated screenshots and screen-recording videos have not been captured; someone must produce them with the centre (see `docs/rfp/phase-18-adoption-help-deliverables.md`).
+- [x] **UTR-02** — Staff training and Train-the-Trainer plan  
+  _Now:_ ✅ Available — Staff training and Train-the-Trainer plan (`docs/deliverables/05-training-adoption-plan.md`): audiences, schedule, materials, assessments, adoption KPIs, change and communication plan, risks. The sessions themselves are delivered as a service with the centre.
+- [x] **UTR-03** — Support channels (phone, email, Saaed)  
+  _Now:_ 🟡 Partial — Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. **The centre must supply the phone, email and Saaed link** (`TEDC_SUPPORT_PHONE`, `TEDC_SUPPORT_EMAIL`, `TEDC_SUPPORT_SAAED_URL`); until then the page says «Set by the centre».
+- [x] **EKT-01** — Two interactive e-learning kits produced with the centre for phase 1  
+  _Now:_ 🟡 Partial — Two interactive kits in `content/e-kits` (portal use; effective classroom questioning) with trainer/trainee guides and session plan; `tedc:ekits-build` publishes them as e-courses (chapter reading + knowledge checks, final assessment drawn from a question bank, certificate) and exports SCORM 2004 packages in Arabic and English (`EKitsTest`: published and completed end to end as a trainee; manifest parsed). **Not done:** the topics are proposals to agree with the centre; content is a compact first version; no H5P interactions, interactive video, drag-and-drop, captions or xAPI; the package was not run in a real LMS.
+- [x] **DLV-01** — As-Is and To-Be process analysis documents  
+  _Now:_ 🟡 Partial — As-Is / To-Be document drafted in Arabic with an English copy (`docs/deliverables/01-as-is-to-be.md`): every automated workflow described. **As-Is items are marked ⚑ and need confirming in workshops with the centre.**
+- [x] **DLV-02** — Needs assessment, scope document, project plan, BRD  
+  _Now:_ 🟡 Partial — Needs assessment, scope and project plan drafted (`02-needs-scope-plan.md`); BRD generated from the register by `php artisan tedc:deliverables` (`brd.generated.md`: a section per module, acceptance criteria, open items). The needs assessment must be validated with the centre's data.
+- [x] **DLV-03** — UX design and system architecture  
+  _Now:_ 🟡 Partial — UX design and architecture document (`03-ux-and-architecture.md`) linking the Phase 17 HLD/LLD and security docs. It contains no screenshots yet.
+- [x] **DLV-04** — Alpha, Beta and Final releases  
+  _Now:_ 🟡 Partial — Alpha / Beta / Final gates, exit criteria and sign-off defined (`04-release-management.md`), `CHANGELOG.md`. **No release has been tagged**: tags are cut at each milestone with the centre.
+- [x] **DLV-05** — User manuals and training & adoption plan  
+  _Now:_ 🟡 Partial — User manuals = help-centre PDFs per role (always current); training and adoption plan with Train-the-Trainer (`05-training-adoption-plan.md`). Training has not been delivered; manuals have no real screenshots yet.
+- [x] **DLV-06** — Test plan, test reports, bug tracker  
+  _Now:_ 🟡 Partial — Test plan (`06-test-plan.md`), generated test report and traceability matrix (`test-report.generated.md`, `traceability.generated.md`), UAT script template, bug-tracker conventions aligned to the SLA matrix. **UAT has not been executed, no load test has been run, no independent VAPT yet.**
+- [x] **DLV-07** — Go-live plan, handover report, QA certificate, SLA  
+  _Now:_ 🟡 Partial — Go-live plan, handover report outline, QA certificate template and the SLA (P1–P4 response and resolution, penalty formula, escalation) drafted (`07-go-live-handover-sla.md`); they are completed with real dates, names and evidence at go-live.
 
 ## Full register by RFP module
 
@@ -809,16 +809,16 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| UTR-01 | Role-tailored manuals with screenshots, videos and a downloadable PDF | 🔴 Missing | Only a demo scenario guide for admins. | 18 |
-| UTR-02 | Staff training and Train-the-Trainer plan | 🔴 Missing | Service deliverable not prepared. | 18 |
-| UTR-03 | Support channels (phone, email, Saaed) | 🔴 Missing | Not defined in the product. | 18 |
+| UTR-01 | Role-tailored manuals with screenshots, videos and a downloadable PDF | 🟡 Partial | Help centre with 28 bilingual articles for 17 roles, contextual «?» panel by page, versioned editor with screenshot/video upload, role manuals as branded PDF (Arabic or English) built from current versions, guided tours, mobile help (`pages/HelpCentre.tsx`, `components/help/*`, `HelpService`, `HelpCentreTest`). **Not done:** real annotated screenshots and screen-recording videos have not been captured; someone must produce them with the centre (see `docs/rfp/phase-18-adoption-help-deliverables.md`). | 18 |
+| UTR-02 | Staff training and Train-the-Trainer plan | ✅ Available | Staff training and Train-the-Trainer plan (`docs/deliverables/05-training-adoption-plan.md`): audiences, schedule, materials, assessments, adoption KPIs, change and communication plan, risks. The sessions themselves are delivered as a service with the centre. | — |
+| UTR-03 | Support channels (phone, email, Saaed) | 🟡 Partial | Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. **The centre must supply the phone, email and Saaed link** (`TEDC_SUPPORT_PHONE`, `TEDC_SUPPORT_EMAIL`, `TEDC_SUPPORT_SAAED_URL`); until then the page says «Set by the centre». | 18 |
 | UTR-04 | In-portal issue-reporting page linked to Saaed | ✅ Available | Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13). | — |
 
 ### EKT · Interactive e-Learning Kits — الحقائب الإلكترونية
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| EKT-01 | Two interactive e-learning kits produced with the centre for phase 1 | 🟡 Partial | Sample-kit generator and demo courses exist; the two interactive (SCORM / H5P) kits are not produced. | 18 |
+| EKT-01 | Two interactive e-learning kits produced with the centre for phase 1 | 🟡 Partial | Two interactive kits in `content/e-kits` (portal use; effective classroom questioning) with trainer/trainee guides and session plan; `tedc:ekits-build` publishes them as e-courses (chapter reading + knowledge checks, final assessment drawn from a question bank, certificate) and exports SCORM 2004 packages in Arabic and English (`EKitsTest`: published and completed end to end as a trainee; manifest parsed). **Not done:** the topics are proposals to agree with the centre; content is a compact first version; no H5P interactions, interactive video, drag-and-drop, captions or xAPI; the package was not run in a real LMS. | 18 |
 
 ### APP · Phase 2 · Multi-platform App — المرحلة الثانية · توفير تطبيق
 
@@ -918,13 +918,13 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| DLV-01 | As-Is and To-Be process analysis documents | 🔴 Missing | Not prepared. | 18 |
-| DLV-02 | Needs assessment, scope document, project plan, BRD | 🔴 Missing | Not prepared. | 18 |
-| DLV-03 | UX design and system architecture | 🟡 Partial | ARCHITECTURE.md and API.md exist. | 18 |
-| DLV-04 | Alpha, Beta and Final releases | 🟡 Partial | Working build and APK releases; no formal release gates. | 18 |
-| DLV-05 | User manuals and training & adoption plan | 🔴 Missing | Not prepared. | 18 |
-| DLV-06 | Test plan, test reports, bug tracker | 🟡 Partial | 199 automated tests in 40 feature files + CI; no formal plan or report. | 18 |
-| DLV-07 | Go-live plan, handover report, QA certificate, SLA | 🔴 Missing | Not prepared. | 18 |
+| DLV-01 | As-Is and To-Be process analysis documents | 🟡 Partial | As-Is / To-Be document drafted in Arabic with an English copy (`docs/deliverables/01-as-is-to-be.md`): every automated workflow described. **As-Is items are marked ⚑ and need confirming in workshops with the centre.** | 18 |
+| DLV-02 | Needs assessment, scope document, project plan, BRD | 🟡 Partial | Needs assessment, scope and project plan drafted (`02-needs-scope-plan.md`); BRD generated from the register by `php artisan tedc:deliverables` (`brd.generated.md`: a section per module, acceptance criteria, open items). The needs assessment must be validated with the centre's data. | 18 |
+| DLV-03 | UX design and system architecture | 🟡 Partial | UX design and architecture document (`03-ux-and-architecture.md`) linking the Phase 17 HLD/LLD and security docs. It contains no screenshots yet. | 18 |
+| DLV-04 | Alpha, Beta and Final releases | 🟡 Partial | Alpha / Beta / Final gates, exit criteria and sign-off defined (`04-release-management.md`), `CHANGELOG.md`. **No release has been tagged**: tags are cut at each milestone with the centre. | 18 |
+| DLV-05 | User manuals and training & adoption plan | 🟡 Partial | User manuals = help-centre PDFs per role (always current); training and adoption plan with Train-the-Trainer (`05-training-adoption-plan.md`). Training has not been delivered; manuals have no real screenshots yet. | 18 |
+| DLV-06 | Test plan, test reports, bug tracker | 🟡 Partial | Test plan (`06-test-plan.md`), generated test report and traceability matrix (`test-report.generated.md`, `traceability.generated.md`), UAT script template, bug-tracker conventions aligned to the SLA matrix. **UAT has not been executed, no load test has been run, no independent VAPT yet.** | 18 |
+| DLV-07 | Go-live plan, handover report, QA certificate, SLA | 🟡 Partial | Go-live plan, handover report outline, QA certificate template and the SLA (P1–P4 response and resolution, penalty formula, escalation) drafted (`07-go-live-handover-sla.md`); they are completed with real dates, names and evidence at go-live. | 18 |
 | DLV-08 | Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer) | ✅ Available | Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13). | — |
 | DLV-09 | Compliance sheet and RFP traceability matrix | ✅ Available | Settings → RFP Compliance (`pages/admin/RfpCompliance.tsx`, `GET /admin/rfp-status`), `docs/rfp/compliance-sheet.md`, `php artisan tedc:rfp-status`, `RfpStatusTest`. | — |
 

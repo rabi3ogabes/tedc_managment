@@ -142,6 +142,8 @@ class ApiClient {
 
   Future<dynamic> put(String path, [Object? body]) => _run(() => dio.put(path, data: body));
 
+  Future<dynamic> delete(String path) => _run(() => dio.delete(path));
+
   Future<List<int>> bytes(String path) async {
     try {
       final response = await dio.get<List<int>>(path, options: Options(responseType: ResponseType.bytes));

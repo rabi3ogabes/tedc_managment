@@ -26,7 +26,7 @@ jobs:
         with: { php-version: '8.4', coverage: none }
       - name: composer audit
         working-directory: backend
-        run: composer audit --no-interaction
+        run: composer audit --locked --no-interaction
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
       - name: npm audit (high and critical fail the build)
@@ -51,7 +51,7 @@ jobs:
       - name: Build the image
         run: docker build -t tedc:scan .
       - name: Trivy (high and critical fail the build)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           image-ref: tedc:scan
           severity: HIGH,CRITICAL
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy config scan of the infrastructure code
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: config
           scan-ref: infra
