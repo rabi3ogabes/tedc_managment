@@ -227,6 +227,26 @@ class CertificateService
         return $certificate;
     }
 
+    /** A course completed on another platform (reported by the provider, or approved on evidence): the hours count without the centre's own requirements. */
+    public function issueExternal(Registration $registration, ?User $actor): Certificate
+    {
+        $registration->loadMissing('program', 'employee.user');
+        if ($existing = $registration->certificates()->where('type', 'pass')->first()) {
+            return $existing;
+        }
+        $certificate = DB::transaction(function () use ($registration, $actor) {
+            $c = Certificate::create(['certificate_no' => $this->nextNumber(), 'verification_code' => strtoupper(Str::random(12)), 'registration_id' => $registration->id, 'employee_id' => $registration->employee_id, 'program_id' => $registration->program_id, 'issued_at' => now(),
+                'hours' => $registration->program->total_hours, 'type' => 'pass', 'hours_mode' => 'total', 'hours_total' => $registration->program->total_hours, 'status' => 'valid', 'issued_by' => $actor?->id, 'meta' => ['external' => true]]);
+            $registration->update(['status' => Registration::STATUS_COMPLETED, 'completed_at' => $registration->completed_at ?? now(), 'certificate_status' => 'issued', 'pass_status' => 'passed', 'passed_via' => 'standard']);
+
+            return $c;
+        });
+        $certificate->update(['file_path' => $this->storage->put('certificates', "{$certificate->program_id}/{$certificate->certificate_no}.pdf", $this->render($certificate), 'application/pdf')]);
+        app(CareerPathEngine::class)->evaluate($registration->employee);
+
+        return $certificate;
+    }
+
     public function render(Certificate $certificate): string
     {
         $certificate->loadMissing(['employee.user', 'employee.school', 'program']);

@@ -10,6 +10,7 @@ use App\Models\QuizAttempt;
 use App\Models\Registration;
 use App\Models\SurveyResponse;
 use App\Services\Assessment\InteractionService;
+use App\Services\Content\LessonVersionService;
 use Illuminate\Support\Collection;
 
 /**
@@ -122,7 +123,10 @@ class CourseService
 
     public function open(CourseLesson $lesson, Registration $registration): LessonProgress
     {
-        $p = LessonProgress::firstOrCreate(['lesson_id' => $lesson->id, 'registration_id' => $registration->id], ['employee_id' => $registration->employee_id, 'first_opened_at' => now()]);
+        $p = LessonProgress::firstOrCreate(['lesson_id' => $lesson->id, 'registration_id' => $registration->id], ['lesson_version' => $lesson->version, 'employee_id' => $registration->employee_id, 'first_opened_at' => now()]);
+        if ($p->wasRecentlyCreated) {
+            app(LessonVersionService::class)->ensureCurrent($lesson);
+        }
         $p->increment('sessions');
         $p->update(['last_activity_at' => now()]);
 

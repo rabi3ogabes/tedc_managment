@@ -6,10 +6,12 @@ use App\Models\ContentPackage;
 use App\Models\CourseLesson;
 use App\Models\Registration;
 use App\Models\SurveyResponse;
+use App\Services\Content\LessonVersionService;
 use App\Services\CourseService;
 use App\Services\FileStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 /**
  * The learner's online course: outline, lesson player data, watch tracking, quizzes and surveys.
@@ -33,6 +35,10 @@ class MyCourseController extends MeController
         $registration = $this->registrationFor($lesson);
         $this->course->assertOpen($lesson, $registration);
         $p = $this->course->open($lesson, $registration);
+        // A learner who started under an older version of this lesson keeps seeing that version until it is completed or they are moved.
+        if ($ov = app(LessonVersionService::class)->overlay($lesson, $p)) {
+            $lesson->fill(Arr::only($ov['fields'], ['title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'settings', 'file_path', 'file_name', 'file_mime', 'external_url', 'duration_seconds', 'slide_count', 'package_id', 'package_item_id']));
+        }
         $settings = $lesson->settings ?? [];
 
         $media = null;

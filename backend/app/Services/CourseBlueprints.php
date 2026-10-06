@@ -75,11 +75,13 @@ class CourseBlueprints
     /** Training kits whose files can become lessons: the program's own kit first. @return list<array<string, mixed>> */
     public function kits(?Program $program = null): array
     {
+        $linkedIds = $program ? DB::table('kit_program')->where('program_id', $program->id)->pluck('kit_id')->all() : [];
+
         return TrainingKit::with(['files' => fn ($q) => $q->orderBy('sort_order')])
             ->whereIn('status', [TrainingKit::APPROVED, TrainingKit::PUBLISHED, TrainingKit::IN_DEVELOPMENT, TrainingKit::DRAFT])
             ->orderByRaw('case when program_id = ? then 0 else 1 end', [$program?->id])->orderBy('title_ar')->limit(40)->get()
             ->map(fn (TrainingKit $k) => [
-                'id' => $k->id, 'code' => $k->code, 'title' => $k->translate('title'), 'status' => $k->status, 'linked' => $program !== null && $k->program_id === $program->id,
+                'id' => $k->id, 'code' => $k->code, 'title' => $k->translate('title'), 'status' => $k->status, 'linked' => $program !== null && ($k->program_id === $program->id || in_array($k->id, $linkedIds, true)),
                 'files' => $k->files->map(fn ($f) => ['id' => $f->id, 'name' => $f->name, 'kind' => $f->kind, 'category' => $f->category, 'size' => $f->size, 'lesson_type' => $this->lessonTypeFor($f->kind)])->values(),
             ])->values()->all();
     }

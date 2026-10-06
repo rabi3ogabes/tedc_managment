@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** A training kit (الحقيبة التدريبية): everything a trainer needs to deliver a program. */
@@ -15,6 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'version', 'review_round', 'owner_id', 'due_at', 'submitted_at', 'approved_at', 'published_at', 'approved_by', 'created_by'])]
 class TrainingKit extends Model
 {
+    public function programs(): BelongsToMany
+    {
+        return $this->belongsToMany(Program::class, 'kit_program', 'kit_id', 'program_id')->withPivot('pinned_version')->withTimestamps();
+    }
+
     use Auditable, HasTranslations, HasUuids;
 
     public const DRAFT = 'draft';

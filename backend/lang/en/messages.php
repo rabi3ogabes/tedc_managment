@@ -112,6 +112,12 @@ return [
     'career' => ['programs' => 'Required programs: any :min of :total', 'not_eligible' => 'The employee is not yet eligible for the next level.'],
     'pd' => ['locked' => 'An activity under approval or decided cannot be edited.', 'evidence_required' => 'Attach evidence of participation before submitting.', 'not_pending' => 'This activity is not waiting for a decision.', 'note_required' => 'Write a note for a rejection or a return.', 'already_decided' => 'This request was already decided.'],
     'kt' => ['locked' => 'A knowledge transfer cannot be edited once sent.', 'min_beneficiaries' => 'At least :n beneficiaries are needed.', 'min_hours' => 'At least :n hours are needed.', 'evidence_required' => 'Attach evidence of delivery (attendance sheet, photos or slides).', 'not_pending' => 'This request is not waiting for review.'],
+    'package' => ['not_zip' => 'The file is not a valid zip package.', 'too_many_files' => 'The package has too many files.', 'too_big' => 'The package is too large once extracted.', 'unsafe_path' => 'Unsafe path in the package: :name', 'denied_type' => 'File type not allowed in a package: :name', 'empty' => 'The package is empty.', 'unknown' => 'Unknown package type (no manifest and no index.html).', 'no_package' => 'This lesson has no package.', 'in_use' => 'The package is used by lessons.'],
+    'lesson' => ['no_changes' => 'The lesson has not changed since the last version.'],
+    'sharing' => ['not_allowed' => 'The sharing policy does not allow this.', 'no_reshare' => 'The sharing policy does not allow re-sharing.', 'not_member' => 'Only members of a job group can share with it.'],
+    'library' => ['download_not_allowed' => 'The rights of this item do not allow downloading; you can read it on the platform.'],
+    'external' => ['already_completed' => 'This program is already counted as completed.', 'evidence_required' => 'Attach evidence of completion or write a note.'],
+    'kit' => ['not_approved' => 'A kit is assigned to programs once it is approved.'],
     'certificate' => [
         'too_many' => 'You can send at most :max certificates at once. Narrow the filter.',
         'survey_first' => 'Fill in the program survey first to download your certificate.',

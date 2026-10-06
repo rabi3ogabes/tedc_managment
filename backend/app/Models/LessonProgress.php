@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['lesson_id', 'registration_id', 'employee_id', 'status', 'percent', 'last_position', 'furthest_position', 'watched_seconds', 'segments', 'sessions', 'best_score', 'attempts', 'first_opened_at', 'last_activity_at', 'completed_at'])]
+#[Fillable(['lesson_version', 'lesson_id', 'registration_id', 'employee_id', 'status', 'percent', 'last_position', 'furthest_position', 'watched_seconds', 'segments', 'sessions', 'best_score', 'attempts', 'first_opened_at', 'last_activity_at', 'completed_at'])]
 class LessonProgress extends Model
 {
     use HasUuids;

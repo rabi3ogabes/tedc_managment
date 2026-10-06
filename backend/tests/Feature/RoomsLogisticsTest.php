@@ -13,6 +13,7 @@ use App\Models\TrainingPlace;
 use App\Models\TrainingRoom;
 use App\Services\RegistrationService;
 use App\Services\RoomService;
+use Carbon\Carbon;
 use Tests\TestCase;
 
 class RoomsLogisticsTest extends TestCase
@@ -62,10 +63,10 @@ class RoomsLogisticsTest extends TestCase
     {
         $head = $this->makeUser(Role::TRAINING_HEAD);
         $room = $this->room(5);
-        $this->asUser($this->makeUser(Role::LOGISTICS_OFFICER))->postJson('/api/v1/admin/room-bookings', ['room_id' => $room->id, 'purpose' => 'exam', 'title' => 'Exam', 'starts_at' => now()->addDays(3)->setTime(9, 0)->toIso8601String(), 'ends_at' => now()->addDays(3)->setTime(12, 0)->toIso8601String()])->assertCreated();
+        $this->asUser($this->makeUser(Role::LOGISTICS_OFFICER))->postJson('/api/v1/admin/room-bookings', ['room_id' => $room->id, 'purpose' => 'exam', 'title' => 'Exam', 'starts_at' => now()->next(Carbon::MONDAY)->setTime(9, 0)->toIso8601String(), 'ends_at' => now()->next(Carbon::MONDAY)->setTime(12, 0)->toIso8601String()])->assertCreated();
         $program = $this->makeProgram(['capacity' => 20]);
 
-        $this->asUser($head)->postJson("/api/v1/admin/programs/{$program->id}/sessions", ['title_ar' => 'ج', 'title_en' => 'S', 'starts_at' => now()->addDays(3)->setTime(10, 0)->toIso8601String(), 'ends_at' => now()->addDays(3)->setTime(11, 0)->toIso8601String(), 'training_room_id' => $room->id])->assertStatus(422)->assertJsonPath('code', 'room_conflict');
+        $this->asUser($head)->postJson("/api/v1/admin/programs/{$program->id}/sessions", ['title_ar' => 'ج', 'title_en' => 'S', 'starts_at' => now()->next(Carbon::MONDAY)->setTime(10, 0)->toIso8601String(), 'ends_at' => now()->next(Carbon::MONDAY)->setTime(11, 0)->toIso8601String(), 'training_room_id' => $room->id])->assertStatus(422)->assertJsonPath('code', 'room_conflict');
     }
 
     public function test_approving_beyond_the_effective_room_capacity_is_refused(): void

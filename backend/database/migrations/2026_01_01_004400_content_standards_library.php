@@ -287,6 +287,19 @@ return new class extends Migration
             $table->unique(['provider', 'external_id']);
         });
 
+        Schema::create('external_completions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('registration_id')->unique()->constrained()->cascadeOnDelete();
+            $table->json('evidence')->nullable();
+            $table->text('note')->nullable();
+            $table->string('source', 10)->default('evidence');   // evidence | provider
+            $table->string('status', 10)->default('pending');    // pending | approved | rejected
+            $table->foreignUuid('reviewer_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('review_note')->nullable();
+            $table->timestamp('decided_at')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('content_imports', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('kind', 8);                       // qti | cc
@@ -310,7 +323,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('programs', fn (Blueprint $table) => $table->dropColumn('external_platform'));
-        foreach (['offline_sync_log', 'content_imports', 'external_courses', 'library_shelf', 'library_reviews', 'library_collection_items', 'library_collections', 'library_items', 'sharing_policies', 'resource_shares', 'job_groups', 'kit_program', 'course_lesson_versions', 'lti_scores', 'lti_states', 'lti_tools', 'caliper_events', 'cmi5_sessions', 'xapi_documents', 'xapi_statements', 'scorm_attempts'] as $t) {
+        foreach (['external_completions', 'offline_sync_log', 'content_imports', 'external_courses', 'library_shelf', 'library_reviews', 'library_collection_items', 'library_collections', 'library_items', 'sharing_policies', 'resource_shares', 'job_groups', 'kit_program', 'course_lesson_versions', 'lti_scores', 'lti_states', 'lti_tools', 'caliper_events', 'cmi5_sessions', 'xapi_documents', 'xapi_statements', 'scorm_attempts'] as $t) {
             Schema::dropIfExists($t);
         }
         Schema::table('lesson_progress', fn (Blueprint $table) => $table->dropColumn('lesson_version'));

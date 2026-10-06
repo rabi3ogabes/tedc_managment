@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
 use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Api\V1\Admin\CompetencyController;
 use App\Http\Controllers\Api\V1\Admin\ContentImportController;
+use App\Http\Controllers\Api\V1\Admin\ContentLifecycleController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
 use App\Http\Controllers\Api\V1\Admin\EvaluationFormController;
 use App\Http\Controllers\Api\V1\Admin\EvaluationInsightsController;
 use App\Http\Controllers\Api\V1\Admin\EvaluationReportController;
+use App\Http\Controllers\Api\V1\Admin\ExternalLearningController;
 use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
@@ -93,6 +95,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\LtiController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
@@ -103,6 +106,7 @@ use App\Http\Controllers\Api\V1\Me\MyCareerController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
+use App\Http\Controllers\Api\V1\Me\MyOfflineController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
@@ -284,6 +288,18 @@ Route::prefix('v1')->group(function () {
             Route::post('packages/{lesson}/complete', [MyPackageController::class, 'complete']);
             Route::post('packages/{lesson}/xapi', [MyPackageController::class, 'xapi'])->middleware('throttle:240,1');
             Route::post('lti/{lesson}/launch', [MyPackageController::class, 'ltiLaunch'])->middleware('throttle:60,1');
+            Route::get('courses/{registration}/offline-manifest', [MyOfflineController::class, 'manifest'])->middleware('feature:offline_mobile');
+            Route::post('sync', [MyOfflineController::class, 'sync'])->middleware(['feature:offline_mobile', 'throttle:60,1']);
+            Route::post('registrations/{registration}/external-launch', [MyOfflineController::class, 'launch']);
+            Route::post('registrations/{registration}/external-completion', [MyOfflineController::class, 'evidence'])->middleware('throttle:20,1');
+            Route::get('library', [LibraryController::class, 'index']);
+            Route::get('library/shelf', [LibraryController::class, 'myShelf']);
+            Route::get('library/{item}', [LibraryController::class, 'show']);
+            Route::get('library/{item}/read', [LibraryController::class, 'read']);
+            Route::get('library/{item}/download', [LibraryController::class, 'download'])->middleware('throttle:30,1');
+            Route::post('library/{item}/review', [LibraryController::class, 'review']);
+            Route::put('library/{item}/shelf', [LibraryController::class, 'shelf']);
+            Route::get('shared', [LibraryController::class, 'sharedWithMe']);
             Route::get('paths', [MyCareerController::class, 'paths']);
             Route::get('paths/{path}', [MyCareerController::class, 'showPath']);
             Route::get('licences', [MyCareerController::class, 'licences']);
@@ -974,6 +990,55 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:banks.manage|assessments.manage')->group(function () {
                 Route::post('question-banks/{bank}/qti/import', [ContentImportController::class, 'qtiImport'])->middleware('throttle:20,1');
                 Route::get('question-banks/{bank}/qti/export', [ContentImportController::class, 'qtiExport']);
+            });
+            Route::middleware('permission:library.manage')->group(function () {
+                Route::post('library-items', [LibraryController::class, 'store']);
+                Route::put('library-items/{item}', [LibraryController::class, 'update']);
+                Route::delete('library-items/{item}', [LibraryController::class, 'destroy']);
+                Route::post('library-items/{item}/files', [LibraryController::class, 'upload'])->middleware('throttle:30,1');
+                Route::get('library-collections', [LibraryController::class, 'collections']);
+                Route::post('library-collections', [LibraryController::class, 'saveCollection']);
+                Route::put('library-collections/{collection}', [LibraryController::class, 'saveCollection']);
+                Route::delete('library-collections/{collection}', [LibraryController::class, 'deleteCollection']);
+                Route::get('external-libraries/search', [LibraryController::class, 'externalSearch'])->middleware('throttle:30,1');
+                Route::post('external-libraries/import', [LibraryController::class, 'externalImport']);
+                Route::match(['GET', 'PUT'], 'settings/external-libraries', [LibraryController::class, 'externalSettings']);
+            });
+            Route::middleware('permission:providers.manage')->group(function () {
+                Route::match(['GET', 'PUT'], 'settings/content-providers', [ExternalLearningController::class, 'settings']);
+                Route::post('content-providers/sync', [ExternalLearningController::class, 'sync']);
+                Route::get('external-courses', [ExternalLearningController::class, 'catalogue']);
+                Route::post('external-courses/{course}/program', [ExternalLearningController::class, 'createProgram']);
+            });
+            Route::middleware('permission:providers.manage|programs.manage')->group(function () {
+                Route::get('external-completions', [ExternalLearningController::class, 'completions']);
+                Route::post('external-completions/{completion}/decision', [ExternalLearningController::class, 'review']);
+            });
+            Route::middleware('permission:sharing.manage|library.view')->group(function () {
+                Route::post('shares', [LibraryController::class, 'share']);
+                Route::get('shares', [LibraryController::class, 'shares']);
+                Route::delete('shares/{share}', [LibraryController::class, 'unshare']);
+            });
+            Route::middleware('permission:sharing.manage')->group(function () {
+                Route::get('sharing-policies', [ContentLifecycleController::class, 'policies']);
+                Route::post('sharing-policies', [ContentLifecycleController::class, 'savePolicy']);
+                Route::delete('sharing-policies/{policy}', [ContentLifecycleController::class, 'deletePolicy']);
+            });
+            Route::middleware('permission:job_groups.manage|sharing.manage')->group(function () {
+                Route::get('job-groups', [ContentLifecycleController::class, 'jobGroups']);
+                Route::post('job-groups', [ContentLifecycleController::class, 'saveJobGroup']);
+                Route::put('job-groups/{group}', [ContentLifecycleController::class, 'saveJobGroup']);
+                Route::delete('job-groups/{group}', [ContentLifecycleController::class, 'deleteJobGroup']);
+                Route::get('job-groups/{group}/members', [ContentLifecycleController::class, 'jobGroupMembers']);
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::get('course/lessons/{lesson}/versions', [ContentLifecycleController::class, 'versions']);
+                Route::post('course/lessons/{lesson}/versions', [ContentLifecycleController::class, 'publish']);
+                Route::get('course/lessons/{lesson}/versions/diff', [ContentLifecycleController::class, 'diff']);
+                Route::post('course/lessons/{lesson}/versions/{version}/restore', [ContentLifecycleController::class, 'restore'])->whereNumber('version');
+                Route::put('course/lessons/{lesson}/versions/{version}/archive', [ContentLifecycleController::class, 'archive'])->whereNumber('version');
+                Route::get('kits/{kit}/programs', [ContentLifecycleController::class, 'kitPrograms']);
+                Route::put('kits/{kit}/programs', [ContentLifecycleController::class, 'syncKitPrograms']);
             });
             Route::middleware('permission:lti.manage')->group(function () {
                 Route::get('lti-tools', [LtiToolController::class, 'index']);
