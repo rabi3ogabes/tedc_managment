@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Crypt;
 use Throwable;
 
@@ -29,5 +30,10 @@ class MigrationRow extends Model
     public static function seal(array $row): string
     {
         return Crypt::encryptString(json_encode($row, JSON_UNESCAPED_UNICODE));
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(MigrationBatch::class, 'batch_id');
     }
 }

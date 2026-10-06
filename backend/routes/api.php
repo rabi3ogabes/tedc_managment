@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\LtiToolController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
+use App\Http\Controllers\Api\V1\Admin\MigrationController;
 use App\Http\Controllers\Api\V1\Admin\MinistrySiteController;
 use App\Http\Controllers\Api\V1\Admin\NeedsCycleController;
 use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
@@ -838,6 +839,22 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
                 Route::get('tickets', [TicketsController::class, 'index']);
                 Route::post('tickets/{ticket}/resend', [TicketsController::class, 'resend'])->whereUuid('ticket');
+            });
+
+            // Data migration toolkit.
+            Route::middleware('permission:migration.run')->prefix('migration')->group(function () {
+                Route::get('kinds', [MigrationController::class, 'kinds']);
+                Route::get('templates/{kind}', [MigrationController::class, 'template'])->where('kind', '[a-z]+');
+                Route::get('batches', [MigrationController::class, 'index']);
+                Route::post('batches', [MigrationController::class, 'store'])->middleware('throttle:10,1');
+                Route::get('batches/{batch}', [MigrationController::class, 'show'])->whereUuid('batch');
+                Route::put('batches/{batch}/mapping', [MigrationController::class, 'mapping'])->whereUuid('batch');
+                Route::post('batches/{batch}/validate', [MigrationController::class, 'validateBatch'])->whereUuid('batch');
+                Route::post('batches/{batch}/dry-run', [MigrationController::class, 'dryRun'])->whereUuid('batch');
+                Route::post('batches/{batch}/import', [MigrationController::class, 'import'])->whereUuid('batch')->middleware(['throttle:6,1', 'step_up']);
+                Route::post('batches/{batch}/rollback', [MigrationController::class, 'rollback'])->whereUuid('batch')->middleware('step_up');
+                Route::get('batches/{batch}/rows', [MigrationController::class, 'rows'])->whereUuid('batch');
+                Route::get('batches/{batch}/errors', [MigrationController::class, 'errors'])->whereUuid('batch');
             });
 
             // Microsoft Teams: meeting and attendance on the session, team and files on the group, Forms quizzes on an assessment.

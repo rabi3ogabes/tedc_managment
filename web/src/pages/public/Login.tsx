@@ -1,14 +1,15 @@
-import { Lock, Mail } from 'lucide-react'
+import { Building2, Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import MfaStep from '@/components/auth/MfaStep'
 import Logo from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { MinistryOfEducation } from '@/components/public/QatarArt'
 import { Button, Field } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
-import { errorMessage } from '@/lib/api'
-import { homeFor, useAuth } from '@/lib/auth'
+import { api, errorMessage } from '@/lib/api'
+import { homeFor, MfaRequired, useAuth, type MfaChallenge } from '@/lib/auth'
 import { useCenterName } from '@/lib/ThemeProvider'
 
 const DEMO = [
@@ -26,26 +27,42 @@ const DEMO_PASSWORD = 'Tedc@2026!'
 export default function Login() {
   const { t } = useTranslation()
   const centerName = useCenterName()
-  const { login, user } = useAuth()
+  const { login, finish, user } = useAuth()
+  const [params] = useSearchParams()
+  const [challenge, setChallenge] = useState<MfaChallenge | null>(null)
+  const [directory, setDirectory] = useState(false)
+  const options = useGet<{ data: { sso: boolean; ldap: boolean } }>('/auth/options', undefined, { staleTime: 60_000, retry: false })
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(params.get('sso_error') ? String(t('idn.login.ssoError')) : null)
   const [loading, setLoading] = useState(false)
   const config = useGet<{ data: { demo_accounts?: boolean } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true
 
   if (user) return <Navigate to={homeFor(user)} replace />
 
+  const sso = async () => {
+    try { const { data } = await api.get('/auth/sso/start', { params: { redirect: `${window.location.origin}/sso/callback` } }); window.location.href = data.data.url } catch (err) { setError(errorMessage(err)) }
+  }
+  const done = (data: unknown) => { const me = finish(data); navigate(location.state?.from ?? homeFor(me), { replace: true }) }
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     try {
+      if (directory) {
+        const { data } = await api.post('/auth/ldap/login', { username: email, password })
+        const me = finish(data)
+        navigate(location.state?.from ?? homeFor(me), { replace: true })
+        return
+      }
       const me = await login(email, password)
       navigate(location.state?.from ?? homeFor(me), { replace: true })
     } catch (err) {
+      if (err instanceof MfaRequired) { setChallenge(err.challenge); return }
       setError(errorMessage(err))
     } finally {
       setLoading(false)
@@ -59,16 +76,24 @@ export default function Login() {
         <div className="m-auto w-full max-w-md py-12">
           <h1 className="text-3xl font-bold text-navy-900">{t('auth.title')}</h1>
           <p className="mt-2 text-slate-500">{t('auth.subtitle')}</p>
+          {challenge ? <MfaStep challenge={challenge} onDone={done} onBack={() => setChallenge(null)} /> : (<>
+          {options.data?.data.sso && (
+            <div className="mt-8">
+              <Button type="button" variant="gold" size="lg" className="w-full" icon={<Building2 className="size-5" />} onClick={sso}>{t('idn.login.sso')}</Button>
+              <div className="my-5 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-navy-100" />{t('idn.login.or')}<span className="h-px flex-1 bg-navy-100" /></div>
+            </div>
+          )}
           <form onSubmit={submit} className="mt-8 space-y-5">
             <Field label={t('common.email')}>
-              <div className="relative"><Mail className="absolute start-3 top-3 size-5 text-slate-400" /><input className="input ps-11" type="email" dir="ltr" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+              <div className="relative"><Mail className="absolute start-3 top-3 size-5 text-slate-400" /><input className="input ps-11" type={directory ? 'text' : 'email'} dir="ltr" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
             </Field>
             <Field label={t('auth.password')}>
               <div className="relative"><Lock className="absolute start-3 top-3 size-5 text-slate-400" /><input className="input ps-11" type="password" dir="ltr" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
             </Field>
             {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</p>}
             <Button variant="primary" size="lg" className="w-full" loading={loading}>{t('auth.signIn')}</Button>
-          </form>
+            {options.data?.data.ldap && <button type="button" className="text-sm text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
+          </form></>)}
           {SHOW_DEMO && (
             <div className="mt-8 rounded-2xl border border-dashed border-gold-300 bg-gold-100/40 p-4">
               <p className="text-sm font-bold text-navy-900">{t('auth.demo')}</p>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { activeRoleStore } from './activeRole'
@@ -9,6 +10,8 @@ type AuthState = {
   user: Me | null
   loading: boolean
   login: (email: string, password: string) => Promise<Me>
+  /** Finishes a sign-in from a session the server returned (after a second factor, single sign-on or a directory login). */
+  finish: (data: any) => Me
   logout: () => void
   can: (permission: string) => boolean
   activeRole: RoleGrant | null
@@ -45,13 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('tedc:logout', onLogout)
   }, [refresh])
 
-  const login = useCallback(async (email: string, password: string) => {
-    const { data } = await api.post('/auth/login', { email, password })
+  const finish = useCallback((data: any) => {
     sessionStore.set({ access_token: data.access_token, refresh_token: data.refresh_token, expires_at: Date.now() + data.expires_in * 1000 })
     setUser(data.user)
     if (data.user.locale && data.user.locale !== i18n.language) i18n.changeLanguage(data.user.locale)
+    try { if (data.password_expired) sessionStorage.setItem('tedc.pwexpired', '1'); else sessionStorage.removeItem('tedc.pwexpired') } catch { /* storage unavailable */ }
     return data.user as Me
   }, [])
+
+  const login = useCallback(async (email: string, password: string) => {
+    let device: string | undefined
+    try { device = localStorage.getItem('tedc.device') ?? undefined } catch { /* storage unavailable */ }
+    const { data } = await api.post('/auth/login', { email, password, device_token: device })
+    if (data.mfa_required) throw new MfaRequired({ mfa_token: data.mfa_token, methods: data.methods ?? [], enrolled: !!data.enrolled })
+    return finish(data)
+  }, [finish])
 
   const switchRole = useCallback(async (grantId: string) => {
     const { data } = await api.post('/auth/active-role', { role_user_id: grantId })
@@ -73,15 +84,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     login,
+    finish,
     logout,
     refresh,
     switchRole,
     activeRole: user?.active_role ?? user?.roles.find((r) => r.active) ?? null,
     can: (permission) => !!user && (user.permissions.includes('*') || user.permissions.includes(permission)),
     hasRole: (...roles) => !!user && user.roles.some((r) => roles.includes(r.slug)),
-  }), [user, loading, login, logout, refresh, switchRole])
+  }), [user, loading, login, finish, logout, refresh, switchRole])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+export type MfaChallenge = { mfa_token: string; methods: string[]; enrolled: boolean }
+
+/** Thrown by login() when the password was right but a second factor is needed. */
+export class MfaRequired extends Error {
+  challenge: MfaChallenge
+  constructor(challenge: MfaChallenge) {
+    super('mfa_required')
+    this.challenge = challenge
+  }
 }
 
 export function useAuth() {

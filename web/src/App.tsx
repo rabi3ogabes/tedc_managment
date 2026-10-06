@@ -73,6 +73,11 @@ const Reports = lazy(() => import('@/pages/admin/Reports'))
 const ReportBuilder = lazy(() => import('@/pages/admin/ReportBuilder'))
 const KpiDashboard = lazy(() => import('@/pages/admin/KpiDashboard'))
 const DashboardPresets = lazy(() => import('@/pages/admin/DashboardPresets'))
+const SsoCallback = lazy(() => import('@/pages/public/SsoCallback'))
+const AccountSecurity = lazy(() => import('@/pages/AccountSecurity'))
+const SecurityAdmin = lazy(() => import('@/pages/admin/SecurityAdmin'))
+const IntegrationsHub = lazy(() => import('@/pages/admin/IntegrationsHub'))
+const MigrationTool = lazy(() => import('@/pages/admin/MigrationTool'))
 const HomeEditor = lazy(() => import('@/pages/admin/HomeEditor'))
 const EventsPage = lazy(() => import('@/pages/public/Events'))
 const EventDetail = lazy(() => import('@/pages/public/Events').then((m) => ({ default: m.EventDetail })))
@@ -164,6 +169,7 @@ export default function App() {
           <Route path="contact" element={<Contact />} />
         </Route>
         <Route path="login" element={<Login />} />
+        <Route path="sso/callback" element={<SsoCallback />} />
 
         <Route path="admin/kits/:kitId/files/:fileId" element={<RequireAuth permission="kits.view"><FileStudio /></RequireAuth>} />
         <Route path="room-screen/:token" element={<RoomScreen />} />
@@ -204,11 +210,15 @@ export default function App() {
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
+          <Route path="security" element={<AccountSecurity />} />
           <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="settings" element={<SettingsWorkspace />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="security-policy" element={<RequireAuth permission="security.policy|sessions.manage"><SecurityAdmin /></RequireAuth>} />
+          <Route path="integrations" element={<RequireAuth permission="integrations.manage|integrations.logs|sso.manage|webhooks.manage"><IntegrationsHub /></RequireAuth>} />
+          <Route path="migration" element={<RequireAuth permission="migration.run"><MigrationTool /></RequireAuth>} />
           <Route path="reports/new" element={<RequireAuth permission="reports.builder"><ReportBuilder /></RequireAuth>} />
           <Route path="reports/:id/edit" element={<RequireAuth permission="reports.builder"><ReportBuilder /></RequireAuth>} />
           <Route path="kpi" element={<RequireAuth permission="kpi.view"><KpiDashboard /></RequireAuth>} />
@@ -237,6 +247,7 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
+          <Route path="security" element={<AccountSecurity />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

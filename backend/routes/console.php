@@ -31,3 +31,4 @@ Schedule::command('tedc:integrations-health')->everyFifteenMinutes()->withoutOve
 Schedule::command('tedc:teams-sync')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('tedc:tickets-sync')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('tedc:ministry-sync')->hourly()->withoutOverlapping();
+Schedule::command('tedc:migration-purge')->dailyAt('03:15')->withoutOverlapping();

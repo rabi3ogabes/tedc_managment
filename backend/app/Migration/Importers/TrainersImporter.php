@@ -38,6 +38,12 @@ class TrainersImporter extends Importer
         return [$c, array_values(array_unique($e))];
     }
 
+    /** Whatever the model calls a trainer from inside the Ministry. */
+    private function internalSource(): string
+    {
+        return Trainer::CENTER;
+    }
+
     public function exists(array $c): bool
     {
         return Trainer::whereRaw('lower(email) = ?', [$c['email']])->exists();
@@ -46,7 +52,7 @@ class TrainersImporter extends Importer
     public function apply(array $c): array
     {
         $t = Trainer::whereRaw('lower(email) = ?', [$c['email']])->first();
-        $fields = ['name_ar' => $c['name_ar'], 'name_en' => $c['name_en'], 'phone' => $c['phone'], 'organization' => $c['organization'], 'specializations' => $c['specializations'], 'is_external' => $c['is_external']];
+        $fields = ['name_ar' => $c['name_ar'], 'name_en' => $c['name_en'], 'phone' => $c['phone'], 'organization' => $c['organization'], 'specializations' => $c['specializations'], 'source' => $c['is_external'] ? Trainer::EXTERNAL : $this->internalSource()];
         if ($t) {
             $before = $t->only(array_keys($fields));
             $t->fill($fields)->save();

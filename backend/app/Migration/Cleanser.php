@@ -20,7 +20,7 @@ class Cleanser
     {
         $s = trim((string) $s);
         $s = preg_replace('/[\x{064B}-\x{065F}\x{0670}\x{0640}]/u', '', $s) ?? $s;
-        $s = strtr($s, ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي', 'ئ' => 'ي', 'ؤ' => 'و']);
+        $s = strtr($s, ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي', 'ئ' => 'ي', 'ؤ' => 'و', 'ة' => 'ه']);
 
         return trim(preg_replace('/\s+/u', ' ', $s) ?? $s);
     }
@@ -69,10 +69,10 @@ class Cleanser
         $s = trim(self::digits((string) $v));
         try {
             if (preg_match('/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/', $s, $m)) {
-                return Carbon::createStrict((int) $m[1], (int) $m[2], (int) $m[3])->toDateString();
+                return checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ? Carbon::createStrict((int) $m[1], (int) $m[2], (int) $m[3])->toDateString() : null;
             }
             if (preg_match('/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/', $s, $m)) {
-                return Carbon::createStrict((int) $m[3], (int) $m[2], (int) $m[1])->toDateString();
+                return checkdate((int) $m[2], (int) $m[1], (int) $m[3]) ? Carbon::createStrict((int) $m[3], (int) $m[2], (int) $m[1])->toDateString() : null;
             }
         } catch (Throwable) {
             return null;
