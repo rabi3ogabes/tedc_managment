@@ -149,6 +149,7 @@ class RolePermissionSeeder extends Seeder
         'refunds.approve' => ['payments', 'الموافقة على طلبات الاسترداد', 'Approve refund requests'],
         'entity_accounts.manage' => ['payments', 'إدارة حسابات الجهات', 'Manage entity accounts'],
         'finance.reports' => ['payments', 'التقارير المالية', 'Financial reports'],
+        'help.manage' => ['settings', 'إدارة مقالات المساعدة', 'Manage help articles'],
         'ai.settings' => ['ai', 'إعدادات الذكاء الاصطناعي والخصوصية', 'AI settings, privacy and logs'],
         'ai.forecasts.view' => ['ai', 'عرض التوقعات والمخاطر', 'View forecasts and risks'],
         'ai.feedback.review' => ['ai', 'مراجعة مسودات الملاحظات الذكية', 'Review AI feedback drafts'],
@@ -324,5 +325,7 @@ class RolePermissionSeeder extends Seeder
         'pricing.manage', 'orders.view', 'refunds.approve', 'entity_accounts.manage', 'finance.reports',
         // Phase 17
         'privacy.manage',
+        // Phase 18
+        'help.manage',
     ];
 }

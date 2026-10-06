@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Admin\CompetencyController;
 use App\Http\Controllers\Api\V1\Admin\ContentImportController;
 use App\Http\Controllers\Api\V1\Admin\ContentLifecycleController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
+use App\Http\Controllers\Api\V1\Admin\EKitController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
 use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
@@ -112,6 +113,8 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\HealthProbeController;
+use App\Http\Controllers\Api\V1\Help\HelpAdminController;
+use App\Http\Controllers\Api\V1\Help\HelpController;
 use App\Http\Controllers\Api\V1\HudhudReceiptController;
 use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\LibraryController;
@@ -470,6 +473,14 @@ Route::prefix('v1')->group(function () {
             Route::get('reports', [MyReportsController::class, 'index']);
             Route::get('reports/{key}', [MyReportsController::class, 'show']);
             Route::get('reports/{key}/export', [MyReportsController::class, 'export']);
+            Route::get('help/articles', [HelpController::class, 'index']);
+            Route::get('help/articles/{slug}', [HelpController::class, 'show']);
+            Route::post('help/articles/{slug}/feedback', [HelpController::class, 'feedback'])->middleware('throttle:30,1');
+            Route::get('help/manuals', [HelpController::class, 'manuals']);
+            Route::get('help/manuals/{manual}/pdf', [HelpController::class, 'manualPdf'])->middleware('throttle:20,1');
+            Route::get('tours', [HelpController::class, 'tour']);
+            Route::post('tours', [HelpController::class, 'finishTour']);
+            Route::delete('tours', [HelpController::class, 'resetTours']);
             Route::get('realtime/config', [RealtimeController::class, 'config']);
             Route::get('realtime/stream', [RealtimeController::class, 'stream'])->middleware('throttle:30,1');
             Route::get('privacy/requests', [PrivacyController::class, 'mine']);
@@ -1138,6 +1149,27 @@ Route::prefix('v1')->group(function () {
                 Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
                 Route::get('public-stats', [CmsController::class, 'stats']);
                 Route::put('public-stats', [CmsController::class, 'saveStats']);
+            });
+
+            // Interactive e-kits: publish as e-courses, export as SCORM (Phase 18)
+            Route::middleware('permission:packages.manage')->prefix('ekits')->group(function () {
+                Route::get('/', [EKitController::class, 'index']);
+                Route::post('{code}/build', [EKitController::class, 'build'])->where('code', '[A-Za-z0-9_-]+');
+                Route::get('{code}/scorm', [EKitController::class, 'scorm'])->where('code', '[A-Za-z0-9_-]+');
+            });
+
+            // Help-centre articles and feedback analytics (Phase 18)
+            Route::middleware('permission:help.manage')->prefix('help')->group(function () {
+                Route::get('articles', [HelpAdminController::class, 'index']);
+                Route::post('articles', [HelpAdminController::class, 'store']);
+                Route::get('articles/{article}', [HelpAdminController::class, 'show'])->whereUuid('article');
+                Route::put('articles/{article}', [HelpAdminController::class, 'update'])->whereUuid('article');
+                Route::delete('articles/{article}', [HelpAdminController::class, 'destroy'])->whereUuid('article');
+                Route::post('articles/{article}/rollback/{version}', [HelpAdminController::class, 'rollback'])->whereUuid('article')->whereNumber('version');
+                Route::post('articles/{article}/screenshots', [HelpAdminController::class, 'screenshot'])->whereUuid('article');
+                Route::delete('articles/{article}/screenshots/{index}', [HelpAdminController::class, 'removeScreenshot'])->whereUuid('article')->whereNumber('index');
+                Route::post('articles/{article}/video', [HelpAdminController::class, 'video'])->whereUuid('article');
+                Route::get('analytics', [HelpAdminController::class, 'analytics']);
             });
 
             // Data-subject requests (Phase 17)

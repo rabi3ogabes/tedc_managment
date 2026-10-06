@@ -184,4 +184,7 @@ return [
     ],
     'task_answer_required' => 'Write your answer or attach a file before submitting the task.',
     'not_found' => 'The requested item was not found.',
+    'help' => [
+        'not_found' => 'The help article was not found, or it is not for your role.',
+    ],
 ];
