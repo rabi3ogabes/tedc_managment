@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 181,
-        "partial": 49,
-        "missing": 48,
+        "available": 192,
+        "partial": 39,
+        "missing": 47,
         "mandatory": 108,
-        "open": 97
+        "open": 86
     },
     "phases": [
         {
@@ -96,7 +96,7 @@
             "phase": 12,
             "title": "Reports, Dashboards & KPIs",
             "open": 12,
-            "items": 12,
+            "items": 1,
             "done": 0
         },
         {
@@ -263,9 +263,9 @@
                     "id": "HOM-06",
                     "mandatory": true,
                     "requirement": "Dashboards for every user category, driven by role",
-                    "status": "partial",
-                    "evidence": "Admin, Executive, school-scoped and Employee dashboards; none for Trainer, Supervisor, Academic Deputy, Kit Developer, Planning, Logistics.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "A dashboard for every role from a widget registry (trainee, principal, deputy, head of training, supervisor, leadership, executive, trainer, admin, kit developer, QA, planning, logistics): scope-aware, date range, drill-down to the report, personal hide/reorder, presets editable by administrators; on web and in the app home (Phase 12).",
+                    "phase": null
                 }
             ]
         },
@@ -1038,9 +1038,9 @@
                     "id": "ATT-11",
                     "mandatory": false,
                     "requirement": "Attendance records and reports; Excel and PDF export",
-                    "status": "partial",
-                    "evidence": "Session sheets + CSV presence export; no attendance PDF / Excel reports.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Detailed attendance and absence per trainee, per group with leave minutes, printable group sheets and the trainee's own attendance, all exportable to Excel, PDF and Word (Phase 12).",
+                    "phase": null
                 }
             ]
         },
@@ -1858,73 +1858,73 @@
                     "id": "RPT-01",
                     "mandatory": false,
                     "requirement": "Role-specific reports + self-service dynamic report builder",
-                    "status": "missing",
-                    "evidence": "No report builder.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-02",
                     "mandatory": false,
                     "requirement": "Export reports to Excel, PDF and Word",
-                    "status": "partial",
-                    "evidence": "Excel program report; CSV elsewhere; no Word / PDF reports.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-03",
                     "mandatory": false,
                     "requirement": "System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)",
                     "status": "partial",
-                    "evidence": "Program participation, executive snapshot, process tracker; most listed reports missing.",
+                    "evidence": "Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).",
                     "phase": 12
                 },
                 {
                     "id": "RPT-04",
                     "mandatory": false,
                     "requirement": "Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)",
-                    "status": "partial",
-                    "evidence": "Attendance view and calendar; no printable sheets.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-05",
                     "mandatory": false,
                     "requirement": "Trainer reports (workshop calendar, delivered programs, process tracking)",
-                    "status": "partial",
-                    "evidence": "Trainer schedule only.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Trainer's workshop calendar, statistics of programs and groups delivered, process tracking of their groups (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-06",
                     "mandatory": false,
                     "requirement": "Direct-manager reports (team courses, nominations & approval flow, attendance)",
-                    "status": "partial",
-                    "evidence": "Team impact view only.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Courses obtained by staff in a period, nominations and approval flow, staff attendance and absence — limited to the manager's own staff (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-07",
                     "mandatory": false,
                     "requirement": "Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history)",
-                    "status": "partial",
-                    "evidence": "Portal, passport and ICS; no annual hours report.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Approved workshop calendar, courses and hours by year or academic year, programs I can apply for, completed courses, my attendance, statement of courses in a period (PDF) — always about the person asking; also in the app (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-08",
                     "mandatory": false,
                     "requirement": "QA and kit-developer reports",
-                    "status": "partial",
-                    "evidence": "Kit board and stats; no exportable report.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-09",
                     "mandatory": false,
                     "requirement": "Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups",
-                    "status": "partial",
-                    "evidence": "Volume, completion, satisfaction; no plan % or satisfaction ranking.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12).",
+                    "phase": null
                 },
                 {
                     "id": "RPT-10",
@@ -2513,9 +2513,9 @@
                     "id": "TEC-17",
                     "mandatory": false,
                     "requirement": "Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security",
-                    "status": "partial",
-                    "evidence": "Completion and satisfaction only.",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthly PDF/Word report. Concurrency shows current and peak users, not a proven capacity; uptime comes from an in-app probe (Phase 12).",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-06T08:10:38+03:00"
+    "generated_at": "2026-10-06T08:41:38+03:00"
 }

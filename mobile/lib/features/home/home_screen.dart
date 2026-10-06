@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
 import '../needs/needs_survey_screen.dart';
+import '../reports/dashboard_section.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -58,6 +59,7 @@ class HomeScreen extends ConsumerWidget {
                   // Check-in only exists for the session happening now (or about to start), never as a permanent button.
                   if (current != null) _ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push(current.flag('biometric_required') ? '/scan?biometric=1' : '/scan')),
                   const PendingNeedsBanner(),
+                  const DashboardSection(),
                   if (stats.number('pending_surveys') > 0) ...[
                     const SizedBox(height: 12),
                     Card(

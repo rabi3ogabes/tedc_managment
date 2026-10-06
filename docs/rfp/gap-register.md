@@ -302,30 +302,30 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 12 — Reports, Dashboards & KPIs  (12)
 
-- [ ] **HOM-06** ★ — Dashboards for every user category, driven by role  
-  _Now:_ 🟡 Partial — Admin, Executive, school-scoped and Employee dashboards; none for Trainer, Supervisor, Academic Deputy, Kit Developer, Planning, Logistics.
-- [ ] **ATT-11** — Attendance records and reports; Excel and PDF export  
-  _Now:_ 🟡 Partial — Session sheets + CSV presence export; no attendance PDF / Excel reports.
-- [ ] **RPT-01** — Role-specific reports + self-service dynamic report builder  
-  _Now:_ 🔴 Missing — No report builder.
-- [ ] **RPT-02** — Export reports to Excel, PDF and Word  
-  _Now:_ 🟡 Partial — Excel program report; CSV elsewhere; no Word / PDF reports.
-- [ ] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
-  _Now:_ 🟡 Partial — Program participation, executive snapshot, process tracker; most listed reports missing.
-- [ ] **RPT-04** — Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)  
-  _Now:_ 🟡 Partial — Attendance view and calendar; no printable sheets.
-- [ ] **RPT-05** — Trainer reports (workshop calendar, delivered programs, process tracking)  
-  _Now:_ 🟡 Partial — Trainer schedule only.
-- [ ] **RPT-06** — Direct-manager reports (team courses, nominations & approval flow, attendance)  
-  _Now:_ 🟡 Partial — Team impact view only.
-- [ ] **RPT-07** — Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history)  
-  _Now:_ 🟡 Partial — Portal, passport and ICS; no annual hours report.
-- [ ] **RPT-08** — QA and kit-developer reports  
-  _Now:_ 🟡 Partial — Kit board and stats; no exportable report.
-- [ ] **RPT-09** — Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups  
-  _Now:_ 🟡 Partial — Volume, completion, satisfaction; no plan % or satisfaction ranking.
-- [ ] **TEC-17** — Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security  
-  _Now:_ 🟡 Partial — Completion and satisfaction only.
+- [x] **HOM-06** ★ — Dashboards for every user category, driven by role  
+  _Now:_ ✅ Available — A dashboard for every role from a widget registry (trainee, principal, deputy, head of training, supervisor, leadership, executive, trainer, admin, kit developer, QA, planning, logistics): scope-aware, date range, drill-down to the report, personal hide/reorder, presets editable by administrators; on web and in the app home (Phase 12).
+- [x] **ATT-11** — Attendance records and reports; Excel and PDF export  
+  _Now:_ ✅ Available — Detailed attendance and absence per trainee, per group with leave minutes, printable group sheets and the trainee's own attendance, all exportable to Excel, PDF and Word (Phase 12).
+- [x] **RPT-01** — Role-specific reports + self-service dynamic report builder  
+  _Now:_ ✅ Available — Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12).
+- [x] **RPT-02** — Export reports to Excel, PDF and Word  
+  _Now:_ ✅ Available — Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12).
+- [x] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
+  _Now:_ 🟡 Partial — Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).
+- [x] **RPT-04** — Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)  
+  _Now:_ ✅ Available — Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12).
+- [x] **RPT-05** — Trainer reports (workshop calendar, delivered programs, process tracking)  
+  _Now:_ ✅ Available — Trainer's workshop calendar, statistics of programs and groups delivered, process tracking of their groups (Phase 12).
+- [x] **RPT-06** — Direct-manager reports (team courses, nominations & approval flow, attendance)  
+  _Now:_ ✅ Available — Courses obtained by staff in a period, nominations and approval flow, staff attendance and absence — limited to the manager's own staff (Phase 12).
+- [x] **RPT-07** — Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history)  
+  _Now:_ ✅ Available — Approved workshop calendar, courses and hours by year or academic year, programs I can apply for, completed courses, my attendance, statement of courses in a period (PDF) — always about the person asking; also in the app (Phase 12).
+- [x] **RPT-08** — QA and kit-developer reports  
+  _Now:_ ✅ Available — Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12).
+- [x] **RPT-09** — Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups  
+  _Now:_ ✅ Available — Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12).
+- [x] **TEC-17** — Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security  
+  _Now:_ ✅ Available — Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthly PDF/Word report. Concurrency shows current and peak users, not a proven capacity; uptime comes from an in-app probe (Phase 12).
 
 ### Phase 13 — Integrations & Enterprise Identity  (12)
 
@@ -507,7 +507,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | HOM-03 | Export news / events to the Ministry website (API or file) | ✅ Available | Public JSON, RSS, Atom and CSV feeds (only items flagged for export), manual export files, and an automatic push adapter with retries, log and failure alerts. The push needs the Ministry site's real endpoint and key (Phase 11). | — |
 | HOM-04 | Fully dynamic homepage editable by admin (texts, images, links, ads) | ✅ Available | Block-based homepage and About editor (hero, statistics, programs, news, events, rich text, call to action, logos, FAQ, video, safe HTML) with visibility windows, audience, live desktop/phone preview in both languages, versioned publish and restore; the built-in design stays until the first publish (Phase 11). | — |
 | HOM-05 | Dynamic public statistics (users, courses, centre-defined figures) | ✅ Available | Public statistics from built-in sources (users, programs, groups held, certificates, hours, schools) or values and named indicators the centre defines; cached and refreshed every ten minutes (Phase 11). | — |
-| HOM-06 ★ | Dashboards for every user category, driven by role | 🟡 Partial | Admin, Executive, school-scoped and Employee dashboards; none for Trainer, Supervisor, Academic Deputy, Kit Developer, Planning, Logistics. | 12 |
+| HOM-06 ★ | Dashboards for every user category, driven by role | ✅ Available | A dashboard for every role from a widget registry (trainee, principal, deputy, head of training, supervisor, leadership, executive, trainer, admin, kit developer, QA, planning, logistics): scope-aware, date range, drill-down to the report, personal hide/reorder, presets editable by administrators; on web and in the app home (Phase 12). | — |
 
 ### RBA · Roles, Responsibilities & Permissions — الأدوار والمسؤوليات والصلاحيات
 
@@ -641,7 +641,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ATT-08 | Absence-threshold alert to supervisor; email to trainee & manager with notes | ✅ Available | After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page. | — |
 | ATT-09 | Absence excuses with documents and manager approval workflow | ✅ Available | Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended. | — |
 | ATT-10 | Leave / permission (استئذان) entry with attachments and notification | ✅ Available | Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them. | — |
-| ATT-11 | Attendance records and reports; Excel and PDF export | 🟡 Partial | Session sheets + CSV presence export; no attendance PDF / Excel reports. | 12 |
+| ATT-11 | Attendance records and reports; Excel and PDF export | ✅ Available | Detailed attendance and absence per trainee, per group with leave minutes, printable group sheets and the trainee's own attendance, all exportable to Excel, PDF and Word (Phase 12). | — |
 
 ### CNT · Content Management & Digital Library — إدارة المحتوى التدريبي
 
@@ -793,15 +793,15 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| RPT-01 | Role-specific reports + self-service dynamic report builder | 🔴 Missing | No report builder. | 12 |
-| RPT-02 | Export reports to Excel, PDF and Word | 🟡 Partial | Excel program report; CSV elsewhere; no Word / PDF reports. | 12 |
-| RPT-03 | System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats) | 🟡 Partial | Program participation, executive snapshot, process tracker; most listed reports missing. | 12 |
-| RPT-04 | Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave) | 🟡 Partial | Attendance view and calendar; no printable sheets. | 12 |
-| RPT-05 | Trainer reports (workshop calendar, delivered programs, process tracking) | 🟡 Partial | Trainer schedule only. | 12 |
-| RPT-06 | Direct-manager reports (team courses, nominations & approval flow, attendance) | 🟡 Partial | Team impact view only. | 12 |
-| RPT-07 | Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history) | 🟡 Partial | Portal, passport and ICS; no annual hours report. | 12 |
-| RPT-08 | QA and kit-developer reports | 🟡 Partial | Kit board and stats; no exportable report. | 12 |
-| RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | 🟡 Partial | Volume, completion, satisfaction; no plan % or satisfaction ranking. | 12 |
+| RPT-01 | Role-specific reports + self-service dynamic report builder | ✅ Available | Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12). | — |
+| RPT-02 | Export reports to Excel, PDF and Word | ✅ Available | Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12). | — |
+| RPT-03 | System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats) | 🟡 Partial | Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping). | 12 |
+| RPT-04 | Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave) | ✅ Available | Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12). | — |
+| RPT-05 | Trainer reports (workshop calendar, delivered programs, process tracking) | ✅ Available | Trainer's workshop calendar, statistics of programs and groups delivered, process tracking of their groups (Phase 12). | — |
+| RPT-06 | Direct-manager reports (team courses, nominations & approval flow, attendance) | ✅ Available | Courses obtained by staff in a period, nominations and approval flow, staff attendance and absence — limited to the manager's own staff (Phase 12). | — |
+| RPT-07 | Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history) | ✅ Available | Approved workshop calendar, courses and hours by year or academic year, programs I can apply for, completed courses, my attendance, statement of courses in a period (PDF) — always about the person asking; also in the app (Phase 12). | — |
+| RPT-08 | QA and kit-developer reports | ✅ Available | Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12). | — |
+| RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | ✅ Available | Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12). | — |
 | RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | ✅ Available | Low-satisfaction alert (response ≥80% and average <50%, editable), once per group | — |
 | RPT-11 | Predictive analytics and reports | 🔴 Missing | Not available. | 15 |
 
@@ -912,7 +912,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TEC-14 ★ | Compatible with phones and tablets | ✅ Available | Responsive web + Flutter app. | — |
 | TEC-15 ★ | Cost-effective licensing (perpetual preferred) | ✅ Available | Custom-built, owned source code; no per-user licence. | — |
 | TEC-16 ★ | Automatic patching without user impact | 🟡 Partial | Zero-downtime deployment not documented. | 17 |
-| TEC-17 | Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security | 🟡 Partial | Completion and satisfaction only. | 12 |
+| TEC-17 | Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security | ✅ Available | Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthly PDF/Word report. Concurrency shows current and peak users, not a proven capacity; uptime comes from an in-app probe (Phase 12). | — |
 
 ### DLV · Project Deliverables — مخرجات المشروع والمتسلمات
 

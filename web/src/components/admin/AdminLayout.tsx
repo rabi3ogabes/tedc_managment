@@ -79,6 +79,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList },
           { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap },
           { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
+          { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
       }]
@@ -121,6 +122,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/geo', label: m('geo'), icon: Map, permission: 'analytics.view' },
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
           { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage|announcements.publish|notifications.schedule|notifications.reports|notifications.rules' },
+          { to: '/admin/reports', label: t('rep.navReports'), icon: FilePenLine },
+          { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
+          { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
           { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
           { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined },
           { to: '/admin/chats', label: m('chats'), icon: MessagesSquare, permission: 'announcements.manage', badge: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined },
@@ -154,7 +158,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   ]
 
   const renderSidebar = (compact: boolean, drawer: boolean) => (
-    <aside className={clsx('flex h-full flex-col bg-navy-950 text-white transition-[width,box-shadow] duration-300 ease-out', compact ? 'w-[4.75rem]' : 'w-72', !drawer && !pinned && expanded && 'shadow-[12px_0_40px_-8px_rgba(0,0,0,.45)]')}>
+    <aside className={clsx('flex h-full flex-col bg-navy-950 text-white print:hidden transition-[width,box-shadow] duration-300 ease-out', compact ? 'w-[4.75rem]' : 'w-72', !drawer && !pinned && expanded && 'shadow-[12px_0_40px_-8px_rgba(0,0,0,.45)]')}>
       <div className={clsx('relative flex items-center gap-3 py-6', compact ? 'justify-center px-2' : 'px-6')}>
         {compact ? <LogoMark className="size-10" /> : (
           <>
@@ -254,7 +258,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         </div>
       )}
       <div className={clsx('flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out', pinned ? 'lg:ms-72' : 'lg:ms-[4.75rem]')}>
-        <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
+        <header className="glass sticky top-0 z-20 border-x-0 border-t-0 print:hidden">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-8">
             <button className="rounded-lg p-2 text-navy-900 lg:hidden" onClick={() => setOpen(true)} aria-label="menu">{open ? <X /> : <Menu />}</button>
             <button type="button" onClick={togglePin} aria-pressed={pinned} title={`${pinned ? t('nav.collapse') : t('nav.expand')} (Ctrl+B)`} aria-label={pinned ? t('nav.collapse') : t('nav.expand')} className="hidden rounded-xl p-2 text-navy-800 transition hover:bg-navy-100/60 lg:block">

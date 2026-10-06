@@ -69,6 +69,10 @@ const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
 const Communication = lazy(() => import('@/pages/admin/Communication'))
+const Reports = lazy(() => import('@/pages/admin/Reports'))
+const ReportBuilder = lazy(() => import('@/pages/admin/ReportBuilder'))
+const KpiDashboard = lazy(() => import('@/pages/admin/KpiDashboard'))
+const DashboardPresets = lazy(() => import('@/pages/admin/DashboardPresets'))
 const HomeEditor = lazy(() => import('@/pages/admin/HomeEditor'))
 const EventsPage = lazy(() => import('@/pages/public/Events'))
 const EventDetail = lazy(() => import('@/pages/public/Events').then((m) => ({ default: m.EventDetail })))
@@ -204,6 +208,11 @@ export default function App() {
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="settings" element={<SettingsWorkspace />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="reports/new" element={<RequireAuth permission="reports.builder"><ReportBuilder /></RequireAuth>} />
+          <Route path="reports/:id/edit" element={<RequireAuth permission="reports.builder"><ReportBuilder /></RequireAuth>} />
+          <Route path="kpi" element={<RequireAuth permission="kpi.view"><KpiDashboard /></RequireAuth>} />
+          <Route path="dashboard-presets" element={<RequireAuth permission="dashboards.manage"><DashboardPresets /></RequireAuth>} />
           <Route path="appearance/home" element={<RequireAuth permission="cms.manage"><HomeEditor /></RequireAuth>} />
           <Route path="appearance" element={<Navigate to="/admin/settings?tab=appearance" replace />} />
           <Route path="settings/notifications" element={<Navigate to="/admin/settings?tab=notifications" replace />} />
@@ -225,6 +234,7 @@ export default function App() {
           <Route path="assessments" element={<PortalAssessments />} />
           <Route path="attempts/:id" element={<AttemptResult />} />
           <Route path="notifications" element={<Notifications />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
         </Route>

@@ -6,6 +6,7 @@ import { Card, CardTitle, ErrorState, PageHeader, Spinner, StatCard } from '@/co
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
+import RoleDashboard from '@/components/dashboard/RoleDashboard'
 import JourneyTracker from './dashboard/JourneyTracker'
 
 type DashboardData = {
@@ -30,6 +31,8 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader title={<>{t('admin.dashboard.welcome')} {user?.name}</>} subtitle={t('admin.dashboard.subtitle')} />
+
+      <RoleDashboard />
 
       <JourneyTracker />
 
