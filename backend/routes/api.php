@@ -133,6 +133,9 @@ use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyReportsController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
+use App\Http\Controllers\Api\V1\Payments\GatewayController;
+use App\Http\Controllers\Api\V1\Payments\PaymentsAdminController;
+use App\Http\Controllers\Api\V1\Payments\ShopController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
@@ -235,6 +238,13 @@ Route::prefix('v1')->group(function () {
     Route::post('client-errors', [ClientErrorController::class, 'store'])->middleware('throttle:30,1');
 
     // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
+    // Payments: the gateway's signed callback and the buyer's return are public (the callback is authenticated by its signature).
+    Route::prefix('payments')->middleware('feature:payments')->group(function () {
+        Route::post('callback/{gateway}', [GatewayController::class, 'callback'])->where('gateway', 'moe_epay|fake')->middleware('throttle:120,1');
+        Route::get('return', [GatewayController::class, 'return'])->middleware('throttle:60,1');
+        Route::post('fake/{ref}/complete', [GatewayController::class, 'fakeComplete'])->middleware('throttle:30,1');
+    });
+
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
         Route::get('cron', 'cron');
         Route::post('setup', 'setup');
@@ -315,6 +325,35 @@ Route::prefix('v1')->group(function () {
 
         // Which features are on (web and app read this once and cache it).
         Route::get('features', [FeaturesController::class, 'map']);
+
+        // Buying courses (Phase 16) ---------------------------------------------------------------------
+        Route::middleware('feature:payments')->group(function () {
+            Route::prefix('me')->group(function () {
+                Route::get('cart', [ShopController::class, 'cart']);
+                Route::post('cart/items', [ShopController::class, 'addItem'])->middleware('throttle:60,1');
+                Route::delete('cart/items/{group}', [ShopController::class, 'removeItem'])->whereUuid('group');
+                Route::post('cart/discount', [ShopController::class, 'discount'])->middleware('throttle:20,1');
+                Route::post('checkout', [ShopController::class, 'checkout'])->middleware('throttle:10,1');
+                Route::get('orders', [ShopController::class, 'orders']);
+                Route::get('orders/{shopOrder}', [ShopController::class, 'showOrder']);
+                Route::get('orders/{shopOrder}/invoice', [ShopController::class, 'invoice']);
+                Route::get('refunds/{shopRefund}/credit-note', [ShopController::class, 'creditNote']);
+                Route::post('orders/{shopOrder}/refund-request', [ShopController::class, 'refundRequest'])->middleware('throttle:10,1');
+                Route::post('vouchers/redeem', [ShopController::class, 'redeem'])->middleware('throttle:10,1');
+                Route::get('vouchers', [ShopController::class, 'myVouchers']);
+            });
+            Route::prefix('entity')->group(function () {
+                Route::get('accounts', [ShopController::class, 'myEntities']);
+                Route::get('cart', [ShopController::class, 'cart']);
+                Route::post('cart', [ShopController::class, 'addItem'])->middleware('throttle:60,1');
+                Route::delete('cart/{group}', [ShopController::class, 'removeItem'])->whereUuid('group');
+                Route::post('cart/discount', [ShopController::class, 'discount'])->middleware('throttle:20,1');
+                Route::post('checkout', [ShopController::class, 'checkout'])->middleware('throttle:10,1');
+                Route::get('orders', [ShopController::class, 'orders']);
+                Route::get('vouchers', [ShopController::class, 'entityVouchers']);
+                Route::post('vouchers/assign', [ShopController::class, 'assign'])->middleware('throttle:30,1');
+            });
+        });
 
         // Collaboration: communities, forums, channels, notes, ask-the-trainer, ratings (Phase 14) ---------------
         Route::prefix('social')->group(function () {
@@ -1089,6 +1128,42 @@ Route::prefix('v1')->group(function () {
                 Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
                 Route::get('public-stats', [CmsController::class, 'stats']);
                 Route::put('public-stats', [CmsController::class, 'saveStats']);
+            });
+
+            // Payments: prices, orders, refunds, discount codes, entities, finance (Phase 16)
+            Route::middleware('feature:payments')->group(function () {
+                Route::middleware('permission:pricing.manage')->group(function () {
+                    Route::get('groups/{group}/price-list', [PaymentsAdminController::class, 'priceList'])->whereUuid('group');
+                    Route::put('groups/{group}/price-list', [PaymentsAdminController::class, 'savePriceList'])->whereUuid('group');
+                    Route::delete('groups/{group}/price-list', [PaymentsAdminController::class, 'deletePriceList'])->whereUuid('group');
+                    Route::get('programs/{program}/price-list', [PaymentsAdminController::class, 'priceList']);
+                    Route::put('programs/{program}/price-list', [PaymentsAdminController::class, 'savePriceList']);
+                    Route::delete('programs/{program}/price-list', [PaymentsAdminController::class, 'deletePriceList']);
+                    Route::get('discount-codes', [PaymentsAdminController::class, 'codes']);
+                    Route::post('discount-codes', [PaymentsAdminController::class, 'saveCode']);
+                    Route::put('discount-codes/{discountCode}', [PaymentsAdminController::class, 'saveCode']);
+                    Route::get('payment-settings', [PaymentsAdminController::class, 'settings']);
+                    Route::put('payment-settings', [PaymentsAdminController::class, 'saveSettings']);
+                });
+                Route::middleware('permission:orders.view')->group(function () {
+                    Route::get('orders', [PaymentsAdminController::class, 'orders']);
+                    Route::get('payments', [PaymentsAdminController::class, 'payments']);
+                    Route::get('refunds', [PaymentsAdminController::class, 'refundQueue']);
+                    Route::get('orders/{shopOrder}/invoice', [ShopController::class, 'invoice']);
+                    Route::get('refunds/{shopRefund}/credit-note', [ShopController::class, 'creditNote']);
+                    Route::get('payment-reconciliations', [PaymentsAdminController::class, 'reconciliations']);
+                });
+                Route::post('refunds/{shopRefund}/decision', [PaymentsAdminController::class, 'decideRefund'])->middleware('permission:refunds.approve');
+                Route::post('payment-reconciliations/run', [PaymentsAdminController::class, 'reconcile'])->middleware(['permission:refunds.approve|finance.reports', 'throttle:6,1']);
+                Route::middleware('permission:entity_accounts.manage')->group(function () {
+                    Route::get('entity-accounts', [PaymentsAdminController::class, 'entities']);
+                    Route::post('entity-accounts', [PaymentsAdminController::class, 'saveEntity']);
+                    Route::put('entity-accounts/{entityAccount}', [PaymentsAdminController::class, 'saveEntity']);
+                });
+                Route::middleware('permission:finance.reports')->group(function () {
+                    Route::get('finance/report', [PaymentsAdminController::class, 'report']);
+                    Route::get('finance/report/{format}', [PaymentsAdminController::class, 'export'])->where('format', 'xlsx|pdf|csv');
+                });
             });
 
             // AI: settings, drafts, adaptive rules, forecasts (Phase 15)

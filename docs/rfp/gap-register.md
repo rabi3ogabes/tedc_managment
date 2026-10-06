@@ -408,14 +408,14 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 16 — Course Purchasing & Payments  (4)
 
-- [ ] **PAY-01** — Browse catalogue, add courses to a cart, check out  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PAY-02** — Pay through the Ministry e-payment gateway  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PAY-03** — Entities buy course bundles for their staff  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PAY-04** — Paid / free pricing per trainee category  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **PAY-01** — Browse catalogue, add courses to a cart, check out  
+  _Now:_ ✅ Available — Catalogue prices, cart with seat holds, discount codes, VAT, checkout, invoices, receipts, orders and refund requests (web and app). Phase 16.
+- [x] **PAY-02** — Pay through the Ministry e-payment gateway  
+  _Now:_ 🟡 Partial — Hosted-page redirect with signed server-to-server callback (idempotent), refunds, reconciliation, training gateway; the Ministry gateway's real specification is assumed and has been tested against a mock only. Phase 16.
+- [x] **PAY-03** — Entities buy course bundles for their staff  
+  _Now:_ ✅ Available — Entity accounts buy seats, receive vouchers, assign them by employee number or e-mail, staff redeem them (eligibility checked); expiry, reminders, usage dashboard. Phase 16.
+- [x] **PAY-04** — Paid / free pricing per trainee category  
+  _Now:_ ✅ Available — Price lists per group or programme with ordered rules per trainee category (free for ministry staff, paid for others, per-seat for entities), preview as each category. Phase 16.
 
 ### Phase 17 — Azure Qatar, Security & Compliance  (19)
 
@@ -830,10 +830,10 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| PAY-01 | Browse catalogue, add courses to a cart, check out | 🔴 Missing | Not available. | 16 |
-| PAY-02 | Pay through the Ministry e-payment gateway | 🔴 Missing | Not available. | 16 |
-| PAY-03 | Entities buy course bundles for their staff | 🔴 Missing | Not available. | 16 |
-| PAY-04 | Paid / free pricing per trainee category | 🔴 Missing | Not available. | 16 |
+| PAY-01 | Browse catalogue, add courses to a cart, check out | ✅ Available | Catalogue prices, cart with seat holds, discount codes, VAT, checkout, invoices, receipts, orders and refund requests (web and app). Phase 16. | — |
+| PAY-02 | Pay through the Ministry e-payment gateway | 🟡 Partial | Hosted-page redirect with signed server-to-server callback (idempotent), refunds, reconciliation, training gateway; the Ministry gateway's real specification is assumed and has been tested against a mock only. Phase 16. | 16 |
+| PAY-03 | Entities buy course bundles for their staff | ✅ Available | Entity accounts buy seats, receive vouchers, assign them by employee number or e-mail, staff redeem them (eligibility checked); expiry, reminders, usage dashboard. Phase 16. | — |
+| PAY-04 | Paid / free pricing per trainee category | ✅ Available | Price lists per group or programme with ordered rules per trainee category (free for ministry staff, paid for others, per-seat for entities), preview as each category. Phase 16. | — |
 
 ### COL · Phase 2 · Collaboration & Knowledge Sharing — المرحلة الثانية · التعاون والتواصل المعرفي
 

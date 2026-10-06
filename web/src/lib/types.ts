@@ -50,7 +50,9 @@ export type Session = {
   attendance_count?: number
 }
 
+export type Pricing = { paid: boolean; free_for_you: boolean; price: number; from: number; to: number; currency: string; groups?: Record<string, { group_id: string; paid: boolean; free_for_you: boolean; price: number; currency: string; category: string }> }
 export type Program = {
+  pricing?: Pricing | null
   external_platform?: { name: string; provider?: string } | null
   id: string; code: string; title: string; title_ar: string; title_en: string; summary?: string | null; summary_ar?: string | null; summary_en?: string | null
   description?: string | null; description_ar?: string | null; description_en?: string | null; objectives: string[]

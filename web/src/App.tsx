@@ -89,6 +89,12 @@ const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
 const GamificationStudio = lazy(() => import('@/pages/admin/GamificationStudio'))
 const AdaptiveRules = lazy(() => import('@/pages/admin/AdaptiveRules'))
+const PriceLists = lazy(() => import('@/pages/admin/PriceLists'))
+const PaymentsAdmin = lazy(() => import('@/pages/admin/PaymentsAdmin'))
+const MyOrders = lazy(() => import('@/pages/portal/MyOrders'))
+const EntityPortal = lazy(() => import('@/pages/portal/EntityPortal'))
+const PaymentReturn = lazy(() => import('@/pages/PaymentReturn'))
+const PaymentFake = lazy(() => import('@/pages/PaymentFake'))
 const ForecastRisks = lazy(() => import('@/pages/admin/ForecastRisks'))
 const Certificates = lazy(() => import('@/pages/admin/Certificates'))
 const CertificateTemplates = lazy(() => import('@/pages/admin/certificates/Templates'))
@@ -145,6 +151,8 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="programs" element={<Programs />} />
           <Route path="programs/:code" element={<ProgramDetail />} />
+          <Route path="payments/return" element={<PaymentReturn />} />
+          <Route path="payments/fake/:ref" element={<PaymentFake />} />
           <Route path="trainers" element={<Trainers />} />
           <Route path="join/:slug" element={<JoinForm />} />
           <Route path="activate" element={<Activate />} />
@@ -199,6 +207,8 @@ export default function App() {
           <Route path="programs/:id/edit" element={<ProgramEditor />} />
           <Route path="programs/:id/adaptive" element={<RequireAuth permission="adaptive.manage"><AdaptiveRules /></RequireAuth>} />
           <Route path="forecasts" element={<RequireAuth permission="ai.forecasts.view"><ForecastRisks /></RequireAuth>} />
+          <Route path="programs/:id/pricing" element={<RequireAuth permission="pricing.manage"><PriceLists /></RequireAuth>} />
+          <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="needs" element={<TrainingNeeds />} />
@@ -266,6 +276,8 @@ export default function App() {
           <Route path="communities/:id" element={<SpaceView />} />
           <Route path="achievements" element={<Achievements />} />
           <Route path="questions" element={<MyQuestions />} />
+          <Route path="orders" element={<MyOrders />} />
+          <Route path="entity" element={<EntityPortal />} />
           <Route path="security" element={<AccountSecurity />} />
         </Route>
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Payments\SeatHolds;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -116,7 +117,7 @@ class TrainingGroup extends Model
 
     public function seatsAvailable(): int
     {
-        return max(0, $this->capacity - $this->seatsTaken());
+        return max(0, $this->capacity - $this->seatsTaken() - SeatHolds::active($this->id));
     }
 
     public function isRegistrationOpen(): bool

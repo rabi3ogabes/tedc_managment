@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api/api_client.dart';
@@ -31,6 +32,22 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
       ref.invalidate(getProvider('/me/registrations'));
       ref.invalidate(getProvider('/me/home'));
       if (mounted) showSnack(context, context.tr('programs.registeredOk'));
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
+    } finally {
+      if (mounted) setState(() => _registering = false);
+    }
+  }
+
+  Future<void> _addToCart(String groupId) async {
+    setState(() => _registering = true);
+    try {
+      await ref.read(apiProvider).post('/me/cart/items', {'group_id': groupId});
+      ref.invalidate(getProvider('/me/cart'));
+      if (mounted) {
+        showSnack(context, context.tr('shop.addedToCart'));
+        context.push('/cart');
+      }
     } catch (e) {
       if (mounted) showSnack(context, ApiException.from(e).message, error: true);
     } finally {
@@ -134,6 +151,12 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                         )
                       else if (e['registration_open'] != true)
                         OutlinedButton(onPressed: null, child: Text(s.t('programs.closed')))
+                      else if (p.obj('pricing')?.flag('paid') ?? false)
+                        FilledButton(
+                          onPressed: e['eligible'] == true && !_registering && groups.isNotEmpty ? () => _addToCart(_groupId ?? groups.first.str('id')) : null,
+                          style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+                          child: _registering ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)) : Text('${s.t('shop.addToCart')} · ${p.obj('pricing')!.number('price').toStringAsFixed(2)} ${s.t('shop.qar')}'),
+                        )
                       else
                         FilledButton(
                           onPressed: e['eligible'] == true && !_registering ? () => _register(p.str('id')) : null,
@@ -165,7 +188,7 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                     Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
-                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${session.number('sequence')}', style: const TextStyle(color: AppColors.gold300))),
+                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text(session.number('sequence'), style: const TextStyle(color: AppColors.gold300))),
                         title: Text(session.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                         subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}\n${session.str('location')}'),
                         isThreeLine: true,

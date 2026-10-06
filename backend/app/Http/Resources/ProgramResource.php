@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Program;
+use App\Payments\CatalogPricing;
 use App\Services\FileStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -38,6 +39,7 @@ class ProgramResource extends JsonResource
         $seatsTaken = $this->seats_taken ?? null;
 
         return [
+            'pricing' => app(CatalogPricing::class)->forProgram($this->resource, $request->user('api'), ! $this->compact),
             'id' => $this->id,
             'code' => $this->code,
             'title' => $this->translate('title'),

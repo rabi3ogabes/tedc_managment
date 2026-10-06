@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { ProgramCover } from '@/components/public/ProgramCard'
+import AddToCart from '@/components/shop/AddToCart'
+import PriceTag from '@/components/shop/PriceTag'
 import { Avatar, Badge, Button, Card, EligibilityPanel, ErrorState, Progress, StatusBadge } from '@/components/ui'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useGet, useSend } from '@/hooks/useApi'
@@ -107,6 +109,7 @@ export default function ProgramDetail() {
                   <span className="font-bold text-navy-900">{fmt.number(program.seats_available ?? 0)} {t('common.seatsAvailable')}</span>
                 </div>
                 <Progress value={seatsPct} />
+                {program.pricing && (program.pricing.paid || program.pricing.free_for_you) && <div className="mt-4 flex items-center justify-between"><PriceTag pricing={program.pricing} signedIn={!!user} /></div>}
 
                 <div className="mt-6 space-y-4">
                   {!user && <Button to="/login" variant="gold" className="w-full" size="lg">{t('programs.loginToRegister')}</Button>}
@@ -117,6 +120,8 @@ export default function ProgramDetail() {
                         <div className="rounded-xl bg-navy-100/60 p-3 text-center text-sm font-semibold text-navy-800">{t('programs.registered')} — <StatusBadge status={e.registration.status} /></div>
                       ) : !program.registration_open ? (
                         <Button variant="outline" disabled className="w-full">{t('programs.registrationClosed')}</Button>
+                      ) : program.pricing?.paid && e.eligible ? (
+                        <AddToCart program={program} />
                       ) : (
                         <Button variant="gold" size="lg" className="w-full" disabled={!e.eligible} loading={register.isPending}
                           onClick={() => register.mutate(undefined, { onSuccess: () => { setMessage(null); eligibility.refetch() }, onError: (err) => setMessage(errorMessage(err)) })}>

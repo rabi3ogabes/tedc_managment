@@ -52,6 +52,9 @@ class Role extends Model
     /** مسؤول الدعم اللوجستي. */
     public const LOGISTICS_OFFICER = 'logistics_officer';
 
+    /** المسؤول المالي. */
+    public const FINANCE_OFFICER = 'finance_officer';
+
     /** Roles that administer the training center as a whole. */
     public const CENTER_STAFF = [self::SUPER_ADMIN, self::CENTER_ADMIN, self::COORDINATOR];
 

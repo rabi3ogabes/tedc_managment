@@ -127,6 +127,28 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/library'),
                 ),
               ),
+              if (featureOn(ref, 'payments'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('shop.orders'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/orders'),
+                  ),
+                ),
+              if (featureOn(ref, 'payments'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.shopping_cart_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('shop.cart'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/cart'),
+                  ),
+                ),
               if (featureOn(ref, 'ai'))
                 Padding(
                   padding: const EdgeInsets.only(top: 12),

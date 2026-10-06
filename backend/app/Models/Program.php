@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasTranslations;
+use App\Payments\SeatHolds;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -243,7 +244,7 @@ class Program extends Model
 
     public function seatsAvailable(): int
     {
-        return max(0, $this->capacity - $this->seatsTaken());
+        return max(0, $this->capacity - $this->seatsTaken() - SeatHolds::activeForProgram($this->id));
     }
 
     /** Whether trainees can fill in the program survey (evaluation) right now. */

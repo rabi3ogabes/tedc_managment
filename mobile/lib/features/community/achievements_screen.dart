@@ -47,7 +47,7 @@ class AchievementsScreen extends ConsumerWidget {
                       const Icon(Icons.emoji_events_outlined, size: 40, color: AppColors.gold500),
                       const SizedBox(width: 12),
                       Expanded(child: Text('${context.tr('gam.level')} ${level.str('no')} · ${_name(context, level)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                      Text('${p.str('points')}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.navy900)),
+                      Text(p.str('points'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.navy900)),
                     ]),
                     const SizedBox(height: 12),
                     LinearProgressIndicator(value: progress, minHeight: 8, borderRadius: BorderRadius.circular(8), color: AppColors.gold500),

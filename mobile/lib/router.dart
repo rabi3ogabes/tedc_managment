@@ -15,6 +15,7 @@ import 'features/community/assistant_screen.dart';
 import 'features/community/community_screens.dart';
 import 'features/community/questions_screen.dart';
 import 'features/events/events_screen.dart';
+import 'features/shop/shop_screens.dart';
 import 'features/library/library_screen.dart';
 import 'features/reports/my_reports_screen.dart';
 import 'features/support/report_problem_screen.dart';
@@ -96,6 +97,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-questions', builder: (_, _) => const QuestionsScreen()),
           GoRoute(path: '/achievements', builder: (_, _) => const AchievementsScreen()),
           GoRoute(path: '/assistant', builder: (_, _) => const AssistantScreen()),
+          GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+          GoRoute(path: '/orders', builder: (_, _) => const OrdersScreen()),
           GoRoute(path: '/notification-preferences', builder: (_, _) => const NotificationPrefsScreen()),
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),

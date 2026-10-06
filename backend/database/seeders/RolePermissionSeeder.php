@@ -143,6 +143,11 @@ class RolePermissionSeeder extends Seeder
         'ratings.moderate' => ['collaboration', 'الإشراف على التقييمات والمراجعات', 'Moderate ratings and reviews'],
         'gamification.manage' => ['collaboration', 'إدارة التحفيز (النقاط والشارات والتحديات)', 'Manage gamification (points, badges, challenges)'],
         'rewards.manage' => ['collaboration', 'إدارة المكافآت', 'Manage rewards'],
+        'pricing.manage' => ['payments', 'إدارة الأسعار وسياسة الاسترداد', 'Manage prices and the refund policy'],
+        'orders.view' => ['payments', 'عرض الطلبات والمدفوعات', 'View orders and payments'],
+        'refunds.approve' => ['payments', 'الموافقة على طلبات الاسترداد', 'Approve refund requests'],
+        'entity_accounts.manage' => ['payments', 'إدارة حسابات الجهات', 'Manage entity accounts'],
+        'finance.reports' => ['payments', 'التقارير المالية', 'Financial reports'],
         'ai.settings' => ['ai', 'إعدادات الذكاء الاصطناعي والخصوصية', 'AI settings, privacy and logs'],
         'ai.forecasts.view' => ['ai', 'عرض التوقعات والمخاطر', 'View forecasts and risks'],
         'ai.feedback.review' => ['ai', 'مراجعة مسودات الملاحظات الذكية', 'Review AI feedback drafts'],
@@ -160,7 +165,7 @@ class RolePermissionSeeder extends Seeder
     public const LANDING = [
         Role::SUPER_ADMIN => '/admin', Role::CENTER_ADMIN => '/admin', Role::COORDINATOR => '/admin', Role::TRAINING_HEAD => '/admin',
         Role::CENTER_LEADERSHIP => '/admin/executive', Role::EXECUTIVE => '/admin/executive', Role::PLANNING_HEAD => '/admin', Role::PLANNING_SPECIALIST => '/admin',
-        Role::LOGISTICS_OFFICER => '/admin/rooms', Role::KIT_DEVELOPER => '/admin/kits', Role::QA_REVIEWER => '/admin/kits', Role::TRAINER => '/admin/programs',
+        Role::LOGISTICS_OFFICER => '/admin/rooms', Role::FINANCE_OFFICER => '/admin/finance', Role::KIT_DEVELOPER => '/admin/kits', Role::QA_REVIEWER => '/admin/kits', Role::TRAINER => '/admin/programs',
         Role::SCHOOL_ADMIN => '/admin', Role::ACADEMIC_DEPUTY => '/admin', Role::SUPERVISOR => '/portal', Role::EMPLOYEE => '/portal',
     ];
 
@@ -180,6 +185,7 @@ class RolePermissionSeeder extends Seeder
             'passing.manage', 'tasks.final_approve',
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
+            'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
@@ -205,6 +211,7 @@ class RolePermissionSeeder extends Seeder
             'passing.manage', 'tasks.final_approve', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
+            'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports', 'refunds.approve',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -223,6 +230,9 @@ class RolePermissionSeeder extends Seeder
         Role::PLANNING_SPECIALIST => ['أخصائي التخطيط', 'Planning Specialist', 58, [
             'paths.manage', 'pd.recognise', 'evaluation_reports.prepare', 'evaluations.respond_planning', 'interviews.manage', 'dashboard.view', 'schools.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'reports.view', 'plans.view', 'plans.manage', 'search.global',
             'needs.cycles', 'competencies.manage', 'gaps.view',
+        ]],
+        Role::FINANCE_OFFICER => ['المسؤول المالي', 'Finance Officer', 53, [
+            'dashboard.view', 'orders.view', 'refunds.approve', 'finance.reports', 'pricing.manage', 'entity_accounts.manage', 'programs.view', 'calendar.view', 'search.global',
         ]],
         Role::LOGISTICS_OFFICER => ['مسؤول الدعم اللوجستي', 'Logistics Support Officer', 52, [
             'dashboard.view', 'programs.view', 'calendar.view', 'rooms.manage', 'rooms.book', 'logistics.manage', 'search.global',
@@ -309,5 +319,7 @@ class RolePermissionSeeder extends Seeder
         'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
         // Phase 15
         'ai.settings', 'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
+        // Phase 16
+        'pricing.manage', 'orders.view', 'refunds.approve', 'entity_accounts.manage', 'finance.reports',
     ];
 }

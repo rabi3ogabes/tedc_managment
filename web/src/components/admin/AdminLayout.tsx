@@ -15,6 +15,7 @@ import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { useGet } from '@/hooks/useApi'
 import AssistantPanel from '@/components/ai/AssistantPanel'
+import CartDrawer from '@/components/shop/CartDrawer'
 import { useFeatures } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
@@ -85,6 +86,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
           { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
           { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
+          { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments' },
+          { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
@@ -133,6 +136,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/migration', label: t('idn.navMigration'), icon: PackageOpen, permission: 'migration.run' },
           { to: '/admin/security-policy', label: t('idn.navSecurityAdmin'), icon: Shield, permission: 'security.policy|sessions.manage' },
           { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
+          { to: '/admin/finance', label: t('pay.nav.finance'), icon: Wallet, permission: 'orders.view|pricing.manage|finance.reports|entity_accounts.manage', feature: 'payments' },
           { to: '/admin/forecasts', label: t('aix.nav.forecasts'), icon: LineChart, permission: 'ai.forecasts.view', feature: 'ai' },
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
           { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
@@ -284,6 +288,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setSearchOpen(true)} aria-label={t('search.title')} className="inline-flex items-center gap-2 rounded-xl p-2 text-navy-800 hover:bg-navy-100/60 sm:border sm:border-navy-100 sm:bg-white sm:px-3 sm:py-1.5"><Search className="size-4" /><span className="hidden text-xs text-slate-400 sm:inline">{t('search.button')}</span><kbd className="hidden rounded bg-navy-100/70 px-1.5 font-mono text-[10px] text-slate-500 sm:inline" dir="ltr">Ctrl K</kbd></button>
               <LanguageToggle />
+              <CartDrawer />
               <Link to="/portal/notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
                 <Bell className="size-5" />
                 {unreadCount > 0 && <span className={clsx('absolute -end-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-navy-950', pulse && 'animate-bounce')}>{unreadCount}</span>}

@@ -24,6 +24,8 @@ Schedule::command('tedc:deliver-notifications')->everyMinute()->withoutOverlappi
 Schedule::command('tedc:announcements-tick')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:ministry-push')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('tedc:stats-refresh')->everyTenMinutes()->withoutOverlapping();
+Schedule::command('tedc:payments-tick')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:payments-daily')->dailyAt('03:15')->withoutOverlapping();
 Schedule::command('tedc:ai-nightly')->dailyAt('02:30')->withoutOverlapping();
 Schedule::command('tedc:social-tick')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:kpi-collect')->everyFiveMinutes()->withoutOverlapping();

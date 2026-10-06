@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { Badge, Button, ErrorState, PageHeader, Spinner, StatusBadge, Tabs } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { useFeature } from '@/hooks/useFeature'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
@@ -32,6 +33,7 @@ export default function ProgramManage() {
   const { id } = useParams()
   const { t } = useTranslation()
   const { can } = useAuth()
+  const payments = useFeature('payments')
   const [search] = useSearchParams()
   const [tab, setTab] = useState<Tab>((search.get('tab') as Tab | null) ?? 'participants')
   const [notice, setNotice] = useState<string | null>(null)
@@ -57,6 +59,7 @@ export default function ProgramManage() {
         actions={<>
           {can('reports.view') && <Button variant="outline" icon={<FileSpreadsheet className="size-4" />} onClick={() => downloadFile(`/admin/reports/programs/${p.id}`, `program-${p.code}.xlsx`)}>{t('admin.programs.exportReport')}</Button>}
           {can('certificates.issue') && <Button variant="outline" icon={<Award className="size-4" />} onClick={issueAll}>{t('admin.programs.issueAll')}</Button>}
+          {can('pricing.manage') && payments && <Button variant="outline" to={`/admin/programs/${p.id}/pricing`}>{t('pay.nav.pricing')}</Button>}
           {can('programs.manage') && <Button to={`/admin/programs/${p.id}/edit`} icon={<Pencil className="size-4" />}>{t('common.edit')}</Button>}
         </>}
       />

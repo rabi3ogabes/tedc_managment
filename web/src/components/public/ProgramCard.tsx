@@ -2,8 +2,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, Clock, MapPin, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import PriceTag from '@/components/shop/PriceTag'
 import { StatusBadge } from '@/components/ui'
 import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 
@@ -39,6 +41,7 @@ export function ProgramCover({ program, className = 'h-44', labels = true }: { p
 export default function ProgramCard({ program }: { program: Program }) {
   const { t, i18n } = useTranslation()
   const qc = useQueryClient()
+  const { user } = useAuth()
   // Warm the detail page while the pointer is on its way, so the click feels instant.
   const prefetch = () => {
     const url = `/public/programs/${program.code}`
@@ -51,6 +54,7 @@ export default function ProgramCard({ program }: { program: Program }) {
         <div className="mb-2 flex items-center gap-2">
           <StatusBadge status={program.status} />
           <span className="text-xs text-slate-400">{t(`levels.${program.level}`)}</span>
+          <span className="ms-auto"><PriceTag pricing={program.pricing} signedIn={!!user} /></span>
         </div>
         <h3 className="text-lg font-bold leading-snug text-navy-900 transition group-hover:text-link">{program.title}</h3>
         {program.summary && <p className="mt-2 line-clamp-2 text-sm text-slate-500">{program.summary}</p>}
