@@ -213,10 +213,11 @@ class KpiService
         if ($employees === 0) {
             return ['value' => 100.0, 'meta' => ['employees' => 0]];
         }
-        $fields = ['employee_no', 'school_id', 'job_title_id', 'gender'];
+        $fields = ['employee_no' => true, 'school_id' => false, 'job_title_id' => false, 'gender' => true];   // field => is text (ids cannot be compared with an empty string)
         $filled = 0;
-        foreach ($fields as $f) {
-            $filled += DB::table('employees')->whereNotNull($f)->where($f, '<>', '')->count();
+        foreach ($fields as $f => $text) {
+            $q = DB::table('employees')->whereNotNull($f);
+            $filled += ($text ? $q->where($f, '<>', '') : $q)->count();
         }
         $users = DB::table('users')->join('employees', 'employees.user_id', '=', 'users.id');
         $userFilled = (clone $users)->whereNotNull('users.email')->count() + (clone $users)->whereNotNull('users.name')->count();

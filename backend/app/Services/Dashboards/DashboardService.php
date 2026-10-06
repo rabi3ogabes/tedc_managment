@@ -292,15 +292,18 @@ class DashboardService
         return ['items' => $rows->map(fn ($x) => ['title' => ['ar' => $x->name, 'en' => $x->name], 'subtitle' => $x->title_ar.' · '.round($x->pct).'%'])->all()];
     }
 
-    private function me(User $u): ?string
+    /** An id that matches nothing, for people without an employee record (a uuid column rejects an empty string). */
+    private const NIL = '00000000-0000-0000-0000-000000000000';
+
+    private function me(User $u): string
     {
-        return $u->employee?->id;
+        return $u->employee?->id ?? self::NIL;
     }
 
     private function w_my_upcoming(User $u, AccessScope $s, array $r): array
     {
         $rows = DB::table('program_sessions as ps')->join('programs as p', 'p.id', '=', 'ps.program_id')->where('ps.starts_at', '>=', now())
-            ->whereExists(fn ($w) => $w->select(DB::raw(1))->from('registrations as rr')->whereColumn('rr.program_id', 'ps.program_id')->where('rr.employee_id', $this->me($u) ?? '')->whereIn('rr.status', ['approved', 'completed']))
+            ->whereExists(fn ($w) => $w->select(DB::raw(1))->from('registrations as rr')->whereColumn('rr.program_id', 'ps.program_id')->where('rr.employee_id', $this->me($u))->whereIn('rr.status', ['approved', 'completed']))
             ->orderBy('ps.starts_at')->limit(6)->get(['ps.title_ar', 'ps.title_en', 'ps.starts_at', 'p.title_ar as program_ar', 'p.title_en as program_en']);
 
         return ['items' => $rows->map(fn ($x) => ['title' => ['ar' => $x->title_ar ?: $x->program_ar, 'en' => $x->title_en ?: $x->program_en], 'subtitle' => substr((string) $x->starts_at, 0, 16)])->all()];
@@ -308,7 +311,7 @@ class DashboardService
 
     private function w_my_progress(User $u, AccessScope $s, array $r): array
     {
-        $rows = DB::table('registrations as r')->join('programs as p', 'p.id', '=', 'r.program_id')->where('r.employee_id', $this->me($u) ?? '')->where('r.status', 'approved')->orderByDesc('r.updated_at')->limit(6)->get(['p.title_ar', 'p.title_en', 'r.course_percent', 'r.attendance_percent']);
+        $rows = DB::table('registrations as r')->join('programs as p', 'p.id', '=', 'r.program_id')->where('r.employee_id', $this->me($u))->where('r.status', 'approved')->orderByDesc('r.updated_at')->limit(6)->get(['p.title_ar', 'p.title_en', 'r.course_percent', 'r.attendance_percent']);
 
         return ['items' => $rows->map(fn ($x) => ['title' => ['ar' => $x->title_ar, 'en' => $x->title_en], 'subtitle' => round((float) $x->course_percent).'%', 'percent' => (float) $x->course_percent])->all()];
     }
@@ -326,14 +329,14 @@ class DashboardService
 
     private function w_my_certificates(User $u, AccessScope $s, array $r): array
     {
-        $q = DB::table('certificates')->where('employee_id', $this->me($u) ?? '')->where('status', 'valid');
+        $q = DB::table('certificates')->where('employee_id', $this->me($u))->where('status', 'valid');
 
         return $this->kpis([['total', 'إجمالي الشهادات', 'Certificates', (clone $q)->count()], ['year', 'هذا العام', 'This year', (clone $q)->whereBetween('issued_at', [now()->startOfYear(), now()])->count()], ['hours', 'ساعات', 'Hours', (float) (clone $q)->sum('hours')]]);
     }
 
     private function w_my_tasks(User $u, AccessScope $s, array $r): array
     {
-        $eid = $this->me($u) ?? '';
+        $eid = $this->me($u);
         $tasks = DB::table('tasks as t')->join('registrations as r', fn ($j) => $j->on('r.program_id', '=', 't.program_id')->where('r.employee_id', $eid)->where('r.status', 'approved'))
             ->whereNotExists(fn ($w) => $w->select(DB::raw(1))->from('task_submissions as ts')->whereColumn('ts.task_id', 't.id')->where('ts.employee_id', $eid))->count();
 
@@ -343,7 +346,7 @@ class DashboardService
     private function w_recommendations(User $u, AccessScope $s, array $r): array
     {
         $rows = DB::table('training_groups as g')->join('programs as p', 'p.id', '=', 'g.program_id')->where('g.status', 'registration_open')->whereNull('g.deleted_at')->whereNotNull('g.published_at')
-            ->whereNotExists(fn ($w) => $w->select(DB::raw(1))->from('registrations as rr')->whereColumn('rr.program_id', 'g.program_id')->where('rr.employee_id', $this->me($u) ?? ''))
+            ->whereNotExists(fn ($w) => $w->select(DB::raw(1))->from('registrations as rr')->whereColumn('rr.program_id', 'g.program_id')->where('rr.employee_id', $this->me($u)))
             ->orderBy('g.start_date')->limit(5)->get(['p.title_ar', 'p.title_en', 'g.start_date']);
 
         return ['items' => $rows->map(fn ($x) => ['title' => ['ar' => $x->title_ar, 'en' => $x->title_en], 'subtitle' => (string) $x->start_date])->all()];
@@ -434,7 +437,7 @@ class DashboardService
     private function w_my_trainer_courses(User $u, AccessScope $s, array $r): array
     {
         $tid = DB::table('trainers')->where('user_id', $u->id)->value('id');
-        $rows = DB::table('group_trainers as gt')->join('training_groups as g', 'g.id', '=', 'gt.group_id')->join('programs as p', 'p.id', '=', 'g.program_id')->where('gt.trainer_id', $tid ?? '')->whereIn('g.status', ['planned', 'registration_open', 'ongoing'])
+        $rows = DB::table('group_trainers as gt')->join('training_groups as g', 'g.id', '=', 'gt.group_id')->join('programs as p', 'p.id', '=', 'g.program_id')->where('gt.trainer_id', $tid ?? self::NIL)->whereIn('g.status', ['planned', 'registration_open', 'ongoing'])
             ->selectRaw("g.code, p.title_ar, g.status, g.start_date, (select count(*) from registrations x where x.training_group_id = g.id and x.status in ('pending','approved','completed')) as taken")->orderBy('g.start_date')->limit(10)->get();
 
         return ['columns' => [['key' => 'group', 'label' => ['ar' => 'المجموعة', 'en' => 'Group']], ['key' => 'status', 'label' => ['ar' => 'الحالة', 'en' => 'Status']], ['key' => 'seats', 'label' => ['ar' => 'المتدربون', 'en' => 'Trainees']]],
