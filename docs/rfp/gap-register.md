@@ -275,30 +275,30 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 11 — Notifications, Announcements & CMS  (12)
 
-- [ ] **HOM-01** — Add / edit / delete news, activities and events  
-  _Now:_ 🟡 Partial — Announcements support news, announcement, circular; no “event” type (date, venue, registration).
-- [ ] **HOM-03** — Export news / events to the Ministry website (API or file)  
-  _Now:_ 🔴 Missing — No outbound feed or API.
-- [ ] **HOM-04** — Fully dynamic homepage editable by admin (texts, images, links, ads)  
-  _Now:_ 🟡 Partial — Brand Studio edits slider, banners, colours; Labels Manager edits wording; no block-based homepage editor.
-- [ ] **HOM-05** — Dynamic public statistics (users, courses, centre-defined figures)  
-  _Now:_ 🟡 Partial — Live users / courses counters; centre-defined custom statistics are not configurable.
-- [ ] **NTF-03** ★ — SMS through the Hudhud system  
-  _Now:_ 🟡 Partial — Twilio, Unifonic and custom-HTTP providers; no Hudhud adapter.
-- [ ] **NTF-05** ★ — Target by user type, job title, program, school  
-  _Now:_ 🟡 Partial — Program / role audiences; no school or job-title targeting.
-- [ ] **NTF-06** — Scheduled notifications and allowed send times / days  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **NTF-09** — Sound or visual alert on a new notification  
-  _Now:_ 🟡 Partial — Visual badge; no sound.
-- [ ] **NTF-10** — Enable / disable types per user category; rules per program  
-  _Now:_ 🟡 Partial — Global per-template switch only.
-- [ ] **NTF-12** — Delivery status sent / read / failed; export PDF / Excel  
-  _Now:_ 🟡 Partial — Deliveries tracked; CSV export only.
-- [ ] **NTF-13** — Announcements: start/end window, several at once, pin, archive, republish, search  
-  _Now:_ 🟡 Partial — Publish date only.
-- [ ] **NTF-14** ★ — Multimedia announcements (link, video, audio, text, image)  
-  _Now:_ 🟡 Partial — Link, video and file; no audio type.
+- [x] **HOM-01** — Add / edit / delete news, activities and events  
+  _Now:_ ✅ Available — News, circulars, activities and events managed in one board; events have date, venue, online and registration links, capacity, in-platform RSVP with waiting list, reminders, public events page and ICS calendar (Phase 11).
+- [x] **HOM-03** — Export news / events to the Ministry website (API or file)  
+  _Now:_ ✅ Available — Public JSON, RSS, Atom and CSV feeds (only items flagged for export), manual export files, and an automatic push adapter with retries, log and failure alerts. The push needs the Ministry site's real endpoint and key (Phase 11).
+- [x] **HOM-04** — Fully dynamic homepage editable by admin (texts, images, links, ads)  
+  _Now:_ ✅ Available — Block-based homepage and About editor (hero, statistics, programs, news, events, rich text, call to action, logos, FAQ, video, safe HTML) with visibility windows, audience, live desktop/phone preview in both languages, versioned publish and restore; the built-in design stays until the first publish (Phase 11).
+- [x] **HOM-05** — Dynamic public statistics (users, courses, centre-defined figures)  
+  _Now:_ ✅ Available — Public statistics from built-in sources (users, programs, groups held, certificates, hours, schools) or values and named indicators the centre defines; cached and refreshed every ten minutes (Phase 11).
+- [x] **NTF-03** ★ — SMS through the Hudhud system  
+  _Now:_ 🟡 Partial — Hudhud driver with Arabic UCS-2 encoding, signed delivery-receipt webhook, test button, per-event SMS switches (Phase 11). The request/receipt shape follows a configurable assumption (base URL, path, key or user, receipt secret) and must be matched to the Ministry's Hudhud interface document before go-live.
+- [x] **NTF-05** ★ — Target by user type, job title, program, school  
+  _Now:_ ✅ Available — Audience builder: roles, job titles, schools, school groups, program participants (by registration status), trainers, supervisors, named people; live count and sample; senders only reach their own scope (Phase 11).
+- [x] **NTF-06** — Scheduled notifications and allowed send times / days  
+  _Now:_ ✅ Available — One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11).
+- [x] **NTF-09** — Sound or visual alert on a new notification  
+  _Now:_ 🟡 Partial — Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11).
+- [x] **NTF-10** — Enable / disable types per user category; rules per program  
+  _Now:_ ✅ Available — Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11).
+- [x] **NTF-12** — Delivery status sent / read / failed; export PDF / Excel  
+  _Now:_ ✅ Available — Delivery tracking per person and channel (queued, sent, delivered, read, failed, skipped, with reasons), filters, drill-down by campaign, donut summary, Excel and PDF export in Arabic and English (Phase 11).
+- [x] **NTF-13** — Announcements: start/end window, several at once, pin, archive, republish, search  
+  _Now:_ ✅ Available — Announcement lifecycle draft, scheduled, published, expired, archived with display window, several live at once, ordered pinning, searchable archive, republish with media copied and window reset, push/e-mail on publish (Phase 11).
+- [x] **NTF-14** ★ — Multimedia announcements (link, video, audio, text, image)  
+  _Now:_ ✅ Available — Announcements carry images, video, audio (player on web and mobile), files and links; audience filters; optional push and e-mail (Phase 11).
 
 ### Phase 12 — Reports, Dashboards & KPIs  (12)
 
@@ -502,11 +502,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| HOM-01 | Add / edit / delete news, activities and events | 🟡 Partial | Announcements support news, announcement, circular; no “event” type (date, venue, registration). | 11 |
+| HOM-01 | Add / edit / delete news, activities and events | ✅ Available | News, circulars, activities and events managed in one board; events have date, venue, online and registration links, capacity, in-platform RSVP with waiting list, reminders, public events page and ICS calendar (Phase 11). | — |
 | HOM-02 | Signed-in users see news and events | ✅ Available | Public news pages and portal notification centre. | — |
-| HOM-03 | Export news / events to the Ministry website (API or file) | 🔴 Missing | No outbound feed or API. | 11 |
-| HOM-04 | Fully dynamic homepage editable by admin (texts, images, links, ads) | 🟡 Partial | Brand Studio edits slider, banners, colours; Labels Manager edits wording; no block-based homepage editor. | 11 |
-| HOM-05 | Dynamic public statistics (users, courses, centre-defined figures) | 🟡 Partial | Live users / courses counters; centre-defined custom statistics are not configurable. | 11 |
+| HOM-03 | Export news / events to the Ministry website (API or file) | ✅ Available | Public JSON, RSS, Atom and CSV feeds (only items flagged for export), manual export files, and an automatic push adapter with retries, log and failure alerts. The push needs the Ministry site's real endpoint and key (Phase 11). | — |
+| HOM-04 | Fully dynamic homepage editable by admin (texts, images, links, ads) | ✅ Available | Block-based homepage and About editor (hero, statistics, programs, news, events, rich text, call to action, logos, FAQ, video, safe HTML) with visibility windows, audience, live desktop/phone preview in both languages, versioned publish and restore; the built-in design stays until the first publish (Phase 11). | — |
+| HOM-05 | Dynamic public statistics (users, courses, centre-defined figures) | ✅ Available | Public statistics from built-in sources (users, programs, groups held, certificates, hours, schools) or values and named indicators the centre defines; cached and refreshed every ten minutes (Phase 11). | — |
 | HOM-06 ★ | Dashboards for every user category, driven by role | 🟡 Partial | Admin, Executive, school-scoped and Employee dashboards; none for Trainer, Supervisor, Academic Deputy, Kit Developer, Planning, Logistics. | 12 |
 
 ### RBA · Roles, Responsibilities & Permissions — الأدوار والمسؤوليات والصلاحيات
@@ -731,18 +731,18 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | NTF-01 ★ | In-app inbox and pop-up notifications | ✅ Available | Notification centre, Supabase realtime, Firebase push. | — |
 | NTF-02 ★ | Email notifications | ✅ Available | SMTP channel. | — |
-| NTF-03 ★ | SMS through the Hudhud system | 🟡 Partial | Twilio, Unifonic and custom-HTTP providers; no Hudhud adapter. | 11 |
+| NTF-03 ★ | SMS through the Hudhud system | 🟡 Partial | Hudhud driver with Arabic UCS-2 encoding, signed delivery-receipt webhook, test button, per-event SMS switches (Phase 11). The request/receipt shape follows a configurable assumption (base URL, path, key or user, receipt secret) and must be matched to the Ministry's Hudhud interface document before go-live. | 11 |
 | NTF-04 | Templates with branding and dynamic variables | ✅ Available | Bilingual templates with variables and preview. | — |
-| NTF-05 ★ | Target by user type, job title, program, school | 🟡 Partial | Program / role audiences; no school or job-title targeting. | 11 |
-| NTF-06 | Scheduled notifications and allowed send times / days | 🔴 Missing | Not available. | 11 |
+| NTF-05 ★ | Target by user type, job title, program, school | ✅ Available | Audience builder: roles, job titles, schools, school groups, program participants (by registration status), trainers, supervisors, named people; live count and sample; senders only reach their own scope (Phase 11). | — |
+| NTF-06 | Scheduled notifications and allowed send times / days | ✅ Available | One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11). | — |
 | NTF-07 ★ | Automatic event-driven notifications | ✅ Available | Event catalogue + scheduler jobs. | — |
 | NTF-08 | Manual notifications by admins | ✅ Available | Send dialog with audience picker. | — |
-| NTF-09 | Sound or visual alert on a new notification | 🟡 Partial | Visual badge; no sound. | 11 |
-| NTF-10 | Enable / disable types per user category; rules per program | 🟡 Partial | Global per-template switch only. | 11 |
+| NTF-09 | Sound or visual alert on a new notification | 🟡 Partial | Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11). | 11 |
+| NTF-10 | Enable / disable types per user category; rules per program | ✅ Available | Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11). | — |
 | NTF-11 | Read / unread centre and sent log (recipient, date, type) | ✅ Available | Campaign tracking. | — |
-| NTF-12 | Delivery status sent / read / failed; export PDF / Excel | 🟡 Partial | Deliveries tracked; CSV export only. | 11 |
-| NTF-13 | Announcements: start/end window, several at once, pin, archive, republish, search | 🟡 Partial | Publish date only. | 11 |
-| NTF-14 ★ | Multimedia announcements (link, video, audio, text, image) | 🟡 Partial | Link, video and file; no audio type. | 11 |
+| NTF-12 | Delivery status sent / read / failed; export PDF / Excel | ✅ Available | Delivery tracking per person and channel (queued, sent, delivered, read, failed, skipped, with reasons), filters, drill-down by campaign, donut summary, Excel and PDF export in Arabic and English (Phase 11). | — |
+| NTF-13 | Announcements: start/end window, several at once, pin, archive, republish, search | ✅ Available | Announcement lifecycle draft, scheduled, published, expired, archived with display window, several live at once, ordered pinning, searchable archive, republish with media copied and window reset, push/e-mail on publish (Phase 11). | — |
+| NTF-14 ★ | Multimedia announcements (link, video, audio, text, image) | ✅ Available | Announcements carry images, video, audio (player on web and mobile), files and links; audience filters; optional push and e-mail (Phase 11). | — |
 
 ### KIT · Training Kits & Content Sharing — أرشفة الحقائب التدريبية ومشاركة المحتوى
 

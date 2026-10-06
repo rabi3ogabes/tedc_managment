@@ -8,6 +8,7 @@ use App\Models\JobTitle;
 use App\Models\ProgramCategory;
 use App\Models\Role;
 use App\Models\School;
+use App\Models\SchoolGroup;
 use App\Models\Skill;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
@@ -32,7 +33,7 @@ class CatalogController extends Controller
             'coordinators' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', Role::CENTER_STAFF))->where('status', 'active')->orderBy('name_ar')->get(['id', 'name', 'name_ar']),
             'trainers' => Trainer::where('status', 'active')->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'schools' => School::orderBy('name_ar')->get(['id', 'code', 'name_ar', 'name_en', 'region', 'type', 'stage']),
-            'school_groups' => \App\Models\SchoolGroup::orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
+            'school_groups' => SchoolGroup::orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'roles' => Role::where('slug', '!=', Role::SUPER_ADMIN)->orderBy('level', 'desc')->get(['slug', 'name_ar', 'name_en']),
             'regions' => School::REGIONS,
             'school_types' => School::TYPES,
