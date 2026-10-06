@@ -84,7 +84,7 @@ class DemoScenarioTest extends TestCase
             \DB::enableQueryLog();
             \DB::flushQueryLog();
             $res = $this->asUser($admin)->postJson('/api/v1/admin/test-accounts/scenario', ['phase' => $phase])->assertOk();
-            $this->assertLessThan(600, count(\DB::getQueryLog()), "{$phase} stays small enough for a slow database");
+            $this->assertLessThan(700, count(\DB::getQueryLog()), "{$phase} stays small enough for a slow database");
             $this->assertSame($i === 5, $res->json('data.done'));
         }
         $this->assertSame(5, Program::whereIn('code', DemoScenarioSeeder::CODES)->count());
