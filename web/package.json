@@ -22,7 +22,7 @@
     "i18next": "^26.4.2",
     "jszip": "^3.10.2",
     "leaflet": "^1.9.4",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.51.0",
     "mammoth": "^1.13.0",
     "pdfjs-dist": "^6.3.289",
     "pptxgenjs": "^4.0.1",
