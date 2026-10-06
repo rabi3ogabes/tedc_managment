@@ -40,9 +40,24 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled'] as $param) {
+        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
+        // Domain events for other systems (webhooks / outbox): written only when someone subscribes.
+        \App\Models\Registration::updated(function (\App\Models\Registration $r) {
+            if ($r->wasChanged('status') && in_array($r->status, ['approved', 'completed'], true)) {
+                app(\App\Integrations\EventBus::class)->emit('registration.'.$r->status, ['registration_id' => $r->id, 'program_id' => $r->program_id, 'employee_id' => $r->employee_id, 'status' => $r->status]);
+            }
+        });
+        \App\Models\Certificate::created(fn (\App\Models\Certificate $c) => app(\App\Integrations\EventBus::class)->emit('certificate.issued', ['certificate_id' => $c->id, 'certificate_no' => $c->certificate_no, 'employee_id' => $c->employee_id, 'program_id' => $c->program_id, 'hours' => $c->hours]));
+        \App\Models\Attendance::created(fn (\App\Models\Attendance $a) => app(\App\Integrations\EventBus::class)->emit('attendance.recorded', ['attendance_id' => $a->id, 'employee_id' => $a->employee_id, 'session_id' => $a->program_session_id, 'status' => $a->status, 'minutes' => $a->minutes_attended]));
+        \App\Models\PdActivity::updated(function (\App\Models\PdActivity $p) {
+            if ($p->wasChanged('status') && $p->status === 'approved') {
+                app(\App\Integrations\EventBus::class)->emit('pd.approved', ['activity_id' => $p->id, 'employee_id' => $p->employee_id, 'approved_hours' => $p->approved_hours]);
+            }
+        });
+        \App\Models\ProfessionalLicence::saved(fn (\App\Models\ProfessionalLicence $l) => app(\App\Integrations\EventBus::class)->emit('licence.updated', ['licence_id' => $l->id, 'employee_id' => $l->employee_id, 'status' => $l->status, 'level' => $l->level_no]));
+
         // Native learning activity is recorded as xAPI statements and Caliper events too (packages report their own).
         LessonProgress::saved(function (LessonProgress $p) {
             if (! $p->wasChanged('status') || $p->status !== 'completed') {

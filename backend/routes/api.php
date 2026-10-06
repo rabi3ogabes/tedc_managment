@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
+use App\Http\Controllers\Api\V1\Admin\WebhooksController;
+use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
@@ -185,6 +188,8 @@ Route::prefix('v1')->group(function () {
     });
     // The link in a scheduled report's e-mail: signed and expiring.
     Route::get('report-runs/{run}/download', ReportSignedDownloadController::class)->name('report-runs.signed')->middleware(['signed', 'throttle:30,1']);
+    // Messages from the Ministry systems: signed, idempotent.
+    Route::post('integrations/{key}/inbound', InboundWebhookController::class)->where('key', '[a-z_]+')->middleware('throttle:120,1');
     // Hudhud posts delivery receipts here; the body is signed with the shared secret.
     Route::post('integrations/sms/hudhud/receipt', HudhudReceiptController::class)->middleware('throttle:public');
 
@@ -800,6 +805,27 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            // Integration hub, webhooks and the event bus.
+            Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
+                Route::get('integrations', [IntegrationsController::class, 'index']);
+                Route::get('integrations/{key}/logs', [IntegrationsController::class, 'logs'])->where('key', '[a-z_]+');
+            });
+            Route::middleware('permission:integrations.manage')->group(function () {
+                Route::put('integrations/{key}', [IntegrationsController::class, 'update'])->where('key', '[a-z_]+');
+                Route::post('integrations/{key}/check', [IntegrationsController::class, 'check'])->where('key', '[a-z_]+')->middleware('throttle:20,1');
+                Route::post('integrations/{key}/sync', [IntegrationsController::class, 'sync'])->where('key', '[a-z_]+')->middleware('throttle:6,1');
+            });
+            Route::middleware('permission:webhooks.manage')->group(function () {
+                Route::get('webhooks', [WebhooksController::class, 'index']);
+                Route::post('webhooks', [WebhooksController::class, 'store']);
+                Route::put('webhooks/{subscription}', [WebhooksController::class, 'update']);
+                Route::delete('webhooks/{subscription}', [WebhooksController::class, 'destroy']);
+                Route::post('webhooks/{subscription}/rotate-secret', [WebhooksController::class, 'rotate']);
+                Route::post('webhooks/{subscription}/test', [WebhooksController::class, 'test'])->middleware('throttle:10,1');
+                Route::get('webhook-deliveries', [WebhooksController::class, 'deliveries']);
+                Route::post('webhook-deliveries/{delivery}/replay', [WebhooksController::class, 'replay']);
             });
 
             // Reports: the hub (everyone who can open the admin area sees the reports meant for their role), the builder, schedules, KPIs.

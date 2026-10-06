@@ -30,6 +30,9 @@ return [
     // Reports with more rows than this are produced by the minute job instead of while the person waits.
     'reports' => ['inline_rows' => (int) env('TEDC_REPORT_INLINE_ROWS', 2000)],
 
+    // Integrations: back-off between retries (ms, 0 in tests) and how long call logs are kept.
+    'integrations' => ['backoff_ms' => (int) env('TEDC_INTEGRATION_BACKOFF_MS', 300), 'log_days' => 30],
+
     'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
     /*

@@ -87,6 +87,13 @@ class RolePermissionSeeder extends Seeder
         'packages.manage' => ['programs', 'إدارة حزم المحتوى الإلكتروني', 'Manage e-learning content packages'],
         'lti.manage' => ['programs', 'إدارة أدوات LTI', 'Manage LTI tools'],
         'standards.manage' => ['programs', 'إدارة معايير التعلم الإلكتروني (LRS و Caliper)', 'Manage e-learning standards (LRS, Caliper)'],
+        'integrations.manage' => ['general', 'إدارة التكاملات', 'Manage integrations'],
+        'integrations.logs' => ['general', 'سجلات التكاملات', 'View integration logs'],
+        'webhooks.manage' => ['general', 'إدارة الربط بالأحداث', 'Manage webhooks'],
+        'sso.manage' => ['general', 'إعداد الدخول الموحد', 'Manage single sign-on'],
+        'security.policy' => ['general', 'سياسة الأمان وكلمات المرور', 'Manage the security policy'],
+        'sessions.manage' => ['general', 'إدارة جلسات المستخدمين', 'Manage user sessions'],
+        'migration.run' => ['general', 'ترحيل البيانات', 'Run data migration'],
         'reports.builder' => ['general', 'بناء التقارير', 'Build reports'],
         'reports.schedule' => ['general', 'جدولة التقارير', 'Schedule reports'],
         'reports.export_personal' => ['general', 'تصدير تقارير تحوي بيانات شخصية', 'Export reports with personal data'],
@@ -276,6 +283,8 @@ class RolePermissionSeeder extends Seeder
         'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage',
         // Phase 09
         'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review',
+        // Phase 13
+        'integrations.manage', 'integrations.logs', 'webhooks.manage', 'sso.manage', 'security.policy', 'sessions.manage', 'migration.run',
         // Phase 12
         'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view',
         // Phase 11
