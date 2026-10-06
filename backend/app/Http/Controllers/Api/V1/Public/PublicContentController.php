@@ -102,7 +102,7 @@ class PublicContentController extends Controller
 
     private function ics(array $events, string $name): Response
     {
-        $esc = fn (?string $s) => str_replace(["\\", ';', ',', "\r\n", "\n"], ['\\\\', '\;', '\,', '\n', '\n'], (string) $s);
+        $esc = fn (?string $s) => str_replace(['\\', ';', ',', "\r\n", "\n"], ['\\\\', '\;', '\,', '\n', '\n'], (string) $s);
         $lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TEDC//Events//EN', 'CALSCALE:GREGORIAN'];
         foreach ($events as $a) {
             $e = $a->event ?? [];

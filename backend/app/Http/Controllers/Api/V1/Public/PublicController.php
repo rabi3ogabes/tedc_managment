@@ -19,6 +19,7 @@ use App\Models\School;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
 use App\Services\CertificateService;
+use App\Services\Communication\AnnouncementLifecycle;
 use App\Services\FileStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -215,7 +216,7 @@ class PublicController extends Controller
 
     private function newsQuery()
     {
-        return app(\App\Services\Communication\AnnouncementLifecycle::class)->live(Announcement::query())->where('is_public', true)
+        return app(AnnouncementLifecycle::class)->live(Announcement::query())->where('is_public', true)
             ->whereIn('type', ['news', 'announcement', 'circular'])->orderByDesc('is_pinned')->orderBy('pin_order')->latest('published_at');
     }
 }

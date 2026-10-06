@@ -23,6 +23,7 @@ class NotificationScheduler
             if (ScheduledNotification::where('id', $s->id)->where('status', 'scheduled')->update(['status' => 'sending']) !== 1) {
                 return;
             }
+            $s->forceFill(['status' => 'sending'])->syncOriginal();   // the row now says what the database says
             try {
                 $this->send($s);
                 $done++;

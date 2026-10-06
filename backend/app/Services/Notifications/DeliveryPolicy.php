@@ -5,6 +5,7 @@ namespace App\Services\Notifications;
 use App\Models\NotificationRule;
 use App\Models\Program;
 use App\Models\UserNotificationPreference;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -133,7 +134,7 @@ class DeliveryPolicy
     }
 
     /** The first moment at or after $from inside the allowed days and hours; null when the setting allows nothing. @param  array{days?: list<int>, from?: string, to?: string, timezone?: string}  $quiet */
-    public function nextAllowed(Carbon $from, array $quiet): ?Carbon
+    public function nextAllowed(CarbonInterface $from, array $quiet): ?CarbonInterface
     {
         $tz = $quiet['timezone'] ?? 'Asia/Qatar';
         $days = $quiet['days'] ?? [0, 1, 2, 3, 4, 5, 6];

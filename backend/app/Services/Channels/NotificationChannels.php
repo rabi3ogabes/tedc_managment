@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Push\PushDispatcher;
 use App\Services\Push\PushSettings;
 use App\Services\ThemeService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -68,7 +69,7 @@ class NotificationChannels
      *
      * @param  array<string, string>  $notificationIds  user id => notification id
      * @param  list<string>  $channels  from resolve()
-     * @param  array<string, array{channels: list<string>, defer: array<string, \Illuminate\Support\Carbon>}>  $plan  per person, from DeliveryPolicy (empty = everyone gets $channels at once)
+     * @param  array<string, array{channels: list<string>, defer: array<string, Carbon>}>  $plan  per person, from DeliveryPolicy (empty = everyone gets $channels at once)
      */
     public function enqueue(array $notificationIds, string $type, array $channels, array $plan = [], ?string $campaignId = null): int
     {

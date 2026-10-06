@@ -8,7 +8,6 @@ use App\Services\Notifications\DeliveryPolicy;
 use App\Services\Notifications\NotificationCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 /** Each person's choices for optional notifications: which channels per kind of event, and the arrival chime. Events marked mandatory cannot be switched off. */
 class MyNotificationPreferencesController extends Controller
