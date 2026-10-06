@@ -1,0 +1,99 @@
+{
+ "0": [
+  "FeatureFlagsTest.php",
+  "ProductionSafetyTest.php",
+  "RfpStatusTest.php"
+ ],
+ "1": [
+  "ProgramGrantsTest.php"
+ ],
+ "2": [
+  "AnnualPlanTest.php",
+  "GroupRegistrationTest.php",
+  "InternalWorkshopTest.php",
+  "SystemEndpointsTest.php",
+  "TrainerAssignmentTest.php",
+  "TrainingGroupTest.php",
+  "TrainingStructureTest.php"
+ ],
+ "3": [
+  "CompetencyGapTest.php",
+  "IndividualNeedsTest.php",
+  "NeedsCycleTest.php",
+  "NeedsSurveyTest.php",
+  "SystemEndpointsTest.php"
+ ],
+ "4": [
+  "AdmissionToolsTest.php",
+  "EligibilityFieldsTest.php",
+  "EnrollmentEngineTest.php",
+  "ExternalRegistrationTest.php",
+  "SystemEndpointsTest.php",
+  "WithdrawalTest.php"
+ ],
+ "5": [
+  "AbsenceAndLeaveTest.php",
+  "AttendanceExportTest.php",
+  "AttendanceMethodsTest.php",
+  "FingerprintTest.php",
+  "RoomsLogisticsTest.php",
+  "SystemEndpointsTest.php"
+ ],
+ "6": [
+  "AssessmentEngineTest.php",
+  "AssessmentExtrasTest.php",
+  "QuestionBankTest.php",
+  "QuestionTypesTest.php"
+ ],
+ "7": [
+  "PassingRulesTest.php"
+ ],
+ "8": [
+  "AttendanceAndCertificateTest.php",
+  "EvaluationSuiteTest.php"
+ ],
+ "9": [
+  "CareerAndPdTest.php"
+ ],
+ "10": [
+  "ContentPackagesTest.php",
+  "DemoOnlineCoursesTest.php",
+  "LibraryAndLifecycleTest.php",
+  "LtiTest.php",
+  "QtiAndCartridgeTest.php",
+  "RoomsLogisticsTest.php"
+ ],
+ "11": [
+  "AnnouncementsCmsPhase11Test.php",
+  "NotificationsPhase11Test.php"
+ ],
+ "12": [
+  "DashboardsKpiPhase12Test.php",
+  "ReportsPhase12Test.php"
+ ],
+ "13": [
+  "DataMigrationTest.php",
+  "IdentitySecurityTest.php",
+  "IntegrationHubTest.php",
+  "MinistryIntegrationsTest.php",
+  "TeamsIntegrationTest.php"
+ ],
+ "14": [
+  "CollaborationTest.php",
+  "GamificationTest.php"
+ ],
+ "15": [
+  "AiCompletionTest.php"
+ ],
+ "16": [
+  "PaymentsTest.php"
+ ],
+ "17": [
+  "AzureStorageTest.php",
+  "OpsSecurityTest.php"
+ ],
+ "18": [
+  "EKitsTest.php",
+  "HelpCentreTest.php"
+ ]
+}

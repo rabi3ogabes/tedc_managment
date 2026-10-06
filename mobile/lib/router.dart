@@ -15,6 +15,7 @@ import 'features/community/assistant_screen.dart';
 import 'features/community/community_screens.dart';
 import 'features/community/questions_screen.dart';
 import 'features/events/events_screen.dart';
+import 'features/help/help_screens.dart';
 import 'features/shop/shop_screens.dart';
 import 'features/library/library_screen.dart';
 import 'features/reports/my_reports_screen.dart';
@@ -89,6 +90,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-growth', builder: (_, _) => const GrowthScreen()),
           GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
           GoRoute(path: '/my-reports', builder: (_, _) => const MyReportsScreen()),
+          GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
+          GoRoute(path: '/help/:slug', builder: (_, s) => HelpArticleScreen(slug: s.pathParameters['slug']!)),
           GoRoute(path: '/report-problem', builder: (_, _) => const ReportProblemScreen()),
           GoRoute(path: '/events', builder: (_, _) => const EventsScreen()),
           GoRoute(path: '/communities', builder: (_, _) => const CommunitiesScreen()),

@@ -23,3 +23,17 @@
 
 # System training and adoption plan (English copy)
 Centre staff: 3 days on staging with test accounts, role manuals and scenarios, practical test per role. Train-the-Trainer: at least one employee per school/department, two days plus practice, e-kit EKIT-PORTAL and trainer guide, certificate. Trainees and managers: the e-kit (2 h, pass mark 70 %). Trainers: half-day workshop. Timeline: centre before Beta, trainers-of-trainers between Beta and Final, school waves in the first month. Adoption KPIs: monthly active users, e-course completion, share of registrations via the platform, satisfaction, tickets per 100 users, first-response time (live KPI dashboard). Change management: leadership sponsors, ambassadors per directorate, announcements, first-login and what's-new tours, 30-day hyper-care. Risks: resistance, poor connectivity (offline mode), role confusion (clear role switching), registration spikes (load tests, staggered windows).
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

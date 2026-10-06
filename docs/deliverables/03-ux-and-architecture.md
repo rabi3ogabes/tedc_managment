@@ -15,3 +15,17 @@
 
 # UX design and architecture (English copy)
 **Design system:** deep maroon-navy with gold on ivory (tokens in `web/src/index.css`, editable in Brand Studio); Lusail font uploaded in settings with a safe fallback; component set (buttons, cards, tables, modals, tabs, status badges, progress, charts) with full RTL/LTR; page templates (header + actions, tabs, card grid, filtered table, two-section form); accessibility (contrast, visible keyboard focus, aria labels, reduced motion, 44 px touch targets). Screenshots are taken from the staging environment at sign-off. **Architecture:** see `docs/architecture/HLD.md`, `LLD.md`, `BOM-and-sizing.md`.
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

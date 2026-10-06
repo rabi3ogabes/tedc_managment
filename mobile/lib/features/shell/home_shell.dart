@@ -14,6 +14,7 @@ import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
+import '../help/help_screens.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
 import '../security/biometric_offer.dart';
@@ -49,6 +50,12 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     _startPush();
     _startPresence();
     Future<void>.delayed(const Duration(milliseconds: 2500), _offerBiometric);
+    Future<void>.delayed(const Duration(seconds: 7), _tour);
+  }
+
+  /// The welcome tour for the person's role, and «what's new» after a release; asked for once and remembered on the server.
+  Future<void> _tour() async {
+    if (mounted) await showTourIfPending(context, ref);
   }
 
   /// Once, on the first visit to the home screen: offer fingerprint sign-in if the phone has a lock.

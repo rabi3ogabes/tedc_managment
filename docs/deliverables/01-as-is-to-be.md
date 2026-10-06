@@ -40,3 +40,17 @@ Needs gathered through scattered forms; the annual plan kept in spreadsheets and
 
 ## To-Be (as implemented)
 Needs cycle → gap analysis → programme proposals → annual plan (approval, baseline, change log, deviation alerts) → two-stage registration with eligibility, priority-ranked waiting list and seat pools → attendance (rotating QR, biometric, register, geofence) with excuses → assessments (question banks, proctoring, grading) → passing rules and certificates with verification → satisfaction, knowledge gain and 90-day impact → CPD hours, career paths and licences → internal workshops → logistics → payments for paid courses. Detailed BPMN diagrams are exported from the Mermaid sources after workshop sign-off.
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

@@ -26,3 +26,17 @@
 
 # Go-live, handover, QA certificate and SLA (English copy)
 **Go-live:** T-14 freeze, restore test, load test, VAPT passed, flags confirmed; T-7 migration rehearsal on masked data with the migration toolkit and record counts signed by the centre; cut-over night — freeze legacy entry, final migration, verification, DNS switch, smoke test per role, open; rollback within 4 hours to the legacy system and the pre-migration snapshot; 30-day hyper-care. **Handover:** source code, infrastructure code, secrets handed over through Key Vault with a documented two-person procedure, documentation index, knowledge-transfer log, operations runbooks. **QA certificate:** template attesting acceptance, performance and security results against the test plan. **SLA:** P1 respond 15 min / resolve 2 h; P2 30 min / 4 h; P3 2 h / 1 business day; P4 4 h / 2 business days; compliance targets 100/98/95/90 %; availability 99.9 %; escalation L1 → L2 → PM → CEO; penalty = share of the monthly fee proportional to late cases × agreed factor ⚑; monthly report and quarterly review.
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

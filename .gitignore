@@ -6,3 +6,4 @@
 # Vercel build shim (root composer.json)
 /vendor
 .vercel
+docs/deliverables/export/

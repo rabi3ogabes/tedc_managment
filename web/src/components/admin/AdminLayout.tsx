@@ -3,11 +3,13 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
+import HelpButton from '@/components/help/HelpButton'
+import TourHost from '@/components/help/TourHost'
 import ReportProblem from './ReportProblem'
 import UserMenu from './UserMenu'
 import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
@@ -88,6 +90,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
           { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
           { to: '/portal/my-data', label: t('prv.nav'), icon: Shield },
+          { to: '/portal/help', label: t('hlp.nav'), icon: LifeBuoy },
           { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments' },
           { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
@@ -139,6 +142,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/security-policy', label: t('idn.navSecurityAdmin'), icon: Shield, permission: 'security.policy|sessions.manage' },
           { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
           { to: '/admin/privacy', label: t('prv.adminNav'), icon: Shield, permission: 'privacy.manage' },
+          { to: '/admin/help', label: t('hlp.nav'), icon: LifeBuoy },
+          { to: '/admin/help-articles', label: t('hlp.navAdmin'), icon: BookOpen, permission: 'help.manage' },
+          { to: '/admin/ekits', label: t('hlp.navKits'), icon: BookOpen, permission: 'packages.manage' },
           { to: '/admin/finance', label: t('pay.nav.finance'), icon: Wallet, permission: 'orders.view|pricing.manage|finance.reports|entity_accounts.manage', feature: 'payments' },
           { to: '/admin/forecasts', label: t('aix.nav.forecasts'), icon: LineChart, permission: 'ai.forecasts.view', feature: 'ai' },
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
@@ -290,6 +296,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
             <div className="hidden text-sm text-slate-500 lg:block">{t('brand.tagline')}</div>
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setSearchOpen(true)} aria-label={t('search.title')} className="inline-flex items-center gap-2 rounded-xl p-2 text-navy-800 hover:bg-navy-100/60 sm:border sm:border-navy-100 sm:bg-white sm:px-3 sm:py-1.5"><Search className="size-4" /><span className="hidden text-xs text-slate-400 sm:inline">{t('search.button')}</span><kbd className="hidden rounded bg-navy-100/70 px-1.5 font-mono text-[10px] text-slate-500 sm:inline" dir="ltr">Ctrl K</kbd></button>
+              <HelpButton portal={portal} />
               <LanguageToggle />
               <CartDrawer />
               <Link to="/portal/notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
@@ -304,6 +311,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
           {portal && <AssistantPanel portal />}
           <ReportProblem />
+          <TourHost />
         </main>
       </div>
     </div>

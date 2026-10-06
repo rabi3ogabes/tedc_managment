@@ -22,3 +22,17 @@
 # Needs assessment, scope and project plan (English copy)
 
 **Needs:** the RFP's 278 requirements are analysed in `docs/rfp/gap-register.md` by module, priority (★ knock-out) and status; user workshops confirm priorities ⚑. **Scope:** platform (web + mobile), integrations, two e-kits, Azure Qatar hosting, training, handover, support. **Out of scope:** additional content, biometric devices. **Assumptions:** Azure subscription, official specifications of Ministry systems, topics of the two kits agreed with the centre. **Plan:** phase 1 = 9 months (requirements and design → Alpha → Beta → final), phase 2 = 3 months (multi-platform app), support years 2–4; milestones M1 requirements sign-off, M2 Alpha, M3 Beta, M4 acceptance and VAPT, M5 final release and go-live, M6 handover.
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

@@ -90,6 +90,9 @@ const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
 const GamificationStudio = lazy(() => import('@/pages/admin/GamificationStudio'))
 const AdaptiveRules = lazy(() => import('@/pages/admin/AdaptiveRules'))
 const MyPrivacy = lazy(() => import('@/pages/MyPrivacy'))
+const HelpCentre = lazy(() => import('@/pages/HelpCentre'))
+const HelpArticles = lazy(() => import('@/pages/admin/HelpArticles'))
+const EKits = lazy(() => import('@/pages/admin/EKits'))
 const PrivacyQueue = lazy(() => import('@/pages/admin/PrivacyQueue'))
 const PriceLists = lazy(() => import('@/pages/admin/PriceLists'))
 const PaymentsAdmin = lazy(() => import('@/pages/admin/PaymentsAdmin'))
@@ -211,6 +214,9 @@ export default function App() {
           <Route path="forecasts" element={<RequireAuth permission="ai.forecasts.view"><ForecastRisks /></RequireAuth>} />
           <Route path="programs/:id/pricing" element={<RequireAuth permission="pricing.manage"><PriceLists /></RequireAuth>} />
           <Route path="privacy" element={<RequireAuth permission="privacy.manage"><PrivacyQueue /></RequireAuth>} />
+          <Route path="help" element={<HelpCentre />} />
+          <Route path="help-articles" element={<RequireAuth permission="help.manage"><HelpArticles /></RequireAuth>} />
+          <Route path="ekits" element={<RequireAuth permission="packages.manage"><EKits /></RequireAuth>} />
           <Route path="my-data" element={<MyPrivacy />} />
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
@@ -282,6 +288,7 @@ export default function App() {
           <Route path="questions" element={<MyQuestions />} />
           <Route path="orders" element={<MyOrders />} />
           <Route path="my-data" element={<MyPrivacy />} />
+          <Route path="help" element={<HelpCentre />} />
           <Route path="entity" element={<EntityPortal />} />
           <Route path="security" element={<AccountSecurity />} />
         </Route>

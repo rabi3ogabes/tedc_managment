@@ -1,5 +1,5 @@
 import { LifeBuoy } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { Button, Field, Modal } from '@/components/ui'
@@ -17,6 +17,11 @@ export default function ReportProblem() {
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    const show = () => setOpen(true)
+    window.addEventListener('tedc:report-problem', show)
+    return () => window.removeEventListener('tedc:report-problem', show)
+  }, [])
 
   const send = async () => {
     setBusy(true); setError(null)

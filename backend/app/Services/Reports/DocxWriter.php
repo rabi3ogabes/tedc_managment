@@ -13,7 +13,8 @@ class DocxWriter
     /** @var list<string> */
     private array $body = [];
 
-    public function __construct(private readonly bool $rtl = true) {}
+    /** @param bool|null $rtl true / false for the whole document; null decides per paragraph (a bilingual document) */
+    public function __construct(private readonly ?bool $rtl = true) {}
 
     public function heading(string $text, int $level = 1): self
     {
@@ -44,7 +45,7 @@ class DocxWriter
     public function table(array $head, array $rows): self
     {
         $cell = fn (string $t, bool $h) => '<w:tc><w:tcPr><w:tcBorders>'.implode('', array_map(fn ($b) => "<w:$b w:val=\"single\" w:sz=\"4\" w:color=\"BBBBBB\"/>", ['top', 'left', 'bottom', 'right'])).'</w:tcBorders>'.($h ? '<w:shd w:val="clear" w:color="auto" w:fill="F3E8EC"/>' : '').'</w:tcPr>'.$this->paragraph($t, ['bold' => $h, 'size' => 20]).'</w:tc>';
-        $xml = '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/>'.($this->rtl ? '<w:bidiVisual/>' : '').'</w:tblPr>';
+        $xml = '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/>'.($this->rtl === true ? '<w:bidiVisual/>' : '').'</w:tblPr>';
         $xml .= '<w:tr>'.implode('', array_map(fn ($h) => $cell((string) $h, true), $head)).'</w:tr>';
         foreach ($rows as $row) {
             $xml .= '<w:tr>'.implode('', array_map(fn ($c) => $cell((string) ($c ?? ''), false), $row)).'</w:tr>';
@@ -56,8 +57,9 @@ class DocxWriter
 
     private function paragraph(string $text, array $o): string
     {
-        $rpr = ($this->rtl ? '<w:rtl/>' : '').(! empty($o['bold']) ? '<w:b/><w:bCs/>' : '').(isset($o['color']) ? '<w:color w:val="'.$o['color'].'"/>' : '').'<w:sz w:val="'.($o['size'] ?? 22).'"/><w:szCs w:val="'.($o['size'] ?? 22).'"/>';
-        $ppr = ($this->rtl ? '<w:bidi/>' : '').'<w:spacing w:after="'.($o['spacingAfter'] ?? 100).'"/>'.($this->rtl ? '<w:jc w:val="left"/>' : '');   // "left" is the start edge of a right-to-left paragraph
+        $rtl = $this->rtl ?? (bool) preg_match('/\p{Arabic}/u', mb_substr($text, 0, 40));
+        $rpr = ($rtl ? '<w:rtl/>' : '').(! empty($o['bold']) ? '<w:b/><w:bCs/>' : '').(isset($o['color']) ? '<w:color w:val="'.$o['color'].'"/>' : '').'<w:sz w:val="'.($o['size'] ?? 22).'"/><w:szCs w:val="'.($o['size'] ?? 22).'"/>';
+        $ppr = ($rtl ? '<w:bidi/>' : '').'<w:spacing w:after="'.($o['spacingAfter'] ?? 100).'"/>'.($rtl ? '<w:jc w:val="left"/>' : '');   // "left" is the start edge of a right-to-left paragraph
 
         return '<w:p><w:pPr>'.$ppr.'</w:pPr><w:r><w:rPr>'.$rpr.'</w:rPr><w:t xml:space="preserve">'.htmlspecialchars($text, ENT_XML1 | ENT_QUOTES, 'UTF-8').'</w:t></w:r></w:p>';
     }

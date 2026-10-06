@@ -22,3 +22,17 @@
 
 # Test plan and reports (English copy)
 Levels: unit/feature (PHPUnit on SQLite and PostgreSQL), web (ESLint + build), mobile (analyze + tests), integration (emulators/mocks), UAT per role on staging, performance (k6), security (SAST/DAST/dependency/container scans + VAPT). Entry/exit criteria as in the table above; synthetic data only; traceability from every requirement ID to evidence and tests (`traceability.generated.md`). Reports are generated from CI results; UAT scripts per role use a template (steps, expected, actual, status, notes). Bug tracker: GitHub Issues/Projects with severity and priority aligned to the SLA matrix (P1–P4).
+
+---
+
+## الإصدارات والاعتماد · Versions and approval
+
+| الإصدار · Version | التاريخ · Date | المؤلف · Author | الحالة · Status |
+|---|---|---|---|
+| 0.1 | 2026-10 | فريق التنفيذ · Delivery team | مسودة للمراجعة · Draft for review |
+| 1.0 | | | بعد مراجعة المركز · After the centre's review |
+
+| الدور · Role | الاسم · Name | التوقيع · Signature | التاريخ · Date |
+|---|---|---|---|
+| ممثل المركز · Centre representative | | | |
+| ممثل المورّد · Supplier representative | | | |

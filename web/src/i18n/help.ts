@@ -1,0 +1,53 @@
+/** Help centre, guided tours, article editor and e-kits (Phase 18). */
+export const hlpAr = { hlp: {
+  nav: 'مركز المساعدة', navAdmin: 'مقالات المساعدة', navKits: 'الحقائب التفاعلية', button: 'المساعدة',
+  drawerTitle: 'المساعدة', forPage: 'مقالات عن هذه الصفحة', none: 'لا توجد مقالات مرتبطة بهذه الصفحة بعد.', search: 'ابحث في المساعدة', openCentre: 'افتح مركز المساعدة', back: 'رجوع',
+  title: 'مركز المساعدة', subtitle: 'أدلة لكل دور، وفيديوهات قصيرة، وطرق التواصل مع الدعم.', all: 'كل المقالات', results: 'نتائج البحث', noResults: 'لا توجد نتائج. جرّب كلمات أخرى.',
+  video: 'فيديو توضيحي', watch: 'شاهد الفيديو', shots: 'لقطات من الشاشة', version: 'الإصدار', updated: 'آخر تحديث',
+  helpful: 'هل أفادتك هذه المقالة؟', yes: 'نعم', no: 'لا', thanks: 'شكرًا، وصلتنا ملاحظتك.', comment: 'ما الذي ينقص؟ (اختياري)', sendComment: 'إرسال',
+  manuals: 'الأدلة بصيغة PDF', manualsHint: 'دليل لكل دور تحمله، يُبنى من آخر إصدار منشور من المقالات.', articlesCount: '{{n}} مقالة', pdfAr: 'عربي', pdfEn: 'English', downloading: 'جارٍ تجهيز الدليل…', downloaded: 'بدأ التنزيل.',
+  support: 'التواصل مع الدعم', channels: { phone: 'الهاتف', email: 'البريد الإلكتروني', saaed: 'بوابة سعيد' }, notSet: 'يحدده المركز', sla: 'أوقات الاستجابة', priority: 'الأولوية', response: 'الاستجابة', resolution: 'الحل',
+  report: 'الإبلاغ عن مشكلة', myTickets: 'تذاكري', noTickets: 'لا توجد تذاكر.', ticketStatus: 'الحالة',
+  tours: 'الجولات الإرشادية', toursHint: 'أعد مشاهدة الجولة التعريفية وما الجديد.', replay: 'إعادة الجولات', replayed: 'ستظهر الجولة عند فتح الصفحة التالية.',
+  tour: { next: 'التالي', prev: 'السابق', done: 'ابدأ', skip: 'تخطي', step: 'الخطوة {{n}} من {{total}}', firstLogin: 'جولة تعريفية', whatsNew: 'ما الجديد' },
+  modules: { general: 'عام', trainee: 'المتدرب', trainer: 'المدرب', manager: 'المدير والمدرسة', programs: 'البرامج والتشغيل', planning: 'التخطيط', logistics: 'اللوجستيات', insight: 'التقارير والمؤشرات', kits: 'الحقائب التدريبية', admin: 'الإدارة', finance: 'المالية' },
+  admin: {
+    title: 'مقالات المساعدة', subtitle: 'اكتب الأدلة بالعربية والإنجليزية، واربطها بالأدوار والصفحات، وتابع تقييم القرّاء.', new: 'مقالة جديدة', edit: 'تعديل المقالة', tabArticles: 'المقالات', tabFeedback: 'تقييمات القرّاء',
+    slug: 'المعرّف (بالإنجليزية وشرطات)', titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية', bodyAr: 'النص بالعربية (HTML بسيط)', bodyEn: 'النص بالإنجليزية (HTML بسيط)', roles: 'الأدوار التي تراها (فارغ = الجميع)',
+    routes: 'الصفحات التي تظهر عندها (سطر لكل صفحة، * تعني أي مسار)', module: 'القسم', status: 'الحالة', draft: 'مسودة', published: 'منشورة', sortOrder: 'الترتيب', videoUrl: 'رابط فيديو', videoFile: 'رفع فيديو (mp4 / webm)',
+    screenshots: 'لقطات الشاشة', addShot: 'إضافة لقطة', captionAr: 'الوصف بالعربية', captionEn: 'الوصف بالإنجليزية', saved: 'تم الحفظ.', deleted: 'تم الحذف.', confirmDelete: 'حذف هذه المقالة؟',
+    versions: 'الإصدارات', rollback: 'استرجاع', rolledBack: 'تم الاسترجاع كإصدار جديد.', saveFirst: 'احفظ المقالة أولًا لإضافة لقطات وفيديو.', empty: 'لا توجد مقالات.',
+    helpfulCount: 'مفيدة', notHelpfulCount: 'غير مفيدة', score: 'النسبة', comments: 'التعليقات', noFeedback: 'لا توجد تقييمات بعد.', all: 'الكل',
+  },
+  kits: {
+    title: 'الحقائب التفاعلية', subtitle: 'حقيبتان تفاعليتان من مجلد content/e-kits تُنشران كمقررات إلكترونية وتُصدَّران بصيغة SCORM 2004.', topicNote: 'الموضوعان مقترحان وتحتاجان إلى موافقة المركز على الاختيار.',
+    chapters: 'الفصول', checks: 'أسئلة اختبر نفسك', finalQ: 'أسئلة التقييم النهائي', hours: 'الساعات', published: 'منشورة', notPublished: 'غير منشورة', publish: 'نشر كمقرر', rebuild: 'إعادة البناء',
+    confirmRebuild: 'سيُستبدل محتوى المقرر الحالي. تبقى سجلات المتدربين الحالية لكن قد تتأثر الدروس. المتابعة؟', done: 'تم النشر.', rebuilt: 'أُعيد بناء المقرر.', exists: 'المقرر منشور من قبل.', open: 'فتح المقرر', scorm: 'تنزيل SCORM',
+  },
+} }
+export const hlpEn = { hlp: {
+  nav: 'Help centre', navAdmin: 'Help articles', navKits: 'Interactive e-kits', button: 'Help',
+  drawerTitle: 'Help', forPage: 'Articles about this page', none: 'No articles are linked to this page yet.', search: 'Search help', openCentre: 'Open the help centre', back: 'Back',
+  title: 'Help centre', subtitle: 'Guides for every role, short videos and ways to reach support.', all: 'All articles', results: 'Search results', noResults: 'Nothing found. Try other words.',
+  video: 'Video guide', watch: 'Watch the video', shots: 'Screenshots', version: 'Version', updated: 'Last updated',
+  helpful: 'Did this article help?', yes: 'Yes', no: 'No', thanks: 'Thank you, we received your feedback.', comment: 'What is missing? (optional)', sendComment: 'Send',
+  manuals: 'Manuals as PDF', manualsHint: 'One manual for each role you hold, built from the latest published articles.', articlesCount: '{{n}} articles', pdfAr: 'عربي', pdfEn: 'English', downloading: 'Preparing the manual…', downloaded: 'Download started.',
+  support: 'Contact support', channels: { phone: 'Phone', email: 'Email', saaed: 'Saaed portal' }, notSet: 'Set by the centre', sla: 'Response times', priority: 'Priority', response: 'Response', resolution: 'Resolution',
+  report: 'Report a problem', myTickets: 'My tickets', noTickets: 'No tickets.', ticketStatus: 'Status',
+  tours: 'Guided tours', toursHint: 'Watch the welcome tour and what is new again.', replay: 'Replay the tours', replayed: 'The tour will appear when you open the next page.',
+  tour: { next: 'Next', prev: 'Back', done: 'Get started', skip: 'Skip', step: 'Step {{n}} of {{total}}', firstLogin: 'Welcome tour', whatsNew: 'What\'s new' },
+  modules: { general: 'General', trainee: 'Trainee', trainer: 'Trainer', manager: 'Managers and schools', programs: 'Programs and operations', planning: 'Planning', logistics: 'Logistics', insight: 'Reports and indicators', kits: 'Training kits', admin: 'Administration', finance: 'Finance' },
+  admin: {
+    title: 'Help articles', subtitle: 'Write guides in Arabic and English, tie them to roles and pages, and watch how readers rate them.', new: 'New article', edit: 'Edit article', tabArticles: 'Articles', tabFeedback: 'Reader feedback',
+    slug: 'Identifier (English, with dashes)', titleAr: 'Title in Arabic', titleEn: 'Title in English', bodyAr: 'Text in Arabic (simple HTML)', bodyEn: 'Text in English (simple HTML)', roles: 'Roles that see it (none = everyone)',
+    routes: 'Pages it appears on (one per line, * matches any path)', module: 'Section', status: 'Status', draft: 'Draft', published: 'Published', sortOrder: 'Order', videoUrl: 'Video link', videoFile: 'Upload a video (mp4 / webm)',
+    screenshots: 'Screenshots', addShot: 'Add a screenshot', captionAr: 'Caption in Arabic', captionEn: 'Caption in English', saved: 'Saved.', deleted: 'Deleted.', confirmDelete: 'Delete this article?',
+    versions: 'Versions', rollback: 'Restore', rolledBack: 'Restored as a new version.', saveFirst: 'Save the article first to add screenshots and a video.', empty: 'No articles.',
+    helpfulCount: 'Helpful', notHelpfulCount: 'Not helpful', score: 'Score', comments: 'Comments', noFeedback: 'No feedback yet.', all: 'All',
+  },
+  kits: {
+    title: 'Interactive e-kits', subtitle: 'Two interactive kits from content/e-kits, published as e-courses and exportable as SCORM 2004.', topicNote: 'The two topics are proposals; the centre must confirm the choice.',
+    chapters: 'Chapters', checks: 'Check-yourself questions', finalQ: 'Final assessment questions', hours: 'Hours', published: 'Published', notPublished: 'Not published', publish: 'Publish as a course', rebuild: 'Rebuild',
+    confirmRebuild: 'The course content will be replaced. Existing trainee records stay, but lessons may be affected. Continue?', done: 'Published.', rebuilt: 'The course was rebuilt.', exists: 'The course is already published.', open: 'Open the course', scorm: 'Download SCORM',
+  },
+} }
