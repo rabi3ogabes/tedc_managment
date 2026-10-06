@@ -57,6 +57,29 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate
       - run: php artisan test
 
+  backend-azurite:
+    # The Azure Blob driver against the storage emulator: proves the SAS signatures and REST calls are accepted by the storage service.
+    runs-on: ubuntu-latest
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports: ['10000:10000']
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      AZURITE_ENDPOINT: http://127.0.0.1:10000/devstoreaccount1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_sqlite, gd, zip
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test --filter=AzureStorageTest
+
   web:
     runs-on: ubuntu-latest
     defaults:

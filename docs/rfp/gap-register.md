@@ -419,44 +419,44 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 17 — Azure Qatar, Security & Compliance  (19)
 
-- [ ] **NFR-01** ★ — Secure, scalable, resilient multi-layer HA design (99.9 % SLA)  
-  _Now:_ 🟡 Partial — Stateless API in Docker; no HA / DR topology.
-- [ ] **NFR-02** ★ — Hosting on Azure Qatar (data residency, Law 13/2016)  
-  _Now:_ 🔴 Missing — Runs on Railway / Vercel / Supabase.
-- [ ] **NFR-03** ★ — Production, staging (prod-identical) and development environments  
-  _Now:_ 🟡 Partial — Local + one deployment; CI pipeline exists.
-- [ ] **NFR-04** ★ — HLD / LLD, bill of materials, sizing and bandwidth design  
-  _Now:_ 🔴 Missing — docs/ARCHITECTURE.md is a logical overview only.
-- [ ] **NFR-05** ★ — Encryption at rest and in transit; joint data classification  
-  _Now:_ 🟡 Partial — HTTPS, encrypted national IDs, private storage; no full classification.
-- [ ] **NFR-13** ★ — Forward logs to SIEM (e.g., Splunk)  
-  _Now:_ 🟡 Partial — Syslog handler available but not configured.
-- [ ] **NFR-14** ★ — No production data in dev / test / training; masking  
-  _Now:_ 🔴 Missing — No masking process.
-- [ ] **NFR-15** ★ — VAPT, accredited code review, threat model, risk assessment, security docs  
-  _Now:_ 🔴 Missing — Not prepared.
-- [ ] **NFR-16** ★ — Secure SDLC: secure coding, threat modelling, code analysis  
-  _Now:_ 🟡 Partial — CI runs tests, lint and Pint; no SAST / dependency scanning.
-- [ ] **NFR-17** ★ — API security: encryption, validation, auth, API gateway  
-  _Now:_ 🟡 Partial — Validation, JWT, throttling, security headers; no API gateway.
-- [ ] **NFR-18** ★ — Patch and vulnerability management incl. third-party libraries  
-  _Now:_ 🔴 Missing — No automated dependency updates.
-- [ ] **NFR-19** ★ — Enterprise backup and recovery in-country (RPO / RTO)  
-  _Now:_ 🔴 Missing — Relies on provider backups.
-- [ ] **NFR-20** ★ — Monitoring with real-time alerts  
-  _Now:_ 🟡 Partial — Health endpoint, error log with self-heal, scheduled live checks; no APM / alerting.
-- [ ] **NFR-21** ★ — Third-party risk management  
-  _Now:_ 🔴 Missing — External SaaS not assessed.
-- [ ] **TEC-01** ★ — Stable 24/7  
-  _Now:_ 🟡 Partial — Keep-warm and live checks; no HA.
-- [ ] **TEC-02** ★ — 10,000 concurrent users; response time < 1.5 s  
-  _Now:_ 🟡 Partial — No load-test evidence.
-- [ ] **TEC-03** ★ — 20–30 % yearly user growth without performance loss  
-  _Now:_ 🟡 Partial — Horizontal scaling not designed.
-- [ ] **TEC-05** ★ — Disaster recovery and business continuity with automation  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **TEC-16** ★ — Automatic patching without user impact  
-  _Now:_ 🟡 Partial — Zero-downtime deployment not documented.
+- [x] **NFR-01** ★ — Secure, scalable, resilient multi-layer HA design (99.9 % SLA)  
+  _Now:_ 🟡 Partial — HA design and zone-redundant IaC (gateway, Container Apps, PostgreSQL HA, Redis), probes and blue-green release script; nothing deployed or failover-tested yet. Phase 17.
+- [x] **NFR-02** ★ — Hosting on Azure Qatar (data residency, Law 13/2016)  
+  _Now:_ 🟡 Partial — Bicep for Azure Qatar Central with a location policy, Azure Blob driver (Azurite-tested), health probes, Azure OpenAI support; not deployed — needs the Ministry's subscription. Phase 17.
+- [x] **NFR-03** ★ — Production, staging (prod-identical) and development environments  
+  _Now:_ 🟡 Partial — dev / staging / prod parameter files with identical topology and separate vaults and databases; not provisioned. Phase 17.
+- [x] **NFR-04** ★ — HLD / LLD, bill of materials, sizing and bandwidth design  
+  _Now:_ 🟡 Partial — HLD, LLD, BOM and sizing, environment matrix written (English with Arabic summaries); full Arabic translation and priced BOM outstanding. Phase 17.
+- [x] **NFR-05** ★ — Encryption at rest and in transit; joint data classification  
+  _Now:_ ✅ Available — Data classification of every column with generated register and a drift test; application-level encryption for national IDs and secrets; TLS/HSTS; Key Vault in IaC. Phase 17.
+- [x] **NFR-13** ★ — Forward logs to SIEM (e.g., Splunk)  
+  _Now:_ ✅ Available — Audit and security events queued and forwarded to Splunk HEC or Microsoft Sentinel, JSON logs with request ids; the Ministry's SIEM endpoint is needed to go live. Phase 17.
+- [x] **NFR-14** ★ — No production data in dev / test / training; masking  
+  _Now:_ ✅ Available — tedc:anonymise-export with approver, reason and audit; synthetic seed for lower environments; policy and docs forbid copying production data. Phase 17.
+- [x] **NFR-15** ★ — VAPT, accredited code review, threat model, risk assessment, security docs  
+  _Now:_ 🟡 Partial — VAPT readiness checklist, scope document, remediation tracker, threat model and clearance pack contents; the accredited test itself has not been done. Phase 17.
+- [x] **NFR-16** ★ — Secure SDLC: secure coding, threat modelling, code analysis  
+  _Now:_ 🟡 Partial — SSDLC document and pipeline (gitleaks, audits, OSV, Semgrep, Trivy, ZAP baseline template, Dependabot); scans not yet run to a clean result and Larastan max level not reached. Phase 17.
+- [x] **NFR-17** ★ — API security: encryption, validation, auth, API gateway  
+  _Now:_ 🟡 Partial — Throttles, WAF policy with a login rate rule and partner-API gateway (APIM) in the IaC; API definitions and quotas for partners not configured. Phase 17.
+- [x] **NFR-18** ★ — Patch and vulnerability management incl. third-party libraries  
+  _Now:_ 🟡 Partial — Patching SLAs, weekly image rebuild and Dependabot defined; no operating history yet. Phase 17.
+- [x] **NFR-19** ★ — Enterprise backup and recovery in-country (RPO / RTO)  
+  _Now:_ 🟡 Partial — PITR 35 d, 7-year monthly vault, blob soft delete/versioning in IaC, DR runbook and monthly restore-test workflow; no restore has been executed. Phase 17.
+- [x] **NFR-20** ★ — Monitoring with real-time alerts  
+  _Now:_ 🟡 Partial — Probes, action group and alerts (availability, 5xx, p95, queue lag, DB CPU/storage) in IaC; not deployed. Phase 17.
+- [x] **NFR-21** ★ — Third-party risk management  
+  _Now:_ ✅ Available — Third-party register with purpose, data, residency, contract status, risk, mitigation and kill-switch for each service. Phase 17.
+- [x] **TEC-01** ★ — Stable 24/7  
+  _Now:_ 🟡 Partial — Designed for 24/7 (zones, probes, autoscale, rollbacks); not proven in operation. Phase 17.
+- [x] **TEC-02** ★ — 10,000 concurrent users; response time < 1.5 s  
+  _Now:_ 🟡 Partial — k6 scenarios to 10,000 users with p95 < 1.5 s thresholds and a sizing model; the test has NOT been run, so no result is claimed. Phase 17.
+- [x] **TEC-03** ★ — 20–30 % yearly user growth without performance loss  
+  _Now:_ 🟡 Partial — Capacity and cost-growth model for +20–30 % a year with autoscale limits; to be re-run on measured data. Phase 17.
+- [x] **TEC-05** ★ — Disaster recovery and business continuity with automation  
+  _Now:_ 🟡 Partial — DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17.
+- [x] **TEC-16** ★ — Automatic patching without user impact  
+  _Now:_ 🟡 Partial — Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17.
 
 ### Phase 18 — Adoption, Help Centre & Deliverables  (11)
 
@@ -870,11 +870,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| NFR-01 ★ | Secure, scalable, resilient multi-layer HA design (99.9 % SLA) | 🟡 Partial | Stateless API in Docker; no HA / DR topology. | 17 |
-| NFR-02 ★ | Hosting on Azure Qatar (data residency, Law 13/2016) | 🔴 Missing | Runs on Railway / Vercel / Supabase. | 17 |
-| NFR-03 ★ | Production, staging (prod-identical) and development environments | 🟡 Partial | Local + one deployment; CI pipeline exists. | 17 |
-| NFR-04 ★ | HLD / LLD, bill of materials, sizing and bandwidth design | 🔴 Missing | docs/ARCHITECTURE.md is a logical overview only. | 17 |
-| NFR-05 ★ | Encryption at rest and in transit; joint data classification | 🟡 Partial | HTTPS, encrypted national IDs, private storage; no full classification. | 17 |
+| NFR-01 ★ | Secure, scalable, resilient multi-layer HA design (99.9 % SLA) | 🟡 Partial | HA design and zone-redundant IaC (gateway, Container Apps, PostgreSQL HA, Redis), probes and blue-green release script; nothing deployed or failover-tested yet. Phase 17. | 17 |
+| NFR-02 ★ | Hosting on Azure Qatar (data residency, Law 13/2016) | 🟡 Partial | Bicep for Azure Qatar Central with a location policy, Azure Blob driver (Azurite-tested), health probes, Azure OpenAI support; not deployed — needs the Ministry's subscription. Phase 17. | 17 |
+| NFR-03 ★ | Production, staging (prod-identical) and development environments | 🟡 Partial | dev / staging / prod parameter files with identical topology and separate vaults and databases; not provisioned. Phase 17. | 17 |
+| NFR-04 ★ | HLD / LLD, bill of materials, sizing and bandwidth design | 🟡 Partial | HLD, LLD, BOM and sizing, environment matrix written (English with Arabic summaries); full Arabic translation and priced BOM outstanding. Phase 17. | 17 |
+| NFR-05 ★ | Encryption at rest and in transit; joint data classification | ✅ Available | Data classification of every column with generated register and a drift test; application-level encryption for national IDs and secrets; TLS/HSTS; Key Vault in IaC. Phase 17. | — |
 | NFR-06 ★ | Role-based access control | ✅ Available | 10 roles, 43 permissions, Supabase RLS. | — |
 | NFR-07 ★ | Single sign-on and IAM integration | 🟡 Partial | OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13). | 13 |
 | NFR-08 ★ | Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP | 🟡 Partial | LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13). | 13 |
@@ -882,25 +882,25 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NFR-10 ★ | User-specific administration accounts | ✅ Available | Per-user admin accounts with roles. | — |
 | NFR-11 ★ | Automatic session termination after inactivity | ✅ Available | Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13). | — |
 | NFR-12 ★ | Secure audit logs with permission-based access; login trail | ✅ Available | Append-only audit log + presence sessions. | — |
-| NFR-13 ★ | Forward logs to SIEM (e.g., Splunk) | 🟡 Partial | Syslog handler available but not configured. | 17 |
-| NFR-14 ★ | No production data in dev / test / training; masking | 🔴 Missing | No masking process. | 17 |
-| NFR-15 ★ | VAPT, accredited code review, threat model, risk assessment, security docs | 🔴 Missing | Not prepared. | 17 |
-| NFR-16 ★ | Secure SDLC: secure coding, threat modelling, code analysis | 🟡 Partial | CI runs tests, lint and Pint; no SAST / dependency scanning. | 17 |
-| NFR-17 ★ | API security: encryption, validation, auth, API gateway | 🟡 Partial | Validation, JWT, throttling, security headers; no API gateway. | 17 |
-| NFR-18 ★ | Patch and vulnerability management incl. third-party libraries | 🔴 Missing | No automated dependency updates. | 17 |
-| NFR-19 ★ | Enterprise backup and recovery in-country (RPO / RTO) | 🔴 Missing | Relies on provider backups. | 17 |
-| NFR-20 ★ | Monitoring with real-time alerts | 🟡 Partial | Health endpoint, error log with self-heal, scheduled live checks; no APM / alerting. | 17 |
-| NFR-21 ★ | Third-party risk management | 🔴 Missing | External SaaS not assessed. | 17 |
+| NFR-13 ★ | Forward logs to SIEM (e.g., Splunk) | ✅ Available | Audit and security events queued and forwarded to Splunk HEC or Microsoft Sentinel, JSON logs with request ids; the Ministry's SIEM endpoint is needed to go live. Phase 17. | — |
+| NFR-14 ★ | No production data in dev / test / training; masking | ✅ Available | tedc:anonymise-export with approver, reason and audit; synthetic seed for lower environments; policy and docs forbid copying production data. Phase 17. | — |
+| NFR-15 ★ | VAPT, accredited code review, threat model, risk assessment, security docs | 🟡 Partial | VAPT readiness checklist, scope document, remediation tracker, threat model and clearance pack contents; the accredited test itself has not been done. Phase 17. | 17 |
+| NFR-16 ★ | Secure SDLC: secure coding, threat modelling, code analysis | 🟡 Partial | SSDLC document and pipeline (gitleaks, audits, OSV, Semgrep, Trivy, ZAP baseline template, Dependabot); scans not yet run to a clean result and Larastan max level not reached. Phase 17. | 17 |
+| NFR-17 ★ | API security: encryption, validation, auth, API gateway | 🟡 Partial | Throttles, WAF policy with a login rate rule and partner-API gateway (APIM) in the IaC; API definitions and quotas for partners not configured. Phase 17. | 17 |
+| NFR-18 ★ | Patch and vulnerability management incl. third-party libraries | 🟡 Partial | Patching SLAs, weekly image rebuild and Dependabot defined; no operating history yet. Phase 17. | 17 |
+| NFR-19 ★ | Enterprise backup and recovery in-country (RPO / RTO) | 🟡 Partial | PITR 35 d, 7-year monthly vault, blob soft delete/versioning in IaC, DR runbook and monthly restore-test workflow; no restore has been executed. Phase 17. | 17 |
+| NFR-20 ★ | Monitoring with real-time alerts | 🟡 Partial | Probes, action group and alerts (availability, 5xx, p95, queue lag, DB CPU/storage) in IaC; not deployed. Phase 17. | 17 |
+| NFR-21 ★ | Third-party risk management | ✅ Available | Third-party register with purpose, data, residency, contract status, risk, mitigation and kill-switch for each service. Phase 17. | — |
 
 ### TEC · Technical Requirements & Integrations — المتطلبات التقنية والتكامل
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| TEC-01 ★ | Stable 24/7 | 🟡 Partial | Keep-warm and live checks; no HA. | 17 |
-| TEC-02 ★ | 10,000 concurrent users; response time < 1.5 s | 🟡 Partial | No load-test evidence. | 17 |
-| TEC-03 ★ | 20–30 % yearly user growth without performance loss | 🟡 Partial | Horizontal scaling not designed. | 17 |
+| TEC-01 ★ | Stable 24/7 | 🟡 Partial | Designed for 24/7 (zones, probes, autoscale, rollbacks); not proven in operation. Phase 17. | 17 |
+| TEC-02 ★ | 10,000 concurrent users; response time < 1.5 s | 🟡 Partial | k6 scenarios to 10,000 users with p95 < 1.5 s thresholds and a sizing model; the test has NOT been run, so no result is claimed. Phase 17. | 17 |
+| TEC-03 ★ | 20–30 % yearly user growth without performance loss | 🟡 Partial | Capacity and cost-growth model for +20–30 % a year with autoscale limits; to be re-run on measured data. Phase 17. | 17 |
 | TEC-04 ★ | Central browser-based architecture for internal and external users | ✅ Available | SPA + REST API. | — |
-| TEC-05 ★ | Disaster recovery and business continuity with automation | 🔴 Missing | Not available. | 17 |
+| TEC-05 ★ | Disaster recovery and business continuity with automation | 🟡 Partial | DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17. | 17 |
 | TEC-06 ★ | Real-time message-based sync between systems | ✅ Available | Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13). | — |
 | TEC-07 ★ | Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website | 🟡 Partial | Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13). | 13 |
 | TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | 🟡 Partial | LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built | 10 |
@@ -911,7 +911,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TEC-13 ★ | Trusted content-provider integration | 🟡 Partial | Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials | 10 |
 | TEC-14 ★ | Compatible with phones and tablets | ✅ Available | Responsive web + Flutter app. | — |
 | TEC-15 ★ | Cost-effective licensing (perpetual preferred) | ✅ Available | Custom-built, owned source code; no per-user licence. | — |
-| TEC-16 ★ | Automatic patching without user impact | 🟡 Partial | Zero-downtime deployment not documented. | 17 |
+| TEC-16 ★ | Automatic patching without user impact | 🟡 Partial | Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17. | 17 |
 | TEC-17 | Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security | ✅ Available | Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthly PDF/Word report. Concurrency shows current and peak users, not a proven capacity; uptime comes from an in-app probe (Phase 12). | — |
 
 ### DLV · Project Deliverables — مخرجات المشروع والمتسلمات

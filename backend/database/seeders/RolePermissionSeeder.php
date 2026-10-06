@@ -143,6 +143,7 @@ class RolePermissionSeeder extends Seeder
         'ratings.moderate' => ['collaboration', 'الإشراف على التقييمات والمراجعات', 'Moderate ratings and reviews'],
         'gamification.manage' => ['collaboration', 'إدارة التحفيز (النقاط والشارات والتحديات)', 'Manage gamification (points, badges, challenges)'],
         'rewards.manage' => ['collaboration', 'إدارة المكافآت', 'Manage rewards'],
+        'privacy.manage' => ['security', 'معالجة طلبات أصحاب البيانات', 'Handle data-subject requests'],
         'pricing.manage' => ['payments', 'إدارة الأسعار وسياسة الاسترداد', 'Manage prices and the refund policy'],
         'orders.view' => ['payments', 'عرض الطلبات والمدفوعات', 'View orders and payments'],
         'refunds.approve' => ['payments', 'الموافقة على طلبات الاسترداد', 'Approve refund requests'],
@@ -321,5 +322,7 @@ class RolePermissionSeeder extends Seeder
         'ai.settings', 'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
         // Phase 16
         'pricing.manage', 'orders.view', 'refunds.approve', 'entity_accounts.manage', 'finance.reports',
+        // Phase 17
+        'privacy.manage',
     ];
 }

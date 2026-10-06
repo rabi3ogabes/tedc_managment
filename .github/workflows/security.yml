@@ -1,0 +1,70 @@
+name: Security
+# Secure SDLC gates (NFR-16, NFR-18): secrets, dependencies, static analysis, container image, IaC. Runs on every push and weekly.
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.4', coverage: none }
+      - name: composer audit
+        working-directory: backend
+        run: composer audit --no-interaction
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: npm audit (high and critical fail the build)
+        working-directory: web
+        run: npm audit --audit-level=high
+      - name: OSV scanner (all lockfiles)
+        uses: google/osv-scanner-action/osv-scanner-action@v1.9.2
+        with:
+          scan-args: |-
+            --lockfile=backend/composer.lock
+            --lockfile=web/package-lock.json
+  sast:
+    runs-on: ubuntu-latest
+    container: { image: semgrep/semgrep }
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep scan --config p/php --config p/typescript --config p/owasp-top-ten --config p/secrets --error --severity ERROR backend/app web/src
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t tedc:scan .
+      - name: Trivy (high and critical fail the build)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: tedc:scan
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+  iac:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy config scan of the infrastructure code
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          severity: HIGH,CRITICAL
+          exit-code: '0'   # reported; tightened to fail once the Ministry's baseline is agreed

@@ -75,8 +75,24 @@ return [
         'signed_url_ttl' => 600,
     ],
 
-    // "supabase" stores files in Supabase Storage; "local" uses the Laravel private disk.
+    // "azure" stores files in Azure Blob Storage (private containers, SAS links), "supabase" in Supabase Storage, "local" on the Laravel private disk.
     'storage_driver' => env('TEDC_STORAGE_DRIVER', 'local'),
+
+    'realtime' => [
+        // supabase | sse | polling — how clients learn about new notifications at once (see RealtimeController).
+        'driver' => env('TEDC_REALTIME', 'polling'),
+        'window' => (int) env('TEDC_REALTIME_WINDOW', 25),
+    ],
+
+    'azure' => [
+        'account' => env('AZURE_STORAGE_ACCOUNT'),
+        'key' => env('AZURE_STORAGE_KEY'),                          // development / Azurite only; production uses the managed identity
+        'endpoint' => env('AZURE_STORAGE_ENDPOINT'),                // e.g. http://127.0.0.1:10000/devstoreaccount1 for Azurite
+        'managed_identity' => (bool) env('AZURE_STORAGE_MANAGED_IDENTITY', false),
+        'client_id' => env('AZURE_CLIENT_ID'),
+        'api_version' => '2022-11-02',
+        'sas_ttl' => 600,
+    ],
 
     'attendance' => [
         // Dynamic QR codes rotate every N seconds; one previous window is accepted to absorb clock drift.

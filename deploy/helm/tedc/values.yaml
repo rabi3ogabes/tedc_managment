@@ -1,0 +1,9 @@
+image: { repository: registry.example.local/tedc, tag: latest }
+replicas: { api: 2, worker: 2, realtime: 2 }
+env:
+  APP_ENV: production
+  LOG_CHANNEL: json
+  TEDC_STORAGE_DRIVER: azure         # or local with a ReadWriteMany volume on-premises
+  TEDC_REALTIME: sse
+secretName: tedc-secrets             # APP_KEY, DB_PASSWORD, TEDC_JWT_PRIVATE_KEY (External Secrets / Vault CSI)
+ingress: { host: tedc.example.local, tlsSecret: tedc-tls }

@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Support\AzureBlob;
 use App\Support\Supabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -22,6 +24,16 @@ class FileStorage
         return config('tedc.storage_driver') === 'supabase';
     }
 
+    public function usesAzure(): bool
+    {
+        return config('tedc.storage_driver') === 'azure';
+    }
+
+    private function azure(): AzureBlob
+    {
+        return app(AzureBlob::class);
+    }
+
     public function upload(UploadedFile $file, string $bucket, string $directory): string
     {
         $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
@@ -37,7 +49,7 @@ class FileStorage
     {
         $path = trim($directory, '/').'/'.Str::uuid().'.'.strtolower($file->getClientOriginalExtension() ?: 'jpg');
 
-        if ($this->usesSupabase()) {
+        if ($this->usesSupabase() || $this->usesAzure()) {
             return $this->put('public', $path, (string) file_get_contents($file->getRealPath()), $file->getMimeType() ?? 'image/jpeg');
         }
 
@@ -57,6 +69,12 @@ class FileStorage
         if (config('tedc.storage_driver') === 'supabase') {
             return rtrim(config('tedc.supabase.url'), '/').'/storage/v1/object/public/'.config('tedc.supabase.buckets.public').'/'.$path;
         }
+        if (config('tedc.storage_driver') === 'azure') {
+            // Public assets sit in a private container too: a day-long read link, renewed when it is half used.
+            $c = (string) (config('tedc.supabase.buckets.public') ?? 'public');
+
+            return Cache::remember('azure.public.'.sha1($path), 43200, fn () => app(AzureBlob::class)->sasUrl($c, $path, 'r', 86400));
+        }
 
         return Storage::disk('public')->url($path);
     }
@@ -64,6 +82,12 @@ class FileStorage
     public function put(string $bucket, string $path, string $contents, string $mime): string
     {
         $bucketName = $this->bucket($bucket);
+
+        if ($this->usesAzure()) {
+            $this->azure()->put($bucketName, $path, $contents, $mime);
+
+            return $path;
+        }
 
         if ($this->usesSupabase()) {
             $this->supabase()
@@ -82,6 +106,10 @@ class FileStorage
     {
         $bucketName = $this->bucket($bucket);
 
+        if ($this->usesAzure()) {
+            return $this->azure()->get($bucketName, $path);
+        }
+
         if ($this->usesSupabase()) {
             return $this->supabase()->get($this->endpoint("object/{$bucketName}/{$path}"))->throw()->body();
         }
@@ -97,6 +125,12 @@ class FileStorage
     public function delete(string $bucket, string $path): void
     {
         $bucketName = $this->bucket($bucket);
+
+        if ($this->usesAzure()) {
+            $this->azure()->delete($bucketName, $path);
+
+            return;
+        }
 
         if ($this->usesSupabase()) {
             $this->supabase()->delete($this->endpoint("object/{$bucketName}"), ['prefixes' => [$path]]);
@@ -114,6 +148,10 @@ class FileStorage
     {
         $ttl ??= config('tedc.supabase.signed_url_ttl');
         $bucketName = $this->bucket($bucket);
+
+        if ($this->usesAzure()) {
+            return $this->azure()->sasUrl($bucketName, $path, 'r', (int) $ttl);
+        }
 
         if ($this->usesSupabase()) {
             $signed = $this->supabase()
@@ -136,6 +174,10 @@ class FileStorage
     public function signedUpload(string $bucket, string $path, string $mime): array
     {
         $bucketName = $this->bucket($bucket);
+
+        if ($this->usesAzure()) {
+            return ['url' => $this->azure()->sasUrl($bucketName, $path, 'cw', 1800), 'method' => 'PUT', 'mode' => 'raw', 'headers' => ['x-ms-blob-type' => 'BlockBlob', 'Content-Type' => $mime]];
+        }
 
         if ($this->usesSupabase()) {
             $res = $this->supabase()->withHeaders(['x-upsert' => 'true'])->post($this->endpoint("object/upload/sign/{$bucketName}/{$path}"))->throw()->json();
@@ -167,6 +209,12 @@ class FileStorage
         $source = $this->bucket($fromBucket);
         $target = $this->bucket($toBucket);
 
+        if ($this->usesAzure()) {
+            $this->azure()->copy($source, $from, $target, $to);
+
+            return;
+        }
+
         if ($this->usesSupabase()) {
             $this->supabase()->post($this->endpoint('object/copy'), ['bucketId' => $source, 'sourceKey' => $from, 'destinationBucket' => $target, 'destinationKey' => $to])->throw();
 
@@ -183,6 +231,10 @@ class FileStorage
     public function exists(string $bucket, string $path): bool
     {
         $bucketName = $this->bucket($bucket);
+
+        if ($this->usesAzure()) {
+            return $this->azure()->exists($bucketName, $path);
+        }
 
         if ($this->usesSupabase()) {
             return $this->supabase()->head($this->endpoint("object/info/{$bucketName}/{$path}"))->successful()

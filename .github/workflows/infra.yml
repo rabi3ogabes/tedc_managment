@@ -1,0 +1,26 @@
+name: Infrastructure
+# IaC validation (NFR-02/03): every Bicep file must build, and the policy that restricts locations to Qatar Central is checked.
+on:
+  push:
+    paths: ['infra/**', '.github/workflows/infra.yml']
+  pull_request:
+    paths: ['infra/**']
+  workflow_dispatch:
+jobs:
+  bicep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bicep
+        run: az bicep install
+      - name: Build every module and the main template
+        run: |
+          set -e
+          for f in infra/modules/*.bicep infra/main.bicep; do echo "== $f"; az bicep build --file "$f" --stdout > /dev/null; done
+      - name: Parameter files compile against main
+        run: |
+          set -e
+          for p in infra/parameters/*.bicepparam; do echo "== $p"; az bicep build-params --file "$p" --stdout > /dev/null; done
+      - name: Location policy — nothing may default outside Qatar Central
+        run: |
+          if grep -rEn "location *: *'(westeurope|eastus|northeurope|uaenorth)'" infra; then echo "A resource is pinned outside Qatar Central"; exit 1; fi

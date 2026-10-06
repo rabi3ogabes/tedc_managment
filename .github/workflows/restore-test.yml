@@ -1,0 +1,25 @@
+name: Monthly restore test
+# Restores the latest PostgreSQL backup into an isolated resource group, runs the smoke test and deletes it. Needs the same OIDC secrets as deploy-azure.yml.
+on:
+  schedule:
+    - cron: '0 2 1 * *'
+  workflow_dispatch:
+permissions: { id-token: write, contents: read }
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
+      - name: Restore to an isolated server
+        run: |
+          set -e
+          RG=rg-tedc-restore-test
+          az group create -n $RG -l qatarcentral >/dev/null
+          START=$(date +%s)
+          az postgres flexible-server restore -g $RG -n tedc-restore-$(date +%Y%m) --source-server "${{ vars.PROD_PG_ID }}" --restore-time "$(date -u -d '-10 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          echo "restore took $(( $(date +%s) - START )) s" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Cleanup
+        if: always()
+        run: az group delete -n rg-tedc-restore-test --yes --no-wait

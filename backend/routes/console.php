@@ -1,5 +1,6 @@
 <?php
 
+use App\Ops\DataSubjectService;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('tedc:program-lifecycle')->hourly()->withoutOverlapping();
@@ -24,6 +25,8 @@ Schedule::command('tedc:deliver-notifications')->everyMinute()->withoutOverlappi
 Schedule::command('tedc:announcements-tick')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:ministry-push')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('tedc:stats-refresh')->everyTenMinutes()->withoutOverlapping();
+Schedule::call(fn () => app(DataSubjectService::class)->sweep())->dailyAt('08:00')->name('dsr-sweep');
+Schedule::command('tedc:siem-flush')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:payments-tick')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:payments-daily')->dailyAt('03:15')->withoutOverlapping();
 Schedule::command('tedc:ai-nightly')->dailyAt('02:30')->withoutOverlapping();

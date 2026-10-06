@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Security\SecurityEvents;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,8 @@ class EnsurePermission
                 return $next($request);
             }
         }
+
+        SecurityEvents::denied($user, $request);
 
         abort(403, __('auth.forbidden'));
     }

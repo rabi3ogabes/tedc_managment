@@ -1,0 +1,32 @@
+{{- range $name, $cfg := dict "api" (dict "port" 8080) "worker" (dict) "realtime" (dict "port" 8081) "scheduler" (dict) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: tedc-{{ $name }} }
+spec:
+  replicas: {{ if eq $name "scheduler" }}1{{ else }}{{ index $.Values.replicas $name | default 2 }}{{ end }}
+  selector: { matchLabels: { app: tedc-{{ $name }} } }
+  strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  template:
+    metadata: { labels: { app: tedc-{{ $name }} } }
+    spec:
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: {{ $name }}
+          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          env:
+            - { name: TEDC_ROLE, value: {{ $name }} }
+            {{- range $k, $v := $.Values.env }}
+            - { name: {{ $k }}, value: {{ $v | quote }} }
+            {{- end }}
+          envFrom: [ { secretRef: { name: {{ $.Values.secretName }} } } ]
+          {{- if $cfg.port }}
+          ports: [ { containerPort: {{ $cfg.port }} } ]
+          startupProbe: { httpGet: { path: /api/v1/public/health/live, port: {{ $cfg.port }} }, periodSeconds: 5, failureThreshold: 30 }
+          livenessProbe: { httpGet: { path: /api/v1/public/health/live, port: {{ $cfg.port }} }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /api/v1/public/health/ready, port: {{ $cfg.port }} }, periodSeconds: 10 }
+          {{- end }}
+          volumeMounts: [ { name: tmp, mountPath: /tmp }, { name: storage-cache, mountPath: /var/www/html/storage } ]
+      volumes: [ { name: tmp, emptyDir: {} }, { name: storage-cache, emptyDir: {} } ]
+{{- end }}

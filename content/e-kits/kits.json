@@ -1,0 +1,564 @@
+[
+ {
+  "code": "EKIT-PORTAL",
+  "status_note": "Proposed topic — to be confirmed with the Training and Development Center.",
+  "title_ar": "استخدام بوابة التدريب التربوي",
+  "title_en": "Using the Educational Training Portal",
+  "hours": 2,
+  "objectives_ar": [
+   "تسجيل الدخول وتأمين الحساب",
+   "البحث عن البرامج والتسجيل فيها",
+   "متابعة الدورات الإلكترونية والاختبارات",
+   "الحصول على الشهادات وتتبع ساعات التطوير المهني",
+   "طلب المساعدة والإبلاغ عن مشكلة"
+  ],
+  "objectives_en": [
+   "Sign in and secure your account",
+   "Find and register for programmes",
+   "Follow online courses and assessments",
+   "Get certificates and track professional-development hours",
+   "Ask for help and report a problem"
+  ],
+  "chapters": [
+   {
+    "title_ar": "الدخول والأمان",
+    "title_en": "Signing in and staying safe",
+    "body_ar": "<p>ادخل بحساب الوزارة من الصفحة الرئيسية. فعّل التحقق بخطوتين من صفحة «حسابي ← الأمان». لا تشارك كلمة المرور، ولا تُبقِ الجلسة مفتوحة على جهاز مشترك.</p><ul><li>كلمة المرور الجديدة طويلة ومختلفة عن أي حساب آخر.</li><li>عند ظهور رمز التحقق أدخله خلال دقيقتين.</li><li>اخرج من الجلسات الأخرى من «حسابي ← الجلسات».</li></ul>",
+    "body_en": "<p>Sign in with your Ministry account from the home page. Turn on two-step verification in My account → Security. Never share your password, and never leave a session open on a shared device.</p><ul><li>Use a long password that you use nowhere else.</li><li>Enter the verification code within two minutes.</li><li>End other sessions from My account → Sessions.</li></ul>",
+    "check": [
+     {
+      "stem_ar": "ما الذي يجب فعله على جهاز مشترك؟",
+      "stem_en": "What should you do on a shared device?",
+      "options": [
+       {
+        "ar": "ترك الجلسة مفتوحة",
+        "en": "Leave the session open"
+       },
+       {
+        "ar": "تسجيل الخروج بعد الانتهاء",
+        "en": "Sign out when finished"
+       }
+      ],
+      "correct": 1,
+      "explanation_ar": "الخروج يحمي بياناتك.",
+      "explanation_en": "Signing out protects your data."
+     },
+     {
+      "stem_ar": "أين تفعّل التحقق بخطوتين؟",
+      "stem_en": "Where do you turn on two-step verification?",
+      "options": [
+       {
+        "ar": "حسابي ← الأمان",
+        "en": "My account → Security"
+       },
+       {
+        "ar": "الصفحة الرئيسية",
+        "en": "The home page"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "البحث والتسجيل",
+    "title_en": "Finding and registering",
+    "body_ar": "<p>افتح «البرامج التدريبية» وفلتر حسب المجال أو النمط. تعرض الصفحة سبب أهليتك أو عدمها. اضغط «سجّل» وتابع حالة طلبك: بانتظار المدير ثم المركز ثم معتمد.</p>",
+    "body_en": "<p>Open Training programmes and filter by area or delivery mode. The page tells you whether you are eligible and why. Press Register and follow the status: waiting for your manager, then the centre, then approved.</p>",
+    "check": [
+     {
+      "stem_ar": "ما ترتيب الموافقات على طلبك؟",
+      "stem_en": "What is the order of approvals?",
+      "options": [
+       {
+        "ar": "المركز ثم المدير",
+        "en": "Centre then manager"
+       },
+       {
+        "ar": "المدير ثم المركز",
+        "en": "Manager then centre"
+       }
+      ],
+      "correct": 1,
+      "explanation_ar": "",
+      "explanation_en": ""
+     },
+     {
+      "stem_ar": "ماذا تفعل إذا لم تكن مؤهلًا؟",
+      "stem_en": "What if you are not eligible?",
+      "options": [
+       {
+        "ar": "تقرأ سبب عدم الأهلية في الصفحة",
+        "en": "Read the reason shown on the page"
+       },
+       {
+        "ar": "تكرر المحاولة عدة مرات",
+        "en": "Try again several times"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "الدورات والاختبارات",
+    "title_en": "Courses and assessments",
+    "body_ar": "<p>افتح «تدريبي» ثم الدورة. أكمل الدروس بالترتيب إن كانت الدورة متسلسلة. الاختبار يحفظ إجاباتك تلقائيًا؛ إذا انقطع الاتصال استأنف من حيث توقفت قبل انتهاء الوقت.</p>",
+    "body_en": "<p>Open My training, then the course. Complete lessons in order when the course is sequential. An exam saves your answers automatically; if the connection drops, resume where you stopped before time runs out.</p>",
+    "check": [
+     {
+      "stem_ar": "هل تُحفظ إجاباتك أثناء الاختبار؟",
+      "stem_en": "Are your answers saved during an exam?",
+      "options": [
+       {
+        "ar": "نعم تلقائيًا",
+        "en": "Yes, automatically"
+       },
+       {
+        "ar": "لا",
+        "en": "No"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     },
+     {
+      "stem_ar": "متى يمكنك فتح درس متسلسل؟",
+      "stem_en": "When can you open a sequential lesson?",
+      "options": [
+       {
+        "ar": "بعد إكمال السابق",
+        "en": "After finishing the previous one"
+       },
+       {
+        "ar": "في أي وقت",
+        "en": "Any time"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "الشهادات وساعاتي",
+    "title_en": "Certificates and my hours",
+    "body_ar": "<p>بعد استيفاء شروط النجاح تظهر شهادتك في «شهاداتي» ويمكنك تنزيلها بعد تعبئة استبيان البرنامج. ساعات التطوير المهني السنوية تظهر في «مساري المهني» مع النقص المتبقي.</p>",
+    "body_en": "<p>Once the passing rules are met your certificate appears in My certificates; download it after filling in the programme survey. Your annual professional-development hours appear in My growth with what is still missing.</p>",
+    "check": [
+     {
+      "stem_ar": "متى تُنزَّل الشهادة؟",
+      "stem_en": "When can you download the certificate?",
+      "options": [
+       {
+        "ar": "بعد تعبئة الاستبيان",
+        "en": "After the survey is filled in"
+       },
+       {
+        "ar": "قبل البدء",
+        "en": "Before starting"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     },
+     {
+      "stem_ar": "أين ترى نقص الساعات؟",
+      "stem_en": "Where do you see missing hours?",
+      "options": [
+       {
+        "ar": "مساري المهني",
+        "en": "My growth"
+       },
+       {
+        "ar": "الإشعارات",
+        "en": "Notifications"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "المساعدة",
+    "title_en": "Getting help",
+    "body_ar": "<p>زر «؟» في أعلى كل صفحة يفتح مقالات تخص الصفحة. للإبلاغ عن مشكلة اضغط «الإبلاغ عن مشكلة»؛ يُنشأ طلب في سعيد وتصلك حالته في الإشعارات.</p>",
+    "body_en": "<p>The ? button at the top of every page opens articles about that page. To report a problem press Report a problem; a Saaed ticket is created and its status reaches your notifications.</p>",
+    "check": [
+     {
+      "stem_ar": "كيف تبلّغ عن مشكلة؟",
+      "stem_en": "How do you report a problem?",
+      "options": [
+       {
+        "ar": "زر الإبلاغ عن مشكلة",
+        "en": "The Report a problem button"
+       },
+       {
+        "ar": "بريد شخصي",
+        "en": "A personal e-mail"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   }
+  ],
+  "final": [
+   {
+    "stem_ar": "ما أول خطوة لتأمين حسابك؟",
+    "stem_en": "What is the first step to secure your account?",
+    "options": [
+     {
+      "ar": "كلمة مرور قوية وتحقق بخطوتين",
+      "en": "A strong password and two-step verification"
+     },
+     {
+      "ar": "مشاركة الحساب",
+      "en": "Sharing the account"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "أين تجد شروط أهلية برنامج؟",
+    "stem_en": "Where do you find the eligibility of a programme?",
+    "options": [
+     {
+      "ar": "صفحة البرنامج",
+      "en": "The programme page"
+     },
+     {
+      "ar": "الشهادات",
+      "en": "Certificates"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "ماذا يحدث لإجاباتك إذا انقطع الاتصال؟",
+    "stem_en": "What happens to your answers if the connection drops?",
+    "options": [
+     {
+      "ar": "تُحفظ تلقائيًا",
+      "en": "They are saved automatically"
+     },
+     {
+      "ar": "تضيع",
+      "en": "They are lost"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "من يوافق أولًا على التسجيل الذاتي؟",
+    "stem_en": "Who approves a self-registration first?",
+    "options": [
+     {
+      "ar": "المدير المباشر",
+      "en": "The direct manager"
+     },
+     {
+      "ar": "المدرب",
+      "en": "The trainer"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "أين تجد شهاداتك؟",
+    "stem_en": "Where are your certificates?",
+    "options": [
+     {
+      "ar": "شهاداتي",
+      "en": "My certificates"
+     },
+     {
+      "ar": "الإعدادات",
+      "en": "Settings"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "ما فائدة زر «؟»؟",
+    "stem_en": "What does the ? button do?",
+    "options": [
+     {
+      "ar": "يفتح مساعدة الصفحة",
+      "en": "Opens help for the page"
+     },
+     {
+      "ar": "يخرجك",
+      "en": "Signs you out"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   }
+  ]
+ },
+ {
+  "code": "EKIT-QUESTIONING",
+  "status_note": "Proposed topic — the centre chooses the pedagogical topic; this draft shows the full structure.",
+  "title_ar": "أسئلة صفية فعّالة",
+  "title_en": "Effective classroom questioning",
+  "hours": 3,
+  "objectives_ar": [
+   "التمييز بين مستويات الأسئلة",
+   "صياغة أسئلة تثير التفكير",
+   "إدارة زمن الانتظار وتوزيع المشاركة",
+   "تقييم الفهم من خلال الأسئلة"
+  ],
+  "objectives_en": [
+   "Tell question levels apart",
+   "Write questions that provoke thinking",
+   "Manage wait time and spread participation",
+   "Check understanding through questions"
+  ],
+  "chapters": [
+   {
+    "title_ar": "لماذا نسأل؟",
+    "title_en": "Why we ask",
+    "body_ar": "<p>السؤال الجيد يكشف الفهم ويوجّه التفكير ويشجع المشاركة. الأسئلة المغلقة تتحقق من المعرفة، والمفتوحة تنمّي التحليل والإبداع.</p>",
+    "body_en": "<p>A good question reveals understanding, guides thinking and invites participation. Closed questions check knowledge; open questions develop analysis and creativity.</p>",
+    "check": [
+     {
+      "stem_ar": "أي نوع يتحقق من المعرفة؟",
+      "stem_en": "Which type checks knowledge?",
+      "options": [
+       {
+        "ar": "المغلق",
+        "en": "Closed"
+       },
+       {
+        "ar": "المفتوح",
+        "en": "Open"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     },
+     {
+      "stem_ar": "أي نوع ينمّي التحليل؟",
+      "stem_en": "Which develops analysis?",
+      "options": [
+       {
+        "ar": "المفتوح",
+        "en": "Open"
+       },
+       {
+        "ar": "المغلق",
+        "en": "Closed"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "مستويات الأسئلة",
+    "title_en": "Question levels",
+    "body_ar": "<p>تدرّج بلوم: تذكّر، فهم، تطبيق، تحليل، تقويم، ابتكار. ابدأ بسؤال تذكّر ثم ارتقِ تدريجيًا.</p>",
+    "body_en": "<p>Bloom's ladder: remember, understand, apply, analyse, evaluate, create. Start with a recall question and climb step by step.</p>",
+    "check": [
+     {
+      "stem_ar": "«قارن بين طريقتين» يقع في مستوى:",
+      "stem_en": "'Compare two methods' is at the level of:",
+      "options": [
+       {
+        "ar": "التحليل",
+        "en": "Analysis"
+       },
+       {
+        "ar": "التذكّر",
+        "en": "Recall"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     },
+     {
+      "stem_ar": "«اذكر تعريف الكسر» يقع في مستوى:",
+      "stem_en": "'State the definition of a fraction' is at the level of:",
+      "options": [
+       {
+        "ar": "التذكّر",
+        "en": "Recall"
+       },
+       {
+        "ar": "التقويم",
+        "en": "Evaluation"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "صياغة السؤال",
+    "title_en": "Wording the question",
+    "body_ar": "<p>اجعل السؤال واضحًا وقصيرًا ومحددًا. تجنّب أسئلة «نعم/لا» عندما تريد تفكيرًا. اطرح السؤال أولًا ثم سمِّ الطالب.</p>",
+    "body_en": "<p>Keep the question clear, short and specific. Avoid yes/no questions when you want thinking. Ask the question first, then name the student.</p>",
+    "check": [
+     {
+      "stem_ar": "ما الأفضل؟",
+      "stem_en": "Which is better?",
+      "options": [
+       {
+        "ar": "اطرح السؤال ثم سمِّ الطالب",
+        "en": "Ask, then name the student"
+       },
+       {
+        "ar": "سمِّ الطالب ثم اطرح السؤال",
+        "en": "Name the student, then ask"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   },
+   {
+    "title_ar": "زمن الانتظار والمشاركة",
+    "title_en": "Wait time and participation",
+    "body_ar": "<p>انتظر ثلاث ثوانٍ على الأقل بعد السؤال. استخدم «فكّر – زاوج – شارك» لإشراك الجميع.</p>",
+    "body_en": "<p>Wait at least three seconds after a question. Use think–pair–share to involve everyone.</p>",
+    "check": [
+     {
+      "stem_ar": "كم ثانية انتظار مقترحة؟",
+      "stem_en": "Suggested wait time?",
+      "options": [
+       {
+        "ar": "ثلاث ثوانٍ على الأقل",
+        "en": "At least three seconds"
+       },
+       {
+        "ar": "ثانية واحدة",
+        "en": "One second"
+       }
+      ],
+      "correct": 0,
+      "explanation_ar": "",
+      "explanation_en": ""
+     }
+    ]
+   }
+  ],
+  "final": [
+   {
+    "stem_ar": "أي سؤال مفتوح؟",
+    "stem_en": "Which question is open?",
+    "options": [
+     {
+      "ar": "كيف تفسّر هذه النتيجة؟",
+      "en": "How do you explain this result?"
+     },
+     {
+      "ar": "هل 4 زوجي؟",
+      "en": "Is 4 even?"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "ما هدف زمن الانتظار؟",
+    "stem_en": "Purpose of wait time?",
+    "options": [
+     {
+      "ar": "منح فرصة للتفكير",
+      "en": "Give time to think"
+     },
+     {
+      "ar": "إطالة الحصة",
+      "en": "Lengthen the lesson"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "أي مستوى بلوم أعلى؟",
+    "stem_en": "Which Bloom level is highest?",
+    "options": [
+     {
+      "ar": "الابتكار",
+      "en": "Create"
+     },
+     {
+      "ar": "التذكّر",
+      "en": "Recall"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "متى تسمّي الطالب؟",
+    "stem_en": "When do you name the student?",
+    "options": [
+     {
+      "ar": "بعد طرح السؤال",
+      "en": "After asking"
+     },
+     {
+      "ar": "قبله",
+      "en": "Before asking"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   },
+   {
+    "stem_ar": "ما فائدة «فكّر – زاوج – شارك»؟",
+    "stem_en": "Benefit of think–pair–share?",
+    "options": [
+     {
+      "ar": "مشاركة الجميع",
+      "en": "Everyone takes part"
+     },
+     {
+      "ar": "صمت الصف",
+      "en": "A silent class"
+     }
+    ],
+    "correct": 0,
+    "explanation_ar": "",
+    "explanation_en": ""
+   }
+  ]
+ }
+]

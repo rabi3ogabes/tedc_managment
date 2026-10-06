@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tedc
+description: TEDC training platform for a Ministry Kubernetes cluster (same image as Azure Container Apps)
+version: 0.1.0
+appVersion: "1.0"

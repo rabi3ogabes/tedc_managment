@@ -18,7 +18,7 @@ import AssistantPanel from '@/components/ai/AssistantPanel'
 import CartDrawer from '@/components/shop/CartDrawer'
 import { useFeatures } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
-import { useRealtimeNotifications } from '@/lib/realtime'
+import { useRealtimeNotifications, useSseNotifications } from '@/lib/realtime'
 import { useCenterName } from '@/lib/ThemeProvider'
 
 type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string }
@@ -58,6 +58,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const errorBadge = useGet<{ data: { open: number; critical: number } }>(!portal && can('logs.manage') ? '/admin/error-logs/badge' : null, undefined, { refetchInterval: 60_000 })
   const chats = useGet<{ data: { unread: number; needs_human: number } }>(!portal && can('announcements.manage') ? '/admin/chats/badge' : null, undefined, { refetchInterval: 20_000 })
   useRealtimeNotifications()
+  useSseNotifications()
   const [pulse, setPulse] = useState(false)
   useEffect(() => {
     const on = () => { setPulse(true); window.setTimeout(() => setPulse(false), 2500) }
@@ -86,6 +87,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
           { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
           { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
+          { to: '/portal/my-data', label: t('prv.nav'), icon: Shield },
           { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments' },
           { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
@@ -136,6 +138,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/migration', label: t('idn.navMigration'), icon: PackageOpen, permission: 'migration.run' },
           { to: '/admin/security-policy', label: t('idn.navSecurityAdmin'), icon: Shield, permission: 'security.policy|sessions.manage' },
           { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
+          { to: '/admin/privacy', label: t('prv.adminNav'), icon: Shield, permission: 'privacy.manage' },
           { to: '/admin/finance', label: t('pay.nav.finance'), icon: Wallet, permission: 'orders.view|pricing.manage|finance.reports|entity_accounts.manage', feature: 'payments' },
           { to: '/admin/forecasts', label: t('aix.nav.forecasts'), icon: LineChart, permission: 'ai.forecasts.view', feature: 'ai' },
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },

@@ -1,0 +1,59 @@
+name: Deploy to Azure
+# Template pipeline: build → test → scan → push to ACR (Qatar Central) → dev → staging (smoke + k6) → manual approval → prod with traffic splitting and automatic rollback.
+# Needs the GitHub environments dev / staging / production (production with required reviewers) and an OIDC federated credential per environment.
+on:
+  workflow_dispatch:
+    inputs:
+      ref: { description: 'Git ref to deploy', default: 'main' }
+permissions:
+  id-token: write
+  contents: read
+env:
+  IMAGE: tedc
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: '${{ inputs.ref }}' }
+      - id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: azure/login@v2
+        with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
+      - name: Build and push (ACR task runs in Qatar Central)
+        run: az acr build -r "${{ vars.ACR_NAME }}" -t "$IMAGE:${{ steps.meta.outputs.tag }}" -f Dockerfile .
+  dev:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
+      - run: ./deploy/azure/release.sh dev "${{ needs.build.outputs.tag }}"
+  staging:
+    needs: [build, dev]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
+      - run: ./deploy/azure/release.sh staging "${{ needs.build.outputs.tag }}"
+      - uses: grafana/setup-k6-action@v1
+      - name: Smoke load test
+        run: k6 run -e BASE_URL="${{ vars.STAGING_URL }}/api/v1" -e PERF_PASSWORD="${{ secrets.PERF_PASSWORD }}" perf/smoke.js
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with: { target: '${{ vars.STAGING_URL }}', fail_action: true }
+  prod:
+    needs: [build, staging]
+    runs-on: ubuntu-latest
+    environment: production   # required reviewers = the manual approval
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
+      - run: ./deploy/azure/release.sh prod "${{ needs.build.outputs.tag }}"

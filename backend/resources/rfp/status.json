@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 218,
-        "partial": 45,
-        "missing": 15,
+        "available": 222,
+        "partial": 49,
+        "missing": 7,
         "mandatory": 108,
-        "open": 60
+        "open": 56
     },
     "phases": [
         {
@@ -131,7 +131,7 @@
             "phase": 17,
             "title": "Azure Qatar, Security & Compliance",
             "open": 19,
-            "items": 19,
+            "items": 15,
             "done": 0
         },
         {
@@ -2211,15 +2211,15 @@
                     "mandatory": true,
                     "requirement": "Secure, scalable, resilient multi-layer HA design (99.9 % SLA)",
                     "status": "partial",
-                    "evidence": "Stateless API in Docker; no HA / DR topology.",
+                    "evidence": "HA design and zone-redundant IaC (gateway, Container Apps, PostgreSQL HA, Redis), probes and blue-green release script; nothing deployed or failover-tested yet. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-02",
                     "mandatory": true,
                     "requirement": "Hosting on Azure Qatar (data residency, Law 13/2016)",
-                    "status": "missing",
-                    "evidence": "Runs on Railway / Vercel / Supabase.",
+                    "status": "partial",
+                    "evidence": "Bicep for Azure Qatar Central with a location policy, Azure Blob driver (Azurite-tested), health probes, Azure OpenAI support; not deployed — needs the Ministry's subscription. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2227,24 +2227,24 @@
                     "mandatory": true,
                     "requirement": "Production, staging (prod-identical) and development environments",
                     "status": "partial",
-                    "evidence": "Local + one deployment; CI pipeline exists.",
+                    "evidence": "dev / staging / prod parameter files with identical topology and separate vaults and databases; not provisioned. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-04",
                     "mandatory": true,
                     "requirement": "HLD / LLD, bill of materials, sizing and bandwidth design",
-                    "status": "missing",
-                    "evidence": "docs/ARCHITECTURE.md is a logical overview only.",
+                    "status": "partial",
+                    "evidence": "HLD, LLD, BOM and sizing, environment matrix written (English with Arabic summaries); full Arabic translation and priced BOM outstanding. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-05",
                     "mandatory": true,
                     "requirement": "Encryption at rest and in transit; joint data classification",
-                    "status": "partial",
-                    "evidence": "HTTPS, encrypted national IDs, private storage; no full classification.",
-                    "phase": 17
+                    "status": "available",
+                    "evidence": "Data classification of every column with generated register and a drift test; application-level encryption for national IDs and secrets; TLS/HSTS; Key Vault in IaC. Phase 17.",
+                    "phase": null
                 },
                 {
                     "id": "NFR-06",
@@ -2306,24 +2306,24 @@
                     "id": "NFR-13",
                     "mandatory": true,
                     "requirement": "Forward logs to SIEM (e.g., Splunk)",
-                    "status": "partial",
-                    "evidence": "Syslog handler available but not configured.",
-                    "phase": 17
+                    "status": "available",
+                    "evidence": "Audit and security events queued and forwarded to Splunk HEC or Microsoft Sentinel, JSON logs with request ids; the Ministry's SIEM endpoint is needed to go live. Phase 17.",
+                    "phase": null
                 },
                 {
                     "id": "NFR-14",
                     "mandatory": true,
                     "requirement": "No production data in dev / test / training; masking",
-                    "status": "missing",
-                    "evidence": "No masking process.",
-                    "phase": 17
+                    "status": "available",
+                    "evidence": "tedc:anonymise-export with approver, reason and audit; synthetic seed for lower environments; policy and docs forbid copying production data. Phase 17.",
+                    "phase": null
                 },
                 {
                     "id": "NFR-15",
                     "mandatory": true,
                     "requirement": "VAPT, accredited code review, threat model, risk assessment, security docs",
-                    "status": "missing",
-                    "evidence": "Not prepared.",
+                    "status": "partial",
+                    "evidence": "VAPT readiness checklist, scope document, remediation tracker, threat model and clearance pack contents; the accredited test itself has not been done. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2331,7 +2331,7 @@
                     "mandatory": true,
                     "requirement": "Secure SDLC: secure coding, threat modelling, code analysis",
                     "status": "partial",
-                    "evidence": "CI runs tests, lint and Pint; no SAST / dependency scanning.",
+                    "evidence": "SSDLC document and pipeline (gitleaks, audits, OSV, Semgrep, Trivy, ZAP baseline template, Dependabot); scans not yet run to a clean result and Larastan max level not reached. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2339,23 +2339,23 @@
                     "mandatory": true,
                     "requirement": "API security: encryption, validation, auth, API gateway",
                     "status": "partial",
-                    "evidence": "Validation, JWT, throttling, security headers; no API gateway.",
+                    "evidence": "Throttles, WAF policy with a login rate rule and partner-API gateway (APIM) in the IaC; API definitions and quotas for partners not configured. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-18",
                     "mandatory": true,
                     "requirement": "Patch and vulnerability management incl. third-party libraries",
-                    "status": "missing",
-                    "evidence": "No automated dependency updates.",
+                    "status": "partial",
+                    "evidence": "Patching SLAs, weekly image rebuild and Dependabot defined; no operating history yet. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-19",
                     "mandatory": true,
                     "requirement": "Enterprise backup and recovery in-country (RPO / RTO)",
-                    "status": "missing",
-                    "evidence": "Relies on provider backups.",
+                    "status": "partial",
+                    "evidence": "PITR 35 d, 7-year monthly vault, blob soft delete/versioning in IaC, DR runbook and monthly restore-test workflow; no restore has been executed. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2363,16 +2363,16 @@
                     "mandatory": true,
                     "requirement": "Monitoring with real-time alerts",
                     "status": "partial",
-                    "evidence": "Health endpoint, error log with self-heal, scheduled live checks; no APM / alerting.",
+                    "evidence": "Probes, action group and alerts (availability, 5xx, p95, queue lag, DB CPU/storage) in IaC; not deployed. Phase 17.",
                     "phase": 17
                 },
                 {
                     "id": "NFR-21",
                     "mandatory": true,
                     "requirement": "Third-party risk management",
-                    "status": "missing",
-                    "evidence": "External SaaS not assessed.",
-                    "phase": 17
+                    "status": "available",
+                    "evidence": "Third-party register with purpose, data, residency, contract status, risk, mitigation and kill-switch for each service. Phase 17.",
+                    "phase": null
                 }
             ]
         },
@@ -2386,7 +2386,7 @@
                     "mandatory": true,
                     "requirement": "Stable 24/7",
                     "status": "partial",
-                    "evidence": "Keep-warm and live checks; no HA.",
+                    "evidence": "Designed for 24/7 (zones, probes, autoscale, rollbacks); not proven in operation. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2394,7 +2394,7 @@
                     "mandatory": true,
                     "requirement": "10,000 concurrent users; response time < 1.5 s",
                     "status": "partial",
-                    "evidence": "No load-test evidence.",
+                    "evidence": "k6 scenarios to 10,000 users with p95 < 1.5 s thresholds and a sizing model; the test has NOT been run, so no result is claimed. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2402,7 +2402,7 @@
                     "mandatory": true,
                     "requirement": "20–30 % yearly user growth without performance loss",
                     "status": "partial",
-                    "evidence": "Horizontal scaling not designed.",
+                    "evidence": "Capacity and cost-growth model for +20–30 % a year with autoscale limits; to be re-run on measured data. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2417,8 +2417,8 @@
                     "id": "TEC-05",
                     "mandatory": true,
                     "requirement": "Disaster recovery and business continuity with automation",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2506,7 +2506,7 @@
                     "mandatory": true,
                     "requirement": "Automatic patching without user impact",
                     "status": "partial",
-                    "evidence": "Zero-downtime deployment not documented.",
+                    "evidence": "Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17.",
                     "phase": 17
                 },
                 {
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-06T13:17:52+03:00"
+    "generated_at": "2026-10-06T17:08:59+03:00"
 }

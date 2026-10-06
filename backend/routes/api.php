@@ -111,6 +111,7 @@ use App\Http\Controllers\Api\V1\ClientErrorController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\HealthProbeController;
 use App\Http\Controllers\Api\V1\HudhudReceiptController;
 use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\LibraryController;
@@ -132,10 +133,12 @@ use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyReportsController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
+use App\Http\Controllers\Api\V1\Me\RealtimeController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Payments\GatewayController;
 use App\Http\Controllers\Api\V1\Payments\PaymentsAdminController;
 use App\Http\Controllers\Api\V1\Payments\ShopController;
+use App\Http\Controllers\Api\V1\PrivacyController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
@@ -210,6 +213,8 @@ Route::prefix('v1')->group(function () {
 
     // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
     Route::get('public/health', HealthController::class);
+    Route::get('public/health/live', [HealthProbeController::class, 'live']);
+    Route::get('public/health/ready', [HealthProbeController::class, 'ready']);
 
     // The screen at a classroom door: reached by its secret token, no sign-in.
     Route::get('public/room-screen/{token}', function (string $token, Request $request, RoomScreenService $screen) {
@@ -465,6 +470,11 @@ Route::prefix('v1')->group(function () {
             Route::get('reports', [MyReportsController::class, 'index']);
             Route::get('reports/{key}', [MyReportsController::class, 'show']);
             Route::get('reports/{key}/export', [MyReportsController::class, 'export']);
+            Route::get('realtime/config', [RealtimeController::class, 'config']);
+            Route::get('realtime/stream', [RealtimeController::class, 'stream'])->middleware('throttle:30,1');
+            Route::get('privacy/requests', [PrivacyController::class, 'mine']);
+            Route::post('privacy/requests', [PrivacyController::class, 'store'])->middleware('throttle:10,60');
+            Route::get('privacy/export', [PrivacyController::class, 'export'])->middleware(['step_up', 'throttle:5,60']);
             Route::get('notification-preferences', [MyNotificationPreferencesController::class, 'show']);
             Route::put('notification-preferences', [MyNotificationPreferencesController::class, 'update']);
             Route::get('events', [MyEventsController::class, 'events']);
@@ -1128,6 +1138,12 @@ Route::prefix('v1')->group(function () {
                 Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
                 Route::get('public-stats', [CmsController::class, 'stats']);
                 Route::put('public-stats', [CmsController::class, 'saveStats']);
+            });
+
+            // Data-subject requests (Phase 17)
+            Route::middleware('permission:privacy.manage')->group(function () {
+                Route::get('privacy/requests', [PrivacyController::class, 'index']);
+                Route::put('privacy/requests/{dsr}', [PrivacyController::class, 'decide']);
             });
 
             // Payments: prices, orders, refunds, discount codes, entities, finance (Phase 16)

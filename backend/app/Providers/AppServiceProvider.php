@@ -10,9 +10,11 @@ use App\Integrations\Ministry\SijilArchive;
 use App\Integrations\Teams\TeamsService;
 use App\Models\AppNotification;
 use App\Models\Attendance;
+use App\Models\AuditLog;
 use App\Models\Certificate;
 use App\Models\CourseLesson;
 use App\Models\ImpactSurvey;
+use App\Models\IntegrationLog;
 use App\Models\LessonProgress;
 use App\Models\NeedsSurvey;
 use App\Models\PdActivity;
@@ -21,6 +23,8 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
+use App\Security\SecurityEvents;
+use App\Security\Siem\SiemForwarder;
 use App\Services\Channels\ChannelSettings;
 use App\Services\Channels\NotificationChannels;
 use App\Services\Content\CaliperService;
@@ -49,11 +53,18 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount'] as $param) {
+        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount', 'dsr'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         GamificationListener::register();
         AiHooks::register();
+        // Audit records and failed calls to other systems go to the SIEM (queued first, so it never slows a request).
+        AuditLog::created(fn (AuditLog $a) => app(SiemForwarder::class)->push('audit', ['action' => $a->action, 'user_id' => $a->user_id, 'subject_type' => $a->auditable_type, 'subject_id' => $a->auditable_id, 'ip' => $a->ip_address, 'url' => $a->url]));
+        IntegrationLog::created(function (IntegrationLog $l) {
+            if ($l->status === 'error' && $l->integration_key !== 'siem') {   // a SIEM that is down must not report itself in a loop
+                SecurityEvents::record('integration_failure', null, 'error', ['integration' => $l->integration_key, 'operation' => $l->operation]);
+            }
+        });
         // Domain events for other systems (webhooks / outbox): written only when someone subscribes.
         Registration::updated(function (Registration $r) {
             if ($r->wasChanged('status') && in_array($r->status, ['approved', 'completed'], true)) {
