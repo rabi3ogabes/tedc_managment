@@ -105,6 +105,7 @@ export default function QuestionBanks() {
   const [bankForm, setBankForm] = useState({ title_ar: '', title_en: '', visibility: 'center' })
   const [picked, setPicked] = useState<string[]>([])
   const file = useRef<HTMLInputElement>(null)
+  const qti = useRef<HTMLInputElement>(null)
   const refresh = () => { void banks.refetch(); void qs.refetch(); void cats.refetch() }
   const input = 'rounded-xl border border-navy-100 px-3 py-2 text-sm'
 
@@ -114,6 +115,11 @@ export default function QuestionBanks() {
     if (!bank) return
     const fd = new FormData(); fd.append('file', f)
     try { const { data } = await api.post(`/admin/question-banks/${bank.id}/import`, fd); toast(t('assess.studio.importReport', { created: data.data.created, errors: data.data.errors?.length ?? 0 })); refresh() } catch (e) { toast(errorMessage(e), 'error') }
+  }
+  const doQti = async (f: File) => {
+    if (!bank) return
+    const fd = new FormData(); fd.append('file', f)
+    try { const { data } = await api.post(`/admin/question-banks/${bank.id}/qti/import`, fd); toast(t('content.qti.result', { created: data.data.created, u: data.data.unsupported.length, e: data.data.errors.length })); refresh() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const bulk = async (patch: any) => { if (!bank || !picked.length) return; try { await api.post(`/admin/question-banks/${bank.id}/questions/bulk`, { ids: picked, ...patch }); setPicked([]); refresh() } catch (e) { toast(errorMessage(e), 'error') } }
 
@@ -136,6 +142,9 @@ export default function QuestionBanks() {
               <Button size="sm" variant="outline" icon={<Upload className="size-4" />} onClick={() => file.current?.click()}>{t('assess.studio.import')}</Button>
               <input ref={file} type="file" accept=".csv,.xlsx,.txt" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void doImport(f); e.target.value = '' }} />
               <Button size="sm" variant="outline" icon={<Download className="size-4" />} onClick={() => void downloadFile(`/admin/question-banks/${bank.id}/export`, 'questions.xlsx')}>{t('assess.studio.export')}</Button>
+              <Button size="sm" variant="outline" onClick={() => qti.current?.click()}>{t('content.qti.import')}</Button>
+              <input ref={qti} type="file" accept=".zip,.xml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void doQti(f); e.target.value = '' }} />
+              <Button size="sm" variant="outline" onClick={() => void downloadFile(`/admin/question-banks/${bank.id}/qti/export`, 'questions-qti21.zip')}>{t('content.qti.export')}</Button>
               <Button size="sm" variant="gold" icon={<Plus className="size-4" />} onClick={() => setEdit('new')}>{t('assess.studio.newQuestion')}</Button>
             </Card>
             {picked.length > 0 && <Card className="flex flex-wrap items-center gap-2 text-sm"><b>{t('assess.studio.selected', { n: picked.length })}</b>{['easy', 'medium', 'hard'].map((d) => <Button key={d} size="sm" variant="outline" onClick={() => void bulk({ difficulty: d })}>{t(`assess.difficulty.${d}`)}</Button>)}<Button size="sm" variant="outline" onClick={() => void bulk({ status: 'retired' })}>{t('assess.studio.retire')}</Button></Card>}

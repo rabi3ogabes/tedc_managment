@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BarChart3, BookOpenText, ChevronDown, ChevronUp, ClipboardList, FileText, GripVertical, Layers, ListChecks, Pencil, Plus, Presentation, Rocket, Trash2, Video } from 'lucide-react'
+import { BarChart3, BookOpenText, ChevronDown, ChevronUp, ClipboardList, ExternalLink, FileText, Link2, Package, GripVertical, Layers, ListChecks, Pencil, Plus, Presentation, Rocket, Trash2, Video } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, Spinner } from '@/components/ui'
@@ -8,13 +8,14 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
+import CartridgeImport from './course/CartridgeImport'
 import { fmtDuration, type Course, type Lesson, type LessonType, type Module } from './course/api'
 import CourseAnalytics from './course/CourseAnalytics'
 import LessonEditor from './course/LessonEditor'
 import ContentStep, { applyContentPlan, emptyPlan, type ContentPlan } from '../smart/ContentStep'
 
-const ICONS: Record<LessonType, ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText }
-const TYPES: LessonType[] = ['video', 'presentation', 'quiz', 'survey', 'article']
+const ICONS: Record<LessonType, ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText, package: Package, lti: Link2, external: ExternalLink }
+const TYPES: LessonType[] = ['video', 'presentation', 'quiz', 'survey', 'article', 'package', 'lti']
 
 /** The online course of a program: build modules and lessons (video, slides, quizzes, surveys, articles) and follow learning. */
 export default function CourseTab({ program }: { program: Program }) {
@@ -26,6 +27,7 @@ export default function CourseTab({ program }: { program: Program }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [menu, setMenu] = useState<string | null>(null)
   const [starter, setStarter] = useState<ContentPlan | null>(null)
+  const [cc, setCc] = useState(false)
   const [moduleForm, setModuleForm] = useState<{ id?: string; title_ar: string; title_en: string } | null>(null)
   const [drag, setDrag] = useState<{ lesson: string } | null>(null)
   const [over, setOver] = useState<string | null>(null)
@@ -99,6 +101,8 @@ export default function CourseTab({ program }: { program: Program }) {
 
       {view === 'analytics' ? <CourseAnalytics programId={program.id} /> : (
         <>
+          {manage && <div className="flex justify-end"><Button size="sm" variant="outline" icon={<Package className="size-4" />} onClick={() => setCc(true)}>{t('content.cc.title')}</Button></div>}
+          {cc && <CartridgeImport programId={program.id} onClose={(c) => { setCc(false); if (c) void refetch() }} />}
           {manage && (
             <Card className="grid gap-4 md:grid-cols-[1fr_1fr_12rem] md:items-center">
               <button type="button" role="switch" aria-checked={course.settings.sequential} onClick={() => setting({ course_sequential: !course.settings.sequential })} className="flex items-start gap-3 text-start">

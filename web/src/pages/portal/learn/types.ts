@@ -1,5 +1,5 @@
 export type OutlineLesson = {
-  id: string; type: 'video' | 'presentation' | 'quiz' | 'survey' | 'article'; title: string; description: string | null; duration_seconds: number; is_required: boolean
+  id: string; type: 'video' | 'presentation' | 'quiz' | 'survey' | 'article' | 'package' | 'lti' | 'external'; title: string; description: string | null; duration_seconds: number; is_required: boolean
   locked: boolean; status: 'not_started' | 'in_progress' | 'completed'; percent: number; score: number | null; last_activity_at: string | null
 }
 export type Outline = {

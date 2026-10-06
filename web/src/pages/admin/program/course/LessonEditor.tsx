@@ -7,6 +7,7 @@ import { Badge, Button, Card, Field } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { fmtDuration, fmtSize, uploadLessonFile, videoDuration, type Lesson, type LessonSettings } from './api'
 import InteractionsEditor from './InteractionsEditor'
+import { LtiCard, PackageCard, VersionsCard } from './PackageCards'
 import { QuizEditor, SurveyEditor } from './QuestionEditors'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
@@ -147,7 +148,7 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
   }
 
   const hasMedia = lesson.has_file
-  const ready = lesson.type === 'quiz' ? lesson.questions.length > 0 : lesson.type === 'survey' ? lesson.survey_questions.length > 0 : lesson.type === 'article' ? !!(lesson.body_ar || lesson.body_en) : hasMedia
+  const ready = lesson.type === 'quiz' ? lesson.questions.length > 0 : lesson.type === 'survey' ? lesson.survey_questions.length > 0 : lesson.type === 'article' ? !!(lesson.body_ar || lesson.body_en) : lesson.type === 'package' ? !!lesson.package_id : lesson.type === 'lti' ? !!lesson.lti_tool_id : hasMedia
 
   return (
     <div className="space-y-5">
@@ -221,6 +222,10 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
           </Card>
         </>
       )}
+
+      {lesson.type === 'package' && <PackageCard lesson={lesson} onSaved={onChanged} />}
+      {lesson.type === 'lti' && <LtiCard lesson={lesson} onSaved={onChanged} />}
+      <VersionsCard lesson={lesson} onSaved={onChanged} />
 
       {lesson.type === 'article' && (
         <Card className="space-y-3">

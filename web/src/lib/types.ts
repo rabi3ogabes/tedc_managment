@@ -51,6 +51,7 @@ export type Session = {
 }
 
 export type Program = {
+  external_platform?: { name: string; provider?: string } | null
   id: string; code: string; title: string; title_ar: string; title_en: string; summary?: string | null; summary_ar?: string | null; summary_en?: string | null
   description?: string | null; description_ar?: string | null; description_en?: string | null; objectives: string[]
   category?: { id: string; slug: string; name: string; color?: string; icon?: string } | null; category_id?: string | null

@@ -72,6 +72,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList },
           { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList },
           { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap },
+          { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
       }]
@@ -90,6 +91,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/evaluation-settings', label: t('evalc.settingsNav'), icon: Settings2, permission: 'evaluations.manage' },
           { to: '/admin/career-paths', label: t('career.nav'), icon: Map, permission: 'paths.manage|licences.manage' },
           { to: '/admin/pd-centre', label: t('career.pdNav'), icon: GraduationCap, permission: 'pd.recognise|pd.approve|pd.types.manage|knowledge_transfer.review' },
+          { to: '/admin/standards', label: t('content.navStandards'), icon: Settings2, permission: 'standards.manage|lti.manage|providers.manage|library.manage' },
+          { to: '/admin/library-admin', label: t('content.navLibraryAdmin'), icon: BookOpen, permission: 'library.manage' },
+          { to: '/admin/sharing', label: t('content.navSharing'), icon: Users, permission: 'sharing.manage|job_groups.manage' },
           { to: '/admin/passing-policy', label: t('passing.global'), icon: Award, permission: 'passing.manage' },
           { to: '/admin/question-banks', label: t('assess.studio.title'), icon: ClipboardList, permission: 'banks.manage|assessments.manage' },
           { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage' },

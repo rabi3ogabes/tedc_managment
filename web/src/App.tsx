@@ -43,6 +43,9 @@ const EvaluationForms = lazy(() => import('@/pages/admin/EvaluationForms'))
 const EvaluationSettings = lazy(() => import('@/pages/admin/EvaluationSettings'))
 const CareerPaths = lazy(() => import('@/pages/admin/CareerPaths'))
 const PdCentre = lazy(() => import('@/pages/admin/PdCentre'))
+const StandardsSettings = lazy(() => import('@/pages/admin/StandardsSettings'))
+const LibraryAdmin = lazy(() => import('@/pages/admin/LibraryAdmin'))
+const SharingAdmin = lazy(() => import('@/pages/admin/SharingAdmin'))
 const QuestionBanks = lazy(() => import('@/pages/admin/QuestionBanks'))
 const NeedsHub = lazy(() => import('@/pages/admin/needshub/NeedsHub'))
 const MyNeeds = lazy(() => import('@/pages/portal/MyNeeds'))
@@ -87,6 +90,7 @@ const Wallet = lazy(() => import('@/pages/portal/Wallet'))
 const MyTasks = lazy(() => import('@/pages/portal/MyTasks'))
 const Surveys = lazy(() => import('@/pages/portal/Surveys'))
 const MyGrowth = lazy(() => import('@/pages/portal/MyGrowth'))
+const Library = lazy(() => import('@/pages/portal/Library'))
 const MyEvaluations = lazy(() => import('@/pages/portal/MyEvaluations'))
 const MyEvaluationForm = lazy(() => import('@/pages/portal/MyEvaluations').then((m) => ({ default: m.MyEvaluationForm })))
 const Notifications = lazy(() => import('@/pages/portal/Notifications'))
@@ -128,6 +132,9 @@ export default function App() {
           <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />
           <Route path="career-paths" element={<RequireAuth permission="paths.manage|licences.manage"><CareerPaths /></RequireAuth>} />
           <Route path="pd-centre" element={<RequireAuth permission="pd.recognise|pd.approve|pd.types.manage|knowledge_transfer.review"><PdCentre /></RequireAuth>} />
+          <Route path="standards" element={<RequireAuth permission="standards.manage|lti.manage|providers.manage|library.manage"><StandardsSettings /></RequireAuth>} />
+          <Route path="library-admin" element={<RequireAuth permission="library.manage"><LibraryAdmin /></RequireAuth>} />
+          <Route path="sharing" element={<RequireAuth permission="sharing.manage|job_groups.manage"><SharingAdmin /></RequireAuth>} />
           <Route path="passing-policy" element={<RequireAuth permission="passing.manage"><PassingPolicies /></RequireAuth>} />
           <Route path="question-banks" element={<RequireAuth permission="banks.manage|assessments.manage"><QuestionBanks /></RequireAuth>} />
           <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
@@ -203,6 +210,7 @@ export default function App() {
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
           <Route path="evaluations" element={<MyEvaluations />} />
+          <Route path="library" element={<Library />} />
           <Route path="growth" element={<MyGrowth />} />
           <Route path="evaluations/:id" element={<MyEvaluationForm />} />
           <Route path="needs" element={<MyNeeds />} />

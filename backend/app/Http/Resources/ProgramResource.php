@@ -7,6 +7,7 @@ use App\Services\FileStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Arr;
 
 /** @mixin Program */
 class ProgramResource extends JsonResource
@@ -60,6 +61,7 @@ class ProgramResource extends JsonResource
             ] : null),
             'category_id' => $this->category_id,
             'delivery_mode' => $this->delivery_mode,
+            'external_platform' => $this->external_platform ? Arr::only($this->external_platform, ['name', 'provider']) : null,
             'level' => $this->level,
             'remote' => $this->remote,
             'has_course' => $this->has_course,

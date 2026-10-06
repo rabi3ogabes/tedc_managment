@@ -281,7 +281,7 @@ Route::prefix('v1')->group(function () {
             Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
             Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
             Route::post('packages/{lesson}/scorm/start', [MyPackageController::class, 'scormStart'])->middleware('throttle:60,1');
-            Route::put('scorm/{attempt}/commit', [MyPackageController::class, 'scormCommit'])->middleware('throttle:240,1');
+            Route::match(['PUT', 'POST'], 'scorm/{attempt}/commit', [MyPackageController::class, 'scormCommit'])->middleware('throttle:240,1');
             Route::post('scorm/{attempt}/finish', [MyPackageController::class, 'scormFinish']);
             Route::post('packages/{lesson}/cmi5/launch', [MyPackageController::class, 'cmi5Launch'])->middleware('throttle:60,1');
             Route::post('packages/{lesson}/launch', [MyPackageController::class, 'launch'])->middleware('throttle:60,1');

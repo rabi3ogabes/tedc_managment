@@ -1,3 +1,4 @@
+import ExternalCourseModal from './ExternalCourseModal'
 import MyProgress from './MyProgress'
 import { CalendarPlus, Check, Download, FileText, PlayCircle, QrCode, Star } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -20,6 +21,7 @@ export default function MyTraining() {
   const [materialsFor, setMaterialsFor] = useState<Registration | null>(null)
 
   const [withdrawing, setWithdrawing] = useState<Registration | null>(null)
+  const [externalFor, setExternalFor] = useState<Registration | null>(null)
   const [progressFor, setProgressFor] = useState<string | null>(null)
   const [excusing, setExcusing] = useState<Registration | null>(null)
   const [showQr, setShowQr] = useState(false)
@@ -49,6 +51,7 @@ export default function MyTraining() {
                 {['approved', 'completed'].includes(r.status) && <Button size="sm" variant="outline" onClick={() => setProgressFor(r.id)}>{t('passing.my.open')}</Button>}
                 {['approved', 'completed'].includes(r.status) && <Button size="sm" variant="outline" icon={<FileText className="size-4" />} onClick={() => setMaterialsFor(r)}>{t('admin.programs.materials')}</Button>}
                 {['approved', 'completed'].includes(r.status) && !r.evaluation_completed && <Button size="sm" variant="gold" icon={<Star className="size-4" />} onClick={() => setEvaluating(r)}>{t('portal.evaluate')}</Button>}
+                {r.program?.external_platform && ['approved', 'completed'].includes(r.status) && !r.certificate && <Button size="sm" variant="gold" onClick={() => setExternalFor(r)}>{r.program.external_platform.name}</Button>}
                 {r.certificate && <Button size="sm" variant="primary" icon={<Download className="size-4" />} onClick={() => downloadFile(`/certificates/${r.certificate!.id}/download`, 'certificate.pdf', true)}>PDF</Button>}
                 {r.status === 'approved' && <Button size="sm" variant="ghost" onClick={() => setExcusing(r)}>{t('ops.my.excuse')}</Button>}
                 {['pending_manager', 'pending', 'approved', 'waitlisted'].includes(r.status) && <Button size="sm" variant="ghost" onClick={() => setWithdrawing(r)}>{t('admission.withdraw.button')}</Button>}
@@ -57,6 +60,7 @@ export default function MyTraining() {
           ))}
         </div>
       )}
+      {externalFor && <ExternalCourseModal registration={externalFor} onClose={() => setExternalFor(null)} />}
       {progressFor && <MyProgress registrationId={progressFor} onClose={() => setProgressFor(null)} />}
       {excusing && <ExcuseModal registration={excusing} onClose={() => setExcusing(null)} />}
       {showQr && <MyQrModal onClose={() => setShowQr(false)} />}

@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 161,
-        "partial": 56,
-        "missing": 61,
+        "available": 171,
+        "partial": 57,
+        "missing": 50,
         "mandatory": 108,
-        "open": 117
+        "open": 107
     },
     "phases": [
         {
@@ -82,7 +82,7 @@
             "phase": 10,
             "title": "Content Standards, Library & Offline",
             "open": 15,
-            "items": 15,
+            "items": 5,
             "done": 0
         },
         {
@@ -477,8 +477,8 @@
                     "id": "TYP-12",
                     "mandatory": false,
                     "requirement": "Offline learning: watched content offline, sync on reconnect, resume exams",
-                    "status": "missing",
-                    "evidence": "Mobile caches last GET responses (read-only); no offline download, sync or resumable exams.",
+                    "status": "partial",
+                    "evidence": "Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built",
                     "phase": 10
                 },
                 {
@@ -493,17 +493,17 @@
                     "id": "TYP-14",
                     "mandatory": false,
                     "requirement": "Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs",
-                    "status": "missing",
-                    "evidence": "No content-provider connectors.",
+                    "status": "partial",
+                    "evidence": "External provider courses become programs with completion sync; needs real provider access",
                     "phase": 10
                 },
                 {
                     "id": "TYP-15",
                     "mandatory": true,
                     "requirement": "SCORM and H5P support with tracking and reuse",
-                    "status": "missing",
-                    "evidence": "No SCORM runtime or H5P embedding.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried)",
+                    "phase": null
                 },
                 {
                     "id": "TYP-16",
@@ -517,9 +517,9 @@
                     "id": "TYP-17",
                     "mandatory": false,
                     "requirement": "Advertise and register for programs on other platforms (e.g., I-earn)",
-                    "status": "missing",
-                    "evidence": "No external-program listing type.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Programs on other platforms: launch, evidence upload, centre review, hours counted",
+                    "phase": null
                 },
                 {
                     "id": "TYP-18",
@@ -1053,9 +1053,9 @@
                     "id": "CNT-01",
                     "mandatory": false,
                     "requirement": "SCORM and xAPI compliance for upload and playback",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "SCORM runtime and xAPI LRS with native activity recorded as xAPI",
+                    "phase": null
                 },
                 {
                     "id": "CNT-02",
@@ -1069,24 +1069,24 @@
                     "id": "CNT-03",
                     "mandatory": false,
                     "requirement": "Content versioning, periodic updates and long-term archiving",
-                    "status": "partial",
-                    "evidence": "Full versioning for kits; course lessons are not versioned.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Lesson versions: publish, keep/move learners, diff, restore, archive (quiz questions not pinned)",
+                    "phase": null
                 },
                 {
                     "id": "CNT-04",
                     "mandatory": false,
                     "requirement": "Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Digital library with rights, audience rules, Arabic search, reader, shelves, ratings",
+                    "phase": null
                 },
                 {
                     "id": "CNT-05",
                     "mandatory": false,
                     "requirement": "External libraries: Maktabati and Qatar National Library",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "External library search (deep link / JSON API) and import; real Maktabati/QNL endpoints to be configured",
                     "phase": 10
                 }
             ]
@@ -1646,9 +1646,9 @@
                     "id": "KIT-03",
                     "mandatory": false,
                     "requirement": "Supervisor approval, then assignment to one or more programs",
-                    "status": "partial",
-                    "evidence": "Approval workflow complete; a kit links to one program only.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Kits assigned to several programs with pinned version",
+                    "phase": null
                 },
                 {
                     "id": "KIT-04",
@@ -1662,17 +1662,17 @@
                     "id": "KIT-05",
                     "mandatory": false,
                     "requirement": "Share resources per course and with job groups (principals, teachers…)",
-                    "status": "partial",
-                    "evidence": "Course materials only; no job-group sharing.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Job groups as sharing targets",
+                    "phase": null
                 },
                 {
                     "id": "KIT-06",
                     "mandatory": false,
                     "requirement": "Sharing-permission settings that protect IP",
-                    "status": "partial",
-                    "evidence": "Material visibility only.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Per-role sharing policies, view-only protection, audited shares",
+                    "phase": null
                 }
             ]
         },
@@ -2441,17 +2441,17 @@
                     "id": "TEC-08",
                     "mandatory": true,
                     "requirement": "LTI 1.1 and LTI 1.3 with Deep Linking",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built",
                     "phase": 10
                 },
                 {
                     "id": "TEC-09",
                     "mandatory": true,
                     "requirement": "xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run)",
+                    "phase": null
                 },
                 {
                     "id": "TEC-10",
@@ -2465,9 +2465,9 @@
                     "id": "TEC-11",
                     "mandatory": true,
                     "requirement": "Common Cartridge import (full or selected parts)",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Common Cartridge 1.1-1.3 / thin CC preview and selective import",
+                    "phase": null
                 },
                 {
                     "id": "TEC-12",
@@ -2481,8 +2481,8 @@
                     "id": "TEC-13",
                     "mandatory": true,
                     "requirement": "Trusted content-provider integration",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials",
                     "phase": 10
                 },
                 {
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-05T18:01:49+03:00"
+    "generated_at": "2026-10-06T07:34:56+03:00"
 }

@@ -242,36 +242,36 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 10 — Content Standards, Library & Offline  (15)
 
-- [ ] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
-  _Now:_ 🔴 Missing — Mobile caches last GET responses (read-only); no offline download, sync or resumable exams.
-- [ ] **TYP-14** — Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs  
-  _Now:_ 🔴 Missing — No content-provider connectors.
-- [ ] **TYP-15** ★ — SCORM and H5P support with tracking and reuse  
-  _Now:_ 🔴 Missing — No SCORM runtime or H5P embedding.
-- [ ] **TYP-17** — Advertise and register for programs on other platforms (e.g., I-earn)  
-  _Now:_ 🔴 Missing — No external-program listing type.
-- [ ] **CNT-01** — SCORM and xAPI compliance for upload and playback  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CNT-03** — Content versioning, periodic updates and long-term archiving  
-  _Now:_ 🟡 Partial — Full versioning for kits; course lessons are not versioned.
-- [ ] **CNT-04** — Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **CNT-05** — External libraries: Maktabati and Qatar National Library  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **KIT-03** — Supervisor approval, then assignment to one or more programs  
-  _Now:_ 🟡 Partial — Approval workflow complete; a kit links to one program only.
-- [ ] **KIT-05** — Share resources per course and with job groups (principals, teachers…)  
-  _Now:_ 🟡 Partial — Course materials only; no job-group sharing.
-- [ ] **KIT-06** — Sharing-permission settings that protect IP  
-  _Now:_ 🟡 Partial — Material visibility only.
-- [ ] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **TEC-09** ★ — xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **TEC-11** ★ — Common Cartridge import (full or selected parts)  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **TEC-13** ★ — Trusted content-provider integration  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
+  _Now:_ 🟡 Partial — Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built
+- [x] **TYP-14** — Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs  
+  _Now:_ 🟡 Partial — External provider courses become programs with completion sync; needs real provider access
+- [x] **TYP-15** ★ — SCORM and H5P support with tracking and reuse  
+  _Now:_ ✅ Available — SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried)
+- [x] **TYP-17** — Advertise and register for programs on other platforms (e.g., I-earn)  
+  _Now:_ ✅ Available — Programs on other platforms: launch, evidence upload, centre review, hours counted
+- [x] **CNT-01** — SCORM and xAPI compliance for upload and playback  
+  _Now:_ ✅ Available — SCORM runtime and xAPI LRS with native activity recorded as xAPI
+- [x] **CNT-03** — Content versioning, periodic updates and long-term archiving  
+  _Now:_ ✅ Available — Lesson versions: publish, keep/move learners, diff, restore, archive (quiz questions not pinned)
+- [x] **CNT-04** — Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download  
+  _Now:_ ✅ Available — Digital library with rights, audience rules, Arabic search, reader, shelves, ratings
+- [x] **CNT-05** — External libraries: Maktabati and Qatar National Library  
+  _Now:_ 🟡 Partial — External library search (deep link / JSON API) and import; real Maktabati/QNL endpoints to be configured
+- [x] **KIT-03** — Supervisor approval, then assignment to one or more programs  
+  _Now:_ ✅ Available — Kits assigned to several programs with pinned version
+- [x] **KIT-05** — Share resources per course and with job groups (principals, teachers…)  
+  _Now:_ ✅ Available — Job groups as sharing targets
+- [x] **KIT-06** — Sharing-permission settings that protect IP  
+  _Now:_ ✅ Available — Per-role sharing policies, view-only protection, audited shares
+- [x] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
+  _Now:_ 🟡 Partial — LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built
+- [x] **TEC-09** ★ — xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5  
+  _Now:_ ✅ Available — xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run)
+- [x] **TEC-11** ★ — Common Cartridge import (full or selected parts)  
+  _Now:_ ✅ Available — Common Cartridge 1.1-1.3 / thin CC preview and selective import
+- [x] **TEC-13** ★ — Trusted content-provider integration  
+  _Now:_ 🟡 Partial — Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials
 
 ### Phase 11 — Notifications, Announcements & CMS  (12)
 
@@ -542,12 +542,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Diagnostic and comprehensive skills tests; results feed employee skills | — |
 | TYP-10 | Contact the trainer and ask questions from inside the course | 🔴 Missing | No learner ↔ trainer Q&A channel. | 14 |
 | TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Pre/post tests with knowledge gain against the 35% target | — |
-| TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🔴 Missing | Mobile caches last GET responses (read-only); no offline download, sync or resumable exams. | 10 |
+| TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🟡 Partial | Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built | 10 |
 | TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Lesson quizzes migrated to the bank; lesson gating by assessment | — |
-| TYP-14 | Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs | 🔴 Missing | No content-provider connectors. | 10 |
-| TYP-15 ★ | SCORM and H5P support with tracking and reuse | 🔴 Missing | No SCORM runtime or H5P embedding. | 10 |
+| TYP-14 | Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs | 🟡 Partial | External provider courses become programs with completion sync; needs real provider access | 10 |
+| TYP-15 ★ | SCORM and H5P support with tracking and reuse | ✅ Available | SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried) | — |
 | TYP-16 | Admin suggests / assigns programs by history, job title or job group | ✅ Available | Recommendation engine, audience builder, centre nomination. | — |
-| TYP-17 | Advertise and register for programs on other platforms (e.g., I-earn) | 🔴 Missing | No external-program listing type. | 10 |
+| TYP-17 | Advertise and register for programs on other platforms (e.g., I-earn) | ✅ Available | Programs on other platforms: launch, evidence upload, centre review, hours counted | — |
 | TYP-18 ★ | Blended programs (in-person + synchronous + self-paced) | ✅ Available | Per-session mode (in-person / online) plus an attached e-course. | — |
 | TYP-19 | Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline | ✅ Available | Knowledge transfer with beneficiaries, hours, evidence, deadline and review | — |
 | TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | 🟡 Partial | Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09. | 2 |
@@ -647,11 +647,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| CNT-01 | SCORM and xAPI compliance for upload and playback | 🔴 Missing | Not available. | 10 |
+| CNT-01 | SCORM and xAPI compliance for upload and playback | ✅ Available | SCORM runtime and xAPI LRS with native activity recorded as xAPI | — |
 | CNT-02 ★ | Dedicated content admin panel: create, edit, share with permissions | ✅ Available | Online course builder + Training Kit Studio. | — |
-| CNT-03 | Content versioning, periodic updates and long-term archiving | 🟡 Partial | Full versioning for kits; course lessons are not versioned. | 10 |
-| CNT-04 | Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download | 🔴 Missing | Not available. | 10 |
-| CNT-05 | External libraries: Maktabati and Qatar National Library | 🔴 Missing | Not available. | 10 |
+| CNT-03 | Content versioning, periodic updates and long-term archiving | ✅ Available | Lesson versions: publish, keep/move learners, diff, restore, archive (quiz questions not pinned) | — |
+| CNT-04 | Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download | ✅ Available | Digital library with rights, audience rules, Arabic search, reader, shelves, ratings | — |
+| CNT-05 | External libraries: Maktabati and Qatar National Library | 🟡 Partial | External library search (deep link / JSON API) and import; real Maktabati/QNL endpoints to be configured | 10 |
 
 ### PAS · Passing & Certificates — اجتياز البرامج التدريبية وإصدار الشهادات
 
@@ -750,10 +750,10 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | KIT-01 ★ | Archive kits with all versions, linked to related courses | ✅ Available | Versions, restore, archive. | — |
 | KIT-02 | Kit-developer account uploads Word, PDF, PowerPoint, video, images, audio | ✅ Available | Training Kit Studio. | — |
-| KIT-03 | Supervisor approval, then assignment to one or more programs | 🟡 Partial | Approval workflow complete; a kit links to one program only. | 10 |
+| KIT-03 | Supervisor approval, then assignment to one or more programs | ✅ Available | Kits assigned to several programs with pinned version | — |
 | KIT-04 | Upload and view many resource types incl. web links | ✅ Available | PDF, DOCX, PPTX, media viewers. | — |
-| KIT-05 | Share resources per course and with job groups (principals, teachers…) | 🟡 Partial | Course materials only; no job-group sharing. | 10 |
-| KIT-06 | Sharing-permission settings that protect IP | 🟡 Partial | Material visibility only. | 10 |
+| KIT-05 | Share resources per course and with job groups (principals, teachers…) | ✅ Available | Job groups as sharing targets | — |
+| KIT-06 | Sharing-permission settings that protect IP | ✅ Available | Per-role sharing policies, view-only protection, audited shares | — |
 
 ### PLC · Professional Learning Communities — إدارة مجتمعات التعلم المهنية
 
@@ -903,12 +903,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TEC-05 ★ | Disaster recovery and business continuity with automation | 🔴 Missing | Not available. | 17 |
 | TEC-06 ★ | Real-time message-based sync between systems | 🟡 Partial | Supabase Realtime in-app; no integration bus or webhooks. | 13 |
 | TEC-07 ★ | Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website | 🔴 Missing | Only the public MOE school directory (ArcGIS) is synced. | 13 |
-| TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | 🔴 Missing | Not available. | 10 |
-| TEC-09 ★ | xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5 | 🔴 Missing | Not available. | 10 |
+| TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | 🟡 Partial | LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built | 10 |
+| TEC-09 ★ | xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5 | ✅ Available | xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run) | — |
 | TEC-10 ★ | HTML5 content | ✅ Available | HTML5 video, slides and articles. | — |
-| TEC-11 ★ | Common Cartridge import (full or selected parts) | 🔴 Missing | Not available. | 10 |
+| TEC-11 ★ | Common Cartridge import (full or selected parts) | ✅ Available | Common Cartridge 1.1-1.3 / thin CC preview and selective import | — |
 | TEC-12 ★ | Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming | 🔴 Missing | Not available. | 13 |
-| TEC-13 ★ | Trusted content-provider integration | 🔴 Missing | Not available. | 10 |
+| TEC-13 ★ | Trusted content-provider integration | 🟡 Partial | Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials | 10 |
 | TEC-14 ★ | Compatible with phones and tablets | ✅ Available | Responsive web + Flutter app. | — |
 | TEC-15 ★ | Cost-effective licensing (perpetual preferred) | ✅ Available | Custom-built, owned source code; no per-user licence. | — |
 | TEC-16 ★ | Automatic patching without user impact | 🟡 Partial | Zero-downtime deployment not documented. | 17 |

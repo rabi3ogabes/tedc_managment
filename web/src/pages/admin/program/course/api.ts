@@ -1,13 +1,13 @@
 import { api } from '@/lib/api'
 
-export type LessonType = 'video' | 'presentation' | 'quiz' | 'survey' | 'article'
+export type LessonType = 'video' | 'presentation' | 'quiz' | 'survey' | 'article' | 'package' | 'lti' | 'external'
 
 export type Option = { id: string; text_ar: string; text_en?: string | null; correct?: boolean }
 export type QuizQ = { id?: string; type: 'single' | 'multiple' | 'true_false'; text_ar: string; text_en?: string | null; points: number; explanation_ar?: string | null; explanation_en?: string | null; options: Option[] }
 export type SurveyQ = { id?: string; type: 'rating' | 'nps' | 'choice' | 'multiple' | 'text'; text_ar: string; text_en?: string | null; required: boolean; options?: Option[] | null }
 
 export type LessonSettings = {
-  allow_seeking?: boolean; min_watch_percent?: number; max_speed?: number; pause_when_hidden?: boolean; require_visible?: boolean; require_fullscreen?: boolean; lock_pause?: number | null
+  allow_seeking?: boolean; min_watch_percent?: number; max_speed?: number; pause_when_hidden?: boolean; require_visible?: boolean; require_fullscreen?: boolean; lock_pause?: number | null; require_pass?: boolean
   min_view_percent?: number; downloadable?: boolean
   pass_percent?: number; max_attempts?: number | null; shuffle_questions?: boolean; shuffle_options?: boolean; show_answers?: 'after_submit' | 'after_pass' | 'never'; time_limit_minutes?: number | null
 }
@@ -17,6 +17,7 @@ export type Lesson = {
   body_ar: string | null; body_en: string | null; sort_order: number; is_required: boolean; status: 'draft' | 'published'; duration_seconds: number
   source: 'upload' | 'url' | null; file_name: string | null; file_mime: string | null; file_size: number; external_url: string | null; slide_count: number; has_file: boolean
   settings: LessonSettings; questions: QuizQ[]; survey_questions: SurveyQ[]
+  package_id?: string | null; package_item_id?: string | null; lti_tool_id?: string | null; version?: number
 }
 
 export type Module = { id: string; title_ar: string; title_en: string; description_ar: string | null; description_en: string | null; sort_order: number; lessons: Lesson[] }

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowLeft, ArrowRight, Award, CheckCircle2, ClipboardList, FileText, ListChecks, Lock, PartyPopper, Play, Presentation, Video } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Award, CheckCircle2, ClipboardList, ExternalLink, FileText, Link2, ListChecks, Lock, Package, PartyPopper, Play, Presentation, Video } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { Badge, Button, Card, ErrorState, Progress, Spinner } from '@/components
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import PackagePlayer from './learn/PackagePlayer'
 import Article from './learn/Article'
 import QuizRunner from './learn/QuizRunner'
 import SlidesViewer from './learn/SlidesViewer'
@@ -14,7 +15,7 @@ import SurveyForm from './learn/SurveyForm'
 import { clock, type LessonDetail, type Outline, type OutlineLesson, type ProgressResult } from './learn/types'
 import VideoPlayer from './learn/VideoPlayer'
 
-const ICONS: Record<OutlineLesson['type'], ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText }
+const ICONS: Record<OutlineLesson['type'], ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText, package: Package, lti: Link2, external: ExternalLink }
 
 function Ring({ value }: { value: number }) {
   const r = 26
@@ -120,6 +121,7 @@ export default function Learn() {
               {lesson.type === 'presentation' && <SlidesViewer key={lesson.id} lesson={lesson} onProgress={onProgress} onConfirm={complete} />}
               {lesson.type === 'quiz' && <QuizRunner key={lesson.id} lesson={lesson} onProgress={onProgress} />}
               {lesson.type === 'survey' && <SurveyForm key={lesson.id} lesson={lesson} onProgress={onProgress} />}
+              {(lesson.type === 'package' || lesson.type === 'lti') && <PackagePlayer key={lesson.id} lesson={lesson} onProgress={onProgress} />}
               {lesson.type === 'article' && <Article key={lesson.id} lesson={lesson} onDone={complete} />}
               {lesson.type === 'video' && lesson.progress.status !== 'completed' && <p className="text-xs text-slate-500">{t('learn.needWatch', { percent: lesson.rules.min_watch_percent })}</p>}
 
