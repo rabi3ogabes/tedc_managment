@@ -10,6 +10,9 @@ import 'features/course/lesson_screen.dart';
 import 'features/assessment/assessments_screen.dart';
 import 'features/evaluation/evaluations_screen.dart';
 import 'features/growth/growth_screen.dart';
+import 'features/community/achievements_screen.dart';
+import 'features/community/community_screens.dart';
+import 'features/community/questions_screen.dart';
 import 'features/events/events_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/reports/my_reports_screen.dart';
@@ -86,6 +89,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-reports', builder: (_, _) => const MyReportsScreen()),
           GoRoute(path: '/report-problem', builder: (_, _) => const ReportProblemScreen()),
           GoRoute(path: '/events', builder: (_, _) => const EventsScreen()),
+          GoRoute(path: '/communities', builder: (_, _) => const CommunitiesScreen()),
+          GoRoute(path: '/communities/:id', builder: (_, s) => SpaceScreen(id: s.pathParameters['id']!)),
+          GoRoute(path: '/communities/:id/posts/:postId', builder: (_, s) => PostScreen(id: s.pathParameters['postId']!)),
+          GoRoute(path: '/my-questions', builder: (_, _) => const QuestionsScreen()),
+          GoRoute(path: '/achievements', builder: (_, _) => const AchievementsScreen()),
           GoRoute(path: '/notification-preferences', builder: (_, _) => const NotificationPrefsScreen()),
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),

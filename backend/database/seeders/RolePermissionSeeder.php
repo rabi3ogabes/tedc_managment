@@ -137,6 +137,12 @@ class RolePermissionSeeder extends Seeder
         'gaps.view' => ['needs', 'عرض تحليل الفجوات', 'View the gap analysis'],
         'trainers.respond' => ['programs', 'الرد على ترشيحات التدريب', 'Respond to training proposals'],
         'workshops.approve' => ['programs', 'اعتماد الورش الداخلية للمدارس', 'Approve school internal workshops'],
+        'communities.create' => ['collaboration', 'إنشاء مجتمعات مهنية', 'Create professional communities'],
+        'communities.moderate' => ['collaboration', 'الإشراف على كل المجتمعات', 'Moderate all communities'],
+        'forums.moderate' => ['collaboration', 'الإشراف على منتديات البرامج والمجموعات', 'Moderate programme and group forums'],
+        'ratings.moderate' => ['collaboration', 'الإشراف على التقييمات والمراجعات', 'Moderate ratings and reviews'],
+        'gamification.manage' => ['collaboration', 'إدارة التحفيز (النقاط والشارات والتحديات)', 'Manage gamification (points, badges, challenges)'],
+        'rewards.manage' => ['collaboration', 'إدارة المكافآت', 'Manage rewards'],
     ];
 
     /** Which scopes a role may be granted at (null = any). A role without Ministry here is limited to its school unless granted wider. */
@@ -168,8 +174,9 @@ class RolePermissionSeeder extends Seeder
             'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
             'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
             'passing.manage', 'tasks.final_approve',
+            'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
         ]],
-        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global']],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
@@ -191,10 +198,11 @@ class RolePermissionSeeder extends Seeder
             'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
             'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
             'passing.manage', 'tasks.final_approve', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
+            'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, [
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
-            'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global',
+            'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global', 'communities.create',
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
         Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, [
@@ -291,5 +299,7 @@ class RolePermissionSeeder extends Seeder
         'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage',
         // Phase 08
         'evaluations.manage', 'evaluations.respond_planning', 'evaluation_reports.prepare', 'evaluation_reports.approve', 'interviews.manage', 'satisfaction_alerts.manage',
+        // Phase 14
+        'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
     ];
 }

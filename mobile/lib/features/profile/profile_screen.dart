@@ -127,6 +127,39 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/library'),
                 ),
               ),
+              if (featureOn(ref, 'plc') || featureOn(ref, 'forums'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.forum_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('soc.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/communities'),
+                  ),
+                ),
+              if (featureOn(ref, 'forums'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.help_outline, color: AppColors.gold500),
+                    title: Text(context.tr('soc.questionsTitle'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/my-questions'),
+                  ),
+                ),
+              if (featureOn(ref, 'gamification'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: const Icon(Icons.emoji_events_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('gam.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/achievements'),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: ListTile(

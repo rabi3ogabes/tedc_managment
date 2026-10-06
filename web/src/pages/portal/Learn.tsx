@@ -7,6 +7,7 @@ import { Badge, Button, Card, ErrorState, Progress, Spinner } from '@/components
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import LessonSocial from '@/components/social/LessonSocial'
 import PackagePlayer from './learn/PackagePlayer'
 import Article from './learn/Article'
 import QuizRunner from './learn/QuizRunner'
@@ -132,6 +133,7 @@ export default function Learn() {
                     : <Button variant="outline" icon={<ArrowLeft className="size-4 rtl:rotate-180" />} onClick={() => navigate(`/portal/learn/${registrationId}`)}>{t('learn.back')}</Button>}
                 </Card>
               )}
+              {o && <LessonSocial key={lesson.id} lessonId={lesson.id} programId={o.program.id} />}
             </>
           )}
           {!lessonId && !loading && (

@@ -82,6 +82,12 @@ const HomeEditor = lazy(() => import('@/pages/admin/HomeEditor'))
 const EventsPage = lazy(() => import('@/pages/public/Events'))
 const EventDetail = lazy(() => import('@/pages/public/Events').then((m) => ({ default: m.EventDetail })))
 const NotificationPrefs = lazy(() => import('@/pages/NotificationPrefs'))
+const Communities = lazy(() => import('@/pages/Communities'))
+const SpaceView = lazy(() => import('@/pages/SpaceView'))
+const Achievements = lazy(() => import('@/pages/Achievements'))
+const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
+const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
+const GamificationStudio = lazy(() => import('@/pages/admin/GamificationStudio'))
 const Certificates = lazy(() => import('@/pages/admin/Certificates'))
 const CertificateTemplates = lazy(() => import('@/pages/admin/certificates/Templates'))
 const CertificateDesigner = lazy(() => import('@/pages/admin/certificates/Designer'))
@@ -210,6 +216,11 @@ export default function App() {
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
+          <Route path="communities" element={<Communities />} />
+          <Route path="communities/:id" element={<SpaceView />} />
+          <Route path="achievements" element={<Achievements />} />
+          <Route path="trainer-inbox" element={<RequireAuth permission="trainers.respond|forums.moderate|ratings.moderate"><TrainerInbox /></RequireAuth>} />
+          <Route path="gamification" element={<RequireAuth permission="gamification.manage|rewards.manage"><GamificationStudio /></RequireAuth>} />
           <Route path="security" element={<AccountSecurity />} />
           <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
           <Route path="users" element={<Users />} />
@@ -247,6 +258,10 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
+          <Route path="communities" element={<Communities />} />
+          <Route path="communities/:id" element={<SpaceView />} />
+          <Route path="achievements" element={<Achievements />} />
+          <Route path="questions" element={<MyQuestions />} />
           <Route path="security" element={<AccountSecurity />} />
         </Route>
 

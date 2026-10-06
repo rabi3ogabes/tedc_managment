@@ -2,6 +2,7 @@
 
 namespace App\Auth;
 
+use App\Gamification\GamificationListener;
 use App\Models\AuthSession;
 use App\Models\User;
 use App\Security\AuthSessions;
@@ -88,6 +89,7 @@ class AuthService
         }
 
         $user->forceFill(['last_login_at' => now()])->save();
+        GamificationListener::login($user);
 
         return $this->issueLocal($user);
     }
@@ -96,6 +98,7 @@ class AuthService
     public function issueForUser(User $user, string $method = 'password'): array
     {
         $user->forceFill(['last_login_at' => now(), 'last_active_at' => now(), 'locked_at' => null])->saveQuietly();
+        GamificationListener::login($user);
 
         return $this->issueLocal($user, $method);
     }
@@ -169,6 +172,7 @@ class AuthService
         }
 
         $user->forceFill(['auth_id' => $authUser['id'], 'last_login_at' => now()])->save();
+        GamificationListener::login($user);
         $this->register($user, $data['access_token']);
 
         return [

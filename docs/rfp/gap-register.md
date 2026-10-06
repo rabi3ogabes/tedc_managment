@@ -356,40 +356,40 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 14 — Collaboration, PLCs & Gamification  (17)
 
-- [ ] **TYP-10** — Contact the trainer and ask questions from inside the course  
-  _Now:_ 🔴 Missing — No learner ↔ trainer Q&A channel.
-- [ ] **PLC-01** ★ — Create flexible communities by subject, interest or team  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PLC-02** ★ — Member roles (manager, moderator, member) with permissions  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PLC-04** ★ — Meetings and events scheduling with automatic notifications  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **PLC-05** ★ — Instant alerts on new topics and updates  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **COL-01** — Discussion forums per program and per group  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **COL-02** — Comments and notes on lessons and materials  
-  _Now:_ 🔴 Missing — Comments exist only for the kit review team.
-- [ ] **COL-03** — Content rating and reviews by trainees and trainers  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **COL-04** — File sharing inside discussions  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **COL-05** — Private trainers’ knowledge channel  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **COL-06** — Instant notifications on posts; permissions per role and level  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **GAM-01** — Points system and leaderboard  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **GAM-02** — Badges and achievements  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **GAM-03** — Levels (beginner → expert)  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **GAM-04** — Timed challenges and rewards  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **GAM-05** — Personal progress dashboard; admin-configurable; can be switched on / off  
-  _Now:_ 🔴 Missing — Not available.
+- [x] **TYP-10** — Contact the trainer and ask questions from inside the course  
+  _Now:_ ✅ Available — Ask the trainer from any lesson (web and app): routed to the group's trainers with a reply deadline, trainer inbox, answer notifies the learner. Phase 14.
+- [x] **PLC-01** ★ — Create flexible communities by subject, interest or team  
+  _Now:_ ✅ Available — Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14.
+- [x] **PLC-02** ★ — Member roles (manager, moderator, member) with permissions  
+  _Now:_ ✅ Available — Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14.
+- [x] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
+  _Now:_ 🟡 Partial — Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14.
+- [x] **PLC-04** ★ — Meetings and events scheduling with automatic notifications  
+  _Now:_ ✅ Available — Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14.
+- [x] **PLC-05** ★ — Instant alerts on new topics and updates  
+  _Now:_ ✅ Available — Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14.
+- [x] **COL-01** — Discussion forums per program and per group  
+  _Now:_ ✅ Available — Forums per programme and per group, membership following registrations; trainers moderate. Phase 14.
+- [x] **COL-02** — Comments and notes on lessons and materials  
+  _Now:_ 🟡 Partial — Private notes and a discussion thread on every lesson; not on individual materials. Phase 14.
+- [x] **COL-03** — Content rating and reviews by trainees and trainers  
+  _Now:_ 🟡 Partial — 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14.
+- [x] **COL-04** — File sharing inside discussions  
+  _Now:_ 🟡 Partial — Attachments can be referenced in posts and comments; no upload widget yet. Phase 14.
+- [x] **COL-05** — Private trainers’ knowledge channel  
+  _Now:_ ✅ Available — Private trainers' channel for active trainers, moderated by the training team. Phase 14.
+- [x] **COL-06** — Instant notifications on posts; permissions per role and level  
+  _Now:_ ✅ Available — Notifications on posts, per-person preferences, permissions per role (`communities.*`, `forums.moderate`). Phase 14.
+- [x] **GAM-01** — Points system and leaderboard  
+  _Now:_ ✅ Available — Points ledger with rules, caps and reversals; weekly / monthly / term leaderboards by ministry, school, region, programme; opt-out. Phase 14.
+- [x] **GAM-02** — Badges and achievements  
+  _Now:_ ✅ Available — Rule-based and manual badges with safe SVG icons. Phase 14.
+- [x] **GAM-03** — Levels (beginner → expert)  
+  _Now:_ ✅ Available — Six editable levels from newcomer to pioneer; level-up notification. Phase 14.
+- [x] **GAM-04** — Timed challenges and rewards  
+  _Now:_ ✅ Available — Timed challenges with audience, goal and reward; rewards shop with level, stock and refunds. Phase 14.
+- [x] **GAM-05** — Personal progress dashboard; admin-configurable; can be switched on / off  
+  _Now:_ ✅ Available — Personal achievements page; studio for admins; master flag plus per-role and per-programme switches. Phase 14.
 
 ### Phase 15 — AI Completion  (6)
 
@@ -540,7 +540,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-07 ★ | Interactive video: in-video questions / comments, pop-up control, progress gating | ✅ Available | Interactive video interactions with blocking and anti-distraction rules | — |
 | TYP-08 | Chapter quizzes from a random bank, auto-graded, gate the next chapter | ✅ Available | Assessment builder: sections, random draw, difficulty mix, timer, attempts | — |
 | TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Diagnostic and comprehensive skills tests; results feed employee skills | — |
-| TYP-10 | Contact the trainer and ask questions from inside the course | 🔴 Missing | No learner ↔ trainer Q&A channel. | 14 |
+| TYP-10 | Contact the trainer and ask questions from inside the course | ✅ Available | Ask the trainer from any lesson (web and app): routed to the group's trainers with a reply deadline, trainer inbox, answer notifies the learner. Phase 14. | — |
 | TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Pre/post tests with knowledge gain against the 35% target | — |
 | TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🟡 Partial | Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built | 10 |
 | TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Lesson quizzes migrated to the bank; lesson gating by assessment | — |
@@ -759,11 +759,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| PLC-01 ★ | Create flexible communities by subject, interest or team | 🔴 Missing | Not available. | 14 |
-| PLC-02 ★ | Member roles (manager, moderator, member) with permissions | 🔴 Missing | Not available. | 14 |
-| PLC-03 ★ | Votes, polls, open questions, comments, file sharing | 🔴 Missing | Not available. | 14 |
-| PLC-04 ★ | Meetings and events scheduling with automatic notifications | 🔴 Missing | Not available. | 14 |
-| PLC-05 ★ | Instant alerts on new topics and updates | 🔴 Missing | Not available. | 14 |
+| PLC-01 ★ | Create flexible communities by subject, interest or team | ✅ Available | Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14. | — |
+| PLC-02 ★ | Member roles (manager, moderator, member) with permissions | ✅ Available | Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14. | — |
+| PLC-03 ★ | Votes, polls, open questions, comments, file sharing | 🟡 Partial | Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14. | 14 |
+| PLC-04 ★ | Meetings and events scheduling with automatic notifications | ✅ Available | Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14. | — |
+| PLC-05 ★ | Instant alerts on new topics and updates | ✅ Available | Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14. | — |
 
 ### EVL · Training Evaluation & Impact — تقييم التدريب وقياس الأثر
 
@@ -839,12 +839,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| COL-01 | Discussion forums per program and per group | 🔴 Missing | Not available. | 14 |
-| COL-02 | Comments and notes on lessons and materials | 🔴 Missing | Comments exist only for the kit review team. | 14 |
-| COL-03 | Content rating and reviews by trainees and trainers | 🔴 Missing | Not available. | 14 |
-| COL-04 | File sharing inside discussions | 🔴 Missing | Not available. | 14 |
-| COL-05 | Private trainers’ knowledge channel | 🔴 Missing | Not available. | 14 |
-| COL-06 | Instant notifications on posts; permissions per role and level | 🔴 Missing | Not available. | 14 |
+| COL-01 | Discussion forums per program and per group | ✅ Available | Forums per programme and per group, membership following registrations; trainers moderate. Phase 14. | — |
+| COL-02 | Comments and notes on lessons and materials | 🟡 Partial | Private notes and a discussion thread on every lesson; not on individual materials. Phase 14. | 14 |
+| COL-03 | Content rating and reviews by trainees and trainers | 🟡 Partial | 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14. | 14 |
+| COL-04 | File sharing inside discussions | 🟡 Partial | Attachments can be referenced in posts and comments; no upload widget yet. Phase 14. | 14 |
+| COL-05 | Private trainers’ knowledge channel | ✅ Available | Private trainers' channel for active trainers, moderated by the training team. Phase 14. | — |
+| COL-06 | Instant notifications on posts; permissions per role and level | ✅ Available | Notifications on posts, per-person preferences, permissions per role (`communities.*`, `forums.moderate`). Phase 14. | — |
 
 ### AI · Phase 2 · Artificial Intelligence — المرحلة الثانية · الذكاء الاصطناعي
 
@@ -860,11 +860,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| GAM-01 | Points system and leaderboard | 🔴 Missing | Not available. | 14 |
-| GAM-02 | Badges and achievements | 🔴 Missing | Not available. | 14 |
-| GAM-03 | Levels (beginner → expert) | 🔴 Missing | Not available. | 14 |
-| GAM-04 | Timed challenges and rewards | 🔴 Missing | Not available. | 14 |
-| GAM-05 | Personal progress dashboard; admin-configurable; can be switched on / off | 🔴 Missing | Not available. | 14 |
+| GAM-01 | Points system and leaderboard | ✅ Available | Points ledger with rules, caps and reversals; weekly / monthly / term leaderboards by ministry, school, region, programme; opt-out. Phase 14. | — |
+| GAM-02 | Badges and achievements | ✅ Available | Rule-based and manual badges with safe SVG icons. Phase 14. | — |
+| GAM-03 | Levels (beginner → expert) | ✅ Available | Six editable levels from newcomer to pioneer; level-up notification. Phase 14. | — |
+| GAM-04 | Timed challenges and rewards | ✅ Available | Timed challenges with audience, goal and reward; rewards shop with level, stock and refunds. Phase 14. | — |
+| GAM-05 | Personal progress dashboard; admin-configurable; can be switched on / off | ✅ Available | Personal achievements page; studio for admins; master flag plus per-role and per-programme switches. Phase 14. | — |
 
 ### NFR · Infrastructure, Security & Backup — المتطلبات غير الوظيفية
 

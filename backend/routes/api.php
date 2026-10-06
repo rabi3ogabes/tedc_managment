@@ -137,6 +137,11 @@ use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\Social\CourseSocialController;
+use App\Http\Controllers\Api\V1\Social\GamificationAdminController;
+use App\Http\Controllers\Api\V1\Social\GamificationController;
+use App\Http\Controllers\Api\V1\Social\PostController;
+use App\Http\Controllers\Api\V1\Social\SpaceController;
 use App\Http\Controllers\Api\V1\SystemController;
 use App\Http\Controllers\Api\V1\TicketsController;
 use App\Http\Controllers\Api\V1\XapiController;
@@ -308,6 +313,89 @@ Route::prefix('v1')->group(function () {
 
         // Which features are on (web and app read this once and cache it).
         Route::get('features', [FeaturesController::class, 'map']);
+
+        // Collaboration: communities, forums, channels, notes, ask-the-trainer, ratings (Phase 14) ---------------
+        Route::prefix('social')->group(function () {
+            Route::get('spaces', [SpaceController::class, 'index']);
+            Route::post('spaces', [SpaceController::class, 'store'])->middleware('throttle:20,1');
+            Route::get('spaces/resolve', [SpaceController::class, 'resolve']);
+            Route::get('people', [SpaceController::class, 'people'])->middleware('throttle:60,1');
+            Route::get('spaces/{space}', [SpaceController::class, 'show']);
+            Route::patch('spaces/{space}', [SpaceController::class, 'update']);
+            Route::post('spaces/{space}/archive', [SpaceController::class, 'archive']);
+            Route::post('spaces/{space}/join', [SpaceController::class, 'join'])->middleware('throttle:30,1');
+            Route::delete('spaces/{space}/leave', [SpaceController::class, 'leave']);
+            Route::patch('spaces/{space}/me', [SpaceController::class, 'preference']);
+            Route::get('spaces/{space}/members', [SpaceController::class, 'members']);
+            Route::put('spaces/{space}/members/{user}', [SpaceController::class, 'updateMember']);
+            Route::delete('spaces/{space}/members/{user}', [SpaceController::class, 'removeMember']);
+            Route::get('spaces/{space}/events', [SpaceController::class, 'events']);
+            Route::post('spaces/{space}/events', [SpaceController::class, 'createEvent']);
+            Route::post('space-events/{spaceEvent}/rsvp', [SpaceController::class, 'rsvp']);
+            Route::get('spaces/{space}/posts', [PostController::class, 'index']);
+            Route::post('spaces/{space}/posts', [PostController::class, 'store'])->middleware('throttle:30,1');
+            Route::get('spaces/{space}/reports', [PostController::class, 'reports']);
+            Route::get('posts/{post}', [PostController::class, 'show']);
+            Route::patch('posts/{post}', [PostController::class, 'update']);
+            Route::delete('posts/{post}', [PostController::class, 'destroy']);
+            Route::post('posts/{post}/moderate', [PostController::class, 'moderate']);
+            Route::post('posts/{post}/accept', [PostController::class, 'accept']);
+            Route::post('posts/{post}/comments', [PostController::class, 'comment'])->middleware('throttle:60,1');
+            Route::patch('comments/{postComment}', [PostController::class, 'updateComment']);
+            Route::delete('comments/{postComment}', [PostController::class, 'destroyComment']);
+            Route::post('reactions', [PostController::class, 'react'])->middleware('throttle:120,1');
+            Route::post('polls/{spacePoll}/vote', [PostController::class, 'vote'])->middleware('throttle:60,1');
+            Route::post('reports', [PostController::class, 'report'])->middleware('throttle:20,1');
+            Route::post('reports/{abuseReport}/resolve', [PostController::class, 'resolveReport']);
+
+            Route::get('lesson-notes', [CourseSocialController::class, 'notes']);
+            Route::post('lesson-notes', [CourseSocialController::class, 'addNote'])->middleware('throttle:60,1');
+            Route::delete('lesson-notes/{lessonNote}', [CourseSocialController::class, 'deleteNote']);
+            Route::get('questions', [CourseSocialController::class, 'myQuestions']);
+            Route::post('questions', [CourseSocialController::class, 'ask'])->middleware('throttle:20,1');
+            Route::get('trainer-inbox', [CourseSocialController::class, 'inbox']);
+            Route::post('questions/{courseQuestion}/answer', [CourseSocialController::class, 'answer']);
+            Route::post('questions/{courseQuestion}/close', [CourseSocialController::class, 'close']);
+            Route::get('ratings/{type}/{id}', [CourseSocialController::class, 'ratingSummary'])->where('type', '[a-z]+');
+            Route::post('ratings', [CourseSocialController::class, 'rate'])->middleware('throttle:60,1');
+            Route::get('reviews', [CourseSocialController::class, 'reviews'])->middleware('permission:ratings.moderate');
+            Route::post('ratings/{rating}/moderate', [CourseSocialController::class, 'moderateRating'])->middleware('permission:ratings.moderate');
+            Route::get('settings', [CourseSocialController::class, 'settings'])->middleware('permission:forums.moderate|communities.moderate');
+            Route::put('settings', [CourseSocialController::class, 'saveSettings'])->middleware('permission:forums.moderate|communities.moderate');
+        });
+
+        Route::prefix('gamification')->middleware('feature:gamification')->group(function () {
+            Route::get('me', [GamificationController::class, 'me']);
+            Route::put('me/privacy', [GamificationController::class, 'privacy']);
+            Route::get('leaderboard', [GamificationController::class, 'leaderboard']);
+            Route::get('badges', [GamificationController::class, 'badges']);
+            Route::get('challenges', [GamificationController::class, 'challenges']);
+            Route::post('challenges/{challenge}/join', [GamificationController::class, 'join']);
+            Route::get('rewards', [GamificationController::class, 'rewards']);
+            Route::post('rewards/{reward}/redeem', [GamificationController::class, 'redeem'])->middleware('throttle:10,1');
+            Route::middleware('permission:gamification.manage')->prefix('admin')->group(function () {
+                Route::get('overview', [GamificationAdminController::class, 'overview']);
+                Route::put('rules/{event}', [GamificationAdminController::class, 'saveRule'])->where('event', '[a-z_]+');
+                Route::put('levels', [GamificationAdminController::class, 'saveLevels']);
+                Route::post('badges', [GamificationAdminController::class, 'saveBadge']);
+                Route::put('badges/{badge}', [GamificationAdminController::class, 'saveBadge']);
+                Route::delete('badges/{badge}', [GamificationAdminController::class, 'deleteBadge']);
+                Route::post('badges/{badge}/award', [GamificationAdminController::class, 'awardBadge']);
+                Route::post('adjust', [GamificationAdminController::class, 'adjust'])->middleware('throttle:60,1');
+                Route::get('people', [GamificationAdminController::class, 'people'])->middleware('throttle:60,1');
+                Route::get('users/{user}/ledger', [GamificationAdminController::class, 'ledger']);
+                Route::post('challenges', [GamificationAdminController::class, 'saveChallenge']);
+                Route::put('challenges/{challenge}', [GamificationAdminController::class, 'saveChallenge']);
+                Route::delete('challenges/{challenge}', [GamificationAdminController::class, 'deleteChallenge']);
+                Route::put('settings', [GamificationAdminController::class, 'saveSettings']);
+            });
+            Route::middleware('permission:rewards.manage')->prefix('admin')->group(function () {
+                Route::post('rewards', [GamificationAdminController::class, 'saveReward']);
+                Route::put('rewards/{reward}', [GamificationAdminController::class, 'saveReward']);
+                Route::get('redemptions', [GamificationAdminController::class, 'redemptions']);
+                Route::post('redemptions/{redemption}/status', [GamificationAdminController::class, 'fulfil']);
+            });
+        });
 
         // Employee self-service -----------------------------------------------
         Route::prefix('me')->group(function () {

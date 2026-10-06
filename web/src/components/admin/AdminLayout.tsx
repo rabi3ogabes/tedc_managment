@@ -14,11 +14,12 @@ import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { useGet } from '@/hooks/useApi'
+import { useFeatures } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications } from '@/lib/realtime'
 import { useCenterName } from '@/lib/ThemeProvider'
 
-type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number }
+type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string }
 
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t } = useTranslation()
@@ -80,6 +81,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList },
           { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap },
           { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
+          { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
+          { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
+          { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
@@ -131,6 +135,10 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
           { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
           { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined },
+          { to: '/admin/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
+          { to: '/admin/trainer-inbox', label: t('soc.nav.inbox'), icon: ClipboardList, permission: 'trainers.respond|forums.moderate|ratings.moderate', feature: 'forums' },
+          { to: '/admin/gamification', label: t('soc.nav.studio'), icon: Award, permission: 'gamification.manage|rewards.manage', feature: 'gamification' },
+          { to: '/admin/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
           { to: '/admin/chats', label: m('chats'), icon: MessagesSquare, permission: 'announcements.manage', badge: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined },
         ] },
         { title: m('groups.organization'), items: [
@@ -151,7 +159,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         ] },
       ]
 
-  const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => !i.permission || i.permission.split('|').some((x) => can(x))) })).filter((g) => g.items.length)
+  const flags = useFeatures().data?.data.flags ?? {}
+  const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
+  const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => featureOn(i.feature) && (!i.permission || i.permission.split('|').some((x) => can(x)))) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
   const [searchOpen, setSearchOpen] = useState(false)
   useSearchShortcut(() => setSearchOpen((v) => !v))
