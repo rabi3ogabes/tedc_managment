@@ -69,6 +69,10 @@ const Executive = lazy(() => import('@/pages/admin/Executive'))
 const Geographic = lazy(() => import('@/pages/admin/Geographic'))
 const AiAssistant = lazy(() => import('@/pages/admin/AiAssistant'))
 const Communication = lazy(() => import('@/pages/admin/Communication'))
+const HomeEditor = lazy(() => import('@/pages/admin/HomeEditor'))
+const EventsPage = lazy(() => import('@/pages/public/Events'))
+const EventDetail = lazy(() => import('@/pages/public/Events').then((m) => ({ default: m.EventDetail })))
+const NotificationPrefs = lazy(() => import('@/pages/NotificationPrefs'))
 const Certificates = lazy(() => import('@/pages/admin/Certificates'))
 const CertificateTemplates = lazy(() => import('@/pages/admin/certificates/Templates'))
 const CertificateDesigner = lazy(() => import('@/pages/admin/certificates/Designer'))
@@ -150,6 +154,8 @@ export default function App() {
           <Route path="verify" element={<Verify />} />
           <Route path="verify/:code" element={<Verify />} />
           <Route path="news" element={<News />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="events/:id" element={<EventDetail />} />
           <Route path="news/:id" element={<NewsDetail />} />
           <Route path="contact" element={<Contact />} />
         </Route>
@@ -193,10 +199,12 @@ export default function App() {
           <Route path="employees" element={<Employees />} />
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="notification-preferences" element={<NotificationPrefs />} />
           <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
           <Route path="users" element={<Users />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="settings" element={<SettingsWorkspace />} />
+          <Route path="appearance/home" element={<RequireAuth permission="cms.manage"><HomeEditor /></RequireAuth>} />
           <Route path="appearance" element={<Navigate to="/admin/settings?tab=appearance" replace />} />
           <Route path="settings/notifications" element={<Navigate to="/admin/settings?tab=notifications" replace />} />
         </Route>
@@ -218,6 +226,7 @@ export default function App() {
           <Route path="attempts/:id" element={<AttemptResult />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="notification-preferences" element={<NotificationPrefs />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

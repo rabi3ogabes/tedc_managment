@@ -7,7 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 import { NewsCard } from './Home'
 
-type NewsItem = { id: string; title: string; excerpt: string; cover_url?: string | null; published_at: string; type: string; body?: string; attachments?: { type: string; title: string; url?: string }[] }
+type NewsItem = { id: string; title: string; excerpt: string; cover_url?: string | null; published_at: string; type: string; body?: string; is_pinned?: boolean; media?: { images?: { url: string; title?: string }[]; audio?: { url: string; title?: string }[]; video?: { url: string; title?: string }[] }; attachments?: { type: string; title: string; url?: string }[] }
 
 export default function News() {
   const { t } = useTranslation()
@@ -36,6 +36,9 @@ export function NewsDetail() {
         <div className="container-x max-w-3xl">
           <Card>
             <p className="whitespace-pre-line text-lg leading-loose text-slate-700">{item.body}</p>
+            {!!item.media?.images?.length && <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">{item.media.images.map((i) => <img key={i.url} src={i.url} alt={i.title ?? ''} loading="lazy" className="aspect-video w-full rounded-xl object-cover" />)}</div>}
+            {!!item.media?.audio?.length && <div className="mt-8 space-y-3">{item.media.audio.map((a) => <div key={a.url}>{a.title && <div className="mb-1 text-sm font-semibold text-navy-900">{a.title}</div>}<audio controls preload="none" src={a.url} className="w-full" /></div>)}</div>}
+            {!!item.media?.video?.length && <div className="mt-8 space-y-3">{item.media.video.map((v) => /\.(mp4|webm)(\?|$)/i.test(v.url) ? <video key={v.url} controls preload="metadata" src={v.url} className="w-full rounded-xl" /> : <a key={v.url} href={v.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-link"><PlayCircle className="size-4" />{v.title || v.url}</a>)}</div>}
             {!!item.attachments?.length && (
               <div className="mt-8 space-y-2">
                 {item.attachments.filter((a) => a.url).map((a) => (

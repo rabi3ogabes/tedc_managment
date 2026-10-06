@@ -1,6 +1,7 @@
 import { Award, BrainCircuit, ChartNoAxesCombined, Quote, ShieldCheck, Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import CmsBlocks from '@/components/public/CmsBlocks'
 import CountUp from '@/components/public/CountUp'
 import HeroQuickBar from '@/components/public/HeroQuickBar'
 import HeroSlider from '@/components/public/HeroSlider'
@@ -29,10 +30,14 @@ const pillarIcons = [ShieldCheck, BrainCircuit, ChartNoAxesCombined, Award]
 export default function Home() {
   const { t } = useTranslation()
   const { data, isLoading } = useGet<{ data: HomeData }>('/public/home')
+  const cms = useGet<{ data: { published: boolean; blocks: any[] } }>('/public/pages/home')
   const home = data?.data
   const pillars = t('home.pillars', { returnObjects: true }) as { title: string; text: string }[]
   const { active: theme } = useTheme()
   const ctaStyle = theme.banners.cta_style === 'image' && !theme.banners.page_banner_image ? 'gradient' : theme.banners.cta_style
+
+  // Once the centre has published the homepage in the editor, that layout is what visitors see; until then the built-in design stays.
+  if (cms.data?.data.published && cms.data.data.blocks.length) return <CmsBlocks blocks={cms.data.data.blocks} programs={home?.featured_programs ?? []} news={NewsCard} />
 
   return (
     <>

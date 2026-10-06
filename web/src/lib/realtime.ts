@@ -1,8 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { sessionStore } from './api'
+import { api, sessionStore } from './api'
 import { useAuth } from './auth'
+import { playChime, setChimeEnabled } from './chime'
+import { toast } from './toast'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 // Publishable key (sb_publishable_…) or legacy anon key — never the secret key.
@@ -30,6 +32,9 @@ export function useRealtimeNotifications() {
     const session = sessionStore.get()
     if (!loading || !user || !session) return
 
+    // The saved choice about the chime follows the person across devices.
+    api.get('/me/notification-preferences').then((r) => setChimeEnabled(Boolean(r.data?.data?.sound))).catch(() => undefined)
+
     let cancelled = false
     let cleanup: (() => void) | undefined
     loading.then((sb) => {
@@ -37,8 +42,14 @@ export function useRealtimeNotifications() {
       sb.realtime.setAuth(session.access_token)
       const channel = sb
         .channel(`notifications:${user.id}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
           qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/me') })
+          // A visible pop-up with a soft chime (when the person has not switched it off) and a pulse on the bell.
+          const row = payload.new as { title_ar?: string; title_en?: string } | undefined
+          const title = (document.documentElement.lang === 'en' ? row?.title_en || row?.title_ar : row?.title_ar || row?.title_en) ?? ''
+          if (title) toast(title, 'info')
+          playChime()
+          window.dispatchEvent(new CustomEvent('tedc:notification'))
         })
         .subscribe()
       cleanup = () => sb.removeChannel(channel)

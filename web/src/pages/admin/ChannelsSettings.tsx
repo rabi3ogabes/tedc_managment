@@ -80,7 +80,7 @@ export default function ChannelsSettings() {
 
         <Field label={t('channels.provider')}>
           <select className="input" value={driver} onChange={(e) => set(channel, 'driver', e.target.value)}>
-            {(channel === 'email' ? ['none', 'smtp', 'log'] : ['none', 'twilio', 'unifonic', 'http', 'log']).map((x) => <option key={x} value={x}>{t(`channels.driver.${x}`)}</option>)}
+            {(channel === 'email' ? ['none', 'smtp', 'log'] : ['none', 'hudhud', 'twilio', 'unifonic', 'http', 'log']).map((x) => <option key={x} value={x}>{t(`channels.driver.${x}`)}</option>)}
           </select>
         </Field>
 
@@ -99,6 +99,14 @@ export default function ChannelsSettings() {
           <div className="grid gap-4 sm:grid-cols-2">
             {text('sms', 'sender', t('channels.sender'), { dir: 'ltr' })}{text('sms', 'default_country_code', t('channels.countryCode'), { hint: t('channels.countryHint'), dir: 'ltr' })}
             {driver === 'twilio' && <>{text('sms', 'twilio_sid', t('channels.twilioSid'), { dir: 'ltr' })}{text('sms', 'twilio_token', t('channels.twilioToken'), { type: 'password', secret: true, dir: 'ltr' })}{text('sms', 'twilio_from', t('channels.twilioFrom'), { dir: 'ltr' })}</>}
+            {driver === 'hudhud' && <>
+              <div className="sm:col-span-2">{text('sms', 'hudhud_base_url', t('channels.hudhudUrl'), { dir: 'ltr' })}</div>
+              {text('sms', 'hudhud_send_path', t('channels.hudhudPath'), { dir: 'ltr' })}{text('sms', 'hudhud_username', t('channels.hudhudUser'), { dir: 'ltr' })}
+              {text('sms', 'hudhud_api_key', t('channels.hudhudKey'), { type: 'password', secret: true, dir: 'ltr' })}{text('sms', 'hudhud_password', t('channels.hudhudPass'), { type: 'password', secret: true, dir: 'ltr' })}
+              <div className="sm:col-span-2">{text('sms', 'hudhud_receipt_url', t('channels.hudhudReceiptUrl'), { dir: 'ltr', hint: t('channels.hudhudReceiptHint') })}</div>
+              {text('sms', 'hudhud_receipt_secret', t('channels.hudhudSecret'), { type: 'password', secret: true, dir: 'ltr' })}
+              <p className="text-xs text-slate-400 sm:col-span-2">{t('channels.hudhudHint')}</p>
+            </>}
             {driver === 'unifonic' && text('sms', 'unifonic_app_sid', t('channels.unifonicSid'), { type: 'password', secret: true, dir: 'ltr' })}
             {driver === 'http' && <>
               <div className="sm:col-span-2">{text('sms', 'http_url', t('channels.httpUrl'), { dir: 'ltr' })}</div>

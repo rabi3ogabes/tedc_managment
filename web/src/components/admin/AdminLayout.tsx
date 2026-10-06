@@ -3,7 +3,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -54,6 +54,12 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const errorBadge = useGet<{ data: { open: number; critical: number } }>(!portal && can('logs.manage') ? '/admin/error-logs/badge' : null, undefined, { refetchInterval: 60_000 })
   const chats = useGet<{ data: { unread: number; needs_human: number } }>(!portal && can('announcements.manage') ? '/admin/chats/badge' : null, undefined, { refetchInterval: 20_000 })
   useRealtimeNotifications()
+  const [pulse, setPulse] = useState(false)
+  useEffect(() => {
+    const on = () => { setPulse(true); window.setTimeout(() => setPulse(false), 2500) }
+    window.addEventListener('tedc:notification', on)
+    return () => window.removeEventListener('tedc:notification', on)
+  }, [])
 
   useEffect(() => setOpen(false), [pathname, search])
 
@@ -114,7 +120,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/attendance-attempts', label: t('attempts.nav'), icon: ShieldAlert, permission: 'attendance.manage' },
           { to: '/admin/geo', label: m('geo'), icon: Map, permission: 'analytics.view' },
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
-          { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage' },
+          { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage|announcements.publish|notifications.schedule|notifications.reports|notifications.rules' },
+          { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
           { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined },
           { to: '/admin/chats', label: m('chats'), icon: MessagesSquare, permission: 'announcements.manage', badge: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined },
         ] },
@@ -259,7 +266,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
               <LanguageToggle />
               <Link to="/portal/notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
                 <Bell className="size-5" />
-                {unreadCount > 0 && <span className="absolute -end-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-navy-950">{unreadCount}</span>}
+                {unreadCount > 0 && <span className={clsx('absolute -end-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-navy-950', pulse && 'animate-bounce')}>{unreadCount}</span>}
               </Link>
               <UserMenu portal={portal} />
             </div>

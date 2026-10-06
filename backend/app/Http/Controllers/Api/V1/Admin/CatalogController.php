@@ -32,6 +32,8 @@ class CatalogController extends Controller
             'coordinators' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', Role::CENTER_STAFF))->where('status', 'active')->orderBy('name_ar')->get(['id', 'name', 'name_ar']),
             'trainers' => Trainer::where('status', 'active')->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'schools' => School::orderBy('name_ar')->get(['id', 'code', 'name_ar', 'name_en', 'region', 'type', 'stage']),
+            'school_groups' => \App\Models\SchoolGroup::orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
+            'roles' => Role::where('slug', '!=', Role::SUPER_ADMIN)->orderBy('level', 'desc')->get(['slug', 'name_ar', 'name_en']),
             'regions' => School::REGIONS,
             'school_types' => School::TYPES,
             'stages' => School::STAGES,

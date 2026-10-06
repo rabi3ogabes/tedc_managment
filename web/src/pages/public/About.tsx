@@ -1,11 +1,16 @@
 import { Compass, Eye, Gem } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import CmsBlocks from '@/components/public/CmsBlocks'
 import { PageHero, SectionTitle } from '@/components/public/Section'
+import { useGet } from '@/hooks/useApi'
+import { NewsCard } from './Home'
 
 export default function About() {
   const { t } = useTranslation()
   const values = t('about.values', { returnObjects: true }) as string[]
   const lifecycle = t('about.lifecycle', { returnObjects: true }) as string[]
+  const cms = useGet<{ data: { published: boolean; blocks: never[] } }>('/public/pages/about')
+  if (cms.data?.data.published && cms.data.data.blocks.length) return <><PageHero title={t('about.title')} subtitle={t('about.subtitle')} /><CmsBlocks blocks={cms.data.data.blocks} news={NewsCard} /></>
 
   return (
     <>
