@@ -5,6 +5,8 @@ import 'dart:math';
 /// (watched stretches are united, the furthest position wins) and the batch carries one idempotency key,
 /// so a retry after a dropped connection never counts twice. The server never lowers progress.
 class OfflineQueue {
+  // A private field cannot be a named parameter, so the batch id is assigned in the initializer list.
+  // ignore: prefer_initializing_formals
   OfflineQueue({List<Map<String, dynamic>>? items, String? batchId}) : _items = items ?? [], _batchId = batchId;
 
   final List<Map<String, dynamic>> _items;

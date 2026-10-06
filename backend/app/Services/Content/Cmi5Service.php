@@ -56,6 +56,10 @@ class Cmi5Service
 
     public function authenticate(string $sessionId, string $token): ?Cmi5Session
     {
+        // An LRS credential key is not a session id; asking a uuid column for it would be an error on PostgreSQL.
+        if (! Str::isUuid($sessionId)) {
+            return null;
+        }
         $s = Cmi5Session::find($sessionId);
 
         return $s && ! $s->expires_at->isPast() && hash_equals($s->token_hash, hash('sha256', $token)) ? $s : null;
