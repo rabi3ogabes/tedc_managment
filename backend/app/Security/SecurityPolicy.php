@@ -28,7 +28,16 @@ class SecurityPolicy
     /** @return array<string, array<string, mixed>> */
     public function all(): array
     {
-        return Cache::remember(self::CACHE, 60, fn () => array_replace_recursive(self::defaults(), Arr::only(SiteSetting::find(self::KEY)?->value ?? [], array_keys(self::defaults()))));
+        return Cache::remember(self::CACHE, 60, function () {
+            $stored = Arr::only(SiteSetting::find(self::KEY)?->value ?? [], array_keys(self::defaults()));
+            $out = self::defaults();
+            // Section by section: a shorter list the administrator saved (fewer methods, fewer roles) must not get the defaults' extra entries back.
+            foreach ($out as $section => $values) {
+                $out[$section] = array_replace($values, (array) ($stored[$section] ?? []));
+            }
+
+            return $out;
+        });
     }
 
     /** @param  array<string, array<string, mixed>>  $input */
