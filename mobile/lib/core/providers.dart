@@ -117,6 +117,15 @@ class AuthController extends AsyncNotifier<Me?> {
 
   Future<void> login(String email, String password) async {
     final data = await ref.read(apiProvider).post('/auth/login', {'email': email, 'password': password}) as Map<String, dynamic>;
+    // The password was right but a second factor is needed: the sign-in screen asks for it and calls completeLogin.
+    if (data['mfa_required'] == true) {
+      throw MfaRequired(data['mfa_token'].toString(), List<String>.from((data['methods'] as List?) ?? const []), data['enrolled'] == true);
+    }
+    await completeLogin(data);
+  }
+
+  /// Finishes a sign-in from the session the server returned (also after the second factor).
+  Future<void> completeLogin(Map<String, dynamic> data) async {
     await ref.read(sessionStoreProvider).write(ApiClient.sessionFromResponse(data));
     final profile = Map<String, dynamic>.from(data['user'] as Map);
     unawaited(ResponseCache.instance.write(_meKey, profile));
@@ -232,3 +241,12 @@ final featuresProvider = Provider.autoDispose<Map<String, bool>>((ref) {
 
 /// `featureOn(ref, 'offline_mobile')` — use inside build(); rebuilds when the answer arrives.
 bool featureOn(WidgetRef ref, String key) => ref.watch(featuresProvider)[key] ?? false;
+
+/// Thrown when signing in needs a second factor (an authenticator-app code, an e-mailed or texted code, or a recovery code).
+class MfaRequired implements Exception {
+  MfaRequired(this.token, this.methods, this.enrolled);
+
+  final String token;
+  final List<String> methods;
+  final bool enrolled;
+}

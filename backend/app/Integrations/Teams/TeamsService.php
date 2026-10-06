@@ -308,7 +308,7 @@ class TeamsService
             $max = isset($row['max']) && is_numeric($row['max']) && $row['max'] > 0 ? (float) $row['max'] : 100.0;
             $percent = round(min(100, (float) $row['score'] / $max * 100), 1);
             $attempt = ((int) AssessmentAttempt::where('assessment_id', $assessment->id)->where('registration_id', $reg->id)->max('attempt_no')) + 1;
-            AssessmentAttempt::create(['assessment_id' => $assessment->id, 'registration_id' => $reg->id, 'attempt_no' => $attempt, 'started_at' => now(), 'submitted_at' => now(), 'delivery' => 'teams_forms', 'questions' => [], 'answers' => [],
+            AssessmentAttempt::create(['assessment_id' => $assessment->id, 'registration_id' => $reg->id, 'attempt_no' => $attempt, 'started_at' => now(), 'submitted_at' => now(), 'delivery' => 'forms', 'questions' => [], 'answers' => [],
                 'auto_score' => $percent, 'max_score' => 100, 'score_percent' => $percent, 'passed' => $percent >= (float) $assessment->pass_percent, 'status' => 'graded', 'graded_at' => now()]);
             $out['imported']++;
         }

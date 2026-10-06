@@ -36,7 +36,7 @@ class SecurityPolicyController extends Controller
         ]);
         $before = SiteSetting::find(SecurityPolicy::KEY)?->value ?? SecurityPolicy::defaults();
         $after = $this->policy->update($d, $this->user());
-        AuditLog::create(['user_id' => $this->user()->id, 'action' => 'security_policy_changed', 'auditable_type' => SiteSetting::class, 'auditable_id' => SecurityPolicy::KEY, 'old_values' => $before, 'new_values' => $after, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 250), 'url' => $request->fullUrl()]);
+        AuditLog::create(['user_id' => $this->user()->id, 'action' => 'security_policy_changed', 'auditable_type' => SiteSetting::class, 'auditable_id' => null, 'old_values' => $before, 'new_values' => $after + ['setting' => SecurityPolicy::KEY], 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 250), 'url' => $request->fullUrl()]);
 
         return response()->json(['data' => $after]);
     }

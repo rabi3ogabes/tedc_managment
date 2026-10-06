@@ -1,3 +1,4 @@
+import { TeamsSessionButton } from '@/components/admin/TeamsSession'
 import clsx from 'clsx'
 import { BellRing, Radio, Save, Users, Video } from 'lucide-react'
 import { useState } from 'react'
@@ -84,7 +85,7 @@ export default function RemoteTab({ program }: { program: Program }) {
               <Td><Badge color={stateTone[s.state]}>{t(`studio.tracking.states.${s.state}`)}</Badge></Td>
               <Td><div className="min-w-[10rem]"><div className="mb-1 flex justify-between text-xs"><span className="font-semibold text-navy-900">{fmt.number(s.joined)} / {fmt.number(s.expected)}</span>{s.late > 0 && <span className="text-amber-700">{t('studio.tracking.late', { count: s.late })}</span>}</div><Progress value={s.expected ? (s.joined / s.expected) * 100 : 0} tone={s.state === 'ended' && s.joined < s.expected * 0.7 ? 'red' : 'green'} /></div></Td>
               <Td>{s.joined ? `${fmt.number(s.avg_minutes)} ${t('common.minutes', { defaultValue: 'min' })}` : '—'}</Td>
-              <Td>{manage && s.state !== 'ended' && s.mode === 'online' && <Button size="sm" variant="outline" loading={busy === s.id} icon={<BellRing className="size-4" />} onClick={() => remind(s.id)}>{t('studio.tracking.remind')}</Button>}</Td>
+              <Td><div className="flex flex-wrap gap-1.5">{manage && s.mode === 'online' && <TeamsSessionButton sessionId={s.id} />}{manage && s.state !== 'ended' && s.mode === 'online' && <Button size="sm" variant="outline" loading={busy === s.id} icon={<BellRing className="size-4" />} onClick={() => remind(s.id)}>{t('studio.tracking.remind')}</Button>}</div></Td>
             </tr>
           ))}
         </Table>

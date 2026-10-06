@@ -222,7 +222,7 @@ class TeamsIntegrationTest extends TestCase
         $attempt = AssessmentAttempt::where('registration_id', $a->id)->first();
         $this->assertEquals(80.0, (float) $attempt->score_percent);
         $this->assertTrue((bool) $attempt->passed);
-        $this->assertSame('teams_forms', $attempt->delivery);
+        $this->assertSame('forms', $attempt->delivery);
         $this->assertFalse((bool) AssessmentAttempt::where('score_percent', 55)->value('passed'));      // 5.5 of 10 is under 60
         // Importing again makes the next attempt, not a duplicate of the first.
         $this->asUser($admin)->post("/api/v1/admin/assessments/{$assessment->id}/forms/import", ['file' => UploadedFile::fake()->createWithContent('results.csv', $csv)], ['Accept' => 'application/json'])->assertOk();

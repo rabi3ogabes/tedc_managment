@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 192,
-        "partial": 39,
-        "missing": 47,
+        "available": 199,
+        "partial": 40,
+        "missing": 39,
         "mandatory": 108,
-        "open": 86
+        "open": 79
     },
     "phases": [
         {
@@ -103,7 +103,7 @@
             "phase": 13,
             "title": "Integrations & Enterprise Identity",
             "open": 12,
-            "items": 12,
+            "items": 5,
             "done": 0
         },
         {
@@ -421,9 +421,9 @@
                     "id": "TYP-05",
                     "mandatory": true,
                     "requirement": "Synchronous remote training via Microsoft Teams",
-                    "status": "partial",
-                    "evidence": "Teams / Zoom / Meet / Webex join links + in-app join/leave tracking; no Microsoft Graph integration.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "TYP-06",
@@ -635,8 +635,8 @@
                     "id": "CAR-05",
                     "mandatory": false,
                     "requirement": "HR integration for experience, grades and appraisals",
-                    "status": "missing",
-                    "evidence": "No HR connector.",
+                    "status": "partial",
+                    "evidence": "HR / Mawared full and delta sync with conflict policy, leaver deactivation and signed inbound changes. Routing profile change requests to HR is not built; needs the HR interface specification (Phase 13).",
                     "phase": 13
                 }
             ]
@@ -1006,9 +1006,9 @@
                     "id": "ATT-07",
                     "mandatory": true,
                     "requirement": "Teams attendance % from total participation time",
-                    "status": "partial",
-                    "evidence": "In-app join/leave duration; not read from Teams.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Attendance computed from time in the Teams call (intervals, leave and re-join, minimum presence, late), feeding the attendance percentage and absence rules; trainer marks are kept (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "ATT-08",
@@ -1977,9 +1977,9 @@
                     "id": "UTR-04",
                     "mandatory": false,
                     "requirement": "In-portal issue-reporting page linked to Saaed",
-                    "status": "missing",
-                    "evidence": "Not available.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13).",
+                    "phase": null
                 }
             ]
         },
@@ -2258,25 +2258,25 @@
                     "id": "NFR-07",
                     "mandatory": true,
                     "requirement": "Single sign-on and IAM integration",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13).",
                     "phase": 13
                 },
                 {
                     "id": "NFR-08",
                     "mandatory": true,
                     "requirement": "Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP",
-                    "status": "missing",
-                    "evidence": "Email + password and device biometric unlock only.",
+                    "status": "partial",
+                    "evidence": "LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13).",
                     "phase": 13
                 },
                 {
                     "id": "NFR-09",
                     "mandatory": true,
                     "requirement": "Configurable password policy and account lockout",
-                    "status": "missing",
-                    "evidence": "Login rate-limit only.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Configurable password policy (length, classes, history, expiry, breach check) and lockout with administrator unlock, audited, applied to activation and password change (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "NFR-10",
@@ -2290,9 +2290,9 @@
                     "id": "NFR-11",
                     "mandatory": true,
                     "requirement": "Automatic session termination after inactivity",
-                    "status": "partial",
-                    "evidence": "Configurable idle lock screen; session is not revoked.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "NFR-12",
@@ -2425,16 +2425,16 @@
                     "id": "TEC-06",
                     "mandatory": true,
                     "requirement": "Real-time message-based sync between systems",
-                    "status": "partial",
-                    "evidence": "Supabase Realtime in-app; no integration bus or webhooks.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "TEC-07",
                     "mandatory": true,
                     "requirement": "Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website",
-                    "status": "missing",
-                    "evidence": "Only the public MOE school directory (ArcGIS) is synced.",
+                    "status": "partial",
+                    "evidence": "Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13).",
                     "phase": 13
                 },
                 {
@@ -2473,8 +2473,8 @@
                     "id": "TEC-12",
                     "mandatory": true,
                     "requirement": "Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming",
-                    "status": "missing",
-                    "evidence": "Not available.",
+                    "status": "partial",
+                    "evidence": "Meetings, attendance by duration, Team per group with membership sync, channel files and Forms results import (CSV export). Live events are link-only and Teams activity-feed notifications are not wired (Phase 13).",
                     "phase": 13
                 },
                 {
@@ -2584,9 +2584,9 @@
                     "id": "DLV-08",
                     "mandatory": false,
                     "requirement": "Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer)",
-                    "status": "missing",
-                    "evidence": "Only an Excel registration import.",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13).",
+                    "phase": null
                 },
                 {
                     "id": "DLV-09",
@@ -2787,5 +2787,5 @@
             "notes": "2 of 5 partially present (AI-01..05)."
         }
     ],
-    "generated_at": "2026-10-06T08:41:38+03:00"
+    "generated_at": "2026-10-06T12:11:03+03:00"
 }

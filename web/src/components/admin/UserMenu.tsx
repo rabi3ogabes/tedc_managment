@@ -19,6 +19,7 @@ export default function UserMenu({ portal }: { portal: boolean }) {
   const root = useRef<HTMLDivElement>(null)
   const first = useRef<HTMLAnchorElement>(null)
   const prefs = useRef<HTMLAnchorElement>(null)
+  const sec = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -83,6 +84,7 @@ export default function UserMenu({ portal }: { portal: boolean }) {
           <div className="p-2">
             <Item as="link" to={portal ? '/portal/profile' : '/admin/profile'} icon={UserRound} refEl={first} onClick={() => setOpen(false)} className={row}>{t('userMenu.profile')}</Item>
             <Item as="link" to={portal ? '/portal/notification-preferences' : '/admin/notification-preferences'} icon={BellRing} refEl={prefs} onClick={() => setOpen(false)} className={row}>{t('comm.prefs.title')}</Item>
+            <Item as="link" to={portal ? '/portal/security' : '/admin/security'} icon={LockKeyhole} refEl={sec} onClick={() => setOpen(false)} className={row}>{t('idn.navSecurity')}</Item>
             <button type="button" role="menuitem" onClick={lock} className={row}><LockKeyhole className="size-4 text-gold-600" /><span className="flex-1 text-start">{t('userMenu.lock')}</span><kbd className="rounded bg-navy-100/70 px-1.5 font-mono text-[10px] text-slate-500" dir="ltr">Ctrl ⇧ L</kbd></button>
             <div className="my-1 h-px bg-navy-100" />
             <button type="button" role="menuitem" onClick={logout} className={clsx(row, '!text-danger hover:!bg-red-50')}><LogOut className="size-4" />{t('nav.logout')}</button>

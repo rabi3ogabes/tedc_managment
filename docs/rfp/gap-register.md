@@ -329,30 +329,30 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 13 — Integrations & Enterprise Identity  (12)
 
-- [ ] **TYP-05** ★ — Synchronous remote training via Microsoft Teams  
-  _Now:_ 🟡 Partial — Teams / Zoom / Meet / Webex join links + in-app join/leave tracking; no Microsoft Graph integration.
-- [ ] **CAR-05** — HR integration for experience, grades and appraisals  
-  _Now:_ 🔴 Missing — No HR connector.
-- [ ] **ATT-07** ★ — Teams attendance % from total participation time  
-  _Now:_ 🟡 Partial — In-app join/leave duration; not read from Teams.
-- [ ] **UTR-04** — In-portal issue-reporting page linked to Saaed  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **NFR-07** ★ — Single sign-on and IAM integration  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **NFR-08** ★ — Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP  
-  _Now:_ 🔴 Missing — Email + password and device biometric unlock only.
-- [ ] **NFR-09** ★ — Configurable password policy and account lockout  
-  _Now:_ 🔴 Missing — Login rate-limit only.
-- [ ] **NFR-11** ★ — Automatic session termination after inactivity  
-  _Now:_ 🟡 Partial — Configurable idle lock screen; session is not revoked.
-- [ ] **TEC-06** ★ — Real-time message-based sync between systems  
-  _Now:_ 🟡 Partial — Supabase Realtime in-app; no integration bus or webhooks.
-- [ ] **TEC-07** ★ — Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website  
-  _Now:_ 🔴 Missing — Only the public MOE school directory (ArcGIS) is synced.
-- [ ] **TEC-12** ★ — Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming  
-  _Now:_ 🔴 Missing — Not available.
-- [ ] **DLV-08** — Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer)  
-  _Now:_ 🔴 Missing — Only an Excel registration import.
+- [x] **TYP-05** ★ — Synchronous remote training via Microsoft Teams  
+  _Now:_ ✅ Available — Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13).
+- [x] **CAR-05** — HR integration for experience, grades and appraisals  
+  _Now:_ 🟡 Partial — HR / Mawared full and delta sync with conflict policy, leaver deactivation and signed inbound changes. Routing profile change requests to HR is not built; needs the HR interface specification (Phase 13).
+- [x] **ATT-07** ★ — Teams attendance % from total participation time  
+  _Now:_ ✅ Available — Attendance computed from time in the Teams call (intervals, leave and re-join, minimum presence, late), feeding the attendance percentage and absence rules; trainer marks are kept (Phase 13).
+- [x] **UTR-04** — In-portal issue-reporting page linked to Saaed  
+  _Now:_ ✅ Available — Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13).
+- [x] **NFR-07** ★ — Single sign-on and IAM integration  
+  _Now:_ 🟡 Partial — OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13).
+- [x] **NFR-08** ★ — Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP  
+  _Now:_ 🟡 Partial — LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13).
+- [x] **NFR-09** ★ — Configurable password policy and account lockout  
+  _Now:_ ✅ Available — Configurable password policy (length, classes, history, expiry, breach check) and lockout with administrator unlock, audited, applied to activation and password change (Phase 13).
+- [x] **NFR-11** ★ — Automatic session termination after inactivity  
+  _Now:_ ✅ Available — Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13).
+- [x] **TEC-06** ★ — Real-time message-based sync between systems  
+  _Now:_ ✅ Available — Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13).
+- [x] **TEC-07** ★ — Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website  
+  _Now:_ 🟡 Partial — Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13).
+- [x] **TEC-12** ★ — Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming  
+  _Now:_ 🟡 Partial — Meetings, attendance by duration, Team per group with membership sync, channel files and Forms results import (CSV export). Live events are link-only and Teams activity-feed notifications are not wired (Phase 13).
+- [x] **DLV-08** — Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer)  
+  _Now:_ ✅ Available — Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13).
 
 ### Phase 14 — Collaboration, PLCs & Gamification  (17)
 
@@ -535,7 +535,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-02 | In-person: training-room allocation | ✅ Available | Room conflict check and best-fit room suggestion. | — |
 | TYP-03 | In-person: pass recording and certificates | ✅ Available | Smart Certificate Engine. | — |
 | TYP-04 ★ | Pre- and post-program assessment of the trainee’s level | ✅ Available | Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md | — |
-| TYP-05 ★ | Synchronous remote training via Microsoft Teams | 🟡 Partial | Teams / Zoom / Meet / Webex join links + in-app join/leave tracking; no Microsoft Graph integration. | 13 |
+| TYP-05 ★ | Synchronous remote training via Microsoft Teams | ✅ Available | Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13). | — |
 | TYP-06 | E-learning hierarchy: categories, programs, chapters, topics, recorded video | ✅ Available | Category → Program → Module → Lesson (video, slides, quiz, survey, article). | — |
 | TYP-07 ★ | Interactive video: in-video questions / comments, pop-up control, progress gating | ✅ Available | Interactive video interactions with blocking and anti-distraction rules | — |
 | TYP-08 | Chapter quizzes from a random bank, auto-graded, gate the next chapter | ✅ Available | Assessment builder: sections, random draw, difficulty mix, timer, attempts | — |
@@ -570,7 +570,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | CAR-02 | Professional-licence programs for the four licence levels | ✅ Available | Four-level licence paths with validity and renewal | — |
 | CAR-03 | Conditions per program / licence block progress until met | ✅ Available | Conditions engine in eligibility syntax; blocks level-restricted programs | — |
 | CAR-04 | Path-compliance dashboards with automatic gain/loss notifications | ✅ Available | Compliance funnel/matrix with export; gain and loss notifications to employee and manager | — |
-| CAR-05 | HR integration for experience, grades and appraisals | 🔴 Missing | No HR connector. | 13 |
+| CAR-05 | HR integration for experience, grades and appraisals | 🟡 Partial | HR / Mawared full and delta sync with conflict policy, leaver deactivation and signed inbound changes. Routing profile change requests to HR is not built; needs the HR interface specification (Phase 13). | 13 |
 
 ### EXT · External User Registration — نموذج تسجيل مستخدمين من خارج الوزارة
 
@@ -637,7 +637,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ATT-04 | QR code per workshop / day with a configurable time window | ✅ Available | HMAC-signed QR rotating every 30 s, check-in/out, lateness. | — |
 | ATT-05 | Fingerprint attendance-system integration (trainees and trainers) | 🟡 Partial | Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access. | 5 |
 | ATT-06 | Trainer attendance and staff scanning of trainee / trainer QR | ✅ Available | Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report. | — |
-| ATT-07 ★ | Teams attendance % from total participation time | 🟡 Partial | In-app join/leave duration; not read from Teams. | 13 |
+| ATT-07 ★ | Teams attendance % from total participation time | ✅ Available | Attendance computed from time in the Teams call (intervals, leave and re-join, minimum presence, late), feeding the attendance percentage and absence rules; trainer marks are kept (Phase 13). | — |
 | ATT-08 | Absence-threshold alert to supervisor; email to trainee & manager with notes | ✅ Available | After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page. | — |
 | ATT-09 | Absence excuses with documents and manager approval workflow | ✅ Available | Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended. | — |
 | ATT-10 | Leave / permission (استئذان) entry with attachments and notification | ✅ Available | Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them. | — |
@@ -812,7 +812,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | UTR-01 | Role-tailored manuals with screenshots, videos and a downloadable PDF | 🔴 Missing | Only a demo scenario guide for admins. | 18 |
 | UTR-02 | Staff training and Train-the-Trainer plan | 🔴 Missing | Service deliverable not prepared. | 18 |
 | UTR-03 | Support channels (phone, email, Saaed) | 🔴 Missing | Not defined in the product. | 18 |
-| UTR-04 | In-portal issue-reporting page linked to Saaed | 🔴 Missing | Not available. | 13 |
+| UTR-04 | In-portal issue-reporting page linked to Saaed | ✅ Available | Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13). | — |
 
 ### EKT · Interactive e-Learning Kits — الحقائب الإلكترونية
 
@@ -876,11 +876,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NFR-04 ★ | HLD / LLD, bill of materials, sizing and bandwidth design | 🔴 Missing | docs/ARCHITECTURE.md is a logical overview only. | 17 |
 | NFR-05 ★ | Encryption at rest and in transit; joint data classification | 🟡 Partial | HTTPS, encrypted national IDs, private storage; no full classification. | 17 |
 | NFR-06 ★ | Role-based access control | ✅ Available | 10 roles, 43 permissions, Supabase RLS. | — |
-| NFR-07 ★ | Single sign-on and IAM integration | 🔴 Missing | Not available. | 13 |
-| NFR-08 ★ | Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP | 🔴 Missing | Email + password and device biometric unlock only. | 13 |
-| NFR-09 ★ | Configurable password policy and account lockout | 🔴 Missing | Login rate-limit only. | 13 |
+| NFR-07 ★ | Single sign-on and IAM integration | 🟡 Partial | OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13). | 13 |
+| NFR-08 ★ | Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP | 🟡 Partial | LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13). | 13 |
+| NFR-09 ★ | Configurable password policy and account lockout | ✅ Available | Configurable password policy (length, classes, history, expiry, breach check) and lockout with administrator unlock, audited, applied to activation and password change (Phase 13). | — |
 | NFR-10 ★ | User-specific administration accounts | ✅ Available | Per-user admin accounts with roles. | — |
-| NFR-11 ★ | Automatic session termination after inactivity | 🟡 Partial | Configurable idle lock screen; session is not revoked. | 13 |
+| NFR-11 ★ | Automatic session termination after inactivity | ✅ Available | Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13). | — |
 | NFR-12 ★ | Secure audit logs with permission-based access; login trail | ✅ Available | Append-only audit log + presence sessions. | — |
 | NFR-13 ★ | Forward logs to SIEM (e.g., Splunk) | 🟡 Partial | Syslog handler available but not configured. | 17 |
 | NFR-14 ★ | No production data in dev / test / training; masking | 🔴 Missing | No masking process. | 17 |
@@ -901,13 +901,13 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TEC-03 ★ | 20–30 % yearly user growth without performance loss | 🟡 Partial | Horizontal scaling not designed. | 17 |
 | TEC-04 ★ | Central browser-based architecture for internal and external users | ✅ Available | SPA + REST API. | — |
 | TEC-05 ★ | Disaster recovery and business continuity with automation | 🔴 Missing | Not available. | 17 |
-| TEC-06 ★ | Real-time message-based sync between systems | 🟡 Partial | Supabase Realtime in-app; no integration bus or webhooks. | 13 |
-| TEC-07 ★ | Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website | 🔴 Missing | Only the public MOE school directory (ArcGIS) is synced. | 13 |
+| TEC-06 ★ | Real-time message-based sync between systems | ✅ Available | Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13). | — |
+| TEC-07 ★ | Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website | 🟡 Partial | Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13). | 13 |
 | TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | 🟡 Partial | LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built | 10 |
 | TEC-09 ★ | xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5 | ✅ Available | xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run) | — |
 | TEC-10 ★ | HTML5 content | ✅ Available | HTML5 video, slides and articles. | — |
 | TEC-11 ★ | Common Cartridge import (full or selected parts) | ✅ Available | Common Cartridge 1.1-1.3 / thin CC preview and selective import | — |
-| TEC-12 ★ | Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming | 🔴 Missing | Not available. | 13 |
+| TEC-12 ★ | Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming | 🟡 Partial | Meetings, attendance by duration, Team per group with membership sync, channel files and Forms results import (CSV export). Live events are link-only and Teams activity-feed notifications are not wired (Phase 13). | 13 |
 | TEC-13 ★ | Trusted content-provider integration | 🟡 Partial | Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials | 10 |
 | TEC-14 ★ | Compatible with phones and tablets | ✅ Available | Responsive web + Flutter app. | — |
 | TEC-15 ★ | Cost-effective licensing (perpetual preferred) | ✅ Available | Custom-built, owned source code; no per-user licence. | — |
@@ -925,7 +925,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | DLV-05 | User manuals and training & adoption plan | 🔴 Missing | Not prepared. | 18 |
 | DLV-06 | Test plan, test reports, bug tracker | 🟡 Partial | 199 automated tests in 40 feature files + CI; no formal plan or report. | 18 |
 | DLV-07 | Go-live plan, handover report, QA certificate, SLA | 🔴 Missing | Not prepared. | 18 |
-| DLV-08 | Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer) | 🔴 Missing | Only an Excel registration import. | 13 |
+| DLV-08 | Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer) | ✅ Available | Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13). | — |
 | DLV-09 | Compliance sheet and RFP traceability matrix | ✅ Available | Settings → RFP Compliance (`pages/admin/RfpCompliance.tsx`, `GET /admin/rfp-status`), `docs/rfp/compliance-sheet.md`, `php artisan tedc:rfp-status`, `RfpStatusTest`. | — |
 
 ## The 31 mandatory items (المتطلبات الرئيسية)

@@ -39,11 +39,70 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
+    } on MfaRequired catch (m) {
+      if (mounted) await _askSecondFactor(m);
     } catch (e) {
       if (mounted) setState(() => _error = ApiException.from(e).message);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _askSecondFactor(MfaRequired m) async {
+    final s = context.s;
+    final code = TextEditingController();
+    var method = m.enrolled ? 'totp' : (m.methods.contains('email') ? 'email' : 'recovery');
+    String? err;
+    final done = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => AlertDialog(
+          title: Text(s.t('mfa.title')),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(s.t('mfa.hint')),
+            const SizedBox(height: 10),
+            Wrap(spacing: 6, children: [
+              for (final k in [if (m.enrolled) 'totp', ...m.methods.where((x) => x != 'totp'), 'recovery'])
+                ChoiceChip(label: Text(s.t('mfa.$k')), selected: method == k, onSelected: (_) => set(() {
+                      method = k;
+                      err = null;
+                    })),
+            ]),
+            if (method == 'email' || method == 'sms')
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await ref.read(apiProvider).post('/auth/mfa/send', {'mfa_token': m.token, 'method': method});
+                  } catch (e) {
+                    set(() => err = ApiException.from(e).message);
+                  }
+                },
+                child: Text(s.t('mfa.send')),
+              ),
+            TextField(controller: code, keyboardType: TextInputType.text, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: s.t('mfa.code'))),
+            if (err != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(err!, style: const TextStyle(color: AppColors.danger))),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.t('common.cancel'))),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  final data = await ref.read(apiProvider).post('/auth/mfa/verify', {'mfa_token': m.token, 'method': method, 'code': code.text.trim()}) as Map<String, dynamic>;
+                  await ref.read(authProvider.notifier).completeLogin(data);
+                  if (ctx.mounted) Navigator.pop(ctx, true);
+                } catch (e) {
+                  set(() => err = ApiException.from(e).message);
+                }
+              },
+              child: Text(s.t('mfa.verify')),
+            ),
+          ],
+        ),
+      ),
+    );
+    code.dispose();
+    if (done != true && mounted) setState(() => _error = null);
   }
 
   @override

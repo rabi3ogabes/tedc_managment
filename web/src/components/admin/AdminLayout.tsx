@@ -8,6 +8,7 @@ import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
+import ReportProblem from './ReportProblem'
 import UserMenu from './UserMenu'
 import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark, LogoMark } from '@/components/public/Logo'
@@ -123,6 +124,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/ai', label: m('ai'), icon: Bot, permission: 'ai.assistant' },
           { to: '/admin/communication', label: m('communication'), icon: Megaphone, permission: 'announcements.manage|announcements.publish|notifications.schedule|notifications.reports|notifications.rules' },
           { to: '/admin/reports', label: t('rep.navReports'), icon: FilePenLine },
+          { to: '/admin/integrations', label: t('idn.navIntegrations'), icon: Radio, permission: 'integrations.manage|integrations.logs|sso.manage|webhooks.manage' },
+          { to: '/admin/migration', label: t('idn.navMigration'), icon: PackageOpen, permission: 'migration.run' },
+          { to: '/admin/security-policy', label: t('idn.navSecurityAdmin'), icon: Shield, permission: 'security.policy|sessions.manage' },
           { to: '/admin/kpi', label: t('rep.navKpi'), icon: LineChart, permission: 'kpi.view' },
           { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
           { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
@@ -278,6 +282,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         </header>
         <main className="flex-1 px-4 py-8 sm:px-8">
           <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
+          <ReportProblem />
         </main>
       </div>
     </div>

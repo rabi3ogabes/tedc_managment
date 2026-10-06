@@ -13,6 +13,7 @@ import 'features/growth/growth_screen.dart';
 import 'features/events/events_screen.dart';
 import 'features/library/library_screen.dart';
 import 'features/reports/my_reports_screen.dart';
+import 'features/support/report_problem_screen.dart';
 import 'features/notifications/notification_prefs_screen.dart';
 import 'features/needs/needs_survey_screen.dart';
 import 'features/attendance/scan_screen.dart';
@@ -83,6 +84,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-growth', builder: (_, _) => const GrowthScreen()),
           GoRoute(path: '/library', builder: (_, _) => const LibraryScreen()),
           GoRoute(path: '/my-reports', builder: (_, _) => const MyReportsScreen()),
+          GoRoute(path: '/report-problem', builder: (_, _) => const ReportProblemScreen()),
           GoRoute(path: '/events', builder: (_, _) => const EventsScreen()),
           GoRoute(path: '/notification-preferences', builder: (_, _) => const NotificationPrefsScreen()),
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),

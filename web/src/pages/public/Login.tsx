@@ -24,6 +24,13 @@ const TEST_ACCOUNTS: [string, string][] = [['trainee1@tedc.qa', 'متدرب 1'],
 const DEMO_BUILD = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
 const DEMO_PASSWORD = 'Tedc@2026!'
 
+/** After signing in: the change-password page when the password has expired, else where the person was heading. */
+function landing(me: Parameters<typeof homeFor>[0], from?: string) {
+  let expired = false
+  try { expired = sessionStorage.getItem('tedc.pwexpired') === '1' } catch { /* storage unavailable */ }
+  return expired ? (homeFor(me).startsWith('/admin') ? '/admin/security' : '/portal/security') : (from ?? homeFor(me))
+}
+
 export default function Login() {
   const { t } = useTranslation()
   const centerName = useCenterName()
@@ -46,7 +53,7 @@ export default function Login() {
   const sso = async () => {
     try { const { data } = await api.get('/auth/sso/start', { params: { redirect: `${window.location.origin}/sso/callback` } }); window.location.href = data.data.url } catch (err) { setError(errorMessage(err)) }
   }
-  const done = (data: unknown) => { const me = finish(data); navigate(location.state?.from ?? homeFor(me), { replace: true }) }
+  const done = (data: unknown) => { const me = finish(data); navigate(landing(me, location.state?.from), { replace: true }) }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,11 +63,11 @@ export default function Login() {
       if (directory) {
         const { data } = await api.post('/auth/ldap/login', { username: email, password })
         const me = finish(data)
-        navigate(location.state?.from ?? homeFor(me), { replace: true })
+        navigate(landing(me, location.state?.from), { replace: true })
         return
       }
       const me = await login(email, password)
-      navigate(location.state?.from ?? homeFor(me), { replace: true })
+      navigate(landing(me, location.state?.from), { replace: true })
     } catch (err) {
       if (err instanceof MfaRequired) { setChallenge(err.challenge); return }
       setError(errorMessage(err))
