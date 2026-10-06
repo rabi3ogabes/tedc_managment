@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\SupabaseUserResolver;
 use App\Integrations\EventBus;
+use App\Integrations\Teams\TeamsService;
 use App\Models\AppNotification;
 use App\Models\Attendance;
 use App\Models\Certificate;
@@ -45,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession'] as $param) {
+        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         // Domain events for other systems (webhooks / outbox): written only when someone subscribes.
@@ -62,6 +63,20 @@ class AppServiceProvider extends ServiceProvider
             }
         });
         ProfessionalLicence::saved(fn (ProfessionalLicence $l) => app(EventBus::class)->emit('licence.updated', ['licence_id' => $l->id, 'employee_id' => $l->employee_id, 'status' => $l->status, 'level' => $l->level_no]));
+
+        // Teams meetings follow the schedule: created for online sessions, updated when the time or title changes, cancelled with the session. Never blocks the save.
+        ProgramSession::saved(function (ProgramSession $session) {
+            try {
+                $teams = app(TeamsService::class);
+                if ($session->status === 'cancelled') {
+                    $teams->cancelMeeting($session);
+                } elseif ($session->wasRecentlyCreated || $session->wasChanged(['starts_at', 'ends_at', 'title_ar', 'title_en', 'mode'])) {
+                    $teams->ensureMeeting($session);
+                }
+            } catch (\Throwable) {
+                // The failure is on the meeting row and in the integration log; the session itself is saved.
+            }
+        });
 
         // Native learning activity is recorded as xAPI statements and Caliper events too (packages report their own).
         LessonProgress::saved(function (LessonProgress $p) {

@@ -28,3 +28,4 @@ Schedule::command('tedc:kpi-collect')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:reports-run')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:integrations-tick')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:integrations-health')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:teams-sync')->everyTenMinutes()->withoutOverlapping();

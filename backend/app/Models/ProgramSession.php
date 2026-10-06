@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 #[Fillable(['program_id', 'training_group_id', 'trainer_id', 'training_room_id', 'sequence', 'title_en', 'title_ar', 'description', 'starts_at', 'ends_at', 'location_text', 'online_url', 'activities', 'status', 'mode', 'online_platform', 'online_passcode', 'recording_url', 'checkin_window_minutes', 'checkout_window_minutes'])]
@@ -60,5 +61,10 @@ class ProgramSession extends Model
     public function durationMinutes(): int
     {
         return (int) $this->starts_at->diffInMinutes($this->ends_at);
+    }
+
+    public function teamsMeeting(): HasOne
+    {
+        return $this->hasOne(TeamsMeeting::class, 'session_id');
     }
 }

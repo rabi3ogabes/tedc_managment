@@ -18,11 +18,12 @@ class IntegrationRegistry
             ]],
             'ldap' => ['group' => 'identity', 'name' => ['ar' => 'الدليل النشط / LDAP', 'en' => 'Active Directory / LDAP'], 'drivers' => ['fake', 'ldap'], 'fields' => [
                 ['k' => 'host'], ['k' => 'port', 'type' => 'number', 'default' => 636], ['k' => 'use_tls', 'type' => 'bool', 'default' => true], ['k' => 'base_dn'], ['k' => 'bind_dn'], ['k' => 'bind_password', 'secret' => true],
-                ['k' => 'user_filter', 'default' => '(sAMAccountName={username})'], ['k' => 'email_attr', 'default' => 'mail'], ['k' => 'name_attr', 'default' => 'displayName'], ['k' => 'employee_no_attr', 'default' => 'employeeID'], ['k' => 'group_map', 'type' => 'json'],
+                ['k' => 'user_filter', 'default' => '(sAMAccountName={username})'], ['k' => 'email_attr', 'default' => 'mail'], ['k' => 'name_attr', 'default' => 'displayName'], ['k' => 'employee_no_attr', 'default' => 'employeeID'], ['k' => 'group_map', 'type' => 'json'], ['k' => 'fake_users', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
             ]],
             'teams' => ['group' => 'collaboration', 'name' => ['ar' => 'مايكروسوفت Teams (Graph)', 'en' => 'Microsoft Teams (Graph)'], 'drivers' => ['fake', 'graph'], 'fields' => [
                 ['k' => 'tenant_id'], ['k' => 'client_id'], ['k' => 'client_secret', 'secret' => true], ['k' => 'organizer_upn'], ['k' => 'lobby', 'default' => 'organization'],
-                ['k' => 'auto_meetings', 'type' => 'bool', 'default' => true], ['k' => 'create_teams', 'type' => 'bool', 'default' => false],
+                ['k' => 'auto_meetings', 'type' => 'bool', 'default' => true], ['k' => 'create_teams', 'type' => 'bool', 'default' => false], ['k' => 'min_presence_percent', 'type' => 'number', 'default' => 50],
+                ['k' => 'fake_attendance', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
             ]],
             'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees']])],
             'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees']])],

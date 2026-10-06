@@ -89,6 +89,7 @@ use App\Http\Controllers\Api\V1\Admin\SessionController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
+use App\Http\Controllers\Api\V1\Admin\TeamsController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainerAssignmentController;
@@ -829,6 +830,20 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            // Microsoft Teams: meeting and attendance on the session, team and files on the group, Forms quizzes on an assessment.
+            Route::middleware('permission:groups.manage|attendance.manage')->group(function () {
+                Route::get('sessions/{session}/teams', [TeamsController::class, 'session']);
+                Route::post('sessions/{session}/teams', [TeamsController::class, 'createMeeting'])->middleware('throttle:30,1');
+                Route::delete('sessions/{session}/teams', [TeamsController::class, 'cancelMeeting']);
+                Route::post('sessions/{session}/teams/attendance', [TeamsController::class, 'syncAttendance'])->middleware('throttle:20,1');
+                Route::get('groups/{group}/teams', [TeamsController::class, 'group'])->whereUuid('group');
+                Route::post('groups/{group}/teams', [TeamsController::class, 'syncGroup'])->whereUuid('group')->middleware('throttle:10,1');
+            });
+            Route::middleware('permission:assessments.manage')->group(function () {
+                Route::put('assessments/{assessment}/forms', [TeamsController::class, 'linkForms']);
+                Route::post('assessments/{assessment}/forms/import', [TeamsController::class, 'importForms'])->middleware('throttle:10,1');
             });
 
             // Security: password policy, MFA, sessions, unlocking.

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** A test: final, quiz, diagnostic, pre/post, comprehensive or practice. */
-#[Fillable(['program_id', 'group_id', 'lesson_id', 'kind', 'title_ar', 'title_en', 'instructions_ar', 'instructions_en', 'delivery', 'access_code_mode', 'time_limit_minutes', 'window_opens_at', 'window_closes_at', 'max_attempts', 'attempt_cooldown_hours', 'pass_percent', 'weight_in_course', 'shuffle_questions', 'shuffle_options', 'feedback_mode', 'show_score', 'show_correct_answers', 'require_restudy_on_fail', 'proctoring', 'status', 'released_at'])]
+#[Fillable(['forms_url', 'program_id', 'group_id', 'lesson_id', 'kind', 'title_ar', 'title_en', 'instructions_ar', 'instructions_en', 'delivery', 'access_code_mode', 'time_limit_minutes', 'window_opens_at', 'window_closes_at', 'max_attempts', 'attempt_cooldown_hours', 'pass_percent', 'weight_in_course', 'shuffle_questions', 'shuffle_options', 'feedback_mode', 'show_score', 'show_correct_answers', 'require_restudy_on_fail', 'proctoring', 'status', 'released_at'])]
 class Assessment extends Model
 {
     use Auditable, HasUuids;
