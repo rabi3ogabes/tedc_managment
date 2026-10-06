@@ -24,3 +24,5 @@ Schedule::command('tedc:deliver-notifications')->everyMinute()->withoutOverlappi
 Schedule::command('tedc:announcements-tick')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:ministry-push')->everyFifteenMinutes()->withoutOverlapping();
 Schedule::command('tedc:stats-refresh')->everyTenMinutes()->withoutOverlapping();
+Schedule::command('tedc:kpi-collect')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:reports-run')->everyMinute()->withoutOverlapping();

@@ -24,6 +24,12 @@ return [
         'weekend' => array_map('intval', array_filter(explode(',', (string) env('TEDC_WEEKEND_DAYS', '5,6')), 'strlen')),
     ],
 
+    // Share of API requests whose duration is recorded for the KPI dashboard (0 switches it off).
+    'kpi' => ['sample_rate' => (float) env('TEDC_KPI_SAMPLE_RATE', 0.25)],
+
+    // Reports with more rows than this are produced by the minute job instead of while the person waits.
+    'reports' => ['inline_rows' => (int) env('TEDC_REPORT_INLINE_ROWS', 2000)],
+
     'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
     /*

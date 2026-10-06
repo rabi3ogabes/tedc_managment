@@ -6,6 +6,7 @@ use App\Http\Middleware\EdgeCache;
 use App\Http\Middleware\EnforceSessionLock;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\PermissionOrGrant;
+use App\Http\Middleware\RecordRequestMetrics;
 use App\Http\Middleware\RequireFeature;
 use App\Http\Middleware\ResolveActiveRole;
 use App\Http\Middleware\SecurityHeaders;
@@ -33,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.
         $middleware->trustProxies(at: '*');
-        $middleware->api(prepend: [CompactJson::class, SetLocale::class, ChooseNotifyChannels::class]);
+        $middleware->api(prepend: [CompactJson::class, SetLocale::class, ChooseNotifyChannels::class], append: [RecordRequestMetrics::class]);
         $middleware->append(SecurityHeaders::class);
         $middleware->alias(['permission' => EnsurePermission::class, 'edge.cache' => EdgeCache::class, 'unlocked' => EnforceSessionLock::class, 'feature' => RequireFeature::class, 'active.role' => ResolveActiveRole::class, 'can_or_grant' => PermissionOrGrant::class]);
         $middleware->redirectGuestsTo(fn () => null);

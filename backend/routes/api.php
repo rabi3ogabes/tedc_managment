@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
+use App\Http\Controllers\Api\V1\Admin\KpiController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\LtiToolController;
@@ -71,6 +72,7 @@ use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
 use App\Http\Controllers\Api\V1\Admin\QuestionBankController;
 use App\Http\Controllers\Api\V1\Admin\RegistrationController;
 use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
+use App\Http\Controllers\Api\V1\Admin\ReportBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ReportController;
 use App\Http\Controllers\Api\V1\Admin\RfpStatusController;
 use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
@@ -98,6 +100,7 @@ use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FeaturesController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\HudhudReceiptController;
@@ -118,12 +121,14 @@ use App\Http\Controllers\Api\V1\Me\MyOfflineController;
 use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
+use App\Http\Controllers\Api\V1\Me\MyReportsController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
+use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SystemController;
 use App\Http\Controllers\Api\V1\XapiController;
@@ -178,6 +183,8 @@ Route::prefix('v1')->group(function () {
         Route::get('pages/{page}', 'page');
         Route::get('defined-stats', 'stats');
     });
+    // The link in a scheduled report's e-mail: signed and expiring.
+    Route::get('report-runs/{run}/download', ReportSignedDownloadController::class)->name('report-runs.signed')->middleware(['signed', 'throttle:30,1']);
     // Hudhud posts delivery receipts here; the body is signed with the shared secret.
     Route::post('integrations/sms/hudhud/receipt', HudhudReceiptController::class)->middleware('throttle:public');
 
@@ -270,6 +277,11 @@ Route::prefix('v1')->group(function () {
 
         Route::get('search', SearchController::class)->middleware('throttle:60,1');
 
+        // Role dashboards: layout, widget data, personal order.
+        Route::get('dashboard', [DashboardController::class, 'layout']);
+        Route::put('dashboard/layout', [DashboardController::class, 'saveLayout']);
+        Route::get('dashboard/widgets/{key}', [DashboardController::class, 'widget'])->where('key', '[a-z_]+');
+
         // Which features are on (web and app read this once and cache it).
         Route::get('features', [FeaturesController::class, 'map']);
 
@@ -287,6 +299,9 @@ Route::prefix('v1')->group(function () {
             Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
+            Route::get('reports', [MyReportsController::class, 'index']);
+            Route::get('reports/{key}', [MyReportsController::class, 'show']);
+            Route::get('reports/{key}/export', [MyReportsController::class, 'export']);
             Route::get('notification-preferences', [MyNotificationPreferencesController::class, 'show']);
             Route::put('notification-preferences', [MyNotificationPreferencesController::class, 'update']);
             Route::get('events', [MyEventsController::class, 'events']);
@@ -785,6 +800,41 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            // Reports: the hub (everyone who can open the admin area sees the reports meant for their role), the builder, schedules, KPIs.
+            Route::get('report-datasets', [ReportBuilderController::class, 'datasets'])->middleware('permission:reports.builder');
+            Route::get('report-definitions', [ReportBuilderController::class, 'index']);
+            Route::get('report-definitions/{definition}', [ReportBuilderController::class, 'show']);
+            Route::post('report-definitions/{definition}/preview', [ReportBuilderController::class, 'preview']);
+            Route::post('report-definitions/{definition}/run', [ReportBuilderController::class, 'run'])->middleware('throttle:20,1');
+            Route::post('report-definitions/{definition}/favorite', [ReportBuilderController::class, 'favorite']);
+            Route::middleware('permission:reports.builder')->group(function () {
+                Route::post('report-definitions', [ReportBuilderController::class, 'store']);
+                Route::post('report-definitions/preview', [ReportBuilderController::class, 'previewDraft']);
+                Route::put('report-definitions/{definition}', [ReportBuilderController::class, 'update']);
+                Route::delete('report-definitions/{definition}', [ReportBuilderController::class, 'destroy']);
+                Route::post('report-definitions/{definition}/copy', [ReportBuilderController::class, 'copy']);
+            });
+            Route::get('report-runs', [ReportBuilderController::class, 'runs']);
+            Route::get('report-runs/{run}', [ReportBuilderController::class, 'showRun']);
+            Route::get('report-runs/{run}/download', [ReportBuilderController::class, 'download']);
+            Route::middleware('permission:reports.schedule')->group(function () {
+                Route::get('report-schedules', [ReportBuilderController::class, 'schedules']);
+                Route::post('report-schedules', [ReportBuilderController::class, 'storeSchedule']);
+                Route::put('report-schedules/{schedule}', [ReportBuilderController::class, 'updateSchedule']);
+                Route::delete('report-schedules/{schedule}', [ReportBuilderController::class, 'destroySchedule']);
+            });
+            Route::middleware('permission:kpi.view')->group(function () {
+                Route::get('kpis', [KpiController::class, 'index']);
+                Route::post('kpis/refresh', [KpiController::class, 'refresh'])->middleware('throttle:6,1');
+                Route::get('kpis/integrity', [KpiController::class, 'integrity']);
+                Route::get('kpis/report', [KpiController::class, 'report']);
+                Route::put('kpi-targets', [KpiController::class, 'targets'])->middleware('permission:dashboards.manage');
+            });
+            Route::middleware('permission:dashboards.manage')->group(function () {
+                Route::get('dashboard-presets', [DashboardController::class, 'presets']);
+                Route::put('dashboard-presets/{slug}', [DashboardController::class, 'savePreset']);
             });
 
             // Communication center

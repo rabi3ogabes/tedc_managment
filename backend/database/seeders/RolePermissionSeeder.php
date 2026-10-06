@@ -87,6 +87,11 @@ class RolePermissionSeeder extends Seeder
         'packages.manage' => ['programs', 'إدارة حزم المحتوى الإلكتروني', 'Manage e-learning content packages'],
         'lti.manage' => ['programs', 'إدارة أدوات LTI', 'Manage LTI tools'],
         'standards.manage' => ['programs', 'إدارة معايير التعلم الإلكتروني (LRS و Caliper)', 'Manage e-learning standards (LRS, Caliper)'],
+        'reports.builder' => ['general', 'بناء التقارير', 'Build reports'],
+        'reports.schedule' => ['general', 'جدولة التقارير', 'Schedule reports'],
+        'reports.export_personal' => ['general', 'تصدير تقارير تحوي بيانات شخصية', 'Export reports with personal data'],
+        'dashboards.manage' => ['general', 'إدارة لوحات المؤشرات', 'Manage dashboards'],
+        'kpi.view' => ['general', 'لوحة مؤشرات الأداء', 'View the KPI dashboard'],
         'notifications.rules' => ['general', 'إدارة قواعد الإشعارات', 'Manage notification rules'],
         'notifications.schedule' => ['general', 'جدولة الإشعارات', 'Schedule notifications'],
         'notifications.reports' => ['general', 'تقارير تسليم الإشعارات', 'View notification delivery reports'],
@@ -149,7 +154,7 @@ class RolePermissionSeeder extends Seeder
             'packages.manage', 'library.view', 'sharing.manage', 'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
-            'announcements.manage', 'announcements.publish', 'notifications.schedule', 'notifications.reports', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
+            'announcements.manage', 'announcements.publish', 'notifications.schedule', 'notifications.reports', 'reports.builder', 'reports.schedule', 'ai.assistant', 'reports.view', 'kits.view', 'kits.manage', 'kits.generate', 'kits.review', 'kits.publish',
             'plans.view', 'search.global', 'groups.manage', 'groups.status', 'workshops.approve', 'trainers.assign',
             'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import',
             'seats.manage', 'priority.manage', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
@@ -165,14 +170,14 @@ class RolePermissionSeeder extends Seeder
         ]],
         Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
-            'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
+            'kpi.view', 'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global',
         ]],
         Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['packages.manage', 'library.view', 'programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
         Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review', 'search.global']],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, ['search.global']],
         Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, [
-            'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage', 'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage', 'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
+            'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view', 'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage', 'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage', 'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
             'groups.manage', 'groups.status', 'workshops.approve', 'gaps.view', 'needs.cycles',
@@ -271,6 +276,8 @@ class RolePermissionSeeder extends Seeder
         'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage',
         // Phase 09
         'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review',
+        // Phase 12
+        'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view',
         // Phase 11
         'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage',
         // Phase 08
