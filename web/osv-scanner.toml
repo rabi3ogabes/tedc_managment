@@ -1,0 +1,4 @@
+[[IgnoredVulns]]
+id = "GHSA-hp3w-g68c-fv3c"
+ignoreUntil = 2027-01-31
+reason = "sprintf-js (via mammoth > argparse) denial of service through unbounded precision: no fixed version exists; it only runs in the user's own browser on a Word file they chose. Review again when mammoth updates."

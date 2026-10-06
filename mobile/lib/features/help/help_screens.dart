@@ -142,6 +142,16 @@ class _Support extends StatelessWidget {
   }
 }
 
+  /// Plain blocks out of the article HTML: headings, paragraphs, list items and quotes.
+List<(String, String)> helpBlocks(String html) {
+    final out = <(String, String)>[];
+    for (final m in RegExp(r'<(h[1-6]|p|li|blockquote)[^>]*>(.*?)</\1>', dotAll: true).allMatches(html)) {
+      final text = (m.group(2) ?? '').replaceAll(RegExp(r'<[^>]+>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#039;', "'").trim();
+      if (text.isNotEmpty) out.add((m.group(1)!, text));
+    }
+    return out;
+  }
+
 /// One article: text blocks, screenshots, the video link and the «was it helpful?» question.
 class HelpArticleScreen extends ConsumerStatefulWidget {
   const HelpArticleScreen({super.key, required this.slug});
@@ -164,16 +174,6 @@ class _HelpArticleScreenState extends ConsumerState<HelpArticleScreen> {
     }
   }
 
-  /// Plain blocks out of the article HTML: headings, paragraphs, list items and quotes.
-  static List<(String, String)> blocks(String html) {
-    final out = <(String, String)>[];
-    for (final m in RegExp(r'<(h[1-6]|p|li|blockquote)[^>]*>(.*?)</\1>', dotAll: true).allMatches(html)) {
-      final text = (m.group(2) ?? '').replaceAll(RegExp(r'<[^>]+>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#039;', "'").trim();
-      if (text.isNotEmpty) out.add((m.group(1)!, text));
-    }
-    return out;
-  }
-
   @override
   Widget build(BuildContext context) {
     final ar = context.s.isArabic;
@@ -191,7 +191,7 @@ class _HelpArticleScreenState extends ConsumerState<HelpArticleScreen> {
           return ListView(padding: const EdgeInsets.all(16), children: [
             Text(ar ? a.str('title_ar') : a.str('title_en'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
-            for (final (tag, text) in blocks(ar ? a.str('body_ar') : a.str('body_en')))
+            for (final (tag, text) in helpBlocks(ar ? a.str('body_ar') : a.str('body_en')))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: tag == 'li'

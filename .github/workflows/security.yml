@@ -51,7 +51,7 @@ jobs:
       - name: Build the image
         run: docker build -t tedc:scan .
       - name: Trivy (high and critical fail the build)
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: tedc:scan
           severity: HIGH,CRITICAL
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy config scan of the infrastructure code
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: infra
