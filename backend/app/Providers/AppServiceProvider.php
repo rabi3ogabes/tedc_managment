@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Auth\SupabaseUserResolver;
 use App\Integrations\EventBus;
+use App\Integrations\Ministry\SijilArchive;
 use App\Integrations\Teams\TeamsService;
 use App\Models\AppNotification;
 use App\Models\Attendance;
@@ -53,6 +54,12 @@ class AppServiceProvider extends ServiceProvider
         Registration::updated(function (Registration $r) {
             if ($r->wasChanged('status') && in_array($r->status, ['approved', 'completed'], true)) {
                 app(EventBus::class)->emit('registration.'.$r->status, ['registration_id' => $r->id, 'program_id' => $r->program_id, 'employee_id' => $r->employee_id, 'status' => $r->status]);
+            }
+        });
+        Certificate::created(function (Certificate $c) {
+            try {
+                app(SijilArchive::class)->queueCertificate($c);   // sent to the central archive by the next run
+            } catch (\Throwable) {
             }
         });
         Certificate::created(fn (Certificate $c) => app(EventBus::class)->emit('certificate.issued', ['certificate_id' => $c->id, 'certificate_no' => $c->certificate_no, 'employee_id' => $c->employee_id, 'program_id' => $c->program_id, 'hours' => $c->hours]));

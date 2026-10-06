@@ -137,6 +137,7 @@ use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Http\Controllers\Api\V1\TicketsController;
 use App\Http\Controllers\Api\V1\XapiController;
 use App\Models\TrainingRoom;
 use App\Services\FileStorage;
@@ -321,6 +322,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
+            Route::get('tickets', [TicketsController::class, 'mine']);
+            Route::post('tickets', [TicketsController::class, 'store'])->middleware('throttle:10,1');
             Route::get('mfa', [AuthSecurityController::class, 'mfaStatus']);
             Route::post('mfa/totp/setup', [AuthSecurityController::class, 'mfaSetup'])->middleware('throttle:10,1');
             Route::post('mfa/totp/confirm', [AuthSecurityController::class, 'mfaConfirm'])->middleware('throttle:10,1');
@@ -830,6 +833,11 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
+                Route::get('tickets', [TicketsController::class, 'index']);
+                Route::post('tickets/{ticket}/resend', [TicketsController::class, 'resend'])->whereUuid('ticket');
             });
 
             // Microsoft Teams: meeting and attendance on the session, team and files on the group, Forms quizzes on an assessment.

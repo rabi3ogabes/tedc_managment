@@ -8,6 +8,7 @@ class IntegrationRegistry
     /** @return array<string, array{name: array{ar: string, en: string}, drivers: list<string>, group: string, fields: list<array<string, mixed>>}> */
     public static function all(): array
     {
+        $fake = fn (string $k) => ['k' => $k, 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'];
         $http = [['k' => 'base_url', 'type' => 'url'], ['k' => 'api_key', 'secret' => true], ['k' => 'health_path', 'default' => '/health'], ['k' => 'inbound_secret', 'secret' => true]];
 
         return [
@@ -25,10 +26,10 @@ class IntegrationRegistry
                 ['k' => 'auto_meetings', 'type' => 'bool', 'default' => true], ['k' => 'create_teams', 'type' => 'bool', 'default' => false], ['k' => 'min_presence_percent', 'type' => 'number', 'default' => 50],
                 ['k' => 'fake_attendance', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
             ]],
-            'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees']])],
-            'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees']])],
-            'licences' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الرخص المهنية', 'en' => 'Professional licences system'], 'drivers' => ['fake', 'http'], 'fields' => $http],
-            'nsis' => ['group' => 'ministry', 'name' => ['ar' => 'النظام الوطني لمعلومات الطلبة (NSIS)', 'en' => 'National Student Information System (NSIS)'], 'drivers' => ['fake', 'http'], 'fields' => $http],
+            'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],
+            'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],
+            'licences' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الرخص المهنية', 'en' => 'Professional licences system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [$fake('fake_licences')])],
+            'nsis' => ['group' => 'ministry', 'name' => ['ar' => 'النظام الوطني لمعلومات الطلبة (NSIS)', 'en' => 'National Student Information System (NSIS)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [$fake('fake_teachers')])],
             'qneds' => ['group' => 'ministry', 'name' => ['ar' => 'النظام الوطني للبيانات التعليمية (QNEDS)', 'en' => 'Qatar National Educational Data System (QNEDS)'], 'drivers' => ['fake', 'http'], 'fields' => $http],
             'saaed' => ['group' => 'ministry', 'name' => ['ar' => 'سعيد (التذاكر)', 'en' => 'Saaed (ticketing)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'category_map', 'type' => 'json']])],
             'sijil' => ['group' => 'ministry', 'name' => ['ar' => 'سجل (الأرشيف المركزي)', 'en' => 'Sijil (central archive)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'archive_certificates', 'type' => 'bool', 'default' => true], ['k' => 'archive_records', 'type' => 'bool', 'default' => true]])],
