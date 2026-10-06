@@ -25,6 +25,8 @@ RUN composer install --no-dev --no-interaction --no-progress --no-scripts --pref
 
 # ---- 3. Runtime ---------------------------------------------------------------------------
 FROM dunglas/frankenphp:1-php8.4-bookworm
+# Apply the distribution's security fixes on every build (the image scan fails the build on fixed HIGH/CRITICAL findings).
+RUN apt-get update && apt-get -y --no-install-recommends upgrade && rm -rf /var/lib/apt/lists/*
 RUN install-php-extensions pdo_pgsql pgsql intl gd zip bcmath opcache pcntl \
  && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
  && printf 'memory_limit=512M\nupload_max_filesize=20M\npost_max_size=24M\nexpose_php=Off\nopcache.validate_timestamps=0\n' > "$PHP_INI_DIR/conf.d/zz-tedc.ini"
