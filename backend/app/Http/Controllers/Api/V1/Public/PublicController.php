@@ -140,7 +140,18 @@ class PublicController extends Controller
     {
         $item = $this->newsQuery()->findOrFail($id);
 
-        return response()->json(['data' => $this->newsItem($item) + ['body' => $item->translate('body'), 'attachments' => $item->attachments ?? []]]);
+        return response()->json(['data' => $this->newsItem($item) + ['body' => $item->translate('body'), 'attachments' => $item->attachments ?? [], 'media' => $this->mediaPayload($item)]]);
+    }
+
+    /** Media with public addresses (images, video, audio, links); private files are not listed. */
+    private function mediaPayload(Announcement $a): array
+    {
+        $out = [];
+        foreach (['images', 'video', 'audio', 'links'] as $kind) {
+            $out[$kind] = collect($a->media[$kind] ?? [])->map(fn ($m) => ['title' => $m['title'] ?? null, 'url' => $m['url'] ?? FileStorage::publicUrl($m['path'] ?? null)])->filter(fn ($m) => $m['url'])->values()->all();
+        }
+
+        return $out;
     }
 
     private function newsItem(Announcement $announcement): array
@@ -152,6 +163,7 @@ class PublicController extends Controller
             'excerpt' => mb_substr(strip_tags((string) $announcement->translate('body')), 0, 200),
             'cover_url' => FileStorage::publicUrl($announcement->cover_path),
             'published_at' => $announcement->published_at?->toIso8601String(),
+            'is_pinned' => (bool) $announcement->is_pinned,
         ];
     }
 
@@ -203,6 +215,7 @@ class PublicController extends Controller
 
     private function newsQuery()
     {
-        return Announcement::where('is_public', true)->whereNotNull('published_at')->where('published_at', '<=', now())->latest('published_at');
+        return app(\App\Services\Communication\AnnouncementLifecycle::class)->live(Announcement::query())->where('is_public', true)
+            ->whereIn('type', ['news', 'announcement', 'circular'])->orderByDesc('is_pinned')->orderBy('pin_order')->latest('published_at');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AppNotification;
 use App\Models\User;
 use App\Services\Channels\NotificationChannels;
+use App\Services\Notifications\DeliveryPolicy;
 use App\Services\Notifications\NotificationRoute;
 use App\Services\Notifications\NotificationTemplates;
 use App\Services\Push\PushDispatcher;
@@ -20,7 +21,7 @@ use Illuminate\Support\Str;
  */
 class NotificationService
 {
-    public function __construct(private readonly PushDispatcher $push, private readonly NotificationTemplates $templates, private readonly NotificationChannels $channels) {}
+    public function __construct(private readonly PushDispatcher $push, private readonly NotificationTemplates $templates, private readonly NotificationChannels $channels, private readonly DeliveryPolicy $policy) {}
 
     /**
      * @param  User|string  $user  user model or id
@@ -38,6 +39,10 @@ class NotificationService
         }
         ['title' => $title, 'body' => $body] = $composed;
         $channels = $this->channels->resolve(Arr::only($composed, ['push', 'email', 'sms']));
+        $plan = $this->policy->plan($type, [$userId], $channels, $data, $force);
+        if ($plan[$userId]['skip']) {
+            return null;
+        }
         $data = NotificationRoute::withRoute($type, $data);
 
         $notification = AppNotification::create([
@@ -51,10 +56,11 @@ class NotificationService
             'campaign_id' => $campaignId,
         ]);
 
-        if (in_array('push', $channels, true)) {
+        $mine = $plan[$userId];
+        if (in_array('push', $mine['channels'], true) && ! isset($mine['defer']['push'])) {
             $this->push->dispatch([$userId], $type, $title, $body, $data + ['notification_id' => $notification->id], force: $force);
         }
-        $this->channels->enqueue([$userId => $notification->id], $type, $channels);
+        $this->channels->enqueue([$userId => $notification->id], $type, $channels, $plan, $campaignId);
 
         return $notification;
     }
@@ -73,6 +79,8 @@ class NotificationService
         ['title' => $title, 'body' => $body] = $composed;
         $channels = $this->channels->resolve(Arr::only($composed, ['push', 'email', 'sms']));
         $created = [];
+        $plan = $this->policy->plan($type, collect($userIds)->unique()->values()->all(), $channels, $data, $force);
+        $userIds = collect($userIds)->unique()->filter(fn ($id) => ! ($plan[$id]['skip'] ?? false))->values();
         $data = NotificationRoute::withRoute($type, $data);
         // Wording that greets each person by name is rendered per recipient.
         $perUser = $composed['template'] && $this->templates->isCustomised($composed['template']) && str_contains(json_encode($composed['template']), '{{name');
@@ -108,9 +116,12 @@ class NotificationService
         });
 
         if (in_array('push', $channels, true)) {
-            $this->push->dispatch($userIds, $type, $title, $body, $data, force: $force);
+            $pushIds = $userIds->filter(fn ($id) => in_array('push', $plan[$id]['channels'] ?? [], true) && ! isset($plan[$id]['defer']['push']))->values();
+            if ($pushIds->isNotEmpty()) {
+                $this->push->dispatch($pushIds, $type, $title, $body, $data, force: $force);
+            }
         }
-        $this->channels->enqueue($created, $type, $channels);
+        $this->channels->enqueue($created, $type, $channels, $plan, $campaignId);
 
         return $count;
     }

@@ -5,6 +5,7 @@ namespace App\Services\Channels;
 use App\Models\AppNotification;
 use App\Models\NotificationDelivery;
 use App\Models\User;
+use App\Services\Push\PushDispatcher;
 use App\Services\Push\PushSettings;
 use App\Services\ThemeService;
 use Illuminate\Support\Str;
@@ -63,46 +64,54 @@ class NotificationChannels
     }
 
     /**
-     * Queues the e-mail / SMS copies of notifications that were just created.
+     * Queues the e-mail / SMS copies of notifications that were just created, and the push messages the rules postponed.
      *
      * @param  array<string, string>  $notificationIds  user id => notification id
      * @param  list<string>  $channels  from resolve()
+     * @param  array<string, array{channels: list<string>, defer: array<string, \Illuminate\Support\Carbon>}>  $plan  per person, from DeliveryPolicy (empty = everyone gets $channels at once)
      */
-    public function enqueue(array $notificationIds, string $type, array $channels): int
+    public function enqueue(array $notificationIds, string $type, array $channels, array $plan = [], ?string $campaignId = null): int
     {
-        $channels = array_values(array_intersect($channels, ['email', 'sms']));
-        if ($channels === [] || $notificationIds === []) {
+        if ($notificationIds === []) {
             return 0;
         }
         $now = now();
         $rows = [];
-        foreach ($channels as $channel) {
-            // A channel whose provider is not set up yet stays silent (the settings page says so); nothing is written for it.
-            if (! $this->settings->ready($channel)) {
-                continue;
-            }
-            foreach ($notificationIds as $userId => $notificationId) {
+        $immediate = 0;
+        foreach ($notificationIds as $userId => $notificationId) {
+            $mine = isset($plan[$userId]) ? array_values(array_intersect($channels, $plan[$userId]['channels'])) : $channels;
+            foreach ($mine as $channel) {
+                $when = $plan[$userId]['defer'][$channel] ?? null;
+                if ($channel === 'push' && ! $when) {
+                    continue;      // push leaves at once through its own dispatcher
+                }
+                // A channel whose provider is not set up yet stays silent (the settings page says so); nothing is written for it.
+                if ($channel !== 'push' && ! $this->settings->ready($channel)) {
+                    continue;
+                }
                 $rows[] = [
                     'id' => (string) Str::uuid(), 'notification_id' => $notificationId, 'user_id' => $userId, 'channel' => $channel, 'type' => $type,
-                    'status' => 'queued', 'reason' => null, 'to' => null, 'attempts' => 0, 'sent_at' => null, 'created_at' => $now, 'updated_at' => $now,
+                    'status' => 'queued', 'reason' => null, 'to' => null, 'attempts' => 0, 'sent_at' => null, 'campaign_id' => $campaignId,
+                    'not_before' => $when, 'created_at' => $now, 'updated_at' => $now,
                 ];
+                $immediate += $when ? 0 : 1;
             }
         }
         foreach (array_chunk($rows, 500) as $chunk) {
             NotificationDelivery::insert($chunk);
         }
-        if (count($rows) <= self::INLINE) {
+        if ($immediate > 0 && $immediate <= self::INLINE) {
             $this->process(self::INLINE);
         }
 
         return count($rows);
     }
 
-    /** Sends queued messages. @return array{sent: int, failed: int, skipped: int} */
+    /** Sends queued messages that are due. @return array{sent: int, failed: int, skipped: int} */
     public function process(int $limit = 200): array
     {
         $out = ['sent' => 0, 'failed' => 0, 'skipped' => 0];
-        $rows = NotificationDelivery::where('status', 'queued')->orderBy('created_at')->limit($limit)->get();
+        $rows = NotificationDelivery::where('status', 'queued')->where(fn ($q) => $q->whereNull('not_before')->orWhere('not_before', '<=', now()))->orderBy('created_at')->limit($limit)->get();
         if ($rows->isEmpty()) {
             return $out;
         }
@@ -121,7 +130,10 @@ class NotificationChannels
             $title = (string) ($locale === 'en' ? ($notification->title_en ?: $notification->title_ar) : ($notification->title_ar ?: $notification->title_en));
             $body = $locale === 'en' ? ($notification->body_en ?: $notification->body_ar) : ($notification->body_ar ?: $notification->body_en);
 
-            if ($row->channel === 'email') {
+            if ($row->channel === 'push') {
+                app(PushDispatcher::class)->dispatch([$user->id], (string) $row->type, ['ar' => $notification->title_ar, 'en' => $notification->title_en], ['ar' => $notification->body_ar, 'en' => $notification->body_en], (array) $notification->data + ['notification_id' => $notification->id]);
+                $this->finish($row, 'sent', null, null, $out);
+            } elseif ($row->channel === 'email') {
                 if (! filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
                     $this->finish($row, 'skipped', 'no_email', null, $out);
 
@@ -137,8 +149,8 @@ class NotificationChannels
                     continue;
                 }
                 $center = app(ThemeService::class)->centerName()[$locale];
-                $result = $this->sms->send($number, Str::limit($center.': '.$title.($body ? ' — '.$body : ''), 300, '…'));
-                $this->finish($row, $result['ok'] ? 'sent' : 'failed', $result['error'], '+'.substr($number, 0, 3).'•••'.substr($number, -3), $out);
+                $result = $this->sms->send($number, Str::limit($center.': '.$title.($body ? ' — '.$body : ''), 300, '…'), (string) $row->id);
+                $this->finish($row, $result['ok'] ? 'sent' : 'failed', $result['error'], '+'.substr($number, 0, 3).'•••'.substr($number, -3), $out, $result['id'] ?? null);
             }
         }
 
@@ -146,15 +158,18 @@ class NotificationChannels
     }
 
     /** One failed message is tried again twice before it is given up. */
-    private function finish(NotificationDelivery $row, string $status, ?string $reason, ?string $to, array &$out): void
+    private function finish(NotificationDelivery $row, string $status, ?string $reason, ?string $to, array &$out, ?string $providerId = null): void
     {
         $attempts = $row->attempts + 1;
         if ($status === 'failed' && $attempts < 3) {
-            $row->update(['attempts' => $attempts, 'reason' => $reason, 'to' => $to]);   // stays queued
+            $row->update(['attempts' => $attempts, 'reason' => $reason, 'failed_reason' => $reason, 'to' => $to]);   // stays queued
 
             return;
         }
-        $row->update(['status' => $status, 'reason' => $reason, 'to' => $to, 'attempts' => $attempts, 'sent_at' => $status === 'sent' ? now() : null]);
+        $row->update([
+            'status' => $status, 'reason' => $reason, 'failed_reason' => $status === 'failed' ? $reason : null, 'to' => $to, 'attempts' => $attempts,
+            'sent_at' => $status === 'sent' ? now() : null, 'provider_message_id' => $providerId ?? $row->provider_message_id,
+        ]);
         $out[$status]++;
     }
 

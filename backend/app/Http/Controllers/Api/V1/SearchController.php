@@ -65,7 +65,7 @@ class SearchController extends Controller
             $groups[] = ['type' => 'certificates', 'items' => $rows->map(fn (Certificate $c) => ['id' => $c->id, 'title' => $c->certificate_no, 'subtitle' => $c->program?->translate('title'), 'url' => '/admin/certificates?q='.urlencode($c->certificate_no)])->all()];
         }
         if ($wants('news')) {
-            $rows = Announcement::where('is_public', true)->whereNotNull('published_at')->where('published_at', '<=', now())
+            $rows = app(\App\Services\Communication\AnnouncementLifecycle::class)->live(Announcement::query())->where('is_public', true)
                 ->where(fn ($w) => $w->whereLike('title_ar', $like)->orWhereLike('title_en', $like))->latest('published_at')->limit(self::LIMIT)->get();
             $groups[] = ['type' => 'news', 'items' => $rows->map(fn (Announcement $a) => ['id' => $a->id, 'title' => $a->translate('title'), 'subtitle' => $a->published_at?->toDateString(), 'url' => "/news/{$a->id}"])->all()];
         }

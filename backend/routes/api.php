@@ -7,6 +7,15 @@ use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
 use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\CmsController;
+use App\Http\Controllers\Api\V1\Admin\MinistrySiteController;
+use App\Http\Controllers\Api\V1\Admin\NotificationDeliveriesController;
+use App\Http\Controllers\Api\V1\Admin\NotificationRulesController;
+use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
+use App\Http\Controllers\Api\V1\HudhudReceiptController;
+use App\Http\Controllers\Api\V1\Me\MyEventsController;
+use App\Http\Controllers\Api\V1\Me\MyNotificationPreferencesController;
+use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
@@ -159,6 +168,19 @@ Route::prefix('v1')->group(function () {
         Route::post('cmi5/fetch/{cmi5Session}', [XapiController::class, 'cmi5Fetch']);
     });
 
+    // Events, feeds for the Ministry website, published pages and the centre's statistics (not edge-cached: pages differ for signed-in visitors).
+    Route::prefix('public')->middleware('throttle:public')->controller(PublicContentController::class)->group(function () {
+        Route::get('events', 'events');
+        Route::get('events/{id}', 'event')->whereUuid('id');
+        Route::get('events/{id}/event.ics', 'eventIcs')->whereUuid('id');
+        Route::get('calendar.ics', 'calendarIcs');
+        Route::get('feeds/{name}', 'feed')->where('name', '[a-z-]+\.(json|xml|csv)');
+        Route::get('pages/{page}', 'page');
+        Route::get('defined-stats', 'stats');
+    });
+    // Hudhud posts delivery receipts here; the body is signed with the shared secret.
+    Route::post('integrations/sms/hudhud/receipt', HudhudReceiptController::class)->middleware('throttle:public');
+
     // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
     Route::get('public/health', HealthController::class);
 
@@ -265,6 +287,11 @@ Route::prefix('v1')->group(function () {
             Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
             Route::post('devices', [DeviceController::class, 'store']);
             Route::delete('devices', [DeviceController::class, 'destroy']);
+            Route::get('notification-preferences', [MyNotificationPreferencesController::class, 'show']);
+            Route::put('notification-preferences', [MyNotificationPreferencesController::class, 'update']);
+            Route::get('events', [MyEventsController::class, 'events']);
+            Route::get('announcements', [MyEventsController::class, 'announcements']);
+            Route::post('events/{announcement}/rsvp', [MyEventsController::class, 'rsvp']);
             Route::get('notifications', [MeController::class, 'notifications']);
             Route::post('notifications/read-all', [MeController::class, 'readAllNotifications']);
             Route::post('notifications/seen', [MeController::class, 'seenNotifications']);
@@ -761,13 +788,56 @@ Route::prefix('v1')->group(function () {
             });
 
             // Communication center
-            Route::middleware('permission:announcements.manage')->group(function () {
+            Route::middleware('permission:announcements.manage|announcements.publish')->group(function () {
                 Route::get('announcements', [AnnouncementController::class, 'index']);
+                Route::get('announcements/archive', [AnnouncementController::class, 'archive']);
                 Route::post('announcements', [AnnouncementController::class, 'store']);
+                Route::put('announcements/pins/order', [AnnouncementController::class, 'reorderPins']);
                 Route::put('announcements/{announcement}', [AnnouncementController::class, 'update']);
                 Route::post('announcements/{announcement}/publish', [AnnouncementController::class, 'publish']);
+                Route::post('announcements/{announcement}/pin', [AnnouncementController::class, 'pin']);
+                Route::post('announcements/{announcement}/archive', [AnnouncementController::class, 'archiveOne']);
+                Route::post('announcements/{announcement}/unarchive', [AnnouncementController::class, 'unarchive']);
+                Route::post('announcements/{announcement}/republish', [AnnouncementController::class, 'republish']);
+                Route::post('announcements/{announcement}/media', [AnnouncementController::class, 'media']);
+                Route::delete('announcements/{announcement}/media', [AnnouncementController::class, 'removeMedia']);
                 Route::post('announcements/{announcement}/attachments', [AnnouncementController::class, 'attach']);
+                Route::get('announcements/{announcement}/rsvps', [AnnouncementController::class, 'rsvps']);
                 Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy']);
+            });
+            Route::post('announcements/{announcement}/export-ministry', [AnnouncementController::class, 'exportMinistry'])->middleware('permission:ministry_feed.manage');
+            Route::middleware('permission:ministry_feed.manage')->prefix('settings/ministry-site')->group(function () {
+                Route::get('/', [MinistrySiteController::class, 'show']);
+                Route::put('/', [MinistrySiteController::class, 'update']);
+                Route::post('run', [MinistrySiteController::class, 'run'])->middleware('throttle:10,1');
+                Route::get('file', [MinistrySiteController::class, 'file']);
+            });
+            Route::middleware('permission:notifications.rules')->group(function () {
+                Route::get('notification-rules', [NotificationRulesController::class, 'index']);
+                Route::post('notification-rules', [NotificationRulesController::class, 'store']);
+                Route::put('notification-rules/{rule}', [NotificationRulesController::class, 'update']);
+                Route::delete('notification-rules/{rule}', [NotificationRulesController::class, 'destroy']);
+            });
+            Route::middleware('permission:notifications.schedule')->group(function () {
+                Route::get('scheduled-notifications', [ScheduledNotificationsController::class, 'index']);
+                Route::post('scheduled-notifications', [ScheduledNotificationsController::class, 'store']);
+                Route::put('scheduled-notifications/{scheduled}', [ScheduledNotificationsController::class, 'update']);
+                Route::delete('scheduled-notifications/{scheduled}', [ScheduledNotificationsController::class, 'destroy']);
+            });
+            Route::post('notifications/audience/preview', [ScheduledNotificationsController::class, 'previewAudience'])->middleware('permission:announcements.manage|announcements.publish|notifications.schedule');
+            Route::middleware('permission:notifications.reports')->group(function () {
+                Route::get('notifications/deliveries', [NotificationDeliveriesController::class, 'index']);
+                Route::get('notifications/deliveries/export', [NotificationDeliveriesController::class, 'export']);
+            });
+            Route::middleware('permission:cms.manage')->group(function () {
+                Route::get('pages/{page}/blocks', [CmsController::class, 'blocks']);
+                Route::put('pages/{page}/blocks', [CmsController::class, 'saveBlocks']);
+                Route::get('pages/{page}/preview', [CmsController::class, 'preview']);
+                Route::post('pages/{page}/publish', [CmsController::class, 'publish']);
+                Route::get('pages/{page}/versions', [CmsController::class, 'versions']);
+                Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
+                Route::get('public-stats', [CmsController::class, 'stats']);
+                Route::put('public-stats', [CmsController::class, 'saveStats']);
             });
 
             // AI assistant

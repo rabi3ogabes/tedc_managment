@@ -22,7 +22,7 @@ class ChannelSettings
     private const CACHE = 'site.notification_channels';
 
     /** Secret fields (stored encrypted), by channel. */
-    private const SECRETS = ['email' => ['smtp_password'], 'sms' => ['twilio_token', 'unifonic_app_sid', 'http_auth']];
+    private const SECRETS = ['email' => ['smtp_password'], 'sms' => ['twilio_token', 'unifonic_app_sid', 'http_auth', 'hudhud_api_key', 'hudhud_password', 'hudhud_receipt_secret']];
 
     public static function defaults(): array
     {
@@ -35,8 +35,9 @@ class ChannelSettings
                 'smtp_host' => null, 'smtp_port' => 587, 'smtp_encryption' => 'tls', 'smtp_username' => null,
             ],
             'sms' => [
-                'enabled' => true, 'driver' => 'none',    // none | log | twilio | unifonic | http
+                'enabled' => true, 'driver' => 'none',    // none | log | hudhud | twilio | unifonic | http
                 'sender' => null, 'default_country_code' => '974',
+                'hudhud_base_url' => null, 'hudhud_send_path' => '/api/v1/messages', 'hudhud_username' => null, 'hudhud_receipt_url' => null,
                 'twilio_sid' => null, 'twilio_from' => null,
                 'http_url' => null, 'http_method' => 'POST', 'http_format' => 'json', 'http_headers' => null, 'http_body' => '{"to":"{{to}}","message":"{{message}}","sender":"{{sender}}"}',
             ],
@@ -100,6 +101,7 @@ class ChannelSettings
             },
             'sms' => match ($s['driver'] ?? 'none') {
                 'log' => true,
+                'hudhud' => filled($s['hudhud_base_url']) && (filled($secrets['hudhud_api_key'] ?? null) || filled($s['hudhud_username'])),
                 'twilio' => filled($s['twilio_sid']) && filled($secrets['twilio_token'] ?? null) && filled($s['twilio_from']),
                 'unifonic' => filled($secrets['unifonic_app_sid'] ?? null),
                 'http' => filled($s['http_url']),

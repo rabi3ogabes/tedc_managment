@@ -12,8 +12,8 @@ class SmsGateway
 {
     public function __construct(private readonly ChannelSettings $settings) {}
 
-    /** @return array{ok: bool, error: ?string} */
-    public function send(string $to, string $message): array
+    /** @return array{ok: bool, error: ?string, id?: ?string} */
+    public function send(string $to, string $message, ?string $reference = null): array
     {
         $s = $this->settings->all()['sms'];
         $secrets = $this->settings->secrets('sms');
@@ -27,12 +27,55 @@ class SmsGateway
                 'unifonic' => $this->result($http()->asForm()->post('https://el.cloud.unifonic.com/rest/SMS/messages', [
                     'AppSid' => $secrets['unifonic_app_sid'] ?? '', 'SenderID' => $s['sender'] ?: 'TEDC', 'Recipient' => $to, 'Body' => $message, 'responseType' => 'JSON',
                 ]), fn ($r) => $r->successful() && $r->json('success') !== false),
+                'hudhud' => $this->hudhud($s, $secrets, $to, $message, $reference),
                 'http' => $this->custom($s, $secrets, $to, $message),
                 default => ['ok' => false, 'error' => 'not_configured'],
             };
         } catch (Throwable $e) {
             return ['ok' => false, 'error' => mb_substr($e->getMessage(), 0, 280)];
         }
+    }
+
+    /**
+     * Hudhud, the Ministry's messaging gateway. Base URL, send path, credentials and sender are settings; Arabic text goes as UCS-2
+     * (hex of UTF-16BE) with the encoding named, Latin text as plain text. The provider's message id is kept so its delivery receipt
+     * (POST /integrations/sms/hudhud/receipt) can update the same row.
+     */
+    private function hudhud(array $s, array $secrets, string $to, string $message, ?string $reference): array
+    {
+        if (! filled($s['hudhud_base_url'] ?? null)) {
+            return ['ok' => false, 'error' => 'not_configured'];
+        }
+        $payload = $this->hudhudPayload($s, $to, $message, $reference);
+        $request = Http::withOptions(['verify' => Supabase::caBundle()])->timeout(20)->acceptJson();
+        if (filled($secrets['hudhud_api_key'] ?? null)) {
+            $request = $request->withToken((string) $secrets['hudhud_api_key']);
+        } elseif (filled($s['hudhud_username'] ?? null)) {
+            $request = $request->withBasicAuth((string) $s['hudhud_username'], (string) ($secrets['hudhud_password'] ?? ''));
+        }
+        $response = $request->post(rtrim((string) $s['hudhud_base_url'], '/').'/'.ltrim((string) ($s['hudhud_send_path'] ?: '/api/v1/messages'), '/'), $payload);
+        $result = $this->result($response, fn ($r) => $r->successful() && $r->json('status') !== 'failed');
+        $result['id'] = $response->json('message_id') ?? $response->json('id') ?? $response->json('data.message_id');
+
+        return $result;
+    }
+
+    /** What is sent to Hudhud for one message. @return array<string, mixed> */
+    public function hudhudPayload(array $s, string $to, string $message, ?string $reference = null): array
+    {
+        $arabic = (bool) preg_match('/[^\x00-\x7F]/u', $message);
+        $payload = ['sender' => $s['sender'] ?: 'TEDC', 'recipients' => [$to], 'reference' => $reference, 'encoding' => $arabic ? 'UCS2' : 'GSM'];
+        if ($arabic) {
+            $payload['message'] = strtoupper(bin2hex((string) mb_convert_encoding($message, 'UTF-16BE', 'UTF-8')));
+            $payload['message_format'] = 'hex';
+        } else {
+            $payload['message'] = $message;
+        }
+        if (! empty($s['hudhud_receipt_url'])) {
+            $payload['callback_url'] = $s['hudhud_receipt_url'];
+        }
+
+        return $payload;
     }
 
     /** A provider that is not one of the built-in ones: the administrator describes the request (URL, headers, body with {{to}}, {{message}}, {{sender}}). */

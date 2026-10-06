@@ -21,3 +21,6 @@ Schedule::command('tedc:self-heal')->everyFifteenMinutes()->withoutOverlapping()
 Schedule::command('tedc:course-nudges')->dailyAt('10:00')->withoutOverlapping();
 Schedule::command('tedc:scenario-advance')->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('tedc:deliver-notifications')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:announcements-tick')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:ministry-push')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:stats-refresh')->everyTenMinutes()->withoutOverlapping();

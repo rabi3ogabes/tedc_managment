@@ -38,10 +38,12 @@ class NotificationChannelsController extends Controller
             'email.smtp_host' => ['nullable', 'string', 'max:190'], 'email.smtp_port' => ['nullable', 'integer', 'between:1,65535'], 'email.smtp_encryption' => ['nullable', Rule::in(['tls', 'ssl', 'none'])],
             'email.smtp_username' => ['nullable', 'string', 'max:190'], 'email.smtp_password' => ['nullable', 'string', 'max:300'], 'email.clear' => ['sometimes', 'array'],
             'sms' => ['sometimes', 'array'],
-            'sms.enabled' => ['sometimes', 'boolean'], 'sms.driver' => ['sometimes', Rule::in(['none', 'log', 'twilio', 'unifonic', 'http'])],
+            'sms.enabled' => ['sometimes', 'boolean'], 'sms.driver' => ['sometimes', Rule::in(['none', 'log', 'hudhud', 'twilio', 'unifonic', 'http'])],
             'sms.sender' => ['nullable', 'string', 'max:20'], 'sms.default_country_code' => ['nullable', 'string', 'max:5', 'regex:/^\+?\d{1,4}$/'],
             'sms.twilio_sid' => ['nullable', 'string', 'max:100'], 'sms.twilio_from' => ['nullable', 'string', 'max:30'], 'sms.twilio_token' => ['nullable', 'string', 'max:200'],
             'sms.unifonic_app_sid' => ['nullable', 'string', 'max:200'],
+            'sms.hudhud_base_url' => ['nullable', 'url:https,http', 'max:300'], 'sms.hudhud_send_path' => ['nullable', 'string', 'max:120'], 'sms.hudhud_username' => ['nullable', 'string', 'max:120'],
+            'sms.hudhud_receipt_url' => ['nullable', 'url:https,http', 'max:300'], 'sms.hudhud_api_key' => ['nullable', 'string', 'max:300'], 'sms.hudhud_password' => ['nullable', 'string', 'max:300'], 'sms.hudhud_receipt_secret' => ['nullable', 'string', 'max:200'],
             'sms.http_url' => ['nullable', 'url:http,https', 'max:500'], 'sms.http_method' => ['nullable', Rule::in(['GET', 'POST'])], 'sms.http_format' => ['nullable', Rule::in(['json', 'form'])],
             'sms.http_headers' => ['nullable', 'string', 'max:1000'], 'sms.http_body' => ['nullable', 'string', 'max:1000'], 'sms.http_auth' => ['nullable', 'string', 'max:300'], 'sms.clear' => ['sometimes', 'array'],
         ]);
