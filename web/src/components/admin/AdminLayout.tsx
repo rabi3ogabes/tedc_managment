@@ -180,6 +180,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
   const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => featureOn(i.feature) && (!i.permission || i.permission.split('|').some((x) => can(x)))) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
+  // The trainee pages need a trainee profile; an account without one (an administrator, for example) is told so instead of waiting for data that never comes.
+  const noProfile = portal && !!user && !user.employee && !['/portal/help', '/portal/notifications', '/portal/profile', '/portal/my-data', '/portal/security', '/portal/notification-preferences'].some((p) => pathname === p || pathname.startsWith(`${p}/`))
   // A page whose feature is switched off says so, instead of a spinner that never ends.
   const flagsLoaded = !!useFeatures().data
   const offItem = flagsLoaded ? groups.flatMap((g) => g.items).find((i) => i.feature && !featureOn(i.feature) && (pathname === i.to || pathname.startsWith(`${i.to}/`))) : undefined
@@ -314,7 +316,14 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         </header>
         <main className="flex-1 px-4 py-8 sm:px-8">
           <AppErrorBoundary resetKey={pathname}>
-            {offItem ? (
+            {noProfile ? (
+              <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-navy-100 bg-white p-8 text-center shadow-glass" role="status">
+                <GraduationCap className="mx-auto size-10 text-gold-600" />
+                <h1 className="mt-3 text-xl font-bold text-navy-900">{t('hlp.noProfile')}</h1>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{t('hlp.noProfileHint')}</p>
+                <Link to="/admin" className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('hlp.noProfileAction')}</Link>
+              </div>
+            ) : offItem ? (
               <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-navy-100 bg-white p-8 text-center shadow-glass" role="status">
                 <Power className="mx-auto size-10 text-gold-600" />
                 <h1 className="mt-3 text-xl font-bold text-navy-900">{t('hlp.featureOff', { name: offItem.label })}</h1>
