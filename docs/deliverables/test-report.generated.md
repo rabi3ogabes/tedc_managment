@@ -4,8 +4,8 @@
 
 ## 1. Automated suite
 
-- Test files: **99**; test methods: **633**.
-- Last recorded run: **632 of 633 passed**, 10058 assertions.
+- Test files: **101**; test methods: **640**.
+- No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
 ## 2. Requirement status behind the tests
@@ -38,6 +38,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AttendanceAndCertificateTest.php | 8 |
 | AttendanceExportTest.php | 2 |
 | AttendanceMethodsTest.php | 6 |
+| AuditFixesTest.php | 4 |
 | AuthAndRbacTest.php | 9 |
 | AzureStorageTest.php | 6 |
 | CalendarTest.php | 6 |
@@ -67,7 +68,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | GeofenceAttendanceTest.php | 10 |
 | GlobalSearchTest.php | 3 |
 | GroupRegistrationTest.php | 5 |
-| HelpCentreTest.php | 12 |
+| HelpCentreTest.php | 13 |
 | HomeCheckInTest.php | 1 |
 | IdentitySecurityTest.php | 10 |
 | ImpersonationTest.php | 2 |
@@ -108,6 +109,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RoomManagementTest.php | 6 |
 | RoomScreenTest.php | 3 |
 | RoomsLogisticsTest.php | 6 |
+| RoutingIntegrityTest.php | 2 |
 | SecurityHardeningTest.php | 2 |
 | SpaFallbackTest.php | 2 |
 | SupabaseConnectionTest.php | 8 |

@@ -219,7 +219,7 @@ export default function App() {
           <Route path="help" element={<HelpCentre />} />
           <Route path="help-articles" element={<RequireAuth permission="help.manage"><HelpArticles /></RequireAuth>} />
           <Route path="ekits" element={<RequireAuth permission="packages.manage"><EKits /></RequireAuth>} />
-          <Route path="satisfaction" element={<RequireAuth permission="evaluations.manage|evaluation_reports.prepare|impact.view"><Satisfaction /></RequireAuth>} />
+          <Route path="satisfaction" element={<RequireAuth permission="evaluations.manage|evaluation_reports.prepare"><Satisfaction /></RequireAuth>} />
           <Route path="tickets" element={<RequireAuth permission="integrations.manage|integrations.logs"><SupportTickets /></RequireAuth>} />
           <Route path="my-data" element={<MyPrivacy />} />
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />

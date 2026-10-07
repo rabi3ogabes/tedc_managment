@@ -789,8 +789,9 @@ Route::prefix('v1')->group(function () {
             });
 
             // Programs & sessions
+            // The program list is a picker for registrations, certificates and impact screens too (it is the public catalogue plus status).
+            Route::get('programs', [ProgramController::class, 'index'])->middleware('permission:programs.view|programs.manage|registrations.view|certificates.view|impact.view');
             Route::middleware('permission:programs.view|programs.manage')->group(function () {
-                Route::get('programs', [ProgramController::class, 'index']);
                 Route::get('programs/{program}', [ProgramController::class, 'show']);
                 Route::get('programs/{program}/sessions', [SessionController::class, 'index']);
                 Route::get('programs/{program}/materials', [MaterialController::class, 'index']);
@@ -1335,6 +1336,8 @@ Route::prefix('v1')->group(function () {
                 Route::delete('users/{user}/roles/{roleUser}', [UserRoleController::class, 'destroy']);
                 Route::get('roles', [UserController::class, 'roles']);
             });
+            // Role names only (no permission lists): for the screens that share content with a role.
+            Route::get('role-options', [UserController::class, 'roleOptions'])->middleware('permission:users.manage|sharing.manage|job_groups.manage|library.manage|kits.manage');
             Route::put('roles/{role}/permissions', [UserController::class, 'updateRolePermissions'])->middleware('permission:roles.manage');
             Route::middleware('permission:roles.create')->group(function () {
                 Route::post('roles', [RoleAdminController::class, 'store']);

@@ -144,7 +144,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/privacy', label: t('prv.adminNav'), icon: Shield, permission: 'privacy.manage' },
           { to: '/admin/help', label: t('hlp.nav'), icon: LifeBuoy },
           { to: '/admin/help-articles', label: t('hlp.navAdmin'), icon: BookOpen, permission: 'help.manage' },
-          { to: '/admin/satisfaction', label: t('hlp.navSat'), icon: LineChart, permission: 'evaluations.manage|evaluation_reports.prepare|impact.view' },
+          { to: '/admin/satisfaction', label: t('hlp.navSat'), icon: LineChart, permission: 'evaluations.manage|evaluation_reports.prepare' },
           { to: '/admin/tickets', label: t('hlp.navTickets'), icon: Bug, permission: 'integrations.manage|integrations.logs' },
           { to: '/admin/ekits', label: t('hlp.navKits'), icon: BookOpen, permission: 'packages.manage' },
           { to: '/admin/finance', label: t('pay.nav.finance'), icon: Wallet, permission: 'orders.view|pricing.manage|finance.reports|entity_accounts.manage', feature: 'payments' },

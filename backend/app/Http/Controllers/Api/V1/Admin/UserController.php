@@ -78,6 +78,12 @@ class UserController extends Controller
         ]);
     }
 
+    /** Role names for pickers; unlike roles() it carries no permission lists, so it can be offered to more people. */
+    public function roleOptions(): JsonResponse
+    {
+        return response()->json(['data' => Role::orderByDesc('level')->get(['id', 'slug', 'name_ar', 'name_en', 'level'])]);
+    }
+
     public function updateRolePermissions(Request $request, Role $role): JsonResponse
     {
         abort_if($role->slug === Role::SUPER_ADMIN, 422, 'Super admin permissions are implicit.');

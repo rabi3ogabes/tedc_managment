@@ -22,7 +22,7 @@ export default function SharingAdmin() {
 function Policies() {
   const { t } = useTranslation()
   const res = useGet<{ data: any[] }>('/admin/sharing-policies', undefined, { staleTime: 0 })
-  const roles = useGet<{ data: any[] }>('/admin/roles')
+  const roles = useGet<{ data: any[] }>('/admin/role-options')
   const [cur, setCur] = useState<any | null>(null)
   const save = async () => { try { await api.post('/admin/sharing-policies', cur); toast('✓'); setCur(null); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const del = async (id: string) => { try { await api.delete(`/admin/sharing-policies/${id}`); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }

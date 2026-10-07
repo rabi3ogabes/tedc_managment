@@ -20,7 +20,7 @@ export default function ShareDialog({ resourceType, resourceId, onClose }: { res
   const shares = useGet<{ data: any[]; policy: any }>('/admin/shares', { resource_type: resourceType, resource_id: resourceId }, { staleTime: 0 })
   const programs = useGet<{ data: any[] }>(target === 'program' ? '/admin/programs' : null, { per_page: 200 })
   const groups = useGet<{ data: any[] }>(target === 'job_group' ? '/admin/job-groups' : null)
-  const roles = useGet<{ data: any[] }>(target === 'role' ? '/admin/roles' : null)
+  const roles = useGet<{ data: any[] }>(target === 'role' ? '/admin/role-options' : null)
   const policy = shares.data?.policy
   const options: { id: string; label: string }[] = target === 'program' ? (programs.data?.data ?? []).map((p: any) => ({ id: p.id, label: `${p.code} — ${p.title}` })) : target === 'job_group' ? (groups.data?.data ?? []).map((g: any) => ({ id: g.id, label: ar ? g.name_ar : g.name_en })) : target === 'role' ? (roles.data?.data ?? []).map((r: any) => ({ id: r.slug, label: ar ? r.name_ar ?? r.slug : r.name_en ?? r.slug })) : []
   const go = async () => { try { await api.post('/admin/shares', { resource_type: resourceType, resource_id: resourceId, target_type: target, target_id: targetId, permission, expires_at: expires || null }); toast(t('content.sharing.done')); setTargetId(''); void shares.refetch() } catch (e) { toast(errorMessage(e), 'error') } }

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Loader2, Inbox, AlertTriangle, X } from 'lucide-react'
-import { useEffect, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -138,20 +138,34 @@ export function ErrorState({ message, onRetry }: { message?: string; onRetry?: (
 }
 
 export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: ReactNode; children: ReactNode; wide?: boolean }) {
+  const { t } = useTranslation()
+  const titleId = useId()
+  const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const before = document.activeElement as HTMLElement | null
+    const focusables = () => Array.from(box.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab') return
+      const items = focusables()                      // keep the keyboard inside the window while it is open
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    box.current?.focus()
+    return () => { window.removeEventListener('keydown', onKey); before?.focus?.() }
   }, [open, onClose])
 
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-navy-950/50 p-4 backdrop-blur-sm sm:items-center" onMouseDown={onClose}>
-      <div className={clsx('card my-8 w-full animate-fade-up p-6', wide ? 'max-w-3xl' : 'max-w-lg')} onMouseDown={(e) => e.stopPropagation()}>
+      <div ref={box} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={clsx('card my-8 w-full animate-fade-up p-6 outline-none', wide ? 'max-w-3xl' : 'max-w-lg')} onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-navy-900">{title}</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="close"><X className="size-5" /></button>
+          <h3 id={titleId} className="text-lg font-bold text-navy-900">{title}</h3>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={String(t('common.close', { defaultValue: 'Close' }))}><X className="size-5" /></button>
         </div>
         {children}
       </div>
