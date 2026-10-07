@@ -7,7 +7,7 @@ export const cmpAr = { campus: {
   planAlt: { ground: 'مخطط الطابق الأرضي لمركز التدريب', first: 'مخطط الطابق الأول لمركز التدريب', day: 'منظر جوي لمجمّع الوزارة نهارًا', night: 'منظر جوي لمجمّع الوزارة ليلًا' },
   stats: { schools: 'مدرسة تخدمها المنصة', participants: 'متدرب', programs: 'برنامج تدريبي', training_hours: 'ساعة تدريبية', certificates: 'شهادة صادرة', satisfaction: 'رضا المتدربين', trainers: 'مدرب', employees: 'موظف مسجّل' },
   stages: {
-    arrive: { title: 'الوصول إلى المجمّع', place: 'مجمّع الوزارة', text: 'تبدأ كل رحلة من مجمّع المركز، الذي يخدم مدارس الدولة ومعلميها وإدارييها.' },
+    arrive: { title: 'الوصول إلى المجمّع', place: 'مدخل المبنى', text: 'تبدأ كل رحلة من مجمّع المركز، الذي يخدم مدارس الدولة ومعلميها وإدارييها.' },
     needs: { title: 'تحديد الاحتياج والتخطيط', place: 'الإدارة', text: 'تُجمع احتياجات المدارس والأقسام من الاستبيانات والأداء، وتُبنى منها الخطة التدريبية السنوية.' },
     register: { title: 'التسجيل والاعتماد', place: 'التميز', text: 'يُرشَّح المتدرب، فيعتمده مديره ثم المركز، ويُحجز له مقعد بحسب الأولوية والسعة.' },
     train: { title: 'التدريب في القاعات', place: 'قاعات التدريب 1 و2', text: 'جلسات مع المدرب، ويُسجَّل الحضور برمز QR أو بصمة الموقع، مع متابعة الأعذار والإجازات.' },
@@ -25,7 +25,7 @@ export const cmpEn = { campus: {
   planAlt: { ground: 'Plan of the training centre\'s ground floor', first: 'Plan of the training centre\'s first floor', day: 'Aerial view of the ministry campus by day', night: 'Aerial view of the ministry campus at night' },
   stats: { schools: 'schools served by the platform', participants: 'trainees', programs: 'training programs', training_hours: 'training hours', certificates: 'certificates issued', satisfaction: 'trainee satisfaction', trainers: 'trainers', employees: 'registered staff' },
   stages: {
-    arrive: { title: 'Arrive at the campus', place: 'The ministry campus', text: 'Every journey starts at the centre\'s campus, which serves the State\'s schools, teachers and administrators.' },
+    arrive: { title: 'Arrive at the campus', place: 'Building entrance', text: 'Every journey starts at the centre\'s campus, which serves the State\'s schools, teachers and administrators.' },
     needs: { title: 'Needs and planning', place: 'Administration', text: 'Needs from schools and departments are collected from surveys and performance data, and the annual training plan is built from them.' },
     register: { title: 'Registration and approval', place: 'Excellence', text: 'The trainee is nominated, approved by the manager and then the centre, and a seat is held by priority and capacity.' },
     train: { title: 'Training in the rooms', place: 'Training Rooms 1 & 2', text: 'Sessions with the trainer; attendance is recorded by QR code or location, with excuses and leaves followed up.' },

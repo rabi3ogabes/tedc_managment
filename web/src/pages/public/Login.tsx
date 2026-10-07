@@ -45,6 +45,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(params.get('sso_error') ? String(t('idn.login.ssoError')) : null)
   const [loading, setLoading] = useState(false)
+  const [opening, setOpening] = useState<string | null>(null)
   const config = useGet<{ data: { demo_accounts?: boolean } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true
 
@@ -55,25 +56,32 @@ export default function Login() {
   }
   const done = (data: unknown) => { const me = finish(data); navigate(landing(me, location.state?.from), { replace: true }) }
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const signIn = async (mail: string, pass: string, viaDirectory = false) => {
     setLoading(true)
     setError(null)
     try {
-      if (directory) {
-        const { data } = await api.post('/auth/ldap/login', { username: email, password })
+      if (viaDirectory) {
+        const { data } = await api.post('/auth/ldap/login', { username: mail, password: pass })
         const me = finish(data)
         navigate(landing(me, location.state?.from), { replace: true })
         return
       }
-      const me = await login(email, password)
+      const me = await login(mail, pass)
       navigate(landing(me, location.state?.from), { replace: true })
     } catch (err) {
       if (err instanceof MfaRequired) { setChallenge(err.challenge); return }
       setError(errorMessage(err))
     } finally {
       setLoading(false)
+      setOpening(null)
     }
+  }
+  const submit = (e: React.FormEvent) => { e.preventDefault(); void signIn(email, password, directory) }
+  // One tap on a demo account signs straight in with the shared demo password.
+  const openDemo = (mail: string) => {
+    if (loading) return
+    setEmail(mail); setPassword(DEMO_PASSWORD); setOpening(mail)
+    void signIn(mail, DEMO_PASSWORD)
   }
 
   return (
@@ -107,13 +115,13 @@ export default function Login() {
               <p className="mb-3 text-xs text-slate-500">{t('auth.demoHint')} <bdi dir="ltr" className="font-mono font-bold text-navy-900">{DEMO_PASSWORD}</bdi></p>
               <div className="flex flex-wrap gap-2">
                 {DEMO.map(([mail, role]) => (
-                  <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword(DEMO_PASSWORD) }} className="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-navy-800 ring-1 ring-navy-100 hover:ring-gold-400">{role}</button>
+                  <button key={mail} type="button" disabled={loading} aria-busy={opening === mail} onClick={() => openDemo(mail)} className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-navy-800 ring-1 ring-navy-100 transition hover:ring-gold-400 focus-visible:outline-2 focus-visible:outline-gold-400 disabled:cursor-wait disabled:opacity-60">{opening === mail ? '…' : role}</button>
                 ))}
               </div>
               <p className="mb-2 mt-4 text-xs font-bold text-navy-900">{t('auth.testAccounts')}</p>
               <div className="flex flex-wrap gap-2">
                 {TEST_ACCOUNTS.map(([mail, label]) => (
-                  <button key={mail} type="button" onClick={() => { setEmail(mail); setPassword(DEMO_PASSWORD) }} className="rounded-lg bg-navy-900 px-2.5 py-1 text-xs font-semibold text-gold-300 hover:bg-navy-800">{label}</button>
+                  <button key={mail} type="button" disabled={loading} aria-busy={opening === mail} onClick={() => openDemo(mail)} className="rounded-lg bg-navy-900 px-3 py-1.5 text-xs font-semibold text-gold-300 transition hover:bg-navy-800 focus-visible:outline-2 focus-visible:outline-gold-400 disabled:cursor-wait disabled:opacity-60">{opening === mail ? '…' : label}</button>
                 ))}
               </div>
             </div>

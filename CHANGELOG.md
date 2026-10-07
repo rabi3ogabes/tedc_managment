@@ -19,3 +19,6 @@ Fixed 19 unreachable administration pages, a hidden room-calendar route, feature
 
 ## 2026-10-07 — campus tour
 Home page: an animated tour of the training centre (ground and first floor plans, the ministry campus) that follows a training journey from need to impact, with live figures. Also fixed the home page scrolling sideways on phones when upcoming programs are listed.
+
+## 2026-10-07 — campus plans
+The two floor plans of the campus tour are redrawn as vector plans in the site's brand colours (they follow the active theme, including occasion themes): an ivory day plan for the ground floor and a deep night plan for the first floor, with room names in Arabic or English. The first stage now starts at the building entrance instead of showing the aerial photo.

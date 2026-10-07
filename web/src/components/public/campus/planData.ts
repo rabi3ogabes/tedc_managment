@@ -1,0 +1,95 @@
+import type { Floor } from './campusData'
+
+/**
+ * The two floors of the centre as drawn rooms, on the same 1290 × 942 grid as the walking routes. The positions follow the plans of the
+ * building; the names are the ones printed on them. Colours are not stored here: the plan takes them from the site's brand.
+ */
+export type Kind = 'train' | 'lab' | 'public' | 'wc' | 'pray' | 'office' | 'dark' | 'stair'
+export type Room = { x: number; y: number; w: number; h: number; kind: Kind; ar?: string; en?: string; vertical?: boolean; fs?: number; chamfer?: number }
+export type Poly = { points: [number, number][]; kind: Kind; ar?: string; en?: string; at?: [number, number]; fs?: number }
+
+export const PLANS: Record<Floor, { rooms: Room[]; polys: Poly[] }> = {
+  ground: {
+    rooms: [
+      { x: 434, y: 36, w: 90, h: 88, kind: 'wc' },
+      { x: 434, y: 126, w: 90, h: 124, kind: 'lab', ar: 'معمل الكيمياء', en: 'Chemistry lab', vertical: true, fs: 17 },
+      { x: 434, y: 254, w: 90, h: 128, kind: 'lab', ar: 'معمل العلوم', en: 'Science lab', vertical: true, fs: 17 },
+      { x: 554, y: 38, w: 140, h: 88, kind: 'train', ar: 'قاعة 5', en: 'Room 5' },
+      { x: 556, y: 134, w: 130, h: 130, kind: 'public', ar: 'كافتيريا', en: 'Cafeteria' },
+      { x: 716, y: 38, w: 92, h: 72, kind: 'wc' },
+      { x: 716, y: 112, w: 92, h: 270, kind: 'train', ar: 'قاعات التدريب 3 و4', en: 'Training Rooms 3–4', vertical: true },
+      { x: 878, y: 38, w: 142, h: 80, kind: 'pray', ar: 'مصلى الرجال', en: 'Men\'s prayer room', fs: 19 },
+      { x: 1022, y: 38, w: 128, h: 80, kind: 'wc' },
+      { x: 1062, y: 120, w: 88, h: 110, kind: 'pray', ar: 'مصلى النساء', en: 'Women\'s prayer room', vertical: true, fs: 19 },
+      { x: 1062, y: 232, w: 88, h: 142, kind: 'wc' },
+      { x: 920, y: 292, w: 138, h: 82, kind: 'dark' },
+      { x: 950, y: 186, w: 70, h: 64, kind: 'stair' },
+      { x: 110, y: 398, w: 80, h: 92, kind: 'wc' },
+      { x: 192, y: 398, w: 250, h: 92, kind: 'train', ar: 'قاعات التدريب 6 و7', en: 'Training Rooms 6–7' },
+      { x: 106, y: 502, w: 218, h: 112, kind: 'dark' },
+      { x: 110, y: 627, w: 80, h: 86, kind: 'wc' },
+      { x: 192, y: 627, w: 250, h: 86, kind: 'train', ar: 'قاعة التدريب 8', en: 'Training Rooms 8' },
+      { x: 824, y: 396, w: 134, h: 98, kind: 'lab', ar: 'التميز', en: 'Excellence' },
+      { x: 960, y: 396, w: 132, h: 98, kind: 'lab', ar: 'الإبداع', en: 'Creativity' },
+      { x: 1094, y: 396, w: 82, h: 98, kind: 'wc' },
+      { x: 947, y: 506, w: 228, h: 114, kind: 'public', ar: 'المكتبة', en: 'Library' },
+      { x: 824, y: 630, w: 134, h: 94, kind: 'train', ar: 'قاعة 1', en: 'Room 1' },
+      { x: 960, y: 630, w: 132, h: 94, kind: 'train', ar: 'قاعة 2', en: 'Room 2' },
+      { x: 1094, y: 630, w: 80, h: 94, kind: 'wc' },
+      { x: 473, y: 404, w: 115, h: 95, kind: 'dark', chamfer: 22 },
+      { x: 692, y: 404, w: 105, h: 98, kind: 'dark', chamfer: 22 },
+      { x: 473, y: 602, w: 112, h: 116, kind: 'dark', chamfer: 22 },
+      { x: 690, y: 604, w: 108, h: 118, kind: 'dark', chamfer: 22 },
+      { x: 487, y: 744, w: 288, h: 138, kind: 'public', ar: 'الإدارة', en: 'Administration', fs: 34 },
+      { x: 600, y: 276, w: 64, h: 88, kind: 'stair' },
+      { x: 343, y: 526, w: 90, h: 78, kind: 'stair' },
+      { x: 836, y: 520, w: 90, h: 80, kind: 'stair' },
+    ],
+    polys: [
+      { points: [[565, 425], [709, 425], [772, 488], [772, 642], [709, 690], [565, 690], [502, 642], [502, 488]], kind: 'public', ar: 'كافتيريا', en: 'Cafeteria', at: [637, 585], fs: 30 },
+      { points: [[549, 478], [575, 452], [601, 478], [575, 504]], kind: 'stair' },
+    ],
+  },
+  first: {
+    rooms: [
+      { x: 428, y: 48, w: 88, h: 84, kind: 'wc' },
+      { x: 428, y: 134, w: 88, h: 250, kind: 'train', ar: 'قاعات التدريب 9 و10', en: 'Training Rooms 9–10', vertical: true },
+      { x: 548, y: 48, w: 138, h: 76, kind: 'train', ar: 'قاعة التدريب 11', en: 'Training Room 11', fs: 17 },
+      { x: 548, y: 126, w: 138, h: 138, kind: 'public', ar: 'كافتيريا', en: 'Cafeteria' },
+      { x: 713, y: 48, w: 90, h: 76, kind: 'wc' },
+      { x: 713, y: 126, w: 90, h: 236, kind: 'train', ar: 'قاعات التدريب 12 و13', en: 'Training Rooms 12–13', vertical: true },
+      { x: 872, y: 48, w: 140, h: 80, kind: 'train', ar: 'قاعة التدريب 20', en: 'Training Room 20', fs: 16 },
+      { x: 1014, y: 48, w: 136, h: 80, kind: 'lab', ar: 'معمل الحاسب 2', en: 'Computer Lab 2', fs: 16 },
+      { x: 1058, y: 130, w: 92, h: 104, kind: 'lab', ar: 'غرفة الحاسب 1', en: 'Computer Room 1', vertical: true, fs: 16 },
+      { x: 1058, y: 236, w: 92, h: 140, kind: 'train', ar: 'قاعة التدريب 19', en: 'Training Room 19', vertical: true, fs: 16 },
+      { x: 917, y: 296, w: 70, h: 80, kind: 'wc' },
+      { x: 989, y: 296, w: 67, h: 80, kind: 'wc' },
+      { x: 948, y: 188, w: 68, h: 68, kind: 'stair' },
+      { x: 96, y: 400, w: 80, h: 80, kind: 'wc' },
+      { x: 178, y: 400, w: 260, h: 80, kind: 'office' },
+      { x: 96, y: 502, w: 118, h: 116, kind: 'office' },
+      { x: 218, y: 502, w: 102, h: 116, kind: 'office' },
+      { x: 96, y: 628, w: 80, h: 82, kind: 'wc' },
+      { x: 178, y: 628, w: 260, h: 82, kind: 'office' },
+      { x: 824, y: 396, w: 300, h: 100, kind: 'train', ar: 'قاعات التدريب 14 و15', en: 'Training Rooms 14–15' },
+      { x: 1126, y: 396, w: 56, h: 100, kind: 'wc' },
+      { x: 953, y: 509, w: 124, h: 110, kind: 'pray', ar: 'المصليات', en: 'Prayer rooms', fs: 19 },
+      { x: 1079, y: 509, w: 103, h: 110, kind: 'train', ar: 'قاعة 18', en: 'Room 18', fs: 21 },
+      { x: 827, y: 630, w: 290, h: 92, kind: 'train', ar: 'قاعات التدريب 16 و17', en: 'Training Rooms 16–17' },
+      { x: 1119, y: 630, w: 64, h: 92, kind: 'wc' },
+      { x: 473, y: 404, w: 115, h: 98, kind: 'dark', chamfer: 22 },
+      { x: 690, y: 404, w: 110, h: 98, kind: 'dark', chamfer: 22 },
+      { x: 466, y: 604, w: 164, h: 120, kind: 'dark', ar: 'القيادة', en: 'Leadership', fs: 20, chamfer: 22 },
+      { x: 640, y: 604, w: 160, h: 120, kind: 'dark', ar: 'الابتكار', en: 'Innovation', fs: 20, chamfer: 22 },
+      { x: 487, y: 746, w: 186, h: 138, kind: 'public', ar: 'واحة المعرفة', en: 'Knowledge Oasis', fs: 26 },
+      { x: 677, y: 746, w: 98, h: 138, kind: 'lab', ar: 'معمل الحاسب 3', en: 'Computer Lab 3', vertical: true, fs: 17 },
+      { x: 597, y: 278, w: 66, h: 86, kind: 'stair' },
+      { x: 335, y: 528, w: 98, h: 82, kind: 'stair' },
+      { x: 832, y: 524, w: 92, h: 80, kind: 'stair' },
+    ],
+    polys: [
+      { points: [[565, 515], [715, 515], [770, 560], [715, 600], [565, 600], [510, 560]], kind: 'office', ar: 'القاعة الوسطى', en: 'Central hall', at: [640, 560], fs: 1 },
+      { points: [[522, 480], [548, 454], [574, 480], [548, 506]], kind: 'stair' },
+    ],
+  },
+}

@@ -6,10 +6,10 @@ import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 import CountUp from './CountUp'
 import { AMBIENT, ENTRY, FLOOR_ROUTES, PLAN, STAGES, length, pointAt, route, type Floor, type Pt } from './campus/campusData'
+import CampusPlan from './campus/CampusPlan'
 import { SectionTitle } from './Section'
 
-type View = Floor | 'day' | 'night'
-const SRC: Record<View, string> = { ground: '/campus/ground-floor.webp', first: '/campus/first-floor.webp', day: '/campus/campus-day.webp', night: '/campus/campus-night.jpg' }
+type View = Floor | 'night'
 const DWELL = 4800          // how long a stage stays before the next one starts on its own
 const SPEED = 360           // pixels of the plan per second the walker covers
 const ease = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2)
@@ -22,11 +22,12 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
  * Plays by itself while it is on screen; it stops for visitors who ask for reduced motion, and everything can be driven by hand.
  */
 export default function CampusJourney() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language === 'en' ? 'en' : 'ar'
   const stats = useGet<{ data: Record<string, number> }>('/public/stats', undefined, { staleTime: 5 * 60_000 })
   const reduce = useMemo(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
   const [i, setI] = useState(0)
-  const [view, setView] = useState<View>('day')
+  const [view, setView] = useState<View>('ground')
   const [arrived, setArrived] = useState(true)
   const [playing, setPlaying] = useState(!reduce)
   const [onScreen, setOnScreen] = useState(false)
@@ -79,7 +80,7 @@ export default function CampusJourney() {
       setArrived(false)
       if (s.view === 'campus') {
         place(null); draw(null); at.current = null
-        setView(i === STAGES.length - 1 ? 'night' : 'day')
+        setView('night')
         if (!reduce) await wait(450)
         if (run.current === id) setArrived(true)
         return
@@ -89,8 +90,11 @@ export default function CampusJourney() {
       if (!at.current) {
         setView(floor)
         at.current = { floor, node: ENTRY[floor] }
-        place(nodes[ENTRY[floor]])
-        if (!reduce) await wait(450)
+        // a first visit starts outside the building and walks in through the door
+        const door = nodes[ENTRY[floor]]
+        const outside: Pt = [door[0], PLAN.h - 24]
+        place(reduce ? door : outside)
+        if (!reduce) { await wait(450); await walk([outside, door], id) }
       } else if (at.current.floor !== floor) {
         const from = at.current
         await walk(route(from.floor, from.node, 'stairs'), id)
@@ -151,10 +155,13 @@ export default function CampusJourney() {
           <div onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={() => setHovering(false)}
             className="relative overflow-hidden rounded-[2rem] border border-navy-100 bg-white shadow-glass" dir="ltr">
             <div className="relative w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,#fff,var(--color-ivory-dark,#efe9e1))]" style={{ aspectRatio: `${PLAN.w} / ${PLAN.h}` }}>
-              {(Object.keys(SRC) as View[]).map((v) => (
-                <img key={v} src={SRC[v]} alt={view === v ? String(t(`campus.planAlt.${v}`)) : ''} aria-hidden={view !== v} loading="lazy" decoding="async" draggable={false}
-                  className={`absolute inset-0 size-full select-none transition-opacity duration-[450ms] ease-out ${floorOf(v) ? 'object-contain' : 'object-cover'} ${view === v ? 'opacity-100' : 'opacity-0'} ${!floorOf(v) && view === v && !reduce ? 'campus-drift' : ''}`} />
+              {(['ground', 'first'] as Floor[]).map((f) => (
+                <div key={f} aria-hidden={view !== f} className={`absolute inset-0 transition-opacity duration-[450ms] ease-out ${view === f ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+                  <CampusPlan floor={f} lang={lang} />
+                </div>
               ))}
+              <img src="/campus/campus-night.jpg" alt={String(t('campus.planAlt.night'))} aria-hidden={view !== 'night'} loading="lazy" decoding="async" draggable={false}
+                className={`absolute inset-0 size-full select-none object-cover transition-opacity duration-[450ms] ease-out ${view === 'night' ? `opacity-100 ${reduce ? '' : 'campus-drift'}` : 'opacity-0'}`} />
 
               {/* routes, walkers and the trainee */}
               <svg viewBox={`0 0 ${PLAN.w} ${PLAN.h}`} className={`absolute inset-0 size-full transition-opacity duration-300 ${floorOf(view) ? 'opacity-100' : 'opacity-0'}`} aria-hidden>

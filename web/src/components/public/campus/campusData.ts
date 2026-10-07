@@ -72,11 +72,11 @@ export type Stage = {
 }
 
 export const STAGES: Stage[] = [
-  { key: 'arrive', view: 'campus', stat: 'schools' },
+  { key: 'arrive', view: 'ground', node: 'entry', pin: [470, 818], stat: 'schools' },
   { key: 'needs', view: 'ground', node: 'admin', pin: [630, 800], stat: 'employees', link: '/about' },
   { key: 'register', view: 'ground', node: 'excel', pin: [905, 430], stat: 'participants', link: '/programs' },
   { key: 'train', view: 'ground', node: 'rooms12', pin: [990, 672], stat: 'training_hours', link: '/programs' },
-  { key: 'practise', view: 'first', node: 'lab', pin: [1075, 95], stat: 'programs', link: '/programs' },
+  { key: 'practise', view: 'first', node: 'lab', pin: [1082, 52], stat: 'programs', link: '/programs' },
   { key: 'assess', view: 'first', node: 'oasis', pin: [580, 810], stat: 'trainers', link: '/trainers' },
   { key: 'certify', view: 'ground', node: 'admin', pin: [630, 800], stat: 'certificates', link: '/verify' },
   { key: 'impact', view: 'campus', stat: 'satisfaction' },
