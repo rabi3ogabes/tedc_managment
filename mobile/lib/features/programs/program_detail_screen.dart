@@ -188,13 +188,13 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                     Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
-                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${session.number('sequence')}', style: const TextStyle(color: AppColors.gold300))),
+                        leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${session.number('sequence')}', style: TextStyle(color: AppColors.gold300))),
                         title: Text(session.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                         subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}\n${session.str('location')}'),
                         isThreeLine: true,
                         trailing: IconButton(
                           tooltip: s.t('programs.addToCalendar'),
-                          icon: const Icon(Icons.event_available, color: AppColors.gold700),
+                          icon: Icon(Icons.event_available, color: AppColors.gold700),
                           onPressed: () => _addToCalendar(p, session),
                         ),
                       ),
@@ -222,7 +222,7 @@ class _InfoPill extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, size: 14, color: AppColors.gold700),
           const SizedBox(width: 4),
-          Text(text, style: const TextStyle(fontSize: 12, color: AppColors.navy800)),
+          Text(text, style: TextStyle(fontSize: 12, color: AppColors.navy800)),
         ]),
       );
 }

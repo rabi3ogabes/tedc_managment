@@ -66,7 +66,7 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Card(
                       child: ListTile(
-                        leading: const Icon(Icons.insights, color: AppColors.gold700),
+                        leading: Icon(Icons.insights, color: AppColors.gold700),
                         title: Text('${fmt.number(stats.number('pending_surveys'))} ${s.t('home.pendingSurveys')}', style: const TextStyle(fontWeight: FontWeight.w700)),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.go('/training'),
@@ -138,7 +138,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: AppColors.navyGradient,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
@@ -166,7 +166,7 @@ class _Header extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     [identity.str('position'), identity.str('school')].where((e) => e.isNotEmpty).join(' · '),
-                    style: const TextStyle(color: AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
+                    style: TextStyle(color: AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
                   ),
                 ),
               if (identity.isNotEmpty) ...[
@@ -175,7 +175,7 @@ class _Header extends StatelessWidget {
               ],
               const SizedBox(height: 16),
               Row(children: [
-                Text(hours, style: const TextStyle(color: AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
+                Text(hours, style: TextStyle(color: AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
                 const SizedBox(width: 8),
                 Text(s.t('home.hours'), style: const TextStyle(color: Colors.white70)),
               ]),
@@ -217,7 +217,7 @@ class _IdentityChips extends StatelessWidget {
     return Wrap(spacing: 8, runSpacing: 8, children: [
       if (nation.isNotEmpty) chip(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
       if (identity.flag('is_trainee')) chip(leading: const Icon(Icons.school_outlined, size: 16, color: Colors.white), label: s.t('home.role.trainee')),
-      if (identity.flag('is_trainer')) chip(leading: const Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
+      if (identity.flag('is_trainer')) chip(leading: Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
     ]);
   }
 }
@@ -242,16 +242,16 @@ class _ScanCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)),
-            child: const Icon(Icons.qr_code_scanner, color: AppColors.gold300, size: 28),
+            child: Icon(Icons.qr_code_scanner, color: AppColors.gold300, size: 28),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s.t('home.scan'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
-              Text(program.isNotEmpty ? program : s.t('home.scanHint'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.navy800, fontSize: 12.5)),
+              Text(s.t('home.scan'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
+              Text(program.isNotEmpty ? program : s.t('home.scanHint'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.navy800, fontSize: 12.5)),
             ]),
           ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.navy900),
+          Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.navy900),
         ]),
       ),
     );
@@ -278,18 +278,18 @@ class _NextSession extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)),
             child: Column(children: [
-              Text('${session.date('starts_at')?.day ?? ''}', style: const TextStyle(color: AppColors.gold300, fontSize: 22, fontWeight: FontWeight.w800)),
+              Text('${session.date('starts_at')?.day ?? ''}', style: TextStyle(color: AppColors.gold300, fontSize: 22, fontWeight: FontWeight.w800)),
               Text(fmt.time(session.date('starts_at')), style: const TextStyle(color: Colors.white70, fontSize: 10)),
             ]),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(session.str('program'), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
+              Text(session.str('program'), style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
               Text(session.str('title'), style: const TextStyle(color: AppColors.muted, fontSize: 13)),
               if (session.str('location').isNotEmpty)
                 Row(children: [
-                  const Icon(Icons.place_outlined, size: 14, color: AppColors.gold700),
+                  Icon(Icons.place_outlined, size: 14, color: AppColors.gold700),
                   const SizedBox(width: 4),
                   Expanded(child: Text(session.str('location'), style: const TextStyle(fontSize: 12, color: AppColors.muted))),
                 ]),
@@ -325,22 +325,22 @@ class RecommendationCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Expanded(child: Text(program.str('title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+                Expanded(child: Text(program.str('title'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.navy900))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.circular(99)),
-                  child: Text('${score.round()}%', style: const TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w800)),
+                  child: Text('${score.round()}%', style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w800)),
                 ),
               ]),
               const SizedBox(height: 10),
               ProgressBar(score),
               const SizedBox(height: 10),
-              Text(s.t('home.why'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.navy800)),
+              Text(s.t('home.why'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.navy800)),
               for (final r in reasons.take(3))
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Padding(padding: EdgeInsets.only(top: 6), child: CircleAvatar(radius: 2.5, backgroundColor: AppColors.gold500)),
+                    Padding(padding: EdgeInsets.only(top: 6), child: CircleAvatar(radius: 2.5, backgroundColor: AppColors.gold500)),
                     const SizedBox(width: 8),
                     Expanded(child: Text(r, style: const TextStyle(fontSize: 12, color: AppColors.muted))),
                   ]),

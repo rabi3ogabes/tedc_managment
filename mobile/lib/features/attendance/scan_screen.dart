@@ -241,17 +241,17 @@ class _BiometricGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.navyGradient),
+      decoration: BoxDecoration(gradient: AppColors.navyGradient),
       alignment: Alignment.center,
       padding: const EdgeInsets.all(32),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
           width: 96,
           height: 96,
-          decoration: const BoxDecoration(shape: BoxShape.circle, gradient: AppColors.goldGradient),
+          decoration: BoxDecoration(shape: BoxShape.circle, gradient: AppColors.goldGradient),
           child: verifying
-              ? const Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.navy950))
-              : const Icon(Icons.fingerprint, size: 56, color: AppColors.navy950),
+              ? Padding(padding: EdgeInsets.all(30), child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.navy950))
+              : Icon(Icons.fingerprint, size: 56, color: AppColors.navy950),
         ),
         const SizedBox(height: 22),
         Text(s.t('bio.checkinTitle'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),

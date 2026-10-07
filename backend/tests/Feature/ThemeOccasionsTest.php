@@ -92,6 +92,7 @@ class ThemeOccasionsTest extends TestCase
         $this->assertSame('bar', $cfg['loading']['style']);
         $this->assertSame('أهلًا بك', $cfg['loading']['message_ar']);
         $this->assertArrayHasKey('occasion', $cfg);
+        $this->assertSame(['arabic_family', 'latin_family', 'arabic_font_url', 'latin_font_url'], array_keys($cfg['typography']));
     }
 
     public function test_an_occasion_with_bad_dates_or_colours_is_refused(): void

@@ -88,7 +88,7 @@ class _Programs extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Expanded(child: Text(p.str('title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.navy900))),
+                    Expanded(child: Text(p.str('title'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.navy900))),
                     StatusChip(r.str('status')),
                   ]),
                   const SizedBox(height: 4),
@@ -142,7 +142,7 @@ class _Calendar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)),
                   child: Column(children: [
-                    Text('${start?.day ?? ''}', style: const TextStyle(color: AppColors.gold300, fontSize: 20, fontWeight: FontWeight.w800)),
+                    Text('${start?.day ?? ''}', style: TextStyle(color: AppColors.gold300, fontSize: 20, fontWeight: FontWeight.w800)),
                     Text(fmt.time(start), style: const TextStyle(color: Colors.white70, fontSize: 10)),
                   ]),
                 ),
@@ -152,10 +152,10 @@ class _Calendar extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(session.obj('program')?.str('title') ?? '', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
+                        Text(session.obj('program')?.str('title') ?? '', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
                         Text(session.str('title'), style: const TextStyle(fontSize: 13, color: AppColors.muted)),
                         const SizedBox(height: 4),
-                        Text('${fmt.weekdayDate(start)} · ${session.str('location')}', style: const TextStyle(fontSize: 12, color: AppColors.gold700)),
+                        Text('${fmt.weekdayDate(start)} · ${session.str('location')}', style: TextStyle(fontSize: 12, color: AppColors.gold700)),
                       ]),
                     ),
                   ),
@@ -188,7 +188,7 @@ class _Tasks extends StatelessWidget {
           return Card(
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              leading: const CircleAvatar(backgroundColor: AppColors.gold100, child: Icon(Icons.assignment_outlined, color: AppColors.gold700)),
+              leading: CircleAvatar(backgroundColor: AppColors.gold100, child: Icon(Icons.assignment_outlined, color: AppColors.gold700)),
               title: Text(task.str('title'), style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text('${task.str('program')}\n${s.t('tasks.due')}: ${fmt.dateTime(task.date('due_at'))}'),
               isThreeLine: true,
@@ -221,7 +221,7 @@ class _Surveys extends StatelessWidget {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: AppColors.navy900,
-                child: Text('${survey.number('stage_days')}', style: const TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w800, fontSize: 13)),
+                child: Text('${survey.number('stage_days')}', style: TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w800, fontSize: 13)),
               ),
               title: Text(survey.str('program'), style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text('${s.t('survey.title')} · ${fmt.date(survey.date('scheduled_for'))}'),

@@ -91,5 +91,5 @@ class _Heading extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.fromLTRB(4, 16, 4, 4), child: Text(text, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy800)));
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.fromLTRB(4, 16, 4, 4), child: Text(text, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy800)));
 }

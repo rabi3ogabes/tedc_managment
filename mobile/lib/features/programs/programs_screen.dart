@@ -97,7 +97,7 @@ class ProgramCard extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               StatusChip(program.str('status')),
               const SizedBox(height: 8),
-              Text(program.str('title'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+              Text(program.str('title'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.navy900)),
               if (program.str('summary').isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(program.str('summary'), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 13)),

@@ -118,7 +118,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               alignment: AlignmentDirectional.centerEnd,
               child: TextButton.icon(
                 onPressed: () => ref.read(localeProvider.notifier).toggle(),
-                icon: const Icon(Icons.language, color: AppColors.gold300),
+                icon: Icon(Icons.language, color: AppColors.gold300),
                 label: Text(s.isArabic ? 'English' : 'العربية', style: const TextStyle(color: Colors.white)),
               ),
             ),
@@ -128,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: 24),
             Text(s.t('app.name'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
-            Text(s.t('app.tagline'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.gold300)),
+            Text(s.t('app.tagline'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.gold300)),
             const SizedBox(height: 40),
             Container(
               padding: const EdgeInsets.all(22),
@@ -136,7 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Form(
                 key: _form,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text(s.t('auth.title'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+                  Text(s.t('auth.title'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
                   Text(s.t('auth.subtitle'), style: const TextStyle(color: AppColors.muted)),
                   const SizedBox(height: 20),
                   TextFormField(
@@ -247,21 +247,21 @@ class _DemoAccounts extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.verified_user_outlined, color: AppColors.gold300, size: 18),
+          Icon(Icons.verified_user_outlined, color: AppColors.gold300, size: 18),
           const SizedBox(width: 6),
           Text(s.t('auth.demo'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         ]),
         const SizedBox(height: 4),
         Text.rich(TextSpan(children: [
           TextSpan(text: '${s.t('auth.demoHint')} '),
-          const TextSpan(text: '\u2066$password\u2069', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.gold300)),
+          TextSpan(text: '\u2066$password\u2069', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.gold300)),
         ]), style: TextStyle(color: Colors.white.withValues(alpha: .75), fontSize: 12.5)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8, children: [
           for (final (email, role) in accounts)
             ActionChip(
               label: Text(role),
-              labelStyle: const TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w700, fontSize: 12),
+              labelStyle: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w700, fontSize: 12),
               backgroundColor: Colors.white,
               side: BorderSide.none,
               onPressed: () => onPick(email),
@@ -269,7 +269,7 @@ class _DemoAccounts extends StatelessWidget {
         ]),
         const SizedBox(height: 16),
         Row(children: [
-          const Icon(Icons.science_outlined, color: AppColors.gold300, size: 18),
+          Icon(Icons.science_outlined, color: AppColors.gold300, size: 18),
           const SizedBox(width: 6),
           Expanded(child: Text(s.t('auth.testAccounts'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
         ]),
@@ -330,7 +330,7 @@ class _ServerSheetState extends State<_ServerSheet> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(s.t('server.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+        Text(s.t('server.title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900)),
         const SizedBox(height: 12),
         TextField(
           controller: _url,

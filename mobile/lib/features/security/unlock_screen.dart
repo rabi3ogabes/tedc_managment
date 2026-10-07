@@ -55,7 +55,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
     final s = context.s;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.navyGradient),
+        decoration: BoxDecoration(gradient: AppColors.navyGradient),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -65,7 +65,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
               const SizedBox(height: 22),
               Text(s.t('app.name'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
               const SizedBox(height: 10),
-              Text(s.t('lock.title'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.gold300, fontSize: 15, fontWeight: FontWeight.w600)),
+              Text(s.t('lock.title'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.gold300, fontSize: 15, fontWeight: FontWeight.w600)),
               const Spacer(flex: 2),
               InkResponse(
                 onTap: _unlock,
@@ -75,8 +75,8 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                   height: 104,
                   decoration: BoxDecoration(shape: BoxShape.circle, gradient: AppColors.goldGradient, boxShadow: [BoxShadow(color: AppColors.gold500.withValues(alpha: .35), blurRadius: 32, spreadRadius: 2)]),
                   child: _busy
-                      ? const Padding(padding: EdgeInsets.all(34), child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.navy950))
-                      : const Icon(Icons.fingerprint, size: 60, color: AppColors.navy950),
+                      ? Padding(padding: EdgeInsets.all(34), child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.navy950))
+                      : Icon(Icons.fingerprint, size: 60, color: AppColors.navy950),
                 ),
               ),
               const SizedBox(height: 18),

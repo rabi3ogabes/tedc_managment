@@ -34,7 +34,7 @@ class ProfileScreen extends ConsumerWidget {
         onRefresh: () => ref.refresh(getProvider(path).future),
         child: ListView(padding: EdgeInsets.zero, children: [
           Container(
-            decoration: const BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.vertical(bottom: Radius.circular(32))),
+            decoration: BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.vertical(bottom: Radius.circular(32))),
             child: Stack(children: [
               const Positioned.fill(child: DotPattern(opacity: .12)),
               SafeArea(
@@ -45,7 +45,7 @@ class ProfileScreen extends ConsumerWidget {
                     CircleAvatar(
                       radius: 38,
                       backgroundColor: AppColors.gold500,
-                      child: Text(me?.name.characters.first ?? '', style: const TextStyle(fontSize: 30, color: AppColors.navy950, fontWeight: FontWeight.w800)),
+                      child: Text(me?.name.characters.first ?? '', style: TextStyle(fontSize: 30, color: AppColors.navy950, fontWeight: FontWeight.w800)),
                     ),
                     const SizedBox(height: 12),
                     Text(me?.name ?? '', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
@@ -53,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
                       Text(
                         '${employee.obj('job_title')?.str('name') ?? ''} · ${employee.obj('school')?.str('name') ?? ''}',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.gold300, fontSize: 13),
+                        style: TextStyle(color: AppColors.gold300, fontSize: 13),
                       ),
                     Text(me?.email ?? '', textDirection: TextDirection.ltr, style: const TextStyle(color: Colors.white60, fontSize: 12)),
                   ]),
@@ -70,7 +70,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.qr_code_2, color: AppColors.gold500),
+                  leading: Icon(Icons.qr_code_2, color: AppColors.gold500),
                   title: Text(context.tr('myqr.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-qr'),
                 ),
@@ -82,7 +82,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.trending_up, color: AppColors.gold500),
+                  leading: Icon(Icons.trending_up, color: AppColors.gold500),
                   title: Text(context.tr('myneeds.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-needs'),
                 ),
@@ -92,7 +92,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.quiz_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.quiz_outlined, color: AppColors.gold500),
                   title: Text(context.tr('assess.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-assessments'),
                 ),
@@ -102,7 +102,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.rate_review_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.rate_review_outlined, color: AppColors.gold500),
                   title: Text(context.tr('evalc.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-evaluations'),
                 ),
@@ -112,7 +112,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.workspace_premium_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.workspace_premium_outlined, color: AppColors.gold500),
                   title: Text(context.tr('growth.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-growth'),
                 ),
@@ -122,7 +122,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.local_library_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.local_library_outlined, color: AppColors.gold500),
                   title: Text(context.tr('library.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/library'),
                 ),
@@ -133,7 +133,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.shopping_bag_outlined, color: AppColors.gold500),
+                    leading: Icon(Icons.shopping_bag_outlined, color: AppColors.gold500),
                     title: Text(context.tr('shop.orders'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/orders'),
                   ),
@@ -144,7 +144,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.shopping_cart_outlined, color: AppColors.gold500),
+                    leading: Icon(Icons.shopping_cart_outlined, color: AppColors.gold500),
                     title: Text(context.tr('shop.cart'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/cart'),
                   ),
@@ -155,7 +155,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.smart_toy_outlined, color: AppColors.gold500),
+                    leading: Icon(Icons.smart_toy_outlined, color: AppColors.gold500),
                     title: Text(context.tr('ai.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/assistant'),
                   ),
@@ -166,7 +166,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.forum_outlined, color: AppColors.gold500),
+                    leading: Icon(Icons.forum_outlined, color: AppColors.gold500),
                     title: Text(context.tr('soc.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/communities'),
                   ),
@@ -177,7 +177,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.help_outline, color: AppColors.gold500),
+                    leading: Icon(Icons.help_outline, color: AppColors.gold500),
                     title: Text(context.tr('soc.questionsTitle'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/my-questions'),
                   ),
@@ -188,7 +188,7 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListTile(
                     tileColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    leading: const Icon(Icons.emoji_events_outlined, color: AppColors.gold500),
+                    leading: Icon(Icons.emoji_events_outlined, color: AppColors.gold500),
                     title: Text(context.tr('gam.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: () => context.push('/achievements'),
                   ),
@@ -198,7 +198,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.event_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.event_outlined, color: AppColors.gold500),
                   title: Text(context.tr('events.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/events'),
                 ),
@@ -208,7 +208,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.assessment_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.assessment_outlined, color: AppColors.gold500),
                   title: Text(context.tr('reports.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/my-reports'),
                 ),
@@ -218,7 +218,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.support_agent_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.support_agent_outlined, color: AppColors.gold500),
                   title: Text(context.tr('ticket.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/report-problem'),
                 ),
@@ -228,7 +228,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.help_outline, color: AppColors.gold500),
+                  leading: Icon(Icons.help_outline, color: AppColors.gold500),
                   title: Text(context.tr('help.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/help'),
                 ),
@@ -238,7 +238,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  leading: const Icon(Icons.notifications_active_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.notifications_active_outlined, color: AppColors.gold500),
                   title: Text(context.tr('prefs.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/notification-preferences'),
                 ),
@@ -254,7 +254,7 @@ class ProfileScreen extends ConsumerWidget {
               Card(
                 child: Column(children: [
                   ListTile(
-                    leading: const Icon(Icons.language, color: AppColors.gold700),
+                    leading: Icon(Icons.language, color: AppColors.gold700),
                     title: Text(s.t('profile.language')),
                     trailing: SegmentedButton<String>(
                       showSelectedIcon: false,
@@ -266,7 +266,7 @@ class ProfileScreen extends ConsumerWidget {
                   if (me?.isSchoolAdmin ?? false) ...[
                     const Divider(height: 1),
                     ListTile(
-                      leading: const Icon(Icons.apartment, color: AppColors.gold700),
+                      leading: Icon(Icons.apartment, color: AppColors.gold700),
                       title: Text(s.t('profile.school')),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push('/school'),
@@ -282,7 +282,7 @@ class ProfileScreen extends ConsumerWidget {
                   const _BiometricTile(),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.info_outline, color: AppColors.gold700),
+                    leading: Icon(Icons.info_outline, color: AppColors.gold700),
                     title: Text(s.t('profile.about')),
                     subtitle: Text('${s.t('profile.version')} ${AppConfig.appVersion} · ${Uri.tryParse(AppConfig.apiUrl)?.host ?? ''}', textDirection: TextDirection.ltr, textAlign: s.isArabic ? TextAlign.right : TextAlign.left),
                   ),
@@ -317,9 +317,9 @@ class _ApprovalsEntry extends ConsumerWidget {
       child: ListTile(
         tileColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        leading: const Icon(Icons.how_to_reg_outlined, color: AppColors.gold500),
+        leading: Icon(Icons.how_to_reg_outlined, color: AppColors.gold500),
         title: Text(context.tr('approvals.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
-        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$n', style: const TextStyle(fontSize: 12, color: AppColors.navy950))),
+        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$n', style: TextStyle(fontSize: 12, color: AppColors.navy950))),
         onTap: () => context.push('/approvals'),
       ),
     );
@@ -341,9 +341,9 @@ class _AssignmentsEntry extends ConsumerWidget {
       child: ListTile(
         tileColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        leading: const Icon(Icons.assignment_ind_outlined, color: AppColors.gold500),
+        leading: Icon(Icons.assignment_ind_outlined, color: AppColors.gold500),
         title: Text(context.tr('assignments.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
-        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$open', style: const TextStyle(fontSize: 12, color: AppColors.navy950))),
+        trailing: CircleAvatar(radius: 12, backgroundColor: AppColors.gold500, child: Text('$open', style: TextStyle(fontSize: 12, color: AppColors.navy950))),
         onTap: () => context.push('/assignments'),
       ),
     );
@@ -369,21 +369,21 @@ class _AccountEntry extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(gradient: AppColors.goldGradient, borderRadius: BorderRadius.circular(22)),
         child: Row(children: [
-          Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.badge_outlined, color: AppColors.gold300, size: 26)),
+          Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)), child: Icon(Icons.badge_outlined, color: AppColors.gold300, size: 26)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(s.t('account.title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
+              Text(s.t('account.title'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.navy950)),
               const SizedBox(height: 2),
               Text(
                 missing > 0 ? '$missing ${s.t('account.missingCount')}' : pending > 0 ? '$pending ${s.t('account.pendingCount')}' : s.t('account.subtitle'),
-                style: const TextStyle(color: AppColors.navy900, fontSize: 12.5),
+                style: TextStyle(color: AppColors.navy900, fontSize: 12.5),
               ),
             ]),
           ),
           if (missing > 0) Badge(label: Text('$missing'), backgroundColor: AppColors.navy900, textColor: AppColors.gold300),
           const SizedBox(width: 6),
-          const Icon(Icons.chevron_right, color: AppColors.navy950),
+          Icon(Icons.chevron_right, color: AppColors.navy950),
         ]),
       ),
     );
@@ -452,7 +452,7 @@ class _Passport extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(fmt.date(g.date('date')), style: const TextStyle(fontSize: 11, color: AppColors.muted)),
-                    Text(g.str('program'), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
+                    Text(g.str('program'), style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
                     Text('${g.str('category')} · ${fmt.number(g.number('hours'))} ${s.t('common.hours')}', style: const TextStyle(fontSize: 12, color: AppColors.muted)),
                   ]),
                 ),
@@ -521,7 +521,7 @@ class _BiometricTileState extends ConsumerState<_BiometricTile> {
     final on = ref.read(appLockProvider.notifier).enabled;
     return Column(mainAxisSize: MainAxisSize.min, children: [
       SwitchListTile(
-        secondary: const Icon(Icons.fingerprint, color: AppColors.gold700),
+        secondary: Icon(Icons.fingerprint, color: AppColors.gold700),
         title: Text(s.t('bio.title')),
         subtitle: Text(s.t('bio.subtitle')),
         value: on,
@@ -553,7 +553,7 @@ class _RoleTile extends ConsumerWidget {
     final active = me.activeRole;
 
     return ListTile(
-      leading: const Icon(Icons.swap_horiz, color: AppColors.gold700),
+      leading: Icon(Icons.swap_horiz, color: AppColors.gold700),
       title: Text(s.t('role.switch')),
       subtitle: Text(active == null ? '' : '${name(active)} — ${scope(active)}'),
       trailing: const Icon(Icons.chevron_right),
@@ -564,7 +564,7 @@ class _RoleTile extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Text(s.t('role.switch'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+              Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: Text(s.t('role.switch'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900))),
               for (final g in me.roleGrants)
                 ListTile(
                   leading: Icon(g.flag('active') ? Icons.radio_button_checked : Icons.radio_button_off, color: g.flag('active') ? AppColors.gold700 : AppColors.muted),

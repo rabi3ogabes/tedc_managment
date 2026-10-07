@@ -36,7 +36,7 @@ class RegistrationScreen extends ConsumerWidget {
           final active = ['approved', 'completed'].contains(r.str('status'));
 
           return ListView(padding: const EdgeInsets.all(20), children: [
-            Text(p.str('title'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+            Text(p.str('title'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
             const SizedBox(height: 8),
             Row(children: [StatusChip(r.str('status')), const SizedBox(width: 8), StatusChip(r.str('certificate_status'))]),
             const SizedBox(height: 16),
@@ -60,7 +60,7 @@ class RegistrationScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.circular(22)),
                     child: Row(children: [
-                      const Icon(Icons.play_circle_fill, color: AppColors.gold300, size: 40),
+                      Icon(Icons.play_circle_fill, color: AppColors.gold300, size: 40),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -68,7 +68,7 @@ class RegistrationScreen extends ConsumerWidget {
                           const SizedBox(height: 6),
                           ProgressBar(r.number('course_percent').toDouble(), color: AppColors.gold300),
                           const SizedBox(height: 4),
-                          Text('${r.number('course_percent').round()}%', style: const TextStyle(color: AppColors.gold300, fontSize: 12)),
+                          Text('${r.number('course_percent').round()}%', style: TextStyle(color: AppColors.gold300, fontSize: 12)),
                         ]),
                       ),
                       const Icon(Icons.chevron_right, color: Colors.white),
@@ -106,7 +106,7 @@ class RegistrationScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.gold100.withValues(alpha: .5), borderRadius: BorderRadius.circular(16)),
                   child: Row(children: [
-                    const Icon(Icons.lock_clock_outlined, color: AppColors.gold700),
+                    Icon(Icons.lock_clock_outlined, color: AppColors.gold700),
                     const SizedBox(width: 12),
                     Expanded(child: Text(r.str('survey_opens_at').isNotEmpty ? '${s.t('training.surveyOpensAt')} ${Fmt(s.languageCode).dateTime(r.date('survey_opens_at'))}' : s.t('training.surveyClosed'), style: const TextStyle(fontWeight: FontWeight.w600))),
                   ]),
@@ -458,7 +458,7 @@ class _PassProgressSheet extends ConsumerWidget {
             return ListView(shrinkWrap: true, children: [
               Text(s.t('pass.title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
-              Text(s.t('pass.status.${d.str('pass_status')}'), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.gold700)),
+              Text(s.t('pass.status.${d.str('pass_status')}'), style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.gold700)),
               if (d.str('mode') == 'weighted' && d['weighted_score'] != null) Text('${s.t('pass.score')}: ${d.number('weighted_score').toStringAsFixed(1)}% / ${d.number('pass_threshold').round()}%'),
               const SizedBox(height: 12),
               for (final c in criteria) ...[
@@ -467,7 +467,7 @@ class _PassProgressSheet extends ConsumerWidget {
                   if (!c.flag('applicable')) Text(s.t('pass.na')) else if (c.flag('met')) Text(s.t(c.flag('exempted') ? 'pass.exempt' : 'pass.met'), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w700)) else Text('${c.number('value').round()}% / ${c.number('min').round()}%'),
                 ]),
                 if (c.flag('applicable')) Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: ProgressBar(c.flag('exempted') ? 100 : c.number('value').toDouble(), color: c.flag('met') ? Colors.green : AppColors.gold500)),
-                if (_step(context, c).isNotEmpty) Text('${s.t('pass.next')}: ${_step(context, c)}', style: const TextStyle(fontSize: 12, color: AppColors.gold700)),
+                if (_step(context, c).isNotEmpty) Text('${s.t('pass.next')}: ${_step(context, c)}', style: TextStyle(fontSize: 12, color: AppColors.gold700)),
                 const SizedBox(height: 10),
               ],
               if (d.flag('can_test_out'))

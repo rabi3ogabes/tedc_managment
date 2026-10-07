@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/biometric.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/brand.dart';
 
 /// The animated intro shown on every launch, after the system launch screen and before the app opens:
 /// a gold ring draws itself around the emblem, the emblem rises and catches a sweep of light, then the name of the
@@ -101,6 +102,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
             final subtitle = _step(0.66, 0.82);
             final signature = _step(0.76, 0.92);
             final leave = 1 - _step(_holdAt, 1.0, Curves.easeIn);
+            // The loading page the administrator chose (read from disk before the app started; never waits for the network).
+            final look = BrandStore.current;
+            final lookBg = look.loadingBackground;
+            final lookAccent = look.loadingAccent ?? AppColors.gold300;
 
             return Stack(fit: StackFit.expand, children: [
               // Deep maroon with a slow-breathing light behind the emblem.
@@ -109,7 +114,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                   gradient: RadialGradient(
                     center: const Alignment(0, -0.18),
                     radius: 0.95 + 0.06 * math.sin(_c.value * math.pi * 2),
-                    colors: [Color.lerp(_base, AppColors.navy900, glow)!, Color.lerp(_base, AppColors.navy950, glow)!],
+                    colors: [
+                      Color.lerp(_base, lookBg ?? AppColors.navy900, glow)!,
+                      Color.lerp(_base, lookBg == null ? AppColors.navy950 : HSLColor.fromColor(lookBg).withLightness((HSLColor.fromColor(lookBg).lightness * .6).clamp(0, 1)).toColor(), glow)!,
+                    ],
                   ),
                 ),
               ),
@@ -163,7 +171,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                           ),
                         ),
                       ),
-                      if (_waiting) const Padding(padding: EdgeInsets.only(top: 22), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: AppColors.gold500, strokeWidth: 2))),
+                      if (look.occasionId != null && look.message != null)
+                        Opacity(
+                          opacity: subtitle,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: Text(look.message!, textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Tajawal', fontSize: 16, fontWeight: FontWeight.w700, color: lookAccent)),
+                          ),
+                        ),
+                      Padding(padding: const EdgeInsets.only(top: 18), child: _LoadingMark(style: look.loadingStyle, color: lookAccent, progress: (_c.value / _holdAt).clamp(0.0, 1.0), time: _c.value, visible: subtitle)),
+                      if (_waiting) Padding(padding: EdgeInsets.only(top: 22), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: AppColors.gold500, strokeWidth: 2))),
                     ]),
                   ),
                   // The Ministry's signature, in white, at the foot of the screen.
@@ -251,4 +268,43 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RingPainter old) => old.progress != progress || old.opacity != opacity;
+}
+
+/// The small loading mark under the name, in the style the administrator chose (bar, dots, pulse, crescent); the default
+/// style (emblem) adds nothing because the emblem itself is the animation.
+class _LoadingMark extends StatelessWidget {
+  const _LoadingMark({required this.style, required this.color, required this.progress, required this.time, required this.visible});
+
+  final String style;
+  final Color color;
+  final double progress;
+  final double time;
+  final double visible;
+
+  @override
+  Widget build(BuildContext context) {
+    final mark = switch (style) {
+      'bar' => ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: SizedBox(width: 140, height: 4, child: LinearProgressIndicator(value: progress, color: color, backgroundColor: color.withValues(alpha: .25))),
+        ),
+      'dots' => Row(mainAxisSize: MainAxisSize.min, children: [
+          for (var i = 0; i < 3; i++)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .35 + .65 * (0.5 + 0.5 * math.sin(time * math.pi * 10 - i * 1.1)))),
+            ),
+        ]),
+      'pulse' => Container(
+          width: 18 + 8 * (0.5 + 0.5 * math.sin(time * math.pi * 8)),
+          height: 18 + 8 * (0.5 + 0.5 * math.sin(time * math.pi * 8)),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: .8), width: 2)),
+        ),
+      'crescent' => Transform.rotate(angle: -0.4 + 0.15 * math.sin(time * math.pi * 6), child: Icon(Icons.nightlight_round, color: color, size: 26)),
+      _ => const SizedBox.shrink(),
+    };
+    return ExcludeSemantics(child: Opacity(opacity: visible, child: SizedBox(height: 28, child: Center(child: mark))));
+  }
 }

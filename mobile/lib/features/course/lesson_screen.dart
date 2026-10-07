@@ -442,7 +442,7 @@ class ArticleBlock extends StatelessWidget {
     if (lines.every((l) => l.trimLeft().startsWith('>'))) {
       return Container(
         padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 10),
-        decoration: const BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.all(Radius.circular(12)), border: BorderDirectional(start: BorderSide(color: AppColors.gold500, width: 4))),
+        decoration: BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.all(Radius.circular(12)), border: BorderDirectional(start: BorderSide(color: AppColors.gold500, width: 4))),
         child: Text.rich(inline(lines.map((l) => l.trimLeft().replaceFirst(RegExp(r'^>\s?'), '')).join('\n'), _body.copyWith(fontStyle: FontStyle.italic))),
       );
     }
@@ -548,7 +548,7 @@ class _QuizLessonState extends ConsumerState<_QuizLesson> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(color: passed ? const Color(0xFFE7F6EF) : const Color(0xFFFDF3E1), borderRadius: BorderRadius.circular(20)),
           child: Column(children: [
-            Text('${r.number('score_percent').round()}%', style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+            Text('${r.number('score_percent').round()}%', style: TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: AppColors.navy900)),
             Text(passed ? s.t('course.passed') : s.t('course.failed'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: passed ? AppColors.success : AppColors.warning)),
             if (_timeUp) Padding(padding: const EdgeInsets.only(top: 6), child: Text(s.t('course.timeUp'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted))),
             if (!passed && r['attempts_left'] != 0) Padding(padding: const EdgeInsets.only(top: 12), child: FilledButton.icon(onPressed: _begin, icon: const Icon(Icons.refresh), label: Text(s.t('course.retry')))),

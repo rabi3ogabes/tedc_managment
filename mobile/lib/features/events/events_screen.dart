@@ -81,7 +81,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       padding: const EdgeInsets.all(14),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
-                          if (e.flag('is_pinned')) const Icon(Icons.push_pin, size: 16, color: AppColors.gold500),
+                          if (e.flag('is_pinned')) Icon(Icons.push_pin, size: 16, color: AppColors.gold500),
                           Expanded(child: Text(e.str('title'), style: const TextStyle(fontWeight: FontWeight.w800))),
                         ]),
                         if (e.obj('event')?.str('starts_at').isNotEmpty ?? false) Text(e.obj('event')!.str('starts_at').substring(0, 16).replaceFirst('T', ' '), style: const TextStyle(color: Colors.black54)),

@@ -28,7 +28,7 @@ class AppNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     return DecoratedBox(
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.navy100))),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.navy100))),
       child: NavigationBar(
         selectedIndex: selectedIndex,
         height: 68,

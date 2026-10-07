@@ -54,7 +54,7 @@ class PushBanner extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(color: AppColors.gold500.withValues(alpha: .22), borderRadius: BorderRadius.circular(12)),
-                              child: const Icon(Icons.notifications_active_rounded, color: AppColors.gold300),
+                              child: Icon(Icons.notifications_active_rounded, color: AppColors.gold300),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -64,7 +64,7 @@ class PushBanner extends StatelessWidget {
                                   Text(m.body!, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withValues(alpha: .8), fontSize: 13)),
                               ]),
                             ),
-                            const Icon(Icons.chevron_right_rounded, color: AppColors.gold300),
+                            Icon(Icons.chevron_right_rounded, color: AppColors.gold300),
                           ]),
                         ),
                       ),

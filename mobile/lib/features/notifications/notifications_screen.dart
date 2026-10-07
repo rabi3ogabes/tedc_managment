@@ -80,7 +80,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             if (items.isEmpty) return ListView(children: const [EmptyView(icon: Icons.notifications_none)]);
             return ListView.separated(
               itemCount: items.length,
-              separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.navy100),
+              separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.navy100),
               itemBuilder: (_, i) {
                 final n = items[i];
                 final unread = !n.flag('read');
@@ -90,7 +90,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   title: Text(n.str('title'), style: TextStyle(fontWeight: unread ? FontWeight.w800 : FontWeight.w600)),
                   subtitle: Text('${n.str('body')}\n${fmt.dateTime(n.date('created_at'))}'),
                   isThreeLine: true,
-                  trailing: unread ? const Icon(Icons.circle, size: 10, color: AppColors.gold500) : const Icon(Icons.done_all, size: 18, color: AppColors.muted),
+                  trailing: unread ? Icon(Icons.circle, size: 10, color: AppColors.gold500) : const Icon(Icons.done_all, size: 18, color: AppColors.muted),
                   onTap: () => _open(n),
                 );
               },

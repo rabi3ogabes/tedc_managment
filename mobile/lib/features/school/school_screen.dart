@@ -76,11 +76,11 @@ class _Employees extends ConsumerWidget {
         if (items.isEmpty) return const EmptyView();
         return ListView.separated(
           itemCount: items.length,
-          separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.navy100),
+          separatorBuilder: (_, _) => Divider(height: 1, color: AppColors.navy100),
           itemBuilder: (_, i) {
             final e = items[i];
             return ListTile(
-              leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text(e.str('name').characters.first, style: const TextStyle(color: AppColors.gold300))),
+              leading: CircleAvatar(backgroundColor: AppColors.navy900, child: Text(e.str('name').characters.first, style: TextStyle(color: AppColors.gold300))),
               title: Text(e.str('name'), style: const TextStyle(fontWeight: FontWeight.w700)),
               subtitle: Text('${e.obj('job_title')?.str('name') ?? ''} · ${e.str('employee_no')}'),
               trailing: TextButton(onPressed: () => _nominate(context, ref, e), child: Text(s.t('school.nominate'))),

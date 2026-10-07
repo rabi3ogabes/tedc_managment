@@ -44,10 +44,10 @@ class AchievementsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(18),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      const Icon(Icons.emoji_events_outlined, size: 40, color: AppColors.gold500),
+                      Icon(Icons.emoji_events_outlined, size: 40, color: AppColors.gold500),
                       const SizedBox(width: 12),
                       Expanded(child: Text('${context.tr('gam.level')} ${level.str('no')} · ${_name(context, level)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                      Text(p.str('points'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.navy900)),
+                      Text(p.str('points'), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.navy900)),
                     ]),
                     const SizedBox(height: 12),
                     LinearProgressIndicator(value: progress, minHeight: 8, borderRadius: BorderRadius.circular(8), color: AppColors.gold500),
@@ -62,7 +62,7 @@ class AchievementsScreen extends ConsumerWidget {
               if (badges.isEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(context.tr('gam.noBadges'))),
               Wrap(spacing: 10, runSpacing: 10, children: [
                 for (final b in badges)
-                  Chip(avatar: const Icon(Icons.workspace_premium, color: AppColors.gold500), label: Text(_name(context, b))),
+                  Chip(avatar: Icon(Icons.workspace_premium, color: AppColors.gold500), label: Text(_name(context, b))),
               ]),
               const SizedBox(height: 16),
               _Section(path: '/gamification/challenges', title: context.tr('gam.challenges'), builder: (rows) => [
@@ -153,7 +153,7 @@ class _Reward extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       child: ListTile(
-        leading: const Icon(Icons.card_giftcard, color: AppColors.gold500),
+        leading: Icon(Icons.card_giftcard, color: AppColors.gold500),
         title: Text(context.s.isArabic ? r.str('title_ar') : r.str('title_en'), style: const TextStyle(fontWeight: FontWeight.w700)),
         subtitle: Text('${r.str('cost_points')} ${context.tr('gam.pts')}'),
         trailing: FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 

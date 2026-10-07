@@ -61,7 +61,7 @@ class CourseScreen extends ConsumerWidget {
                       ]),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(child: Text('${fmt.number(summary.number('completed'))} / ${fmt.number(summary.number('required'))} ${s.t('course.lessonsDone')}', style: const TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700))),
+                    Expanded(child: Text('${fmt.number(summary.number('completed'))} / ${fmt.number(summary.number('required'))} ${s.t('course.lessonsDone')}', style: TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700))),
                   ]),
                   if (go.isNotEmpty && summary['completed_course'] != true) ...[
                     const SizedBox(height: 16),
@@ -81,7 +81,7 @@ class CourseScreen extends ConsumerWidget {
                       label: Text(s.t('course.certIssued')),
                     ),
                   ] else if (summary['completed_course'] == true && summary.obj('certificate') != null && (summary.obj('certificate')!['missing'] as List).isNotEmpty)
-                    Padding(padding: const EdgeInsets.only(top: 10), child: Text('${s.t('course.certPending')}: ${(summary.obj('certificate')!['missing'] as List).join(' · ')}', style: const TextStyle(color: AppColors.gold300, fontSize: 12.5))),
+                    Padding(padding: const EdgeInsets.only(top: 10), child: Text('${s.t('course.certPending')}: ${(summary.obj('certificate')!['missing'] as List).join(' · ')}', style: TextStyle(color: AppColors.gold300, fontSize: 12.5))),
                   if (summary['completed_course'] == true) Padding(padding: const EdgeInsets.only(top: 12), child: Text('🎉 ${s.t('course.allDone')}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
                 ]),
               ),
@@ -92,7 +92,7 @@ class CourseScreen extends ConsumerWidget {
                   child: Column(children: [
                     for (final l in m.list('lessons')) ...[
                       _LessonTile(lesson: l, onTap: () => context.push('/lessons/${l.str('id')}?registration=$registrationId'), fmt: fmt),
-                      if (l != m.list('lessons').last) const Divider(height: 1, color: AppColors.navy100),
+                      if (l != m.list('lessons').last) Divider(height: 1, color: AppColors.navy100),
                     ],
                   ]),
                 ),

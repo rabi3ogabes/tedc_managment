@@ -79,7 +79,7 @@ class WalletScreen extends ConsumerWidget {
                 return Container(
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy800, AppColors.navy700]),
+                    gradient: LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy800, AppColors.navy700]),
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .25), blurRadius: 24, offset: const Offset(0, 10))],
                   ),
@@ -88,15 +88,15 @@ class WalletScreen extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [const OfficialEmblem(size: 44), const Spacer(), if (locked) const Icon(Icons.lock_outline, color: AppColors.gold300) else StatusChip(c.str('status'))]),
+                        Row(children: [const OfficialEmblem(size: 44), const Spacer(), if (locked) Icon(Icons.lock_outline, color: AppColors.gold300) else StatusChip(c.str('status'))]),
                         const SizedBox(height: 18),
-                        Text(s.t(trainer ? 'certs.trainerKind' : (c.str('type') == 'attendance' ? 'certs.attendanceKind' : 'certs.traineeKind')), style: const TextStyle(color: AppColors.gold300, fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text(s.t(trainer ? 'certs.trainerKind' : (c.str('type') == 'attendance' ? 'certs.attendanceKind' : 'certs.traineeKind')), style: TextStyle(color: AppColors.gold300, fontSize: 12, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
                         Text(c.obj('program')?.str('title') ?? '', style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),
                         Text(
                           c.date('issued_at') == null ? '${s.t('certs.progress')}: ${fmt.number(c.number('sessions_done'))}/${fmt.number(c.number('sessions_total'))} · ${fmt.number(c.number('hours'))} ${s.t('common.hours')}' : '${fmt.number(c.number('hours'))} ${s.t('common.hours')} · ${fmt.date(c.date('issued_at'))}',
-                          style: const TextStyle(color: AppColors.gold300),
+                          style: TextStyle(color: AppColors.gold300),
                         ),
                         if (locked) ...[
                           const SizedBox(height: 14),
@@ -122,7 +122,7 @@ class WalletScreen extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                            child: QrImageView(data: c.str('verification_url'), size: 84, padding: EdgeInsets.zero, eyeStyle: const QrEyeStyle(color: AppColors.navy900, eyeShape: QrEyeShape.square), dataModuleStyle: const QrDataModuleStyle(color: AppColors.navy900, dataModuleShape: QrDataModuleShape.square)),
+                            child: QrImageView(data: c.str('verification_url'), size: 84, padding: EdgeInsets.zero, eyeStyle: QrEyeStyle(color: AppColors.navy900, eyeShape: QrEyeShape.square), dataModuleStyle: QrDataModuleStyle(color: AppColors.navy900, dataModuleShape: QrDataModuleShape.square)),
                           ),
                         ]),
                         const SizedBox(height: 16),

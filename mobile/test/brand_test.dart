@@ -25,7 +25,33 @@ void main() {
   });
 
   test('the theme follows the chosen colours', () {
-    final t = AppTheme.light(const Locale('en'), const Brand(primary: Color(0xFF0E4B6B)));
-    expect(t.colorScheme.primary, const Color(0xFF0E4B6B));
+    AppColors.apply(primary: const Color(0xFF0E4B6B));
+    addTearDown(AppColors.apply);
+    expect(AppTheme.light(const Locale('en')).colorScheme.primary, const Color(0xFF0E4B6B));
+  });
+
+  test('the palette is derived from the chosen colour and restored to the default', () {
+    final before = AppColors.signature;
+    AppColors.apply(primary: const Color(0xFF0E4B6B), accent: const Color(0xFFD9B35F));
+    expect(AppColors.navy900, const Color(0xFF0E4B6B));
+    expect(AppColors.navy950.computeLuminance(), lessThan(AppColors.navy900.computeLuminance()));
+    expect(AppColors.navy100.computeLuminance(), greaterThan(.8));
+    expect(AppColors.signature, isNot(before));
+    AppColors.apply();
+    expect(AppColors.navy900, const Color(0xFF8A1538));
+    expect(AppColors.signature, before);
+  });
+
+  test('the loading style and the fonts come from the config; unknown styles fall back', () {
+    final b = Brand.fromConfig({
+      'data': {
+        'loading': {'style': 'crescent', 'background': '#161738', 'accent': '#D9B35F'},
+        'typography': {'arabic_family': 'Cairo', 'latin_family': 'Inter', 'arabic_font_url': null},
+      },
+    }, arabic: true);
+    expect(b.loadingStyle, 'crescent');
+    expect(b.loadingBackground, const Color(0xFF161738));
+    expect(b.arabicFont, 'Cairo');
+    expect(Brand.fromConfig({'data': {'loading': {'style': 'weird'}}}, arabic: true).loadingStyle, 'emblem');
   });
 }

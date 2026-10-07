@@ -29,9 +29,9 @@ class StaffHome extends ConsumerWidget {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const OfficialEmblem(size: 96),
               const SizedBox(height: 24),
-              Text(me?.name ?? '', textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+              Text(me?.name ?? '', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
               const SizedBox(height: 10),
-              Text(s.t('staff.text'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, height: 1.7, color: AppColors.navy700)),
+              Text(s.t('staff.text'), textAlign: TextAlign.center, style: TextStyle(fontSize: 15, height: 1.7, color: AppColors.navy700)),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () => launchUrl(dashboardUri, mode: LaunchMode.externalApplication),

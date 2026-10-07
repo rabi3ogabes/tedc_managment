@@ -96,7 +96,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                           if (m.list('citations').isNotEmpty) ...[
                             const SizedBox(height: 8),
                             Text(context.tr('ai.sources'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted)),
-                            for (final c in m.list('citations')) Text('[${c.str('n')}] ${c.str('title')}', style: const TextStyle(fontSize: 12, color: AppColors.gold500)),
+                            for (final c in m.list('citations')) Text('[${c.str('n')}] ${c.str('title')}', style: TextStyle(fontSize: 12, color: AppColors.gold500)),
                           ],
                           if (m.str('role') == 'assistant' && m.str('id').isNotEmpty)
                             Row(children: [
@@ -123,7 +123,7 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
             child: Row(children: [
               Expanded(child: TextField(controller: _text, minLines: 1, maxLines: 4, textInputAction: TextInputAction.send, onSubmitted: _ask, decoration: InputDecoration(hintText: context.tr('ai.placeholder')))),
-              IconButton(onPressed: _busy ? null : () => _ask(_text.text), icon: const Icon(Icons.send_rounded, color: AppColors.gold500)),
+              IconButton(onPressed: _busy ? null : () => _ask(_text.text), icon: Icon(Icons.send_rounded, color: AppColors.gold500)),
             ]),
           ),
         ),

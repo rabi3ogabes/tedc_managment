@@ -181,7 +181,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               for (final v in rows)
                 ListTile(
                   dense: true,
-                  leading: const Icon(Icons.confirmation_number_outlined, color: AppColors.gold500),
+                  leading: Icon(Icons.confirmation_number_outlined, color: AppColors.gold500),
                   title: Text(ar ? v.str('program_ar') : v.str('program_en')),
                   subtitle: Text(v.str('code').isEmpty ? v.str('status') : '${v.str('code')} · ${v.str('status')}'),
                 ),

@@ -65,7 +65,7 @@ class CommunitiesScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(12),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          const Icon(Icons.groups_outlined, color: AppColors.gold500),
+                          Icon(Icons.groups_outlined, color: AppColors.gold500),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -163,7 +163,7 @@ class SpaceScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(14),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
-                          if (p.flag('is_pinned')) const Icon(Icons.push_pin, size: 16, color: AppColors.gold500),
+                          if (p.flag('is_pinned')) Icon(Icons.push_pin, size: 16, color: AppColors.gold500),
                           Expanded(child: Text(p.obj('author')?.flag('anonymous') ?? false ? context.tr('soc.anonymous') : p.obj('author')?.str('name') ?? '', style: const TextStyle(fontWeight: FontWeight.w700))),
                           Chip(label: Text(context.tr('soc.kind.${p.str('kind')}')), visualDensity: VisualDensity.compact),
                         ]),
@@ -283,7 +283,7 @@ class _PostScreenState extends ConsumerState<PostScreen> {
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                   child: Row(children: [
                     Expanded(child: TextField(controller: _comment, minLines: 1, maxLines: 4, decoration: InputDecoration(hintText: context.tr('soc.writeComment')))),
-                    IconButton(onPressed: _busy ? null : _send, icon: const Icon(Icons.send_rounded, color: AppColors.gold500)),
+                    IconButton(onPressed: _busy ? null : _send, icon: Icon(Icons.send_rounded, color: AppColors.gold500)),
                   ]),
                 ),
               ),

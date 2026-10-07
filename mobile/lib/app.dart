@@ -14,20 +14,25 @@ class TedcApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
     final router = ref.watch(routerProvider);
-    final brand = ref.watch(brandProvider);
+    ref.watch(brandProvider);
+    ref.watch(fontEpochProvider);
 
-    return MaterialApp.router(
-      title: 'مركز التدريب والتطوير',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(locale, brand),
-      locale: locale,
-      supportedLocales: const [Locale('ar'), Locale('en')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      routerConfig: router,
+    // Keyed by the palette: when the administrator changes the colours every screen is built again with them.
+    return KeyedSubtree(
+      key: ValueKey(AppColors.signature),
+      child: MaterialApp.router(
+        title: 'مركز التدريب والتطوير',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(locale),
+        locale: locale,
+        supportedLocales: const [Locale('ar'), Locale('en')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        routerConfig: router,
+      ),
     );
   }
 }

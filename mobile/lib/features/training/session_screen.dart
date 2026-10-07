@@ -127,18 +127,18 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                     _Pill(icon: live ? Icons.fiber_manual_record : Icons.schedule, label: s.t('session.state.$state'), highlight: live),
                   ]),
                   const SizedBox(height: 16),
-                  Text(d.obj('program')?.str('title') ?? '', style: const TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700)),
+                  Text(d.obj('program')?.str('title') ?? '', style: TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 4),
                   Text(d.str('title'), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 14),
                   Text('${fmt.weekdayDate(start)}\n${fmt.time(start)} – ${fmt.time(end)} · ${fmt.number(d.number('duration_minutes'))} ${s.t('session.minutes')}', style: const TextStyle(color: Colors.white70, height: 1.5)),
                   if (!online && d.str('location').isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Row(children: [const Icon(Icons.place_outlined, size: 16, color: AppColors.gold300), const SizedBox(width: 6), Expanded(child: Text(d.str('location'), style: const TextStyle(color: Colors.white)))]),
+                    Row(children: [Icon(Icons.place_outlined, size: 16, color: AppColors.gold300), const SizedBox(width: 6), Expanded(child: Text(d.str('location'), style: const TextStyle(color: Colors.white)))]),
                   ],
                   if (d.str('trainer').isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Row(children: [const Icon(Icons.person_outline, size: 16, color: AppColors.gold300), const SizedBox(width: 6), Text(d.str('trainer'), style: const TextStyle(color: Colors.white))]),
+                    Row(children: [Icon(Icons.person_outline, size: 16, color: AppColors.gold300), const SizedBox(width: 6), Text(d.str('trainer'), style: const TextStyle(color: Colors.white))]),
                   ],
                 ]),
               ),
@@ -224,7 +224,7 @@ class _OnlineCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (platform.isNotEmpty) Text(s.t('session.platform.$platform'), style: const TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
+          if (platform.isNotEmpty) Text(s.t('session.platform.$platform'), style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
           if (info.str('instructions').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(info.str('instructions'), style: const TextStyle(height: 1.5, fontSize: 13))),
           const SizedBox(height: 14),
           FilledButton.icon(

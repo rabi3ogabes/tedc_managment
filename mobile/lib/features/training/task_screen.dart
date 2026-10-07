@@ -73,8 +73,8 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
           if (_text.text.isEmpty && submission != null) _text.text = submission.str('text_response');
 
           return ListView(padding: const EdgeInsets.all(20), children: [
-            Text(task.str('program'), style: const TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
-            Text(task.str('title'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+            Text(task.str('program'), style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
+            Text(task.str('title'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
             const SizedBox(height: 6),
             Text('${s.t('tasks.due')}: ${fmt.dateTime(task.date('due_at'))}', style: const TextStyle(color: AppColors.muted)),
             if (submission != null) ...[const SizedBox(height: 10), Align(alignment: AlignmentDirectional.centerStart, child: StatusChip(submission.str('status')))],

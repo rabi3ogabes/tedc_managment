@@ -215,7 +215,7 @@ class SectionTitle extends StatelessWidget {
       child: Row(children: [
         Container(width: 4, height: 20, decoration: BoxDecoration(gradient: AppColors.goldGradient, borderRadius: BorderRadius.circular(4))),
         const SizedBox(width: 10),
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+        Expanded(child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navy900))),
         ?action,
       ]),
     );
@@ -374,7 +374,7 @@ class ProgramCover extends StatelessWidget {
           bottom: 10,
           end: 14,
           child: Row(children: [
-            Text(code, textDirection: TextDirection.ltr, style: const TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700, letterSpacing: 1)),
+            Text(code, textDirection: TextDirection.ltr, style: TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700, letterSpacing: 1)),
             const Spacer(),
             if (category != null)
               Container(

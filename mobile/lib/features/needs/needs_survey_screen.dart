@@ -12,9 +12,9 @@ import '../../core/widgets/widgets.dart';
 
 const needsListPath = '/me/needs-surveys';
 
-Color _hex(String? value, [Color fallback = AppColors.navy900]) {
+Color _hex(String? value, [Color? fallback]) {
   final v = (value ?? '').replaceAll('#', '');
-  return v.length == 6 ? Color(int.parse('FF$v', radix: 16)) : fallback;
+  return v.length == 6 ? Color(int.parse('FF$v', radix: 16)) : (fallback ?? AppColors.navy900);
 }
 
 // ---------------------------------------------------------------------------
@@ -134,7 +134,7 @@ class NeedsSurveyCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(item.str('title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.navy900)),
+              Text(item.str('title'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.navy900)),
               if (item.str('description').isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(item.str('description'), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, height: 1.5)),
@@ -176,7 +176,7 @@ class PendingNeedsBanner extends ConsumerWidget {
         borderRadius: BorderRadius.circular(18),
         clipBehavior: Clip.antiAlias,
         child: Ink(
-          decoration: const BoxDecoration(gradient: AppColors.goldGradient),
+          decoration: BoxDecoration(gradient: AppColors.goldGradient),
           child: InkWell(
             onTap: () => context.push(pending.length == 1 ? '/needs-surveys/${pending.first.str('id')}' : '/needs-surveys'),
             child: Padding(
@@ -193,7 +193,7 @@ class PendingNeedsBanner extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                  child: Text(s.t('needs.answer'), style: const TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w800, fontSize: 12)),
+                  child: Text(s.t('needs.answer'), style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w800, fontSize: 12)),
                 ),
               ]),
             ),
@@ -417,7 +417,7 @@ class _NeedsSurveyScreenState extends ConsumerState<NeedsSurveyScreen> {
       const SizedBox(height: 24),
       Center(child: Container(width: 84, height: 84, decoration: BoxDecoration(color: accent, shape: BoxShape.circle), child: const Icon(Icons.check_rounded, color: Colors.white, size: 44))),
       const SizedBox(height: 20),
-      Text(s.t('needs.thanks'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+      Text(s.t('needs.thanks'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy900)),
       const SizedBox(height: 8),
       Text(_thanks ?? (settings.str('thank_you').isNotEmpty ? settings.str('thank_you') : s.t('needs.thanksText')), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted, height: 1.6)),
       const SizedBox(height: 28),
@@ -437,7 +437,7 @@ class _NeedsSurveyScreenState extends ConsumerState<NeedsSurveyScreen> {
   Widget _section(Json q, Color accent) => Padding(
         padding: const EdgeInsets.only(top: 6, bottom: 14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(q.str('title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+          Text(q.str('title'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.navy900)),
           if (q.str('description').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text(q.str('description'), style: const TextStyle(color: AppColors.muted, height: 1.6))),
           const SizedBox(height: 10),
           Container(width: 56, height: 3, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2))),

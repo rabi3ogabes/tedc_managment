@@ -62,7 +62,7 @@ class AccountScreen extends ConsumerWidget {
                       clipBehavior: Clip.antiAlias,
                       child: Column(children: [
                         for (final (i, field) in section.list('fields').indexed) ...[
-                          if (i > 0) const Divider(height: 1, color: AppColors.navy100),
+                          if (i > 0) Divider(height: 1, color: AppColors.navy100),
                           _FieldTile(
                             field: field,
                             fmt: fmt,
@@ -77,22 +77,22 @@ class AccountScreen extends ConsumerWidget {
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       for (final skill in skills)
                         Chip(
-                          avatar: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${skill.number('level').toInt()}', style: const TextStyle(color: AppColors.gold300, fontSize: 11, fontWeight: FontWeight.w800))),
+                          avatar: CircleAvatar(backgroundColor: AppColors.navy900, child: Text('${skill.number('level').toInt()}', style: TextStyle(color: AppColors.gold300, fontSize: 11, fontWeight: FontWeight.w800))),
                           label: Text(skill.str('name')),
                           backgroundColor: Colors.white,
-                          side: const BorderSide(color: AppColors.navy100),
+                          side: BorderSide(color: AppColors.navy100),
                         ),
                     ]),
                   ],
                   SectionTitle(s.t('account.accountInfo')),
                   Card(
                     child: Column(children: [
-                      ListTile(leading: const Icon(Icons.badge_outlined, color: AppColors.gold700), title: Text(s.t('account.roles')), subtitle: Text((info['roles'] as List? ?? const []).join('، '))),
-                      const Divider(height: 1, color: AppColors.navy100),
-                      ListTile(leading: const Icon(Icons.event_available_outlined, color: AppColors.gold700), title: Text(s.t('account.memberSince')), subtitle: Text(fmt.date(DateTime.tryParse(info.str('member_since'))))),
+                      ListTile(leading: Icon(Icons.badge_outlined, color: AppColors.gold700), title: Text(s.t('account.roles')), subtitle: Text((info['roles'] as List? ?? const []).join('، '))),
+                      Divider(height: 1, color: AppColors.navy100),
+                      ListTile(leading: Icon(Icons.event_available_outlined, color: AppColors.gold700), title: Text(s.t('account.memberSince')), subtitle: Text(fmt.date(DateTime.tryParse(info.str('member_since'))))),
                       if (info.str('last_login_at').isNotEmpty) ...[
-                        const Divider(height: 1, color: AppColors.navy100),
-                        ListTile(leading: const Icon(Icons.login, color: AppColors.gold700), title: Text(s.t('account.lastLogin')), subtitle: Text(fmt.dateTime(info.date('last_login_at')))),
+                        Divider(height: 1, color: AppColors.navy100),
+                        ListTile(leading: Icon(Icons.login, color: AppColors.gold700), title: Text(s.t('account.lastLogin')), subtitle: Text(fmt.dateTime(info.date('last_login_at')))),
                       ],
                     ]),
                   ),
@@ -136,7 +136,7 @@ class _Hero extends StatelessWidget {
     final s = context.s;
     final name = identity.str('name');
     return Container(
-      decoration: const BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.vertical(bottom: Radius.circular(32))),
+      decoration: BoxDecoration(gradient: AppColors.navyGradient, borderRadius: BorderRadius.vertical(bottom: Radius.circular(32))),
       child: Stack(children: [
         const Positioned.fill(child: DotPattern(opacity: .12)),
         SafeArea(
@@ -148,11 +148,11 @@ class _Hero extends StatelessWidget {
               CircleAvatar(
                 radius: 40,
                 backgroundColor: AppColors.gold500,
-                child: Text(name.isEmpty ? '' : name.characters.first, style: const TextStyle(fontSize: 32, color: AppColors.navy950, fontWeight: FontWeight.w800)),
+                child: Text(name.isEmpty ? '' : name.characters.first, style: TextStyle(fontSize: 32, color: AppColors.navy950, fontWeight: FontWeight.w800)),
               ),
               const SizedBox(height: 12),
               Text(name, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w800)),
-              if (identity.str('subtitle').isNotEmpty) Text(identity.str('subtitle'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.gold300, fontSize: 13)),
+              if (identity.str('subtitle').isNotEmpty) Text(identity.str('subtitle'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.gold300, fontSize: 13)),
               const SizedBox(height: 12),
               Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
                 if (identity.str('employee_no').isNotEmpty) _pill(Icons.tag, identity.str('employee_no'), ltr: true),
@@ -191,12 +191,12 @@ class _LockedBanner extends StatelessWidget {
       decoration: BoxDecoration(color: AppColors.gold100.withValues(alpha: .55), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.gold300)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.lock_outline, color: AppColors.gold700, size: 20),
+          Icon(Icons.lock_outline, color: AppColors.gold700, size: 20),
           const SizedBox(width: 8),
           Expanded(child: Text(s.t('account.lockedTitle'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
         ]),
         const SizedBox(height: 6),
-        Text(s.t('account.lockedText'), style: const TextStyle(color: AppColors.navy700, height: 1.5, fontSize: 13)),
+        Text(s.t('account.lockedText'), style: TextStyle(color: AppColors.navy700, height: 1.5, fontSize: 13)),
         if (missing > 0 || pending > 0) ...[
           const SizedBox(height: 10),
           Wrap(spacing: 8, runSpacing: 6, children: [
@@ -252,10 +252,10 @@ class _FieldTile extends StatelessWidget {
         title: Text(field.str('label'), style: const TextStyle(fontSize: 12.5, color: AppColors.muted, fontWeight: FontWeight.w600)),
         subtitle: missing
             ? Text(s.t('account.notRecorded'), style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w700, fontStyle: FontStyle.italic, fontSize: 15))
-            : Text(_value(), textDirection: ltr ? TextDirection.ltr : null, textAlign: ltr && s.isArabic ? TextAlign.right : null, style: const TextStyle(color: AppColors.navy950, fontWeight: FontWeight.w700, fontSize: 15.5)),
+            : Text(_value(), textDirection: ltr ? TextDirection.ltr : null, textAlign: ltr && s.isArabic ? TextAlign.right : null, style: TextStyle(color: AppColors.navy950, fontWeight: FontWeight.w700, fontSize: 15.5)),
         trailing: pending != null
             ? Chip(
-                avatar: const Icon(Icons.hourglass_top, size: 14, color: AppColors.navy700),
+                avatar: Icon(Icons.hourglass_top, size: 14, color: AppColors.navy700),
                 label: Text(s.t('account.underReview'), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
                 backgroundColor: AppColors.navy100,
                 side: BorderSide.none,
@@ -291,7 +291,7 @@ class _Requests extends ConsumerWidget {
         return Card(
           child: Column(children: [
             for (final (i, r) in items.indexed) ...[
-              if (i > 0) const Divider(height: 1, color: AppColors.navy100),
+              if (i > 0) Divider(height: 1, color: AppColors.navy100),
               ListTile(
                 isThreeLine: true,
                 leading: _statusIcon(r.str('status')),

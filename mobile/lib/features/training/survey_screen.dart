@@ -58,8 +58,8 @@ class _SurveyScreenState extends ConsumerState<SurveyScreen> {
       appBar: AppBar(title: Text(s.t('survey.title'))),
       body: ListView(padding: const EdgeInsets.all(20), children: [
         if (item != null) ...[
-          Text(item.str('program'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.navy900)),
-          Text('${item.number('stage_days')} ${s.t('survey.days')}', style: const TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
+          Text(item.str('program'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.navy900)),
+          Text('${item.number('stage_days')} ${s.t('survey.days')}', style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
           const SizedBox(height: 20),
         ],
         Text(s.t('survey.applied'), style: const TextStyle(fontWeight: FontWeight.w700)),
