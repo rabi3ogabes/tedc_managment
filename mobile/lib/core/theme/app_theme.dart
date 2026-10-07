@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'brand.dart';
+
 /// Qatar Government identity (gba.gco.gov.qa): Al Adaam maroon, Dune and off-white.
 /// Token names are kept (navy = primary shades, gold = accent shades) so the
 /// rest of the app follows the identity without changes.
@@ -25,27 +27,31 @@ class AppColors {
 }
 
 class AppTheme {
-  static ThemeData light(Locale locale) {
+  /// [brand] carries the colours the administrator chose; without them the Qatar identity above applies.
+  static ThemeData light(Locale locale, [Brand brand = Brand.none]) {
+    final primary = brand.primary ?? AppColors.navy900;
+    final accent = brand.accent ?? AppColors.gold500;
+    final ivory = brand.background ?? AppColors.ivory;
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.navy900,
-        primary: AppColors.navy900,
-        secondary: AppColors.gold500,
+        seedColor: primary,
+        primary: primary,
+        secondary: accent,
         surface: Colors.white,
       ),
-      scaffoldBackgroundColor: AppColors.ivory,
+      scaffoldBackgroundColor: ivory,
       fontFamily: 'Tajawal',
     );
 
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.ivory,
-        foregroundColor: AppColors.navy900,
+      appBarTheme: AppBarTheme(
+        backgroundColor: ivory,
+        foregroundColor: primary,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(fontFamily: 'Tajawal', color: AppColors.navy900, fontSize: 20, fontWeight: FontWeight.w800),
+        titleTextStyle: TextStyle(fontFamily: 'Tajawal', color: primary, fontSize: 20, fontWeight: FontWeight.w800),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -55,7 +61,7 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.navy900,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(50),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -64,7 +70,7 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.navy900,
+          foregroundColor: primary,
           minimumSize: const Size.fromHeight(48),
           side: const BorderSide(color: AppColors.navy100),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -76,7 +82,7 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.navy100)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.navy100)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.gold500, width: 1.5)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: accent, width: 1.5)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,

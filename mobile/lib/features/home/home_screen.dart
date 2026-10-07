@@ -7,6 +7,7 @@ import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/brand.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
 import '../needs/needs_survey_screen.dart';
@@ -48,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
+                  if (ref.watch(brandProvider).occasionName case final occasion?) ...[_OccasionBanner(name: occasion, message: ref.watch(brandProvider).message), const SizedBox(height: 14)],
                   Row(children: [
                     Expanded(child: StatTile(label: s.t('home.active'), value: fmt.number(stats.number('active_programs')), icon: Icons.play_circle_outline)),
                     const SizedBox(width: 12),
@@ -83,6 +85,41 @@ class HomeScreen extends ConsumerWidget {
             ]);
           },
         ),
+      ),
+    );
+  }
+}
+
+/// A slim greeting while an occasion theme (Ramadan, Eid, National Day …) is on, set from the dashboard.
+class _OccasionBanner extends StatelessWidget {
+  const _OccasionBanner({required this.name, this.message});
+
+  final String name;
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      container: true,
+      label: message ?? name,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: scheme.secondary.withValues(alpha: .16),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: scheme.secondary.withValues(alpha: .5)),
+        ),
+        child: Row(children: [
+          Icon(Icons.auto_awesome, color: scheme.primary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w800)),
+              if (message != null && message != name) Text(message!, style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
+            ]),
+          ),
+        ]),
       ),
     );
   }

@@ -99,7 +99,7 @@ class SampleLearning
         ProgramEvaluationReport::create(['program_id' => $prog->id, 'period' => date('Y'), 'metrics' => ['satisfaction' => 86.8, 'attendance' => 91, 'pass_rate' => 78], 'qualitative' => ['themes' => ['تطبيق عملي', 'وقت إضافي']], 'classification' => 'effective', 'classification_reasons' => ['رضا مرتفع', 'أثر ملموس'], 'recommendations_ar' => 'التوسع في المجموعات القادمة وإضافة تدريب عملي.', 'recommendations_en' => 'Expand the next groups and add practice time.', 'status' => 'draft', 'prepared_by' => $admin->id]);
         foreach (array_slice($this->c->trainees(), 0, 2) as $u) {
             if ($e = $u->employee) {
-                ClassroomObservation::create(['employee_id' => $e->id, 'observer_user_id' => $trainer->id, 'observer_role' => 'trainer', 'observed_on' => now()->subDays(6)->toDateString(), 'subject' => 'اللغة العربية', 'grade' => 'الصف الرابع', 'scores' => ['planning' => 4, 'delivery' => 4, 'assessment' => 3], 'overall' => 3.7, 'notes' => 'درس منظم مع حاجة لتنويع أسئلة التقويم.', 'source' => 'training']);
+                ClassroomObservation::create(['employee_id' => $e->id, 'observer_user_id' => $trainer->id, 'observer_role' => 'trainer', 'observed_on' => now()->subDays(6)->toDateString(), 'subject' => 'اللغة العربية', 'grade' => 'الصف الرابع', 'scores' => ['planning' => 4, 'delivery' => 4, 'assessment' => 3], 'overall' => 4, 'notes' => 'درس منظم مع حاجة لتنويع أسئلة التقويم.', 'source' => 'training']);
             }
         }
     }

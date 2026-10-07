@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/brand.dart';
 import 'router.dart';
 
 class TedcApp extends ConsumerWidget {
@@ -13,11 +14,12 @@ class TedcApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
     final router = ref.watch(routerProvider);
+    final brand = ref.watch(brandProvider);
 
     return MaterialApp.router(
       title: 'مركز التدريب والتطوير',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(locale),
+      theme: AppTheme.light(locale, brand),
       locale: locale,
       supportedLocales: const [Locale('ar'), Locale('en')],
       localizationsDelegates: const [
