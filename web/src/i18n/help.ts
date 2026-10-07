@@ -27,7 +27,7 @@ export const hlpAr = { hlp: {
     helpfulCount: 'مفيدة', notHelpfulCount: 'غير مفيدة', score: 'النسبة', comments: 'التعليقات', noFeedback: 'لا توجد تقييمات بعد.', all: 'الكل',
   },
   kits: {
-    title: 'الحقائب التفاعلية', subtitle: 'حقيبتان تفاعليتان من مجلد content/e-kits تُنشران كمقررات إلكترونية وتُصدَّران بصيغة SCORM 2004.', topicNote: 'الموضوعان مقترحان وتحتاجان إلى موافقة المركز على الاختيار.',
+    title: 'الحقائب التفاعلية', subtitle: 'حقيبتان تفاعليتان من مجلد resources/ekits تُنشران كمقررات إلكترونية وتُصدَّران بصيغة SCORM 2004.', topicNote: 'الموضوعان مقترحان وتحتاجان إلى موافقة المركز على الاختيار.',
     chapters: 'الفصول', checks: 'أسئلة اختبر نفسك', finalQ: 'أسئلة التقييم النهائي', hours: 'الساعات', published: 'منشورة', notPublished: 'غير منشورة', publish: 'نشر كمقرر', rebuild: 'إعادة البناء',
     confirmRebuild: 'سيُستبدل محتوى المقرر الحالي. تبقى سجلات المتدربين الحالية لكن قد تتأثر الدروس. المتابعة؟', done: 'تم النشر.', rebuilt: 'أُعيد بناء المقرر.', exists: 'المقرر منشور من قبل.', open: 'فتح المقرر', scorm: 'تنزيل SCORM',
   },
@@ -60,7 +60,7 @@ export const hlpEn = { hlp: {
     helpfulCount: 'Helpful', notHelpfulCount: 'Not helpful', score: 'Score', comments: 'Comments', noFeedback: 'No feedback yet.', all: 'All',
   },
   kits: {
-    title: 'Interactive e-kits', subtitle: 'Two interactive kits from content/e-kits, published as e-courses and exportable as SCORM 2004.', topicNote: 'The two topics are proposals; the centre must confirm the choice.',
+    title: 'Interactive e-kits', subtitle: 'Two interactive kits from resources/ekits, published as e-courses and exportable as SCORM 2004.', topicNote: 'The two topics are proposals; the centre must confirm the choice.',
     chapters: 'Chapters', checks: 'Check-yourself questions', finalQ: 'Final assessment questions', hours: 'Hours', published: 'Published', notPublished: 'Not published', publish: 'Publish as a course', rebuild: 'Rebuild',
     confirmRebuild: 'The course content will be replaced. Existing trainee records stay, but lessons may be affected. Continue?', done: 'Published.', rebuilt: 'The course was rebuilt.', exists: 'The course is already published.', open: 'Open the course', scorm: 'Download SCORM',
   },

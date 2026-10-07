@@ -12,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-/** The interactive e-kits of content/e-kits: publish them as e-courses and download them as SCORM 2004 packages. */
+/** The interactive e-kits of resources/ekits: publish them as e-courses and download them as SCORM 2004 packages. */
 class EKitController extends Controller
 {
     public function index(): JsonResponse

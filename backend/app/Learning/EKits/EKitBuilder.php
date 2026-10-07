@@ -99,7 +99,7 @@ class EKitBuilder
     /** The final assessment draws a fresh set from a question bank each attempt, so a retake is not the same paper. */
     private function finalAssessment(Program $program, array $kit): void
     {
-        $bank = QuestionBank::create(['title_ar' => 'بنك أسئلة: '.$kit['title_ar'], 'title_en' => 'Question bank: '.$kit['title_en'], 'program_id' => $program->id, 'visibility' => 'program', 'description' => 'Source: content/e-kits/kits.json']);
+        $bank = QuestionBank::create(['title_ar' => 'بنك أسئلة: '.$kit['title_ar'], 'title_en' => 'Question bank: '.$kit['title_en'], 'program_id' => $program->id, 'visibility' => 'program', 'description' => 'Source: resources/ekits/kits.json']);
         foreach ($kit['final'] as $q) {
             Question::create([
                 'bank_id' => $bank->id, 'type' => 'single_choice', 'stem_ar' => $q['stem_ar'], 'stem_en' => $q['stem_en'], 'difficulty' => 'medium', 'points' => 1, 'version' => 1, 'status' => 'active',

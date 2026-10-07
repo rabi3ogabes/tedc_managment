@@ -13,3 +13,6 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 14 Communities, forums, ask-the-trainer, ratings, gamification. 15 AI (recommendations, feedback, adaptive, forecasts, assistant).
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
+
+## 2026-10-07 — audit
+Fixed 19 unreachable administration pages, a hidden room-calendar route, feature-off pages, the help drawer, production help articles, plus new satisfaction and support-ticket screens. See `docs/rfp/audit-2026-10-07.md`.

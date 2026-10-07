@@ -202,4 +202,13 @@ class HelpCentreTest extends TestCase
         $this->assertStringNotContainsString('Steps', $a['excerpt_en']);
         $this->assertDoesNotMatchRegularExpression('/[a-z][A-Z]/', $a['excerpt_en']);
     }
+
+    public function test_a_release_adds_missing_starter_articles_to_an_existing_database_without_touching_edited_ones(): void
+    {
+        HelpArticle::where('slug', 'getting-started')->update(['title_en' => 'Edited by the centre']);
+        HelpArticle::where('slug', 'smart-assistant')->delete();
+        $this->artisan('tedc:deploy', ['--no-cache' => true])->assertSuccessful();
+        $this->assertTrue(HelpArticle::where('slug', 'smart-assistant')->exists());
+        $this->assertSame('Edited by the centre', HelpArticle::where('slug', 'getting-started')->value('title_en'));
+    }
 }

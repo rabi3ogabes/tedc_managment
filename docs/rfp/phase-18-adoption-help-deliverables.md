@@ -16,7 +16,7 @@ Read the **Limits** section before relying on any of it: several parts of this p
 * **Mobile**: help centre, article reader (text, screenshots, video link, feedback), manuals as PDF, support channels, tour.
 
 ### Interactive e-kits (`EKT-01`)
-* Sources in `content/e-kits/kits.json` (two kits: «Using the Educational Training Portal» and «Effective classroom questioning»), with trainer guide, trainee guide and a session plan.
+* Sources in `backend/resources/ekits/kits.json` (it ships with the API, so the admin screen works in production; two kits: «Using the Educational Training Portal» and «Effective classroom questioning»), with trainer guide, trainee guide and a session plan.
 * `php artisan tedc:ekits-build [--rebuild] [--only=CODE] [--export=DIR]` publishes each kit as an e-course (a module per chapter: reading + «check yourself» quiz, then a final assessment drawn at random from a question bank, three attempts, 70 % pass mark, automatic certificate) and exports **SCORM 2004 4th edition** packages in Arabic and English.
 * The SCORM package: `imsmanifest.xml` with a SCO per chapter and a final SCO (scaled pass marks 50 % / 70 %), `cmi.completion_status`, `cmi.success_status`, `cmi.score.*`, language and direction per page, skip link, native keyboard-operable controls and a live region for feedback. It also works outside an LMS.
 * Admin page `/admin/ekits`: publish, rebuild, download SCORM (`GET /admin/ekits/{code}/scorm?lang=`).

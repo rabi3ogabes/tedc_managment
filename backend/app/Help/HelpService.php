@@ -276,7 +276,7 @@ class HelpService
         ])->render();
         $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 16, 'margin_right' => 16, 'margin_top' => 18, 'margin_bottom' => 18, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
         $mpdf->SetTitle(($lang === 'ar' ? 'دليل المستخدم — ' : 'User manual — ').$roleName);
-        $mpdf->SetFooter('{PAGENO} / {nbpg}');
+        $mpdf->SetHTMLFooter('<div style="text-align:center;direction:ltr;font-size:9pt;color:#5b6573">{PAGENO} / {nbpg}</div>');
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');

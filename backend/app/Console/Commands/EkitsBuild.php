@@ -10,7 +10,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('tedc:ekits-build {--rebuild : Replace the lessons of kits that were built before} {--export= : Folder to write the SCORM 2004 packages (Arabic and English) to} {--only= : Build one kit by code}')]
-#[Description('Publish the e-kits in content/e-kits as e-courses and export them as SCORM 2004 packages')]
+#[Description('Publish the e-kits in resources/ekits as e-courses and export them as SCORM 2004 packages')]
 class EkitsBuild extends Command
 {
     public function handle(EKitBuilder $builder, ScormExporter $scorm): int

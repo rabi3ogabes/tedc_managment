@@ -4,12 +4,12 @@ namespace App\Learning\EKits;
 
 use RuntimeException;
 
-/** Reads and checks the e-kit sources kept in content/e-kits/kits.json. */
+/** Reads and checks the e-kit sources kept in backend/resources/ekits/kits.json (the guides and session plans are in content/e-kits). */
 class EKitSource
 {
     public static function path(): string
     {
-        return (string) (config('tedc.ekits_path') ?: base_path('../content/e-kits/kits.json'));
+        return (string) (config('tedc.ekits_path') ?: resource_path('ekits/kits.json'));
     }
 
     /** @return list<array<string, mixed>> */

@@ -29,15 +29,11 @@
         <td>{{ $lang === 'ar' ? 'عدد المقالات' : 'Articles' }}</td><td>{{ $articles->count() }}</td></tr></table>
 </div>
 <pagebreak />
-<h2>{{ $lang === 'ar' ? 'المحتويات' : 'Contents' }}</h2>
-<ol class="toc">
-@foreach($articles as $a)
-    <li><a href="#a{{ $loop->index }}">{{ $lang === 'ar' ? $a->title_ar : $a->title_en }}</a> <span class="cap">(v{{ $a->version }})</span></li>
-@endforeach
-</ol>
+<tocpagebreak links="on" toc-preHTML="&lt;h2&gt;{{ $lang === 'ar' ? 'المحتويات' : 'Contents' }}&lt;/h2&gt;" />
 @foreach($articles as $a)
     <pagebreak />
-    <h2 id="a{{ $loop->index }}"><a name="a{{ $loop->index }}"></a>{{ $lang === 'ar' ? $a->title_ar : $a->title_en }}</h2>
+    <tocentry content="{{ $lang === 'ar' ? $a->title_ar : $a->title_en }}" level="0" />
+    <h2>{{ $lang === 'ar' ? $a->title_ar : $a->title_en }}</h2>
     {!! $lang === 'ar' ? $a->body_ar : $a->body_en !!}
     @foreach($a->shots as $s)
         <div class="shot">@if($s['data'])<img src="{{ $s['data'] }}">@endif<div class="cap">{{ $s['caption'] }}</div></div>

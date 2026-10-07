@@ -9,6 +9,7 @@ use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
 use Database\Seeders\DemoTrainerTraineeSeeder;
+use Database\Seeders\HelpArticlesSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -38,6 +39,11 @@ class Deploy extends Command
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTestAccountsSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoOnlineCoursesSeeder::class, '--force' => true]);
+        }
+
+        // Starter help articles of this release (only the missing ones are created, so edited articles stay as they are).
+        if (Schema::hasTable('help_articles')) {
+            (new HelpArticlesSeeder)->run();
         }
 
         // The national school list (government, private, specialised) with map positions, from the copy shipped with the code.

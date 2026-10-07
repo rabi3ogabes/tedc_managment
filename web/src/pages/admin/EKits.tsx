@@ -8,7 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 
-/** The interactive e-kits kept in content/e-kits: publish each as an e-course and export it as a SCORM 2004 package. */
+/** The interactive e-kits kept in resources/ekits: publish each as an e-course and export it as a SCORM 2004 package. */
 export default function EKits() {
   const { t } = useTranslation()
   const { lang } = useLang()
