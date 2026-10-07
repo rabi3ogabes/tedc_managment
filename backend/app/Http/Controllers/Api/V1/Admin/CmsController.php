@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PageVersion;
 use App\Models\PublicStat;
 use App\Services\Cms\CmsService;
+use App\Services\Cms\HomeLayouts;
 use App\Services\Cms\PublicStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -98,5 +99,13 @@ class CmsController extends Controller
     private function assertPage(string $page): void
     {
         abort_unless(in_array($page, CmsService::PAGES, true), 404);
+    }
+
+    /** The ready-made home layouts (the editor loads one into the working copy; nothing is saved or published until the administrator does). */
+    public function layouts(string $page): JsonResponse
+    {
+        abort_unless($page === 'home', 404);
+
+        return response()->json(['data' => HomeLayouts::all()]);
     }
 }

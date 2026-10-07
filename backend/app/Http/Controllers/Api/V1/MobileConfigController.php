@@ -32,6 +32,9 @@ class MobileConfigController extends Controller
                 'logo_ar' => $t['identity']['logo_ar'] ?? null,
                 'logo_en' => $t['identity']['logo_en'] ?? null,
             ],
+            // The loading screen and the occasion in force, so the app opens the way the website does.
+            'loading' => $t['loading'] ?? null,
+            'occasion' => $t['active_occasion'] ?? null,
         ]]);
     }
 }

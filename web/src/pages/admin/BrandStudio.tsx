@@ -1,17 +1,20 @@
 import clsx from 'clsx'
-import { BadgeCheck, Check, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
+import { BadgeCheck, CalendarDays, Check, Hourglass, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button, Card, PageHeader } from '@/components/ui'
+import { Button, Card, PageHeader, Spinner } from '@/components/ui'
+import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useTheme } from '@/lib/ThemeProvider'
 import { useSettingsTab, useTabDirty } from './settings/tabContext'
-import { contrast, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
+import { contrast, FONT_CHOICES, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
+import LoadingPanel from './brand/LoadingPanel'
+import OccasionsPanel from './brand/OccasionsPanel'
 import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
 import { dialogs } from '@/lib/dialogs'
 
-type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape'
+type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading'
 
 const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] = [
   { id: 'presets', icon: Sparkles },
@@ -22,15 +25,24 @@ const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] =
   { id: 'banners', icon: LayoutTemplate },
   { id: 'background', icon: Shapes },
   { id: 'shape', icon: Droplets },
+  { id: 'occasions', icon: CalendarDays },
+  { id: 'loading', icon: Hourglass },
 ]
 
 const PATTERNS: PatternType[] = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom']
 
-/** Brand Studio: live, previewable control of the platform's visual identity. */
+/** Brand Studio: live, previewable control of the platform's visual identity. It edits the saved theme, never the occasion look that may be laid over it today. */
 export default function BrandStudio() {
+  const base = useGet<{ data: Theme; meta: { base: Theme } }>('/public/theme', { base: 1 }, { staleTime: 0 })
+  if (!base.data) return <Spinner />
+  return <Studio published={mergeTheme(base.data.meta.base)} reloadBase={async () => mergeTheme((await base.refetch()).data?.meta.base)} />
+}
+
+function Studio({ published, reloadBase }: { published: Theme; reloadBase: () => Promise<Theme> }) {
   const { t, i18n } = useTranslation()
-  const { theme: published, setPreview, refresh } = useTheme()
+  const { setPreview, refresh } = useTheme()
   const [draft, setDraft] = useState<Theme>(published)
+  const [trying, setTrying] = useState<string | null>(null)
   const [section, setSection] = useState<Section>('presets')
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
@@ -41,9 +53,11 @@ export default function BrandStudio() {
   const { active } = useSettingsTab()
   useTabDirty(dirty)
   useEffect(() => {
-    // Inside the settings workspace the draft is only previewed while this tab is visible.
-    setPreview(active ? draft : null)
-  }, [draft, active, setPreview])
+    // Inside the settings workspace the draft is only previewed while this tab is visible; an occasion being tried is laid over it.
+    const o = draft.occasions.find((x) => x.id === trying)
+    const shown = o ? mergeTheme({ ...draft, colors: { ...draft.colors, ...o.patch.colors }, buttons: { ...draft.buttons, ...o.patch.buttons }, banners: { ...draft.banners, ...o.patch.banners }, pattern: { ...draft.pattern, ...o.patch.pattern }, loading: { ...draft.loading, ...o.patch.loading } }) : draft
+    setPreview(active ? shown : null)
+  }, [draft, active, setPreview, trying])
   useEffect(() => () => setPreview(null), [setPreview])
 
   const update = <K extends keyof Theme>(key: K, patch: Partial<Theme[K]>) =>
@@ -65,8 +79,8 @@ export default function BrandStudio() {
     setSaving(true)
     setNotice(null)
     try {
-      const { data } = await api.put('/admin/theme', draft)
-      setDraft(mergeTheme(data.data))
+      await api.put('/admin/theme', draft)
+      setDraft(await reloadBase())
       await refresh()
       setNotice({ ok: true, text: t('admin.brand.published') })
     } catch (e) {
@@ -78,8 +92,8 @@ export default function BrandStudio() {
 
   const reset = async () => {
     if (!await dialogs.confirm(t('admin.brand.confirmReset'))) return
-    const { data } = await api.post('/admin/theme/reset')
-    setDraft(mergeTheme(data.data))
+    await api.post('/admin/theme/reset')
+    setDraft(await reloadBase())
     await refresh()
     setNotice({ ok: true, text: t('admin.brand.resetDone') })
   }
@@ -108,13 +122,13 @@ export default function BrandStudio() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div className="space-y-5">
           {/* Section rail */}
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
             {SECTIONS.map(({ id, icon: Icon }) => (
               <button key={id} onClick={() => setSection(id)}
                 className={clsx('flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-bold transition',
                   section === id ? 'border-transparent bg-navy-900 text-gold-300 shadow-glass' : 'border-navy-100 bg-white text-slate-500 hover:border-gold-300 hover:text-navy-900')}>
                 <Icon className="size-5" />
-                <span className="text-center leading-tight">{t(`admin.brand.sections.${id}`)}</span>
+                <span className="text-center leading-tight">{t(id === 'occasions' || id === 'loading' ? `apa.${id}` : `admin.brand.sections.${id}`)}</span>
               </button>
             ))}
           </div>
@@ -177,6 +191,13 @@ export default function BrandStudio() {
                   <div key={script} className="space-y-3 rounded-2xl border border-navy-100 p-4">
                     <div className="text-sm font-bold text-navy-900">{t(`admin.brand.typography.${script}`)}</div>
                     <label className="block">
+                      <span className="mb-1 block text-xs font-semibold text-slate-500">{t('apa.fontPick')}</span>
+                      <select className="input" value={FONT_CHOICES.some((f) => f.script === (script === 'arabic' ? 'ar' : 'en') && f.family === draft.typography[`${script}_family`]) ? draft.typography[`${script}_family`] : ''} onChange={(e) => e.target.value && update('typography', { [`${script}_family`]: e.target.value, [`${script}_font_url`]: null })}>
+                        <option value="">{t('apa.fontCustom')}</option>
+                        {FONT_CHOICES.filter((f) => f.script === (script === 'arabic' ? 'ar' : 'en')).map((f) => <option key={f.family} value={f.family}>{f.family}{f.note ? ` (${t('apa.bundled')})` : ''}</option>)}
+                      </select>
+                    </label>
+                    <label className="block">
                       <span className="mb-1 block text-xs font-semibold text-slate-500">{t('admin.brand.typography.family')}</span>
                       <input dir="ltr" className="input" value={draft.typography[`${script}_family`]} onChange={(e) => update('typography', { [`${script}_family`]: e.target.value.replace(/[^\p{L}\p{N} -]/gu, '') })} />
                     </label>
@@ -187,10 +208,23 @@ export default function BrandStudio() {
                     </div>
                   </div>
                 ))}
+                <p className="text-xs text-slate-400">{t('apa.fontNote')}</p>
                 <Field label={t('admin.brand.typography.headingWeight')}>
                   <Segmented value={String(draft.typography.heading_weight)} onChange={(v) => update('typography', { heading_weight: Number(v) })}
                     options={['500', '600', '700', '800', '900'].map((w) => ({ id: w, label: <span style={{ fontWeight: Number(w) }}>{w}</span> }))} />
                 </Field>
+              </Panel>
+            )}
+
+            {section === 'occasions' && (
+              <Panel title={t('apa.occasions')}>
+                <OccasionsPanel draft={draft} trying={trying} onTry={setTrying} onChange={(occasions) => setDraft((d) => ({ ...d, occasions }))} />
+              </Panel>
+            )}
+
+            {section === 'loading' && (
+              <Panel title={t('apa.loading')}>
+                <LoadingPanel draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, loading: { ...d.loading, ...patch } }))} />
               </Panel>
             )}
 

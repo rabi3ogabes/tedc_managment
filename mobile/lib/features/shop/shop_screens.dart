@@ -93,7 +93,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             Row(children: [
               Expanded(child: TextField(controller: _code, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: context.tr('shop.code')))),
               const SizedBox(width: 8),
-              OutlinedButton(onPressed: _busy ? null : () => _call(() => ref.read(apiProvider).post('/me/cart/discount', {'code': _code.text.trim().isEmpty ? null : _code.text.trim()})), child: Text(context.tr('shop.apply'))),
+              OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _busy ? null : () => _call(() => ref.read(apiProvider).post('/me/cart/discount', {'code': _code.text.trim().isEmpty ? null : _code.text.trim()})), child: Text(context.tr('shop.apply'))),
             ]),
             const SizedBox(height: 16),
             _row(context, context.tr('shop.subtotal'), _money(context, c.number('subtotal'))),
@@ -170,7 +170,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         Row(children: [
           Expanded(child: TextField(controller: _code, textCapitalization: TextCapitalization.characters, textDirection: TextDirection.ltr, decoration: const InputDecoration(hintText: 'XXXX-XXXX-XXXX'))),
           const SizedBox(width: 8),
-          FilledButton(onPressed: _busy || _code.text.trim().isEmpty ? null : _redeem, child: Text(context.tr('shop.use'))),
+          FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _busy || _code.text.trim().isEmpty ? null : _redeem, child: Text(context.tr('shop.use'))),
         ]),
         AsyncView(
           value: vouchers,

@@ -61,13 +61,28 @@ class CommunitiesScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 for (final s in other)
                   Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.groups_outlined, color: AppColors.gold500),
-                      title: Text(_title(context, s), style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: Text(s.str('my_status') == 'pending' ? context.tr('soc.pending') : (context.s.isArabic ? s.str('description_ar') : s.str('description_en')), maxLines: 2, overflow: TextOverflow.ellipsis),
-                      trailing: s.str('my_status') == 'pending' || s.str('join_policy') == 'invite'
-                          ? null
-                          : OutlinedButton(onPressed: () => _join(context, ref, s), child: Text(context.tr(s.str('join_policy') == 'request' ? 'soc.request' : 'soc.join'))),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Icon(Icons.groups_outlined, color: AppColors.gold500),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(_title(context, s), style: const TextStyle(fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 4),
+                              Text(s.str('my_status') == 'pending' ? context.tr('soc.pending') : (context.s.isArabic ? s.str('description_ar') : s.str('description_en')), maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+                            ]),
+                          ),
+                        ]),
+                        if (s.str('my_status') != 'pending' && s.str('join_policy') != 'invite') ...[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: OutlinedButton(onPressed: () => _join(context, ref, s), child: Text(context.tr(s.str('join_policy') == 'request' ? 'soc.request' : 'soc.join'))),
+                          ),
+                        ],
+                      ]),
                     ),
                   ),
               ],

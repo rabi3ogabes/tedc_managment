@@ -357,9 +357,9 @@ class _ServerSheetState extends State<_ServerSheet> {
             child: Text(s.t('server.reset')),
           ),
           const Spacer(),
-          OutlinedButton(onPressed: _testing ? null : _test, child: Text(s.t('server.test'))),
+          OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _testing ? null : _test, child: Text(s.t('server.test'))),
           const SizedBox(width: 8),
-          FilledButton(
+          FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 
             onPressed: () async {
               await AppConfig.setServer(_url.text);
               if (context.mounted) Navigator.pop(context, true);

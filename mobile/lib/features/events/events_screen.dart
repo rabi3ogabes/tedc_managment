@@ -95,9 +95,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                             if (e.str('my_rsvp') == 'waitlisted') Chip(label: Text(s.t('events.waitlisted'))),
                             const Spacer(),
                             if (e.str('my_rsvp') == 'going' || e.str('my_rsvp') == 'waitlisted')
-                              OutlinedButton(onPressed: () => _rsvp(e, false), child: Text(s.t('events.cancel')))
+                              OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => _rsvp(e, false), child: Text(s.t('events.cancel')))
                             else
-                              FilledButton(onPressed: () => _rsvp(e, true), child: Text(s.t('events.register'))),
+                              FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => _rsvp(e, true), child: Text(s.t('events.register'))),
                           ])
                         else if (e.obj('event')?.str('registration_url').isNotEmpty ?? false)
                           Align(alignment: AlignmentDirectional.centerEnd, child: FilledButton(onPressed: () => _open(e.obj('event')!.str('registration_url')), child: Text(s.t('events.externalRegister')))),

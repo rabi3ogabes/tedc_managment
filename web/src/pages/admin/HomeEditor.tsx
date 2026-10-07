@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ArrowDown, ArrowUp, Eye, EyeOff, Globe, History, Monitor, Plus, Save, Smartphone, Trash2, Upload } from 'lucide-react'
+import { ArrowDown, ArrowUp, Eye, GripVertical, LayoutTemplate, EyeOff, Globe, History, Monitor, Plus, Save, Smartphone, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { dialogs } from '@/lib/dialogs'
 import { toast } from '@/lib/toast'
 import BlockForm from './cms/BlockForm'
 import BlockPreview from './cms/BlockPreview'
@@ -19,7 +20,7 @@ const withKey = (b: any) => ({ ...b, _k: b.id ?? `n${++seq}` })
 
 /** The homepage (and About) as blocks: edit a working copy, check it live on desktop and phone in both languages, publish a version, restore an old one. */
 export default function HomeEditor() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [page, setPage] = useState<'home' | 'about'>('home')
   const [tab, setTab] = useState<'blocks' | 'stats'>('blocks')
   const res = useGet<{ data: any[]; meta: { published_version: number | null } }>(`/admin/pages/${page}/blocks`, undefined, { staleTime: 0 })
@@ -47,6 +48,15 @@ export default function HomeEditor() {
   const dataFor = (type: string) => preview.data?.data.blocks.find((b: any) => b.type === type)?.data
   const edit = (patch: (b: any[]) => any[]) => { setBlocks((b) => patch(b ?? [])); setDirty(true) }
   const move = (i: number, d: number) => edit((b) => { const n = [...b]; const j = i + d; if (j < 0 || j >= n.length) return n; [n[i], n[j]] = [n[j], n[i]]; return n })
+  const moveTo = (from: number, to: number) => edit((b) => { if (from === to || from < 0 || to < 0 || from >= b.length || to >= b.length) return b; const n = [...b]; const [x] = n.splice(from, 1); n.splice(to, 0, x); return n })
+  const [layouts, setLayouts] = useState<any[] | null>(null)
+  const [dragFrom, setDragFrom] = useState<number | null>(null)
+  const openLayouts = async () => { try { const { data } = await api.get(`/admin/pages/${page}/layouts`); setLayouts(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
+  const applyLayout = async (l: any) => {
+    if ((blocks?.length ?? 0) > 0 && !await dialogs.confirm(String(t('apa.confirmApply')))) return
+    edit(() => l.blocks.map((b: any) => withKey({ ...b, id: undefined })))
+    setSel(null); setLayouts(null); toast(String(t('apa.applied')))
+  }
   const upd = (k: string, patch: any) => edit((b) => b.map((x) => (x._k === k ? { ...x, ...patch } : x)))
   const add = (type: string) => { const nb = withKey({ type, config: {}, is_visible: true, audience: 'public', starts_at: null, ends_at: null }); edit((b) => [...b, nb]); setSel(nb._k) }
   const strip = (b: any) => { const { _k, sort_order: _s, ...rest } = b; return rest }
@@ -73,6 +83,7 @@ export default function HomeEditor() {
       <PageHeader title={t('comm.home.title')} actions={tab === 'blocks' && (
         <div className="flex flex-wrap items-center gap-2">
           {dirty && <Badge color="gold">{t('comm.home.unsaved')}</Badge>}
+          {page === 'home' && <Button variant="outline" icon={<LayoutTemplate className="size-4" />} onClick={openLayouts}>{t('apa.layouts')}</Button>}
           <Button variant="outline" icon={<History className="size-4" />} onClick={openVersions}>{t('comm.home.versions')}</Button>
           <Button variant="outline" icon={<Save className="size-4" />} loading={busy} disabled={!dirty} onClick={save}>{t('comm.home.save')}</Button>
           <Button variant="gold" icon={<Upload className="size-4" />} onClick={() => setPublishing(true)}>{t('comm.home.publish')}</Button>
@@ -91,7 +102,8 @@ export default function HomeEditor() {
             <Card padded={false}>
               <ul className="divide-y divide-navy-50">
                 {blocks.map((b, i) => (
-                  <li key={b._k} className={`flex items-center gap-1 p-2 ${sel === b._k ? 'bg-gold-50' : ''}`}>
+                  <li key={b._k} draggable onDragStart={() => setDragFrom(i)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (dragFrom !== null) moveTo(dragFrom, i); setDragFrom(null) }} onDragEnd={() => setDragFrom(null)} className={`flex items-center gap-1 p-2 ${sel === b._k ? 'bg-gold-50' : ''} ${dragFrom === i ? 'opacity-50' : ''}`}>
+                    <GripVertical className="size-4 shrink-0 cursor-grab text-slate-300" aria-hidden="true" />
                     <button className="min-w-0 flex-1 truncate p-1 text-start text-sm font-semibold text-navy-900" onClick={() => setSel(sel === b._k ? null : b._k)}>{t(`comm.home.types.${b.type}`)}{!b.is_visible && <span className="ms-2 text-xs font-normal text-slate-400">({t('comm.home.hidden')})</span>}{b.audience === 'signed_in' && <span className="ms-2 text-xs font-normal text-sky-600">🔒</span>}</button>
                     <button className="p-1 text-slate-400 hover:text-navy-900" onClick={() => move(i, -1)} aria-label={String(t('comm.home.moveUp'))}><ArrowUp className="size-4" /></button>
                     <button className="p-1 text-slate-400 hover:text-navy-900" onClick={() => move(i, 1)} aria-label={String(t('comm.home.moveDown'))}><ArrowDown className="size-4" /></button>
@@ -148,6 +160,21 @@ export default function HomeEditor() {
           {versions?.map((v) => <li key={v.id} className="flex items-center justify-between gap-3 py-2"><div><b>v{v.version}</b>{v.version === live && <Badge color="green" className="ms-2">{t('comm.home.current')}</Badge>}<div className="text-xs text-slate-500">{v.note} · {fmt.date(v.created_at, { dateStyle: 'medium', timeStyle: 'short' } as any)}{v.publisher ? ` · ${v.publisher.name_ar || v.publisher.name}` : ''}</div></div><Button size="sm" variant="outline" onClick={() => restore(v.version)}>{t('comm.home.restore')}</Button></li>)}
           {!versions?.length && <li className="py-4"><Empty /></li>}
         </ul>
+      </Modal>
+      <Modal open={!!layouts} onClose={() => setLayouts(null)} title={t('apa.layouts')} wide>
+        <p className="mb-4 text-sm text-slate-500">{t('apa.layoutsHint')}</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {layouts?.map((l) => (
+            <div key={l.id} className="flex flex-col justify-between rounded-2xl border border-navy-100 bg-white p-4">
+              <div>
+                <b className="text-navy-900">{i18n.language === 'en' ? l.name_en : l.name_ar}</b>
+                <p className="mt-1 text-xs leading-6 text-slate-500">{i18n.language === 'en' ? l.description_en : l.description_ar}</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">{l.blocks.map((b: any, i: number) => <span key={i} className="rounded-md bg-navy-100/70 px-2 py-0.5 text-[11px] font-semibold text-navy-800">{t(`apa.blocks.${b.type}`)}</span>)}</div>
+              </div>
+              <div className="mt-4 flex justify-end"><Button size="sm" variant="gold" onClick={() => applyLayout(l)}>{t('apa.apply')}</Button></div>
+            </div>
+          ))}
+        </div>
       </Modal>
     </>
   )

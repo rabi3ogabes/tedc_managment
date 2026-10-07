@@ -53,3 +53,4 @@ Switch on the optional features first (Settings → Features): payments, gamific
 | Help centre | Help | 31 articles for every role, reader feedback |
 
 Not sampled because they need real files or an outside system: SCORM/H5P packages and LTI tools (upload one in Content standards), Teams meetings (connect Microsoft 365), SSO sign-in, push delivery to real devices.
+| Appearance | Settings → Appearance (Brand Studio), Home editor → Layouts | occasion themes (Ramadan, Eid, National Day, Teachers' Day, Sports Day, Graduation) with dates, a chosen loading page and font, and seven ready home layouts |

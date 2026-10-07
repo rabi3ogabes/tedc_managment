@@ -3,7 +3,7 @@ import SessionGuard from '@/components/SessionGuard'
 import { TopProgress } from '@/components/ui/TopProgress'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import PublicLayout from '@/components/public/PublicLayout'
-import { Spinner } from '@/components/ui'
+import LoadingScreen from '@/components/ui/LoadingScreen'
 import { useAuth } from '@/lib/auth'
 import Home from '@/pages/public/Home'
 
@@ -131,7 +131,7 @@ const Notifications = lazy(() => import('@/pages/portal/Notifications'))
 function RequireAuth({ children, permission }: { children: ReactNode; permission?: string }) {
   const { user, loading, can } = useAuth()
   const location = useLocation()
-  if (loading) return <Spinner className="min-h-screen" />
+  if (loading) return <LoadingScreen />
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
   if (permission && !permission.split('|').some((x) => can(x))) return <Navigate to="/portal" replace />
   return <>{children}</>
@@ -150,7 +150,7 @@ export default function App() {
     <>
     <TopProgress />
     <SessionGuard />
-    <Suspense fallback={<Spinner className="min-h-screen" />}>
+    <Suspense fallback={<LoadingScreen />}>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route index element={<Home />} />

@@ -17,7 +17,18 @@ export type Theme = {
   shape: { card_radius: number; glass_blur: number }
   identity: { name_ar: string; name_en: string; logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
   typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
+  /** The page shown while the application loads. */
+  loading: { style: LoadingStyle; message_ar: string; message_en: string; background: string | null; accent: string | null; show_name: boolean }
+  /** Scheduled looks (Ramadan, Eid, National Day…): the one in force is laid over the theme by the server. */
+  occasions: Occasion[]
+  active_occasion?: { id: string; name_ar: string; name_en: string } | null
 }
+
+export type LoadingStyle = 'emblem' | 'bar' | 'dots' | 'pulse' | 'crescent'
+
+export type OccasionPatch = Partial<Pick<Theme, 'colors' | 'buttons' | 'banners' | 'pattern' | 'shape' | 'loading' | 'typography'>>
+
+export type Occasion = { id: string; occasion?: string | null; name_ar: string; name_en: string; enabled: boolean; recurring: boolean; starts_on: string; ends_on: string; patch: OccasionPatch }
 
 /**
  * Official files dropped into web/public (see public/brand/README.md and public/fonts/README.md).
@@ -47,6 +58,31 @@ export const DEFAULT_THEME: Theme = {
   shape: { card_radius: 14, glass_blur: 18 },
   identity: { name_ar: 'مركز التدريب والتطوير', name_en: 'Training & Development Center', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
   typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
+  loading: { style: 'emblem', message_ar: 'جارٍ التحميل…', message_en: 'Loading…', background: null, accent: null, show_name: true },
+  occasions: [],
+  active_occasion: null,
+}
+
+/** Typefaces an administrator can pick without uploading a file (served by Google Fonts when chosen; Qatar Sans and Tajawal are already bundled). */
+export const FONT_CHOICES: { script: 'ar' | 'en'; family: string; note?: string }[] = [
+  { script: 'ar', family: 'Qatar Sans', note: 'bundled' }, { script: 'ar', family: 'Tajawal', note: 'bundled' }, { script: 'ar', family: 'Cairo' }, { script: 'ar', family: 'IBM Plex Sans Arabic' },
+  { script: 'ar', family: 'Noto Kufi Arabic' }, { script: 'ar', family: 'Noto Naskh Arabic' }, { script: 'ar', family: 'Almarai' }, { script: 'ar', family: 'Readex Pro' },
+  { script: 'ar', family: 'El Messiri' }, { script: 'ar', family: 'Amiri' }, { script: 'ar', family: 'Changa' }, { script: 'ar', family: 'Reem Kufi' },
+  { script: 'en', family: 'Qatar Sans', note: 'bundled' }, { script: 'en', family: 'Inter', note: 'bundled' }, { script: 'en', family: 'Poppins' }, { script: 'en', family: 'Montserrat' },
+  { script: 'en', family: 'DM Sans' }, { script: 'en', family: 'Playfair Display' }, { script: 'en', family: 'Lora' }, { script: 'en', family: 'Merriweather' }, { script: 'en', family: 'Source Sans 3' },
+]
+const BUNDLED_FONTS = ['Qatar Sans', 'Tajawal', 'Inter', 'El Messiri', 'Playfair Display']
+
+/** Loads a chosen Google font once (only the listed families, never an arbitrary address). */
+function ensureGoogleFont(family: string) {
+  if (!FONT_CHOICES.some((f) => f.family === family) || BUNDLED_FONTS.includes(family)) return
+  const id = `tedc-gf-${family.replace(/\s+/g, '-').toLowerCase()}`
+  if (document.getElementById(id)) return
+  const link = document.createElement('link')
+  link.id = id
+  link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;500;600;700;800&display=swap`
+  document.head.appendChild(link)
 }
 
 export type Preset = { id: string; name: { ar: string; en: string }; colors: Theme['colors']; accent_text: string; overlay: string; pattern: PatternType }
@@ -286,6 +322,19 @@ export function customPatternTile(p: Theme['pattern']): Promise<string> {
   return job
 }
 
+/** The loading page's look is saved for the next visit: the first paint happens before any request can answer. */
+function rememberSplash(theme: Theme) {
+  const l = theme.loading
+  const root = document.documentElement
+  root.style.setProperty('--loading-bg', l.background ?? theme.colors.background)
+  root.style.setProperty('--loading-accent', l.accent ?? theme.colors.primary)
+  try {
+    localStorage.setItem('tedc.splash', JSON.stringify({ style: l.style, message_ar: l.message_ar, message_en: l.message_en, background: l.background, accent: l.accent ?? theme.colors.primary, bg_default: theme.colors.background, name_ar: theme.identity.name_ar, name_en: theme.identity.name_en, show_name: l.show_name }))
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export function applyTheme(theme: Theme, lang: string) {
   const root = document.documentElement
   Object.entries(themeVariables(theme)).forEach(([k, v]) => root.style.setProperty(k, v))
@@ -293,6 +342,9 @@ export function applyTheme(theme: Theme, lang: string) {
   root.style.setProperty('--font-sans', fonts.sans)
   root.style.setProperty('--font-display', fonts.display)
   registerFonts(theme)
+  ensureGoogleFont(theme.typography.arabic_family)
+  ensureGoogleFont(theme.typography.latin_family)
+  rememberSplash(theme)
   // An uploaded pattern is processed (opacity, tint) and then replaces the plain image.
   if (theme.pattern.type === 'custom' && theme.pattern.image) void customPatternTile(theme.pattern).then((tile) => root.style.setProperty('--pattern-image', tile))
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.colors.primary)
@@ -315,5 +367,8 @@ export function mergeTheme(input?: Partial<Theme> | null): Theme {
       name_en: input.identity?.name_en?.trim() || DEFAULT_THEME.identity.name_en,
     },
     typography: { ...DEFAULT_THEME.typography, ...input.typography },
+    loading: { ...DEFAULT_THEME.loading, ...input.loading },
+    occasions: Array.isArray(input.occasions) ? input.occasions : [],
+    active_occasion: input.active_occasion ?? null,
   }
 }

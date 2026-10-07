@@ -12,6 +12,7 @@ use Database\Seeders\Samples\SampleMore;
 use Database\Seeders\Samples\SampleOps;
 use Database\Seeders\Samples\SamplePlanning;
 use Database\Seeders\Samples\SampleSocial;
+use Database\Seeders\Samples\SampleTheme;
 use Illuminate\Database\Seeder;
 
 /**
@@ -33,7 +34,7 @@ class DemoFeatureSamplesSeeder extends Seeder
         }
         $c = $this->context();
         $c->roleAccounts();
-        foreach ([SamplePlanning::class, SampleOps::class, SampleLearning::class, SampleComms::class, SampleAdmin::class, SampleMore::class, SampleCommerce::class] as $class) {
+        foreach ([SamplePlanning::class, SampleOps::class, SampleLearning::class, SampleComms::class, SampleAdmin::class, SampleMore::class, SampleCommerce::class, SampleTheme::class] as $class) {
             $section = app()->make($class, ['c' => $c]);
             $section->run();
             $this->problems = array_merge($this->problems, $section->problems);

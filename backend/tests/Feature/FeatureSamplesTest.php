@@ -17,6 +17,7 @@ use Database\Seeders\DemoTestAccountsSeeder;
 use Database\Seeders\HelpArticlesSeeder;
 use Database\Seeders\Samples\SampleContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class FeatureSamplesTest extends TestCase
@@ -78,5 +79,30 @@ class FeatureSamplesTest extends TestCase
             $this->markTestSkipped('This environment allows demonstration data.');
         }
         $this->assertSame(0, DB::table('spaces')->count());
+    }
+
+    /** With sample data in every table, no list or summary screen may fail on the server: every GET endpoint without parameters, as an administrator and as a trainee. */
+    public function test_no_listing_endpoint_fails_with_sample_data_present(): void
+    {
+        $this->demo();
+        $admin = User::where('email', 'admin@tedc.qa')->firstOrFail();
+        foreach (['payments', 'gamification', 'plc', 'forums'] as $flag) {
+            $this->asUser($admin)->putJson("/api/v1/admin/features/{$flag}", ['enabled' => true, 'reason' => 'sample test'])->assertOk();
+        }
+        $skip = ['system/', 'public/health', 'auth/sso', 'realtime/stream', 'me/privacy/export', 'integrations/', 'ministry/', 'xapi', 'lti/', 'content/', 'files/', 'payments/return', 'payments/fake'];
+        $uris = collect(Route::getRoutes()->getRoutes())->filter(fn ($r) => in_array('GET', $r->methods(), true) && str_starts_with($r->uri(), 'api/v1/') && ! str_contains($r->uri(), '{'))
+            ->map(fn ($r) => $r->uri())->reject(fn ($u) => collect($skip)->contains(fn ($x) => str_contains($u, $x)))->unique()->values();
+        $this->assertGreaterThan(150, $uris->count());
+        $failed = [];
+        foreach (['admin@tedc.qa', 'trainee1@tedc.qa', 'trainer@tedc.qa'] as $email) {
+            $user = User::where('email', $email)->firstOrFail();
+            foreach ($uris as $uri) {
+                $code = $this->asUser($user)->get('/'.$uri, ['Accept' => 'application/json'])->getStatusCode();
+                if ($code >= 500) {
+                    $failed[] = "{$email} {$uri} → {$code}";
+                }
+            }
+        }
+        $this->assertSame([], $failed);
     }
 }

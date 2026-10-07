@@ -1140,6 +1140,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('notifications/deliveries/export', [NotificationDeliveriesController::class, 'export']);
             });
             Route::middleware('permission:cms.manage')->group(function () {
+                Route::get('pages/{page}/layouts', [CmsController::class, 'layouts']);
                 Route::get('pages/{page}/blocks', [CmsController::class, 'blocks']);
                 Route::put('pages/{page}/blocks', [CmsController::class, 'saveBlocks']);
                 Route::get('pages/{page}/preview', [CmsController::class, 'preview']);
@@ -1259,6 +1260,9 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:settings.manage')->group(function () {
                 Route::put('theme', [ThemeController::class, 'update']);
                 Route::post('theme/reset', [ThemeController::class, 'reset']);
+                Route::get('theme/occasions/catalog', [ThemeController::class, 'catalog']);
+                Route::get('theme/occasions/standard', [ThemeController::class, 'standardList']);
+                Route::post('theme/occasions/standard', [ThemeController::class, 'standardOccasions']);
                 Route::post('theme/assets', [ThemeController::class, 'upload']);
 
                 // Labels, security and attendance rules

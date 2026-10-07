@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Services\FileStorage;
+use App\Services\ThemeOccasions;
 use App\Services\ThemeService;
 use App\Support\SvgGuard;
 use Illuminate\Http\JsonResponse;
@@ -18,9 +19,31 @@ class ThemeController extends Controller
     public function __construct(private readonly ThemeService $themes) {}
 
     /** Public: the active theme, consumed by the website, dashboard and portal. */
-    public function show(): JsonResponse
+    public function show(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->themes->get()]);
+        // `base` is the saved theme without an occasion laid over it: the Brand Studio edits that one.
+        return response()->json(['data' => $this->themes->get(), 'meta' => ['base' => $request->boolean('base') ? $this->themes->base() : null]]);
+    }
+
+    /** The ready-made occasion looks, for the Brand Studio's occasion list. */
+    public function catalog(): JsonResponse
+    {
+        return response()->json(['data' => collect(ThemeOccasions::catalog())->map(fn ($o, $id) => ['id' => $id] + $o)->values()]);
+    }
+
+    /** The standard occasions of a year as a list (nothing is saved): the Brand Studio adds the missing ones to its draft. */
+    public function standardList(Request $request): JsonResponse
+    {
+        $d = $request->validate(['year' => ['nullable', 'integer', 'between:2024,2040']]);
+
+        return response()->json(['data' => ThemeOccasions::standard((int) ($d['year'] ?? now()->year))]);
+    }
+
+    public function standardOccasions(Request $request): JsonResponse
+    {
+        $d = $request->validate(['year' => ['nullable', 'integer', 'between:2024,2040']]);
+
+        return response()->json(['data' => $this->themes->addStandardOccasions((int) ($d['year'] ?? now()->year), $this->user())]);
     }
 
     public function update(Request $request): JsonResponse
@@ -73,6 +96,24 @@ class ThemeController extends Controller
             'typography.arabic_font_url' => $asset,
             'typography.latin_font_url' => $asset,
             'typography.heading_weight' => ['sometimes', 'integer', Rule::in([500, 600, 700, 800, 900])],
+            'loading' => ['sometimes', 'array'],
+            'loading.style' => ['required_with:loading', Rule::in(['emblem', 'bar', 'dots', 'pulse', 'crescent'])],
+            'loading.message_ar' => ['nullable', 'string', 'max:120'],
+            'loading.message_en' => ['nullable', 'string', 'max:120'],
+            'loading.background' => ['nullable', self::HEX],
+            'loading.accent' => ['nullable', self::HEX],
+            'loading.show_name' => ['boolean'],
+            'occasions' => ['sometimes', 'array', 'max:60'],
+            'occasions.*.id' => ['required', 'string', 'max:60'],
+            'occasions.*.name_ar' => ['required', 'string', 'max:120'],
+            'occasions.*.name_en' => ['required', 'string', 'max:120'],
+            'occasions.*.enabled' => ['boolean'],
+            'occasions.*.recurring' => ['boolean'],
+            'occasions.*.starts_on' => ['required', 'date_format:Y-m-d'],
+            'occasions.*.ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:occasions.*.starts_on'],
+            'occasions.*.patch' => ['sometimes', 'array'],
+            'occasions.*.patch.colors.*' => ['nullable', self::HEX],
+            'occasions.*.patch.loading.style' => ['nullable', Rule::in(['emblem', 'bar', 'dots', 'pulse', 'crescent'])],
         ]);
 
         return response()->json(['data' => $this->themes->update($data, $this->user())]);

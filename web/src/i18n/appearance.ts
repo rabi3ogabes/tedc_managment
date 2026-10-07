@@ -1,0 +1,33 @@
+/** Appearance: occasion themes, the loading page, fonts and the home layouts (Brand Studio and Home editor). */
+export const apaAr = { apa: {
+  occasions: 'المناسبات', loading: 'صفحة التحميل',
+  occHint: 'اضبط مظهرًا خاصًا لرمضان والأعياد واليوم الوطني ويوم المعلم وغيرها؛ يُطبَّق تلقائيًا في الفترة المحددة ثم يعود المظهر الأصلي.',
+  occActive: 'المناسبة الجارية الآن', occNone: 'لا مناسبة جارية؛ يظهر المظهر الأساسي.',
+  addStandard: 'إضافة المناسبات القياسية', year: 'السنة', addCustom: 'مناسبة جديدة', added: 'أُضيفت {{n}} مناسبة إلى المسودة. اضغط «نشر» للحفظ.', nothingNew: 'كل المناسبات القياسية لهذه السنة موجودة.',
+  hijriNote: 'مواعيد رمضان والعيدين تقريبية بحسب التقويم الفلكي؛ أكّدها بحسب إعلان الجهة الرسمية.',
+  nameAr: 'الاسم بالعربية', nameEn: 'الاسم بالإنجليزية', from: 'من', to: 'إلى', recurring: 'تتكرر كل سنة', enabled: 'مفعّلة', look: 'المظهر', lookFrom: 'خذ المظهر من', tryIt: 'جرّبها الآن', stopTry: 'إيقاف التجربة', trying: 'تجربة مباشرة — لم تُحفظ بعد',
+  remove: 'حذف', noOcc: 'لا مناسبات بعد. أضف المناسبات القياسية للبدء.', status: { on: 'جارية', soon: 'قادمة', past: 'منتهية', off: 'معطّلة' }, loadingMsg: 'رسالة التحميل',
+  presetNames: { ramadan: 'رمضان', eid_fitr: 'عيد الفطر', eid_adha: 'عيد الأضحى', national_day: 'اليوم الوطني', teachers_day: 'يوم المعلم', sports_day: 'اليوم الرياضي', graduation: 'التخرج' },
+  loadingHint: 'الصفحة التي تظهر أثناء فتح التطبيق وتحميل الصفحات. تُحفظ إعداداتها في المتصفح لتظهر فورًا في الزيارة التالية.',
+  style: 'الشكل', styles: { emblem: 'الشعار بحلقة دوّارة', bar: 'شريط تقدّم', dots: 'نقاط متحركة', pulse: 'نبض هادئ', crescent: 'هلال' },
+  messageAr: 'الرسالة بالعربية', messageEn: 'الرسالة بالإنجليزية', background: 'لون الخلفية', accent: 'لون التمييز', followTheme: 'يتبع ألوان المظهر', showName: 'إظهار اسم المركز', previewLang: 'لغة المعاينة',
+  fontPick: 'اختر خطًا جاهزًا', fontCustom: 'خط آخر (اكتب الاسم أو ارفع ملفًا)', fontNote: 'تُحمَّل الخطوط الجاهزة من Google Fonts عند اختيارها؛ الخطوط المضمّنة لا تحتاج اتصالًا خارجيًا.', bundled: 'مضمّن',
+  layouts: 'تخطيطات جاهزة', layoutsHint: 'اختر تخطيطًا ليحلّ محل المسودة الحالية. يمكنك تعديله ثم نشره، ولا يتغير الموقع قبل النشر.', apply: 'استخدام التخطيط', applied: 'حُمّل التخطيط في المسودة. عدّله ثم انشره.', confirmApply: 'سيحلّ هذا التخطيط محل المسودة الحالية. المتابعة؟',
+  blocks: { hero_slider: 'البطل', stats: 'الأرقام', featured_programs: 'البرامج', news: 'الأخبار', events: 'الفعاليات', rich_text: 'نص', cta: 'دعوة', logos: 'شعارات', faq: 'أسئلة', video: 'فيديو', custom_html_safe: 'HTML' },
+} }
+export const apaEn = { apa: {
+  occasions: 'Occasions', loading: 'Loading page',
+  occHint: 'Set a special look for Ramadan, the Eids, National Day, Teachers\' Day and more; it applies by itself during the period you set, then the normal look returns.',
+  occActive: 'Occasion in force now', occNone: 'No occasion is on; the base look is showing.',
+  addStandard: 'Add the standard occasions', year: 'Year', addCustom: 'New occasion', added: '{{n}} occasion(s) added to the draft. Press Publish to save.', nothingNew: 'All the standard occasions of this year are already there.',
+  hijriNote: 'The dates of Ramadan and the two Eids follow the astronomical calendar and are approximate; confirm them against the official announcement.',
+  nameAr: 'Name in Arabic', nameEn: 'Name in English', from: 'From', to: 'To', recurring: 'Repeats every year', enabled: 'On', look: 'Look', lookFrom: 'Take the look from', tryIt: 'Try it now', stopTry: 'Stop trying', trying: 'Live trial — not saved yet',
+  remove: 'Delete', noOcc: 'No occasions yet. Add the standard ones to begin.', status: { on: 'In force', soon: 'Coming', past: 'Over', off: 'Off' }, loadingMsg: 'Loading message',
+  presetNames: { ramadan: 'Ramadan', eid_fitr: 'Eid al-Fitr', eid_adha: 'Eid al-Adha', national_day: 'National Day', teachers_day: "Teachers' Day", sports_day: 'Sports Day', graduation: 'Graduation' },
+  loadingHint: 'The page shown while the app opens and pages load. Its settings are kept in the browser so it appears at once on the next visit.',
+  style: 'Style', styles: { emblem: 'Emblem with a turning ring', bar: 'Progress bar', dots: 'Bouncing dots', pulse: 'Calm pulse', crescent: 'Crescent' },
+  messageAr: 'Message in Arabic', messageEn: 'Message in English', background: 'Background colour', accent: 'Accent colour', followTheme: 'Follow the theme colours', showName: 'Show the centre name', previewLang: 'Preview language',
+  fontPick: 'Pick a ready font', fontCustom: 'Another font (type its name or upload a file)', fontNote: 'Ready fonts load from Google Fonts when chosen; bundled fonts need no outside connection.', bundled: 'bundled',
+  layouts: 'Ready-made layouts', layoutsHint: 'Pick a layout to replace the current draft. Adjust it, then publish; the site does not change before you publish.', apply: 'Use this layout', applied: 'The layout is loaded into the draft. Adjust it, then publish.', confirmApply: 'This layout replaces the current draft. Continue?',
+  blocks: { hero_slider: 'Hero', stats: 'Numbers', featured_programs: 'Programs', news: 'News', events: 'Events', rich_text: 'Text', cta: 'Call to action', logos: 'Logos', faq: 'FAQ', video: 'Video', custom_html_safe: 'HTML' },
+} }

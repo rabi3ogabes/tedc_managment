@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Brand Studio — the visual identity of the web platform (colors, buttons, links, banners,
@@ -76,6 +78,17 @@ class ThemeService
                 'logo_en_light' => null,
                 'show_center_name' => true,
             ],
+            // The page shown while the application loads. Empty colours follow the theme.
+            'loading' => [
+                'style' => 'emblem',       // emblem | bar | dots | pulse | crescent
+                'message_ar' => 'جارٍ التحميل…',
+                'message_en' => 'Loading…',
+                'background' => null,
+                'accent' => null,
+                'show_name' => true,
+            ],
+            // Occasions are a list of scheduled looks: stored as given, never merged item by item (see get()).
+            'occasions' => [],
             'typography' => [
                 'arabic_family' => 'Qatar Sans',
                 'latin_family' => 'Qatar Sans',
@@ -86,14 +99,55 @@ class ThemeService
         ];
     }
 
-    public function get(): array
+    /** What the platform shows today: the saved theme, with the occasion that is on (if any) laid over it. */
+    public function get(?Carbon $on = null): array
+    {
+        $base = $this->base();
+        $active = $this->activeOccasion($base, $on ?? now());
+        if (! $active) {
+            return $base + ['active_occasion' => null];
+        }
+        $theme = $base;
+        foreach (['colors', 'buttons', 'banners', 'pattern', 'shape', 'loading', 'typography'] as $section) {
+            if (isset($active['patch'][$section]) && is_array($active['patch'][$section])) {
+                $theme[$section] = array_replace($theme[$section] ?? [], $active['patch'][$section]);
+            }
+        }
+        $theme['preset'] = 'occasion:'.$active['id'];
+
+        return $theme + ['active_occasion' => ['id' => $active['id'], 'name_ar' => $active['name_ar'], 'name_en' => $active['name_en']]];
+    }
+
+    /** The saved theme itself, which the Brand Studio edits (an occasion never writes into it). */
+    public function base(): array
     {
         // A short TTL keeps per-instance caches (APCu on serverless) in sync after an administrator's change.
         return Cache::remember(self::CACHE, 60, function () {
             $stored = SiteSetting::find(self::KEY)?->value ?? [];
+            $merged = array_replace_recursive(self::defaults(), $stored);
+            $merged['occasions'] = array_values($stored['occasions'] ?? []);   // a list: merging by position would mix two occasions
 
-            return array_replace_recursive(self::defaults(), $stored);
+            return $merged;
         });
+    }
+
+    /** The occasion in force on a day: the shortest period wins when several overlap. @return array<string, mixed>|null */
+    public function activeOccasion(array $base, Carbon $day): ?array
+    {
+        $hits = array_values(array_filter($base['occasions'] ?? [], fn ($o) => ThemeOccasions::covers($o, $day)));
+        usort($hits, fn ($a, $b) => strcmp((string) $b['starts_on'], (string) $a['starts_on']));
+
+        return $hits[0] ?? null;
+    }
+
+    /** Adds the standard occasions of a year that are not in the list yet; the administrator's own entries and edits stay. */
+    public function addStandardOccasions(int $year, User $user): array
+    {
+        $base = $this->base();
+        $have = collect($base['occasions'])->pluck('id')->all();
+        $new = array_values(array_filter(ThemeOccasions::standard($year), fn ($o) => ! in_array($o['id'], $have, true)));
+
+        return $this->update(['occasions' => array_merge($base['occasions'], $new)] + $base, $user);
     }
 
     /** The center name administrators set in the settings page. @return array{ar: string, en: string} */
@@ -114,6 +168,7 @@ class ThemeService
         foreach (['name_ar', 'name_en'] as $key) {
             $merged['identity'][$key] = trim((string) ($merged['identity'][$key] ?? '')) ?: self::defaults()['identity'][$key];
         }
+        $merged['occasions'] = $this->cleanOccasions($theme['occasions'] ?? $this->base()['occasions']);
         // Hero images is a positional list; replace rather than merge.
         $merged['banners']['hero_images'] = array_values(array_pad(array_slice($theme['banners']['hero_images'] ?? [], 0, 4), 4, null));
 
@@ -121,6 +176,27 @@ class ThemeService
         $this->flush();
 
         return $this->get();
+    }
+
+    /** @param  array<int, mixed>  $list @return list<array<string, mixed>> */
+    private function cleanOccasions(array $list): array
+    {
+        $sections = ['colors', 'buttons', 'banners', 'pattern', 'shape', 'loading', 'typography'];
+        $out = [];
+        foreach (array_slice($list, 0, 60) as $o) {
+            if (! is_array($o) || empty($o['id'])) {
+                continue;
+            }
+            $out[] = [
+                'id' => Str::limit(preg_replace('/[^a-z0-9_-]/i', '', (string) $o['id']) ?: Str::random(6), 60, ''), 'occasion' => $o['occasion'] ?? null,
+                'name_ar' => Str::limit(strip_tags((string) ($o['name_ar'] ?? '')), 120, ''), 'name_en' => Str::limit(strip_tags((string) ($o['name_en'] ?? '')), 120, ''),
+                'enabled' => (bool) ($o['enabled'] ?? false), 'recurring' => (bool) ($o['recurring'] ?? false),
+                'starts_on' => $o['starts_on'] ?? null, 'ends_on' => $o['ends_on'] ?? null,
+                'patch' => Arr::only((array) ($o['patch'] ?? []), $sections),
+            ];
+        }
+
+        return $out;
     }
 
     public function reset(User $user): array

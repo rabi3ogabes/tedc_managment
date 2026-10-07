@@ -44,7 +44,7 @@ class AssessmentsScreen extends ConsumerWidget {
                         '${a['best_score'] != null ? '  •  ${s.t('assess.best')} ${a.str('best_score')}%' : ''}'),
                     isThreeLine: true,
                     trailing: a.flag('open')
-                        ? FilledButton(
+                        ? FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 
                             onPressed: () => context.push('/assessments/${a.str('id')}/take', extra: a.flag('requires_code')),
                             child: Text(s.t(a.str('open_attempt_id').isNotEmpty ? 'assess.resume' : 'assess.start')),
                           )
@@ -209,11 +209,11 @@ class _ExamScreenState extends ConsumerState<ExamScreen> with WidgetsBindingObse
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Row(children: [
-              OutlinedButton(onPressed: _index > 0 ? () => setState(() => _index--) : null, child: Text(s.t('assess.prev'))),
+              OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _index > 0 ? () => setState(() => _index--) : null, child: Text(s.t('assess.prev'))),
               const SizedBox(width: 8),
-              OutlinedButton(onPressed: _index < qs.length - 1 ? () => setState(() => _index++) : null, child: Text(s.t('assess.next'))),
+              OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _index < qs.length - 1 ? () => setState(() => _index++) : null, child: Text(s.t('assess.next'))),
               const Spacer(),
-              FilledButton(onPressed: () => _confirm(qs), child: Text(s.t('assess.submit'))),
+              FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => _confirm(qs), child: Text(s.t('assess.submit'))),
             ]),
           ),
         ),

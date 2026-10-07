@@ -35,7 +35,7 @@ class EvaluationsScreen extends ConsumerWidget {
                   title: Text(r.str(ar ? 'title_ar' : 'title_en'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(r.str('program')),
                   trailing: r.str('status') == 'pending'
-                      ? FilledButton(onPressed: () => context.push('/evaluations/${r.str('id')}'), child: Text(s.t('evalc.fill')))
+                      ? FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => context.push('/evaluations/${r.str('id')}'), child: Text(s.t('evalc.fill')))
                       : Text(s.t('evalc.done')),
                 ),
               ),

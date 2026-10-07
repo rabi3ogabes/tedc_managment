@@ -13,13 +13,13 @@ use App\Models\LibraryReview;
 use App\Models\LibraryShelf;
 use App\Models\Material;
 use App\Models\NotificationRule;
-use App\Models\PageBlock;
 use App\Models\PushLog;
 use App\Models\ReportDefinition;
 use App\Models\ReportSchedule;
 use App\Models\ScheduledNotification;
 use App\Models\UserNotificationPreference;
 use App\Models\VideoInteraction;
+use App\Services\Dashboards\DashboardService;
 use App\Services\Reports\BuiltInReports;
 
 /** The library and materials, announcements with RSVPs, homepage blocks, notification rules and schedules, saved reports, dashboards and indicators. */
@@ -52,7 +52,7 @@ class SampleComms
         ];
         $made = [];
         foreach ($items as [$type, $ar, $en, $dar, $den, $authors, $year]) {
-            $made[] = LibraryItem::create(['type' => $type, 'title_ar' => $ar, 'title_en' => $en, 'description_ar' => $dar, 'description_en' => $den, 'authors' => $authors, 'publisher' => 'مركز التدريب والتطوير', 'year' => $year, 'language' => 'ar', 'subjects' => ['pedagogy'], 'url' => 'https://example.qa/library/'.$type, 'source' => 'manual', 'rights' => 'open', 'audience' => 'all', 'status' => 'published', 'search_text' => "{$ar} {$en}", 'views' => 12, 'downloads' => 3, 'created_by' => $admin->id]);
+            $made[] = LibraryItem::create(['type' => $type, 'title_ar' => $ar, 'title_en' => $en, 'description_ar' => $dar, 'description_en' => $den, 'authors' => $authors, 'publisher' => 'مركز التدريب والتطوير', 'year' => $year, 'language' => 'ar', 'subjects' => ['pedagogy'], 'url' => 'https://example.qa/library/'.$type, 'source' => 'manual', 'rights' => 'open', 'audience' => [], 'status' => 'published', 'search_text' => "{$ar} {$en}", 'views' => 12, 'downloads' => 3, 'created_by' => $admin->id]);
         }
         $col = LibraryCollection::firstOrCreate(['name_en' => 'Essentials for new teachers'], ['name_ar' => 'أساسيات للمعلمين الجدد', 'is_featured' => true, 'sort_order' => 1]);
         foreach ($made as $i => $item) {
@@ -87,7 +87,6 @@ class SampleComms
         foreach ($this->c->trainees() as $i => $u) {
             AnnouncementRsvp::firstOrCreate(['announcement_id' => $e->id, 'user_id' => $u->id], ['status' => $i % 3 === 2 ? 'waitlisted' : 'going']);
         }
-        PageBlock::firstOrCreate(['page' => 'home', 'type' => 'faq', 'sort_order' => 90], ['config' => ['items' => [['q_ar' => 'كيف أسجل في برنامج؟', 'a_ar' => 'من صفحة البرامج اختر البرنامج ثم «سجّل».', 'q_en' => 'How do I register?', 'a_en' => 'From the programs page choose a program, then Register.']]], 'is_visible' => true, 'audience' => 'public']);
     }
 
     private function notifications(): void
@@ -118,7 +117,7 @@ class SampleComms
                 KpiSample::create(['metric' => $metric, 'value' => $value - $d * ($i + 1) * 0.7, 'window' => 'day', 'measured_at' => now()->subDays($d)]);
             }
         }
-        DashboardPreset::firstOrCreate(['role_slug' => 'executive'], ['widgets' => [['key' => 'kpis'], ['key' => 'satisfaction'], ['key' => 'forecast']]]);
+        DashboardPreset::firstOrCreate(['role_slug' => 'executive'], ['widgets' => array_slice(array_keys(DashboardService::WIDGETS), 0, 4)]);
     }
 
     private function video(): void

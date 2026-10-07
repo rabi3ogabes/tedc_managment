@@ -142,15 +142,19 @@ class _Support extends StatelessWidget {
   }
 }
 
-  /// Plain blocks out of the article HTML: headings, paragraphs, list items and quotes.
-List<(String, String)> helpBlocks(String html) {
-    final out = <(String, String)>[];
-    for (final m in RegExp(r'<(h[1-6]|p|li|blockquote)[^>]*>(.*?)</\1>', dotAll: true).allMatches(html)) {
-      final text = (m.group(2) ?? '').replaceAll(RegExp(r'<[^>]+>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#039;', "'").trim();
-      if (text.isNotEmpty) out.add((m.group(1)!, text));
-    }
-    return out;
+/// Plain blocks out of the article HTML: headings, paragraphs, list items and quotes. Numbered lists keep their numbers («1. », «2. »).
+List<(String, String)> helpBlocks(String source) {
+  final html = source.replaceAllMapped(RegExp(r'<ol[^>]*>(.*?)</ol>', dotAll: true, caseSensitive: false), (m) {
+    var n = 0;
+    return (m.group(1) ?? '').replaceAllMapped(RegExp(r'<li([^>]*)>', caseSensitive: false), (li) => '<li${li.group(1)}>${++n}. ');
+  });
+  final out = <(String, String)>[];
+  for (final m in RegExp(r'<(h[1-6]|p|li|blockquote)[^>]*>(.*?)</\1>', dotAll: true).allMatches(html)) {
+    final text = (m.group(2) ?? '').replaceAll(RegExp(r'<[^>]+>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#039;', "'").trim();
+    if (text.isNotEmpty) out.add((m.group(1)!, text));
   }
+  return out;
+}
 
 /// One article: text blocks, screenshots, the video link and the «was it helpful?» question.
 class HelpArticleScreen extends ConsumerStatefulWidget {
@@ -195,7 +199,7 @@ class _HelpArticleScreenState extends ConsumerState<HelpArticleScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: tag == 'li'
-                    ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('•  '), Expanded(child: Text(text, style: const TextStyle(height: 1.7)))])
+                    ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [if (!RegExp(r'^\d+\. ').hasMatch(text)) const Text('•  '), Expanded(child: Text(text, style: const TextStyle(height: 1.7)))])
                     : Text(text, style: TextStyle(height: 1.7, fontWeight: tag.startsWith('h') ? FontWeight.w800 : FontWeight.w400, fontSize: tag.startsWith('h') ? 16 : 14)),
               ),
             if (shots.isNotEmpty) ...[
@@ -265,7 +269,7 @@ Future<void> showTourIfPending(BuildContext context, WidgetRef ref) async {
               const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 if (!last) TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(context.tr('help.tour.skip'))),
-                FilledButton(onPressed: () => last ? Navigator.of(ctx).pop() : setState(() => i++), child: Text(context.tr(last ? 'help.tour.done' : 'help.tour.next'))),
+                FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => last ? Navigator.of(ctx).pop() : setState(() => i++), child: Text(context.tr(last ? 'help.tour.done' : 'help.tour.next'))),
               ]),
             ]),
           );

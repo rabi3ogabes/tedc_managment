@@ -156,7 +156,7 @@ class _Reward extends ConsumerWidget {
         leading: const Icon(Icons.card_giftcard, color: AppColors.gold500),
         title: Text(context.s.isArabic ? r.str('title_ar') : r.str('title_en'), style: const TextStyle(fontWeight: FontWeight.w700)),
         subtitle: Text('${r.str('cost_points')} ${context.tr('gam.pts')}'),
-        trailing: FilledButton(
+        trailing: FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 
           onPressed: r.flag('can_redeem')
               ? () async {
                   try {

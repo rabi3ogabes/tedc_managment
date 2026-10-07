@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
@@ -97,7 +98,7 @@ class GrowthScreen extends ConsumerWidget {
               if (rows.isEmpty) return Padding(padding: const EdgeInsets.all(16), child: Text(s.t('growth.noLicences')));
               return Column(children: [
                 for (final l in rows)
-                  Card(child: ListTile(title: Text('${s.t('growth.level')} ${l.str('level_no')}'), subtitle: Text('${l.str('licence_no')}\n${s.t('growth.expires')}: ${l.str('expires_at')}'), isThreeLine: true, trailing: StatusChip(l.str('status'), label: s.t('growth.licStatus.${l.str('status')}')))),
+                  Card(child: ListTile(title: Text('${s.t('growth.level')} ${l.str('level_no')}'), subtitle: Text('${l.str('licence_no')}\n${s.t('growth.expires')}: ${Fmt(s.languageCode).date(l.date('expires_at'))}'), isThreeLine: true, trailing: StatusChip(l.str('status'), label: s.t('growth.licStatus.${l.str('status')}')))),
               ]);
             },
           ),
@@ -132,9 +133,9 @@ class _Activity extends ConsumerWidget {
     return Card(
       child: ListTile(
         title: Text(a.str('title'), style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text('${a.number('computed_hours')} h${a.str('manager_note').isNotEmpty ? '\n${a.str('manager_note')}' : ''}'),
+        subtitle: Text('${a.number('computed_hours')} ${s.t('common.hours')}${a.str('manager_note').isNotEmpty ? '\n${a.str('manager_note')}' : ''}'),
         trailing: editable
-            ? FilledButton(
+            ? FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 
                 onPressed: () async {
                   try {
                     await ref.read(apiProvider).post('/me/pd-activities/${a.str('id')}/submit');

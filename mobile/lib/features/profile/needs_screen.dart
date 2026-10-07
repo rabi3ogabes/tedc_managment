@@ -114,11 +114,11 @@ class _TeamNeedState extends ConsumerState<_TeamNeed> {
           Row(children: [
             FilledButton(
               onPressed: _busy ? null : () => _decide('approved'),
-              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950, minimumSize: const Size(0, 48)),
               child: Text(s.t('needs.approve')),
             ),
             const SizedBox(width: 8),
-            OutlinedButton(onPressed: _busy ? null : () => _decide('rejected'), child: Text(s.t('needs.reject'))),
+            OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _busy ? null : () => _decide('rejected'), child: Text(s.t('needs.reject'))),
           ]),
         ]),
       ),

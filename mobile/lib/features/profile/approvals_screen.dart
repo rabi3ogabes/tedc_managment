@@ -79,11 +79,11 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
           Row(children: [
             FilledButton(
               onPressed: _busy ? null : () => _decide('approved'),
-              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950, minimumSize: const Size(0, 48)),
               child: Text(s.t('approvals.approve')),
             ),
             const SizedBox(width: 8),
-            OutlinedButton(onPressed: _busy ? null : () => _decide('rejected'), child: Text(s.t('approvals.reject'))),
+            OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: _busy ? null : () => _decide('rejected'), child: Text(s.t('approvals.reject'))),
           ]),
         ]),
       ),

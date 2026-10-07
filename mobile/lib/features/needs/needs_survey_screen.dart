@@ -359,7 +359,7 @@ class _NeedsSurveyScreenState extends ConsumerState<NeedsSurveyScreen> {
                         ),
                       const Spacer(),
                       FilledButton(
-                        style: FilledButton.styleFrom(backgroundColor: accent, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14)),
+                        style: FilledButton.styleFrom(backgroundColor: accent, minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14)),
                         onPressed: _sending ? null : () => _next(pages, all),
                         child: _sending
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

@@ -23,25 +23,63 @@
     </noscript>
     <link rel="preload" as="image" href="/brand/emblem-splash.webp" type="image/webp" />
     <style>
-      /* Branded splash shown instantly, before the application code has loaded (React replaces it). */
-      #splash { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #fff 0%, #f8f6f2 65%); font-family: system-ui, sans-serif; }
-      #splash .ring { position: relative; width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 20px 60px -20px rgba(138, 21, 56, .35), 0 0 0 1px rgba(162, 148, 117, .35); }
-      #splash .ring::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; border-top-color: #8a1538; border-right-color: #a29475; animation: splash-spin 1.1s linear infinite; }
-      #splash img { width: 72px; height: auto; }
-      #splash p { margin: 22px 0 0; color: #8a1538; font-weight: 700; text-align: center; }
-      @keyframes splash-spin { to { transform: rotate(360deg); } }
-      @media (prefers-reduced-motion: reduce) { #splash .ring::after { animation: none; } }
+      /* Branded loading page, shown instantly before the application code has loaded and again while pages load.
+         The administrator chooses its style, message and colours in the Brand Studio (saved in localStorage "tedc.splash"). */
+      .splash { --ls-bg: #f8f6f2; --ls-accent: #8a1538; --ls-ink: #8a1538; position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--ls-bg) 55%, #fff) 0%, var(--ls-bg) 68%); font-family: system-ui, sans-serif; color: var(--ls-ink); }
+      .splash.inline { position: static; min-height: 60vh; z-index: auto; }
+      .splash .ls-box { text-align: center; padding: 24px; }
+      .splash .ring { position: relative; width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: 0 20px 60px -20px color-mix(in srgb, var(--ls-accent) 45%, transparent), 0 0 0 1px color-mix(in srgb, var(--ls-accent) 30%, transparent); }
+      .splash .ring img { width: 72px; height: auto; }
+      .splash .ls-emblem .ring::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--ls-accent); border-right-color: color-mix(in srgb, var(--ls-accent) 45%, transparent); animation: ls-spin 1.1s linear infinite; }
+      .splash .ls-pulse .ring { animation: ls-pulse 1.8s ease-in-out infinite; }
+      .splash p { margin: 22px 0 0; font-weight: 700; font-size: 1.05rem; letter-spacing: .01em; }
+      .splash .ls-name { margin-top: 6px; font-weight: 500; font-size: .85rem; opacity: .7; }
+      .splash .ls-bar-track { width: 180px; height: 4px; margin: 22px auto 0; border-radius: 4px; background: color-mix(in srgb, var(--ls-accent) 18%, transparent); overflow: hidden; }
+      .splash .ls-bar-track::after { content: ""; display: block; width: 40%; height: 100%; border-radius: 4px; background: var(--ls-accent); animation: ls-slide 1.2s ease-in-out infinite; }
+      .splash .ls-dots { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+      .splash .ls-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--ls-accent); animation: ls-bounce 1s ease-in-out infinite; }
+      .splash .ls-dots i:nth-child(2) { animation-delay: .15s; } .splash .ls-dots i:nth-child(3) { animation-delay: .3s; }
+      .splash .ls-crescent svg { width: 120px; height: 120px; animation: ls-float 3.2s ease-in-out infinite; }
+      .splash .ls-crescent .star { transform-origin: 78px 38px; animation: ls-twinkle 1.6s ease-in-out infinite; }
+      @keyframes ls-spin { to { transform: rotate(360deg); } }
+      @keyframes ls-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+      @keyframes ls-slide { 0% { transform: translateX(-120%); } 100% { transform: translateX(300%); } }
+      @keyframes ls-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-8px); opacity: 1; } }
+      @keyframes ls-float { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+      @keyframes ls-twinkle { 0%, 100% { opacity: .45; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.1); } }
+      @media (prefers-reduced-motion: reduce) { .splash * , .splash *::after { animation: none !important; } }
     </style>
     <title>مركز التدريب والتطوير</title>
   </head>
   <body>
     <div id="root">
-      <div id="splash" role="status" aria-label="جارٍ التحميل">
-        <div>
-          <div class="ring"><img src="/brand/emblem-splash.webp" alt="" width="72" height="67" /></div>
-          <p>مركز التدريب والتطوير</p>
+      <div id="splash" class="splash" role="status" aria-label="جارٍ التحميل">
+        <div class="ls-box">
+          <div class="ls-visual ls-emblem"><div class="ring"><img src="/brand/emblem-splash.webp" alt="" width="72" height="67" /></div></div>
+          <p class="ls-message">مركز التدريب والتطوير</p>
+          <div class="ls-name" hidden></div>
         </div>
       </div>
+      <script>
+        /* Apply the saved loading-page settings before the first paint. */
+        (function () {
+          try {
+            var c = JSON.parse(localStorage.getItem('tedc.splash') || 'null'); if (!c) return;
+            var el = document.getElementById('splash'), en = (localStorage.getItem('tedc.locale') || 'ar') === 'en';
+            var bg = c.background || c.bg_default || '#f8f6f2', accent = c.accent || '#8a1538';
+            var n = parseInt(bg.slice(1), 16), lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+            el.style.setProperty('--ls-bg', bg); el.style.setProperty('--ls-accent', accent); el.style.setProperty('--ls-ink', lum < 0.5 ? '#ffffff' : accent);
+            var msg = (en ? c.message_en : c.message_ar) || ''; el.querySelector('.ls-message').textContent = msg; el.setAttribute('aria-label', msg);
+            var v = el.querySelector('.ls-visual'); v.className = 'ls-visual ls-' + (c.style || 'emblem');
+            var name = el.querySelector('.ls-name'); if (c.show_name) { name.textContent = en ? c.name_en : c.name_ar; name.hidden = false; }
+            var s = c.style || 'emblem', box = v;
+            if (s === 'bar') box.insertAdjacentHTML('afterend', '<div class="ls-bar-track"></div>');
+            if (s === 'dots') box.insertAdjacentHTML('afterend', '<div class="ls-dots"><i></i><i></i><i></i></div>');
+            if (s === 'crescent') box.innerHTML = '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M82 18a44 44 0 1 0 0 84 36 36 0 1 1 0-84z" fill="' + accent + '"/><path class="star" d="M92 30l3.5 8 8.5.8-6.4 5.6 1.9 8.4-7.5-4.4-7.5 4.4 1.9-8.4-6.4-5.6 8.5-.8z" fill="' + accent + '"/></svg>';
+            document.documentElement.lang = en ? 'en' : 'ar';
+          } catch (e) { /* the default loading page stays */ }
+        })();
+      </script>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
