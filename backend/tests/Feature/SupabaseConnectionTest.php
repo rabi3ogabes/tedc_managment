@@ -71,7 +71,9 @@ class SupabaseConnectionTest extends TestCase
 
         $this->assertSame($authId, $user->fresh()->auth_id);
         $this->app['auth']->forgetGuards();
-        $this->withHeader('Authorization', "Bearer {$access}")->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('data.email', 'admin@tedc.qa');
+        $me = $this->withHeader('Authorization', "Bearer {$access}")->getJson('/api/v1/auth/me');
+        $this->assertSame(200, $me->status(), 'me answered: '.$me->getContent());   // the body says why, which matters when only one database engine fails
+        $me->assertJsonPath('data.email', 'admin@tedc.qa');
 
         // Publishable key goes in `apikey` only; never as a Bearer token.
         Http::assertSent(fn (Request $r) => str_contains($r->url(), '/auth/v1/token') && $r->hasHeader('apikey', 'sb_publishable_test') && ! $r->hasHeader('Authorization'));
