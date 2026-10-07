@@ -8,6 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Tab = 'overview' | 'board' | 'challenges' | 'rewards' | 'badges'
 const TIER: Record<string, string> = { bronze: 'bg-amber-100 text-amber-800', silver: 'bg-slate-100 text-slate-700', gold: 'bg-gold-100 text-gold-700' }
@@ -166,7 +167,7 @@ function Rewards({ en, onChanged }: { en: boolean; onChanged: () => void }) {
   const { t } = useTranslation()
   const res = useGet<{ data: any[]; points: number; redemptions: any[] }>('/gamification/rewards', undefined, { staleTime: 0 })
   const redeem = async (r: any) => {
-    if (!confirm(String(t('soc.gam.confirmRedeem', { n: r.cost_points })))) return
+    if (!await dialogs.confirm(String(t('soc.gam.confirmRedeem', { n: r.cost_points })))) return
     try { const { data } = await api.post(`/gamification/rewards/${r.id}/redeem`); toast(String(t('soc.gam.redeemed', { code: data.data.code }))); res.refetch(); onChanged() } catch (e) { toast(errorMessage(e), 'error') }
   }
   if (res.isLoading) return <Spinner />

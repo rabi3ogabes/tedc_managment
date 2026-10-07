@@ -8,6 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { useStepUp } from './SecurityAdmin'
+import { dialogs } from '@/lib/dialogs'
 
 const cls = 'rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const stepIdx: Record<string, number> = { uploaded: 1, validated: 3, imported: 5, rolled_back: 5 }
@@ -42,8 +43,8 @@ export default function MigrationTool() {
   })
   const validate = () => run('validate', async () => { const { data } = await api.post(`/admin/migration/batches/${batch.id}/validate`); setStats(data.data); setBatch(data.batch); history.refetch() })
   const rehearse = () => run('dry', async () => { const { data } = await api.post(`/admin/migration/batches/${batch.id}/dry-run`); setDry(data.data) })
-  const doImport = () => step.guard(async () => { if (!window.confirm(String(t('idn.mig.confirmImport')))) return; await api.post(`/admin/migration/batches/${batch.id}/import`).then(({ data }) => { setBatch(data.batch); history.refetch(); toast(String(t('idn.mig.recon'))) }) })
-  const rollback = () => step.guard(async () => { if (!window.confirm(String(t('idn.mig.confirmRollback')))) return; await api.post(`/admin/migration/batches/${batch.id}/rollback`).then(({ data }) => { setBatch(data.batch); history.refetch() }) })
+  const doImport = () => step.guard(async () => { if (!await dialogs.confirm(String(t('idn.mig.confirmImport')))) return; await api.post(`/admin/migration/batches/${batch.id}/import`).then(({ data }) => { setBatch(data.batch); history.refetch(); toast(String(t('idn.mig.recon'))) }) })
+  const rollback = () => step.guard(async () => { if (!await dialogs.confirm(String(t('idn.mig.confirmRollback')))) return; await api.post(`/admin/migration/batches/${batch.id}/rollback`).then(({ data }) => { setBatch(data.batch); history.refetch() }) })
   const recon = batch?.report?.reconciliation
   const v = stats ?? batch?.report?.validation
   const closed = ['imported', 'rolled_back'].includes(batch?.status)

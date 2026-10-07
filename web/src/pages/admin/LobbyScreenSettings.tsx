@@ -7,6 +7,7 @@ import { Switch } from './notifications/shared'
 import LobbyView, { STAGE, type LobbyData, type LobbySettings, type Transition } from '@/components/lobby/LobbyView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
+import { dialogs } from '@/lib/dialogs'
 
 type Slide = { id: string; title: string; url: string; seconds: number | null; transition: Transition | null; enabled: boolean; from: string | null; to: string | null }
 type Payload = { settings: LobbySettings; token: string; slides: Slide[]; preview: LobbyData }
@@ -86,7 +87,7 @@ export default function LobbyScreenSettings() {
             <div className="mt-3 flex flex-wrap gap-2">
               <Button size="sm" variant="outline" icon={copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />} onClick={copy}>{copied ? t('lobby.copied') : t('lobby.copy')}</Button>
               <Button size="sm" variant="gold" icon={<ExternalLink className="size-4" />} onClick={() => window.open(link, '_blank', 'noopener')}>{t('lobby.open')}</Button>
-              <Button size="sm" variant="ghost" icon={<RefreshCcw className="size-4" />} loading={busy === 'token'} onClick={() => window.confirm(t('lobby.regenerateConfirm')) && void run('token', () => api.post('/admin/settings/lobby-screen/token'))}>{t('lobby.regenerate')}</Button>
+              <Button size="sm" variant="ghost" icon={<RefreshCcw className="size-4" />} loading={busy === 'token'} onClick={async () => await dialogs.confirm(t('lobby.regenerateConfirm')) && void run('token', () => api.post('/admin/settings/lobby-screen/token'))}>{t('lobby.regenerate')}</Button>
             </div>
           </Card>
         </div>
@@ -154,7 +155,7 @@ export default function LobbyScreenSettings() {
                     <div className="flex gap-1">
                       <button type="button" aria-label={t('lobby.up')} disabled={i === 0} onClick={() => move(s.id, -1)} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-navy-100/60 hover:text-navy-900 disabled:opacity-30"><ArrowUp className="size-4" /></button>
                       <button type="button" aria-label={t('lobby.down')} disabled={i === d.slides.length - 1} onClick={() => move(s.id, 1)} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-navy-100/60 hover:text-navy-900 disabled:opacity-30"><ArrowDown className="size-4" /></button>
-                      <button type="button" aria-label={t('lobby.remove')} onClick={() => window.confirm(t('lobby.removeConfirm')) && void run(`d${s.id}`, () => api.delete(`/admin/settings/lobby-screen/slides/${s.id}`))} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button>
+                      <button type="button" aria-label={t('lobby.remove')} onClick={async () => await dialogs.confirm(t('lobby.removeConfirm')) && void run(`d${s.id}`, () => api.delete(`/admin/settings/lobby-screen/slides/${s.id}`))} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button>
                     </div>
                   </div>
                 </div>

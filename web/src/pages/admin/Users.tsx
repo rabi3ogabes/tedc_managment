@@ -11,6 +11,7 @@ import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import type { LaravelPage } from '@/lib/types'
 import UserRolesDialog from './UserRolesDialog'
+import { dialogs } from '@/lib/dialogs'
 
 type User = { id: string; name: string; name_ar?: string; email: string; status: string; last_login_at?: string; roles: { slug: string; name_ar: string; name_en: string }[] }
 
@@ -24,7 +25,7 @@ export default function Users() {
   const nm = (o: { name_ar: string; name_en: string }) => (i18n.language === 'ar' ? o.name_ar : o.name_en)
 
   const signInAs = async (u: User) => {
-    if (!window.confirm(t('impersonation.confirm', { name: u.name, email: u.email }))) return
+    if (!await dialogs.confirm(t('impersonation.confirm', { name: u.name, email: u.email }))) return
     try { const { landing } = await impersonation.start(u.id); window.location.href = landing === 'admin' ? '/admin' : '/portal' } catch (e) { toast((e as Error).message, 'error') }
   }
   const toggleStatus = async (u: User) => { await api.put(`/admin/users/${u.id}`, { status: u.status === 'active' ? 'suspended' : 'active' }); void users.refetch() }

@@ -19,6 +19,7 @@ import SlideCanvas, { type PinDraft } from './SlideCanvas'
 import SlideRail from './SlideRail'
 import { AiPanel, ChecksPanel, VersionsPanel } from './SidePanels'
 import { useDeckEditor } from './useDeckEditor'
+import { dialogs } from '@/lib/dialogs'
 
 type Tab = 'format' | 'comments' | 'ai' | 'checks' | 'history'
 type PickerState = { mode: 'ai' | 'library' | 'upload'; target: 'element' | 'new' | 'background'; kind?: MediaKind } | null
@@ -145,10 +146,10 @@ export default function DeckEditor({ kit, file, onFileChange, active = true }: {
     setActiveId(copy.id)
   }
 
-  const deleteSlide = (id: string) => {
+  const deleteSlide = async (id: string) => {
     if (!deck || deck.slides.length < 2) return
     const at = deck.slides.findIndex((s) => s.id === id)
-    if (allComments.some((c) => c.anchor?.slide_id === id && c.status !== 'resolved') && !window.confirm(t('kits.editor.deleteSlideWithComments'))) return
+    if (allComments.some((c) => c.anchor?.slide_id === id && c.status !== 'resolved') && !await dialogs.confirm(t('kits.editor.deleteSlideWithComments'))) return
     apply((d) => ({ ...d, slides: d.slides.filter((s) => s.id !== id) }))
     setActiveId(deck.slides[Math.max(0, at - 1)]?.id === id ? deck.slides[1]?.id ?? null : deck.slides[Math.max(0, at - 1)]?.id ?? null)
   }

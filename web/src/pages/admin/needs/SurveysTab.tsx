@@ -14,6 +14,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { autoLinkSkills, downloadText, ImportError, importQuestions, importTemplateCsv, newQuestion, type Question, type Skill, type SurveySummary, type Template } from '@/lib/surveys'
 import type { LaravelPage } from '@/lib/types'
+import { dialogs } from '@/lib/dialogs'
 
 const TEMPLATE_ICONS: Record<string, typeof Crown> = { graduation: GraduationCap, crown: Crown, cpu: Cpu, heart: HeartHandshake, zap: Zap }
 
@@ -26,7 +27,7 @@ export default function SurveysTab() {
   const list = useGet<LaravelPage<SurveySummary>>('/admin/needs-surveys', { per_page: 60, status: status === 'all' ? undefined : status, q: q || undefined })
 
   const duplicate = async (s: SurveySummary) => { const { data } = await api.post(`/admin/needs-surveys/${s.id}/duplicate`); navigate(`/admin/needs/surveys/${data.data.id}`) }
-  const remove = async (s: SurveySummary) => { if (window.confirm(t('surveys.actions.confirmDelete'))) { await api.delete(`/admin/needs-surveys/${s.id}`); list.refetch() } }
+  const remove = async (s: SurveySummary) => { if (await dialogs.confirm(t('surveys.actions.confirmDelete'))) { await api.delete(`/admin/needs-surveys/${s.id}`); list.refetch() } }
 
   return (
     <div className="space-y-6">

@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { LaravelPage } from '@/lib/types'
 import SchoolsMap, { type SchoolsMapData } from './schools/SchoolsMap'
+import { dialogs } from '@/lib/dialogs'
 
 type School = { id: string; code: string; name_ar: string; name_en: string; type: string; stage: string; region: string; employees_count: number; is_partner: boolean }
 
@@ -27,7 +28,7 @@ export default function Schools() {
   const synced = map.data?.data.synced_at
 
   const sync = async () => {
-    if (!window.confirm(t('schoolsMap.sync.confirm'))) return
+    if (!await dialogs.confirm(t('schoolsMap.sync.confirm'))) return
     setSyncing(true); setNote(null)
     try {
       const { data } = await api.post('/admin/schools/sync')

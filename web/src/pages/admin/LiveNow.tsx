@@ -8,6 +8,7 @@ import { downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { api } from '@/lib/api'
 import LiveMap, { flag, type Place } from './live/LiveMap'
+import { dialogs } from '@/lib/dialogs'
 
 type Team = 'staff' | 'members'
 type Online = {
@@ -145,7 +146,7 @@ function LiveTab() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-navy-100 bg-white px-4 py-3">
-        <button type="button" role="switch" aria-checked onClick={() => window.confirm(t('liveGeo.turnOff')) && setEnabled({ enabled: false })} disabled={switching} className="flex items-center gap-3">
+        <button type="button" role="switch" aria-checked onClick={async () => await dialogs.confirm(t('liveGeo.turnOff')) && setEnabled({ enabled: false })} disabled={switching} className="flex items-center gap-3">
           <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-emerald-500 p-0.5"><span className="size-5 rounded-full bg-white shadow ltr:translate-x-5 rtl:-translate-x-5" /></span>
           <span className="text-sm font-bold text-navy-900">{t('liveGeo.toggle')} · <span className="text-emerald-700">{t('liveGeo.on')}</span></span>
         </button>

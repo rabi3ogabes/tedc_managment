@@ -13,6 +13,7 @@ import { fmtDuration, type Course, type Lesson, type LessonType, type Module } f
 import CourseAnalytics from './course/CourseAnalytics'
 import LessonEditor from './course/LessonEditor'
 import ContentStep, { applyContentPlan, emptyPlan, type ContentPlan } from '../smart/ContentStep'
+import { dialogs } from '@/lib/dialogs'
 
 const ICONS: Record<LessonType, ComponentType<{ className?: string }>> = { video: Video, presentation: Presentation, quiz: ListChecks, survey: ClipboardList, article: FileText, package: Package, lti: Link2, external: ExternalLink }
 const TYPES: LessonType[] = ['video', 'presentation', 'quiz', 'survey', 'article', 'package', 'lti']
@@ -55,7 +56,7 @@ export default function CourseTab({ program }: { program: Program }) {
     const res = await api.post<{ data: Lesson }>(`/admin/course/modules/${m.id}/lessons`, { type, title_ar: `${t(`course.defaultTitle.${type}`, { lng: 'ar' })} ${n}`, title_en: `${t(`course.defaultTitle.${type}`, { lng: 'en' })} ${n}` })
     setSelected(res.data.data.id)
   })
-  const removeModule = (m: Module) => window.confirm(t('course.confirmDeleteModule', { name: m.title_ar })) && run(async () => { await api.delete(`/admin/course/modules/${m.id}`); if (m.lessons.some((l) => l.id === selected)) setSelected(null) })
+  const removeModule = async (m: Module) => await dialogs.confirm(t('course.confirmDeleteModule', { name: m.title_ar })) && run(async () => { await api.delete(`/admin/course/modules/${m.id}`); if (m.lessons.some((l) => l.id === selected)) setSelected(null) })
 
   const persist = (modules: Module[]) => run(() => api.put(`/admin/programs/${program.id}/course/reorder`, { modules: modules.map((m) => ({ id: m.id, lessons: m.lessons.map((l) => l.id) })) }))
   const moveModule = (i: number, d: -1 | 1) => { const next = [...course.modules]; const j = i + d; if (j < 0 || j >= next.length) return; [next[i], next[j]] = [next[j], next[i]]; void persist(next) }

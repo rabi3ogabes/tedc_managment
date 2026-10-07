@@ -11,6 +11,7 @@ import { HOME, SETTINGS_SECTIONS, type SettingsSection } from './registry'
 import { SettingsTabContext } from './tabContext'
 import TabErrorBoundary from './TabErrorBoundary'
 import TabStrip from './TabStrip'
+import { dialogs } from '@/lib/dialogs'
 
 const STORAGE = 'tedc.settings.workspace.v1'
 const RECENT = 'tedc.settings.recent.v1'
@@ -64,12 +65,12 @@ export default function SettingsWorkspace() {
     setPalette(false)
   }, [byId])
 
-  const closeTabs = useCallback((ids: string[]) => {
+  const closeTabs = useCallback(async (ids: string[]) => {
     const current = wsRef.current
     const targets = ids.filter((id) => current.open.includes(id))
     if (!targets.length) return
     const unsaved = targets.find((id) => dirty[id])
-    if (unsaved && !window.confirm(t('mgmt.settings.dirtyConfirm', { name: label(unsaved) }))) return
+    if (unsaved && !await dialogs.confirm(t('mgmt.settings.dirtyConfirm', { name: label(unsaved) }))) return
     setWs((cur) => {
       const open = cur.open.filter((id) => !targets.includes(id))
       let active = cur.active

@@ -6,6 +6,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Grant = { id: string; ability: string; expires_at: string | null; expired: boolean; user: { id: string; name: string; email: string } }
 type Person = { id: string; name: string; email: string; roles: string[] }
@@ -33,7 +34,7 @@ export default function StaffTab({ programId }: { programId: string }) {
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const revoke = async (g: Grant) => {
-    if (!window.confirm(t('grants.confirmRevoke', { name: g.user.name }))) return
+    if (!await dialogs.confirm(t('grants.confirmRevoke', { name: g.user.name }))) return
     try { await api.delete(`/admin/programs/${programId}/grants/${g.id}`); toast(t('grants.revoked')); await grants.refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
 

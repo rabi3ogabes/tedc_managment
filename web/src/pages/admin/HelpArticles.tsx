@@ -7,6 +7,7 @@ import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const MODULES = ['general', 'trainee', 'trainer', 'manager', 'programs', 'planning', 'logistics', 'insight', 'kits', 'admin', 'finance']
 const blank = { slug: '', title_ar: '', title_en: '', body_ar: '', body_en: '', roles: [] as string[], related: '', module: 'general', status: 'draft', sort_order: 0, video_url: '' }
@@ -86,7 +87,7 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const remove = async () => {
-    if (!window.confirm(String(t('hlp.admin.confirmDelete')))) return
+    if (!await dialogs.confirm(String(t('hlp.admin.confirmDelete')))) return
     try { await api.delete(`/admin/help/articles/${f.id}`); toast(String(t('hlp.admin.deleted'))); onSaved() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const upload = async (kind: 'screenshots' | 'video', file: File | undefined) => {

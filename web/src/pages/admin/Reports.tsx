@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
 import ResultTable from './reports/ResultTable'
 import ScheduleDialog from './reports/ScheduleDialog'
+import { dialogs } from '@/lib/dialogs'
 
 const cls = 'rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const looksLikeDate = (f: string, op: string) => ['gte', 'lte'].includes(op) && /(date|_at|starts|ends)/.test(f)
@@ -70,7 +71,7 @@ export default function Reports() {
   }
   const favorite = async (d: any) => { await api.post(`/admin/report-definitions/${d.id}/favorite`); list.refetch() }
   const copy = async (d: any) => { const { data } = await api.post(`/admin/report-definitions/${d.id}/copy`); navigate(`/admin/reports/${data.data.id}/edit`) }
-  const remove = async (d: any) => { if (!window.confirm(String(t('rep.deleteAsk')))) return; await api.delete(`/admin/report-definitions/${d.id}`); setSelected(null); setParams({}); list.refetch() }
+  const remove = async (d: any) => { if (!await dialogs.confirm(String(t('rep.deleteAsk')))) return; await api.delete(`/admin/report-definitions/${d.id}`); setSelected(null); setParams({}); list.refetch() }
   const lastPage = result ? Math.max(1, Math.ceil(result.total / 50)) : 1
 
   return (

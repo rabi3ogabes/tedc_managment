@@ -6,6 +6,7 @@ import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { Switch } from './notifications/shared'
+import { dialogs } from '@/lib/dialogs'
 
 type Task = 'text' | 'image' | 'audio' | 'video'
 const TASKS: Task[] = ['text', 'image', 'audio', 'video']
@@ -134,7 +135,7 @@ export default function AiModelsSettings() {
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-500">{t('aimodels.enabled')}<Switch checked={c.enabled} label={t('aimodels.enabled')} onChange={(v) => void patchConnection({ ...c, enabled: v }, {})} /></label>
               <Button variant="outline" icon={<Plus className="size-4" />} onClick={() => openPicker(c.id)}>{t('aimodels.addModel')}</Button>
               <button type="button" aria-label={t('aimodels.delete')} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-danger"
-                onClick={() => { if (window.confirm(t('aimodels.confirmDelete'))) void run(`d${c.id}`, async () => take(await api.delete(`/admin/settings/ai-models/connections/${c.id}`))) }}><Trash2 className="size-4" /></button>
+                onClick={async () => { if (await dialogs.confirm(t('aimodels.confirmDelete'))) void run(`d${c.id}`, async () => take(await api.delete(`/admin/settings/ai-models/connections/${c.id}`))) }}><Trash2 className="size-4" /></button>
             </div>
 
             <ReplaceKey t={t} onSave={(key) => patchConnection(c, { api_key: key })} />

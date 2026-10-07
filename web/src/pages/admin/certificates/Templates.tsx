@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import PageCanvas, { useTemplateFile } from './PageCanvas'
 import type { CertTemplate, TemplateMeta } from './types'
+import { dialogs } from '@/lib/dialogs'
 
 function Thumb({ tpl, sample }: { tpl: CertTemplate; sample: Record<string, string> }) {
   const background = useTemplateFile(tpl.has_background ? tpl.id : null, 'background', tpl.updated_at)
@@ -80,7 +81,7 @@ export default function Templates() {
                     <Button size="sm" variant="primary" icon={<Pencil className="size-4" />} onClick={() => navigate(`/admin/certificate-templates/${c.id}`)}>{t('studio.list.edit')}</Button>
                     <Button size="sm" variant="outline" loading={busy === c.id} icon={<Copy className="size-4" />} onClick={() => copy(c)}>{t('studio.list.duplicate')}</Button>
                     {!c.is_default && <Button size="sm" variant="outline" icon={<Star className="size-4" />} onClick={() => act(c.id, () => api.post(`/admin/certificate-templates/${c.id}/default`))}>{t('studio.list.makeDefault')}</Button>}
-                    {!c.is_default && <Button size="sm" variant="ghost" aria-label={t('common.delete')} icon={<Trash2 className="size-4 text-danger" />} onClick={() => window.confirm(t('studio.list.confirmDelete', { name: c.name })) && act(c.id, () => api.delete(`/admin/certificate-templates/${c.id}`))} />}
+                    {!c.is_default && <Button size="sm" variant="ghost" aria-label={t('common.delete')} icon={<Trash2 className="size-4 text-danger" />} onClick={async () => await dialogs.confirm(t('studio.list.confirmDelete', { name: c.name })) && act(c.id, () => api.delete(`/admin/certificate-templates/${c.id}`))} />}
                   </div>
                 )}
               </div>

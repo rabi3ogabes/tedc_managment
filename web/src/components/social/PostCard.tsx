@@ -8,6 +8,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { safeHtml } from '@/lib/safeHtml'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const REACTIONS = ['like', 'insightful', 'thanks'] as const
 
@@ -63,7 +64,7 @@ export default function PostCard({ post, canModerate, onChanged, startOpen = fal
                 <MenuItem onClick={() => moderate(p.is_locked ? 'unlock' : 'lock')}>{t(p.is_locked ? 'soc.post.unlock' : 'soc.post.lock')}</MenuItem>
                 <MenuItem onClick={() => moderate(p.status === 'hidden' ? 'publish' : 'hide')}>{t(p.status === 'hidden' ? 'soc.post.publishHeld' : 'soc.post.hide')}</MenuItem>
               </>}
-              {(p.mine || canModerate) && <MenuItem danger onClick={() => { setMenu(false); if (confirm(String(t('soc.post.confirmDelete')))) run(() => api.delete(`/social/posts/${post.id}`)) }}>{t('soc.post.delete')}</MenuItem>}
+              {(p.mine || canModerate) && <MenuItem danger onClick={async () => { setMenu(false); if (await dialogs.confirm(String(t('soc.post.confirmDelete')))) run(() => api.delete(`/social/posts/${post.id}`)) }}>{t('soc.post.delete')}</MenuItem>}
               {!p.mine && <MenuItem onClick={() => { setMenu(false); setReport({ type: 'post', id: post.id }) }}>{t('soc.post.report')}</MenuItem>}
             </div>
           )}

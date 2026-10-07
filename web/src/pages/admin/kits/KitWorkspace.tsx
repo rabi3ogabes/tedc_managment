@@ -19,6 +19,7 @@ import KitTabStrip, { type KitStripTab } from './KitTabStrip'
 import KitForm from './KitForm'
 import TabErrorBoundary from '../settings/TabErrorBoundary'
 import { FILE_CATEGORIES, type Activity, type Anchor, type FileCategory, type KitDetail, type KitFile, type KitRole, type Suggestion } from './types'
+import { dialogs } from '@/lib/dialogs'
 
 type Dialog = { type: 'deck' | 'video' | 'image'; seed?: Record<string, unknown> } | null
 
@@ -480,7 +481,7 @@ function Files({ kit, onChanged, onDialog, onOpen }: { kit: KitDetail; onChanged
     onChanged()
   }
   const create = async () => {
-    const name = window.prompt(t('kits.files.newDeckName'), t('kits.files.newDeckDefault'))
+    const name = await dialogs.prompt(t('kits.files.newDeckName'), t('kits.files.newDeckDefault'))
     if (!name) return
     try {
       const res = await api.post<{ data: KitFile }>(`/admin/kits/${kit.id}/files/create`, { name, language: i18n.language === 'en' ? 'en' : 'ar' })
@@ -489,7 +490,7 @@ function Files({ kit, onChanged, onDialog, onOpen }: { kit: KitDetail; onChanged
     } catch (e) { setError(errorMessage(e)) }
   }
   const remove = async (f: KitFile) => {
-    if (!window.confirm(t('kits.files.confirmDelete', { name: f.name }))) return
+    if (!await dialogs.confirm(t('kits.files.confirmDelete', { name: f.name }))) return
     try { await api.delete(`/admin/kits/${kit.id}/files/${f.id}`); onChanged() } catch (e) { setError(errorMessage(e)) }
   }
   const patch = async (f: KitFile, body: Partial<Pick<KitFile, 'name' | 'category'>>) => {
@@ -552,7 +553,7 @@ function Files({ kit, onChanged, onDialog, onOpen }: { kit: KitDetail; onChanged
                     {canManage && (
                       <>
                         <select value={f.category} onChange={(e) => patch(f, { category: e.target.value as FileCategory })} aria-label={t('kits.files.category')} className="w-24 rounded-lg border-0 bg-transparent py-1 text-[11px] font-semibold text-slate-500 hover:bg-white">{FILE_CATEGORIES.map((c) => <option key={c} value={c}>{t(`kits.categories.${c}`)}</option>)}</select>
-                        <button type="button" onClick={() => { const n = window.prompt(t('kits.files.rename'), f.name); if (n && n !== f.name) void patch(f, { name: n }) }} className="grid size-7 place-items-center rounded-lg text-slate-500 hover:bg-white hover:text-navy-900" aria-label={t('kits.files.rename')}><Pencil className="size-4" /></button>
+                        <button type="button" onClick={async () => { const n = await dialogs.prompt(t('kits.files.rename'), f.name); if (n && n !== f.name) void patch(f, { name: n }) }} className="grid size-7 place-items-center rounded-lg text-slate-500 hover:bg-white hover:text-navy-900" aria-label={t('kits.files.rename')}><Pencil className="size-4" /></button>
                         <button type="button" onClick={() => remove(f)} className="grid size-7 place-items-center rounded-lg text-slate-400 hover:bg-white hover:text-danger" aria-label={t('kits.common.delete')}><Trash2 className="size-4" /></button>
                       </>
                     )}

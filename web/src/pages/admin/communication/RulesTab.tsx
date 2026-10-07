@@ -8,6 +8,7 @@ import { api, errorMessage } from '@/lib/api'
 import type { Paginated, Program } from '@/lib/types'
 import { toast } from '@/lib/toast'
 import { AudienceBuilder, ChannelChecks, input, useLookups, type AudienceFilter } from './shared'
+import { dialogs } from '@/lib/dialogs'
 
 const blank = { event: '*', program_id: '', category_id: '', enabled: true, channels: null as string[] | null, delay_minutes: 0, quiet: false, days: [0, 1, 2, 3, 4], from: '08:00', to: '20:00', quiet_channels: ['sms', 'email'] as string[], audience: {} as AudienceFilter }
 
@@ -36,7 +37,7 @@ export default function RulesTab() {
     } catch (e) { setError(errorMessage(e)) }
   }
   const toggle = async (r: any) => { await api.put(`/admin/notification-rules/${r.id}`, { enabled: !r.enabled }); refetch() }
-  const remove = async (r: any) => { if (window.confirm(String(t('comm.rules.delete')))) { await api.delete(`/admin/notification-rules/${r.id}`); refetch() } }
+  const remove = async (r: any) => { if (await dialogs.confirm(String(t('comm.rules.delete')))) { await api.delete(`/admin/notification-rules/${r.id}`); refetch() } }
   const summary = (r: any) => [r.program_id && programs.data?.data.find((p) => p.id === r.program_id)?.title, r.category_id && lookups?.categories.find((c) => c.id === r.category_id) && nm(lookups.categories.find((c) => c.id === r.category_id)!), r.audience_filter && t('comm.audience.title')].filter(Boolean).join(' · ') || '—'
 
   return (

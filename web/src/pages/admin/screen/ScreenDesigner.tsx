@@ -9,6 +9,7 @@ import { sampleDay } from '@/components/screen/sample'
 import { useCenterName } from '@/lib/ThemeProvider'
 import { ImageField } from '../brand/controls'
 import type { ScreenTemplate } from '../../RoomScreen'
+import { dialogs } from '@/lib/dialogs'
 
 const PALETTE: [ElementType, typeof Type][] = [['text', Type], ['logo', PictureInPicture2], ['clock', Clock], ['date', Calendar], ['status', Tag], ['progress', Percent], ['ring', Circle], ['trainees', Users], ['image', ImageIcon], ['shape', Square]]
 
@@ -79,7 +80,7 @@ export default function ScreenDesigner({ template, design, onChange }: { templat
         <div className="ms-auto flex items-center gap-1">
           <Button variant="ghost" size="sm" aria-label="undo" disabled={!past.length} icon={<Undo2 className="size-4" />} onClick={undo} />
           <Button variant="ghost" size="sm" aria-label="redo" disabled={!future.length} icon={<Redo2 className="size-4" />} onClick={redo} />
-          <Button variant="outline" size="sm" icon={<RotateCcw className="size-4" />} onClick={() => window.confirm(t('studio.designer2.confirmReset')) && apply(presetDesign(template))}>{t('studio.designer2.reset')}</Button>
+          <Button variant="outline" size="sm" icon={<RotateCcw className="size-4" />} onClick={async () => await dialogs.confirm(t('studio.designer2.confirmReset')) && apply(presetDesign(template))}>{t('studio.designer2.reset')}</Button>
         </div>
       </div>
 

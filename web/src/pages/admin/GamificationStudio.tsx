@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Tab = 'overview' | 'rules' | 'levels' | 'badges' | 'challenges' | 'rewards' | 'redemptions' | 'settings' | 'adjust'
 const csv = (v: string) => v.split(',').map((x) => x.trim()).filter(Boolean)
@@ -132,7 +133,7 @@ function Badges({ badges, rules, onSaved }: { badges: any[]; rules: any[]; onSav
             <div className="flex items-center gap-3"><div className="size-14 shrink-0" dangerouslySetInnerHTML={{ __html: b.icon_svg ?? '' }} /><div className="min-w-0"><p className="font-semibold text-navy-900">{i18n.language === 'en' ? b.name_en : b.name_ar}</p><p className="font-mono text-xs text-slate-400">{b.code}</p></div></div>
             <p className="mt-2 text-xs text-slate-500">{b.criteria.count} × {t(`soc.gam.events.${b.criteria.event}`, { defaultValue: b.criteria.event })}{b.criteria.within_days ? ` / ${b.criteria.within_days}d` : ''} · {t('soc.studio.badge.awarded')}: {b.awarded}</p>
             <div className="mt-3 flex gap-2"><Button size="sm" variant="outline" onClick={() => setEdit({ ...b, criteria: { ...b.criteria, within_days: b.criteria.within_days ?? '' } })}>{t('soc.common.edit')}</Button>
-              <Button size="sm" variant="ghost" onClick={() => confirm(String(t('soc.studio.badge.delete'))) && save(() => api.delete(`/gamification/admin/badges/${b.id}`))}>{t('soc.common.delete')}</Button></div>
+              <Button size="sm" variant="ghost" onClick={async () => await dialogs.confirm(String(t('soc.studio.badge.delete'))) && save(() => api.delete(`/gamification/admin/badges/${b.id}`))}>{t('soc.common.delete')}</Button></div>
           </Card>
         ))}
       </div>
@@ -179,7 +180,7 @@ function Challenges({ rows, rules, onSaved }: { rows: any[]; rules: any[]; onSav
                 <Td><span className="font-semibold">{i18n.language === 'en' ? c.title_en : c.title_ar}</span> {c.closed_at && <Badge color="gray">{t('soc.gam.closedC')}</Badge>}</Td>
                 <Td>{c.goal.count} × {t(`soc.gam.events.${c.goal.event}`, { defaultValue: c.goal.event })}</Td><Td>{fmt.date(c.starts_at)}</Td><Td>{fmt.date(c.ends_at)}</Td><Td>{c.participants}</Td><Td>{c.completed}</Td>
                 <Td><div className="flex gap-1.5"><Button size="sm" variant="outline" onClick={() => setEdit({ ...c, starts_at: local(c.starts_at), ends_at: local(c.ends_at), reward: { points: c.reward?.points ?? 0, badge_code: c.reward?.badge_code ?? '' }, schools: (c.audience?.schools ?? []).join(', '), roles: (c.audience?.roles ?? []).join(', ') })}>{t('soc.common.edit')}</Button>
-                  <Button size="sm" variant="ghost" onClick={() => confirm(String(t('soc.studio.challenge.delete'))) && save(() => api.delete(`/gamification/admin/challenges/${c.id}`))}>{t('soc.common.delete')}</Button></div></Td>
+                  <Button size="sm" variant="ghost" onClick={async () => await dialogs.confirm(String(t('soc.studio.challenge.delete'))) && save(() => api.delete(`/gamification/admin/challenges/${c.id}`))}>{t('soc.common.delete')}</Button></div></Td>
               </tr>
             ))}
           </Table>

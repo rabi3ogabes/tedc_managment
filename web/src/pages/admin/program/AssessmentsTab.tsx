@@ -10,6 +10,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import type { Program } from '@/lib/types'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const KINDS = ['final', 'quiz', 'diagnostic', 'pre_test', 'post_test', 'comprehensive', 'practice']
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
@@ -118,7 +119,7 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
         {live.data.data.rotating_code && <div className="rounded-xl bg-navy-900 p-3 text-center text-white">{tx('rotating')}: <b className="text-2xl tabular-nums" dir="ltr">{live.data.data.rotating_code.code ?? live.data.data.rotating_code}</b></div>}
         {!live.data.data.attempts.length ? <Empty text={tx('noAttempts')} /> : <Table head={['', tx('answered'), tx('flags'), '']}>{live.data.data.attempts.map((r: any) => (
           <tr key={r.id}><Td>{r.employee}<div className="text-xs text-slate-400">{r.status}{r.remaining_seconds !== null && ` · ${Math.floor(r.remaining_seconds / 60)}′`}</div></Td><Td>{r.answered}/{r.total}</Td><Td>{(r.flags ?? []).length ? <Badge color="red">{(r.flags ?? []).join(', ')}</Badge> : '—'}</Td>
-            <Td><div className="flex gap-1">{r.status === 'in_progress' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={() => { const reason = window.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
+            <Td><div className="flex gap-1">{r.status === 'in_progress' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={async () => { const reason = await dialogs.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
       {tab === 'grading' && (!grading.data ? <Spinner /> : !grading.data.data.length ? <Empty text={tx('noAttempts')} /> : grading.data.data.map((g: any) => (
         <Card key={g.attempt_id} className="space-y-3"><div className="font-bold">{g.employee}</div><AiDraftBox attemptId={g.attempt_id} onGraded={() => void grading.refetch()} />
           {g.items.map((it: any) => { const k = `${g.attempt_id}:${it.question_id}`; return (
@@ -154,7 +155,7 @@ export default function AssessmentsTab({ program }: { program: Program }) {
         <Card key={a.id} className="space-y-3">
           <div className="flex flex-wrap items-center gap-2"><Badge>{t(`assess.kinds.${a.kind}`)}</Badge><b className="text-navy-900">{ar ? a.title_ar : a.title_en}</b><Badge color={a.status === 'published' ? 'green' : 'gold'}>{a.status === 'published' ? t('assess.builder.published') : t('assess.builder.draft')}</Badge><span className="text-xs text-slate-400">{a.attempts_count}</span>
             <div className="ms-auto flex gap-2">{manage && a.status === 'draft' && <Button size="sm" variant="outline" onClick={() => setEdit(a)}>{t('common.edit')}</Button>}<Button size="sm" variant="outline" onClick={() => setOpen(open === a.id ? null : a.id)}>{open === a.id ? '–' : '+'}</Button>
-              {manage && a.attempts_count === 0 && <Button size="sm" variant="outline" onClick={async () => { if (window.confirm(t('assess.builder.delete'))) { try { await api.delete(`/admin/assessments/${a.id}`); void list.refetch() } catch (e) { toast(errorMessage(e), 'error') } } }}>{t('assess.builder.delete')}</Button>}</div></div>
+              {manage && a.attempts_count === 0 && <Button size="sm" variant="outline" onClick={async () => { if (await dialogs.confirm(t('assess.builder.delete'))) { try { await api.delete(`/admin/assessments/${a.id}`); void list.refetch() } catch (e) { toast(errorMessage(e), 'error') } } }}>{t('assess.builder.delete')}</Button>}</div></div>
           {open === a.id && <Manage a={a} onChanged={() => void list.refetch()} />}
         </Card>))}
       <Modal wide open={!!edit} onClose={() => setEdit(null)} title={t('assess.builder.new')}>{edit && <Editor key={edit === 'new' ? 'new' : edit.id} program={program} a={edit === 'new' ? null : edit} onDone={() => { setEdit(null); void list.refetch() }} />}</Modal>

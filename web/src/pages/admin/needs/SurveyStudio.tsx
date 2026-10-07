@@ -14,6 +14,7 @@ import { autoLinkSkills, newQuestion, QUESTION_TYPES, uid, type Question, type Q
 import QuestionEditor, { linkedCount, TYPE_ICONS } from './QuestionEditor'
 import { AudienceDialog, PublishDialog, SettingsDialog } from './StudioDialogs'
 import SurveyReport from './SurveyReport'
+import { dialogs } from '@/lib/dialogs'
 
 type SaveState = 'saved' | 'dirty' | 'saving' | 'error'
 
@@ -124,7 +125,7 @@ export default function SurveyStudio() {
             {draft.approval_status !== 'approved' && draft.approval_status !== 'pending' && <Button variant="outline" size="sm" onClick={async () => { clearTimeout(timer.current); await persist(); await api.post(`/admin/needs-surveys/${draft.id}/submit-approval`).then(() => setDraft({ ...draft, approval_status: 'pending' })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.submit')}</Button>}
             {draft.approval_status === 'pending' && can('instruments.approve') && <>
               <Button variant="outline" size="sm" onClick={() => void api.post(`/admin/needs-surveys/${draft.id}/approve`).then(() => setDraft({ ...draft, approval_status: 'approved' })).catch((e) => setToast(errorMessage(e)))}>{t('needsHub.instrument.approve')}</Button>
-              <Button variant="outline" size="sm" onClick={() => { const note = window.prompt(t('needsHub.instrument.return')); if (note) void api.post(`/admin/needs-surveys/${draft.id}/return`, { note }).then(() => setDraft({ ...draft, approval_status: 'returned', approval_note: note })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.return')}</Button></>}
+              <Button variant="outline" size="sm" onClick={async () => { const note = await dialogs.prompt(t('needsHub.instrument.return')); if (note) void api.post(`/admin/needs-surveys/${draft.id}/return`, { note }).then(() => setDraft({ ...draft, approval_status: 'returned', approval_note: note })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.return')}</Button></>}
             <Button variant="gold" size="sm" disabled={draft.approval_status !== 'approved'} icon={<Send className="size-4" />} onClick={async () => { clearTimeout(timer.current); await persist(); setDialog('publish') }}>{draft.status === 'draft' ? t('surveys.actions.publish') : t('surveys.actions.republish')}</Button>
           </div>
         </div>

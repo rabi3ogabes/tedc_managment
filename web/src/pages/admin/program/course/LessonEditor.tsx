@@ -9,6 +9,7 @@ import { fmtDuration, fmtSize, uploadLessonFile, videoDuration, type Lesson, typ
 import InteractionsEditor from './InteractionsEditor'
 import { LtiCard, PackageCard, VersionsCard } from './PackageCards'
 import { QuizEditor, SurveyEditor } from './QuestionEditors'
+import { dialogs } from '@/lib/dialogs'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 
@@ -142,7 +143,7 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
     try { await api.delete(`/admin/course/lessons/${lesson.id}/file`); onChanged() } catch (e) { setMessage({ ok: false, text: errorMessage(e) }) } finally { setBusy(null) }
   }
   const remove = async () => {
-    if (!window.confirm(t('course.confirmDeleteLesson', { name: lesson.title_ar }))) return
+    if (!await dialogs.confirm(t('course.confirmDeleteLesson', { name: lesson.title_ar }))) return
     setBusy('delete')
     try { await api.delete(`/admin/course/lessons/${lesson.id}`); onDeleted() } catch (e) { setMessage({ ok: false, text: errorMessage(e) }); setBusy(null) }
   }

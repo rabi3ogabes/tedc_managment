@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
+import { dialogs } from '@/lib/dialogs'
 
 export type GroupTrainer = { id: string; trainer_id: string; name: string | null; role: string; status: string }
 export type Group = {
@@ -103,8 +104,8 @@ export default function GroupsTab({ program }: { program: Program }) {
             <div className="flex flex-wrap gap-2">
               {g.allowed_transitions.length > 0 && can('groups.status') && <Button size="sm" variant="outline" icon={<Pencil className="size-4" />} onClick={() => setStatusFor(g)}>{t('groups.changeStatus')}</Button>}
               <Button size="sm" variant="outline" icon={g.published ? <GlobeLock className="size-4" /> : <Globe className="size-4" />} onClick={() => void act(() => api.post(`/admin/groups/${g.id}/${g.published ? 'unpublish' : 'publish'}`), t('groups.saved'))}>{g.published ? t('groups.unpublish') : t('groups.publish')}</Button>
-              <Button size="sm" variant="outline" icon={<Copy className="size-4" />} onClick={() => { const d = window.prompt(t('groups.start'), g.end_date ?? ''); if (d) void act(() => api.post(`/admin/groups/${g.id}/clone`, { start_date: d }), t('groups.saved')) }}>{t('groups.clone')}</Button>
-              {g.seats_taken === 0 && <button type="button" aria-label={t('groups.delete')} onClick={() => { if (window.confirm(t('groups.confirmDelete', { name: g.title }))) void act(() => api.delete(`/admin/groups/${g.id}`), t('groups.deleted')) }} className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button>}
+              <Button size="sm" variant="outline" icon={<Copy className="size-4" />} onClick={async () => { const d = await dialogs.prompt(t('groups.start'), g.end_date ?? ''); if (d) void act(() => api.post(`/admin/groups/${g.id}/clone`, { start_date: d }), t('groups.saved')) }}>{t('groups.clone')}</Button>
+              {g.seats_taken === 0 && <button type="button" aria-label={t('groups.delete')} onClick={async () => { if (await dialogs.confirm(t('groups.confirmDelete', { name: g.title }))) void act(() => api.delete(`/admin/groups/${g.id}`), t('groups.deleted')) }} className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button>}
             </div>
           )}
         </Card>

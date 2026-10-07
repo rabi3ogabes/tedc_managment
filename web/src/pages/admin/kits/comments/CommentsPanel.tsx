@@ -6,6 +6,7 @@ import { Avatar, Badge, Button, Spinner } from '@/components/ui'
 import { errorMessage } from '@/lib/api'
 import { CATEGORIES, SEVERITIES, type Anchor, type CommentCategory, type CommentStatus, type Kit, type KitComment, type Severity } from '../types'
 import { relativeTime, severityTone, useCommentActions, type NewComment } from './api'
+import { dialogs } from '@/lib/dialogs'
 
 type Props = {
   kit: Kit
@@ -183,7 +184,7 @@ function Thread({ c, kit, active, onActive, onJump, anchorLabel, actions }: { c:
         {c.status === 'open' && (isDev || can?.review) && <Button size="sm" variant="outline" loading={busy} icon={<CircleDot className="size-3.5" />} onClick={() => run(() => actions.setStatus(c.id, 'addressed'))}>{t('kits.comments.markAddressed')}</Button>}
         {c.status !== 'resolved' && can?.review && <Button size="sm" variant="gold" loading={busy} icon={<CheckCheck className="size-3.5" />} onClick={() => run(() => actions.setStatus(c.id, 'resolved'))}>{c.status === 'addressed' ? t('kits.comments.verify') : t('kits.comments.resolve')}</Button>}
         {c.status !== 'open' && can?.comment && <Button size="sm" variant="ghost" loading={busy} icon={<RotateCcw className="size-3.5" />} onClick={() => run(() => actions.setStatus(c.id, 'open'))}>{t('kits.comments.reopen')}</Button>}
-        {c.mine && <button type="button" onClick={() => window.confirm(t('kits.comments.confirmDelete')) && run(() => actions.remove(c.id))} className="ms-auto p-1 text-slate-300 hover:text-danger" aria-label={t('kits.common.delete')}><Trash2 className="size-4" /></button>}
+        {c.mine && <button type="button" onClick={async () => await dialogs.confirm(t('kits.comments.confirmDelete')) && run(() => actions.remove(c.id))} className="ms-auto p-1 text-slate-300 hover:text-danger" aria-label={t('kits.common.delete')}><Trash2 className="size-4" /></button>}
       </div>
       {replying && (
         <div className="border-t border-navy-100 bg-ivory/50 p-2.5">

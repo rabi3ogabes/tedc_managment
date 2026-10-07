@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import ShareDialog from './ShareDialog'
+import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const TYPES = ['book', 'journal', 'periodical', 'audio', 'video', 'elearning', 'kit', 'link']
@@ -37,7 +38,7 @@ function Items() {
     try { const { data } = cur.id ? await api.put(`/admin/library-items/${cur.id}`, body) : await api.post('/admin/library-items', body); toast(t('content.admin.saved')); setCur({ ...cur, id: data.data.id }); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const up = async (kind: 'file' | 'cover', f: File) => { const fd = new FormData(); fd.append(kind, f); try { await api.post(`/admin/library-items/${cur.id}/files`, fd); toast('✓'); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  const del = async (id: string) => { if (!window.confirm('?')) return; try { await api.delete(`/admin/library-items/${id}`); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const del = async (id: string) => { if (!await dialogs.confirm('?')) return; try { await api.delete(`/admin/library-items/${id}`); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const edit = (i: any) => setCur({ ...blank, ...i, authors: (i.authors ?? []).join(', '), subjects: (i.subjects ?? []).join(', '), rights: { ...blank.rights, ...(i.rights ?? {}), owner: i.rights?.owner ?? '', licence: i.rights?.licence ?? '' }, audience: i.audience ?? [] })
   return (
     <div className="space-y-3">

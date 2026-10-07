@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 type Tab = 'paths' | 'pd' | 'kt' | 'team'
@@ -160,7 +161,7 @@ function Team() {
   const { t } = useTranslation()
   const list = useGet<{ data: any[] }>('/me/team/pd-activities', undefined, { staleTime: 0 })
   const decide = async (id: string, decision: string) => {
-    const note = decision === 'approve' ? undefined : window.prompt(t('career.pd.note')) ?? ''
+    const note = decision === 'approve' ? undefined : await dialogs.prompt(t('career.pd.note')) ?? ''
     if (decision !== 'approve' && !note) return
     try { await api.post(`/me/team/pd-activities/${id}/decision`, { decision, note }); toast(t('career.pd.decided')); void list.refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }

@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { newQuestion, type Question } from '@/lib/surveys'
 import { toast } from '@/lib/toast'
 import QuestionEditor from './needs/QuestionEditor'
+import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const KINDS = ['trainer_reflection', 'planning_evaluation', 'supervisor_feedback', 'specialist_feedback', 'custom']
@@ -31,7 +32,7 @@ export default function EvaluationForms() {
             {f.is_system ? <p className="text-xs text-slate-500">{t('evalc.forms.system')}</p> : (
               <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => open(f)}>{t('common.edit')}</Button>
                 {['draft', 'returned'].includes(f.approval_status) && <Button size="sm" variant="outline" onClick={() => void act(f.id, 'submit-approval')}>{t('evalc.forms.submit')}</Button>}
-                {f.approval_status === 'pending' && can('instruments.approve') && <><Button size="sm" variant="gold" onClick={() => void act(f.id, 'approve')}>{t('evalc.forms.approve')}</Button><Button size="sm" variant="ghost" onClick={() => { const note = window.prompt(t('evalc.forms.note')); if (note) void act(f.id, 'return', { note }) }}>{t('evalc.forms.returnIt')}</Button></>}</div>)}
+                {f.approval_status === 'pending' && can('instruments.approve') && <><Button size="sm" variant="gold" onClick={() => void act(f.id, 'approve')}>{t('evalc.forms.approve')}</Button><Button size="sm" variant="ghost" onClick={async () => { const note = await dialogs.prompt(t('evalc.forms.note')); if (note) void act(f.id, 'return', { note }) }}>{t('evalc.forms.returnIt')}</Button></>}</div>)}
           </Card>))}</div>)}
       <Modal wide open={!!edit} onClose={() => setEdit(null)} title={t('evalc.forms.title')}>{edit && <Editor f={edit} onDone={() => { setEdit(null); void list.refetch() }} />}</Modal>
     </>

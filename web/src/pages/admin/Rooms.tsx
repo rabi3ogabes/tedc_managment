@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Room } from '@/lib/types'
 import { Pager } from './shared'
+import { dialogs } from '@/lib/dialogs'
 
 type Options = { layouts: { key: string; ar: string; en: string }[]; equipment: { key: string; ar: string; en: string; group: string }[]; offices: string[]; floors: string[] }
 type Booking = { id: string; title: string; program?: string | null; program_id: string; starts_at: string; ends_at: string }
@@ -237,7 +238,7 @@ function ScreenLinkModal({ room, onClose }: { room: Room; onClose: () => void })
             <Button size="sm" variant="gold" icon={<Copy className="size-4" />} onClick={() => { void navigator.clipboard.writeText(link.url); setCopied(true); setTimeout(() => setCopied(false), 2000) }}>{copied ? t('studio.screen.copied') : t('studio.screen.copy')}</Button></div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Button variant="primary" icon={<Monitor className="size-4" />} onClick={() => window.open(link.url, '_blank', 'noopener')}>{t('studio.screen.open')}</Button>
-            <Button variant="ghost" loading={busy} icon={<RefreshCw className="size-4" />} onClick={() => window.confirm(t('studio.screen.regenerateHint')) && load(true)}>{t('studio.screen.regenerate')}</Button>
+            <Button variant="ghost" loading={busy} icon={<RefreshCw className="size-4" />} onClick={async () => await dialogs.confirm(t('studio.screen.regenerateHint')) && load(true)}>{t('studio.screen.regenerate')}</Button>
           </div>
         </div>
       )}
@@ -374,7 +375,7 @@ export default function Rooms() {
   const setFilter = (k: keyof typeof filters, v: string) => { setFilters((f) => ({ ...f, [k]: v })); setPage(1) }
 
   const remove = async (room: Room) => {
-    if (!window.confirm(t('mgmt.common.confirmDelete'))) return
+    if (!await dialogs.confirm(t('mgmt.common.confirmDelete'))) return
     try {
       const res = await api.delete(`/admin/rooms/${room.id}`)
       setNotice(res.data?.meta?.deactivated ? t('mgmt.rooms.deactivatedMsg') : null)

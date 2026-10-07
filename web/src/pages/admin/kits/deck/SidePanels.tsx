@@ -10,6 +10,7 @@ import { severityTone, relativeTime } from '../comments/api'
 import type { Analysis, Finding, Kit, VersionRow } from '../types'
 import type { Deck, Slide } from './model'
 import { SlideView } from './SlideView'
+import { dialogs } from '@/lib/dialogs'
 
 const errorBox = (e: string | null) => e && <div className="rounded-xl bg-red-50 p-3 text-sm text-danger">{e}</div>
 
@@ -104,7 +105,7 @@ export function VersionsPanel({ kit, fileId, canEdit, onRestored, onSaved }: { k
     try { const res = await api.get<{ data: { deck: Deck | null } }>(`${url}/${row.id}`); setPreview({ row, deck: res.data.data.deck }) } catch (e) { setError(errorMessage(e)) }
   }
   const restore = async (row: VersionRow) => {
-    if (!window.confirm(t('kits.versions.confirmRestore', { n: row.version }))) return
+    if (!await dialogs.confirm(t('kits.versions.confirmRestore', { n: row.version }))) return
     setBusy(true)
     try { const res = await api.post<{ data: { deck: Deck; revision: number } }>(`${url}/${row.id}/restore`); onRestored(res.data.data.deck, res.data.data.revision); setPreview(null); await list.refetch() } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }

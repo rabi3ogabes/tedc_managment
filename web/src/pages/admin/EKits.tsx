@@ -7,6 +7,7 @@ import { Badge, Button, Card, Empty, PageHeader, Spinner } from '@/components/ui
 import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 /** The interactive e-kits kept in resources/ekits: publish each as an e-course and export it as a SCORM 2004 package. */
 export default function EKits() {
@@ -16,7 +17,7 @@ export default function EKits() {
   const [busy, setBusy] = useState<string | null>(null)
 
   const build = async (code: string, rebuild: boolean) => {
-    if (rebuild && !window.confirm(String(t('hlp.kits.confirmRebuild')))) return
+    if (rebuild && !await dialogs.confirm(String(t('hlp.kits.confirmRebuild')))) return
     setBusy(code)
     try { const { data } = await api.post(`/admin/ekits/${code}/build`, { rebuild }); toast(String(data.data.created ? t(rebuild ? 'hlp.kits.rebuilt' : 'hlp.kits.done') : t('hlp.kits.exists'))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
   }

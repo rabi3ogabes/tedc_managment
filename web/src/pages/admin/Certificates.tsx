@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Certificate, CertificateSendResult, Paginated, Program } from '@/lib/types'
 import { Pager } from './shared'
+import { dialogs } from '@/lib/dialogs'
 
 type Filters = { q: string; program_id: string; status: string; sent: string; from: string; to: string }
 const emptyFilters: Filters = { q: '', program_id: '', status: '', sent: '', from: '', to: '' }
@@ -141,7 +142,7 @@ export default function Certificates() {
   }
 
   const run = async (body: Record<string, unknown>, confirmText: string) => {
-    if (!window.confirm(confirmText)) return
+    if (!await dialogs.confirm(confirmText)) return
     setSending(true)
     setError(null)
     try {
@@ -163,7 +164,7 @@ export default function Certificates() {
   const pageIds = rows.map((c) => c.id)
   const allOnPage = pageIds.length > 0 && pageIds.every((id) => selected.includes(id))
   const revoke = async (c: Certificate) => {
-    const reason = window.prompt(t('admin.certificates.reason'))
+    const reason = await dialogs.prompt(t('admin.certificates.reason'))
     if (!reason) return
     await api.post(`/admin/certificates/${c.id}/revoke`, { reason })
     refetch()

@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom'
 import '@/i18n'
 import './index.css'
 import App from './App'
+import DialogHost from '@/components/ui/DialogHost'
 import ToastHost from '@/components/ui/ToastHost'
 import { registerLusail } from '@/lib/fonts'
 import { AuthProvider } from '@/lib/auth'
@@ -59,6 +60,7 @@ createRoot(document.getElementById('root')!).render(
             <AppErrorBoundary><App /></AppErrorBoundary>
           </AuthProvider>
           <ToastHost />
+          <DialogHost />
         </ThemeProvider>
       </BrowserRouter>
     </PersistQueryClientProvider>

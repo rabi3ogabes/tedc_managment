@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Partner, Trainer, TrainerSource } from '@/lib/types'
 import { Pager } from './shared'
+import { dialogs } from '@/lib/dialogs'
 
 type Options = {
   sources: { key: TrainerSource; ar: string; en: string; outside: boolean }[]
@@ -368,7 +369,7 @@ function Partners({ options, canManage, onChanged }: { options: Options; canMana
   const list = useGet<Paginated<Partner>>('/admin/partners', { page })
 
   const remove = async (p: Partner) => {
-    if (!window.confirm(t('mgmt.common.confirmDelete'))) return
+    if (!await dialogs.confirm(t('mgmt.common.confirmDelete'))) return
     try {
       const res = await api.delete(`/admin/partners/${p.id}`)
       setNotice(res.data?.meta?.deactivated ? t('mgmt.common.deactivated') : null)
@@ -424,7 +425,7 @@ export default function Trainers() {
   const patch = (p: Partial<typeof filters>) => { setFilters((f) => ({ ...f, ...p })); setPage(1) }
 
   const remove = async (tr: Trainer) => {
-    if (!window.confirm(t('mgmt.common.confirmDelete'))) return
+    if (!await dialogs.confirm(t('mgmt.common.confirmDelete'))) return
     try {
       const res = await api.delete(`/admin/trainers/${tr.id}`)
       setNotice(res.data?.meta?.deactivated ? t('mgmt.trainers.deactivatedMsg') : null)

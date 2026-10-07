@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useCenterName } from '@/lib/ThemeProvider'
 import { PhoneNotification, Switch, usePreview, VariableChips, type Template, type TemplateData } from './shared'
+import { dialogs } from '@/lib/dialogs'
 
 const GROUP_ORDER = ['registration', 'program', 'survey', 'session', 'task', 'certificate', 'custom']
 
@@ -126,7 +127,7 @@ function TemplateEditor({ template, variables, onClose, onSaved }: { template: T
     } catch (e) { setError(errorMessage(e)); setSaving(false) }
   }
   const reset = async () => { if (template) { await api.post(`/admin/notifications/templates/${template.id}/reset`); onSaved() } }
-  const remove = async () => { if (template && window.confirm(t('mgmt.notif.templates.confirmDelete'))) { await api.delete(`/admin/notifications/templates/${template.id}`); onSaved() } }
+  const remove = async () => { if (template && await dialogs.confirm(t('mgmt.notif.templates.confirmDelete'))) { await api.delete(`/admin/notifications/templates/${template.id}`); onSaved() } }
 
   const field = (k: keyof typeof form, label: string, multiline = false, dir: 'rtl' | 'ltr' = 'rtl') => {
     const common = { value: form[k], dir, onFocus: () => { focused.current = k }, onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => set(k, e.target.value) }

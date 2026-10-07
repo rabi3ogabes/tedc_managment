@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { applyLabels, baseLabels, cacheLabels, type LabelSet, type Lng } from '@/lib/labels'
+import { dialogs } from '@/lib/dialogs'
 
 type Payload = { data: LabelSet; version: string }
 type Draft = Record<string, Partial<Record<Lng, string>>>
@@ -101,7 +102,7 @@ export default function LabelManager() {
   }
 
   const resetAll = async () => {
-    if (!window.confirm(t('mgmt.labels.confirmResetAll'))) return
+    if (!await dialogs.confirm(t('mgmt.labels.confirmResetAll'))) return
     try {
       const res = await api.put<Payload>('/admin/settings/labels', { replace: true })
       applyLabels(res.data.data)

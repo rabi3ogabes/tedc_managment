@@ -6,6 +6,7 @@ import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@
 import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 export const QUESTION_TYPES = ['single_choice', 'multiple_select', 'true_false', 'dropdown', 'matrix', 'essay', 'short_answer', 'fill_blanks', 'matching', 'ordering', 'categorization', 'hotspot', 'numeric', 'h5p'] as const
 type Bank = { id: string; title_ar: string; title_en: string; visibility: string; questions_count: number }
@@ -110,7 +111,7 @@ export default function QuestionBanks() {
   const input = 'rounded-xl border border-navy-100 px-3 py-2 text-sm'
 
   const addBank = async () => { try { const { data } = await api.post('/admin/question-banks', bankForm); setNewBank(false); setBankId(data.data.id); refresh() } catch (e) { toast(errorMessage(e), 'error') } }
-  const addCat = async () => { const name = window.prompt(t('assess.studio.newCategory')); if (!name || !bank) return; try { await api.post(`/admin/question-banks/${bank.id}/categories`, { name_ar: name, name_en: name }); void cats.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const addCat = async () => { const name = await dialogs.prompt(t('assess.studio.newCategory')); if (!name || !bank) return; try { await api.post(`/admin/question-banks/${bank.id}/categories`, { name_ar: name, name_en: name }); void cats.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const doImport = async (f: File) => {
     if (!bank) return
     const fd = new FormData(); fd.append('file', f)

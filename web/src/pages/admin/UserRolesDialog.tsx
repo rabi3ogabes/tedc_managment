@@ -8,6 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Grant = { id: string; role_id: string; slug: string; name_ar: string; name_en: string; scope_type: string; scope_label_ar: string; scope_label_en: string; expires_at: string | null; expired: boolean }
 type Role = { id: string; slug: string; name_ar: string; name_en: string; scope_levels: string[] | null }
@@ -42,7 +43,7 @@ export default function UserRolesDialog({ user, onClose, onChanged }: { user: { 
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   const revoke = async (g: Grant) => {
-    if (!window.confirm(t('userRoles.confirmRevoke', { role: nm(g) }))) return
+    if (!await dialogs.confirm(t('userRoles.confirmRevoke', { role: nm(g) }))) return
     try { await api.delete(`/admin/users/${user!.id}/roles/${g.id}`); toast(t('userRoles.revoked')); await grants.refetch(); onChanged() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const needsScope = form.scope_type !== 'ministry'

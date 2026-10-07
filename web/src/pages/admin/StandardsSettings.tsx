@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 type Tab = 'lrs' | 'lti' | 'providers' | 'libraries'
@@ -105,7 +106,7 @@ function Providers() {
   const save = async () => { try { await api.put('/admin/settings/content-providers', s); toast(t('content.standards.saved')) } catch (e) { toast(errorMessage(e), 'error') } }
   const sync = async () => { try { const { data } = await api.post('/admin/content-providers/sync'); toast(String(t('content.providers.synced', data.data))); void cat.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const make = async (id: string) => { try { await api.post(`/admin/external-courses/${id}/program`); toast(t('content.providers.programMade')); void cat.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : window.prompt(t('content.providers.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/external-completions/${id}/decision`, { decision, note }); void rev.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : await dialogs.prompt(t('content.providers.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/external-completions/${id}/decision`, { decision, note }); void rev.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   return (
     <div className="space-y-4">
       {Object.keys(s).map((p) => (

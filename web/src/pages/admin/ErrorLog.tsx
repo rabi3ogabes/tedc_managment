@@ -6,6 +6,7 @@ import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
+import { dialogs } from '@/lib/dialogs'
 
 type Entry = {
   id: string; source: 'server' | 'web' | 'app'; level: 'warning' | 'error' | 'critical'; message: string; exception: string | null; location: string | null; status_code: number | null; url: string | null; method: string | null
@@ -107,7 +108,7 @@ function Detail({ id, onClose, onChanged }: { id: string; onClose: () => void; o
           {e.status !== 'fixed' && <Button variant="primary" size="sm" loading={busy === 'fixed'} icon={<CheckCircle2 className="size-4" />} onClick={() => set('fixed')}>{t('logs.markFixed')}</Button>}
           {e.status !== 'ignored' && <Button variant="outline" size="sm" loading={busy === 'ignored'} icon={<EyeOff className="size-4" />} onClick={() => set('ignored')}>{t('logs.ignore')}</Button>}
           {e.status !== 'open' && <Button variant="outline" size="sm" loading={busy === 'open'} icon={<RotateCcw className="size-4" />} onClick={() => set('open')}>{t('logs.reopen')}</Button>}
-          <Button variant="ghost" size="sm" className="ms-auto" icon={<Trash2 className="size-4 text-danger" />} onClick={() => window.confirm(t('logs.confirmDelete')) && act('del', async () => { await api.delete(`/admin/error-logs/${id}`); onChanged(); onClose() })}>{t('common.delete')}</Button>
+          <Button variant="ghost" size="sm" className="ms-auto" icon={<Trash2 className="size-4 text-danger" />} onClick={async () => await dialogs.confirm(t('logs.confirmDelete')) && act('del', async () => { await api.delete(`/admin/error-logs/${id}`); onChanged(); onClose() })}>{t('common.delete')}</Button>
         </div>
         {e.auto_fixed && <p className="flex items-center gap-2 text-sm text-emerald-700"><Sparkles className="size-4" />{t('logs.autoFixed')}</p>}
 
@@ -151,7 +152,7 @@ export default function ErrorLog() {
   const filterParams = Object.fromEntries(Object.entries({ source: f.source, level: f.level, status: f.status, q: f.q, days: f.days }).filter(([, v]) => v !== ''))
 
   const bulk = async (action: 'fix' | 'ignore' | 'reopen' | 'delete', body: Record<string, unknown>) => {
-    if (action === 'delete' && !window.confirm(t('logs.confirmDeleteMany'))) return
+    if (action === 'delete' && !await dialogs.confirm(t('logs.confirmDeleteMany'))) return
     setBusy(true)
     try { await api.post('/admin/error-logs/bulk', { action, ...body }); setSelected([]); await refetch() } finally { setBusy(false) }
   }

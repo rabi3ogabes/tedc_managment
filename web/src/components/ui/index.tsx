@@ -147,7 +147,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
     const focusables = () => Array.from(box.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); return }
-      if (e.key !== 'Tab') return
+      if (e.key !== 'Tab' || !box.current?.contains(document.activeElement)) return   // a window opened on top of this one keeps its own focus
       const items = focusables()                      // keep the keyboard inside the window while it is open
       if (items.length === 0) return
       const first = items[0]

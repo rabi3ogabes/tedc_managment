@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button, Field, Modal } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import type { KitDetail } from './types'
+import { dialogs } from '@/lib/dialogs'
 
 type Action = 'submit' | 'request-changes' | 'approve' | 'publish' | 'reopen' | 'archive'
 
@@ -48,8 +49,8 @@ export default function KitActions({ kit, onDone, size = 'md', onDark = false }:
         </>
       )}
       {can.publish && kit.status === 'approved' && <Button size={size} variant="primary" icon={<Rocket className="size-4" />} loading={busy} onClick={() => run('publish')}>{t('kits.actions.publish')}</Button>}
-      {(can.publish || kit.my_role === 'developer') && ['approved', 'published', 'archived'].includes(kit.status) && <Button size={size} variant={quiet} icon={<RotateCcw className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmReopen')) && run('reopen')}>{t('kits.actions.reopen')}</Button>}
-      {can.publish && kit.status !== 'archived' && kit.status !== 'draft' && <Button size={size} variant={onDark ? 'light' : 'ghost'} icon={<Archive className="size-4" />} loading={busy} onClick={() => window.confirm(t('kits.actions.confirmArchive')) && run('archive')}>{t('kits.actions.archive')}</Button>}
+      {(can.publish || kit.my_role === 'developer') && ['approved', 'published', 'archived'].includes(kit.status) && <Button size={size} variant={quiet} icon={<RotateCcw className="size-4" />} loading={busy} onClick={async () => await dialogs.confirm(t('kits.actions.confirmReopen')) && run('reopen')}>{t('kits.actions.reopen')}</Button>}
+      {can.publish && kit.status !== 'archived' && kit.status !== 'draft' && <Button size={size} variant={onDark ? 'light' : 'ghost'} icon={<Archive className="size-4" />} loading={busy} onClick={async () => await dialogs.confirm(t('kits.actions.confirmArchive')) && run('archive')}>{t('kits.actions.archive')}</Button>}
 
       <Modal open={dialog === 'submit'} onClose={() => setDialog(null)} title={t('kits.actions.submitTitle')}>
         <div className="space-y-4">

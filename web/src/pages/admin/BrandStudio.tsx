@@ -9,6 +9,7 @@ import { useSettingsTab, useTabDirty } from './settings/tabContext'
 import { contrast, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
 import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
+import { dialogs } from '@/lib/dialogs'
 
 type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape'
 
@@ -76,7 +77,7 @@ export default function BrandStudio() {
   }
 
   const reset = async () => {
-    if (!window.confirm(t('admin.brand.confirmReset'))) return
+    if (!await dialogs.confirm(t('admin.brand.confirmReset'))) return
     const { data } = await api.post('/admin/theme/reset')
     setDraft(mergeTheme(data.data))
     await refresh()

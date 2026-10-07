@@ -8,6 +8,7 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 type Tab = 'activities' | 'recognitions' | 'types' | 'targets' | 'report' | 'transfers'
@@ -34,7 +35,7 @@ function Activities() {
   const { t } = useTranslation()
   const [status, setStatus] = useState('pending_manager')
   const res = useGet<{ data: any[] }>('/admin/pd-activities', { status }, { staleTime: 0 })
-  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : window.prompt(t('career.pd.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/pd-activities/${id}/decision`, { decision, note }); toast(t('career.pd.decided')); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : await dialogs.prompt(t('career.pd.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/pd-activities/${id}/decision`, { decision, note }); toast(t('career.pd.decided')); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   return (
     <div className="space-y-3">
       <select className="rounded-xl border border-navy-100 px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>{['pending_manager', 'approved', 'rejected', 'returned'].map((s) => <option key={s} value={s}>{t(`career.pd.status.${s}`)}</option>)}</select>
@@ -126,7 +127,7 @@ function Report() {
 function Transfers() {
   const { t } = useTranslation()
   const res = useGet<{ data: any[] }>('/admin/knowledge-transfers', { status: 'pending_review' }, { staleTime: 0 })
-  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : window.prompt(t('career.kt.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/knowledge-transfers/${id}/decision`, { decision, note }); toast(t('career.pd.decided')); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : await dialogs.prompt(t('career.kt.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/knowledge-transfers/${id}/decision`, { decision, note }); toast(t('career.pd.decided')); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   return !res.data ? <Spinner /> : !res.data.data.length ? <Card><Empty text={t('career.kt.empty')} /></Card> : (
     <div className="space-y-3">{res.data.data.map((k) => <Card key={k.id} className="flex flex-wrap items-center gap-3"><div className="flex-1"><div className="font-bold">{k.employee_name}</div><div className="text-sm">{k.program} · {k.hours} h · {k.beneficiary_count} · {fmt.date(k.delivered_on)}</div></div><Button size="sm" variant="gold" onClick={() => void decide(k.id, 'approve')}>{t('career.kt.approve')}</Button><Button size="sm" variant="ghost" onClick={() => void decide(k.id, 'reject')}>{t('career.kt.reject')}</Button></Card>)}</div>
   )

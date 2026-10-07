@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { CalendarDayInfo, CalendarKind, CalendarSummary } from '@/lib/types'
+import { dialogs } from '@/lib/dialogs'
 
 type View = 'month' | 'year' | 'table'
 type Payload = { data: CalendarDayInfo[]; meta: { from: string; to: string; summary: CalendarSummary } }
@@ -253,7 +254,7 @@ function DayDetails({ day, canManage, canApprove, onClose, onEdit, onMark, onCha
   }
   const approve = () => run(() => api.post('/admin/calendar/approvals', { date: day.date, reason }))
   const revoke = () => run(() => api.delete(`/admin/calendar/approvals/${day.date}`))
-  const remove = () => window.confirm(t('mgmt.calendar.confirmDelete')) && run(() => api.delete(`/admin/calendar/days/${day.entry!.id}`))
+  const remove = async () => await dialogs.confirm(t('mgmt.calendar.confirmDelete')) && run(() => api.delete(`/admin/calendar/days/${day.entry!.id}`))
 
   return (
     <Modal open onClose={onClose} title={t('mgmt.calendar.dayDetails')}>

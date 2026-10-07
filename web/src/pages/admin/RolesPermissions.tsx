@@ -7,6 +7,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Role = { id: string; slug: string; name_ar: string; name_en: string; level: number; is_system: boolean; users_count: number; scope_levels: string[] | null; landing_route: string | null; permissions: { slug: string }[] }
 type Perm = { slug: string; name_ar: string; name_en: string; group: string }
@@ -51,7 +52,7 @@ export default function RolesPermissions() {
     catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const remove = async () => {
-    if (!selected || !window.confirm(t('rolesAdmin.confirmDelete', { name: nm(selected) }))) return
+    if (!selected || !await dialogs.confirm(t('rolesAdmin.confirmDelete', { name: nm(selected) }))) return
     try { await api.delete(`/admin/roles/${selected.id}`); setSelectedId(null); toast(t('rolesAdmin.deleted')); await refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
 

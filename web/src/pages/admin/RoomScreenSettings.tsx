@@ -10,6 +10,7 @@ import { presetDesign } from '@/components/screen/design'
 import { sampleDay } from '@/components/screen/sample'
 import ScreenDesigner from './screen/ScreenDesigner'
 import { DEFAULT_TEMPLATE, RoomScreenView, todayIso, type ScreenTemplate } from '../RoomScreen'
+import { dialogs } from '@/lib/dialogs'
 
 function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -59,7 +60,7 @@ export default function RoomScreenSettings() {
     try { await api.put('/admin/settings/room-screen', tpl); await refetch(); setNotice({ ok: true, text: t('studio.tpl.saved') }) } catch (e) { setNotice({ ok: false, text: errorMessage(e) }) } finally { setSaving(false) }
   }
   const reset = async () => {
-    if (!window.confirm(t('studio.tpl.confirmReset'))) return
+    if (!await dialogs.confirm(t('studio.tpl.confirmReset'))) return
     try { const r = await api.post<{ data: ScreenTemplate }>('/admin/settings/room-screen/reset'); setTpl({ ...DEFAULT_TEMPLATE, ...r.data.data }); await refetch() } catch (e) { setNotice({ ok: false, text: errorMessage(e) }) }
   }
 

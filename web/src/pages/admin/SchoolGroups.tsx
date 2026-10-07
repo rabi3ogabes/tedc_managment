@@ -8,6 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Group = { id: string; code: string; name_ar: string; name_en: string; type: string; description: string | null; schools_count: number; schools?: SchoolRow[] }
 type Report = { groups_created: number; groups_updated: number; linked: number; unknown_schools: { line: number; school_code: string }[]; invalid_rows: { line: number; reason: string }[] }
@@ -45,7 +46,7 @@ export default function SchoolGroups() {
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   const remove = async (g: Group) => {
-    if (!window.confirm(t('schoolGroups.confirmDelete', { name: ar ? g.name_ar : g.name_en }))) return
+    if (!await dialogs.confirm(t('schoolGroups.confirmDelete', { name: ar ? g.name_ar : g.name_en }))) return
     try { await api.delete(`/admin/school-groups/${g.id}`); toast(t('schoolGroups.deleted')); await refetch() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const upload = async (f: File) => {

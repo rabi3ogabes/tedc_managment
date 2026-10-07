@@ -9,6 +9,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import PageCanvas, { useTemplateFile } from './PageCanvas'
 import { PT_TO_MM, uid, type CertElement, type CertTemplate, type TemplateMeta } from './types'
+import { dialogs } from '@/lib/dialogs'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
 
@@ -307,7 +308,7 @@ export default function Designer() {
     <div className="-mx-2">
       {/* Top bar */}
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-navy-100 bg-white p-3">
-        <Button variant="ghost" size="sm" icon={<ArrowLeft className="size-4 rtl:rotate-180" />} onClick={() => (!dirty || window.confirm(t('studio.designer.leave'))) && navigate('/admin/certificate-templates')}>{t('studio.designer.back')}</Button>
+        <Button variant="ghost" size="sm" icon={<ArrowLeft className="size-4 rtl:rotate-180" />} onClick={async () => (!dirty || await dialogs.confirm(t('studio.designer.leave'))) && navigate('/admin/certificate-templates')}>{t('studio.designer.back')}</Button>
         <div className="grid min-w-[16rem] flex-1 gap-2 sm:grid-cols-2">
           <input dir="rtl" className="input !py-1.5 text-sm font-bold" value={tpl.name_ar} onChange={(e) => { setTpl({ ...tpl, name_ar: e.target.value }); setDirty(true) }} aria-label={t('studio.designer.nameAr')} />
           <input dir="ltr" className="input !py-1.5 text-sm font-bold" value={tpl.name_en} onChange={(e) => { setTpl({ ...tpl, name_en: e.target.value }); setDirty(true) }} aria-label={t('studio.designer.nameEn')} />

@@ -5,6 +5,7 @@ import { Badge, Button, Card, Empty, Field, Modal, Spinner } from '@/components/
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Rule = { id: string; name_ar: string; name_en: string; trigger: string; conditions: Record<string, unknown> | null; action: { skill_ids?: string[]; required_level?: number } | null; is_active: boolean }
 const TRIGGERS = ['new_hire', 'appraisal', 'observation', 'specialisation', 'stage']
@@ -36,7 +37,7 @@ export default function RulesTab() {
           <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-4"><div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{ar ? r.name_ar : r.name_en}</div><div className="text-xs text-slate-500">{skillName(r.action?.skill_ids?.[0])} · {t('needsHub.rules.level')} {r.action?.required_level}</div></div>
             <Badge color="navy">{t(`needsHub.rules.triggers.${r.trigger}`)}</Badge>
             <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><input type="checkbox" checked={r.is_active} onChange={(e) => void api.put(`/admin/needs-rules/${r.id}`, { is_active: e.target.checked }).then(() => rules.refetch())} />{t('needsHub.rules.active')}</label>
-            <button type="button" aria-label="delete" onClick={() => { if (window.confirm(ar ? r.name_ar : r.name_en)) void api.delete(`/admin/needs-rules/${r.id}`).then(() => rules.refetch()) }} className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button></li>))}</ul>
+            <button type="button" aria-label="delete" onClick={async () => { if (await dialogs.confirm(ar ? r.name_ar : r.name_en)) void api.delete(`/admin/needs-rules/${r.id}`).then(() => rules.refetch()) }} className="grid size-9 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-danger"><Trash2 className="size-4" /></button></li>))}</ul>
       )}</Card>
       <Modal open={open} onClose={() => setOpen(false)} title={t('needsHub.rules.new')} wide>
         <div className="space-y-4">
