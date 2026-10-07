@@ -62,4 +62,14 @@ class AuditFixesTest extends TestCase
         $this->expectException(RequestException::class);
         app(FileStorage::class)->put('documents', 'a.txt', 'hello', 'text/plain');
     }
+
+    public function test_validation_messages_name_the_field_in_arabic(): void
+    {
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $r = $this->withHeaders(['X-Locale' => 'ar', 'Accept-Language' => 'ar'])->asUser($admin)->postJson('/api/v1/admin/trainers', ['source' => 'center', 'currency' => 'x', 'hourly_rate' => 'abc'])->assertStatus(422);
+        $text = json_encode(array_values(array_merge(...array_values($r->json('errors')))), JSON_UNESCAPED_UNICODE);   // the messages, not the field keys
+        $this->assertStringNotContainsString('currency', $text);
+        $this->assertStringNotContainsString('hourly_rate', $text);
+        $this->assertStringContainsString('العملة', $text);
+    }
 }
