@@ -171,7 +171,7 @@ class SampleMore
         }
         $year = (int) date('Y') + 1;
         foreach ([['competency', 'الطلب على التقويم التكويني', 380, 320, 440], ['competency', 'الطلب على القيادة التربوية', 210, 170, 260], ['job', 'ساعات التدريب الكلية', 1150, 980, 1320]] as $i => [$dim, $label, $v, $lo, $hi]) {
-            Forecast::create(['dimension' => $dim, 'subject_id' => 'sample-'.$i, 'label' => $label, 'year' => $year, 'value' => $v, 'low' => $lo, 'high' => $hi, 'model' => 'linear-trend', 'explanation' => 'اتجاه صاعد خلال السنوات الثلاث الماضية مع توسّع الفئات المستهدفة.',
+            Forecast::create(['dimension' => $dim, 'subject_id' => null, 'label' => $label, 'year' => $year, 'value' => $v, 'low' => $lo, 'high' => $hi, 'model' => 'linear-trend', 'explanation' => 'اتجاه صاعد خلال السنوات الثلاث الماضية مع توسّع الفئات المستهدفة.',
                 'history' => ['years' => [$year - 3, $year - 2, $year - 1], 'values' => [round($v * 0.6), round($v * 0.75), round($v * 0.9)], 'signals' => []]]);
         }
     }

@@ -92,8 +92,8 @@ class SampleComms
     private function notifications(): void
     {
         $admin = $this->c->admin();
-        NotificationRule::firstOrCreate(['event' => 'registration.approved', 'name' => 'اعتماد التسجيل — بريد وتطبيق'], ['audience_filter' => [], 'channels' => ['in_app', 'email', 'push'], 'enabled' => true, 'quiet_hours' => ['from' => '22:00', 'to' => '06:00'], 'delay_minutes' => 0, 'priority' => 'normal']);
-        NotificationRule::firstOrCreate(['event' => 'session.reminder', 'name' => 'تذكير الجلسة قبل ساعة'], ['audience_filter' => [], 'channels' => ['in_app', 'push'], 'enabled' => true, 'delay_minutes' => 0, 'priority' => 'high']);
+        NotificationRule::firstOrCreate(['event' => 'registration.approved', 'name' => 'اعتماد التسجيل — بريد وتطبيق'], ['audience_filter' => [], 'channels' => ['in_app', 'email', 'push'], 'enabled' => true, 'quiet_hours' => ['from' => '22:00', 'to' => '06:00'], 'delay_minutes' => 0, 'priority' => 0]);
+        NotificationRule::firstOrCreate(['event' => 'session.reminder', 'name' => 'تذكير الجلسة قبل ساعة'], ['audience_filter' => [], 'channels' => ['in_app', 'push'], 'enabled' => true, 'delay_minutes' => 0, 'priority' => 0]);
         ScheduledNotification::firstOrCreate(['title_en' => 'Weekly learning digest'], ['title_ar' => 'ملخص التعلّم الأسبوعي', 'body_ar' => 'ما تعلمته هذا الأسبوع وما ينتظرك.', 'body_en' => 'What you learned this week and what is next.', 'channels' => ['in_app'], 'audience' => ['all' => true], 'send_at' => now()->addDays(2)->setTime(8, 0), 'repeat' => 'weekly', 'status' => 'scheduled', 'runs' => 0, 'created_by' => $admin->id]);
         PushLog::firstOrCreate(['type' => 'announcement', 'title' => 'التسجيل مفتوح لبرامج الربيع'], ['recipients' => 120, 'devices' => 96, 'delivered' => 90, 'failed' => 4, 'pruned' => 2, 'triggered_by' => $admin->id]);
         foreach ($this->c->trainees() as $u) {
