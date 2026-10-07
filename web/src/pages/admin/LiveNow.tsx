@@ -37,7 +37,7 @@ type Summary = {
 type Row = { name: string; email: string | null; team: Team; role: string | null; platform: string; device: string | null; started_at: string; last_seen_at: string; minutes: number; hits: number; path: string | null }
 
 const MENU_ROUTES: [string, string][] = [
-  ['/admin/analytics', 'analytics'], ['/admin/needs', 'needs'], ['/admin/programs', 'programs'], ['/admin/kits', 'kits'], ['/admin/calendar', 'calendar'], ['/admin/registrations', 'registrations'],
+  ['/admin/analytics', 'analytics'], ['/admin/needs-hub', 'needs'], ['/admin/programs', 'programs'], ['/admin/kits', 'kits'], ['/admin/calendar', 'calendar'], ['/admin/registrations', 'registrations'],
   ['/admin/certificates', 'certificates'], ['/admin/live', 'live'], ['/admin/geo', 'geo'], ['/admin/ai', 'ai'], ['/admin/communication', 'communication'], ['/admin/schools', 'schools'],
   ['/admin/employees', 'employees'], ['/admin/trainers', 'trainers'], ['/admin/rooms', 'rooms'], ['/admin/users', 'users'], ['/admin/audit', 'audit'], ['/admin/settings', 'settings'],
 ]

@@ -569,7 +569,6 @@ Route::prefix('v1')->group(function () {
             Route::post('programs/{program}/register', [MyTrainingController::class, 'register']);
             Route::get('registrations', [MyTrainingController::class, 'registrations']);
             Route::get('registrations/{registration}', [MyTrainingController::class, 'registration']);
-            Route::post('registrations/{registration}/cancel', [MyTrainingController::class, 'cancel']);
             Route::get('registrations/{registration}/materials', [MyTrainingController::class, 'materials']);
             Route::get('materials/{material}/download', [MyTrainingController::class, 'downloadMaterial']);
             Route::get('calendar', [MyTrainingController::class, 'calendar']);
@@ -1113,7 +1112,6 @@ Route::prefix('v1')->group(function () {
                 Route::post('announcements/{announcement}/republish', [AnnouncementController::class, 'republish']);
                 Route::post('announcements/{announcement}/media', [AnnouncementController::class, 'media']);
                 Route::delete('announcements/{announcement}/media', [AnnouncementController::class, 'removeMedia']);
-                Route::post('announcements/{announcement}/attachments', [AnnouncementController::class, 'attach']);
                 Route::get('announcements/{announcement}/rsvps', [AnnouncementController::class, 'rsvps']);
                 Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy']);
             });
@@ -1577,15 +1575,11 @@ Route::prefix('v1')->group(function () {
                 Route::post('evaluation-forms/{form}/submit-approval', [EvaluationFormController::class, 'submitApproval']);
                 Route::get('settings/evaluation', [EvaluationFormController::class, 'settings']);
                 Route::put('settings/evaluation', [EvaluationFormController::class, 'updateSettings']);
-                Route::get('settings/impact-schedule', [EvaluationFormController::class, 'settings'])->defaults('part', 'impact');
-                Route::put('settings/impact-schedule', [EvaluationFormController::class, 'updateSettings'])->defaults('part', 'impact');
                 Route::post('programs/{program}/evaluations/assign', [GroupEvaluationController::class, 'assign']);
                 Route::post('evaluation-assignments/{assignment}/remind', [GroupEvaluationController::class, 'remind']);
                 Route::get('evaluations/assignable-users', [GroupEvaluationController::class, 'assignable']);
             });
             Route::post('evaluation-forms/{form}/{decision}', [EvaluationFormController::class, 'decide'])->where('decision', 'approve|return')->middleware('permission:instruments.approve');
-            Route::get('settings/satisfaction-alerts', [EvaluationFormController::class, 'settings'])->defaults('part', 'alerts')->middleware('permission:satisfaction_alerts.manage|evaluations.manage');
-            Route::put('settings/satisfaction-alerts', [EvaluationFormController::class, 'updateSettings'])->defaults('part', 'alerts')->middleware('permission:satisfaction_alerts.manage');
             Route::middleware('permission:evaluations.manage|evaluation_reports.prepare|impact.view')->group(function () {
                 Route::get('programs/{program}/evaluations', [GroupEvaluationController::class, 'board']);
                 Route::get('programs/{program}/evaluations/{kind}/results', [GroupEvaluationController::class, 'results']);

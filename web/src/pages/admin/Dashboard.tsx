@@ -1,8 +1,8 @@
-import { Award, BookOpen, CalendarClock, Clock, GraduationCap, School, Users } from 'lucide-react'
+import { CalendarClock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { BarsChart, DonutChart, ScoreRing, TrendChart } from '@/components/admin/charts'
-import { Card, CardTitle, ErrorState, PageHeader, Spinner, StatCard } from '@/components/ui'
+import { BarsChart, DonutChart, TrendChart } from '@/components/admin/charts'
+import { Card, CardTitle, ErrorState, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
@@ -36,24 +36,7 @@ export default function Dashboard() {
 
       <JourneyTracker />
 
-      <div className="grid gap-4 lg:grid-cols-4">
-        <div className="relative overflow-hidden rounded-3xl bg-navy-900 p-6 text-white shadow-glass lg:row-span-2">
-          <div className="pattern-bg absolute inset-0 opacity-20" />
-          <div className="relative flex h-full flex-col items-center justify-center gap-4 text-center">
-            <ScoreRing value={d.kpis.impact_score} size={170} />
-            <p className="max-w-xs text-sm text-white/65">{t('admin.impact.title')}: {t('home.pillars.2.text')}</p>
-          </div>
-        </div>
-        <StatCard label={t('admin.kpis.total_schools')} value={fmt.number(d.kpis.total_schools)} icon={<School className="size-5" />} />
-        <StatCard label={t('admin.kpis.total_employees')} value={fmt.number(d.kpis.total_employees)} icon={<Users className="size-5" />} />
-        <StatCard label={t('admin.kpis.active_programs')} value={fmt.number(d.kpis.active_programs)} icon={<BookOpen className="size-5" />} />
-        <StatCard label={t('admin.kpis.participants')} value={fmt.number(d.kpis.participants)} icon={<GraduationCap className="size-5" />} />
-        <StatCard label={t('admin.kpis.training_hours')} value={fmt.number(d.kpis.training_hours)} icon={<Clock className="size-5" />} />
-        <StatCard label={t('admin.kpis.certificates_issued')} value={fmt.number(d.kpis.certificates_issued)} icon={<Award className="size-5" />}
-          hint={d.kpis.pending_registrations ? `${fmt.number(d.kpis.pending_registrations)} ${t('admin.kpis.pending_registrations')}` : undefined} />
-      </div>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardTitle>{t('admin.dashboard.trend')}</CardTitle>
           <TrendChart data={trend} series={[{ key: 'registrations', label: t('admin.dashboard.registrations') }, { key: 'completions', label: t('admin.dashboard.completions') }]} />

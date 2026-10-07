@@ -18,7 +18,7 @@ export const structureAr = {
   },
   needsHub: {
     nav: 'الاحتياجات والفجوات', title: 'دورة الاحتياجات وتحليل الفجوات', subtitle: 'اجمع المقترحات والطلبات والاحتياجات الفردية، حلّل الفجوات، وحوّلها إلى الخطة التدريبية.',
-    tabs: { cycle: 'الدورة والمقترحات', requests: 'طلبات المديرين', individual: 'احتياجات الموظفين', performance: 'بيانات الأداء', rules: 'القواعد', gaps: 'تحليل الفجوات', competencies: 'إطار الجدارات' },
+    tabs: { surveys: 'استبيانات الاحتياج', cycle: 'الدورة والمقترحات', requests: 'طلبات المديرين', individual: 'احتياجات الموظفين', performance: 'بيانات الأداء', rules: 'القواعد', gaps: 'تحليل الفجوات', competencies: 'إطار الجدارات' },
     cycle: { new: 'دورة جديدة', open: 'فتح', close: 'إغلاق', status: { draft: 'مسودة', open: 'مفتوحة', closed: 'مغلقة', analysed: 'محلَّلة' }, closes: 'تغلق', plan: 'الخطة المرتبطة', none: 'لا توجد دورات.', proposals: 'المقترحات', submitProposal: 'تقديم مقترح', saved: 'تم الحفظ' },
     proposal: { titleAr: 'عنوان البرنامج بالعربية', titleEn: 'عنوان البرنامج بالإنجليزية', groups: 'عدد المجموعات', days: 'عدد الأيام', hours: 'الساعات', axes: 'المحاور (سطر لكل محور)', kit: 'توفر الحقيبة', kits: { available: 'متوفرة', partial: 'جزئية', none: 'غير متوفرة' }, importance: 'الأهمية (1-5)', justification: 'المبررات', target: 'الفئة المستهدفة', trainers: 'مدربون مقترحون (سطر لكل مدرب)', submit: 'إرسال المقترح',
       status: { submitted: 'مقدَّم', under_review: 'قيد المراجعة', accepted: 'مقبول', merged: 'مدموج', rejected: 'مرفوض' }, accept: 'قبول وإضافة للخطة', merge: 'دمج', reject: 'رفض', note: 'ملاحظة المراجعة', mergeTarget: 'رمز البرنامج القائم' },
@@ -95,7 +95,7 @@ export const structureEn: typeof structureAr = {
   },
   needsHub: {
     nav: 'Needs & gaps', title: 'Needs cycle and gap analysis', subtitle: 'Collect proposals, requests and individual needs, analyse the gaps and turn them into the training plan.',
-    tabs: { cycle: 'Cycle & proposals', requests: 'Manager requests', individual: 'Staff needs', performance: 'Performance data', rules: 'Rules', gaps: 'Gap analysis', competencies: 'Competency framework' },
+    tabs: { surveys: 'Needs surveys', cycle: 'Cycle & proposals', requests: 'Manager requests', individual: 'Staff needs', performance: 'Performance data', rules: 'Rules', gaps: 'Gap analysis', competencies: 'Competency framework' },
     cycle: { new: 'New cycle', open: 'Open', close: 'Close', status: { draft: 'Draft', open: 'Open', closed: 'Closed', analysed: 'Analysed' }, closes: 'Closes', plan: 'Linked plan', none: 'No cycles.', proposals: 'Proposals', submitProposal: 'Submit a proposal', saved: 'Saved' },
     proposal: { titleAr: 'Program title (Arabic)', titleEn: 'Program title (English)', groups: 'Number of groups', days: 'Number of days', hours: 'Hours', axes: 'Axes (one per line)', kit: 'Kit availability', kits: { available: 'Available', partial: 'Partial', none: 'Not available' }, importance: 'Importance (1-5)', justification: 'Justification', target: 'Target group', trainers: 'Nominated trainers (one per line)', submit: 'Submit the proposal',
       status: { submitted: 'Submitted', under_review: 'Under review', accepted: 'Accepted', merged: 'Merged', rejected: 'Rejected' }, accept: 'Accept into the plan', merge: 'Merge', reject: 'Reject', note: 'Review note', mergeTarget: 'Existing program code' },

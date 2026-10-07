@@ -32,7 +32,6 @@ const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
 const TrainersAdmin = lazy(() => import('@/pages/admin/Trainers'))
 const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
-const TrainingNeeds = lazy(() => import('@/pages/admin/TrainingNeeds'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
@@ -225,7 +224,7 @@ export default function App() {
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
-          <Route path="needs" element={<TrainingNeeds />} />
+          <Route path="needs" element={<Navigate to="/admin/needs-hub?tab=surveys" replace />} />
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
           <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />

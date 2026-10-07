@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { Spinner } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
-import CommandPalette from './CommandPalette'
 import Launcher from './Launcher'
 import { HOME, SETTINGS_SECTIONS, type SettingsSection } from './registry'
 import { SettingsTabContext } from './tabContext'
@@ -51,7 +50,6 @@ export default function SettingsWorkspace() {
   const [recent, setRecent] = useState<string[]>(() => read<string[]>(RECENT, []))
   const [dirty, setDirty] = useState<Record<string, boolean>>({})
   const [reloads, setReloads] = useState<Record<string, number>>({})
-  const [palette, setPalette] = useState(false)
   const [menu, setMenu] = useState<Menu>(null)
   const wsRef = useRef(ws)
   wsRef.current = ws
@@ -62,7 +60,6 @@ export default function SettingsWorkspace() {
     if (!byId.has(id)) return
     setWs((cur) => ({ open: cur.open.includes(id) ? cur.open : [...cur.open, id], active: id }))
     setRecent((cur) => { const next = [id, ...cur.filter((x) => x !== id)].slice(0, 6); write(RECENT, next); return next })
-    setPalette(false)
   }, [byId])
 
   const closeTabs = useCallback(async (ids: string[]) => {
@@ -109,10 +106,9 @@ export default function SettingsWorkspace() {
     else if (wanted && wanted !== wsRef.current.active && byId.has(wanted)) openTab(wanted)
   }, [wanted, byId, openTab])
 
-  // Keyboard: Ctrl/⌘+K palette, Alt+W close, Alt+←/→ switch.
+  // Keyboard: Alt+W close, Alt+←/→ switch.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((v) => !v); return }
       if (!e.altKey || e.ctrlKey || e.metaKey) return
       const cur = wsRef.current
       if (e.code === 'KeyW' && cur.active !== HOME) { e.preventDefault(); closeTabs([cur.active]) }
@@ -161,7 +157,7 @@ export default function SettingsWorkspace() {
           <h1 className="text-2xl font-bold text-navy-900 sm:text-3xl">{t('mgmt.settings.title')}</h1>
           <p className="mt-1 hidden text-sm text-slate-500 sm:block">{t('mgmt.settings.subtitle')}</p>
         </div>
-        <button type="button" onClick={() => setPalette(true)} className="inline-flex items-center gap-3 rounded-xl border border-navy-100 bg-white px-4 py-2.5 text-sm font-semibold text-slate-500 shadow-sm transition hover:border-gold-400 hover:text-navy-900">
+        <button type="button" onClick={() => window.dispatchEvent(new Event('tedc:open-search'))} className="inline-flex items-center gap-3 rounded-xl border border-navy-100 bg-white px-4 py-2.5 text-sm font-semibold text-slate-500 shadow-sm transition hover:border-gold-400 hover:text-navy-900">
           <Command className="size-4" />{t('mgmt.settings.openSetting')}<kbd className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500" dir="ltr">Ctrl K</kbd>
         </button>
       </div>
@@ -204,7 +200,6 @@ export default function SettingsWorkspace() {
         </ul>
       )}
 
-      {palette && <CommandPalette sections={sections} open={openSet} onPick={openTab} onClose={() => setPalette(false)} />}
     </div>
   )
 }

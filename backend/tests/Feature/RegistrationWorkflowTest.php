@@ -47,7 +47,7 @@ class RegistrationWorkflowTest extends TestCase
         $this->assertSame(1, WaitingList::count());
 
         $firstRegistration = Registration::where('employee_id', $first->id)->first();
-        $this->asUser($first->user)->postJson("/api/v1/me/registrations/{$firstRegistration->id}/cancel")->assertOk();
+        $this->asUser($first->user)->postJson("/api/v1/me/registrations/{$firstRegistration->id}/withdraw")->assertOk();
 
         $this->assertSame(Registration::STATUS_PENDING, Registration::where('employee_id', $second->id)->value('status'));
         $this->assertSame('promoted', WaitingList::first()->status);

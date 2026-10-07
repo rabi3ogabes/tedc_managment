@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { BookOpen, Compass, CornerDownLeft, Newspaper, PackageOpen, Search, ShieldCheck, UserRound, Users, History, X, Award } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useGet } from '@/hooks/useApi'
 
 export type FunctionTarget = { label: string; to: string; keywords?: string[]; icon?: ComponentType<{ className?: string }> }
@@ -118,12 +118,12 @@ export default function GlobalSearch({ functions, open, onClose }: { functions: 
 
 /** Opens the search with Ctrl/⌘ + K (except where a screen has its own palette). */
 export function useSearchShortcut(toggle: () => void) {
-  const { pathname } = useLocation()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k' && !pathname.startsWith('/admin/settings')) { e.preventDefault(); toggle() }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') { e.preventDefault(); toggle() }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [pathname, toggle])
+    window.addEventListener('tedc:open-search', toggle)   // a button on a page (the settings home) opens the same search
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('tedc:open-search', toggle) }
+  }, [toggle])
 }

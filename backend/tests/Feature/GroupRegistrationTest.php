@@ -71,7 +71,7 @@ class GroupRegistrationTest extends TestCase
         $this->asUser($this->makeEmployee()->user)->postJson("/api/v1/me/programs/{$program->id}/register", ['group_id' => $b->id])->assertJsonPath('data.status', 'waitlisted');
 
         $registration = Registration::where('employee_id', $holder->id)->first();
-        $this->asUser($holder->user)->postJson("/api/v1/me/registrations/{$registration->id}/cancel")->assertOk();
+        $this->asUser($holder->user)->postJson("/api/v1/me/registrations/{$registration->id}/withdraw")->assertOk();
 
         $this->assertSame('pending', Registration::where('employee_id', $waiting->id)->value('status'), 'the waiting person of group A moved up');
         $this->assertSame(1, Registration::where('training_group_id', $b->id)->where('status', 'waitlisted')->count(), 'group B is untouched');

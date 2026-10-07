@@ -64,14 +64,6 @@ class MyTrainingController extends MeController
         return (new RegistrationResource($registration->load(['program', 'trainingGroup'])))->response()->setStatusCode(201);
     }
 
-    public function cancel(Registration $registration, RegistrationService $service): RegistrationResource
-    {
-        $this->own($registration);
-        $service->transition($registration, Registration::STATUS_CANCELLED, $this->user());
-
-        return new RegistrationResource($registration->refresh()->load('program'));
-    }
-
     public function registrations(Request $request): AnonymousResourceCollection
     {
         return RegistrationResource::collection(Registration::with(['program.category', 'certificate', 'trainingGroup'])

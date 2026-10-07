@@ -110,7 +110,7 @@ export default function SurveyStudio() {
         <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${accent}, #A29475)` }} />
         <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center">
           <div className="min-w-0 flex-1">
-            <Link to="/admin/needs?tab=surveys" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-navy-900"><ArrowRight className="size-3.5 ltr:rotate-180" />{t('surveys.actions.back')}</Link>
+            <Link to="/admin/needs-hub?tab=surveys" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-navy-900"><ArrowRight className="size-3.5 ltr:rotate-180" />{t('surveys.actions.back')}</Link>
             <div className="mt-1 flex items-center gap-3">
               <input className="min-w-0 flex-1 bg-transparent font-display text-2xl font-bold text-navy-900 outline-none focus:underline focus:decoration-gold-400 focus:decoration-2 focus:underline-offset-8" value={draft.title} onChange={(e) => update({ title: e.target.value })} aria-label={t('surveys.builder.titlePlaceholder')} />
               <StatusBadge status={draft.status} label={t(`surveys.status.${draft.status}`)} />

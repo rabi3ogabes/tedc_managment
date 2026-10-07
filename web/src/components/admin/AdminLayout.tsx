@@ -3,7 +3,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, LifeBuoy, Power, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, LifeBuoy, Power, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -103,7 +103,6 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/analytics', label: m('analytics'), icon: LineChart, permission: 'analytics.executive' },
         ] },
         { title: m('groups.lifecycle'), items: [
-          { to: '/admin/needs', label: m('needs'), icon: Notebook, permission: 'needs.view' },
           { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
           { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
           { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },

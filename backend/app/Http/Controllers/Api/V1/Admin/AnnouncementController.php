@@ -150,26 +150,6 @@ class AnnouncementController extends Controller
         return response()->json(['data' => $announcement]);
     }
 
-    public function attach(Request $request, Announcement $announcement, FileStorage $storage): JsonResponse
-    {
-        $request->validate([
-            'file' => ['required', 'file', 'max:51200', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,png,jpg,jpeg,mp4'],
-            'title' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $file = $request->file('file');
-        $attachments = $announcement->attachments ?? [];
-        $attachments[] = [
-            'type' => str_starts_with((string) $file->getMimeType(), 'video/') ? 'video' : 'file',
-            'title' => $request->input('title') ?? $file->getClientOriginalName(),
-            'path' => $storage->upload($file, 'documents', 'announcements/'.$announcement->id),
-            'mime' => $file->getMimeType(),
-        ];
-        $announcement->update(['attachments' => $attachments]);
-
-        return response()->json(['data' => $announcement]);
-    }
-
     public function destroy(Announcement $announcement): JsonResponse
     {
         $announcement->delete();
