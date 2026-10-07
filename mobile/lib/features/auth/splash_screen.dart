@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/biometric.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/theme/brand.dart';
 
 /// The animated intro shown on every launch, after the system launch screen and before the app opens:
 /// a gold ring draws itself around the emblem, the emblem rises and catches a sweep of light, then the name of the
@@ -164,9 +163,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                           ),
                         ),
                       ),
-                      // The occasion greeting set in the dashboard (e.g. "Ramadan Kareem"), shown once the app knows it.
-                      if (ref.watch(brandProvider).message case final greeting?)
-                        Opacity(opacity: subtitle, child: Padding(padding: const EdgeInsets.only(top: 14), child: Text(greeting, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Tajawal', fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)))),
                       if (_waiting) const Padding(padding: EdgeInsets.only(top: 22), child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: AppColors.gold500, strokeWidth: 2))),
                     ]),
                   ),
