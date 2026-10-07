@@ -40,7 +40,7 @@ export default function Users() {
           { key: 'email', header: t('common.email'), role: 'subtitle', cell: (u) => <span className="text-xs" dir="ltr">{u.email}</span> },
           { key: 'roles', header: t('admin.users.role'), cell: (u) => <div className="flex flex-wrap gap-1">{u.roles.map((r) => <Badge key={r.slug} color="navy">{nm(r)}</Badge>)}</div> },
           { key: 'login', header: t('admin.users.lastLogin'), cell: (u) => <span className="text-xs">{fmt.dateTime(u.last_login_at)}</span> },
-          { key: 'status', header: t('common.status'), role: 'badge', cell: (u) => <StatusBadge status={u.status === 'active' ? 'approved' : 'blocked'} label={u.status} /> },
+          { key: 'status', header: t('common.status'), role: 'badge', cell: (u) => <StatusBadge status={u.status === 'active' ? 'approved' : 'blocked'} label={t(`hlp.userStatus.${u.status}`, { defaultValue: u.status })} /> },
           { key: 'toggle', header: '', role: 'actions', cell: (u) => (
             <div className="flex gap-1">
               <Button size="sm" variant="outline" icon={<ShieldCheck className="size-4" />} onClick={() => setRolesOf(u)}>{t('userRoles.manage')}</Button>

@@ -10,6 +10,8 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
+const ORDER = ['general', 'trainee', 'trainer', 'manager', 'programs', 'planning', 'logistics', 'insight', 'kits', 'finance', 'admin']
+
 /** Help centre: articles for the person's roles, manuals as PDF, support channels and service times, tours and the person's tickets. */
 export default function HelpCentre() {
   const { t } = useTranslation()
@@ -25,7 +27,7 @@ export default function HelpCentre() {
   const grouped = useMemo(() => {
     const g: Record<string, HelpArticle[]> = {}
     for (const a of list.data?.data ?? []) (g[a.module] ??= []).push(a)
-    return g
+    return Object.fromEntries(Object.entries(g).sort(([a], [b]) => (ORDER.indexOf(a) + 100) % 100 - (ORDER.indexOf(b) + 100) % 100))
   }, [list.data])
 
   const pdf = async (role: string, l: 'ar' | 'en') => {
@@ -56,7 +58,7 @@ export default function HelpCentre() {
               {list.isLoading ? <Spinner /> : Object.keys(grouped).length === 0 ? <Empty text={String(q ? t('hlp.noResults') : t('hlp.none'))} /> : Object.entries(grouped).map(([module, items]) => (
                 <section key={module} className="space-y-2">
                   <h2 className="flex items-center gap-2 font-bold text-navy-900"><BookOpen className="size-5 text-gold-600" />{t(`hlp.modules.${module}`, { defaultValue: module })}</h2>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-2">
                     {items.map((a) => (
                       <button key={a.id} type="button" onClick={() => setSlug(a.slug)} className="rounded-xl border border-navy-100 bg-white p-3 text-start transition hover:border-gold-400">
                         <b className="block text-navy-900">{pick(a, 'title')}</b>

@@ -1,5 +1,6 @@
 import { ArrowLeft, CircleHelp, Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 import { Spinner } from '@/components/ui'
@@ -34,7 +35,7 @@ export default function HelpButton({ portal }: { portal: boolean }) {
       <button type="button" data-tour="help-button" onClick={() => setOpen(true)} aria-label={t('hlp.button')} title={String(t('hlp.button'))} className="rounded-xl p-2 text-navy-800 hover:bg-navy-100/60">
         <CircleHelp className="size-5" />
       </button>
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={String(t('hlp.drawerTitle'))}>
           <div className="absolute inset-0 bg-navy-950/40" onClick={() => setOpen(false)} />
           <aside className="absolute inset-y-0 end-0 flex w-full max-w-md flex-col bg-white shadow-2xl">
@@ -72,7 +73,8 @@ export default function HelpButton({ portal }: { portal: boolean }) {
               <Link to={portal ? '/portal/help' : '/admin/help'} onClick={() => setOpen(false)} className="text-sm font-semibold text-navy-700 underline">{t('hlp.openCentre')}</Link>
             </div>
           </aside>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

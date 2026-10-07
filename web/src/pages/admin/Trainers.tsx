@@ -7,6 +7,7 @@ import { ChipSelect, TagInput } from '@/components/ui/Chips'
 import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
+import { toast } from '@/lib/toast'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Partner, Trainer, TrainerSource } from '@/lib/types'
@@ -44,6 +45,7 @@ function TrainerForm({ trainer, options, onClose, onSaved }: { trainer: Trainer 
   const name = useLocaleName()
   const schools = useGet<LookupSchools>('/admin/lookups')
   const [source, setSource] = useState<TrainerSource>(trainer?.source ?? 'center')
+  const [photo, setPhoto] = useState<string | null>(null)
   const [form, setForm] = useState(() => ({
     name_ar: trainer?.name_ar ?? '', name_en: trainer?.name_en ?? '', title_ar: trainer?.title_ar ?? '', title_en: trainer?.title_en ?? '', email: trainer?.email ?? '', phone: trainer?.phone ?? '',
     school_id: trainer?.school_id ?? '', employee_id: trainer?.employee_id ?? '', partner_id: trainer?.partner_id ?? '', organization: trainer?.organization ?? '', country: trainer?.country ?? '', city: trainer?.city ?? '',
@@ -111,6 +113,20 @@ function TrainerForm({ trainer, options, onClose, onSaved }: { trainer: Trainer 
   return (
     <Modal open onClose={onClose} wide title={trainer ? t('mgmt.trainers.edit') : t('mgmt.trainers.new')}>
       <div className="space-y-6">
+        {trainer && (
+          <section className="flex items-center gap-4">
+            <Avatar name={trainer.name} src={photo ?? trainer.photo_url} size={64} />
+            <label className="btn inline-flex cursor-pointer items-center gap-2 border border-navy-100 bg-white px-3 py-2 text-sm font-semibold">
+              {t('hlp.photo')}
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={async (e) => {
+                const file = e.target.files?.[0]; e.target.value = ''
+                if (!file) return
+                const body = new FormData(); body.append('photo', file)
+                try { const { data } = await api.post(`/admin/trainers/${trainer.id}/photo`, body); setPhoto(data.data.photo_url ?? null); toast(String(t('hlp.photoSaved'))) } catch (err) { toast(errorMessage(err), 'error') }
+              }} />
+            </label>
+          </section>
+        )}
         <section>
           <div className="label">{t('mgmt.trainers.source')}</div>
           <div className="grid gap-2 sm:grid-cols-3">

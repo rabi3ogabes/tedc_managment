@@ -7,6 +7,7 @@ const ar = {
     portal: 'بوابتي التدريبية', logout: 'تسجيل الخروج', language: 'English',
   },
   common: {
+    add: 'إضافة', remove: 'إزالة', minutes: 'دقيقة',
     viewTable: 'جدول', viewCards: 'بطاقات', viewMode: 'طريقة العرض', results: '{{count}} نتيجة',
     loading: 'جارٍ التحميل…', save: 'حفظ', cancel: 'إلغاء', create: 'إنشاء', edit: 'تعديل', delete: 'حذف', search: 'بحث', filter: 'تصفية',
     backToTop: 'العودة للأعلى', fewSeats: 'بقي {{count}} مقاعد فقط',

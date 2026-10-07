@@ -33,7 +33,7 @@ export default function PassportView({ data }: { data: PassportData }) {
           {data.skills_by_category.length >= 3 ? (
             <ChartBox height={260}>
               <ResponsiveContainer>
-                <RadarChart data={data.skills_by_category.map((c) => ({ name: c.category, level: c.average_level }))}>
+                <RadarChart data={data.skills_by_category.map((c) => ({ name: String(t(`hlp.skillCat.${c.category}`, { defaultValue: c.category })), level: c.average_level }))}>
                   <PolarGrid stroke="#e2e8f0" />
                   <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: '#475569' }} />
                   <Radar dataKey="level" stroke={SINGLE} fill="#a29475" fillOpacity={0.35} strokeWidth={2} />
@@ -61,7 +61,7 @@ export default function PassportView({ data }: { data: PassportData }) {
                   <span className="absolute -start-[33px] top-1 size-4 rounded-full bg-gold-500 ring-4 ring-gold-100" />
                   <div className="text-xs text-slate-400">{fmt.date(g.date)}</div>
                   <div className="font-bold text-navy-900">{g.program}</div>
-                  <div className="text-xs text-slate-500">{g.category} · {t(`levels.${g.level}`)} · {fmt.number(g.hours)} {t('common.hours')}</div>
+                  <div className="text-xs text-slate-500">{t(`hlp.skillCat.${g.category}`, { defaultValue: g.category })} · {t(`levels.${g.level}`)} · {fmt.number(g.hours)} {t('common.hours')}</div>
                 </li>
               ))}
               {data.in_progress.map((p) => (

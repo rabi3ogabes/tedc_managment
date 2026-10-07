@@ -118,13 +118,22 @@ class HelpService
             'has_video' => (bool) ($a->video_url || $a->video_asset), 'updated_at' => $a->updated_at?->toIso8601String(),
         ];
         if (! $full) {
-            return $out + ['excerpt_ar' => Str::limit(trim(strip_tags((string) $a->body_ar)), 140), 'excerpt_en' => Str::limit(trim(strip_tags((string) $a->body_en)), 140)];
+            return $out + ['excerpt_ar' => $this->excerpt($a->body_ar), 'excerpt_en' => $this->excerpt($a->body_en)];
         }
 
         return $out + [
             'body_ar' => $a->body_ar, 'body_en' => $a->body_en, 'video_url' => $a->video_url, 'video_asset_url' => FileStorage::publicUrl($a->video_asset), 'video_asset' => $a->video_asset,
             'screenshots' => collect($a->screenshots ?? [])->map(fn ($s) => $s + ['url' => FileStorage::publicUrl($s['path'] ?? null)])->all(),
         ];
+    }
+
+    /** The first paragraph as plain text (tags become spaces, so words never run together). */
+    private function excerpt(?string $html): string
+    {
+        $first = preg_match('~<p[^>]*>(.*?)</p>~is', (string) $html, $m) ? $m[1] : (string) $html;
+        $text = trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) preg_replace('/<[^>]+>/', ' ', $first)), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+
+        return Str::limit($text, 140);
     }
 
     // ---- writing --------------------------------------------------------------------------------------

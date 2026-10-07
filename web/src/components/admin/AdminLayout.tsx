@@ -3,7 +3,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, LifeBuoy, Power, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Notebook, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -144,6 +144,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/privacy', label: t('prv.adminNav'), icon: Shield, permission: 'privacy.manage' },
           { to: '/admin/help', label: t('hlp.nav'), icon: LifeBuoy },
           { to: '/admin/help-articles', label: t('hlp.navAdmin'), icon: BookOpen, permission: 'help.manage' },
+          { to: '/admin/satisfaction', label: t('hlp.navSat'), icon: LineChart, permission: 'evaluations.manage|evaluation_reports.prepare|impact.view' },
+          { to: '/admin/tickets', label: t('hlp.navTickets'), icon: Bug, permission: 'integrations.manage|integrations.logs' },
           { to: '/admin/ekits', label: t('hlp.navKits'), icon: BookOpen, permission: 'packages.manage' },
           { to: '/admin/finance', label: t('pay.nav.finance'), icon: Wallet, permission: 'orders.view|pricing.manage|finance.reports|entity_accounts.manage', feature: 'payments' },
           { to: '/admin/forecasts', label: t('aix.nav.forecasts'), icon: LineChart, permission: 'ai.forecasts.view', feature: 'ai' },
@@ -178,6 +180,9 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
   const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => featureOn(i.feature) && (!i.permission || i.permission.split('|').some((x) => can(x)))) })).filter((g) => g.items.length)
   const unreadCount = unread.data?.meta?.total ?? 0
+  // A page whose feature is switched off says so, instead of a spinner that never ends.
+  const flagsLoaded = !!useFeatures().data
+  const offItem = flagsLoaded ? groups.flatMap((g) => g.items).find((i) => i.feature && !featureOn(i.feature) && (pathname === i.to || pathname.startsWith(`${i.to}/`))) : undefined
   const [searchOpen, setSearchOpen] = useState(false)
   useSearchShortcut(() => setSearchOpen((v) => !v))
   // The "functions" the search can open: the menu entries and the settings sections this role may use.
@@ -308,7 +313,16 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           </div>
         </header>
         <main className="flex-1 px-4 py-8 sm:px-8">
-          <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
+          <AppErrorBoundary resetKey={pathname}>
+            {offItem ? (
+              <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-navy-100 bg-white p-8 text-center shadow-glass" role="status">
+                <Power className="mx-auto size-10 text-gold-600" />
+                <h1 className="mt-3 text-xl font-bold text-navy-900">{t('hlp.featureOff', { name: offItem.label })}</h1>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{t('hlp.featureOffHint')}</p>
+                {can('settings.manage') && <Link to="/admin/settings" className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('hlp.featureOffAction')}</Link>}
+              </div>
+            ) : <Outlet />}
+          </AppErrorBoundary>
           {portal && <AssistantPanel portal />}
           <ReportProblem />
           <TourHost />

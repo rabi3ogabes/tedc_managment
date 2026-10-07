@@ -193,4 +193,13 @@ class HelpCentreTest extends TestCase
         $this->assertSame('help@example.qa', $channels['email']['value']);
         $this->assertSame('https://saaed.example.qa', $channels['saaed']['value']);
     }
+
+    public function test_the_list_shows_the_intro_paragraph_as_an_excerpt_without_glued_words(): void
+    {
+        $rows = $this->asUser($this->makeUser(Role::EMPLOYEE))->getJson('/api/v1/me/help/articles')->assertOk()->json('data');
+        $a = collect($rows)->firstWhere('slug', 'getting-started');
+        $this->assertStringStartsWith('The portal is one place', $a['excerpt_en']);
+        $this->assertStringNotContainsString('Steps', $a['excerpt_en']);
+        $this->assertDoesNotMatchRegularExpression('/[a-z][A-Z]/', $a['excerpt_en']);
+    }
 }

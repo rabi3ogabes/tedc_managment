@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount', 'dsr'] as $param) {
+        foreach (['room', 'program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount', 'dsr'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         GamificationListener::register();

@@ -19,11 +19,11 @@ export default function AuditLog() {
       <Card padded={false}>
         <div className="border-b border-navy-100 p-4">
           <select className="input w-auto" value={action} onChange={(e) => setAction(e.target.value)}>
-            <option value="">{t('common.all')}</option>{['created', 'updated', 'deleted', 'roles_changed', 'permissions_changed'].map((a) => <option key={a}>{a}</option>)}
+            <option value="">{t('common.all')}</option>{['created', 'updated', 'deleted', 'roles_changed', 'permissions_changed', 'feature_toggled'].map((a) => <option key={a} value={a}>{t(`hlp.auditAct.${a}`, { defaultValue: a })}</option>)}
           </select>
         </div>
         <DataView id="admin.audit" rows={data?.data} total={data?.total} loading={isLoading} rowKey={(l) => l.id} columns={[
-          { key: 'action', header: t('admin.audit.action'), role: 'badge', cell: (l) => <Badge color={l.action === 'deleted' ? 'red' : l.action === 'created' ? 'green' : 'navy'}>{l.action}</Badge> },
+          { key: 'action', header: t('admin.audit.action'), role: 'badge', cell: (l) => <Badge color={l.action === 'deleted' ? 'red' : l.action === 'created' ? 'green' : 'navy'}>{t(`hlp.auditAct.${l.action}`, { defaultValue: l.action.replace(/[_.]/g, ' ') })}</Badge> },
           { key: 'entity', header: t('admin.audit.entity'), role: 'title', cell: (l) => <span className="text-sm">{l.auditable_type?.split('\\').pop() ?? '—'}</span> },
           { key: 'date', header: t('common.date'), role: 'subtitle', className: 'whitespace-nowrap', cell: (l) => <span className="text-xs">{fmt.dateTime(l.created_at)}</span> },
           { key: 'user', header: t('admin.audit.user'), cell: (l) => <span className="text-sm">{l.user?.name ?? 'system'}</span> },

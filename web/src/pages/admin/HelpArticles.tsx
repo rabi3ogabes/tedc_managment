@@ -111,7 +111,7 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
           </div>
           <Field label={t('hlp.admin.titleAr')}><input className="input" dir="rtl" value={f.title_ar} onChange={(e) => set('title_ar', e.target.value)} /></Field>
           <Field label={t('hlp.admin.titleEn')}><input className="input" dir="ltr" value={f.title_en} onChange={(e) => set('title_en', e.target.value)} /></Field>
-          <Field label={t('hlp.admin.bodyAr')}><textarea className="input min-h-48 font-mono text-xs" dir="rtl" value={f.body_ar ?? ''} onChange={(e) => set('body_ar', e.target.value)} /></Field>
+          <Field label={t('hlp.admin.bodyAr')}><textarea className="input min-h-48 font-mono text-xs" dir="ltr" lang="ar" value={f.body_ar ?? ''} onChange={(e) => set('body_ar', e.target.value)} /></Field>
           <Field label={t('hlp.admin.bodyEn')}><textarea className="input min-h-48 font-mono text-xs" dir="ltr" value={f.body_en ?? ''} onChange={(e) => set('body_en', e.target.value)} /></Field>
           <Field label={t('hlp.admin.routes')}><textarea className="input min-h-24 font-mono text-xs" dir="ltr" value={f.related ?? ''} onChange={(e) => set('related', e.target.value)} placeholder="/programs&#10;/learn/*" /></Field>
           <Field label={t('hlp.admin.videoUrl')}><input className="input" dir="ltr" value={f.video_url ?? ''} onChange={(e) => set('video_url', e.target.value)} placeholder="https://" /></Field>

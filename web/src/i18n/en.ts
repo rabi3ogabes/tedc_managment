@@ -9,6 +9,7 @@ const en: Dictionary = {
     portal: 'My Training', logout: 'Sign out', language: 'العربية',
   },
   common: {
+    add: 'Add', remove: 'Remove', minutes: 'min',
     viewTable: 'Table', viewCards: 'Cards', viewMode: 'View mode', results: '{{count}} results',
     loading: 'Loading…', save: 'Save', cancel: 'Cancel', create: 'Create', edit: 'Edit', delete: 'Delete', search: 'Search', filter: 'Filter',
     backToTop: 'Back to top', fewSeats: 'Only {{count}} seats left',

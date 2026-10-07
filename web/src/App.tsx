@@ -93,6 +93,8 @@ const MyPrivacy = lazy(() => import('@/pages/MyPrivacy'))
 const HelpCentre = lazy(() => import('@/pages/HelpCentre'))
 const HelpArticles = lazy(() => import('@/pages/admin/HelpArticles'))
 const EKits = lazy(() => import('@/pages/admin/EKits'))
+const Satisfaction = lazy(() => import('@/pages/admin/Satisfaction'))
+const SupportTickets = lazy(() => import('@/pages/admin/SupportTickets'))
 const PrivacyQueue = lazy(() => import('@/pages/admin/PrivacyQueue'))
 const PriceLists = lazy(() => import('@/pages/admin/PriceLists'))
 const PaymentsAdmin = lazy(() => import('@/pages/admin/PaymentsAdmin'))
@@ -161,25 +163,6 @@ export default function App() {
           <Route path="trainers" element={<Trainers />} />
           <Route path="join/:slug" element={<JoinForm />} />
           <Route path="activate" element={<Activate />} />
-          <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
-          <Route path="evaluation-forms" element={<RequireAuth permission="evaluations.manage"><EvaluationForms /></RequireAuth>} />
-          <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />
-          <Route path="career-paths" element={<RequireAuth permission="paths.manage|licences.manage"><CareerPaths /></RequireAuth>} />
-          <Route path="pd-centre" element={<RequireAuth permission="pd.recognise|pd.approve|pd.types.manage|knowledge_transfer.review"><PdCentre /></RequireAuth>} />
-          <Route path="standards" element={<RequireAuth permission="standards.manage|lti.manage|providers.manage|library.manage"><StandardsSettings /></RequireAuth>} />
-          <Route path="library-admin" element={<RequireAuth permission="library.manage"><LibraryAdmin /></RequireAuth>} />
-          <Route path="sharing" element={<RequireAuth permission="sharing.manage|job_groups.manage"><SharingAdmin /></RequireAuth>} />
-          <Route path="passing-policy" element={<RequireAuth permission="passing.manage"><PassingPolicies /></RequireAuth>} />
-          <Route path="question-banks" element={<RequireAuth permission="banks.manage|assessments.manage"><QuestionBanks /></RequireAuth>} />
-          <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
-          <Route path="approvals" element={<RequireAuth permission="registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review"><ApprovalsInbox /></RequireAuth>} />
-          <Route path="admission-rules" element={<RequireAuth permission="priority.manage|withdrawals.policy|external_forms.manage"><AdmissionSettings /></RequireAuth>} />
-          <Route path="absence" element={<RequireAuth permission="attendance.manage|attendance.devices"><AttendanceOps /></RequireAuth>} />
-          <Route path="room-ops" element={<RequireAuth permission="programs.view|rooms.book"><RoomsOps /></RequireAuth>} />
-          <Route path="logistics" element={<RequireAuth permission="programs.view|logistics.manage"><Logistics /></RequireAuth>} />
-          <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
-          <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
-          <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="verify" element={<Verify />} />
           <Route path="verify/:code" element={<Verify />} />
@@ -201,6 +184,25 @@ export default function App() {
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />
+          <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
+          <Route path="evaluation-forms" element={<RequireAuth permission="evaluations.manage"><EvaluationForms /></RequireAuth>} />
+          <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />
+          <Route path="career-paths" element={<RequireAuth permission="paths.manage|licences.manage"><CareerPaths /></RequireAuth>} />
+          <Route path="pd-centre" element={<RequireAuth permission="pd.recognise|pd.approve|pd.types.manage|knowledge_transfer.review"><PdCentre /></RequireAuth>} />
+          <Route path="standards" element={<RequireAuth permission="standards.manage|lti.manage|providers.manage|library.manage"><StandardsSettings /></RequireAuth>} />
+          <Route path="library-admin" element={<RequireAuth permission="library.manage"><LibraryAdmin /></RequireAuth>} />
+          <Route path="sharing" element={<RequireAuth permission="sharing.manage|job_groups.manage"><SharingAdmin /></RequireAuth>} />
+          <Route path="passing-policy" element={<RequireAuth permission="passing.manage"><PassingPolicies /></RequireAuth>} />
+          <Route path="question-banks" element={<RequireAuth permission="banks.manage|assessments.manage"><QuestionBanks /></RequireAuth>} />
+          <Route path="needs-hub" element={<RequireAuth permission="needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage"><NeedsHub /></RequireAuth>} />
+          <Route path="approvals" element={<RequireAuth permission="registrations.approve_manager|registrations.manage|registrations.approve_center|withdrawals.decide|external_requests.review"><ApprovalsInbox /></RequireAuth>} />
+          <Route path="admission-rules" element={<RequireAuth permission="priority.manage|withdrawals.policy|external_forms.manage"><AdmissionSettings /></RequireAuth>} />
+          <Route path="absence" element={<RequireAuth permission="attendance.manage|attendance.devices"><AttendanceOps /></RequireAuth>} />
+          <Route path="room-ops" element={<RequireAuth permission="programs.view|rooms.book"><RoomsOps /></RequireAuth>} />
+          <Route path="logistics" element={<RequireAuth permission="programs.view|logistics.manage"><Logistics /></RequireAuth>} />
+          <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
+          <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
+          <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
           <Route path="programs" element={<ProgramsAdmin />} />
           <Route path="programs/new" element={<ProgramEditor />} />
           <Route path="kits/*" element={<RequireAuth permission="kits.view"><KitsWorkbench /></RequireAuth>} />
@@ -217,6 +219,8 @@ export default function App() {
           <Route path="help" element={<HelpCentre />} />
           <Route path="help-articles" element={<RequireAuth permission="help.manage"><HelpArticles /></RequireAuth>} />
           <Route path="ekits" element={<RequireAuth permission="packages.manage"><EKits /></RequireAuth>} />
+          <Route path="satisfaction" element={<RequireAuth permission="evaluations.manage|evaluation_reports.prepare|impact.view"><Satisfaction /></RequireAuth>} />
+          <Route path="tickets" element={<RequireAuth permission="integrations.manage|integrations.logs"><SupportTickets /></RequireAuth>} />
           <Route path="my-data" element={<MyPrivacy />} />
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
