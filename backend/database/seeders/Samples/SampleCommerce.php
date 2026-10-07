@@ -67,7 +67,7 @@ class SampleCommerce
         $g0 = $groups[0];
         $paid = Order::create(['number' => 'ORD-SMP-0001', 'buyer_type' => 'user', 'user_id' => $t[0]->id, 'items' => [$this->line($g0, 200)], 'subtotal' => 200, 'discount' => 20, 'vat' => 0, 'total' => 180, 'currency' => 'QAR', 'discount_code' => 'WELCOME10', 'status' => 'paid', 'paid_at' => now()->subDays(3)]);
         $pay = Payment::create(['order_id' => $paid->id, 'gateway' => 'fake', 'gateway_ref' => 'FAKE-'.Str::upper(Str::random(8)), 'amount' => 180, 'status' => 'captured', 'signature_valid' => true, 'captured_at' => now()->subDays(3)]);
-        PaymentEvent::create(['gateway' => 'fake', 'event_id' => 'evt-'.Str::random(10), 'kind' => 'payment.captured', 'signature_valid' => true, 'outcome' => 'applied']);
+        PaymentEvent::create(['gateway' => 'fake', 'event_id' => 'evt-'.Str::random(10), 'kind' => 'callback', 'signature_valid' => true, 'outcome' => 'applied']);
         $this->invoices->issue($paid->fresh());
         $second = Order::create(['number' => 'ORD-SMP-0002', 'buyer_type' => 'user', 'user_id' => $t[1]->id, 'items' => [$this->line($groups[1] ?? $g0, 250)], 'subtotal' => 250, 'discount' => 0, 'vat' => 0, 'total' => 250, 'currency' => 'QAR', 'status' => 'paid', 'paid_at' => now()->subDays(1)]);
         Payment::create(['order_id' => $second->id, 'gateway' => 'fake', 'gateway_ref' => 'FAKE-'.Str::upper(Str::random(8)), 'amount' => 250, 'status' => 'captured', 'signature_valid' => true, 'captured_at' => now()->subDay()]);
