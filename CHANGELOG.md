@@ -16,3 +16,6 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 
 ## 2026-10-07 — audit
 Fixed 19 unreachable administration pages, a hidden room-calendar route, feature-off pages, the help drawer, production help articles, plus new satisfaction and support-ticket screens. See `docs/rfp/audit-2026-10-07.md`.
+
+## 2026-10-07 — campus tour
+Home page: an animated tour of the training centre (ground and first floor plans, the ministry campus) that follows a training journey from need to impact, with live figures. Also fixed the home page scrolling sideways on phones when upcoming programs are listed.

@@ -1,6 +1,7 @@
 import { Award, BrainCircuit, ChartNoAxesCombined, Quote, ShieldCheck, Star } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import CampusJourney from '@/components/public/CampusJourney'
 import CmsBlocks from '@/components/public/CmsBlocks'
 import CountUp from '@/components/public/CountUp'
 import HeroQuickBar from '@/components/public/HeroQuickBar'
@@ -37,7 +38,7 @@ export default function Home() {
   const ctaStyle = theme.banners.cta_style === 'image' && !theme.banners.page_banner_image ? 'gradient' : theme.banners.cta_style
 
   // Once the centre has published the homepage in the editor, that layout is what visitors see; until then the built-in design stays.
-  if (cms.data?.data.published && cms.data.data.blocks.length) return <CmsBlocks blocks={cms.data.data.blocks} programs={home?.featured_programs ?? []} news={NewsCard} />
+  if (cms.data?.data.published && cms.data.data.blocks.length) return <><CmsBlocks blocks={cms.data.data.blocks} programs={home?.featured_programs ?? []} news={NewsCard} /><CampusJourney /></>
 
   return (
     <>
@@ -111,7 +112,7 @@ export default function Home() {
             <SectionTitle title={t('home.upcoming')} text={t('home.upcomingText')} />
             <div className="grid gap-4 md:grid-cols-2">
               {home.upcoming_programs.map((p) => (
-                <Link key={p.id} to={`/programs/${p.code}`} className="card group flex items-center gap-5 p-4 transition hover:shadow-glass">
+                <Link key={p.id} to={`/programs/${p.code}`} className="card group flex min-w-0 items-center gap-5 p-4 transition hover:shadow-glass">
                   <div className="grid size-20 shrink-0 place-items-center rounded-2xl bg-navy-900 text-center text-white">
                     <div>
                       <div className="font-display text-2xl font-bold text-gold-300">{p.start_date ? new Date(p.start_date).getDate() : '—'}</div>
@@ -212,6 +213,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <CampusJourney />
     </>
   )
 }

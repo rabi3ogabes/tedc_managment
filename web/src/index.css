@@ -132,3 +132,10 @@ body { text-rendering: optimizeLegibility; }
 .live-bubble-ring { position: absolute; inset: -6px; border-radius: 9999px; border: 2px solid var(--color-gold-500); opacity: .7; animation: live-bubble-ping 2.2s ease-out infinite; }
 @keyframes live-bubble-ping { 0% { transform: scale(.8); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .live-bubble-ring { animation: none; } }
+
+/* The campus tour on the home page: a slow drift on the aerial views and a pop for the final badge (transform and opacity only). */
+@keyframes campus-drift { from { transform: scale(1); } to { transform: scale(1.06) translate(-1%, -1%); } }
+@keyframes campus-pop { 0% { transform: translateY(10px) scale(.92); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.campus-drift { animation: campus-drift 14s ease-in-out infinite alternate; }
+.campus-pop { animation: campus-pop 320ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+@media (prefers-reduced-motion: reduce) { .campus-drift, .campus-pop { animation: none; } }
