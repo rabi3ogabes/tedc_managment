@@ -59,6 +59,18 @@ class OpsSecurityTest extends TestCase
         $this->assertGreaterThan(600, $d['checks']['queue']['lag_seconds']);
     }
 
+    public function test_a_failing_storage_service_is_named_in_the_ready_probe_without_its_address(): void
+    {
+        config(['tedc.storage_driver' => 'supabase', 'tedc.supabase.url' => 'https://project.example.supabase.co', 'tedc.supabase.service_key' => 'k', 'tedc.supabase.buckets.documents' => 'documents']);
+        Cache::forget('health:storage-marker');
+        Http::fake(['*' => Http::response(['message' => 'Bucket not found'], 404)]);
+        $r = $this->getJson('/api/v1/public/health/ready')->assertStatus(503)->json();
+        $this->assertSame('fail', $r['checks']['storage']['status']);
+        $this->assertStringContainsString('404', $r['checks']['storage']['reason']);
+        $this->assertStringContainsString('Bucket not found', $r['checks']['storage']['reason']);
+        $this->assertStringNotContainsString('supabase.co', json_encode($r));
+    }
+
     public function test_every_response_carries_a_request_id_that_a_caller_may_supply(): void
     {
         $a = $this->getJson('/api/v1/public/health/live')->assertOk()->headers->get('X-Request-Id');

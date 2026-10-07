@@ -3,6 +3,7 @@
 namespace App\Ops;
 
 use App\Services\FileStorage;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -26,13 +27,26 @@ class HealthProbes
             try {
                 $checks[$name] = $probe() + ['ms' => (int) round((microtime(true) - $t) * 1000)];
             } catch (Throwable $e) {
-                $checks[$name] = ['status' => 'fail', 'reason' => class_basename($e), 'ms' => (int) round((microtime(true) - $t) * 1000)];
+                $checks[$name] = ['status' => 'fail', 'reason' => $this->reason($e), 'ms' => (int) round((microtime(true) - $t) * 1000)];
             }
         }
         $fail = collect($checks)->contains(fn ($c) => $c['status'] === 'fail');
         $warn = collect($checks)->contains(fn ($c) => $c['status'] === 'degraded');
 
         return ['status' => $fail ? 'fail' : ($warn ? 'degraded' : 'ok'), 'checks' => $checks];
+    }
+
+    /** Says what failed without revealing hosts: the exception type, and for a storage service's answer its status and short message («Bucket not found»). */
+    private function reason(Throwable $e): string
+    {
+        if ($e instanceof RequestException) {
+            $body = $e->response->json();
+            $msg = is_array($body) ? (string) ($body['message'] ?? $body['error'] ?? '') : '';
+
+            return trim(class_basename($e).' '.$e->response->status().($msg !== '' ? ': '.mb_substr(preg_replace('~https?://\S+~', '', $msg) ?? '', 0, 120) : ''));
+        }
+
+        return class_basename($e);
     }
 
     /** @return array<string, mixed> */
