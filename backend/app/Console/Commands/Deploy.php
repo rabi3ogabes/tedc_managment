@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Role;
 use App\Models\School;
 use App\Support\DemoGuard;
+use Database\Seeders\DemoFeatureSamplesSeeder;
 use Database\Seeders\DemoNeedsSurveySeeder;
 use Database\Seeders\DemoOnlineCoursesSeeder;
 use Database\Seeders\DemoTestAccountsSeeder;
@@ -39,6 +40,7 @@ class Deploy extends Command
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTestAccountsSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoOnlineCoursesSeeder::class, '--force' => true]);
+            $this->call('db:seed', ['--class' => DemoFeatureSamplesSeeder::class, '--force' => true]);
         }
 
         // Starter help articles of this release (only the missing ones are created, so edited articles stay as they are).

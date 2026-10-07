@@ -166,7 +166,7 @@ class RolePermissionSeeder extends Seeder
     /** Where each role lands after signing in or switching to it. */
     public const LANDING = [
         Role::SUPER_ADMIN => '/admin', Role::CENTER_ADMIN => '/admin', Role::COORDINATOR => '/admin', Role::TRAINING_HEAD => '/admin',
-        Role::CENTER_LEADERSHIP => '/admin/executive', Role::EXECUTIVE => '/admin/executive', Role::PLANNING_HEAD => '/admin', Role::PLANNING_SPECIALIST => '/admin',
+        Role::CENTER_LEADERSHIP => '/admin/analytics', Role::EXECUTIVE => '/admin/analytics', Role::PLANNING_HEAD => '/admin', Role::PLANNING_SPECIALIST => '/admin',
         Role::LOGISTICS_OFFICER => '/admin/rooms', Role::FINANCE_OFFICER => '/admin/finance', Role::KIT_DEVELOPER => '/admin/kits', Role::QA_REVIEWER => '/admin/kits', Role::TRAINER => '/admin/programs',
         Role::SCHOOL_ADMIN => '/admin', Role::ACADEMIC_DEPUTY => '/admin', Role::SUPERVISOR => '/portal', Role::EMPLOYEE => '/portal',
     ];

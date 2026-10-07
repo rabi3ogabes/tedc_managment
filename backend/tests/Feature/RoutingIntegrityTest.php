@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -82,5 +83,30 @@ class RoutingIntegrityTest extends TestCase
         }
         $this->assertGreaterThan(80, count($found));
         $this->assertSame([], array_values(array_unique($missing)), 'menu entries without a page');
+    }
+
+    public function test_every_role_lands_on_a_page_the_web_app_serves(): void
+    {
+        $web = base_path('../web/src/App.tsx');
+        if (! is_file($web)) {
+            $this->markTestSkipped('The web sources are not next to the backend.');
+        }
+        $app = (string) file_get_contents($web);
+        $served = [];
+        foreach (preg_split('/\R/', $app) as $line) {
+            if (preg_match('/<Route path="([^"]+)"/', $line, $m)) {
+                $served[] = $m[1];
+            }
+        }
+        $missing = [];
+        foreach (RolePermissionSeeder::LANDING as $role => $path) {
+            $seg = trim(preg_replace('~^/(admin|portal)~', '', $path), '/');
+            $wild = collect($served)->contains(fn ($r) => str_ends_with($r, '/*') && ($seg === substr($r, 0, -2) || str_starts_with($seg, substr($r, 0, -2).'/')));
+            if ($seg !== '' && ! in_array($seg, $served, true) && ! $wild) {
+                $missing[] = "{$role} → {$path}";
+            }
+        }
+        $this->assertSame([], $missing);
+        $this->assertTrue(in_array('executive', $served, true), 'accounts stored with the old landing page still arrive somewhere');
     }
 }

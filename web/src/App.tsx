@@ -215,6 +215,7 @@ export default function App() {
           <Route path="forecasts" element={<RequireAuth permission="ai.forecasts.view"><ForecastRisks /></RequireAuth>} />
           <Route path="programs/:id/pricing" element={<RequireAuth permission="pricing.manage"><PriceLists /></RequireAuth>} />
           <Route path="privacy" element={<RequireAuth permission="privacy.manage"><PrivacyQueue /></RequireAuth>} />
+          <Route path="executive" element={<Navigate to="/admin/analytics" replace />} />
           <Route path="help" element={<HelpCentre />} />
           <Route path="help-articles" element={<RequireAuth permission="help.manage"><HelpArticles /></RequireAuth>} />
           <Route path="ekits" element={<RequireAuth permission="packages.manage"><EKits /></RequireAuth>} />
