@@ -23,5 +23,9 @@ Rule applied: when a feature existed before the RFP programme and a phase built 
 * **Settings tabs and menu entries** that open the same page (users, audit log, rooms, trainers, calendar): two doors to one page, not two features.
 * **Public chat widget** (visitors) and the **portal assistant** (signed-in trainees).
 
+## Data move
+The needs raised on the old school-request screen (`training_needs`) are copied into the needs-cycle requests (`institutional_requests`) by `php artisan tedc:needs-migrate-legacy [--dry-run]`, and `tedc:deploy` runs it on every release. Each old row is copied once (`legacy_need_id` is unique), with its author, reviewer, notes and original dates; priority low / medium / high / critical becomes degree 2 / 3 / 4 / 5; submitted and under review become *submitted*, approved becomes *accepted*, planned and fulfilled become *merged*, rejected stays *rejected*. They sit outside any needs cycle, show the headcount the old form recorded, and planners can decide them in the needs hub.
+
 ## Not done
-* The old `training_needs` table and API were not removed: other services depend on them. Feeding those services from the Phase 3 tables is a separate piece of work.
+* The old `training_needs` table and API were kept: annual-plan, forecast, AI-assistant and report code still reads them. Pointing those at the new tables is separate work, and until then the two tables hold the same older needs.
+* The old rows carry a headcount, not a list of people, so the migrated requests have no named employees.

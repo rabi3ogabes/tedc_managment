@@ -7,7 +7,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
 
-type Req = { id: string; title: string | null; entity_name: string | null; need_degree: number; objectives: string[] | null; employee_ids: string[] | null; preferred_window: string | null; status: string; review_note: string | null }
+type Req = { id: string; title: string | null; entity_name: string | null; need_degree: number; objectives: string[] | null; employee_ids: string[] | null; employees_count?: number | null; preferred_window: string | null; status: string; review_note: string | null }
 const TONE: Record<string, 'gold' | 'green' | 'red'> = { submitted: 'gold', accepted: 'green', merged: 'green', rejected: 'red' }
 
 /** Direct managers ask for programs for their own staff; planners review and send accepted ones to the plan. */
@@ -29,7 +29,7 @@ export default function RequestsTab() {
       <Card padded={false}>{list.data.data.length === 0 ? <Empty text={t('needsHub.cycle.none')} /> : (
         <ul className="divide-y divide-navy-50">{list.data.data.map((r) => (
           <li key={r.id} className="flex flex-wrap items-start gap-3 px-5 py-4">
-            <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{r.title}</div><div className="text-xs text-slate-500">{r.entity_name} · ★{r.need_degree} · {(r.employee_ids ?? []).length} · {r.preferred_window}</div>{r.review_note && <p className="mt-1 text-xs text-amber-700">{r.review_note}</p>}</div>
+            <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{r.title}</div><div className="text-xs text-slate-500">{r.entity_name} · ★{r.need_degree} · {r.employees_count ?? (r.employee_ids ?? []).length} · {r.preferred_window}</div>{r.review_note && <p className="mt-1 text-xs text-amber-700">{r.review_note}</p>}</div>
             <Badge color={TONE[r.status] ?? 'gold'}>{t(`needsHub.proposal.status.${r.status}`)}</Badge>
             {can('needs.cycles') && r.status === 'submitted' && <Button size="sm" variant="outline" onClick={() => setReview(r)}>{t('needsHub.proposal.accept')} / {t('needsHub.proposal.reject')}</Button>}
           </li>))}</ul>

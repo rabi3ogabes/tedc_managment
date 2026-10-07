@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 699 columns
-- Internal: 1933 columns
+- Internal: 1935 columns
 - Confidential: 469 columns
 - Restricted: 19 columns
 
@@ -1520,6 +1520,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `plan_item_id` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `legacy_need_id` | Internal | — |
+| `employees_count` | Internal | — |
 
 ### `integration_logs`
 

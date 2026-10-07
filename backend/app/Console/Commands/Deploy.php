@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Role;
 use App\Models\School;
+use App\Needs\LegacyNeedsMigrator;
 use App\Support\DemoGuard;
 use Database\Seeders\DemoFeatureSamplesSeeder;
 use Database\Seeders\DemoNeedsSurveySeeder;
@@ -46,6 +47,12 @@ class Deploy extends Command
         // Starter help articles of this release (only the missing ones are created, so edited articles stay as they are).
         if (Schema::hasTable('help_articles')) {
             (new HelpArticlesSeeder)->run();
+        }
+
+        // Needs raised on the old school-request screen join the needs-cycle requests (each is copied once).
+        if (Schema::hasTable('training_needs') && Schema::hasColumn('institutional_requests', 'legacy_need_id')) {
+            $moved = app(LegacyNeedsMigrator::class)->run();
+            $moved['created'] > 0 && $this->info("Moved {$moved['created']} older needs into the needs requests.");
         }
 
         // The national school list (government, private, specialised) with map positions, from the copy shipped with the code.

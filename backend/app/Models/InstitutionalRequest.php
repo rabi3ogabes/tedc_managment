@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A direct manager's request for a program for their staff. */
-#[Fillable(['cycle_id', 'requested_by', 'entity_id', 'entity_name', 'program_id', 'title', 'need_degree', 'objectives', 'employee_ids', 'preferred_window', 'status', 'review_note', 'reviewer_id', 'plan_item_id'])]
+#[Fillable(['cycle_id', 'requested_by', 'entity_id', 'entity_name', 'program_id', 'title', 'need_degree', 'objectives', 'employee_ids', 'employees_count', 'preferred_window', 'status', 'review_note', 'reviewer_id', 'plan_item_id', 'legacy_need_id'])]
 class InstitutionalRequest extends Model
 {
     use Auditable, HasUuids;
