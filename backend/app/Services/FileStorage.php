@@ -90,11 +90,16 @@ class FileStorage
         }
 
         if ($this->usesSupabase()) {
-            $this->supabase()
+            $send = fn () => $this->supabase()
                 ->withHeaders(['Content-Type' => $mime, 'x-upsert' => 'true'])
                 ->withBody($contents, $mime)
-                ->post($this->endpoint("object/{$bucketName}/{$path}"))
-                ->throw();
+                ->post($this->endpoint("object/{$bucketName}/{$path}"));
+            $response = $send();
+            // A bucket that was never created (a new release adds buckets): create it once, then write again.
+            if ($response->failed() && str_contains(strtolower((string) $response->body()), 'bucket not found') && $this->createSupabaseBucket($bucketName, $bucket === 'public')) {
+                $response = $send();
+            }
+            $response->throw();
         } else {
             Storage::disk('local')->put("{$bucketName}/{$path}", $contents);
         }
@@ -252,6 +257,14 @@ class FileStorage
     private function endpoint(string $path): string
     {
         return rtrim(config('tedc.supabase.url'), '/').'/storage/v1/'.$path;
+    }
+
+    /** Creates a storage bucket with the service key: private, except the one for public assets. Returns whether it exists afterwards. */
+    private function createSupabaseBucket(string $name, bool $public): bool
+    {
+        $r = $this->supabase()->post($this->endpoint('bucket'), ['id' => $name, 'name' => $name, 'public' => $public]);
+
+        return $r->successful() || str_contains(strtolower((string) $r->body()), 'already exists');
     }
 
     private function supabase()

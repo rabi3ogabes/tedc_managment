@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Services\FileStorage;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /** Regression tests for problems found by walking every screen of the finished platform. */
@@ -38,5 +41,25 @@ class AuditFixesTest extends TestCase
         $this->asUser($school)->getJson('/api/v1/admin/programs?per_page=100')->assertOk();
         $this->asUser($school)->getJson('/api/v1/admin/programs/'.$this->makeProgram()->id)->assertForbidden();   // details stay with those who manage programs
         $this->asUser($this->makeUser(Role::EMPLOYEE))->getJson('/api/v1/admin/programs')->assertForbidden();
+    }
+
+    public function test_a_storage_bucket_that_was_never_created_is_created_once_and_the_write_repeated(): void
+    {
+        config(['tedc.storage_driver' => 'supabase', 'tedc.supabase.url' => 'https://project.example.supabase.co', 'tedc.supabase.service_key' => 'k', 'tedc.supabase.buckets.documents' => 'documents']);
+        Http::fake([
+            '*/storage/v1/object/documents/*' => Http::sequence()->push(['message' => 'Bucket not found'], 400)->push(['Key' => 'documents/a.txt'], 200),
+            '*/storage/v1/bucket' => Http::response(['name' => 'documents'], 200),
+        ]);
+        app(FileStorage::class)->put('documents', 'a.txt', 'hello', 'text/plain');
+        Http::assertSentCount(3);
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/storage/v1/bucket') && $r['id'] === 'documents' && $r['public'] === false);
+    }
+
+    public function test_a_real_storage_error_is_still_an_error(): void
+    {
+        config(['tedc.storage_driver' => 'supabase', 'tedc.supabase.url' => 'https://project.example.supabase.co', 'tedc.supabase.service_key' => 'k', 'tedc.supabase.buckets.documents' => 'documents']);
+        Http::fake(['*' => Http::response(['message' => 'Payload too large'], 413)]);
+        $this->expectException(RequestException::class);
+        app(FileStorage::class)->put('documents', 'a.txt', 'hello', 'text/plain');
     }
 }
