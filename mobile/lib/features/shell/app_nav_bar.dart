@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/strings.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/brand.dart';
+import 'nav_styles.dart';
 
 /// The five tabs, in order. Every screen of the app shows the same footer so the user can always jump to another section.
 const appTabs = ['/home', '/programs', '/training', '/certificates', '/profile'];
@@ -18,30 +20,26 @@ int tabIndexFor(String location) {
   return 0;   // notifications and anything else belong to home
 }
 
-class AppNavBar extends StatelessWidget {
+class AppNavBar extends ConsumerWidget {
   const AppNavBar({super.key, required this.selectedIndex, required this.onSelected});
 
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final s = context.s;
-    return DecoratedBox(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.navy100))),
-      child: NavigationBar(
-        selectedIndex: selectedIndex,
-        height: 68,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: onSelected,
-        destinations: [
-          NavigationDestination(icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: s.t('nav.home')),
-          NavigationDestination(icon: const Icon(Icons.menu_book_outlined), selectedIcon: const Icon(Icons.menu_book), label: s.t('nav.programs')),
-          NavigationDestination(icon: const Icon(Icons.school_outlined), selectedIcon: const Icon(Icons.school), label: s.t('nav.training')),
-          NavigationDestination(icon: const Icon(Icons.workspace_premium_outlined), selectedIcon: const Icon(Icons.workspace_premium), label: s.t('nav.certificates')),
-          NavigationDestination(icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: s.t('nav.profile')),
-        ],
-      ),
+    return StyledNavBar(
+      style: ref.watch(brandProvider).navStyle,
+      selectedIndex: selectedIndex,
+      onSelected: onSelected,
+      tabs: [
+        NavTab(Icons.home_outlined, Icons.home, s.t('nav.home')),
+        NavTab(Icons.menu_book_outlined, Icons.menu_book, s.t('nav.programs')),
+        NavTab(Icons.school_outlined, Icons.school, s.t('nav.training')),
+        NavTab(Icons.workspace_premium_outlined, Icons.workspace_premium, s.t('nav.certificates')),
+        NavTab(Icons.person_outline, Icons.person, s.t('nav.profile')),
+      ],
     );
   }
 }

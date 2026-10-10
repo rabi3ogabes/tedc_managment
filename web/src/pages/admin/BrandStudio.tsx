@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, CalendarDays, Check, Hourglass, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
+import { BadgeCheck, CalendarDays, Check, Hourglass, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, PanelBottom, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, PageHeader, Spinner } from '@/components/ui'
@@ -10,11 +10,12 @@ import { useSettingsTab, useTabDirty } from './settings/tabContext'
 import { contrast, FONT_CHOICES, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
 import LoadingPanel from './brand/LoadingPanel'
+import NavigationPanel from './brand/NavigationPanel'
 import OccasionsPanel from './brand/OccasionsPanel'
 import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
 import { dialogs } from '@/lib/dialogs'
 
-type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading'
+type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading' | 'navigation'
 
 const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] = [
   { id: 'presets', icon: Sparkles },
@@ -27,6 +28,7 @@ const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] =
   { id: 'shape', icon: Droplets },
   { id: 'occasions', icon: CalendarDays },
   { id: 'loading', icon: Hourglass },
+  { id: 'navigation', icon: PanelBottom },
 ]
 
 const PATTERNS: PatternType[] = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom']
@@ -122,13 +124,13 @@ function Studio({ published, reloadBase }: { published: Theme; reloadBase: () =>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div className="space-y-5">
           {/* Section rail */}
-          <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
             {SECTIONS.map(({ id, icon: Icon }) => (
               <button key={id} onClick={() => setSection(id)}
                 className={clsx('flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-bold transition',
                   section === id ? 'border-transparent bg-navy-900 text-gold-300 shadow-glass' : 'border-navy-100 bg-white text-slate-500 hover:border-gold-300 hover:text-navy-900')}>
                 <Icon className="size-5" />
-                <span className="text-center leading-tight">{t(id === 'occasions' || id === 'loading' ? `apa.${id}` : `admin.brand.sections.${id}`)}</span>
+                <span className="text-center leading-tight">{t(id === 'occasions' || id === 'loading' || id === 'navigation' ? `apa.${id}` : `admin.brand.sections.${id}`)}</span>
               </button>
             ))}
           </div>
@@ -225,6 +227,12 @@ function Studio({ published, reloadBase }: { published: Theme; reloadBase: () =>
             {section === 'loading' && (
               <Panel title={t('apa.loading')}>
                 <LoadingPanel draft={draft} onChange={(patch) => setDraft((d) => ({ ...d, loading: { ...d.loading, ...patch } }))} />
+              </Panel>
+            )}
+
+            {section === 'navigation' && (
+              <Panel title={t('apa.navigation')}>
+                <NavigationPanel draft={draft} onChange={(style) => setDraft((d) => ({ ...d, navigation: { style } }))} />
               </Panel>
             )}
 

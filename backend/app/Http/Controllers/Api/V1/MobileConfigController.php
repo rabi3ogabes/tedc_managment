@@ -39,6 +39,7 @@ class MobileConfigController extends Controller
                 'arabic_font_url' => $t['typography']['arabic_font_url'] ?? null,
                 'latin_font_url' => $t['typography']['latin_font_url'] ?? null,
             ],
+            'navigation' => ['style' => $t['navigation']['style'] ?? 'classic'],
             'loading' => $t['loading'] ?? null,
             'occasion' => $t['active_occasion'] ?? null,
         ]]);

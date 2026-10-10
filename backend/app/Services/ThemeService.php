@@ -20,6 +20,9 @@ class ThemeService
 
     private const CACHE = 'site.theme';
 
+    /** How the app's navigation bar looks; `classic` is the standard bar. */
+    public const NAV_STYLES = ['classic', 'floating', 'center_fab', 'neumorphism', 'glass', 'outline'];
+
     public const PATTERNS = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom'];
 
     /**
@@ -87,6 +90,8 @@ class ThemeService
                 'accent' => null,
                 'show_name' => true,
             ],
+            // The look of the mobile app's navigation bar (one of NAV_STYLES), shown on every screen of the app.
+            'navigation' => ['style' => 'classic'],
             // Occasions are a list of scheduled looks: stored as given, never merged item by item (see get()).
             'occasions' => [],
             'typography' => [

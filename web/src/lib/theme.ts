@@ -19,10 +19,14 @@ export type Theme = {
   typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
   /** The page shown while the application loads. */
   loading: { style: LoadingStyle; message_ar: string; message_en: string; background: string | null; accent: string | null; show_name: boolean }
+  /** How the mobile app's bottom navigation bar looks. */
+  navigation: { style: NavStyle }
   /** Scheduled looks (Ramadan, Eid, National Day…): the one in force is laid over the theme by the server. */
   occasions: Occasion[]
   active_occasion?: { id: string; name_ar: string; name_en: string } | null
 }
+
+export type NavStyle = 'classic' | 'floating' | 'center_fab' | 'neumorphism' | 'glass' | 'outline'
 
 export type LoadingStyle = 'emblem' | 'bar' | 'dots' | 'pulse' | 'crescent'
 
@@ -58,6 +62,7 @@ export const DEFAULT_THEME: Theme = {
   shape: { card_radius: 14, glass_blur: 18 },
   identity: { name_ar: 'مركز التدريب والتطوير', name_en: 'Training & Development Center', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
   typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
+  navigation: { style: 'classic' },
   loading: { style: 'emblem', message_ar: 'جارٍ التحميل…', message_en: 'Loading…', background: null, accent: null, show_name: true },
   occasions: [],
   active_occasion: null,
@@ -368,6 +373,7 @@ export function mergeTheme(input?: Partial<Theme> | null): Theme {
     },
     typography: { ...DEFAULT_THEME.typography, ...input.typography },
     loading: { ...DEFAULT_THEME.loading, ...input.loading },
+    navigation: { ...DEFAULT_THEME.navigation, ...input.navigation },
     occasions: Array.isArray(input.occasions) ? input.occasions : [],
     active_occasion: input.active_occasion ?? null,
   }

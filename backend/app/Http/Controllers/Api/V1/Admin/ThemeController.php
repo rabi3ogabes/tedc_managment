@@ -96,6 +96,8 @@ class ThemeController extends Controller
             'typography.arabic_font_url' => $asset,
             'typography.latin_font_url' => $asset,
             'typography.heading_weight' => ['sometimes', 'integer', Rule::in([500, 600, 700, 800, 900])],
+            'navigation' => ['sometimes', 'array'],
+            'navigation.style' => ['required_with:navigation', Rule::in(ThemeService::NAV_STYLES)],
             'loading' => ['sometimes', 'array'],
             'loading.style' => ['required_with:loading', Rule::in(['emblem', 'bar', 'dots', 'pulse', 'crescent'])],
             'loading.message_ar' => ['nullable', 'string', 'max:120'],

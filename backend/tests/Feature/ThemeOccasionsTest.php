@@ -95,6 +95,23 @@ class ThemeOccasionsTest extends TestCase
         $this->assertSame(['arabic_family', 'latin_family', 'arabic_font_url', 'latin_font_url'], array_keys($cfg['typography']));
     }
 
+    public function test_the_navigation_style_defaults_to_classic_is_validated_and_reaches_the_mobile_config(): void
+    {
+        $admin = $this->admin();
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.navigation.style', 'classic');
+
+        $theme = app(ThemeService::class)->base();
+        foreach (['floating', 'center_fab', 'neumorphism', 'glass', 'outline'] as $style) {
+            $theme['navigation'] = ['style' => $style];
+            $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.navigation.style', $style);
+        }
+        Cache::flush();
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.navigation.style', 'outline');
+
+        $theme['navigation'] = ['style' => 'rainbow'];
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertStatus(422);
+    }
+
     public function test_an_occasion_with_bad_dates_or_colours_is_refused(): void
     {
         $admin = $this->admin();

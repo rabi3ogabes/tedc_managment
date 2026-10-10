@@ -20,6 +20,7 @@ class Brand {
     this.occasionId,
     this.message,
     this.loadingStyle = 'emblem',
+    this.navStyle = 'classic',
     this.loadingBackground,
     this.loadingAccent,
     this.arabicFont,
@@ -37,6 +38,9 @@ class Brand {
   /// The greeting set for the loading page (always shown with an occasion; otherwise only if the administrator wrote one).
   final String? message;
   final String loadingStyle;
+
+  /// How the bottom navigation bar looks (see [navStyles]); chosen in the dashboard.
+  final String navStyle;
   final Color? loadingBackground;
   final Color? loadingAccent;
   final String? arabicFont;
@@ -46,6 +50,7 @@ class Brand {
 
   static const none = Brand();
   static const styles = ['emblem', 'bar', 'dots', 'pulse', 'crescent'];
+  static const navStyles = ['classic', 'floating', 'center_fab', 'neumorphism', 'glass', 'outline'];
 
   /// `#RRGGBB` → colour; anything else is ignored so a bad value can never break the theme.
   static Color? hex(Object? v) {
@@ -64,6 +69,7 @@ class Brand {
     final lang = arabic ? 'ar' : 'en';
     String? text(Object? v) => v is String && v.trim().isNotEmpty ? v : null;
     final style = loading['style'];
+    final nav = map(data['navigation'])['style'];
     return Brand(
       primary: hex(brand['primary']),
       accent: hex(brand['accent']),
@@ -74,6 +80,7 @@ class Brand {
       loadingStyle: style is String && styles.contains(style)
           ? style
           : 'emblem',
+      navStyle: nav is String && navStyles.contains(nav) ? nav : 'classic',
       loadingBackground: hex(loading['background']),
       loadingAccent: hex(loading['accent']),
       arabicFont: text(type['arabic_family']),

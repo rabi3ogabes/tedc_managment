@@ -1,6 +1,10 @@
 /** Appearance: occasion themes, the loading page, fonts and the home layouts (Brand Studio and Home editor). */
 export const apaAr = { apa: {
   occasions: 'المناسبات', loading: 'صفحة التحميل',
+  navigation: 'قائمة التنقل', navDefault: 'الافتراضي', navHint: 'شكل شريط التنقل السفلي في التطبيق. يظهر في كل صفحات التطبيق ويتغيّر عند المتدربين فور النشر دون تحديث التطبيق.',
+  navNote: 'الأيقونات والألوان تتبع ألوان الهوية. ينطبق الاختيار على تطبيق الجوال.',
+  navStyles: { classic: 'كلاسيكي', floating: 'عائم (منفصل)', center_fab: 'زر مركزي', neumorphism: 'نيومورفيزم', glass: 'زجاجي', outline: 'أيقونات خطّية' },
+  navHints: { classic: 'الشريط القياسي المثبت أسفل الشاشة.', floating: 'شريط مدوّر منفصل عن الحافة بظل ناعم.', center_fab: 'الأيقونة الوسطى زر دائري بارز.', neumorphism: 'أزرار ناعمة بارزة، والمحدد منخفض.', glass: 'شريط شفاف بتمويه زجاجي.', outline: 'أيقونات رفيعة بإطار للمحدد دون تعبئة.' },
   occHint: 'اضبط مظهرًا خاصًا لرمضان والأعياد واليوم الوطني ويوم المعلم وغيرها؛ يُطبَّق تلقائيًا في الفترة المحددة ثم يعود المظهر الأصلي.',
   occActive: 'المناسبة الجارية الآن', occNone: 'لا مناسبة جارية؛ يظهر المظهر الأساسي.',
   addStandard: 'إضافة المناسبات القياسية', year: 'السنة', addCustom: 'مناسبة جديدة', added: 'أُضيفت {{n}} مناسبة إلى المسودة. اضغط «نشر» للحفظ.', nothingNew: 'كل المناسبات القياسية لهذه السنة موجودة.',
@@ -17,6 +21,10 @@ export const apaAr = { apa: {
 } }
 export const apaEn = { apa: {
   occasions: 'Occasions', loading: 'Loading page',
+  navigation: 'Navigation menu', navDefault: 'Default', navHint: 'The look of the app\'s bottom navigation bar. It appears on every screen of the app and changes for trainees as soon as you publish, with no app update.',
+  navNote: 'Icons and colours follow the brand colours. The choice applies to the mobile app.',
+  navStyles: { classic: 'Classic', floating: 'Floating (detached)', center_fab: 'Centre button', neumorphism: 'Neumorphism', glass: 'Glassmorphism', outline: 'Outline icons' },
+  navHints: { classic: 'The standard bar fixed to the bottom of the screen.', floating: 'A rounded bar detached from the edge with a soft shadow.', center_fab: 'The middle icon is a raised round button.', neumorphism: 'Soft raised buttons; the chosen one is pressed in.', glass: 'A translucent bar with a frosted-glass blur.', outline: 'Thin line icons; the chosen one gets an outline, no fills.' },
   occHint: 'Set a special look for Ramadan, the Eids, National Day, Teachers\' Day and more; it applies by itself during the period you set, then the normal look returns.',
   occActive: 'Occasion in force now', occNone: 'No occasion is on; the base look is showing.',
   addStandard: 'Add the standard occasions', year: 'Year', addCustom: 'New occasion', added: '{{n}} occasion(s) added to the draft. Press Publish to save.', nothingNew: 'All the standard occasions of this year are already there.',
