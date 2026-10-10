@@ -31,7 +31,7 @@ const ar = {
   stages: { kindergarten: 'رياض الأطفال', primary: 'ابتدائي', preparatory: 'إعدادي', secondary: 'ثانوي', multi: 'متعدد المراحل' },
   schoolTypes: { government: 'حكومية', private: 'خاصة', community: 'مجتمعية', international: 'دولية' },
 
-  userMenu: { account: 'قائمة الحساب', profile: 'ملفي الشخصي', lock: 'قفل الشاشة' },
+  userMenu: { account: 'قائمة الحساب', profile: 'ملفي الشخصي', lock: 'قفل الشاشة', homeNewTab: 'فتح الرئيسية في تبويب جديد' },
   profile: {
     title: 'ملفي الشخصي', subtitle: 'كل بيانات حسابك في مكان واحد — للعرض فقط.', protected: 'بيانات محمية', lockedTitle: 'بياناتك محمية', lockedText: 'لا تُعدَّل البيانات مباشرةً حفاظاً على دقتها. إن وجدت بياناً خاطئاً أو ناقصاً فاضغط «طلب تعديل» ليراجعه فريق الإدارة.',
     missing: '{{count}} بيانات ناقصة', pending: '{{count}} طلبات قيد المراجعة', notRecorded: 'غير مسجّل', underReview: 'قيد المراجعة', complete: 'استكمال', requestChange: 'طلب تعديل',

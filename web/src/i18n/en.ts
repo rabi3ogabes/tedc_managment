@@ -33,7 +33,7 @@ const en: Dictionary = {
   stages: { kindergarten: 'Kindergarten', primary: 'Primary', preparatory: 'Preparatory', secondary: 'Secondary', multi: 'Multi-stage' },
   schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International' },
 
-  userMenu: { account: 'Account menu', profile: 'My profile', lock: 'Lock screen' },
+  userMenu: { account: 'Account menu', profile: 'My profile', lock: 'Lock screen', homeNewTab: 'Open home in a new tab' },
   profile: {
     title: 'My profile', subtitle: 'All the details of your account in one place — view only.', protected: 'Protected data', lockedTitle: 'Your details are protected', lockedText: 'Details are not edited directly, to keep them accurate. If something is wrong or missing, press “Request change” and the administration team will review it.',
     missing: '{{count}} missing details', pending: '{{count}} requests under review', notRecorded: 'Not recorded', underReview: 'Under review', complete: 'Complete', requestChange: 'Request change',

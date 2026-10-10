@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, BellRing, Check, ChevronDown, LockKeyhole, LogOut, UserRound } from 'lucide-react'
+import { BadgeCheck, BellRing, Check, ChevronDown, ExternalLink, House, LockKeyhole, LogOut, UserRound } from 'lucide-react'
 import { useEffect, useRef, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -82,6 +82,10 @@ export default function UserMenu({ portal }: { portal: boolean }) {
             </div>
           )}
           <div className="p-2">
+            <div className="flex items-stretch gap-1">
+              <Link to="/" role="menuitem" onClick={() => setOpen(false)} className={clsx(row, 'flex-1')}><House className="size-4 text-gold-600" />{t('nav.home')}</Link>
+              <a href="/" target="_blank" rel="noopener" role="menuitem" onClick={() => setOpen(false)} title={t('userMenu.homeNewTab')} aria-label={t('userMenu.homeNewTab')} className="grid w-11 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-ivory hover:text-navy-900 focus:bg-ivory focus:outline-none"><ExternalLink className="size-4" /></a>
+            </div>
             <Item as="link" to={portal ? '/portal/profile' : '/admin/profile'} icon={UserRound} refEl={first} onClick={() => setOpen(false)} className={row}>{t('userMenu.profile')}</Item>
             <Item as="link" to={portal ? '/portal/notification-preferences' : '/admin/notification-preferences'} icon={BellRing} refEl={prefs} onClick={() => setOpen(false)} className={row}>{t('comm.prefs.title')}</Item>
             <Item as="link" to={portal ? '/portal/security' : '/admin/security'} icon={LockKeyhole} refEl={sec} onClick={() => setOpen(false)} className={row}>{t('idn.navSecurity')}</Item>

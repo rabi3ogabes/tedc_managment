@@ -3,7 +3,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import {
-  Award, Bug, LifeBuoy, Power, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, LogOut, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
+  Award, Bug, LifeBuoy, Power, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bell, BookOpen, Bot, CalendarDays, ChevronDown, ClipboardList, DoorOpen, FileSearch, GraduationCap, Home, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, X, ShieldAlert, Search } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
@@ -28,7 +28,7 @@ type Item = { to: string; label: string; icon: ComponentType<{ className?: strin
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t } = useTranslation()
   const centerName = useCenterName()
-  const { user, logout, can } = useAuth()
+  const { user, can } = useAuth()
   const { pathname, search } = useLocation()
   const activeTab = new URLSearchParams(search).get('tab')
   const onSettings = pathname.startsWith('/admin/settings')
@@ -268,8 +268,6 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
       <div className={clsx('border-t border-white/10', compact ? 'p-3' : 'p-4')}>
         {portal ? (can('dashboard.view') || can('programs.view')) && <SideLink to="/admin" icon={Shield} compact={compact}>{t('nav.dashboard')}</SideLink>
           : user?.employee && <SideLink to="/portal" icon={GraduationCap} compact={compact}>{t('nav.portal')}</SideLink>}
-        <SideLink to="/" icon={Home} compact={compact}>{t('nav.home')}</SideLink>
-        <button onClick={logout} title={compact ? t('nav.logout') : undefined} aria-label={t('nav.logout')} className={clsx('flex w-full items-center gap-3 rounded-xl py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white', compact ? 'justify-center px-0' : 'px-3')}><LogOut className="size-5 shrink-0" />{!compact && t('nav.logout')}</button>
         {!compact && !drawer && !pinned && (
           <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs text-white/70">
             <span>{t('nav.autoExpand')}</span>
