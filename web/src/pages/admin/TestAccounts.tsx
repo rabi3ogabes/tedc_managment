@@ -18,11 +18,12 @@ const PROGRAM_TONE = ['bg-navy-900 text-gold-300', 'bg-gold-500 text-navy-950', 
 /** Settings → Test accounts: the demo trainees and trainers for the mobile app, and exactly which programs each is assigned to. */
 export default function TestAccounts() {
   const { t } = useTranslation()
-  const { data, isLoading, refetch } = useGet<{ data: Payload }>('/admin/test-accounts')
+  const { data, isLoading, isError, error: loadError, refetch } = useGet<{ data: Payload }>('/admin/test-accounts')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  if (isError) return <Card><div className="py-10 text-center"><FlaskConical className="mx-auto size-10 text-gold-500" /><p className="mx-auto mt-3 max-w-md text-sm font-semibold text-danger">{errorMessage(loadError)}</p></div></Card>
   if (isLoading || !data) return <Spinner />
   const d = data.data
 
