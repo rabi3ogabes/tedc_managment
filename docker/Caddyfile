@@ -2,6 +2,11 @@
 	frankenphp
 	admin off
 	auto_https off
+	# Plain HTTP behind the platform's TLS edge: HTTP/1.1 only, so the in-process HTTP/2 server is never reachable
+	# (see .trivyignore for CVE-2026-78669 in the bundled golang.org/x/net).
+	servers {
+		protocols h1
+	}
 }
 
 :{$PORT:8080} {

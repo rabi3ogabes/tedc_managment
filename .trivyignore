@@ -1,0 +1,8 @@
+# Time-boxed exceptions for the container scan (Trivy reads this file; each line expires on its own).
+# Policy: docs/security/patching.md — an exception needs a written risk acceptance and a review date.
+
+# golang.org/x/net v0.59.0 inside the FrankenPHP binary (HTTP/2 SETTINGS flood). Fixed in x/net 0.60.0, but no
+# FrankenPHP release ships it yet (1.13.0 of 2026-10-04 still pins 0.59.0). Mitigation: the container serves plain
+# HTTP/1.1 only (docker/Caddyfile `protocols h1`; TLS and HTTP/2 end at the platform edge), so the vulnerable HTTP/2
+# code is not reachable. Remove as soon as a FrankenPHP image with x/net >= 0.60.0 is published.
+CVE-2026-78669 exp:2026-11-10
