@@ -141,12 +141,15 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
   const { t } = useTranslation()
   const titleId = useId()
   const box = useRef<HTMLDivElement>(null)
+  // Callers pass a new onClose on every render; the effect must not re-run (and re-focus the window) while someone types.
+  const close = useRef(onClose)
+  close.current = onClose
   useEffect(() => {
     if (!open) return
     const before = document.activeElement as HTMLElement | null
     const focusables = () => Array.from(box.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'Escape') { close.current(); return }
       if (e.key !== 'Tab' || !box.current?.contains(document.activeElement)) return   // a window opened on top of this one keeps its own focus
       const items = focusables()                      // keep the keyboard inside the window while it is open
       if (items.length === 0) return
@@ -157,7 +160,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
     window.addEventListener('keydown', onKey)
     box.current?.focus()
     return () => { window.removeEventListener('keydown', onKey); before?.focus?.() }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
   return (
