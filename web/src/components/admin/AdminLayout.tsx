@@ -282,8 +282,6 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
 
   return (
     <div className="flex min-h-screen bg-ivory">
-      <ImpersonationBanner />
-      <FeatureBanner />
       <GlobalSearch functions={functions} open={searchOpen} onClose={() => setSearchOpen(false)} />
       <div className="fixed inset-y-0 start-0 z-30 hidden lg:block" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHovering(false) }}>{renderSidebar(!expanded, false)}</div>
       {open && (
@@ -293,6 +291,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         </div>
       )}
       <div className={clsx('flex min-w-0 flex-1 flex-col transition-[margin] duration-300 ease-out', pinned ? 'lg:ms-72' : 'lg:ms-[4.75rem]')}>
+        <ImpersonationBanner />
+        <FeatureBanner />
         <header className="glass sticky top-0 z-20 border-x-0 border-t-0 print:hidden">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-8">
             <button className="rounded-lg p-2 text-navy-900 lg:hidden" onClick={() => setOpen(true)} aria-label="menu">{open ? <X /> : <Menu />}</button>
