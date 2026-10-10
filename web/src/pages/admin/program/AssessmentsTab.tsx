@@ -88,12 +88,10 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
   const ar = i18n.language === 'ar'
   const [tab, setTab] = useState<'ready' | 'live' | 'grading' | 'analytics'>('ready')
   const tx = (k: string, o?: any): string => String(t(`assess.builder.${k}`, o))
-  const val = useGet<{ data: any }>(`/admin/assessments/${a.id}/validate`, undefined, { enabled: false })
   const [report, setReport] = useState<any>(null)
   const [code, setCode] = useState<string | null>(null)
   const check = async () => { try { const { data } = await api.post(`/admin/assessments/${a.id}/validate`); setReport(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
   useEffect(() => { void check() }, [a.id]) // eslint-disable-line react-hooks/exhaustive-deps
-  void val
   const act = async (fn: () => Promise<any>, ok: string) => { try { await fn(); toast(ok); onChanged(); void check() } catch (e) { toast(errorMessage(e), 'error') } }
   const live = useGet<{ data: any }>(`/admin/assessments/${a.id}/live`, undefined, { enabled: tab === 'live', refetchInterval: 10_000, staleTime: 0 })
   const grading = useGet<{ data: any[] }>(`/admin/assessments/${a.id}/grading`, undefined, { enabled: tab === 'grading', staleTime: 0 })

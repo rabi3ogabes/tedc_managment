@@ -74,7 +74,9 @@ class MyCourseController extends MeController
             'id' => $lesson->id, 'type' => $lesson->type, 'title' => $lesson->translate('title'), 'description' => $lesson->translate('description'), 'body' => $lesson->translate('body'),
             'is_required' => $lesson->is_required, 'duration_seconds' => $lesson->duration_seconds, 'slide_count' => $lesson->slide_count, 'media' => $media,
             'rules' => ['allow_seeking' => (bool) ($settings['allow_seeking'] ?? true), 'max_speed' => (float) ($settings['max_speed'] ?? 2), 'pause_when_hidden' => (bool) ($settings['pause_when_hidden'] ?? true),
-                'min_watch_percent' => (int) ($settings['min_watch_percent'] ?? 90), 'min_view_percent' => (int) ($settings['min_view_percent'] ?? 80), 'downloadable' => (bool) ($settings['downloadable'] ?? false)],
+                'min_watch_percent' => (int) ($settings['min_watch_percent'] ?? 90), 'min_view_percent' => (int) ($settings['min_view_percent'] ?? 80), 'downloadable' => (bool) ($settings['downloadable'] ?? false),
+                'require_visible' => (bool) ($settings['require_visible'] ?? false), 'require_fullscreen' => (bool) ($settings['require_fullscreen'] ?? false),
+                'max_pauses' => $this->course->maxPauses($lesson), 'pauses_left' => $this->course->pausesLeft($lesson, $p), 'min_seconds_per_slide' => (int) ($settings['min_seconds_per_slide'] ?? 0)],
             'progress' => ['status' => $p->status, 'percent' => (float) $p->percent, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'segments' => $p->segments ?? [], 'best_score' => $p->best_score, 'attempts' => $p->attempts],
             'quiz' => $quiz, 'survey' => $survey,
             'package' => $lesson->package_id ? ($pkg = ContentPackage::find($lesson->package_id)) ? ['id' => $pkg->id, 'standard' => $pkg->standard, 'title' => $pkg->title, 'item_id' => $lesson->package_item_id, 'entry_points' => $pkg->entry_points] : null : null,
@@ -85,10 +87,11 @@ class MyCourseController extends MeController
 
     public function heartbeat(Request $request, CourseLesson $lesson): JsonResponse
     {
-        $data = $request->validate(['from' => ['required', 'numeric', 'min:0'], 'to' => ['required', 'numeric', 'min:0'], 'duration' => ['nullable', 'numeric', 'min:0'], 'rate' => ['nullable', 'numeric', 'min:0.25', 'max:4'], 'visible' => ['nullable', 'boolean']]);
+        $data = $request->validate(['from' => ['required', 'numeric', 'min:0'], 'to' => ['required', 'numeric', 'min:0'], 'duration' => ['nullable', 'numeric', 'min:0'], 'rate' => ['nullable', 'numeric', 'min:0.25', 'max:4'], 'visible' => ['nullable', 'boolean'], 'fullscreen' => ['nullable', 'boolean'], 'paused' => ['nullable', 'boolean']]);
         $registration = $this->openRegistration($lesson);
 
-        return response()->json(['data' => $this->course->heartbeat($lesson, $registration, (float) $data['from'], (float) $data['to'], isset($data['duration']) ? (float) $data['duration'] : null, (float) ($data['rate'] ?? 1), (bool) ($data['visible'] ?? true))]);
+        return response()->json(['data' => $this->course->heartbeat($lesson, $registration, (float) $data['from'], (float) $data['to'], isset($data['duration']) ? (float) $data['duration'] : null, (float) ($data['rate'] ?? 1), (bool) ($data['visible'] ?? true),
+            isset($data['fullscreen']) ? (bool) $data['fullscreen'] : null, (bool) ($data['paused'] ?? false))]);
     }
 
     public function slide(Request $request, CourseLesson $lesson): JsonResponse

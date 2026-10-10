@@ -235,9 +235,11 @@ class MyOutcomesController extends MyTrainingController
         $owner = $user->employee?->id === $certificate->employee_id;
         $staff = $user->hasPermission('certificates.view') && $this->scope()->allowsEmployee($certificate->employee);
         abort_unless($owner || $staff, 403);
-        // A trainee gets the PDF only after completing the program survey (staff are not held to it).
+        // A trainee gets the PDF only after completing the program survey and any form required for it (staff are not held to it).
         if (! $staff && ! $service->downloadable($certificate)) {
-            throw new BusinessRuleException(__('messages.certificate.survey_first'), 'survey_required');
+            $forms = $service->pendingRequiredForms($certificate);
+            throw $forms > 0 ? new BusinessRuleException(__('messages.certificate.form_pending', ['count' => $forms]), 'evaluation_required')
+                : new BusinessRuleException(__('messages.certificate.survey_first'), 'survey_required');
         }
 
         try {

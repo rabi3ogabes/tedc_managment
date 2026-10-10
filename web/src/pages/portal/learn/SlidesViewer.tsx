@@ -15,6 +15,7 @@ function PdfSlides({ lesson, url, onProgress }: { lesson: LessonDetail; url: str
   const [doc, setDoc] = useState<pdfjs.PDFDocumentProxy | null>(null)
   const [page, setPage] = useState(Math.max(1, Math.round(lesson.progress.position) || 1))
   const [error, setError] = useState(false)
+  const dwell = lesson.rules.min_seconds_per_slide ?? 0
 
   useEffect(() => {
     const task = pdfjs.getDocument({ url })
@@ -40,12 +41,12 @@ function PdfSlides({ lesson, url, onProgress }: { lesson: LessonDetail; url: str
       render = p.render({ canvasContext: ctx, viewport: vp, canvas: el })
       render.promise.catch(() => undefined)
     })
-    // A slide counts as seen once it has stayed on screen for a moment.
+    // A slide counts as seen once it has stayed on screen for a moment — or for the author's minimum time per slide.
     const id = window.setTimeout(() => {
       api.post<{ data: ProgressResult }>(`/me/lessons/${lesson.id}/slide`, { slide: page, total: doc.numPages }).then((r) => onProgress(r.data.data)).catch(() => undefined)
-    }, 1200)
+    }, Math.max(1200, dwell * 1000))
     return () => { cancelled = true; render?.cancel(); window.clearTimeout(id) }
-  }, [doc, page, lesson.id, onProgress])
+  }, [doc, page, lesson.id, onProgress, dwell])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -68,6 +69,7 @@ function PdfSlides({ lesson, url, onProgress }: { lesson: LessonDetail; url: str
         <Button variant="outline" size="sm" disabled={page >= doc.numPages} onClick={() => setPage(page + 1)}>{t('learn.next')}<ChevronRight className="size-4" /></Button>
       </div>
       <div className="h-1.5 bg-navy-100"><div className="h-full bg-gradient-to-r from-gold-500 to-gold-300 transition-all" style={{ width: `${(page / doc.numPages) * 100}%` }} /></div>
+      {dwell > 0 && <p className="bg-navy-50 px-3 py-2 text-center text-xs text-slate-600">{t('learn.slideWait', { s: dwell })}</p>}
     </div>
   )
 }

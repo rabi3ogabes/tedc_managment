@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 699 columns
-- Internal: 1935 columns
+- Internal: 1936 columns
 - Confidential: 469 columns
 - Restricted: 19 columns
 
@@ -1894,6 +1894,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 | `lesson_version` | Internal | — |
+| `pause_count` | Internal | — |
 
 ### `levels`
 

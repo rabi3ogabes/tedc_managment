@@ -14,13 +14,16 @@ export type SurveyQuestion = { id: string; type: 'rating' | 'nps' | 'choice' | '
 export type LessonDetail = {
   id: string; type: OutlineLesson['type']; title: string; description: string | null; body: string | null; is_required: boolean; duration_seconds: number; slide_count: number; registration_id: string
   media: { kind: 'file'; url: string; mime: string | null; name: string | null } | { kind: 'link'; url: string; embed: string | null } | null
-  rules: { allow_seeking: boolean; max_speed: number; pause_when_hidden: boolean; min_watch_percent: number; min_view_percent: number; downloadable: boolean }
+  rules: {
+    allow_seeking: boolean; max_speed: number; pause_when_hidden: boolean; min_watch_percent: number; min_view_percent: number; downloadable: boolean
+    require_visible: boolean; require_fullscreen: boolean; max_pauses: number | null; pauses_left: number | null; min_seconds_per_slide: number
+  }
   progress: { status: string; percent: number; position: number; furthest: number; segments: [number, number][]; best_score: number | null; attempts: number }
   quiz: { questions: QuizQuestion[]; pass_percent: number; max_attempts: number | null; attempts: number; time_limit_minutes: number | null } | null
   survey: { submitted: boolean; questions: SurveyQuestion[] } | null
 }
 
-export type ProgressResult = { percent: number; status: string; completed: boolean; position?: number; furthest?: number; credited?: number }
+export type ProgressResult = { percent: number; status: string; completed: boolean; position?: number; furthest?: number; credited?: number; pauses_left?: number | null }
 
 export const clock = (seconds: number) => {
   const s = Math.max(0, Math.floor(seconds))

@@ -6,6 +6,7 @@ use App\Exceptions\BusinessRuleException;
 use App\Mail\CertificateMail;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
+use App\Models\EvaluationAssignment;
 use App\Models\PassException;
 use App\Models\Registration;
 use App\Models\User;
@@ -293,10 +294,10 @@ class CertificateService
         return $mpdf->Output('', 'S');
     }
 
-    /** The trainee may download the certificate only after filling in the program survey. */
+    /** The trainee may download the certificate only after filling in the program survey and any evaluation form marked as required for it. */
     public function downloadable(Certificate $certificate): bool
     {
-        if ($certificate->status !== 'valid') {
+        if ($certificate->status !== 'valid' || $this->pendingRequiredForms($certificate) > 0) {
             return false;
         }
         $registration = $certificate->registration()->first();
@@ -305,6 +306,18 @@ class CertificateService
         }
 
         return $registration?->evaluation()->exists() === true;
+    }
+
+    /** Evaluation forms (settings.required_for_certificate) the holder still has to answer for this program. */
+    public function pendingRequiredForms(Certificate $certificate): int
+    {
+        $userId = $certificate->employee()->value('user_id');
+        if (! $userId) {
+            return 0;
+        }
+
+        return EvaluationAssignment::with('form:id,settings')->where('program_id', $certificate->program_id)->where('respondent_user_id', $userId)->where('status', 'pending')->get()
+            ->filter(fn (EvaluationAssignment $a) => (bool) ($a->form?->settings['required_for_certificate'] ?? false))->count();
     }
 
     /**

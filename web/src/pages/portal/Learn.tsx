@@ -134,7 +134,7 @@ export default function Learn() {
                     : <Button variant="outline" icon={<ArrowLeft className="size-4 rtl:rotate-180" />} onClick={() => navigate(`/portal/learn/${registrationId}`)}>{t('learn.back')}</Button>}
                 </Card>
               )}
-              {o && <LessonSocial key={lesson.id} lessonId={lesson.id} programId={o.program.id} />}
+              {o && <LessonSocial key={`social-${lesson.id}`} lessonId={lesson.id} programId={o.program.id} />}
             </>
           )}
           {!lessonId && !loading && (

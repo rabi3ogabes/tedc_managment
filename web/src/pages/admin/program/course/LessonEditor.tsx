@@ -194,7 +194,7 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
               <Toggle label={t('course.rules.pauseHidden')} hint={t('course.rules.pauseHiddenHint')} value={s.pause_when_hidden ?? true} onChange={(v) => rule('pause_when_hidden', v)} />
               <Num label={t('course.rules.minWatch')} value={s.min_watch_percent ?? 90} min={1} max={100} suffix="%" onChange={(v) => rule('min_watch_percent', v ?? 90)} />
               <Num label={t('course.rules.maxSpeed')} value={s.max_speed ?? 2} min={1} max={3} step={0.25} suffix="×" onChange={(v) => rule('max_speed', v ?? 2)} />
-              <Toggle label={t('assess.video.requireVisible')} value={s.require_visible ?? true} onChange={(v) => rule('require_visible', v)} />
+              <Toggle label={t('assess.video.requireVisible')} value={s.require_visible ?? false} onChange={(v) => rule('require_visible', v)} />
               <Toggle label={t('assess.video.requireFullscreen')} value={s.require_fullscreen ?? false} onChange={(v) => rule('require_fullscreen', v)} />
               <Num label={t('assess.video.lockPause')} value={s.lock_pause ?? null} min={0} max={50} onChange={(v) => rule('lock_pause', v)} />
             </div>
@@ -218,6 +218,7 @@ export default function LessonEditor({ lesson, onChanged, onDeleted }: { lesson:
           <Card className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <Num label={t('course.rules.minView')} value={s.min_view_percent ?? 80} min={1} max={100} suffix="%" onChange={(v) => rule('min_view_percent', v ?? 80)} />
+              <Num label={t('course.rules.minSecondsPerSlide')} value={s.min_seconds_per_slide ?? null} min={0} max={600} suffix={t('course.rules.seconds')} onChange={(v) => rule('min_seconds_per_slide', v ?? 0)} />
               <Toggle label={t('course.rules.downloadable')} hint={t('course.rules.downloadableHint')} value={s.downloadable ?? false} onChange={(v) => rule('downloadable', v)} />
             </div>
           </Card>

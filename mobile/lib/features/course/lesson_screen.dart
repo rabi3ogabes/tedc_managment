@@ -130,6 +130,7 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   String? _notice;
   bool _failed = false;
   String _noSeekText = '';
+  int? _pausesLeft; // the lesson's pause limit, counted on the server; null = no limit
 
   Json get _rules => widget.lesson.obj('rules') ?? {};
   bool get _allowSeek => _rules['allow_seeking'] != false;
@@ -144,6 +145,8 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     _percent = progress.number('percent').toDouble();
     _furthest = progress.number('furthest').toDouble();
     _sent = progress.number('position').toDouble();
+    final left = _rules['pauses_left'];
+    _pausesLeft = left is num ? left.toInt() : null;
     final media = _media;
     if (media != null && !_embedded) _setUp(media.str('url'), progress.number('position').toDouble(), progress.str('status') == 'completed');
     _timer = Timer.periodic(const Duration(seconds: 10), (_) => _embedded ? _wallClock() : _beat());
@@ -192,18 +195,23 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     setState(() {});
   }
 
-  Future<void> _beat({bool force = false}) async {
+  /// [paused] marks the learner's own pause, which uses up one of the pauses the lesson allows (not the app's automatic ones).
+  Future<void> _beat({bool force = false, bool paused = false}) async {
     final c = _c;
     if (c == null) return;
     if (!c.value.isPlaying && !force) return;
     final from = _sent;
     final to = c.value.position.inMilliseconds / 1000;
-    if (to <= from || (to - from < 0.5 && !force)) return;
-    _sent = to;
+    if ((to <= from && !paused) || (to - from < 0.5 && !force)) return;
+    _sent = to > from ? to : from;
     try {
-      final res = await ref.read(apiProvider).post('/me/lessons/${widget.lesson.str('id')}/heartbeat', {'from': from, 'to': to, 'duration': c.value.duration.inSeconds, 'rate': c.value.playbackSpeed});
+      final res = await ref.read(apiProvider).post('/me/lessons/${widget.lesson.str('id')}/heartbeat', {
+        'from': from, 'to': to > from ? to : from, 'duration': c.value.duration.inSeconds, 'rate': c.value.playbackSpeed, if (paused) 'paused': true,
+      });
       final r = Map<String, dynamic>.from(res['data'] as Map);
       if (!mounted) return;
+      final left = r['pauses_left'];
+      if (r.containsKey('pauses_left')) _pausesLeft = left is num ? left.toInt() : null;
       _percent = r.number('percent').toDouble();
       _furthest = r.number('furthest').toDouble();
       if (!_allowSeek && c.value.position.inSeconds > r.number('position') + 8) {
@@ -317,9 +325,26 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
         },
       ),
       Row(children: [
-        IconButton(onPressed: () => c.value.isPlaying ? c.pause() : c.play(), icon: Icon(c.value.isPlaying ? Icons.pause : Icons.play_arrow)),
+        IconButton(
+          onPressed: () {
+            if (!c.value.isPlaying) {
+              c.play();
+            } else if (_pausesLeft == 0) {
+              setState(() => _notice = s.t('course.noPause'));
+            } else {
+              c.pause();
+              _beat(force: true, paused: true);
+            }
+          },
+          icon: Icon(c.value.isPlaying ? Icons.pause : Icons.play_arrow, color: c.value.isPlaying && _pausesLeft == 0 ? AppColors.muted : null),
+        ),
         Text('${_clock(position)} / ${_clock(duration)}', textDirection: TextDirection.ltr, style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()])),
         const Spacer(),
+        if (_pausesLeft != null)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4),
+            child: Text(s.t('course.pausesLeft').replaceAll('{n}', '$_pausesLeft'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _pausesLeft == 0 ? AppColors.muted : AppColors.gold700)),
+          ),
         PopupMenuButton<double>(
           tooltip: s.t('course.speed'),
           onSelected: c.setPlaybackSpeed,

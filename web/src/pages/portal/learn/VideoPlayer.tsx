@@ -16,6 +16,9 @@ type Interaction = { id: string; at_seconds: number; type: string; prompt_ar: st
  * A video player that reports what was really watched. Every ten seconds of playback (and on pause) it tells the
  * server the stretch just played; the server decides how much of it counts. With skipping switched off, the seek bar
  * cannot go beyond the furthest point reached. The seek bar shows the parts already watched.
+ * Anti-distraction rules set by the author: a full-screen lesson pauses when the learner leaves full screen (and the
+ * server credits no time outside it), and a pause limit stops the learner pausing once the allowed pauses are used —
+ * the server keeps the count, so a reload does not reset it. Pauses the player makes itself are not counted.
  */
 export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDetail; onProgress: (r: ProgressResult) => void }) {
   const { t, i18n } = useTranslation()
@@ -26,6 +29,10 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
   const furthest = useRef(lesson.progress.furthest)
   const lastBeat = useRef(0)
   const lastTick = useRef(0)
+  const systemPause = useRef(false)   // the next pause comes from the player (question, hidden page, full screen), not the learner
+  const fsSupported = typeof document !== 'undefined' && !!document.fullscreenEnabled
+  const needFullscreen = lesson.rules.require_fullscreen && fsSupported
+  const [pausesLeft, setPausesLeft] = useState<number | null>(lesson.rules.pauses_left ?? null)
   const [playing, setPlaying] = useState(false)
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(lesson.duration_seconds)
@@ -42,7 +49,7 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
   const shown = useRef<Set<string>>(new Set())
   useEffect(() => { api.get<{ data: Interaction[] }>(`/me/lessons/${lesson.id}/interactions`).then((r) => setItems(r.data.data)).catch(() => undefined) }, [lesson.id])
 
-  const beat = useCallback(async (force = false) => {
+  const beat = useCallback(async (force = false, paused = false) => {
     const el = video.current
     if (!el || (el.paused && !force)) return
     const from = sent.current
@@ -50,10 +57,14 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
     if (to - from < 0.5 && !force) return
     lastBeat.current = Date.now()
     sent.current = to
-    if (to <= from) return
+    if (to <= from && !paused) return
     try {
-      const res = await api.post<{ data: ProgressResult }>(`/me/lessons/${lesson.id}/heartbeat`, { from, to, duration: el.duration || undefined, rate: el.playbackRate, visible: !document.hidden })
+      const res = await api.post<{ data: ProgressResult }>(`/me/lessons/${lesson.id}/heartbeat`, {
+        from, to: Math.max(from, to), duration: el.duration || undefined, rate: el.playbackRate, visible: !document.hidden,
+        fullscreen: fsSupported ? !!document.fullscreenElement : undefined, paused: paused || undefined,
+      })
       const r = res.data.data
+      if (r.pauses_left !== undefined) setPausesLeft(r.pauses_left)
       setPercent(r.percent)
       setDone(r.completed)
       onProgress(r)
@@ -70,7 +81,7 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
     } catch {
       sent.current = from // try the same stretch again next time
     }
-  }, [lesson.id, lesson.rules.allow_seeking, onProgress, t])
+  }, [lesson.id, lesson.rules.allow_seeking, fsSupported, onProgress, t])
 
   // Resume where the learner stopped.
   const onLoaded = () => {
@@ -90,13 +101,24 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
     const id = window.setInterval(() => void beat(), BEAT_MS)
     const onHide = () => {
       if (document.hidden) {
-        if (lesson.rules.pause_when_hidden && video.current && !video.current.paused) { video.current.pause(); setNotice(t('learn.hiddenPause')) }
+        if (lesson.rules.pause_when_hidden && video.current && !video.current.paused) { systemPause.current = true; video.current.pause(); setNotice(t('learn.hiddenPause')) }
         void beat(true)
       }
     }
     document.addEventListener('visibilitychange', onHide)
     return () => { window.clearInterval(id); document.removeEventListener('visibilitychange', onHide); void beat(true) }
   }, [beat, lesson.rules.pause_when_hidden, t])
+
+  // A full-screen lesson stops when the learner leaves full screen.
+  useEffect(() => {
+    if (!needFullscreen) return
+    const onChange = () => {
+      const el = video.current
+      if (!document.fullscreenElement && el && !el.paused) { systemPause.current = true; el.pause(); setNotice(t('learn.fullscreenNeeded')) }
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [needFullscreen, t])
 
   useEffect(() => { if (!notice) return; const id = window.setTimeout(() => setNotice(null), 4000); return () => window.clearTimeout(id) }, [notice])
 
@@ -115,7 +137,30 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
     el.currentTime = to
     sent.current = to
   }
-  const toggle = () => { const el = video.current; if (!el) return; if (el.paused) void el.play(); else el.pause() }
+  const play = async () => {
+    const el = video.current
+    if (!el) return
+    if (needFullscreen && !document.fullscreenElement) {
+      try { await box.current?.requestFullscreen() } catch { setNotice(t('learn.fullscreenNeeded')); return }
+    }
+    void el.play()
+  }
+  const toggle = () => {
+    const el = video.current
+    if (!el) return
+    if (el.paused) { void play(); return }
+    if (pausesLeft === 0) { setNotice(t('learn.noPause')); return }
+    el.pause()
+  }
+  // A pause the learner made (keyboard, media keys) after the limit is used is undone; the player's own pauses are not counted.
+  const onPause = () => {
+    const el = video.current
+    const own = !systemPause.current && !!el && !el.ended
+    systemPause.current = false
+    if (own && pausesLeft === 0 && el) { setNotice(t('learn.noPause')); void el.play(); return }
+    setPlaying(false)
+    void beat(true, own)
+  }
   const speeds = [0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3].filter((x) => x <= lesson.rules.max_speed)
 
   return (
@@ -123,7 +168,7 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
       <video
         ref={video} src={src} className="aspect-video w-full" playsInline preload="metadata" controlsList="nodownload noplaybackrate" disablePictureInPicture
         onLoadedMetadata={onLoaded} onClick={toggle} onContextMenu={(e) => e.preventDefault()}
-        onPlay={() => { setPlaying(true); sent.current = video.current?.currentTime ?? sent.current }} onPause={() => { setPlaying(false); void beat(true) }}
+        onPlay={() => { setPlaying(true); sent.current = video.current?.currentTime ?? sent.current }} onPause={onPause}
         onEnded={() => { setPlaying(false); void beat(true) }}
         onTimeUpdate={() => {
           const el = video.current
@@ -135,13 +180,13 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
           lastTick.current = cur
           // An interaction opens the first time its moment is reached.
           const due = items.find((i) => !i.answered && !shown.current.has(i.id) && cur >= i.at_seconds && cur < i.at_seconds + 3)
-          if (due && !active) { shown.current.add(due.id); el.pause(); setReply(undefined); setVerdict(null); setActive(due) }
+          if (due && !active) { shown.current.add(due.id); if (!el.paused) { systemPause.current = true; el.pause() } setReply(undefined); setVerdict(null); setActive(due) }
           if (!lesson.rules.allow_seeking && !el.seeking && cur > furthest.current + 2) el.currentTime = furthest.current
         }}
         onSeeking={() => { const el = video.current; if (el && !lesson.rules.allow_seeking && el.currentTime > furthest.current + 2) { setNotice(t('learn.noSeek')); el.currentTime = furthest.current } }}
         onRateChange={() => setRate(video.current?.playbackRate ?? 1)}
       />
-      {!playing && <button type="button" aria-label="play" onClick={toggle} className="absolute inset-0 grid place-items-center bg-black/25 transition hover:bg-black/35"><span className="grid size-20 place-items-center rounded-full bg-white/95 text-navy-900 shadow-xl"><Play className="size-9 translate-x-0.5" /></span></button>}
+      {!playing && <button type="button" aria-label={needFullscreen ? t('learn.fullscreenResume') : 'play'} onClick={() => void play()} className="absolute inset-0 grid place-items-center bg-black/25 transition hover:bg-black/35"><span className="grid size-20 place-items-center rounded-full bg-white/95 text-navy-900 shadow-xl"><Play className="size-9 translate-x-0.5" /></span></button>}
       {active && (
         <div role="dialog" aria-modal="true" className="absolute inset-0 z-10 grid place-items-center overflow-y-auto bg-navy-950/90 p-4 text-white">
           <div className="w-full max-w-xl space-y-4 rounded-2xl bg-white p-5 text-navy-900" dir="auto">
@@ -152,7 +197,7 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
               {!verdict?.unlocked && <Button variant="gold" onClick={async () => {
                 try { const { data } = await api.post(`/me/lessons/${lesson.id}/interactions/${active.id}/answer`, { answer: reply ?? '' }); const d = data.data; setVerdict({ correct: d.correct, unlocked: d.unlocked, explanation: (i18n.language === 'ar' ? d.explanation_ar : d.explanation_en) ?? null }); if (d.unlocked) setItems((x) => x.map((i) => (i.id === active.id ? { ...i, answered: true } : i))) } catch { setNotice(t('learn.noSeek')) }
               }}>{t('assess.video.submit')}</Button>}
-              {(verdict?.unlocked || (!active.required && active.allow_skip !== false)) && <Button variant="outline" onClick={() => { setActive(null); void video.current?.play() }}>{verdict?.unlocked ? t('assess.video.continue') : t('assess.video.skip')}</Button>}
+              {(verdict?.unlocked || (!active.required && active.allow_skip !== false)) && <Button variant="outline" onClick={() => { setActive(null); void play() }}>{verdict?.unlocked ? t('assess.video.continue') : t('assess.video.skip')}</Button>}
             </div>
           </div>
         </div>
@@ -163,9 +208,10 @@ export default function VideoPlayer({ lesson, onProgress }: { lesson: LessonDeta
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-4 pb-3 pt-10 text-white">
         <Seekbar duration={duration} time={time} segments={segments} furthest={lesson.rules.allow_seeking ? duration : furthest.current} onSeek={seek} />
         <div className="mt-2 flex items-center gap-3 text-sm" dir="ltr">
-          <button type="button" aria-label="play/pause" onClick={toggle}>{playing ? <Pause className="size-5" /> : <Play className="size-5" />}</button>
+          <button type="button" aria-label="play/pause" onClick={toggle} disabled={playing && pausesLeft === 0} className="disabled:opacity-40">{playing ? <Pause className="size-5" /> : <Play className="size-5" />}</button>
           <button type="button" aria-label="mute" onClick={() => { if (video.current) { video.current.muted = !video.current.muted; setMuted(video.current.muted) } }}>{muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}</button>
           <span className="font-mono text-xs tabular-nums">{clock(time)} / {clock(duration)}</span>
+          {pausesLeft !== null && <span role="status" aria-label={t('learn.pausesLeft', { n: pausesLeft })} title={t('learn.pausesLeft', { n: pausesLeft })} className={clsx('inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs tabular-nums', pausesLeft === 0 ? 'bg-white/15 text-white/60' : 'bg-gold-400/20 text-gold-200')}><Pause className="size-3" aria-hidden="true" />{pausesLeft}</span>}
           <span className="ms-auto text-xs text-white/70">{t('learn.watched', { percent: Math.round(percent) })}</span>
           <select aria-label={t('learn.speed')} value={rate} onChange={(e) => { if (video.current) video.current.playbackRate = Number(e.target.value) }} className="rounded-md border border-white/25 bg-black/40 px-1.5 py-0.5 text-xs">{speeds.map((x) => <option key={x} value={x}>{x}×</option>)}</select>
           <button type="button" aria-label={t('learn.fullscreen')} onClick={() => void (document.fullscreenElement ? document.exitFullscreen() : box.current?.requestFullscreen())}><Maximize className="size-5" /></button>

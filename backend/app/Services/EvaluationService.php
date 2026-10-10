@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\Certificate;
 use App\Models\EvaluationAssignment;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationResponse;
@@ -195,6 +196,11 @@ class EvaluationService
 
         $response = EvaluationResponse::create(['assignment_id' => $a->id, 'answers' => $clean, 'evidence' => $stored ?: null, 'form_version' => $a->form->version, 'score' => $this->score($questions, $clean), 'submitted_at' => now()]);
         $a->update(['status' => 'submitted']);
+        // A certificate that was waiting for this form can now be downloaded: tell its holder.
+        if ($a->form->settings['required_for_certificate'] ?? false) {
+            $certificates = app(CertificateService::class);
+            Certificate::where('program_id', $a->program_id)->where('status', 'valid')->whereHas('employee', fn ($q) => $q->where('user_id', $by->id))->get()->each(fn (Certificate $c) => $certificates->announce($c));
+        }
 
         if ($a->form->kind === 'trainer_reflection') {
             foreach (User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::PLANNING_HEAD, Role::PLANNING_SPECIALIST]))->where('status', 'active')->pluck('id') as $uid) {

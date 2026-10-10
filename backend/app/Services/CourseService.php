@@ -89,9 +89,14 @@ class CourseService
         $issued = $registration->certificate()->first();
         $check = $certificates->requirements($registration);
 
+        $missing = collect($check['checks'])->where('passed', false)->pluck('label');
+        if ($issued && ($forms = $certificates->pendingRequiredForms($issued)) > 0) {
+            $missing->push(__('messages.certificate.form_pending', ['count' => $forms]));
+        }
+
         return [
             'issued' => (bool) $issued, 'downloadable' => $issued ? $certificates->downloadable($issued) : false, 'eligible' => $check['eligible'],
-            'missing' => collect($check['checks'])->where('passed', false)->pluck('label')->values(),
+            'missing' => $missing->values(),
         ];
     }
 
@@ -141,7 +146,7 @@ class CourseService
      *
      * @return array{percent: float, status: string, position: float, furthest: float, completed: bool, credited: float}
      */
-    public function heartbeat(CourseLesson $lesson, Registration $registration, float $from, float $to, ?float $duration = null, float $rate = 1.0, bool $visible = true): array
+    public function heartbeat(CourseLesson $lesson, Registration $registration, float $from, float $to, ?float $duration = null, float $rate = 1.0, bool $visible = true, ?bool $fullscreen = null, bool $paused = false): array
     {
         $p = $this->progressFor($lesson, $registration);
         if ($lesson->duration_seconds <= 0 && $duration && $duration > 1 && $duration < 86400) {
@@ -171,6 +176,10 @@ class CourseService
         if (! $visible && $lesson->setting('require_visible', false)) {
             $credited = 0;
         }
+        // Out of full screen: no time counts when the lesson must be watched full screen (a player that cannot tell sends nothing).
+        if ($fullscreen === false && $lesson->setting('require_fullscreen', false)) {
+            $credited = 0;
+        }
         // Seeking past an unanswered required question earns nothing either.
         if ($blocker && $from > $blocker->at_seconds + self::JITTER_SECONDS) {
             $credited = 0;
@@ -187,6 +196,11 @@ class CourseService
         // Only what was credited counts as reached; a skip sends the player back to where the learner really got to.
         $reached = $from + $credited;
         $position = $skipped ? min($p->furthest_position, $length) : $reached;
+        // The learner's own pause (not an automatic one) uses up one of the pauses the lesson allows.
+        $maxPauses = $this->maxPauses($lesson);
+        if ($paused && $maxPauses !== null) {
+            $p->pause_count = min(65535, $p->pause_count + 1);
+        }
         $p->fill([
             'segments' => $segments, 'watched_seconds' => $watched, 'percent' => max((float) $p->percent, $percent), 'last_position' => $position,
             'furthest_position' => max((float) $p->furthest_position, $skipped ? 0 : $reached), 'last_activity_at' => now(),
@@ -197,7 +211,22 @@ class CourseService
         $p->save();
         $this->recompute($registration);
 
-        return ['percent' => (float) $p->percent, 'status' => $p->status, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'completed' => $p->status === 'completed', 'credited' => round($credited, 1), 'blocked_by' => $blocker?->id, 'blocked_at' => $blocker ? (float) $blocker->at_seconds : null];
+        return ['percent' => (float) $p->percent, 'status' => $p->status, 'position' => (float) $p->last_position, 'furthest' => (float) $p->furthest_position, 'completed' => $p->status === 'completed', 'credited' => round($credited, 1), 'blocked_by' => $blocker?->id, 'blocked_at' => $blocker ? (float) $blocker->at_seconds : null, 'pauses_left' => $this->pausesLeft($lesson, $p)];
+    }
+
+    /** How many times the learner may pause this video (`settings.lock_pause`); null = no limit. */
+    public function maxPauses(CourseLesson $lesson): ?int
+    {
+        $limit = $lesson->setting('lock_pause');
+
+        return $limit === null || $limit === '' ? null : max(0, (int) $limit);
+    }
+
+    public function pausesLeft(CourseLesson $lesson, LessonProgress $p): ?int
+    {
+        $max = $this->maxPauses($lesson);
+
+        return $max === null ? null : max(0, $max - (int) $p->pause_count);
     }
 
     // Presentations & articles ----------------------------------------------------------------------------------
@@ -211,7 +240,10 @@ class CourseService
             $lesson->update(['slide_count' => $total]);
         }
         $slide = max(1, min($slide, $total));
-        $segments = $this->merge($p->segments ?? [], [$slide, $slide]);
+        // With a minimum time per slide, a slide reported sooner than that after the previous report is not counted as seen.
+        $minSeconds = (int) $lesson->setting('min_seconds_per_slide', 0);
+        $rushed = $minSeconds > 0 && $p->last_activity_at && $p->last_activity_at->diffInSeconds(now(), true) < $minSeconds - 1;
+        $segments = $rushed ? ($p->segments ?? []) : $this->merge($p->segments ?? [], [$slide, $slide]);
         $seen = (int) $this->covered($segments, 1);
         $percent = min(100, round($seen / $total * 100, 2));
 

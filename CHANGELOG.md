@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-10 — RFP comparison
+Every RFP requirement re-checked in the code: 228 of 278 available, 50 partial, none missing; 21 of the 25 software mandatory items met (`docs/rfp/rfp-comparison-2026-10-10.html`, `.md`). Fixed: the video full-screen rule and pause limit are now enforced (server-side count, web player and app), the minimum time per slide is enforced, evaluation forms marked “required before the certificate” now hold the certificate back, the lesson editor shows the real default for hidden-page time, and the lesson page no longer gives the player and the discussion panel the same React key. The register is corrected (scrambled exam rows, an overstated face-recognition item, stale mandatory items and roles) and kept consistent by `scripts/rfp_sync.py`.
+
 ## 2026-10-07 — audit
 Fixed 19 unreachable administration pages, a hidden room-calendar route, feature-off pages, the help drawer, production help articles, plus new satisfaction and support-ticket screens. See `docs/rfp/audit-2026-10-07.md`.
 

@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 223,
-        "partial": 55,
+        "available": 228,
+        "partial": 50,
         "missing": 0,
         "mandatory": 108,
-        "open": 55
+        "open": 50
     },
     "phases": [
         {
@@ -19,14 +19,14 @@
             "phase": 1,
             "title": "Roles, Scopes & UX Essentials",
             "open": 11,
-            "items": 5,
+            "items": 1,
             "done": 0
         },
         {
             "phase": 2,
             "title": "Training Structure & Annual Plan",
             "open": 11,
-            "items": 2,
+            "items": 1,
             "done": 0
         },
         {
@@ -294,9 +294,9 @@
                     "id": "RBA-03",
                     "mandatory": false,
                     "requirement": "PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops",
-                    "status": "partial",
-                    "evidence": "Role `academic_deputy` (school / group / department scope, permissions `pd.approve`, `workshops.internal`, nominations). PD-record approval (Phase 09) and internal workshops (Phase 02) arrive with those phases.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role `academic_deputy` at school / school-group / department scope: approves PD records (`pd.approve` on `/admin/pd-activities`), approves staff registrations as direct manager, nominates, and runs internal workshops (`workshops.internal`).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-04",
@@ -318,9 +318,9 @@
                     "id": "RBA-06",
                     "mandatory": false,
                     "requirement": "Centre Leadership & Policy Makers",
-                    "status": "partial",
-                    "evidence": "Role `center_leadership` with leadership dashboards and `trainers.approve`; trainer-assignment approval (Phase 02) and satisfaction alerts (Phase 08) come with those phases.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role `center_leadership`: leadership dashboards, plan approval (`plans.approve`), trainer-assignment approval (`trainers.approve` on `/admin/group-trainers/{id}/decision`) and low-satisfaction alerts (default alert recipients).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-07",
@@ -350,17 +350,17 @@
                     "id": "RBA-10",
                     "mandatory": false,
                     "requirement": "Head of Planning and Planning Specialist",
-                    "status": "partial",
-                    "evidence": "Roles `planning_head` and `planning_specialist` with plan, needs and instrument permissions (`plans.*`, `instruments.approve`); the tools themselves arrive in Phases 02, 03 and 08.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Roles `planning_head` and `planning_specialist`: needs cycles and proposals, competency framework and gaps, annual plan (head approves), instrument approval (`instruments.approve`), evaluation forms, interviews and evaluation reports (specialist prepares, head approves).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-11",
                     "mandatory": false,
                     "requirement": "Logistics Support Officer",
-                    "status": "partial",
-                    "evidence": "Role `logistics_officer` (rooms, `rooms.book`, `logistics.manage`); non-training bookings and logistics requests arrive in Phase 05.",
-                    "phase": 1
+                    "status": "available",
+                    "evidence": "Role `logistics_officer`: room data (`rooms.manage`), non-training room bookings (`rooms.book`) and the logistics-request queue (`logistics.manage`).",
+                    "phase": null
                 },
                 {
                     "id": "RBA-12",
@@ -414,7 +414,7 @@
                     "mandatory": true,
                     "requirement": "Pre- and post-program assessment of the trainee’s level",
                     "status": "available",
-                    "evidence": "Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md",
+                    "evidence": "Pre- and post-tests built from the question bank (assessment kinds `pre_test` / `post_test`); knowledge gain per trainee, group and skill against the 35 % target (`KnowledgeService`).",
                     "phase": null
                 },
                 {
@@ -454,7 +454,7 @@
                     "mandatory": false,
                     "requirement": "Final exams with retry rules and re-study after failure",
                     "status": "available",
-                    "evidence": "Diagnostic and comprehensive skills tests; results feed employee skills",
+                    "evidence": "Final exams with attempt limits, a cooldown between attempts and a re-study rule: after a failed attempt the linked lessons must be studied again before the next try (`restudy_on_fail`, `cooldown_hours`).",
                     "phase": null
                 },
                 {
@@ -470,7 +470,7 @@
                     "mandatory": true,
                     "requirement": "Exams taken remotely or in-centre via a secret access code",
                     "status": "available",
-                    "evidence": "Pre/post tests with knowledge gain against the 35% target",
+                    "evidence": "Static and rotating secret access codes for exams taken remotely or in the centre (`POST /admin/assessments/{id}/access-codes`); the code is checked when the attempt starts.",
                     "phase": null
                 },
                 {
@@ -486,7 +486,7 @@
                     "mandatory": true,
                     "requirement": "Anti-distraction: prevent pause, seek or minimise during video",
                     "status": "available",
-                    "evidence": "Lesson quizzes migrated to the bank; lesson gating by assessment",
+                    "evidence": "Seek lock, maximum speed, minimum watched share, automatic pause and no credited time while the page is hidden, a full-screen requirement (no time counts outside full screen) and a pause limit counted on the server (`lock_pause`, survives reloads); the app enforces the pause limit — full screen is a web-player rule.",
                     "phase": null
                 },
                 {
@@ -541,9 +541,9 @@
                     "id": "TYP-20",
                     "mandatory": false,
                     "requirement": "School internal workshops approved by the centre: create, register, attendance, results, certificates",
-                    "status": "partial",
-                    "evidence": "Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09.",
-                    "phase": 2
+                    "status": "available",
+                    "evidence": "Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop; results and certificates go through the centre's passing and certificate engine, and the hours count as internal PD hours.",
+                    "phase": null
                 }
             ]
         },
@@ -659,7 +659,7 @@
                     "mandatory": true,
                     "requirement": "Approval workflow: notify admin, review, approve / reject with reason, email result",
                     "status": "available",
-                    "evidence": "Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked.",
+                    "evidence": "Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants are told by e-mail at every step and each submission keeps a number and an immutable PDF snapshot.",
                     "phase": null
                 },
                 {
@@ -667,7 +667,7 @@
                     "mandatory": false,
                     "requirement": "Configurable form fields, target categories and extra conditions",
                     "status": "available",
-                    "evidence": "Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record.",
+                    "evidence": "Form designer per audience (`/admin/registration-forms`: trainee, trainer, other): fields of 10 types with Arabic/English labels and options, required flags, allowed e-mail domains, opening and closing dates and a shareable link.",
                     "phase": null
                 }
             ]
@@ -1109,7 +1109,7 @@
                     "mandatory": false,
                     "requirement": "Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop",
                     "status": "available",
-                    "evidence": "Pass mark, attempts, cooldown, restudy rule per assessment",
+                    "evidence": "Test builder with 14 question types: single choice, multiple select, true/false, dropdown, matrix, image hotspot, ordering, matching, drag-and-drop categorisation, fill in the blanks, numeric, short answer, essay and H5P, all with media.",
                     "phase": null
                 },
                 {
@@ -1299,7 +1299,7 @@
                     "mandatory": true,
                     "requirement": "After manager approval, withdrawal needs the manager’s approval",
                     "status": "available",
-                    "evidence": "A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted).",
+                    "evidence": "After the direct manager approved a registration, withdrawing becomes a request that the manager decides.",
                     "phase": null
                 },
                 {
@@ -1307,7 +1307,7 @@
                     "mandatory": true,
                     "requirement": "After centre acceptance: manager then supervisor approval + reason form with attachments",
                     "status": "available",
-                    "evidence": "After the manager approved, withdrawing is a request the direct manager decides.",
+                    "evidence": "After the centre accepted the seat, the request goes to the manager and then the program supervisor, with a reason form, optional attachments and rejection notes.",
                     "phase": null
                 },
                 {
@@ -1315,7 +1315,7 @@
                     "mandatory": false,
                     "requirement": "Record timing: during window / before start / after start",
                     "status": "available",
-                    "evidence": "For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes.",
+                    "evidence": "The timing of every withdrawal is recorded (during the registration window / before the start / after the start) and late withdrawals are flagged.",
                     "phase": null
                 },
                 {
@@ -1323,7 +1323,7 @@
                     "mandatory": false,
                     "requirement": "Free withdrawal while not yet approved",
                     "status": "available",
-                    "evidence": "Trainee can cancel.",
+                    "evidence": "A trainee withdraws freely before the manager approved while registration is open; the seat is released and the waiting list promoted.",
                     "phase": null
                 },
                 {
@@ -1331,7 +1331,7 @@
                     "mandatory": true,
                     "requirement": "Withdrawal rules configurable without code",
                     "status": "available",
-                    "evidence": "Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged.",
+                    "evidence": "Withdrawal policy and reasons are settings, no code: minimum days before the start, whether withdrawal after the start is allowed, and which reasons require attachments.",
                     "phase": null
                 }
             ]
@@ -1417,7 +1417,7 @@
                     "mandatory": true,
                     "requirement": "Final, short and diagnostic tests",
                     "status": "available",
-                    "evidence": "14 question types incl. essay, matching, ordering, hotspot, numeric",
+                    "evidence": "Assessment kinds: quiz, final, diagnostic, pre-test, post-test, comprehensive skills test and practice.",
                     "phase": null
                 },
                 {
@@ -1441,7 +1441,7 @@
                     "mandatory": true,
                     "requirement": "Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible",
                     "status": "available",
-                    "evidence": "Question banks with categories, tags, difficulty, versions, import/export",
+                    "evidence": "Essay, matching, ordering, fill in the blanks, categorisation, hotspot, numeric, matrix, dropdown, short answer and H5P items; new kinds plug into the `QuestionType` registry.",
                     "phase": null
                 },
                 {
@@ -1449,7 +1449,7 @@
                     "mandatory": true,
                     "requirement": "Question banks by course / unit / difficulty, reusable, with media",
                     "status": "available",
-                    "evidence": "Random draw by category and difficulty mix; shuffling",
+                    "evidence": "Question banks by course, unit, category and difficulty with tags, versions, media, reuse across assessments and import/export (QTI).",
                     "phase": null
                 },
                 {
@@ -1457,7 +1457,7 @@
                     "mandatory": false,
                     "requirement": "Random selection from a bank",
                     "status": "available",
-                    "evidence": "Server-owned timer, autosave, resume, extra time",
+                    "evidence": "Random draw from a bank by category and difficulty mix, with shuffling of questions and options.",
                     "phase": null
                 },
                 {
@@ -1465,7 +1465,7 @@
                     "mandatory": false,
                     "requirement": "Auto + manual grading, immediate / deferred feedback, question weights",
                     "status": "available",
-                    "evidence": "Static and rotating access codes for in-centre exams",
+                    "evidence": "Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results.",
                     "phase": null
                 },
                 {
@@ -1480,17 +1480,17 @@
                     "id": "EXM-09",
                     "mandatory": false,
                     "requirement": "Access codes and submission timestamps",
-                    "status": "partial",
-                    "evidence": "Integrity events, thresholds, snapshots (browser consent); face check best-effort",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time).",
+                    "phase": null
                 },
                 {
                     "id": "EXM-10",
                     "mandatory": true,
                     "requirement": "Anti-cheating: activity tracking, face recognition",
-                    "status": "available",
-                    "evidence": "Live invigilation: attempts, flags, extend, void",
-                    "phase": null
+                    "status": "partial",
+                    "evidence": "Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people.",
+                    "phase": 6
                 },
                 {
                     "id": "EXM-11",
@@ -2639,153 +2639,153 @@
         {
             "no": 7,
             "requirement": "Bilingual, responsive, all browsers, seamless role switching",
-            "status": "partial",
-            "notes": "Everything except role switching (UX-08)."
+            "status": "available",
+            "notes": "UX-05, UX-06, UX-07, UX-08 — all available."
         },
         {
             "no": 8,
             "requirement": "Role-based dashboards with interactive indicators",
-            "status": "partial",
-            "notes": "Missing for 6 roles (HOM-06)."
+            "status": "available",
+            "notes": "HOM-06 — all available."
         },
         {
             "no": 9,
             "requirement": "Pre/post assessment of trainee level (in-person)",
-            "status": "partial",
-            "notes": "Self-typed scores, no real tests (TYP-04)."
+            "status": "available",
+            "notes": "TYP-04 — all available."
         },
         {
             "no": 10,
             "requirement": "Synchronous training via Microsoft Teams",
-            "status": "partial",
-            "notes": "Links only, no Graph integration (TYP-05)."
+            "status": "available",
+            "notes": "TYP-05 — all available."
         },
         {
             "no": 11,
             "requirement": "Interactive video, access-code exams, anti-distraction, SCORM / H5P",
-            "status": "missing",
-            "notes": "Only the anti-distraction controls exist (TYP-07/11/13/15)."
+            "status": "available",
+            "notes": "TYP-07, TYP-11, TYP-13, TYP-15 — all available."
         },
         {
             "no": 12,
             "requirement": "Blended training",
             "status": "available",
-            "notes": "Mixed session modes + e-course (TYP-18)."
+            "notes": "TYP-18 — all available."
         },
         {
             "no": 13,
             "requirement": "Tool to build career-promotion training paths",
-            "status": "missing",
-            "notes": "CAR-01."
+            "status": "available",
+            "notes": "CAR-01 — all available."
         },
         {
             "no": 14,
             "requirement": "E-form to register users from outside the Ministry",
-            "status": "missing",
-            "notes": "EXT-01..03."
+            "status": "available",
+            "notes": "EXT-01, EXT-02, EXT-03 — all available."
         },
         {
             "no": 15,
             "requirement": "Individual & institutional needs tools + annual plan",
-            "status": "partial",
-            "notes": "Surveys yes, plan no (NDS-01, NDS-07)."
+            "status": "available",
+            "notes": "NDS-01, NDS-02, NDS-03, NDS-04, NDS-07 — all available."
         },
         {
             "no": 16,
             "requirement": "Entities, seats, priority, waiting list, targeting, time-conflict prevention",
-            "status": "partial",
-            "notes": "Waiting list & targeting yes; seats, priority, conflicts no (ENR)."
+            "status": "available",
+            "notes": "ENR-01, ENR-02, ENR-03, ENR-06, ENR-07 — all available."
         },
         {
             "no": 17,
             "requirement": "Self, manager and admin registration",
             "status": "available",
-            "notes": "All three channels + Excel import (REG-01..05)."
+            "notes": "REG-01, REG-03, REG-04, REG-05 — all available."
         },
         {
             "no": 18,
             "requirement": "Direct attendance by trainer + Teams duration-based attendance",
-            "status": "partial",
-            "notes": "Teams part missing (ATT-07)."
+            "status": "available",
+            "notes": "ATT-02, ATT-07 — all available."
         },
         {
             "no": 19,
             "requirement": "Content admin panel: create, edit, share",
             "status": "available",
-            "notes": "Course builder + Kit Studio (CNT-02)."
+            "notes": "CNT-02 — all available."
         },
         {
             "no": 20,
             "requirement": "Pass rules, multiple certificate types, QR / number verification",
-            "status": "partial",
-            "notes": "Weights and certificate types missing (PAS-01, PAS-10)."
+            "status": "available",
+            "notes": "PAS-01, PAS-10, PAS-14 — all available."
         },
         {
             "no": 21,
             "requirement": "Room occupancy calendar (week / month)",
             "status": "available",
-            "notes": "ROM-08."
+            "notes": "ROM-08 — all available."
         },
         {
             "no": 22,
             "requirement": "Flexible withdrawal rules",
-            "status": "missing",
-            "notes": "WDR-01..05."
+            "status": "available",
+            "notes": "WDR-01, WDR-02, WDR-03, WDR-04, WDR-05 — all available."
         },
         {
             "no": 23,
             "requirement": "Survey types, per-option analytics, Excel / PDF / Word export",
-            "status": "partial",
-            "notes": "CSV export only (SRV-08)."
+            "status": "available",
+            "notes": "SRV-01, SRV-02, SRV-03, SRV-04, SRV-05, SRV-06, SRV-07, SRV-08 — all available."
         },
         {
             "no": 24,
             "requirement": "Kit archiving with versions linked to courses",
             "status": "available",
-            "notes": "KIT-01."
+            "notes": "KIT-01 — all available."
         },
         {
             "no": 25,
             "requirement": "Professional learning communities",
-            "status": "missing",
-            "notes": "PLC-01..05."
+            "status": "partial",
+            "notes": "Open: PLC-03 (partial); PLC-01, PLC-02, PLC-04, PLC-05 available."
         },
         {
             "no": 26,
             "requirement": "Impact measurement with trainee & manager forms, pre/post comparison",
-            "status": "partial",
-            "notes": "Forms partial, comparison missing (EVL)."
+            "status": "available",
+            "notes": "EVL-01, EVL-02, EVL-06 — all available."
         },
         {
             "no": 27,
             "requirement": "Exam variety, categorised banks, anti-cheating",
             "status": "partial",
-            "notes": "Banks and anti-cheating missing (EXM)."
+            "notes": "Open: EXM-10 (partial); EXM-01, EXM-03, EXM-04, EXM-05 available."
         },
         {
             "no": 28,
             "requirement": "Integrated notifications + multimedia scheduled announcements",
             "status": "partial",
-            "notes": "Scheduling, Hudhud, audio missing (NTF)."
+            "notes": "Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available."
         },
         {
             "no": 29,
             "requirement": "Comprehensive PD records outside the Ministry",
-            "status": "missing",
-            "notes": "CPD-01..06."
+            "status": "available",
+            "notes": "CPD-01, CPD-02, CPD-03, CPD-04, CPD-05, CPD-06 — all available."
         },
         {
             "no": 30,
             "requirement": "Permissions at Ministry / school-group / school level",
-            "status": "partial",
-            "notes": "No school-group scope (RBA-13)."
+            "status": "available",
+            "notes": "RBA-13 — all available."
         },
         {
             "no": 31,
             "requirement": "AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant",
             "status": "partial",
-            "notes": "2 of 5 partially present (AI-01..05)."
+            "notes": "Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-07T07:32:48+03:00"
+    "generated_at": "2026-10-10T12:00:29+03:00"
 }

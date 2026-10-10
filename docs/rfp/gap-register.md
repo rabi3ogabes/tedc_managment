@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 223 | 55 | 0 | 55 |
+| 278 | 228 | 50 | 0 | 50 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -15,37 +15,37 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 ### Phase 00 — Foundation & Traceability  (1)
 
 - [x] **DLV-09** — Compliance sheet and RFP traceability matrix  
-  _Now:_ 🔴 Missing — Not prepared.
+  _Now:_ ✅ Available — Settings → RFP Compliance (`pages/admin/RfpCompliance.tsx`, `GET /admin/rfp-status`), `docs/rfp/compliance-sheet.md`, `php artisan tedc:rfp-status`, `RfpStatusTest`.
 
 ### Phase 01 — Roles, Scopes & UX Essentials  (11)
 
 - [ ] **UX-03** — Approved Lusail typeface and readable font sizes  
-  _Now:_ 🟡 Partial — Ships Qatar Sans / El Messiri / Tajawal; Lusail is not bundled or default (Brand Studio can upload fonts).
+  _Now:_ 🟡 Partial — Lusail is first in every font stack and registered automatically from `web/public/fonts/lusail/` when the licensed files are added (see `lib/fonts.ts`, `public/fonts/lusail-README.md`); falls back to Qatar Sans → Tajawal. Body line height ≥ 1.65. **The Ministry must supply the font files** (web, mPDF, app).
 - [x] **UX-04** — Few steps per task, clear navigation, quick search for content & functions  
-  _Now:_ 🟡 Partial — Clear navigation; Ctrl/⌘K switcher exists only inside Settings — no global search across programs, people, content.
+  _Now:_ ✅ Available — Ctrl/⌘ K global search on every page (`components/search/GlobalSearch.tsx`, `GET /search`): programs, people, trainers, kits, certificates, news and functions, permission- and scope-aware, with recent searches; app search screen (`features/search`).
 - [x] **UX-08** ★ — Seamless switching between a user’s roles (trainer / trainee / manager)  
-  _Now:_ 🔴 Missing — Users can hold several roles but there is no role switcher; permissions are merged.
-- [ ] **RBA-03** — PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops  
-  _Now:_ 🔴 Missing — No dedicated role; School Admin covers nomination only.
+  _Now:_ ✅ Available — Role switcher in the account menu (web) and on the profile screen (app): `POST /auth/active-role`, `X-Active-Role` header, only the active role's permissions and scope count (`ActiveRole`, `ResolveActiveRole`); remembered per device; `ActiveRoleTest`.
+- [x] **RBA-03** — PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops  
+  _Now:_ ✅ Available — Role `academic_deputy` at school / school-group / department scope: approves PD records (`pd.approve` on `/admin/pd-activities`), approves staff registrations as direct manager, nominates, and runs internal workshops (`workshops.internal`).
 - [x] **RBA-04** — Head of Training Department  
-  _Now:_ 🔴 Missing — Not modelled (assign supervisors, grant attendance rights, approve kits).
+  _Now:_ ✅ Available — Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `RolesManagementTest`, `ProgramGrantsTest`.
 - [x] **RBA-05** — Training Supervisor  
-  _Now:_ 🟡 Partial — Program Coordinator covers most duties; per-program grants (attendance, notifications) missing.
-- [ ] **RBA-06** — Centre Leadership & Policy Makers  
-  _Now:_ 🟡 Partial — Executive role + dashboard; trainer-assignment approval and satisfaction alerts missing.
-- [ ] **RBA-10** — Head of Planning and Planning Specialist  
-  _Now:_ 🔴 Missing — Not modelled (needs tools, plan approval, evaluation forms).
-- [ ] **RBA-11** — Logistics Support Officer  
-  _Now:_ 🔴 Missing — Not modelled (room data, non-training bookings, logistics requests).
+  _Now:_ ✅ Available — Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, `ProgramGrantService`).
+- [x] **RBA-06** — Centre Leadership & Policy Makers  
+  _Now:_ ✅ Available — Role `center_leadership`: leadership dashboards, plan approval (`plans.approve`), trainer-assignment approval (`trainers.approve` on `/admin/group-trainers/{id}/decision`) and low-satisfaction alerts (default alert recipients).
+- [x] **RBA-10** — Head of Planning and Planning Specialist  
+  _Now:_ ✅ Available — Roles `planning_head` and `planning_specialist`: needs cycles and proposals, competency framework and gaps, annual plan (head approves), instrument approval (`instruments.approve`), evaluation forms, interviews and evaluation reports (specialist prepares, head approves).
+- [x] **RBA-11** — Logistics Support Officer  
+  _Now:_ ✅ Available — Role `logistics_officer`: room data (`rooms.manage`), non-training room bookings (`rooms.book`) and the logistics-request queue (`logistics.manage`).
 - [x] **RBA-12** — Create new roles and permissions when needed  
-  _Now:_ 🟡 Partial — Existing role permissions are editable; new roles cannot be created from the UI.
+  _Now:_ ✅ Available — Settings → Roles & permissions: create a role from scratch or clone one, edit its scopes and landing page, permission matrix with diff preview, delete when unused (`RoleAdminController`, audited).
 - [x] **RBA-13** ★ — Permission scope: Ministry / school group / single school  
-  _Now:_ 🟡 Partial — School-level scoping only; no school-group (cluster) or department scope.
+  _Now:_ ✅ Available — Roles are granted at Ministry / school group / school / department scope with an optional end date (`role_user` scope columns, `AccessScope`); school groups managed in Settings → School groups (CSV import); every list, dashboard and search is scoped (`AccessScopeTest`).
 
 ### Phase 02 — Training Structure & Annual Plan  (11)
 
 - [x] **TYP-20** — School internal workshops approved by the centre: create, register, attendance, results, certificates  
-  _Now:_ 🟡 Partial — Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09.
+  _Now:_ ✅ Available — Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop; results and certificates go through the centre's passing and certificate engine, and the hours count as internal PD hours.
 - [x] **STR-02** — Main program → optional sub-programs  
   _Now:_ ✅ Available — Main program → sub-program (one level, enforced) with roll-ups: `POST /admin/programs/{id}/sub-programs`, `GET .../tree`; program page → Structure tab.
 - [x] **STR-03** — Training groups (cohorts) under a program with own dates, trainers, seats  
@@ -54,7 +54,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Trainer proposal per group → trainer fills the assignment form (web + app) → leadership approves with the competent authority reference (`TrainerAssignmentService`); kit developers assigned with a due date (`POST /admin/programs/{id}/kit-developers`).
 - [x] **NDS-07** ★ — Generate the annual plan (program, audience, priority) with review and approval  
   _Now:_ ✅ Available — Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`).
-- [x] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
+- [ ] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
   _Now:_ 🟡 Partial — Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced.
 - [x] **NDS-09** — Program objectives, axes, units, competencies and summary  
   _Now:_ ✅ Available — Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills.
@@ -89,9 +89,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 - [x] **EXT-01** ★ — Public e-form for non-Ministry users, shareable by link  
   _Now:_ ✅ Available — Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link.
 - [x] **EXT-02** ★ — Approval workflow: notify admin, review, approve / reject with reason, email result  
-  _Now:_ ✅ Available — Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked.
+  _Now:_ ✅ Available — Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants are told by e-mail at every step and each submission keeps a number and an immutable PDF snapshot.
 - [x] **EXT-03** — Configurable form fields, target categories and extra conditions  
-  _Now:_ ✅ Available — Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record.
+  _Now:_ ✅ Available — Form designer per audience (`/admin/registration-forms`: trainee, trainer, other): fields of 10 types with Arabic/English labels and options, required flags, allowed e-mail domains, opening and closing dates and a shareable link.
 - [x] **ENR-01** ★ — Beneficiary entities per program and seat allocation per entity  
   _Now:_ ✅ Available — Seats per group split across schools, school groups, departments and job groups with an open pool (`group_seat_allocations`, `SeatAllocationService`); the total never exceeds capacity, full entities fall back to the open pool then the waiting list, and unused seats are released hourly (`tedc:seats-release`). Program page → Admission tab.
 - [x] **ENR-02** ★ — Configurable registration-priority rules  
@@ -109,19 +109,19 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 - [x] **REG-07** — No approval before the registration period closes  
   _Now:_ ✅ Available — Centre approval of self-registrations is blocked until the registration window closes (`approve_after_window`), with a clear message and an audited override reason.
 - [x] **WDR-01** ★ — After manager approval, withdrawal needs the manager’s approval  
-  _Now:_ ✅ Available — A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted).
+  _Now:_ ✅ Available — After the direct manager approved a registration, withdrawing becomes a request that the manager decides.
 - [x] **WDR-02** ★ — After centre acceptance: manager then supervisor approval + reason form with attachments  
-  _Now:_ ✅ Available — After the manager approved, withdrawing is a request the direct manager decides.
+  _Now:_ ✅ Available — After the centre accepted the seat, the request goes to the manager and then the program supervisor, with a reason form, optional attachments and rejection notes.
 - [x] **WDR-03** — Record timing: during window / before start / after start  
-  _Now:_ ✅ Available — For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes.
+  _Now:_ ✅ Available — The timing of every withdrawal is recorded (during the registration window / before the start / after the start) and late withdrawals are flagged.
 - [x] **WDR-05** ★ — Withdrawal rules configurable without code  
-  _Now:_ ✅ Available — Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged.
+  _Now:_ ✅ Available — Withdrawal policy and reasons are settings, no code: minimum days before the start, whether withdrawal after the start is allowed, and which reasons require attachments.
 
 ### Phase 05 — Attendance, Rooms & Logistics  (10)
 
 - [x] **ATT-03** — Electronic signature on a tablet  
   _Now:_ ✅ Available — Tablet kiosk (`/kiosk/sessions/{id}`): large touch targets, the trainee finds their name and signs on screen to check in or out; signatures are stored privately with the record, the kiosk opening is audited, and manual entry by non-centre staff can be limited to the first N minutes.
-- [x] **ATT-05** — Fingerprint attendance-system integration (trainees and trainers)  
+- [ ] **ATT-05** — Fingerprint attendance-system integration (trainees and trainers)  
   _Now:_ 🟡 Partial — Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access.
 - [x] **ATT-06** — Trainer attendance and staff scanning of trainee / trainer QR  
   _Now:_ ✅ Available — Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report.
@@ -143,35 +143,35 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 ### Phase 06 — Assessment Engine & Interactive Learning  (16)
 
 - [x] **TYP-04** ★ — Pre- and post-program assessment of the trainee’s level  
-  _Now:_ ✅ Available — Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md
+  _Now:_ ✅ Available — Pre- and post-tests built from the question bank (assessment kinds `pre_test` / `post_test`); knowledge gain per trainee, group and skill against the 35 % target (`KnowledgeService`).
 - [x] **TYP-07** ★ — Interactive video: in-video questions / comments, pop-up control, progress gating  
   _Now:_ ✅ Available — Interactive video interactions with blocking and anti-distraction rules
 - [x] **TYP-08** — Chapter quizzes from a random bank, auto-graded, gate the next chapter  
   _Now:_ ✅ Available — Assessment builder: sections, random draw, difficulty mix, timer, attempts
 - [x] **TYP-09** — Final exams with retry rules and re-study after failure  
-  _Now:_ ✅ Available — Diagnostic and comprehensive skills tests; results feed employee skills
+  _Now:_ ✅ Available — Final exams with attempt limits, a cooldown between attempts and a re-study rule: after a failed attempt the linked lessons must be studied again before the next try (`restudy_on_fail`, `cooldown_hours`).
 - [x] **TYP-11** ★ — Exams taken remotely or in-centre via a secret access code  
-  _Now:_ ✅ Available — Pre/post tests with knowledge gain against the 35% target
+  _Now:_ ✅ Available — Static and rotating secret access codes for exams taken remotely or in the centre (`POST /admin/assessments/{id}/access-codes`); the code is checked when the attempt starts.
 - [x] **TYP-13** ★ — Anti-distraction: prevent pause, seek or minimise during video  
-  _Now:_ ✅ Available — Lesson quizzes migrated to the bank; lesson gating by assessment
+  _Now:_ ✅ Available — Seek lock, maximum speed, minimum watched share, automatic pause and no credited time while the page is hidden, a full-screen requirement (no time counts outside full screen) and a pause limit counted on the server (`lock_pause`, survives reloads); the app enforces the pause limit — full screen is a web-player rule.
 - [x] **PAS-02** — Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop  
-  _Now:_ ✅ Available — Pass mark, attempts, cooldown, restudy rule per assessment
+  _Now:_ ✅ Available — Test builder with 14 question types: single choice, multiple select, true/false, dropdown, matrix, image hotspot, ordering, matching, drag-and-drop categorisation, fill in the blanks, numeric, short answer, essay and H5P, all with media.
 - [x] **PAS-06** — Objective questions auto-graded; essays graded manually  
   _Now:_ ✅ Available — Manual grading queue, regrade with replacement, release of results
 - [x] **EXM-01** ★ — Final, short and diagnostic tests  
-  _Now:_ ✅ Available — 14 question types incl. essay, matching, ordering, hotspot, numeric
+  _Now:_ ✅ Available — Assessment kinds: quiz, final, diagnostic, pre-test, post-test, comprehensive skills test and practice.
 - [x] **EXM-04** ★ — Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible  
-  _Now:_ ✅ Available — Question banks with categories, tags, difficulty, versions, import/export
+  _Now:_ ✅ Available — Essay, matching, ordering, fill in the blanks, categorisation, hotspot, numeric, matrix, dropdown, short answer and H5P items; new kinds plug into the `QuestionType` registry.
 - [x] **EXM-05** ★ — Question banks by course / unit / difficulty, reusable, with media  
-  _Now:_ ✅ Available — Random draw by category and difficulty mix; shuffling
+  _Now:_ ✅ Available — Question banks by course, unit, category and difficulty with tags, versions, media, reuse across assessments and import/export (QTI).
 - [x] **EXM-06** — Random selection from a bank  
-  _Now:_ ✅ Available — Server-owned timer, autosave, resume, extra time
+  _Now:_ ✅ Available — Random draw from a bank by category and difficulty mix, with shuffling of questions and options.
 - [x] **EXM-07** — Auto + manual grading, immediate / deferred feedback, question weights  
-  _Now:_ ✅ Available — Static and rotating access codes for in-centre exams
+  _Now:_ ✅ Available — Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results.
 - [x] **EXM-09** — Access codes and submission timestamps  
-  _Now:_ 🟡 Partial — Integrity events, thresholds, snapshots (browser consent); face check best-effort
-- [x] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
-  _Now:_ ✅ Available — Live invigilation: attempts, flags, extend, void
+  _Now:_ ✅ Available — Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time).
+- [ ] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
+  _Now:_ 🟡 Partial — Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people.
 - [x] **EXM-11** — Result analytics per trainee, group and program  
   _Now:_ ✅ Available — Item analysis, difficulty and discrimination, distractors, by group
 
@@ -242,9 +242,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 10 — Content Standards, Library & Offline  (15)
 
-- [x] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
+- [ ] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
   _Now:_ 🟡 Partial — Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built
-- [x] **TYP-14** — Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs  
+- [ ] **TYP-14** — Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs  
   _Now:_ 🟡 Partial — External provider courses become programs with completion sync; needs real provider access
 - [x] **TYP-15** ★ — SCORM and H5P support with tracking and reuse  
   _Now:_ ✅ Available — SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried)
@@ -256,7 +256,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Lesson versions: publish, keep/move learners, diff, restore, archive (quiz questions not pinned)
 - [x] **CNT-04** — Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download  
   _Now:_ ✅ Available — Digital library with rights, audience rules, Arabic search, reader, shelves, ratings
-- [x] **CNT-05** — External libraries: Maktabati and Qatar National Library  
+- [ ] **CNT-05** — External libraries: Maktabati and Qatar National Library  
   _Now:_ 🟡 Partial — External library search (deep link / JSON API) and import; real Maktabati/QNL endpoints to be configured
 - [x] **KIT-03** — Supervisor approval, then assignment to one or more programs  
   _Now:_ ✅ Available — Kits assigned to several programs with pinned version
@@ -264,13 +264,13 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Job groups as sharing targets
 - [x] **KIT-06** — Sharing-permission settings that protect IP  
   _Now:_ ✅ Available — Per-role sharing policies, view-only protection, audited shares
-- [x] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
+- [ ] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
   _Now:_ 🟡 Partial — LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built
 - [x] **TEC-09** ★ — xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5  
   _Now:_ ✅ Available — xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run)
 - [x] **TEC-11** ★ — Common Cartridge import (full or selected parts)  
   _Now:_ ✅ Available — Common Cartridge 1.1-1.3 / thin CC preview and selective import
-- [x] **TEC-13** ★ — Trusted content-provider integration  
+- [ ] **TEC-13** ★ — Trusted content-provider integration  
   _Now:_ 🟡 Partial — Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials
 
 ### Phase 11 — Notifications, Announcements & CMS  (12)
@@ -283,13 +283,13 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Block-based homepage and About editor (hero, statistics, programs, news, events, rich text, call to action, logos, FAQ, video, safe HTML) with visibility windows, audience, live desktop/phone preview in both languages, versioned publish and restore; the built-in design stays until the first publish (Phase 11).
 - [x] **HOM-05** — Dynamic public statistics (users, courses, centre-defined figures)  
   _Now:_ ✅ Available — Public statistics from built-in sources (users, programs, groups held, certificates, hours, schools) or values and named indicators the centre defines; cached and refreshed every ten minutes (Phase 11).
-- [x] **NTF-03** ★ — SMS through the Hudhud system  
+- [ ] **NTF-03** ★ — SMS through the Hudhud system  
   _Now:_ 🟡 Partial — Hudhud driver with Arabic UCS-2 encoding, signed delivery-receipt webhook, test button, per-event SMS switches (Phase 11). The request/receipt shape follows a configurable assumption (base URL, path, key or user, receipt secret) and must be matched to the Ministry's Hudhud interface document before go-live.
 - [x] **NTF-05** ★ — Target by user type, job title, program, school  
   _Now:_ ✅ Available — Audience builder: roles, job titles, schools, school groups, program participants (by registration status), trainers, supervisors, named people; live count and sample; senders only reach their own scope (Phase 11).
 - [x] **NTF-06** — Scheduled notifications and allowed send times / days  
   _Now:_ ✅ Available — One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11).
-- [x] **NTF-09** — Sound or visual alert on a new notification  
+- [ ] **NTF-09** — Sound or visual alert on a new notification  
   _Now:_ 🟡 Partial — Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11).
 - [x] **NTF-10** — Enable / disable types per user category; rules per program  
   _Now:_ ✅ Available — Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11).
@@ -310,7 +310,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12).
 - [x] **RPT-02** — Export reports to Excel, PDF and Word  
   _Now:_ ✅ Available — Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12).
-- [x] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
+- [ ] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
   _Now:_ 🟡 Partial — Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).
 - [x] **RPT-04** — Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)  
   _Now:_ ✅ Available — Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12).
@@ -331,15 +331,15 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 - [x] **TYP-05** ★ — Synchronous remote training via Microsoft Teams  
   _Now:_ ✅ Available — Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13).
-- [x] **CAR-05** — HR integration for experience, grades and appraisals  
+- [ ] **CAR-05** — HR integration for experience, grades and appraisals  
   _Now:_ 🟡 Partial — HR / Mawared full and delta sync with conflict policy, leaver deactivation and signed inbound changes. Routing profile change requests to HR is not built; needs the HR interface specification (Phase 13).
 - [x] **ATT-07** ★ — Teams attendance % from total participation time  
   _Now:_ ✅ Available — Attendance computed from time in the Teams call (intervals, leave and re-join, minimum presence, late), feeding the attendance percentage and absence rules; trainer marks are kept (Phase 13).
 - [x] **UTR-04** — In-portal issue-reporting page linked to Saaed  
   _Now:_ ✅ Available — Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13).
-- [x] **NFR-07** ★ — Single sign-on and IAM integration  
+- [ ] **NFR-07** ★ — Single sign-on and IAM integration  
   _Now:_ 🟡 Partial — OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13).
-- [x] **NFR-08** ★ — Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP  
+- [ ] **NFR-08** ★ — Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP  
   _Now:_ 🟡 Partial — LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13).
 - [x] **NFR-09** ★ — Configurable password policy and account lockout  
   _Now:_ ✅ Available — Configurable password policy (length, classes, history, expiry, breach check) and lockout with administrator unlock, audited, applied to activation and password change (Phase 13).
@@ -347,9 +347,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13).
 - [x] **TEC-06** ★ — Real-time message-based sync between systems  
   _Now:_ ✅ Available — Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13).
-- [x] **TEC-07** ★ — Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website  
+- [ ] **TEC-07** ★ — Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website  
   _Now:_ 🟡 Partial — Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13).
-- [x] **TEC-12** ★ — Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming  
+- [ ] **TEC-12** ★ — Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming  
   _Now:_ 🟡 Partial — Meetings, attendance by duration, Team per group with membership sync, channel files and Forms results import (CSV export). Live events are link-only and Teams activity-feed notifications are not wired (Phase 13).
 - [x] **DLV-08** — Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer)  
   _Now:_ ✅ Available — Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13).
@@ -362,7 +362,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14.
 - [x] **PLC-02** ★ — Member roles (manager, moderator, member) with permissions  
   _Now:_ ✅ Available — Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14.
-- [x] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
+- [ ] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
   _Now:_ 🟡 Partial — Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14.
 - [x] **PLC-04** ★ — Meetings and events scheduling with automatic notifications  
   _Now:_ ✅ Available — Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14.
@@ -370,11 +370,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14.
 - [x] **COL-01** — Discussion forums per program and per group  
   _Now:_ ✅ Available — Forums per programme and per group, membership following registrations; trainers moderate. Phase 14.
-- [x] **COL-02** — Comments and notes on lessons and materials  
+- [ ] **COL-02** — Comments and notes on lessons and materials  
   _Now:_ 🟡 Partial — Private notes and a discussion thread on every lesson; not on individual materials. Phase 14.
-- [x] **COL-03** — Content rating and reviews by trainees and trainers  
+- [ ] **COL-03** — Content rating and reviews by trainees and trainers  
   _Now:_ 🟡 Partial — 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14.
-- [x] **COL-04** — File sharing inside discussions  
+- [ ] **COL-04** — File sharing inside discussions  
   _Now:_ 🟡 Partial — Attachments can be referenced in posts and comments; no upload widget yet. Phase 14.
 - [x] **COL-05** — Private trainers’ knowledge channel  
   _Now:_ ✅ Available — Private trainers' channel for active trainers, moderated by the training team. Phase 14.
@@ -393,24 +393,24 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 15 — AI Completion  (6)
 
-- [x] **RPT-11** — Predictive analytics and reports  
+- [ ] **RPT-11** — Predictive analytics and reports  
   _Now:_ 🟡 Partial — Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.
 - [x] **AI-01** ★ — Behavioural analytics and personalised recommendations  
   _Now:_ ✅ Available — Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.
 - [x] **AI-02** ★ — Smart assessment with instant feedback from answer analysis  
   _Now:_ ✅ Available — Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15.
-- [x] **AI-03** ★ — Adaptive content that adjusts to each learner  
+- [ ] **AI-03** ★ — Adaptive content that adjusts to each learner  
   _Now:_ 🟡 Partial — Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.
 - [x] **AI-04** ★ — Predictive reports on future PD needs  
   _Now:_ ✅ Available — Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15.
-- [x] **AI-05** ★ — ML assistant that answers trainees’ questions  
+- [ ] **AI-05** ★ — ML assistant that answers trainees’ questions  
   _Now:_ 🟡 Partial — Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.
 
 ### Phase 16 — Course Purchasing & Payments  (4)
 
 - [x] **PAY-01** — Browse catalogue, add courses to a cart, check out  
   _Now:_ ✅ Available — Catalogue prices, cart with seat holds, discount codes, VAT, checkout, invoices, receipts, orders and refund requests (web and app). Phase 16.
-- [x] **PAY-02** — Pay through the Ministry e-payment gateway  
+- [ ] **PAY-02** — Pay through the Ministry e-payment gateway  
   _Now:_ 🟡 Partial — Hosted-page redirect with signed server-to-server callback (idempotent), refunds, reconciliation, training gateway; the Ministry gateway's real specification is assumed and has been tested against a mock only. Phase 16.
 - [x] **PAY-03** — Entities buy course bundles for their staff  
   _Now:_ ✅ Available — Entity accounts buy seats, receive vouchers, assign them by employee number or e-mail, staff redeem them (eligibility checked); expiry, reminders, usage dashboard. Phase 16.
@@ -419,13 +419,13 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 17 — Azure Qatar, Security & Compliance  (19)
 
-- [x] **NFR-01** ★ — Secure, scalable, resilient multi-layer HA design (99.9 % SLA)  
+- [ ] **NFR-01** ★ — Secure, scalable, resilient multi-layer HA design (99.9 % SLA)  
   _Now:_ 🟡 Partial — HA design and zone-redundant IaC (gateway, Container Apps, PostgreSQL HA, Redis), probes and blue-green release script; nothing deployed or failover-tested yet. Phase 17.
-- [x] **NFR-02** ★ — Hosting on Azure Qatar (data residency, Law 13/2016)  
+- [ ] **NFR-02** ★ — Hosting on Azure Qatar (data residency, Law 13/2016)  
   _Now:_ 🟡 Partial — Bicep for Azure Qatar Central with a location policy, Azure Blob driver (Azurite-tested), health probes, Azure OpenAI support; not deployed — needs the Ministry's subscription. Phase 17.
-- [x] **NFR-03** ★ — Production, staging (prod-identical) and development environments  
+- [ ] **NFR-03** ★ — Production, staging (prod-identical) and development environments  
   _Now:_ 🟡 Partial — dev / staging / prod parameter files with identical topology and separate vaults and databases; not provisioned. Phase 17.
-- [x] **NFR-04** ★ — HLD / LLD, bill of materials, sizing and bandwidth design  
+- [ ] **NFR-04** ★ — HLD / LLD, bill of materials, sizing and bandwidth design  
   _Now:_ 🟡 Partial — HLD, LLD, BOM and sizing, environment matrix written (English with Arabic summaries); full Arabic translation and priced BOM outstanding. Phase 17.
 - [x] **NFR-05** ★ — Encryption at rest and in transit; joint data classification  
   _Now:_ ✅ Available — Data classification of every column with generated register and a drift test; application-level encryption for national IDs and secrets; TLS/HSTS; Key Vault in IaC. Phase 17.
@@ -433,54 +433,54 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Audit and security events queued and forwarded to Splunk HEC or Microsoft Sentinel, JSON logs with request ids; the Ministry's SIEM endpoint is needed to go live. Phase 17.
 - [x] **NFR-14** ★ — No production data in dev / test / training; masking  
   _Now:_ ✅ Available — tedc:anonymise-export with approver, reason and audit; synthetic seed for lower environments; policy and docs forbid copying production data. Phase 17.
-- [x] **NFR-15** ★ — VAPT, accredited code review, threat model, risk assessment, security docs  
+- [ ] **NFR-15** ★ — VAPT, accredited code review, threat model, risk assessment, security docs  
   _Now:_ 🟡 Partial — VAPT readiness checklist, scope document, remediation tracker, threat model and clearance pack contents; the accredited test itself has not been done. Phase 17.
-- [x] **NFR-16** ★ — Secure SDLC: secure coding, threat modelling, code analysis  
+- [ ] **NFR-16** ★ — Secure SDLC: secure coding, threat modelling, code analysis  
   _Now:_ 🟡 Partial — SSDLC document and pipeline (gitleaks, audits, OSV, Semgrep, Trivy, ZAP baseline template, Dependabot); scans not yet run to a clean result and Larastan max level not reached. Phase 17.
-- [x] **NFR-17** ★ — API security: encryption, validation, auth, API gateway  
+- [ ] **NFR-17** ★ — API security: encryption, validation, auth, API gateway  
   _Now:_ 🟡 Partial — Throttles, WAF policy with a login rate rule and partner-API gateway (APIM) in the IaC; API definitions and quotas for partners not configured. Phase 17.
-- [x] **NFR-18** ★ — Patch and vulnerability management incl. third-party libraries  
+- [ ] **NFR-18** ★ — Patch and vulnerability management incl. third-party libraries  
   _Now:_ 🟡 Partial — Patching SLAs, weekly image rebuild and Dependabot defined; no operating history yet. Phase 17.
-- [x] **NFR-19** ★ — Enterprise backup and recovery in-country (RPO / RTO)  
+- [ ] **NFR-19** ★ — Enterprise backup and recovery in-country (RPO / RTO)  
   _Now:_ 🟡 Partial — PITR 35 d, 7-year monthly vault, blob soft delete/versioning in IaC, DR runbook and monthly restore-test workflow; no restore has been executed. Phase 17.
-- [x] **NFR-20** ★ — Monitoring with real-time alerts  
+- [ ] **NFR-20** ★ — Monitoring with real-time alerts  
   _Now:_ 🟡 Partial — Probes, action group and alerts (availability, 5xx, p95, queue lag, DB CPU/storage) in IaC; not deployed. Phase 17.
 - [x] **NFR-21** ★ — Third-party risk management  
   _Now:_ ✅ Available — Third-party register with purpose, data, residency, contract status, risk, mitigation and kill-switch for each service. Phase 17.
-- [x] **TEC-01** ★ — Stable 24/7  
+- [ ] **TEC-01** ★ — Stable 24/7  
   _Now:_ 🟡 Partial — Designed for 24/7 (zones, probes, autoscale, rollbacks); not proven in operation. Phase 17.
-- [x] **TEC-02** ★ — 10,000 concurrent users; response time < 1.5 s  
+- [ ] **TEC-02** ★ — 10,000 concurrent users; response time < 1.5 s  
   _Now:_ 🟡 Partial — k6 scenarios to 10,000 users with p95 < 1.5 s thresholds and a sizing model; the test has NOT been run, so no result is claimed. Phase 17.
-- [x] **TEC-03** ★ — 20–30 % yearly user growth without performance loss  
+- [ ] **TEC-03** ★ — 20–30 % yearly user growth without performance loss  
   _Now:_ 🟡 Partial — Capacity and cost-growth model for +20–30 % a year with autoscale limits; to be re-run on measured data. Phase 17.
-- [x] **TEC-05** ★ — Disaster recovery and business continuity with automation  
+- [ ] **TEC-05** ★ — Disaster recovery and business continuity with automation  
   _Now:_ 🟡 Partial — DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17.
-- [x] **TEC-16** ★ — Automatic patching without user impact  
+- [ ] **TEC-16** ★ — Automatic patching without user impact  
   _Now:_ 🟡 Partial — Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17.
 
 ### Phase 18 — Adoption, Help Centre & Deliverables  (11)
 
-- [x] **UTR-01** — Role-tailored manuals with screenshots, videos and a downloadable PDF  
+- [ ] **UTR-01** — Role-tailored manuals with screenshots, videos and a downloadable PDF  
   _Now:_ 🟡 Partial — Help centre with 28 bilingual articles for 17 roles, contextual «?» panel by page, versioned editor with screenshot/video upload, role manuals as branded PDF (Arabic or English) built from current versions, guided tours, mobile help (`pages/HelpCentre.tsx`, `components/help/*`, `HelpService`, `HelpCentreTest`). **Not done:** real annotated screenshots and screen-recording videos have not been captured; someone must produce them with the centre (see `docs/rfp/phase-18-adoption-help-deliverables.md`).
 - [x] **UTR-02** — Staff training and Train-the-Trainer plan  
   _Now:_ ✅ Available — Staff training and Train-the-Trainer plan (`docs/deliverables/05-training-adoption-plan.md`): audiences, schedule, materials, assessments, adoption KPIs, change and communication plan, risks. The sessions themselves are delivered as a service with the centre.
-- [x] **UTR-03** — Support channels (phone, email, Saaed)  
+- [ ] **UTR-03** — Support channels (phone, email, Saaed)  
   _Now:_ 🟡 Partial — Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. **The centre must supply the phone, email and Saaed link** (`TEDC_SUPPORT_PHONE`, `TEDC_SUPPORT_EMAIL`, `TEDC_SUPPORT_SAAED_URL`); until then the page says «Set by the centre».
-- [x] **EKT-01** — Two interactive e-learning kits produced with the centre for phase 1  
+- [ ] **EKT-01** — Two interactive e-learning kits produced with the centre for phase 1  
   _Now:_ 🟡 Partial — Two interactive kits in `backend/resources/ekits/kits.json` (portal use; effective classroom questioning) with trainer/trainee guides and session plan; `tedc:ekits-build` publishes them as e-courses (chapter reading + knowledge checks, final assessment drawn from a question bank, certificate) and exports SCORM 2004 packages in Arabic and English (`EKitsTest`: published and completed end to end as a trainee; manifest parsed). **Not done:** the topics are proposals to agree with the centre; content is a compact first version; no H5P interactions, interactive video, drag-and-drop, captions or xAPI; the package was not run in a real LMS.
-- [x] **DLV-01** — As-Is and To-Be process analysis documents  
+- [ ] **DLV-01** — As-Is and To-Be process analysis documents  
   _Now:_ 🟡 Partial — As-Is / To-Be document drafted in Arabic with an English copy (`docs/deliverables/01-as-is-to-be.md`): every automated workflow described. **As-Is items are marked ⚑ and need confirming in workshops with the centre.**
-- [x] **DLV-02** — Needs assessment, scope document, project plan, BRD  
+- [ ] **DLV-02** — Needs assessment, scope document, project plan, BRD  
   _Now:_ 🟡 Partial — Needs assessment, scope and project plan drafted (`02-needs-scope-plan.md`); BRD generated from the register by `php artisan tedc:deliverables` (`brd.generated.md`: a section per module, acceptance criteria, open items). The needs assessment must be validated with the centre's data.
-- [x] **DLV-03** — UX design and system architecture  
+- [ ] **DLV-03** — UX design and system architecture  
   _Now:_ 🟡 Partial — UX design and architecture document (`03-ux-and-architecture.md`) linking the Phase 17 HLD/LLD and security docs. It contains no screenshots yet.
-- [x] **DLV-04** — Alpha, Beta and Final releases  
+- [ ] **DLV-04** — Alpha, Beta and Final releases  
   _Now:_ 🟡 Partial — Alpha / Beta / Final gates, exit criteria and sign-off defined (`04-release-management.md`), `CHANGELOG.md`. **No release has been tagged**: tags are cut at each milestone with the centre.
-- [x] **DLV-05** — User manuals and training & adoption plan  
+- [ ] **DLV-05** — User manuals and training & adoption plan  
   _Now:_ 🟡 Partial — User manuals = help-centre PDFs per role (always current); training and adoption plan with Train-the-Trainer (`05-training-adoption-plan.md`). Training has not been delivered; manuals have no real screenshots yet.
-- [x] **DLV-06** — Test plan, test reports, bug tracker  
+- [ ] **DLV-06** — Test plan, test reports, bug tracker  
   _Now:_ 🟡 Partial — Test plan (`06-test-plan.md`), generated test report and traceability matrix (`test-report.generated.md`, `traceability.generated.md`), UAT script template, bug-tracker conventions aligned to the SLA matrix. **UAT has not been executed, no load test has been run, no independent VAPT yet.**
-- [x] **DLV-07** — Go-live plan, handover report, QA certificate, SLA  
+- [ ] **DLV-07** — Go-live plan, handover report, QA certificate, SLA  
   _Now:_ 🟡 Partial — Go-live plan, handover report outline, QA certificate template and the SLA (P1–P4 response and resolution, penalty formula, escalation) drafted (`07-go-live-handover-sla.md`); they are completed with real dates, names and evidence at go-live.
 
 ## Full register by RFP module
@@ -515,15 +515,15 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | RBA-01 | Trainee | ✅ Available | Employee role + self-service web portal and mobile app. | — |
 | RBA-02 | School Principal | ✅ Available | School Admin role, school-scoped data. | — |
-| RBA-03 | PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops | 🟡 Partial | Role `academic_deputy` (school / group / department scope, permissions `pd.approve`, `workshops.internal`, nominations). PD-record approval (Phase 09) and internal workshops (Phase 02) arrive with those phases. | 1 |
+| RBA-03 | PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops | ✅ Available | Role `academic_deputy` at school / school-group / department scope: approves PD records (`pd.approve` on `/admin/pd-activities`), approves staff registrations as direct manager, nominates, and runs internal workshops (`workshops.internal`). | — |
 | RBA-04 | Head of Training Department | ✅ Available | Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `RolesManagementTest`, `ProgramGrantsTest`. | — |
 | RBA-05 | Training Supervisor | ✅ Available | Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, `ProgramGrantService`). | — |
-| RBA-06 | Centre Leadership & Policy Makers | 🟡 Partial | Role `center_leadership` with leadership dashboards and `trainers.approve`; trainer-assignment approval (Phase 02) and satisfaction alerts (Phase 08) come with those phases. | 1 |
+| RBA-06 | Centre Leadership & Policy Makers | ✅ Available | Role `center_leadership`: leadership dashboards, plan approval (`plans.approve`), trainer-assignment approval (`trainers.approve` on `/admin/group-trainers/{id}/decision`) and low-satisfaction alerts (default alert recipients). | — |
 | RBA-07 | Trainer | ✅ Available | Attendance, materials, task review. | — |
 | RBA-08 | System Administrator | ✅ Available | Super Admin / Centre Admin with full permissions. | — |
 | RBA-09 | Kit Developer and Quality Assurance | ✅ Available | Dedicated roles with the full kit review workflow. | — |
-| RBA-10 | Head of Planning and Planning Specialist | 🟡 Partial | Roles `planning_head` and `planning_specialist` with plan, needs and instrument permissions (`plans.*`, `instruments.approve`); the tools themselves arrive in Phases 02, 03 and 08. | 1 |
-| RBA-11 | Logistics Support Officer | 🟡 Partial | Role `logistics_officer` (rooms, `rooms.book`, `logistics.manage`); non-training bookings and logistics requests arrive in Phase 05. | 1 |
+| RBA-10 | Head of Planning and Planning Specialist | ✅ Available | Roles `planning_head` and `planning_specialist`: needs cycles and proposals, competency framework and gaps, annual plan (head approves), instrument approval (`instruments.approve`), evaluation forms, interviews and evaluation reports (specialist prepares, head approves). | — |
+| RBA-11 | Logistics Support Officer | ✅ Available | Role `logistics_officer`: room data (`rooms.manage`), non-training room bookings (`rooms.book`) and the logistics-request queue (`logistics.manage`). | — |
 | RBA-12 | Create new roles and permissions when needed | ✅ Available | Settings → Roles & permissions: create a role from scratch or clone one, edit its scopes and landing page, permission matrix with diff preview, delete when unused (`RoleAdminController`, audited). | — |
 | RBA-13 ★ | Permission scope: Ministry / school group / single school | ✅ Available | Roles are granted at Ministry / school group / school / department scope with an optional end date (`role_user` scope columns, `AccessScope`); school groups managed in Settings → School groups (CSV import); every list, dashboard and search is scoped (`AccessScopeTest`). | — |
 
@@ -534,23 +534,23 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-01 | In-person: registration, acceptance, attendance | ✅ Available | Full lifecycle with QR attendance. | — |
 | TYP-02 | In-person: training-room allocation | ✅ Available | Room conflict check and best-fit room suggestion. | — |
 | TYP-03 | In-person: pass recording and certificates | ✅ Available | Smart Certificate Engine. | — |
-| TYP-04 ★ | Pre- and post-program assessment of the trainee’s level | ✅ Available | Question bank + assessments with 14 types — docs/rfp/phase-06-assessment.md | — |
+| TYP-04 ★ | Pre- and post-program assessment of the trainee’s level | ✅ Available | Pre- and post-tests built from the question bank (assessment kinds `pre_test` / `post_test`); knowledge gain per trainee, group and skill against the 35 % target (`KnowledgeService`). | — |
 | TYP-05 ★ | Synchronous remote training via Microsoft Teams | ✅ Available | Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13). | — |
 | TYP-06 | E-learning hierarchy: categories, programs, chapters, topics, recorded video | ✅ Available | Category → Program → Module → Lesson (video, slides, quiz, survey, article). | — |
 | TYP-07 ★ | Interactive video: in-video questions / comments, pop-up control, progress gating | ✅ Available | Interactive video interactions with blocking and anti-distraction rules | — |
 | TYP-08 | Chapter quizzes from a random bank, auto-graded, gate the next chapter | ✅ Available | Assessment builder: sections, random draw, difficulty mix, timer, attempts | — |
-| TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Diagnostic and comprehensive skills tests; results feed employee skills | — |
+| TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Final exams with attempt limits, a cooldown between attempts and a re-study rule: after a failed attempt the linked lessons must be studied again before the next try (`restudy_on_fail`, `cooldown_hours`). | — |
 | TYP-10 | Contact the trainer and ask questions from inside the course | ✅ Available | Ask the trainer from any lesson (web and app): routed to the group's trainers with a reply deadline, trainer inbox, answer notifies the learner. Phase 14. | — |
-| TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Pre/post tests with knowledge gain against the 35% target | — |
+| TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Static and rotating secret access codes for exams taken remotely or in the centre (`POST /admin/assessments/{id}/access-codes`); the code is checked when the attempt starts. | — |
 | TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🟡 Partial | Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built | 10 |
-| TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Lesson quizzes migrated to the bank; lesson gating by assessment | — |
+| TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Seek lock, maximum speed, minimum watched share, automatic pause and no credited time while the page is hidden, a full-screen requirement (no time counts outside full screen) and a pause limit counted on the server (`lock_pause`, survives reloads); the app enforces the pause limit — full screen is a web-player rule. | — |
 | TYP-14 | Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs | 🟡 Partial | External provider courses become programs with completion sync; needs real provider access | 10 |
 | TYP-15 ★ | SCORM and H5P support with tracking and reuse | ✅ Available | SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried) | — |
 | TYP-16 | Admin suggests / assigns programs by history, job title or job group | ✅ Available | Recommendation engine, audience builder, centre nomination. | — |
 | TYP-17 | Advertise and register for programs on other platforms (e.g., I-earn) | ✅ Available | Programs on other platforms: launch, evidence upload, centre review, hours counted | — |
 | TYP-18 ★ | Blended programs (in-person + synchronous + self-paced) | ✅ Available | Per-session mode (in-person / online) plus an attached e-course. | — |
 | TYP-19 | Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline | ✅ Available | Knowledge transfer with beneficiaries, hours, evidence, deadline and review | — |
-| TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | 🟡 Partial | Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop. Certificates from a centre-approved internal template and PD hours follow in Phases 07 and 09. | 2 |
+| TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | ✅ Available | Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop; results and certificates go through the centre's passing and certificate engine, and the hours count as internal PD hours. | — |
 
 ### STR · Training Structure — هيكلية التدريب
 
@@ -577,8 +577,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | EXT-01 ★ | Public e-form for non-Ministry users, shareable by link | ✅ Available | Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link. | — |
-| EXT-02 ★ | Approval workflow: notify admin, review, approve / reject with reason, email result | ✅ Available | Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants and duplicates (e-mail, national ID) are checked. | — |
-| EXT-03 | Configurable form fields, target categories and extra conditions | ✅ Available | Applicants are told by e-mail at every step; each submission has a number and an immutable PDF snapshot kept as the official record. | — |
+| EXT-02 ★ | Approval workflow: notify admin, review, approve / reject with reason, email result | ✅ Available | Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants are told by e-mail at every step and each submission keeps a number and an immutable PDF snapshot. | — |
+| EXT-03 | Configurable form fields, target categories and extra conditions | ✅ Available | Form designer per audience (`/admin/registration-forms`: trainee, trainer, other): fields of 10 types with Arabic/English labels and options, required flags, allowed e-mail domains, opening and closing dates and a shareable link. | — |
 
 ### NDS · Needs Assessment & Annual Plan — حصر الاحتياجات وبناء الخطة التدريبية السنوية
 
@@ -658,7 +658,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | PAS-01 ★ | Pass criteria with relative weights (attendance, participation, tasks, tests) | ✅ Available | Weighted/all-required passing policy per group, program or global — docs/rfp/phase-07-passing-rules.md | — |
-| PAS-02 | Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop | ✅ Available | Pass mark, attempts, cooldown, restudy rule per assessment | — |
+| PAS-02 | Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop | ✅ Available | Test builder with 14 question types: single choice, multiple select, true/false, dropdown, matrix, image hotspot, ordering, matching, drag-and-drop categorisation, fill in the blanks, numeric, short answer, essay and H5P, all with media. | — |
 | PAS-03 | Required tasks set per course and submitted electronically | ✅ Available | Tasks with file / text submissions and versions. | — |
 | PAS-04 | Trainer approves, rejects or returns tasks with notes | ✅ Available | Submission review. | — |
 | PAS-05 | Final approval by course supervisor; auto-approval for self-learning | ✅ Available | Trainer-then-supervisor task approval; automatic for self-assessed tasks | — |
@@ -690,11 +690,11 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| WDR-01 ★ | After manager approval, withdrawal needs the manager’s approval | ✅ Available | A trainee withdraws freely before the manager approved while registration is open (seat released, waiting list promoted). | — |
-| WDR-02 ★ | After centre acceptance: manager then supervisor approval + reason form with attachments | ✅ Available | After the manager approved, withdrawing is a request the direct manager decides. | — |
-| WDR-03 | Record timing: during window / before start / after start | ✅ Available | For an approved seat the request goes to the manager and then the program supervisor, with a reason, optional attachments, and rejection notes. | — |
-| WDR-04 | Free withdrawal while not yet approved | ✅ Available | Trainee can cancel. | — |
-| WDR-05 ★ | Withdrawal rules configurable without code | ✅ Available | Withdrawal policy and reasons are settings (minimum days before start, allow after start, reasons that require attachments); timing is recorded (during window / before start / after start) and late withdrawals are flagged. | — |
+| WDR-01 ★ | After manager approval, withdrawal needs the manager’s approval | ✅ Available | After the direct manager approved a registration, withdrawing becomes a request that the manager decides. | — |
+| WDR-02 ★ | After centre acceptance: manager then supervisor approval + reason form with attachments | ✅ Available | After the centre accepted the seat, the request goes to the manager and then the program supervisor, with a reason form, optional attachments and rejection notes. | — |
+| WDR-03 | Record timing: during window / before start / after start | ✅ Available | The timing of every withdrawal is recorded (during the registration window / before the start / after the start) and late withdrawals are flagged. | — |
+| WDR-04 | Free withdrawal while not yet approved | ✅ Available | A trainee withdraws freely before the manager approved while registration is open; the seat is released and the waiting list promoted. | — |
+| WDR-05 ★ | Withdrawal rules configurable without code | ✅ Available | Withdrawal policy and reasons are settings, no code: minimum days before the start, whether withdrawal after the start is allowed, and which reasons require attachments. | — |
 
 ### SRV · Surveys & Questionnaires — إدارة استطلاعات الرأي والاستبيانات
 
@@ -713,16 +713,16 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
-| EXM-01 ★ | Final, short and diagnostic tests | ✅ Available | 14 question types incl. essay, matching, ordering, hotspot, numeric | — |
+| EXM-01 ★ | Final, short and diagnostic tests | ✅ Available | Assessment kinds: quiz, final, diagnostic, pre-test, post-test, comprehensive skills test and practice. | — |
 | EXM-02 ★ | Timed and open-duration tests | ✅ Available | Time limit per quiz. | — |
 | EXM-03 ★ | Question types: multiple choice, multi-select, true/false | ✅ Available | Supported. | — |
-| EXM-04 ★ | Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible | ✅ Available | Question banks with categories, tags, difficulty, versions, import/export | — |
-| EXM-05 ★ | Question banks by course / unit / difficulty, reusable, with media | ✅ Available | Random draw by category and difficulty mix; shuffling | — |
-| EXM-06 | Random selection from a bank | ✅ Available | Server-owned timer, autosave, resume, extra time | — |
-| EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | ✅ Available | Static and rotating access codes for in-centre exams | — |
+| EXM-04 ★ | Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible | ✅ Available | Essay, matching, ordering, fill in the blanks, categorisation, hotspot, numeric, matrix, dropdown, short answer and H5P items; new kinds plug into the `QuestionType` registry. | — |
+| EXM-05 ★ | Question banks by course / unit / difficulty, reusable, with media | ✅ Available | Question banks by course, unit, category and difficulty with tags, versions, media, reuse across assessments and import/export (QTI). | — |
+| EXM-06 | Random selection from a bank | ✅ Available | Random draw from a bank by category and difficulty mix, with shuffling of questions and options. | — |
+| EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | ✅ Available | Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results. | — |
 | EXM-08 | Attempts, time limit, show / hide results | ✅ Available | Supported. | — |
-| EXM-09 | Access codes and submission timestamps | 🟡 Partial | Integrity events, thresholds, snapshots (browser consent); face check best-effort | 6 |
-| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | ✅ Available | Live invigilation: attempts, flags, extend, void | — |
+| EXM-09 | Access codes and submission timestamps | ✅ Available | Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time). | — |
+| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | 🟡 Partial | Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people. | 6 |
 | EXM-11 | Result analytics per trainee, group and program | ✅ Available | Item analysis, difficulty and discrimination, distractors, by group | — |
 
 ### NTF · Notifications & Announcements — إدارة الإشعارات
@@ -938,28 +938,28 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | 4 | ≥ 5 similar projects delivered | ⚪ Vendor | Vendor qualification. |
 | 5 | Core business is digital solutions | ⚪ Vendor | Vendor qualification. |
 | 6 | Company office in Qatar | ⚪ Vendor | Vendor qualification. |
-| 7 | Bilingual, responsive, all browsers, seamless role switching | 🟡 Partial | Everything except role switching (UX-08). |
-| 8 | Role-based dashboards with interactive indicators | 🟡 Partial | Missing for 6 roles (HOM-06). |
-| 9 | Pre/post assessment of trainee level (in-person) | 🟡 Partial | Self-typed scores, no real tests (TYP-04). |
-| 10 | Synchronous training via Microsoft Teams | 🟡 Partial | Links only, no Graph integration (TYP-05). |
-| 11 | Interactive video, access-code exams, anti-distraction, SCORM / H5P | 🔴 Missing | Only the anti-distraction controls exist (TYP-07/11/13/15). |
-| 12 | Blended training | ✅ Available | Mixed session modes + e-course (TYP-18). |
-| 13 | Tool to build career-promotion training paths | 🔴 Missing | CAR-01. |
-| 14 | E-form to register users from outside the Ministry | 🔴 Missing | EXT-01..03. |
-| 15 | Individual & institutional needs tools + annual plan | 🟡 Partial | Surveys yes, plan no (NDS-01, NDS-07). |
-| 16 | Entities, seats, priority, waiting list, targeting, time-conflict prevention | 🟡 Partial | Waiting list & targeting yes; seats, priority, conflicts no (ENR). |
-| 17 | Self, manager and admin registration | ✅ Available | All three channels + Excel import (REG-01..05). |
-| 18 | Direct attendance by trainer + Teams duration-based attendance | 🟡 Partial | Teams part missing (ATT-07). |
-| 19 | Content admin panel: create, edit, share | ✅ Available | Course builder + Kit Studio (CNT-02). |
-| 20 | Pass rules, multiple certificate types, QR / number verification | 🟡 Partial | Weights and certificate types missing (PAS-01, PAS-10). |
-| 21 | Room occupancy calendar (week / month) | ✅ Available | ROM-08. |
-| 22 | Flexible withdrawal rules | 🔴 Missing | WDR-01..05. |
-| 23 | Survey types, per-option analytics, Excel / PDF / Word export | 🟡 Partial | CSV export only (SRV-08). |
-| 24 | Kit archiving with versions linked to courses | ✅ Available | KIT-01. |
-| 25 | Professional learning communities | 🔴 Missing | PLC-01..05. |
-| 26 | Impact measurement with trainee & manager forms, pre/post comparison | 🟡 Partial | Forms partial, comparison missing (EVL). |
-| 27 | Exam variety, categorised banks, anti-cheating | 🟡 Partial | Banks and anti-cheating missing (EXM). |
-| 28 | Integrated notifications + multimedia scheduled announcements | 🟡 Partial | Scheduling, Hudhud, audio missing (NTF). |
-| 29 | Comprehensive PD records outside the Ministry | 🔴 Missing | CPD-01..06. |
-| 30 | Permissions at Ministry / school-group / school level | 🟡 Partial | No school-group scope (RBA-13). |
-| 31 | AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant | 🟡 Partial | 2 of 5 partially present (AI-01..05). |
+| 7 | Bilingual, responsive, all browsers, seamless role switching | ✅ Available | UX-05, UX-06, UX-07, UX-08 — all available. |
+| 8 | Role-based dashboards with interactive indicators | ✅ Available | HOM-06 — all available. |
+| 9 | Pre/post assessment of trainee level (in-person) | ✅ Available | TYP-04 — all available. |
+| 10 | Synchronous training via Microsoft Teams | ✅ Available | TYP-05 — all available. |
+| 11 | Interactive video, access-code exams, anti-distraction, SCORM / H5P | ✅ Available | TYP-07, TYP-11, TYP-13, TYP-15 — all available. |
+| 12 | Blended training | ✅ Available | TYP-18 — all available. |
+| 13 | Tool to build career-promotion training paths | ✅ Available | CAR-01 — all available. |
+| 14 | E-form to register users from outside the Ministry | ✅ Available | EXT-01, EXT-02, EXT-03 — all available. |
+| 15 | Individual & institutional needs tools + annual plan | ✅ Available | NDS-01, NDS-02, NDS-03, NDS-04, NDS-07 — all available. |
+| 16 | Entities, seats, priority, waiting list, targeting, time-conflict prevention | ✅ Available | ENR-01, ENR-02, ENR-03, ENR-06, ENR-07 — all available. |
+| 17 | Self, manager and admin registration | ✅ Available | REG-01, REG-03, REG-04, REG-05 — all available. |
+| 18 | Direct attendance by trainer + Teams duration-based attendance | ✅ Available | ATT-02, ATT-07 — all available. |
+| 19 | Content admin panel: create, edit, share | ✅ Available | CNT-02 — all available. |
+| 20 | Pass rules, multiple certificate types, QR / number verification | ✅ Available | PAS-01, PAS-10, PAS-14 — all available. |
+| 21 | Room occupancy calendar (week / month) | ✅ Available | ROM-08 — all available. |
+| 22 | Flexible withdrawal rules | ✅ Available | WDR-01, WDR-02, WDR-03, WDR-04, WDR-05 — all available. |
+| 23 | Survey types, per-option analytics, Excel / PDF / Word export | ✅ Available | SRV-01, SRV-02, SRV-03, SRV-04, SRV-05, SRV-06, SRV-07, SRV-08 — all available. |
+| 24 | Kit archiving with versions linked to courses | ✅ Available | KIT-01 — all available. |
+| 25 | Professional learning communities | 🟡 Partial | Open: PLC-03 (partial); PLC-01, PLC-02, PLC-04, PLC-05 available. |
+| 26 | Impact measurement with trainee & manager forms, pre/post comparison | ✅ Available | EVL-01, EVL-02, EVL-06 — all available. |
+| 27 | Exam variety, categorised banks, anti-cheating | 🟡 Partial | Open: EXM-10 (partial); EXM-01, EXM-03, EXM-04, EXM-05 available. |
+| 28 | Integrated notifications + multimedia scheduled announcements | 🟡 Partial | Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available. |
+| 29 | Comprehensive PD records outside the Ministry | ✅ Available | CPD-01, CPD-02, CPD-03, CPD-04, CPD-05, CPD-06 — all available. |
+| 30 | Permissions at Ministry / school-group / school level | ✅ Available | RBA-13 — all available. |
+| 31 | AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant | 🟡 Partial | Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available. |

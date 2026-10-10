@@ -64,6 +64,7 @@ function Editor({ f, onDone }: { f: any; onDone: () => void }) {
       <div className="flex flex-wrap items-center gap-5 text-sm">
         <label className="flex items-center gap-2"><input type="checkbox" checked={!!d.settings.evidence} onChange={(e) => setD({ ...d, settings: { ...d.settings, evidence: e.target.checked } })} />{t('evalc.forms.evidenceAll')}</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={!!d.settings.anonymous} onChange={(e) => setD({ ...d, settings: { ...d.settings, anonymous: e.target.checked } })} />{t('evalc.forms.anonymous')}</label>
+        <label className="flex items-center gap-2" title={t('evalc.forms.requiredForCertificateHint')}><input type="checkbox" checked={!!d.settings.required_for_certificate} onChange={(e) => setD({ ...d, settings: { ...d.settings, required_for_certificate: e.target.checked } })} />{t('evalc.forms.requiredForCertificate')}</label>
         <label className="flex items-center gap-2">{t('evalc.forms.maxFiles')}<input className="w-16 rounded-lg border border-navy-100 px-2 py-1" type="number" min="1" max="10" value={d.settings.max_files ?? 3} onChange={(e) => setD({ ...d, settings: { ...d.settings, max_files: Number(e.target.value) } })} /></label>
       </div>
       <div className="space-y-3">{qs.map((q, i) => (

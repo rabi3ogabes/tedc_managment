@@ -6,13 +6,13 @@
 
 ## 1. Automated suite
 
-- Test files: **105**; test methods: **661**.
+- Test files: **106**; test methods: **666**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
 ## 2. Requirement status behind the tests
 
-223 of 278 requirements are marked available; 55 partial; 0 missing (see the BRD, section "Open items").
+228 of 278 requirements are marked available; 50 partial; 0 missing (see the BRD, section "Open items").
 
 ## 3. UAT
 
@@ -82,6 +82,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | KitMediaTest.php | 4 |
 | KitStudioTest.php | 9 |
 | LegacyNeedsMigrationTest.php | 4 |
+| LessonAttentionRulesTest.php | 5 |
 | LibraryAndLifecycleTest.php | 9 |
 | LobbyScreenTest.php | 3 |
 | LtiTest.php | 8 |

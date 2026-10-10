@@ -8,7 +8,7 @@ export type SurveyQ = { id?: string; type: 'rating' | 'nps' | 'choice' | 'multip
 
 export type LessonSettings = {
   allow_seeking?: boolean; min_watch_percent?: number; max_speed?: number; pause_when_hidden?: boolean; require_visible?: boolean; require_fullscreen?: boolean; lock_pause?: number | null; require_pass?: boolean
-  min_view_percent?: number; downloadable?: boolean
+  min_view_percent?: number; downloadable?: boolean; min_seconds_per_slide?: number
   pass_percent?: number; max_attempts?: number | null; shuffle_questions?: boolean; shuffle_options?: boolean; show_answers?: 'after_submit' | 'after_pass' | 'never'; time_limit_minutes?: number | null
 }
 
