@@ -13,7 +13,7 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@v2
         env:
@@ -21,7 +21,7 @@ jobs:
   dependencies:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with: { php-version: '8.4', coverage: none }
       - name: composer audit
@@ -42,12 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     container: { image: semgrep/semgrep }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: semgrep scan --config p/php --config p/typescript --config p/owasp-top-ten --config p/secrets --error --severity ERROR backend/app web/src
   container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build the image
         run: docker build -t tedc:scan .
       - name: Trivy (high and critical fail the build)
@@ -61,7 +61,7 @@ jobs:
   iac:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trivy config scan of the infrastructure code
         uses: aquasecurity/trivy-action@v0.36.0
         with:
