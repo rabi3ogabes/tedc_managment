@@ -450,6 +450,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('me')->group(function () {
             Route::get('home', [MeController::class, 'home']);
             Route::get('recommendations', [MeController::class, 'recommendations']);
+            Route::get('programs-for-me', [MeController::class, 'programsForMe']);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');

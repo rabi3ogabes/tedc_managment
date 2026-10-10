@@ -12,6 +12,7 @@ import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
 import '../needs/needs_survey_screen.dart';
 import '../reports/dashboard_section.dart';
+import 'upcoming_programs.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -73,6 +74,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
+                  UpcomingProgramsSlider(items: d.list('upcoming_programs')),
                   if (upcoming.isNotEmpty) ...[
                     SectionTitle(s.t(current != null ? 'home.upcomingSessions' : 'home.nextSession')),
                     for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),

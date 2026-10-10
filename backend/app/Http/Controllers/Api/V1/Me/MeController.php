@@ -14,6 +14,8 @@ use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\TaskSubmission;
+use App\Services\Eligibility\EligibilityEngine;
+use App\Services\Eligibility\EmployeeContext;
 use App\Services\FeatureSettings;
 use App\Services\PassportService;
 use App\Services\RecommendationEngine;
@@ -71,8 +73,63 @@ class MeController extends Controller
             ],
             'next_session' => $nextSession ? $card($nextSession) : null,
             'current_session' => $current ? $card($current) + ['live' => now()->gte($current->starts_at)] : null,
+            'upcoming_programs' => $this->upcomingPrograms($employee),
             'upcoming_sessions' => $upcoming->reject(fn ($x) => $x->id === $current?->id)->take(5)->map($card)->values(),
             'recommended' => $this->recommended($engine, 4),
+        ]]);
+    }
+
+    /**
+     * The programs the person is registered in (approved or waiting) that have not finished, for the home slider:
+     * each with its delivery mode (in person, online or hybrid) and its next session.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function upcomingPrograms(Employee $employee): array
+    {
+        $registrations = Registration::with(['program.category'])
+            ->where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_PENDING])
+            ->whereHas('program', fn ($q) => $q->whereNotIn('status', [Program::STATUS_COMPLETED, Program::STATUS_ARCHIVED, Program::STATUS_CANCELLED])
+                ->where(fn ($d) => $d->whereNull('end_date')->orWhere('end_date', '>=', today())))
+            ->get();
+        $next = ProgramSession::whereIn('program_id', $registrations->pluck('program_id'))->where('ends_at', '>=', now())->where('status', '!=', 'cancelled')
+            ->orderBy('starts_at')->get()->groupBy('program_id')->map->first();
+
+        return $registrations->sortBy(fn (Registration $r) => $next[$r->program_id]->starts_at ?? $r->program->start_date ?? now()->addYears(5))->values()
+            ->map(fn (Registration $r) => [
+                'registration_id' => $r->id, 'registration_status' => $r->status,
+                'program' => (new ProgramResource($r->program))->resolve(),
+                'mode' => in_array($r->program->delivery_mode, ['in_person', 'online', 'hybrid'], true) ? $r->program->delivery_mode : 'in_person',
+                'next_session_at' => ($next[$r->program_id]->starts_at ?? null)?->toIso8601String(),
+            ])->take(30)->all();
+    }
+
+    /**
+     * «Programs for me»: only programs the person is eligible for, in three groups —
+     * `mine` (aimed at the person's role, department or school type), `general` (open to everyone) and `recommended`
+     * (the recommender's picks). A program aimed at a group the person is not in never appears.
+     */
+    public function programsForMe(RecommendationEngine $engine, EligibilityEngine $eligibility): JsonResponse
+    {
+        $employee = $this->employee();
+        $context = EmployeeContext::fromEmployee($employee);
+        $mine = Registration::where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_PENDING, Registration::STATUS_COMPLETED])->pluck('status', 'program_id');
+
+        $eligible = Program::visible()->with(['category', 'targetGroups', 'eligibilityRules'])
+            ->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN])
+            ->where(fn ($d) => $d->whereNull('end_date')->orWhere('end_date', '>=', today()))
+            ->orderBy('start_date')->limit(200)->get()
+            ->filter(fn (Program $p) => $eligibility->evaluate($p, $employee, $context)->eligible)->keyBy('id');
+
+        $card = fn (Program $p) => (new ProgramResource($p))->resolve() + ['my_registration' => $mine[$p->id] ?? null];
+        $recommended = collect($this->recommended($engine, 12))->filter(fn ($r) => $eligible->has($r['program']['id'] ?? ''))
+            ->map(fn ($r) => $r + ['program' => $r['program'] + ['my_registration' => $mine[$r['program']['id']] ?? null]])->values()->all();
+
+        return response()->json(['data' => [
+            'position' => $employee->jobTitle?->translate('name'),
+            'mine' => $eligible->filter(fn (Program $p) => $p->targetGroups->isNotEmpty())->map($card)->values()->take(30)->all(),
+            'general' => $eligible->filter(fn (Program $p) => $p->targetGroups->isEmpty())->map($card)->values()->take(30)->all(),
+            'recommended' => $recommended,
         ]]);
     }
 
