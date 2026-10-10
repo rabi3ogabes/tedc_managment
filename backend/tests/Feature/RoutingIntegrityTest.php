@@ -70,7 +70,8 @@ class RoutingIntegrityTest extends TestCase
         $this->assertGreaterThan(50, count($routes['admin']));
         $this->assertGreaterThan(15, count($routes['portal']));
 
-        $layout = (string) file_get_contents("{$web}/components/admin/AdminLayout.tsx");
+        // The portal buttons live in the layout; the dashboard's buttons are in the catalogue the administrator's arrangement is laid over.
+        $layout = file_get_contents("{$web}/components/admin/AdminLayout.tsx").file_get_contents("{$web}/components/admin/menuCatalog.ts");
         preg_match_all("~to: '/(admin|portal)(?:/([^'?]*))?(?:\?[^']*)?'~", $layout, $found, PREG_SET_ORDER);
         $missing = [];
         foreach ($found as $f) {
