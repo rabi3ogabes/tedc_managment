@@ -18,6 +18,12 @@ export const apaAr = { apa: {
   fontPick: 'اختر خطًا جاهزًا', fontCustom: 'خط آخر (اكتب الاسم أو ارفع ملفًا)', fontNote: 'تُحمَّل الخطوط الجاهزة من Google Fonts عند اختيارها؛ الخطوط المضمّنة لا تحتاج اتصالًا خارجيًا.', bundled: 'مضمّن',
   layouts: 'تخطيطات جاهزة', layoutsHint: 'اختر تخطيطًا ليحلّ محل المسودة الحالية. يمكنك تعديله ثم نشره، ولا يتغير الموقع قبل النشر.', apply: 'استخدام التخطيط', applied: 'حُمّل التخطيط في المسودة. عدّله ثم انشره.', confirmApply: 'سيحلّ هذا التخطيط محل المسودة الحالية. المتابعة؟',
   blocks: { hero_slider: 'البطل', stats: 'الأرقام', featured_programs: 'البرامج', news: 'الأخبار', events: 'الفعاليات', rich_text: 'نص', cta: 'دعوة', logos: 'شعارات', faq: 'أسئلة', video: 'فيديو', custom_html_safe: 'HTML' },
+}, menuEd: {
+  title: 'ترتيب قائمة لوحة التحكم', subtitle: 'انقل أي زر من قسم إلى آخر، ورتّب الأزرار والأقسام، وغيّر اسم القسم وأيقونة أي زر. يظهر التغيير لكل المستخدمين فور الحفظ، وتبقى الصلاحيات كما هي.',
+  nameAr: 'اسم القسم بالعربية', nameEn: 'اسم القسم بالإنجليزية', moveTo: 'نقل إلى', up: 'تقديم', down: 'تأخير', sectionUp: 'تقديم القسم', sectionDown: 'تأخير القسم', deleteSection: 'حذف القسم',
+  icon: 'الأيقونة', pickIcon: 'اختر أيقونة', defaultIcon: 'الأيقونة الافتراضية', addSection: 'إضافة قسم جديد', newSection: 'قسم جديد', untitled: 'بلا اسم', emptySection: 'لا أزرار في هذا القسم. انقل إليه أزراراً من الأقسام الأخرى.',
+  confirmDelete: 'حذف هذا القسم؟ تنتقل أزراره إلى القسم السابق.', confirmReset: 'إعادة القائمة إلى ترتيبها الأصلي؟ تُمسح كل التغييرات.', reset: 'استعادة الترتيب الأصلي', resetDone: 'عادت القائمة إلى ترتيبها الأصلي.',
+  unsaved: 'توجد تغييرات لم تُحفظ.', upToDate: 'لا تغييرات جديدة.', discard: 'تجاهل التغييرات', save: 'حفظ الترتيب', saved: 'تم حفظ ترتيب القائمة.',
 } }
 export const apaEn = { apa: {
   occasions: 'Occasions', loading: 'Loading page',
@@ -38,4 +44,10 @@ export const apaEn = { apa: {
   fontPick: 'Pick a ready font', fontCustom: 'Another font (type its name or upload a file)', fontNote: 'Ready fonts load from Google Fonts when chosen; bundled fonts need no outside connection.', bundled: 'bundled',
   layouts: 'Ready-made layouts', layoutsHint: 'Pick a layout to replace the current draft. Adjust it, then publish; the site does not change before you publish.', apply: 'Use this layout', applied: 'The layout is loaded into the draft. Adjust it, then publish.', confirmApply: 'This layout replaces the current draft. Continue?',
   blocks: { hero_slider: 'Hero', stats: 'Numbers', featured_programs: 'Programs', news: 'News', events: 'Events', rich_text: 'Text', cta: 'Call to action', logos: 'Logos', faq: 'FAQ', video: 'Video', custom_html_safe: 'HTML' },
+}, menuEd: {
+  title: 'Dashboard menu order', subtitle: 'Move any button to another section, reorder buttons and sections, and rename a section or change the icon of any button. Everyone sees the change as soon as you save; permissions stay as they are.',
+  nameAr: 'Section name in Arabic', nameEn: 'Section name in English', moveTo: 'Move to', up: 'Move up', down: 'Move down', sectionUp: 'Move section up', sectionDown: 'Move section down', deleteSection: 'Delete section',
+  icon: 'Icon', pickIcon: 'Pick an icon', defaultIcon: 'Default icon', addSection: 'Add a new section', newSection: 'New section', untitled: 'Untitled', emptySection: 'No buttons in this section. Move some in from the other sections.',
+  confirmDelete: 'Delete this section? Its buttons move to the section before it.', confirmReset: 'Restore the original menu order? All your changes are cleared.', reset: 'Restore the original order', resetDone: 'The menu is back to its original order.',
+  unsaved: 'You have unsaved changes.', upToDate: 'No new changes.', discard: 'Discard changes', save: 'Save the order', saved: 'The menu order is saved.',
 } }

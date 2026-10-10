@@ -93,6 +93,7 @@ use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
+use App\Http\Controllers\Api\V1\Admin\MenuLayoutController;
 use App\Http\Controllers\Api\V1\Admin\ThemeController;
 use App\Http\Controllers\Api\V1\Admin\TrainerAssignmentController;
 use App\Http\Controllers\Api\V1\Admin\TrainerController;
@@ -451,6 +452,7 @@ Route::prefix('v1')->group(function () {
             Route::get('home', [MeController::class, 'home']);
             Route::get('recommendations', [MeController::class, 'recommendations']);
             Route::get('programs-for-me', [MeController::class, 'programsForMe']);
+            Route::get('menu-layout', [MenuLayoutController::class, 'show']);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
@@ -1259,6 +1261,8 @@ Route::prefix('v1')->group(function () {
 
             // Brand Studio (appearance)
             Route::middleware('permission:settings.manage')->group(function () {
+                Route::put('menu-layout', [MenuLayoutController::class, 'update']);
+                Route::delete('menu-layout', [MenuLayoutController::class, 'reset']);
                 Route::put('theme', [ThemeController::class, 'update']);
                 Route::post('theme/reset', [ThemeController::class, 'reset']);
                 Route::get('theme/occasions/catalog', [ThemeController::class, 'catalog']);

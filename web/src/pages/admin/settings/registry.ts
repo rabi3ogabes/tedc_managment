@@ -1,4 +1,4 @@
-import { ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { PanelLeft, ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -17,6 +17,7 @@ export type SettingsSection = {
 /** Every page that can be opened as a settings tab. Components load on first use. */
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'appearance', group: 'identity', permission: ['settings.manage'], icon: Palette, component: lazy(() => import('@/pages/admin/BrandStudio')), keywords: ['brand', 'appearance', 'identity', 'theme', 'logo', 'color', 'font', 'name', 'هوية', 'شعار', 'ألوان', 'اسم'] },
+  { id: 'menu', group: 'identity', permission: ['settings.manage'], icon: PanelLeft, component: lazy(() => import('@/pages/admin/MenuSettings')), keywords: ['menu', 'navigation', 'sidebar', 'order', 'icon', 'section', 'القائمة', 'ترتيب', 'أيقونة', 'قسم'] },
   { id: 'templates', group: 'communication', permission: ['announcements.manage'], icon: BellPlus, component: lazy(() => import('@/pages/admin/notifications/TemplatesManager')), keywords: ['templates', 'notification', 'message', 'wording', 'قوالب', 'إشعار', 'رسالة', 'نص'] },
   { id: 'labels', group: 'identity', permission: ['settings.manage'], icon: Languages, component: lazy(() => import('@/pages/admin/LabelManager')), keywords: ['labels', 'names', 'menu', 'button', 'rename', 'text', 'translation', 'أسماء', 'قائمة', 'زر', 'تسمية', 'نصوص'] },
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
