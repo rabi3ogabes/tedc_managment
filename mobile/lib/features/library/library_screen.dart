@@ -7,6 +7,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../community/subject_social.dart';
 
 /// The digital library: search, open an item in the reader (rights decide whether it can be downloaded) and keep it on the shelf.
 class LibraryScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   String _q = '';
 
   String get _path => _q.trim().length >= 2 ? '/me/library?q=${Uri.encodeQueryComponent(_q.trim())}' : '/me/library';
+
+  /// The item's rating and newest reviews, with a button to rate it.
+  void _ratings(Json item) => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.all(12), child: RatingCard(type: 'library', id: item.str('id')))),
+      );
 
   Future<void> _open(Json item) async {
     try {
@@ -64,7 +72,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                       title: Text(i.str(ar ? 'title_ar' : 'title_en').isNotEmpty ? i.str(ar ? 'title_ar' : 'title_en') : i.str('title_ar'), style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text([s.t('library.type.${i.str('type')}'), if (i.obj('rights')?.flag('download') == false) s.t('library.viewOnly')].join(' • ')),
                       onTap: () => _open(i),
-                      trailing: IconButton(icon: Icon(i.flag('on_shelf') ? Icons.bookmark : Icons.bookmark_border), onPressed: () => _shelf(i)),
+                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                        IconButton(tooltip: s.t('rating.title'), icon: const Icon(Icons.star_outline_rounded), onPressed: () => _ratings(i)),
+                        IconButton(icon: Icon(i.flag('on_shelf') ? Icons.bookmark : Icons.bookmark_border), onPressed: () => _shelf(i)),
+                      ]),
                     ),
                   ),
               ]);

@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **113**; test methods: **705**.
+- Test files: **113**; test methods: **715**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -35,7 +35,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AiModelsTest.php | 8 |
 | AnnouncementsCmsPhase11Test.php | 10 |
 | AnnualPlanTest.php | 5 |
-| AppHomeLayoutTest.php | 2 |
+| AppHomeLayoutTest.php | 4 |
 | AppThemesTest.php | 4 |
 | AssessmentEngineTest.php | 8 |
 | AssessmentExtrasTest.php | 7 |
@@ -89,7 +89,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | LibraryAndLifecycleTest.php | 9 |
 | LobbyScreenTest.php | 3 |
 | LtiTest.php | 8 |
-| MaterialSocialTest.php | 7 |
+| MaterialSocialTest.php | 12 |
 | MenuLayoutTest.php | 3 |
 | MinistryIntegrationsTest.php | 8 |
 | NationalSchoolsTest.php | 3 |
@@ -123,7 +123,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RoomsLogisticsTest.php | 6 |
 | RoutingIntegrityTest.php | 3 |
 | SecurityHardeningTest.php | 2 |
-| SocialFilesTest.php | 11 |
+| SocialFilesTest.php | 14 |
 | SpaFallbackTest.php | 2 |
 | SupabaseConnectionTest.php | 8 |
 | SupabaseSyncTest.php | 1 |

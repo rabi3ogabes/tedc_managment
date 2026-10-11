@@ -3,13 +3,15 @@
 Verified in the code on **11 October 2026** (method: `docs/rfp/rfp-comparison-2026-10-10.md`). **278 requirements: 228 available, 50 partial, 0 missing.**
 This list is the checklist for the close-out prompt pack in this folder. Each item names the phase that closes it.
 
+**Progress:** Phase 19 done on 11 October 2026 — NTF-09, PLC-03 ★, COL-02, COL-03 and COL-04 are now Available (register: 233 available, 45 partial, 0 missing; mandatory item 25 available).
+
 **Who unblocks:** *We build it* = software only · *Your decision* = needs your yes/no · *Ministry input* = credentials, specifications or files from the Ministry · *Azure / real run* = needs the Azure subscription or a real test run · *Centre workshops & sign-off* = needs the training centre.
 
 ## Summary by phase
 
 | Phase | File | Items | ★ Mandatory |
 |---:|---|---|---:|
-| 19 | [19_COLLABORATION_COMPLETION.md](19_COLLABORATION_COMPLETION.md) | NTF-09, PLC-03 ★, COL-02, COL-03, COL-04 | 1 |
+| 19 ✅ | [19_COLLABORATION_COMPLETION.md](19_COLLABORATION_COMPLETION.md) | NTF-09, PLC-03 ★, COL-02, COL-03, COL-04 — done 11 Oct | 1 |
 | 20 | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 | 0 |
 | 21 | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★, TEC-08 ★ | 3 |
 | 22 | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ | 1 |
@@ -106,6 +108,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Ready; Available after testing with the real system
 
 #### NTF-09 — Sound or visual alert on a new notification
+- **Status:** ✅ Available since Phase 19 (11 Oct 2026) — see `docs/rfp/phase-19-collaboration-completion.md`.
 - **Built today:** Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11).
 - **Missing:** The web chimes; the app uses the system sound on one channel and stays silent in the foreground; no TEDC sound, no per-user channel.
 - **Who unblocks:** We build it
@@ -115,6 +118,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### PLC · Professional Learning Communities — إدارة مجتمعات التعلم المهنية
 
 #### PLC-03 ★ — Votes, polls, open questions, comments, file sharing
+- **Status:** ✅ Available since Phase 19 (11 Oct 2026) — see `docs/rfp/phase-19-collaboration-completion.md`.
 - **Built today:** Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14.
 - **Missing:** No file upload anywhere: the API accepts only link references and the web/app composers have no attachment UI at all.
 - **Who unblocks:** We build it
@@ -174,6 +178,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### COL · Phase 2 · Collaboration & Knowledge Sharing — المرحلة الثانية · التعاون والتواصل المعرفي
 
 #### COL-02 — Comments and notes on lessons and materials
+- **Status:** ✅ Available since Phase 19 (11 Oct 2026) — see `docs/rfp/phase-19-collaboration-completion.md`.
 - **Built today:** Private notes and a discussion thread on every lesson; not on individual materials. Phase 14.
 - **Missing:** Notes and a discussion thread exist for lessons only; programme materials have neither.
 - **Who unblocks:** We build it
@@ -181,6 +186,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Available
 
 #### COL-03 — Content rating and reviews by trainees and trainers
+- **Status:** ✅ Available since Phase 19 (11 Oct 2026) — see `docs/rfp/phase-19-collaboration-completion.md`.
 - **Built today:** 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14.
 - **Missing:** The ratings API covers lessons, materials, kits, library items and programmes, but only lessons have a rating screen (web); the app has none.
 - **Who unblocks:** We build it
@@ -188,6 +194,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Available
 
 #### COL-04 — File sharing inside discussions
+- **Status:** ✅ Available since Phase 19 (11 Oct 2026) — see `docs/rfp/phase-19-collaboration-completion.md`.
 - **Built today:** Attachments can be referenced in posts and comments; no upload widget yet. Phase 14.
 - **Missing:** Same as PLC-03 inside discussions and comments (up to 5 files per comment).
 - **Who unblocks:** We build it

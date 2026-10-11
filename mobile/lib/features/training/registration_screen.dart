@@ -162,16 +162,22 @@ class _Materials extends ConsumerWidget {
               child: ListTile(
                 leading: Icon(m.str('type') == 'video' ? Icons.play_circle_outline : Icons.description_outlined, color: AppColors.gold700),
                 title: Text(m.str('title')),
-                trailing: const Icon(Icons.open_in_new, size: 18),
-                onTap: () async {
-                  var url = m.str('url');
-                  if (url.isEmpty) {
-                    // File access control: the API issues a short-lived signed URL after checking enrollment.
-                    final res = await ref.read(apiProvider).get('/me/materials/${m.str('id')}/download');
-                    url = res['data']['url'].toString();
-                  }
-                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                },
+                subtitle: Text(context.tr('material.social'), style: const TextStyle(fontSize: 12)),
+                // The material's discussion, private notes and rating; the icon opens the file itself.
+                onTap: () => context.push('/materials/${m.str('id')}?title=${Uri.encodeQueryComponent(m.str('title'))}&url=${Uri.encodeQueryComponent(m.str('url'))}'),
+                trailing: IconButton(
+                  tooltip: context.tr('material.open'),
+                  icon: const Icon(Icons.open_in_new, size: 20),
+                  onPressed: () async {
+                    var url = m.str('url');
+                    if (url.isEmpty) {
+                      // File access control: the API issues a short-lived signed URL after checking enrollment.
+                      final res = await ref.read(apiProvider).get('/me/materials/${m.str('id')}/download');
+                      url = res['data']['url'].toString();
+                    }
+                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                  },
+                ),
               ),
             ),
         ]);

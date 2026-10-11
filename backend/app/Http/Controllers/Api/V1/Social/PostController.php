@@ -95,7 +95,7 @@ class PostController extends Controller
         $mod = $this->spaces->canModerate($post->space, $user);
         $files = $this->files->present($comments->mapWithKeys(fn (Comment $c) => [$c->id => $c->status === 'hidden' && ! $mod ? [] : $c->attachments])->all() + ['__post' => $post->attachments]);
 
-        return response()->json(['data' => $this->row($post->load('space', 'author', 'poll'), $user, $mine[$post->id] ?? null, $files['__post']) + ['comments' => $comments->map(fn (Comment $c) => [
+        return response()->json(['data' => $this->row($post->load('space', 'author', 'poll'), $user, $mine[$post->id] ?? null, $files['__post']) + ['file_limits' => $this->files->limits($post->space), 'comments' => $comments->map(fn (Comment $c) => [
             'attachments' => $files[$c->id] ?? [],
             'id' => $c->id, 'parent_id' => $c->parent_id, 'body' => $c->status === 'hidden' && ! $mod ? null : $c->body, 'status' => $c->status, 'created_at' => $c->created_at->toIso8601String(), 'edited_at' => $c->edited_at?->toIso8601String(),
             'author' => ['id' => $c->author_id, 'name' => $c->author?->displayName()], 'mine' => $c->author_id === $user->id, 'accepted' => $post->accepted_answer_id === $c->id, 'reactions' => (int) ($counts[$c->id] ?? 0), 'my_reaction' => $mine[$c->id] ?? null,

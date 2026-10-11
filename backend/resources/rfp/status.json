@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 228,
-        "partial": 50,
+        "available": 233,
+        "partial": 45,
         "missing": 0,
         "mandatory": 108,
-        "open": 50
+        "open": 45
     },
     "phases": [
         {
@@ -89,7 +89,7 @@
             "phase": 11,
             "title": "Notifications, Announcements & CMS",
             "open": 12,
-            "items": 2,
+            "items": 1,
             "done": 0
         },
         {
@@ -110,7 +110,7 @@
             "phase": 14,
             "title": "Collaboration, PLCs & Gamification",
             "open": 17,
-            "items": 4,
+            "items": 0,
             "done": 0
         },
         {
@@ -1575,9 +1575,9 @@
                     "id": "NTF-09",
                     "mandatory": false,
                     "requirement": "Sound or visual alert on a new notification",
-                    "status": "partial",
-                    "evidence": "Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11).",
-                    "phase": 11
+                    "status": "available",
+                    "evidence": "Web: pop-up with the soft chime (per-user switch) and pulsing bell. App: the TEDC chime on Android channel tedc_alerts / silent tedc_quiet chosen per person, APNs tedc_chime.caf, and a foreground chime that respects the preference and silent mode, with a preview (MaterialSocialTest, push_sound_test.dart). The iOS build was not run in this phase (no Xcode on the build machine). Phase 19.",
+                    "phase": null
                 },
                 {
                     "id": "NTF-10",
@@ -1701,9 +1701,9 @@
                     "id": "PLC-03",
                     "mandatory": true,
                     "requirement": "Votes, polls, open questions, comments, file sharing",
-                    "status": "partial",
-                    "evidence": "Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14.",
-                    "phase": 14
+                    "status": "available",
+                    "evidence": "Polls, questions, comments, reactions and real file sharing: uploads checked by content (EXIF stripped, thumbnails), private signed links, limits in settings and per space; web composer with drag-drop/paste/progress/cancel and the app with file picker and camera (SocialFilesTest, collaboration_test.dart). Phase 19.",
+                    "phase": null
                 },
                 {
                     "id": "PLC-04",
@@ -2069,25 +2069,25 @@
                     "id": "COL-02",
                     "mandatory": false,
                     "requirement": "Comments and notes on lessons and materials",
-                    "status": "partial",
-                    "evidence": "Private notes and a discussion thread on every lesson; not on individual materials. Phase 14.",
-                    "phase": 14
+                    "status": "available",
+                    "evidence": "Discussion threads and private notes on lessons and on every material (material_thread spaces, notes by subject); web materials window and app material screen with Discussion / My notes / Rating (MaterialSocialTest). Phase 19.",
+                    "phase": null
                 },
                 {
                     "id": "COL-03",
                     "mandatory": false,
                     "requirement": "Content rating and reviews by trainees and trainers",
-                    "status": "partial",
-                    "evidence": "1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14.",
-                    "phase": 14
+                    "status": "available",
+                    "evidence": "One rating card (average, 5→1 spread, newest reviews, own rating) on lessons, materials, kits, library items and programmes on web and app; who may rate follows registration, audience and kit access; moderators hide with an audited reason, and edits keep a hidden review hidden (MaterialSocialTest, collaboration_test.dart). Phase 19.",
+                    "phase": null
                 },
                 {
                     "id": "COL-04",
                     "mandatory": false,
                     "requirement": "File sharing inside discussions",
-                    "status": "partial",
-                    "evidence": "Attachments can be referenced in posts and comments; no upload widget yet. Phase 14.",
-                    "phase": 14
+                    "status": "available",
+                    "evidence": "Files and links inside posts and comments (up to 4 MB through the API, bigger straight to storage), readable only by people who may read the post or comment; galleries, viewer, players and file cards on web and app (SocialFilesTest). Phase 19.",
+                    "phase": null
                 },
                 {
                     "id": "COL-05",
@@ -2747,8 +2747,8 @@
         {
             "no": 25,
             "requirement": "Professional learning communities",
-            "status": "partial",
-            "notes": "Open: PLC-03 (partial); PLC-01, PLC-02, PLC-04, PLC-05 available."
+            "status": "available",
+            "notes": "PLC-01, PLC-02, PLC-03, PLC-04, PLC-05 — all available."
         },
         {
             "no": 26,
@@ -2787,5 +2787,5 @@
             "notes": "Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-10T12:00:29+03:00"
+    "generated_at": "2026-10-11T13:57:27+03:00"
 }

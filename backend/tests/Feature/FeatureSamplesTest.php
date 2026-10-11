@@ -49,7 +49,7 @@ class FeatureSamplesTest extends TestCase
             'assistant_conversations', 'assistant_messages', 'risk_flags', 'forecasts', 'training_plans', 'training_plan_items', 'needs_cycles', 'program_proposals', 'individual_needs', 'nominations', 'withdrawal_requests',
             'training_places', 'buildings', 'room_bookings', 'attendance_leaves', 'absence_excuses', 'absence_alerts', 'group_trainers', 'passing_policies', 'pass_exceptions', 'evaluation_assignments', 'evaluation_responses',
             'career_paths', 'professional_licences', 'pd_activities', 'knowledge_transfers', 'library_items', 'announcements', 'notification_rules', 'report_schedules', 'support_tickets', 'data_subject_requests',
-            'integration_logs', 'help_feedback', 'learner_mastery', 'assessment_attempts', 'notification_deliveries',
+            'integration_logs', 'help_feedback', 'learner_mastery', 'assessment_attempts', 'notification_deliveries', 'social_uploads',
         ];
         foreach ($filled as $table) {
             $this->assertGreaterThan(0, DB::table($table)->count(), "{$table} has no sample");

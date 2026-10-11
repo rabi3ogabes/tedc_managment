@@ -268,3 +268,15 @@ Attendance marking, task review and program notifications also accept a person w
 | GET | `/public/mobile-config` | also returns `demo_password` — only while demo mode is on, which a production server never is |
 | GET | `/admin/security/demo-accounts[?rescan=1]` | `security.policy`: accounts whose stored password is still the shared demo password (`accounts[]`, `demo_mode`) |
 | POST | `/admin/security/demo-accounts/neutralise` | `security.policy` + step-up: `{mode: suspend|reset, user_ids[]}`; never touches the caller; audited (`demo_accounts_neutralised`) |
+| POST | `/social/uploads` | signed in, may post in the space, files allowed there; multipart `space_id`, `file` (≤ 4 MB recommended); 30 per 10 min → `{id, name, mime, size, width, height, status, kind, thumb_url}` |
+| POST | `/social/uploads/sign` | same; `{space_id, name, mime, size}` → `{id, upload: {url, method, mode, headers}}` for a direct upload to storage |
+| POST | `/social/uploads/{upload}/complete` | the uploader; re-checks the stored bytes (type, size, image clean-up, thumbnail) |
+| DELETE | `/social/uploads/{upload}` | the uploader, while the upload is not attached |
+| GET | `/social/files/{upload}` | people who may read the post or comment → `{url (5 min, with the file name), name, mime, size}` |
+| POST | `/social/spaces/{space}/posts`, `/social/posts/{post}/comments` | `attachments[]`: `{type: file, upload_id}` or `{type: link, url, name}`; the body may be empty when there are attachments |
+| GET | `/social/spaces/{space}`, `/social/posts/{post}` | also `file_limits {allowed, file_max_mb, post_total_mb, files_per_post, files_per_comment, direct_max_mb, extensions[]}`; attachments come back with signed `url` and `thumb_url` (15 min) |
+| GET | `/social/materials/{material}/thread` | registered trainees, trainers, supervisor, staff (`forums` on): the material's discussion space |
+| GET/POST | `/social/notes?subject_type=lesson\|material&subject_id=` | the same people; private to the author. `DELETE /social/notes/{note}` |
+| GET | `/social/ratings/{type}/{id}` | people who may rate the subject, and moderators (programmes: anyone signed in): `average, count, distribution{1..5}, reviews[], mine{stars, review, status}, can_rate` |
+| POST | `/social/ratings/{rating}/moderate` | `ratings.moderate`: `{status: hidden|published, reason}` — a reason is required to hide; audited (`rating_moderated`) |
+| GET | `/public/programs/{code}` | adds `meta.rating {average, count}` (no review text or names) |

@@ -12,6 +12,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../community/subject_social.dart';
 
 /// One lesson of an online course: a tracked video, slides, a quiz, a survey or an article.
 class LessonScreen extends ConsumerStatefulWidget {
@@ -70,12 +71,38 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     }
   }
 
+  void _sheet(Widget child) => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => SizedBox(height: MediaQuery.of(ctx).size.height * .75, child: child),
+      );
+
+  /// The lesson's discussion with the group and the trainer (a space made on first use).
+  Future<void> _discuss() async {
+    try {
+      final res = await ref.read(apiProvider).get('/social/spaces/resolve', query: {'type': 'lesson', 'id': widget.id});
+      final id = ((res as Map)['data'] as Map)['id'].toString();
+      if (mounted) context.push('/communities/$id');
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
     final l = _lesson;
     return Scaffold(
-      appBar: AppBar(title: Text(l?.str('title') ?? s.t('course.title'), overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(
+        title: Text(l?.str('title') ?? s.t('course.title'), overflow: TextOverflow.ellipsis),
+        actions: [
+          if (l != null) ...[
+            IconButton(tooltip: s.t('notes.title'), icon: const Icon(Icons.sticky_note_2_outlined), onPressed: () => _sheet(NotesView(type: 'lesson', id: widget.id))),
+            IconButton(tooltip: s.t('rating.title'), icon: const Icon(Icons.star_outline_rounded), onPressed: () => _sheet(ListView(padding: const EdgeInsets.all(12), children: [RatingCard(type: 'lesson', id: widget.id)]))),
+            IconButton(tooltip: s.t('lesson.discuss'), icon: const Icon(Icons.forum_outlined), onPressed: _discuss),
+          ],
+        ],
+      ),
       body: _error != null
           ? ErrorView(message: _error, onRetry: _load)
           : l == null

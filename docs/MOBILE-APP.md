@@ -62,6 +62,14 @@ push. From a terminal you can also load the file directly:
 `php artisan tedc:push-import path/to/google-services.json` (this fills the client options; the service-account
 key is still uploaded from the dashboard). If the app has a release signing key, add its SHA-1 to the Firebase app.
 
+Sound: a new notification plays the **TEDC chime** (`res/raw/tedc_chime.wav` on Android, `tedc_chime.caf` on iOS;
+regenerate both with `python3 mobile/tool/make_chime.py out.wav` and `afconvert -f caff -d LEI16 out.wav tedc_chime.caf`).
+Android fixes a channel's sound when the channel is created, so the app keeps one channel per sound:
+`tedc_alerts` (the chime, and the default), `tedc_quiet` (silent, for people who switched *Notification settings → sound*
+off) and `tedc_general` (from app versions before the chime). The server picks the channel per device from the person's
+preference. While the app is open, the banner slides in and the chime plays unless the phone is on silent, vibrate or
+Do Not Disturb; *Notification settings → Hear the chime* previews it.
+
 Smart nudges: every 5 minutes `tedc:attendance-nudges` tells participants when check-in opens and reminds those who
 have not checked in once the session has started (sent once per session, category "session").
 

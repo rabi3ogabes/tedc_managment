@@ -8,23 +8,31 @@ use App\Models\Badge;
 use App\Models\Challenge;
 use App\Models\ChallengeParticipant;
 use App\Models\GamificationProfile;
+use App\Models\LessonNote;
+use App\Models\Material;
 use App\Models\PointLedger;
 use App\Models\Poll;
+use App\Models\Post;
 use App\Models\Reward;
 use App\Models\RewardRedemption;
+use App\Models\SocialUpload;
 use App\Models\Space;
 use App\Models\UserBadge;
+use App\Services\FileStorage;
 use App\Social\PostService;
+use App\Social\SocialFiles;
 use App\Social\SpaceService;
+use Illuminate\Support\Str;
 
-/** Communities, forums, a trainer channel, polls, events and reports; then points, badges, challenges, rewards and the leaderboard. */
+/** Communities, forums, a trainer channel, polls, events, reports and shared files; then points, badges, challenges, rewards and the leaderboard. */
 class SampleSocial
 {
-    public function __construct(private readonly SampleContext $c, private readonly SpaceService $spaces, private readonly PostService $posts, private readonly GamificationService $game) {}
+    public function __construct(private readonly SampleContext $c, private readonly SpaceService $spaces, private readonly PostService $posts, private readonly GamificationService $game, private readonly FileStorage $storage) {}
 
     public function run(): void
     {
         $this->social();
+        $this->sharedFiles();
         $this->gamification();
     }
 
@@ -80,6 +88,62 @@ class SampleSocial
         $channel = $this->spaces->trainersChannel();
         $this->spaces->syncMembers($channel);
         $this->posts->create($channel, $admin, ['kind' => 'discussion', 'title' => 'تبادل مواد تدريبية', 'body' => 'أرفع هنا عروض الورشة الأخيرة ليستفيد منها الزملاء.']);
+    }
+
+    /** A post with a photo and a PDF in the community, a discussion beside a material, and a private note on it (PLC-03, COL-02). */
+    private function sharedFiles(): void
+    {
+        $comm = Space::where('title_en', 'Active learning practice community')->first();
+        $trainer = $this->c->user('trainer@tedc.qa') ?? $this->c->admin();
+        if (! $comm || SocialUpload::exists()) {
+            return;
+        }
+        $board = $this->store($trainer->id, $comm->id, 'لوحة نشاط التهيئة.png', $this->samplePng(), 'image/png', 960, 540);
+        $guide = $this->store($trainer->id, $comm->id, 'دليل بطاقات الخروج.pdf', $this->samplePdf(), 'application/pdf');
+        $post = Post::create(['space_id' => $comm->id, 'author_id' => $trainer->id, 'kind' => 'resource', 'title' => 'نموذج لوحة التهيئة ودليل بطاقات الخروج',
+            'body' => '<p>هذه اللوحة التي استخدمتها في الحصة، ومعها دليل مختصر لبطاقات الخروج.</p>', 'status' => 'published',
+            'attachments' => collect([$board, $guide])->map(fn (SocialUpload $u) => ['type' => 'file', 'upload_id' => $u->id, 'name' => $u->name, 'mime' => $u->mime, 'size' => $u->size, 'width' => $u->width, 'height' => $u->height])
+                ->push(['type' => 'link', 'url' => 'https://www.edu.gov.qa', 'name' => 'بوابة الوزارة'])->all()]);
+        app(SocialFiles::class)->attach(collect([$board, $guide]), 'post', $post->id);
+        $comm->increment('posts_count');
+
+        $t = $this->c->trainees();
+        $material = Material::first();
+        if ($material && $t) {
+            $thread = $this->spaces->materialThread($material);
+            $this->spaces->syncMembers($thread);
+            Post::create(['space_id' => $thread->id, 'author_id' => $t[0]->id, 'kind' => 'question', 'title' => null, 'body' => '<p>هل الشريحة الخاصة بالتقويم متاحة بصيغة قابلة للتعديل؟</p>', 'status' => 'published']);
+            $thread->increment('posts_count');
+            LessonNote::create(['user_id' => $t[0]->id, 'subject_type' => 'material', 'subject_id' => $material->id, 'body' => 'أراجع الجزء الثاني قبل اللقاء القادم.']);
+        }
+    }
+
+    private function store(string $userId, string $spaceId, string $name, string $bytes, string $mime, ?int $w = null, ?int $h = null): SocialUpload
+    {
+        $ext = pathinfo($name, PATHINFO_EXTENSION);
+        $path = $this->storage->put(SocialFiles::BUCKET, "social/{$userId}/".Str::uuid().".{$ext}", $bytes, $mime);
+
+        return SocialUpload::create(['user_id' => $userId, 'space_id' => $spaceId, 'path' => $path, 'name' => $name, 'mime' => $mime, 'size' => strlen($bytes), 'width' => $w, 'height' => $h, 'status' => 'pending']);
+    }
+
+    /** A plain maroon-and-gold board (no personal data, no metadata). */
+    private function samplePng(): string
+    {
+        $img = imagecreatetruecolor(960, 540);
+        for ($y = 0; $y < 540; $y++) {
+            $mix = $y / 539;
+            imageline($img, 0, $y, 959, $y, imagecolorallocate($img, (int) (138 + (162 - 138) * $mix), (int) (21 + (148 - 21) * $mix), (int) (56 + (117 - 56) * $mix)));
+        }
+        imagefilledrectangle($img, 80, 200, 880, 340, imagecolorallocatealpha($img, 255, 255, 255, 90));
+        ob_start();
+        imagepng($img);
+
+        return (string) ob_get_clean();
+    }
+
+    private function samplePdf(): string
+    {
+        return "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF";
     }
 
     private function gamification(): void

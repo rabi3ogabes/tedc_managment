@@ -268,6 +268,7 @@ class SocialFilesTest extends TestCase
         $this->asUser($m)->postJson("/api/v1/social/posts/{$postId}/comments", ['body' => ''])->assertStatus(422);
 
         $this->assertSame('notes.pdf', $this->asUser($m)->getJson("/api/v1/social/posts/{$postId}")->json('data.comments.0.attachments.0.name'));
+        $this->assertSame(5, $this->asUser($m)->getJson("/api/v1/social/posts/{$postId}")->json('data.file_limits.files_per_comment'));
     }
 
     public function test_a_hidden_comment_does_not_list_its_files_to_other_members(): void

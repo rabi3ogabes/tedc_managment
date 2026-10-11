@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-11 — Phase 19: collaboration completion
+Members share real files in communities and discussions on the web and in the app (photos, PDF, Office, audio, video, ZIP): checked by their content, photos cleaned of location data and given thumbnails, kept private behind short-lived links, with limits set in the settings and per space. Every training material has its own discussion and private notes; lessons, materials, kits, library items and programmes have one rating card (average, spread, newest reviews), and moderators hide a review with a reason. Phones play the TEDC chime for new notifications (and stay silent for people who switched the sound off). Seven colour shades the web app used but never defined are now part of the theme, so hairlines and light tints draw correctly.
+
 ## 2026-10-11 — Preflight of the close-out
 Production can no longer run in demo mode, deployments never set passwords, and the shared demo password is gone from the web app, the mobile app, the workflows and the docs (the sign-in screens get it from the server only on development and staging servers). Settings → Security lists the accounts that may still use it, with suspend and random-password actions (`tedc:demo-accounts`). The monthly restore test skips cleanly until Azure is connected. The project constitution (Spec Kit) is filled in, and the baseline is recorded in `docs/rfp/closeout/BASELINE.md`.
 

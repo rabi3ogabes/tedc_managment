@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 228 | 50 | 0 | 50 |
+| 278 | 233 | 45 | 0 | 45 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -289,8 +289,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Audience builder: roles, job titles, schools, school groups, program participants (by registration status), trainers, supervisors, named people; live count and sample; senders only reach their own scope (Phase 11).
 - [x] **NTF-06** — Scheduled notifications and allowed send times / days  
   _Now:_ ✅ Available — One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11).
-- [ ] **NTF-09** — Sound or visual alert on a new notification  
-  _Now:_ 🟡 Partial — Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11).
+- [x] **NTF-09** — Sound or visual alert on a new notification  
+  _Now:_ ✅ Available — Web: pop-up with the soft chime (per-user switch) and pulsing bell. App: the TEDC chime on Android channel tedc_alerts / silent tedc_quiet chosen per person, APNs tedc_chime.caf, and a foreground chime that respects the preference and silent mode, with a preview (MaterialSocialTest, push_sound_test.dart). The iOS build was not run in this phase (no Xcode on the build machine). Phase 19.
 - [x] **NTF-10** — Enable / disable types per user category; rules per program  
   _Now:_ ✅ Available — Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11).
 - [x] **NTF-12** — Delivery status sent / read / failed; export PDF / Excel  
@@ -362,20 +362,20 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14.
 - [x] **PLC-02** ★ — Member roles (manager, moderator, member) with permissions  
   _Now:_ ✅ Available — Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14.
-- [ ] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
-  _Now:_ 🟡 Partial — Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14.
+- [x] **PLC-03** ★ — Votes, polls, open questions, comments, file sharing  
+  _Now:_ ✅ Available — Polls, questions, comments, reactions and real file sharing: uploads checked by content (EXIF stripped, thumbnails), private signed links, limits in settings and per space; web composer with drag-drop/paste/progress/cancel and the app with file picker and camera (SocialFilesTest, collaboration_test.dart). Phase 19.
 - [x] **PLC-04** ★ — Meetings and events scheduling with automatic notifications  
   _Now:_ ✅ Available — Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14.
 - [x] **PLC-05** ★ — Instant alerts on new topics and updates  
   _Now:_ ✅ Available — Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14.
 - [x] **COL-01** — Discussion forums per program and per group  
   _Now:_ ✅ Available — Forums per programme and per group, membership following registrations; trainers moderate. Phase 14.
-- [ ] **COL-02** — Comments and notes on lessons and materials  
-  _Now:_ 🟡 Partial — Private notes and a discussion thread on every lesson; not on individual materials. Phase 14.
-- [ ] **COL-03** — Content rating and reviews by trainees and trainers  
-  _Now:_ 🟡 Partial — 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14.
-- [ ] **COL-04** — File sharing inside discussions  
-  _Now:_ 🟡 Partial — Attachments can be referenced in posts and comments; no upload widget yet. Phase 14.
+- [x] **COL-02** — Comments and notes on lessons and materials  
+  _Now:_ ✅ Available — Discussion threads and private notes on lessons and on every material (material_thread spaces, notes by subject); web materials window and app material screen with Discussion / My notes / Rating (MaterialSocialTest). Phase 19.
+- [x] **COL-03** — Content rating and reviews by trainees and trainers  
+  _Now:_ ✅ Available — One rating card (average, 5→1 spread, newest reviews, own rating) on lessons, materials, kits, library items and programmes on web and app; who may rate follows registration, audience and kit access; moderators hide with an audited reason, and edits keep a hidden review hidden (MaterialSocialTest, collaboration_test.dart). Phase 19.
+- [x] **COL-04** — File sharing inside discussions  
+  _Now:_ ✅ Available — Files and links inside posts and comments (up to 4 MB through the API, bigger straight to storage), readable only by people who may read the post or comment; galleries, viewer, players and file cards on web and app (SocialFilesTest). Phase 19.
 - [x] **COL-05** — Private trainers’ knowledge channel  
   _Now:_ ✅ Available — Private trainers' channel for active trainers, moderated by the training team. Phase 14.
 - [x] **COL-06** — Instant notifications on posts; permissions per role and level  
@@ -737,7 +737,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NTF-06 | Scheduled notifications and allowed send times / days | ✅ Available | One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11). | — |
 | NTF-07 ★ | Automatic event-driven notifications | ✅ Available | Event catalogue + scheduler jobs. | — |
 | NTF-08 | Manual notifications by admins | ✅ Available | Send dialog with audience picker. | — |
-| NTF-09 | Sound or visual alert on a new notification | 🟡 Partial | Web: pop-up with a soft chime (per-user switch, browser autoplay rules respected) and a pulsing bell; mobile: system push sound and an in-app preference. No custom local-notification sound on mobile yet (Phase 11). | 11 |
+| NTF-09 | Sound or visual alert on a new notification | ✅ Available | Web: pop-up with the soft chime (per-user switch) and pulsing bell. App: the TEDC chime on Android channel tedc_alerts / silent tedc_quiet chosen per person, APNs tedc_chime.caf, and a foreground chime that respects the preference and silent mode, with a preview (MaterialSocialTest, push_sound_test.dart). The iOS build was not run in this phase (no Xcode on the build machine). Phase 19. | — |
 | NTF-10 | Enable / disable types per user category; rules per program | ✅ Available | Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11). | — |
 | NTF-11 | Read / unread centre and sent log (recipient, date, type) | ✅ Available | Campaign tracking. | — |
 | NTF-12 | Delivery status sent / read / failed; export PDF / Excel | ✅ Available | Delivery tracking per person and channel (queued, sent, delivered, read, failed, skipped, with reasons), filters, drill-down by campaign, donut summary, Excel and PDF export in Arabic and English (Phase 11). | — |
@@ -761,7 +761,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | PLC-01 ★ | Create flexible communities by subject, interest or team | ✅ Available | Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14. | — |
 | PLC-02 ★ | Member roles (manager, moderator, member) with permissions | ✅ Available | Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14. | — |
-| PLC-03 ★ | Votes, polls, open questions, comments, file sharing | 🟡 Partial | Polls, questions, comments and reactions are built; file sharing is by attachment reference (name + link) — no upload widget in the composer yet. Phase 14. | 14 |
+| PLC-03 ★ | Votes, polls, open questions, comments, file sharing | ✅ Available | Polls, questions, comments, reactions and real file sharing: uploads checked by content (EXIF stripped, thumbnails), private signed links, limits in settings and per space; web composer with drag-drop/paste/progress/cancel and the app with file picker and camera (SocialFilesTest, collaboration_test.dart). Phase 19. | — |
 | PLC-04 ★ | Meetings and events scheduling with automatic notifications | ✅ Available | Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14. | — |
 | PLC-05 ★ | Instant alerts on new topics and updates | ✅ Available | Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14. | — |
 
@@ -840,9 +840,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | ID | Requirement | Status | Evidence / gap | Ph |
 |---|---|---|---|---:|
 | COL-01 | Discussion forums per program and per group | ✅ Available | Forums per programme and per group, membership following registrations; trainers moderate. Phase 14. | — |
-| COL-02 | Comments and notes on lessons and materials | 🟡 Partial | Private notes and a discussion thread on every lesson; not on individual materials. Phase 14. | 14 |
-| COL-03 | Content rating and reviews by trainees and trainers | 🟡 Partial | 1–5 stars and reviews with moderation for lessons, materials, kits, library items and programmes (API); the interface is on lessons only. Phase 14. | 14 |
-| COL-04 | File sharing inside discussions | 🟡 Partial | Attachments can be referenced in posts and comments; no upload widget yet. Phase 14. | 14 |
+| COL-02 | Comments and notes on lessons and materials | ✅ Available | Discussion threads and private notes on lessons and on every material (material_thread spaces, notes by subject); web materials window and app material screen with Discussion / My notes / Rating (MaterialSocialTest). Phase 19. | — |
+| COL-03 | Content rating and reviews by trainees and trainers | ✅ Available | One rating card (average, 5→1 spread, newest reviews, own rating) on lessons, materials, kits, library items and programmes on web and app; who may rate follows registration, audience and kit access; moderators hide with an audited reason, and edits keep a hidden review hidden (MaterialSocialTest, collaboration_test.dart). Phase 19. | — |
+| COL-04 | File sharing inside discussions | ✅ Available | Files and links inside posts and comments (up to 4 MB through the API, bigger straight to storage), readable only by people who may read the post or comment; galleries, viewer, players and file cards on web and app (SocialFilesTest). Phase 19. | — |
 | COL-05 | Private trainers’ knowledge channel | ✅ Available | Private trainers' channel for active trainers, moderated by the training team. Phase 14. | — |
 | COL-06 | Instant notifications on posts; permissions per role and level | ✅ Available | Notifications on posts, per-person preferences, permissions per role (`communities.*`, `forums.moderate`). Phase 14. | — |
 
@@ -956,7 +956,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | 22 | Flexible withdrawal rules | ✅ Available | WDR-01, WDR-02, WDR-03, WDR-04, WDR-05 — all available. |
 | 23 | Survey types, per-option analytics, Excel / PDF / Word export | ✅ Available | SRV-01, SRV-02, SRV-03, SRV-04, SRV-05, SRV-06, SRV-07, SRV-08 — all available. |
 | 24 | Kit archiving with versions linked to courses | ✅ Available | KIT-01 — all available. |
-| 25 | Professional learning communities | 🟡 Partial | Open: PLC-03 (partial); PLC-01, PLC-02, PLC-04, PLC-05 available. |
+| 25 | Professional learning communities | ✅ Available | PLC-01, PLC-02, PLC-03, PLC-04, PLC-05 — all available. |
 | 26 | Impact measurement with trainee & manager forms, pre/post comparison | ✅ Available | EVL-01, EVL-02, EVL-06 — all available. |
 | 27 | Exam variety, categorised banks, anti-cheating | 🟡 Partial | Open: EXM-10 (partial); EXM-01, EXM-03, EXM-04, EXM-05 available. |
 | 28 | Integrated notifications + multimedia scheduled announcements | 🟡 Partial | Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available. |

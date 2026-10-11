@@ -10,6 +10,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../community/subject_social.dart';
 
 class ProgramDetailScreen extends ConsumerStatefulWidget {
   const ProgramDetailScreen({super.key, required this.code});
@@ -115,6 +116,8 @@ class _ProgramDetailScreenState extends ConsumerState<ProgramDetailScreen> {
                 ]),
                 const SizedBox(height: 16),
                 Text(p.str('description'), style: const TextStyle(height: 1.7, color: AppColors.ink)),
+                const SizedBox(height: 12),
+                RatingCard(type: 'program', id: p.str('id')),
                 SectionTitle(s.t('programs.eligibility')),
                 eligibility.when(
                   loading: () => const LoadingView(),

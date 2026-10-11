@@ -14,6 +14,7 @@ import 'features/community/achievements_screen.dart';
 import 'features/community/assistant_screen.dart';
 import 'features/community/community_screens.dart';
 import 'features/community/questions_screen.dart';
+import 'features/community/subject_social.dart';
 import 'features/events/events_screen.dart';
 import 'features/help/help_screens.dart';
 import 'features/shop/shop_screens.dart';
@@ -97,6 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/communities', builder: (_, _) => const CommunitiesScreen()),
           GoRoute(path: '/communities/:id', builder: (_, s) => SpaceScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/communities/:id/posts/:postId', builder: (_, s) => PostScreen(id: s.pathParameters['postId']!)),
+          GoRoute(path: '/materials/:id', builder: (_, s) => MaterialScreen(id: s.pathParameters['id']!, title: s.uri.queryParameters['title'] ?? '', url: s.uri.queryParameters['url'] ?? '')),
           GoRoute(path: '/my-questions', builder: (_, _) => const QuestionsScreen()),
           GoRoute(path: '/achievements', builder: (_, _) => const AchievementsScreen()),
           GoRoute(path: '/assistant', builder: (_, _) => const AssistantScreen()),
