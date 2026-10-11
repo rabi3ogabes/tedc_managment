@@ -263,6 +263,19 @@ class ProfileScreen extends ConsumerWidget {
                       onSelectionChanged: (v) => ref.read(localeProvider.notifier).set(v.first),
                     ),
                   ),
+                  if (employee != null) ...[
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.view_agenda_outlined, color: AppColors.gold700),
+                      title: Text(s.t('profile.sessionsView')),
+                      trailing: SegmentedButton<String>(
+                        showSelectedIcon: false,
+                        segments: [ButtonSegment(value: 'list', label: Text(s.t('profile.viewList'))), ButtonSegment(value: 'boxes', label: Text(s.t('profile.viewBoxes')))],
+                        selected: {ref.watch(sessionsViewProvider)},
+                        onSelectionChanged: (v) => ref.read(sessionsViewProvider.notifier).set(v.first),
+                      ),
+                    ),
+                  ],
                   if (me?.isSchoolAdmin ?? false) ...[
                     const Divider(height: 1),
                     ListTile(

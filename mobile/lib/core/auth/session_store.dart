@@ -68,4 +68,8 @@ class SessionStore {
   Future<String?> readLocale() => _storage.read(key: _localeKey);
 
   Future<void> writeLocale(String code) => _storage.write(key: _localeKey, value: code);
+
+  Future<String?> readSessionsView() => _storage.read(key: 'sessions_view');
+
+  Future<void> writeSessionsView(String view) => _storage.write(key: 'sessions_view', value: view);
 }

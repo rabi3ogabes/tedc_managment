@@ -33,6 +33,24 @@ class LocaleController extends Notifier<Locale> {
 
 final localeProvider = NotifierProvider<LocaleController, Locale>(LocaleController.new);
 
+/// How «upcoming sessions» are shown on the home screen: `list` (as before) or `boxes`. The person's choice, kept on the phone.
+class SessionsViewController extends Notifier<String> {
+  @override
+  String build() {
+    ref.read(sessionStoreProvider).readSessionsView().then((v) {
+      if (v == 'boxes' || v == 'list') state = v!;
+    });
+    return 'list';
+  }
+
+  Future<void> set(String view) async {
+    state = view;
+    await ref.read(sessionStoreProvider).writeSessionsView(view);
+  }
+}
+
+final sessionsViewProvider = NotifierProvider<SessionsViewController, String>(SessionsViewController.new);
+
 /// Whether the animated intro (logo animation shown on every launch) has finished. The router keeps the intro on
 /// screen until it has, then continues to the home screen or the sign-in page.
 class IntroController extends Notifier<bool> {

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,11 +10,8 @@ import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 
-/// The delivery modes shown as tabs, in order.
-const programModes = ['in_person', 'online', 'hybrid'];
-
-/// «My upcoming programs» on the home screen: the programs the person is registered in, as a slider with one tab per
-/// delivery mode (in person · online · hybrid).
+/// «My upcoming programs» on the home screen: the programs the person is registered in, as a deck of cards. The first card
+/// is in front, the next two peek out behind it on the left and the right; swipe the front card away (or use the arrows) to bring the next one forward.
 class UpcomingProgramsSlider extends StatefulWidget {
   const UpcomingProgramsSlider({super.key, required this.items});
 
@@ -23,103 +22,135 @@ class UpcomingProgramsSlider extends StatefulWidget {
   State<UpcomingProgramsSlider> createState() => _UpcomingProgramsSliderState();
 }
 
-class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> {
-  String? _mode;
-  int _page = 0;
-  PageController _pages = PageController(viewportFraction: .88);
+class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with SingleTickerProviderStateMixin {
+  static const _height = 196.0;
 
-  List<Json> _of(String mode) => widget.items.where((r) => r.str('mode', 'in_person') == mode).toList();
+  int _top = 0;
+  double _dx = 0;
+  double _from = 0;
+  double _to = 0;
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 260))
+    ..addListener(() => setState(() => _dx = _from + (_to - _from) * Curves.easeOutCubic.transform(_c.value)));
 
   @override
   void dispose() {
-    _pages.dispose();
+    _c.dispose();
     super.dispose();
   }
 
-  /// A new controller per tab, so every tab starts on its first card (and a page change never resets the one in use).
-  void _pick(String mode) {
-    final old = _pages;
-    setState(() {
-      _mode = mode;
-      _page = 0;
-      _pages = PageController(viewportFraction: .88);
+  int get _count => widget.items.length;
+
+  void _run(double from, double to, [VoidCallback? done]) {
+    _from = from;
+    _to = to;
+    _c.duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 260);
+    _c.forward(from: 0).whenComplete(() => done?.call());
+  }
+
+  /// Sends the front card off to [side] (+1 right, -1 left) and brings the next (or, going back, the previous) one forward.
+  void _move(int step, double side, double width) {
+    if (_count < 2 || _c.isAnimating) return;
+    _run(_dx, side * width * 1.1, () {
+      if (!mounted) return;
+      setState(() {
+        _top = (_top + step) % _count;
+        if (_top < 0) _top += _count;
+        _dx = 0;
+      });
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) return const SizedBox.shrink();
+    if (_count == 0) return const SizedBox.shrink();
     final s = context.s;
-    // The first tab that has something is selected until the person picks another one.
-    final mode = _mode ?? programModes.firstWhere((m) => _of(m).isNotEmpty, orElse: () => programModes.first);
-    final shown = _of(mode);
+    final top = _top % _count;
+    final behind = [for (var k = math.min(2, _count - 1); k >= 1; k--) k];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SectionTitle(s.t('home.myPrograms')),
-      SizedBox(
-        height: 44,
-        child: ListView(scrollDirection: Axis.horizontal, children: [
-          for (final m in programModes)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 8),
-              child: ChoiceChip(
-                label: Text('${s.t('mode.$m')} · ${Fmt(s.languageCode).number(_of(m).length)}'),
-                selected: m == mode,
-                showCheckmark: false,
-                selectedColor: AppColors.navy900,
-                labelStyle: TextStyle(fontWeight: FontWeight.w700, color: m == mode ? Colors.white : AppColors.navy900),
-                onSelected: (_) => _pick(m),
+      LayoutBuilder(builder: (context, box) {
+        final width = box.maxWidth;
+        return SizedBox(
+          height: _height + 26,
+          child: Stack(clipBehavior: Clip.none, children: [
+            // The cards behind, drawn from the back: the third peeks out on the right, the second on the left.
+            for (final k in behind)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: _height,
+                child: Transform.translate(
+                  offset: Offset((k == 1 ? -1 : 1) * 14.0 * (1 - _progress(width) * (k == 1 ? 1 : 0)), k * 10.0 - _progress(width) * (k == 1 ? 10 : 0)),
+                  child: Transform.rotate(
+                    angle: (k == 1 ? -.035 : .035) * (1 - _progress(width) * (k == 1 ? 1 : 0)),
+                    child: Transform.scale(
+                      scale: 1 - k * .045 + _progress(width) * (k == 1 ? .045 : 0),
+                      child: IgnorePointer(child: _dim(_ProgramSlide(row: widget.items[(top + k) % _count]), k)),
+                    ),
+                  ),
+                ),
+              ),
+            // The front card follows the finger and tips a little as it goes.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: _height,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragStart: (_) => _c.stop(),
+                onHorizontalDragUpdate: _count < 2 ? null : (d) => setState(() => _dx += d.delta.dx),
+                onHorizontalDragEnd: _count < 2
+                    ? null
+                    : (d) {
+                        final v = d.primaryVelocity ?? 0;
+                        if (_dx.abs() > width * .28 || v.abs() > 700) {
+                          _move(1, (_dx != 0 ? _dx : v).sign, width);
+                        } else {
+                          _run(_dx, 0);
+                        }
+                      },
+                child: Transform.translate(
+                  offset: Offset(_dx, 0),
+                  child: Transform.rotate(angle: (_dx / width) * .18, child: _ProgramSlide(row: widget.items[top])),
+                ),
               ),
             ),
-        ]),
-      ),
-      const SizedBox(height: 12),
-      if (shown.isEmpty)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: AppColors.navy100.withValues(alpha: .5), borderRadius: BorderRadius.circular(18)),
-          child: Text(s.t('home.noModePrograms'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.muted)),
-        )
-      else ...[
-        // The neighbouring cards peek in from both sides; the one in the middle is the largest.
-        SizedBox(
-          height: 196,
-          child: PageView.builder(
-            key: ValueKey(mode),
-            controller: _pages,
-            itemCount: shown.length,
-            onPageChanged: (i) => setState(() => _page = i),
-            itemBuilder: (_, i) => AnimatedBuilder(
-              animation: _pages,
-              builder: (_, child) {
-                final page = _pages.hasClients && _pages.position.haveDimensions ? (_pages.page ?? _page.toDouble()) : _page.toDouble();
-                final scale = (1 - (page - i).abs() * .06).clamp(.9, 1.0);
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: _ProgramSlide(row: shown[i])),
+          ]),
+        );
+      }),
+      if (_count > 1)
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          IconButton(
+            tooltip: s.t('home.deckPrev'),
+            onPressed: () => _move(-1, 1, MediaQuery.sizeOf(context).width),
+            icon: Icon(Icons.chevron_left, color: AppColors.navy900),
+          ),
+          for (var i = 0; i < _count; i++)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: i == top ? 22 : 7,
+              height: 7,
+              decoration: BoxDecoration(color: i == top ? AppColors.navy900 : AppColors.navy100, borderRadius: BorderRadius.circular(99)),
             ),
+          IconButton(
+            tooltip: s.t('home.deckNext'),
+            onPressed: () => _move(1, -1, MediaQuery.sizeOf(context).width),
+            icon: Icon(Icons.chevron_right, color: AppColors.navy900),
           ),
-        ),
-        if (shown.length > 1)
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (var i = 0; i < shown.length; i++)
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: i == _page ? 22 : 7,
-                  height: 7,
-                  decoration: BoxDecoration(color: i == _page ? AppColors.navy900 : AppColors.navy100, borderRadius: BorderRadius.circular(99)),
-                ),
-            ]),
-          ),
-      ],
+        ]),
     ]);
   }
+
+  /// How far the front card has gone (0..1): the second card comes forward as it leaves.
+  double _progress(double width) => (_dx.abs() / (width * .6)).clamp(0.0, 1.0);
+
+  /// The cards behind are a little paler so the front one stands out.
+  Widget _dim(Widget child, int depth) => Opacity(opacity: depth == 1 ? .92 : .8, child: child);
 }
 
 IconData _modeIcon(String mode) => switch (mode) {

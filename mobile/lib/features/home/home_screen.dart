@@ -48,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
             final recommended = d.list('recommended');
 
             return CustomScrollView(slivers: [
-              SliverToBoxAdapter(child: _Header(name: d.str('greeting_name'), hours: fmt.number(stats.number('training_hours')), identity: d.obj('identity') ?? const {})),
+              SliverToBoxAdapter(child: _Header(name: d.str('greeting_name'), identity: d.obj('identity') ?? const {})),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
@@ -99,7 +99,16 @@ List<Widget> _card(String key, BuildContext context, WidgetRef ref, {required Js
           ? const []
           : [
               SectionTitle(s.t(current != null ? 'home.upcomingSessions' : 'home.nextSession')),
-              for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),
+              if (ref.watch(sessionsViewProvider) == 'boxes')
+                GridView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10, mainAxisExtent: 158),
+                  children: [for (final u in upcoming) _SessionBox(session: u, fmt: fmt)],
+                )
+              else
+                for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),
+              gap,
             ];
     case 'recommended':
       return [
@@ -154,10 +163,9 @@ class _OccasionBanner extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.name, required this.hours, this.identity = const {}});
+  const _Header({required this.name, this.identity = const {}});
 
   final String name;
-  final String hours;
 
   /// name, position, school, nationality {name, flag}, is_trainee, is_trainer.
   final Json identity;
@@ -194,24 +202,10 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 24),
               Text(s.t('home.welcome'), style: TextStyle(color: soft)),
               Text(name, style: TextStyle(color: ink, fontSize: 24, fontWeight: FontWeight.w800)),
-              if (identity.str('position').isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    [identity.str('position'), identity.str('school')].where((e) => e.isNotEmpty).join(' · '),
-                    style: TextStyle(color: flat ? AppColors.gold700 : AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
-                  ),
-                ),
               if (identity.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _IdentityChips(identity: identity, light: flat),
+                const SizedBox(height: 14),
+                _IdentityRow(identity: identity, light: flat),
               ],
-              const SizedBox(height: 16),
-              Row(children: [
-                Text(hours, style: TextStyle(color: flat ? AppColors.navy900 : AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
-                const SizedBox(width: 8),
-                Text(s.t('home.hours'), style: TextStyle(color: soft)),
-              ]),
             ]),
           ),
         ),
@@ -220,13 +214,11 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Nationality flag and the person's role(s): a trainee, a trainer, or both.
-class _IdentityChips extends StatelessWidget {
-  const _IdentityChips({required this.identity, this.light = false});
+/// Under the greeting: the role and position on the left, the nationality on the right (left and right as drawn, in both languages).
+class _IdentityRow extends StatelessWidget {
+  const _IdentityRow({required this.identity, required this.light});
 
   final Json identity;
-
-  /// On a light header the chips are drawn dark.
   final bool light;
 
   @override
@@ -235,8 +227,10 @@ class _IdentityChips extends StatelessWidget {
     final nationality = identity.obj('nationality');
     final flag = nationality?.str('flag') ?? '';
     final nation = nationality?.str('name') ?? '';
+    final position = [identity.str('position'), identity.str('school')].where((e) => e.isNotEmpty).join(' · ');
+    final ink = light ? AppColors.navy900 : Colors.white;
 
-    Widget chip({required Widget leading, required String label, bool gold = false}) => Container(
+    Widget pill({required Widget leading, required String label, bool gold = false}) => Container(
           padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 12, 6),
           decoration: BoxDecoration(
             color: gold ? AppColors.gold500 : (light ? AppColors.navy100 : Colors.white.withValues(alpha: .14)),
@@ -246,15 +240,30 @@ class _IdentityChips extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             leading,
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: gold ? AppColors.navy950 : (light ? AppColors.navy900 : Colors.white), fontWeight: FontWeight.w800, fontSize: 12.5)),
+            Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: gold ? AppColors.navy950 : ink, fontWeight: FontWeight.w800, fontSize: 12.5))),
           ]),
         );
 
-    return Wrap(spacing: 8, runSpacing: 8, children: [
-      if (nation.isNotEmpty) chip(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
-      if (identity.flag('is_trainee')) chip(leading: Icon(Icons.school_outlined, size: 16, color: light ? AppColors.navy900 : Colors.white), label: s.t('home.role.trainee')),
-      if (identity.flag('is_trainer')) chip(leading: Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
-    ]);
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              if (identity.flag('is_trainee')) pill(leading: Icon(Icons.school_outlined, size: 16, color: ink), label: s.t('home.role.trainee')),
+              if (identity.flag('is_trainer')) pill(leading: Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
+            ]),
+            if (position.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(position, maxLines: 2, overflow: TextOverflow.ellipsis, textDirection: s.isArabic ? TextDirection.rtl : TextDirection.ltr, style: TextStyle(color: light ? AppColors.gold700 : AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4)),
+              ),
+          ]),
+        ),
+        const SizedBox(width: 10),
+        if (nation.isNotEmpty) pill(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
+      ]),
+    );
   }
 }
 
@@ -333,6 +342,50 @@ class _NextSession extends StatelessWidget {
           ),
         ]),
       ),
+      ),
+    );
+  }
+}
+
+/// An upcoming session as a box: the day and time on top, then the program and the place.
+class _SessionBox extends StatelessWidget {
+  const _SessionBox({required this.session, required this.fmt});
+
+  final Json session;
+  final Fmt fmt;
+
+  @override
+  Widget build(BuildContext context) {
+    final starts = session.date('starts_at');
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: session.str('id').isEmpty ? null : () => context.push('/sessions/${session.str('id')}'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(14)),
+                child: Text('${starts?.day ?? ''}', style: TextStyle(color: AppColors.gold300, fontSize: 20, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(fmt.time(starts), style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w600))),
+            ]),
+            const SizedBox(height: 10),
+            Text(session.str('program'), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900, height: 1.25)),
+            const SizedBox(height: 2),
+            Text(session.str('title'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+            const Spacer(),
+            if (session.str('location').isNotEmpty)
+              Row(children: [
+                Icon(Icons.place_outlined, size: 14, color: AppColors.gold700),
+                const SizedBox(width: 4),
+                Expanded(child: Text(session.str('location'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, color: AppColors.muted))),
+              ]),
+          ]),
+        ),
       ),
     );
   }
