@@ -417,7 +417,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 | Finding | Where | Handled in |
 |---|---|---|
 | **The live site exposes administrator sign-in.** The repository is public, the shared demo password is in 20 tracked files (and in the web bundle), and production has `demo_accounts: true`, so its login page offers one-tap sign-in to every demo account including the super administrator. | `web/src/pages/public/Login.tsx`, `mobile/lib/features/auth/login_screen.dart`, `backend/scripts/vercel-build.php`, workflows, docs | Master prompt §9.0 (do first) |
-| Vercel deployments fail since `a4cff61` (10 Oct) while CI is green; production still serves `2761aab`. | Vercel build | Master prompt §9.2 |
+| Vercel deployments failed for three commits on 10 Oct while CI was green; they recovered on 11 Oct (`2b30bc2` deployed). Keep checking after every push. | Vercel build | Master prompt §9.2 |
 | A dated container-scan exception (CVE-2026-78669 in FrankenPHP's Go x/net; expires 10 Nov) needs written risk acceptance or an image upgrade. | `.trivyignore`, `docs/security/patching.md` | Master prompt §9.3 |
 | The monthly restore-test workflow will fail on 1 November because the Azure secrets do not exist yet. | `.github/workflows/restore-test.yml` | Master prompt §9.3b, Phase 26 §1.1 |
 | The app lets a learner "confirm" a PDF presentation without viewing it, bypassing the minimum-view and minimum-time-per-slide rules. | `mobile/lib/features/course/lesson_screen.dart` (`_SlidesLesson`) | Phase 21, linked fix a |

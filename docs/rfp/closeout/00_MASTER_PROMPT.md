@@ -170,7 +170,7 @@ Add a test that fails if the literal demo password appears in `web/src` or `mobi
 Run the full verification gate (§6.4) and record the numbers (tests, assertions, skipped) in `docs/rfp/closeout/BASELINE.md`. Fix anything red **before** Phase 19.
 
 ### 9.2 Production deploys
-On 10 October, Vercel deployments started failing from commit `a4cff61` onward, while CI was green and production kept serving `2761aab` from 7 October. Check the latest statuses:
+On 10 October, Vercel deployments failed for three commits (`a4cff61` onward) while CI was green. On 11 October they recovered (`67ac831` and `2b30bc2` deployed, `/ready` ok), so it was probably a transient platform problem. Confirm the latest status:
 `gh api repos/rabi3ogabes/tedc_managment/commits/$(git rev-parse HEAD)/statuses -q '.[] | .context+" "+.state+" "+.description'`.
 - If Vercel is still failing, you cannot read its build log: the CLI is not authenticated and the browser is not signed in. **Ask the user to paste the end of the Build Logs** (Vercel → Deployments → the failed one → Build Logs).
 - Then reproduce the failing step locally. The PHP build is `backend/scripts/vercel-build.php` (it never fails the build itself). The web build is `VITE_API_URL=/api/v1 npm run build --prefix web`. The function's `excludeFiles` are in `vercel.json`. Fix it, push, and confirm the deployment succeeds and `GET /api/v1/public/health/ready` returns `ok`.
