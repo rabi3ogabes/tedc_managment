@@ -19,6 +19,7 @@ class MainActivity : FlutterFragmentActivity() {
                     PushBootstrap.clear(applicationContext)
                     result.success(true)
                 }
+                "chime" -> result.success(runCatching { PushBootstrap.chime(applicationContext) }.getOrDefault(false))
                 else -> result.notImplemented()
             }
         }

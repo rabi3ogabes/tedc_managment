@@ -40,6 +40,22 @@ class CourseSocialController extends Controller
         return response()->json(['data' => ['id' => $n->id, 'body' => $n->body, 'created_at' => $n->created_at->toIso8601String()]], 201);
     }
 
+    public function subjectNotes(Request $request): JsonResponse
+    {
+        $d = $request->validate(['subject_type' => ['required', Rule::in(['lesson', 'material'])], 'subject_id' => ['required', 'uuid']]);
+        $rows = $this->course->notesFor($this->user(), $d['subject_type'], $d['subject_id'])->map(fn (LessonNote $n) => ['id' => $n->id, 'body' => $n->body, 'created_at' => $n->created_at->toIso8601String()]);
+
+        return response()->json(['data' => $rows->values()]);
+    }
+
+    public function addSubjectNote(Request $request): JsonResponse
+    {
+        $d = $request->validate(['subject_type' => ['required', Rule::in(['lesson', 'material'])], 'subject_id' => ['required', 'uuid'], 'body' => ['required', 'string', 'max:4000']]);
+        $n = $this->course->addNoteFor($this->user(), $d['subject_type'], $d['subject_id'], $d['body']);
+
+        return response()->json(['data' => ['id' => $n->id, 'body' => $n->body, 'created_at' => $n->created_at->toIso8601String()]], 201);
+    }
+
     public function deleteNote(LessonNote $lessonNote): JsonResponse
     {
         $this->course->deleteNote($this->user(), $lessonNote);
@@ -106,11 +122,13 @@ class CourseSocialController extends Controller
     public function ratingSummary(Request $request, string $type, string $id): JsonResponse
     {
         abort_unless(isset(RatingService::SUBJECTS[$type]) && Str::isUuid($id), 403);
-        $this->ratings->subject($type, $id);
+        $subject = $this->ratings->subject($type, $id);
+        $user = $this->user();
+        abort_unless($this->ratings->mayRead($user, $type, $subject), 403);
         $reviews = ContentRating::with('user:id,name,name_ar')->where(['subject_type' => $type, 'subject_id' => $id, 'status' => 'published'])->whereNotNull('review')->latest()->limit(20)->get()
             ->map(fn (ContentRating $r) => ['id' => $r->id, 'stars' => $r->stars, 'review' => $r->review, 'author' => $r->user?->displayName(), 'created_at' => $r->created_at->toIso8601String()]);
 
-        return response()->json(['data' => $this->ratings->summary($type, $id, $this->user()) + ['reviews' => $reviews->values()]]);
+        return response()->json(['data' => $this->ratings->summary($type, $id, $user) + ['reviews' => $reviews->values(), 'can_rate' => $this->ratings->mayRate($user, $type, $subject)]]);
     }
 
     public function rate(Request $request): JsonResponse
@@ -123,9 +141,9 @@ class CourseSocialController extends Controller
 
     public function moderateRating(Request $request, ContentRating $rating): JsonResponse
     {
-        $d = $request->validate(['status' => ['required', Rule::in(['hidden', 'published'])]]);
+        $d = $request->validate(['status' => ['required', Rule::in(['hidden', 'published'])], 'reason' => ['nullable', 'string', 'max:500']]);
 
-        return response()->json(['data' => ['status' => $this->ratings->moderate($rating, $d['status'])->status]]);
+        return response()->json(['data' => ['status' => $this->ratings->moderate($rating, $d['status'], $d['reason'] ?? null, $this->user(), $request->ip())->status]]);
     }
 
     /** Reviews waiting for a look (newest first) for the moderators. */
@@ -145,7 +163,8 @@ class CourseSocialController extends Controller
 
     public function saveSettings(Request $request): JsonResponse
     {
-        $d = $request->validate(['trainer_sla_hours' => ['integer', 'between:1,720'], 'daily_digest' => ['boolean'], 'digest_hour' => ['integer', 'between:0,23'], 'rating_reviews' => ['boolean']]);
+        $d = $request->validate(['trainer_sla_hours' => ['integer', 'between:1,720'], 'daily_digest' => ['boolean'], 'digest_hour' => ['integer', 'between:0,23'], 'rating_reviews' => ['boolean'],
+            'file_max_mb' => ['integer', 'between:1,50'], 'post_total_mb' => ['integer', 'between:1,200'], 'files_per_post' => ['integer', 'between:1,20'], 'files_per_comment' => ['integer', 'between:1,10']]);
 
         return response()->json(['data' => $this->settings->save($d, $this->user()->id)]);
     }

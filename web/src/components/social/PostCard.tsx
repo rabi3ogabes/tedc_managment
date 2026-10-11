@@ -9,11 +9,13 @@ import { fmt } from '@/lib/format'
 import { safeHtml } from '@/lib/safeHtml'
 import { toast } from '@/lib/toast'
 import { dialogs } from '@/lib/dialogs'
+import { AttachmentList, AttachmentTray } from './attachments'
+import { useAttachments, useDropZone, type FileLimits } from './useAttachments'
 
 const REACTIONS = ['like', 'insightful', 'thanks'] as const
 
 /** One post: body, reactions, poll, comments (loaded when opened), and the actions its reader may take. */
-export default function PostCard({ post, canModerate, onChanged, startOpen = false }: { post: any; canModerate: boolean; onChanged: () => void; startOpen?: boolean }) {
+export default function PostCard({ post, spaceId, limits, canModerate, onChanged, startOpen = false }: { post: any; spaceId: string; limits?: FileLimits; canModerate: boolean; onChanged: () => void; startOpen?: boolean }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(startOpen)
   const [detail, setDetail] = useState<any>(null)
@@ -22,6 +24,8 @@ export default function PostCard({ post, canModerate, onChanged, startOpen = fal
   const [report, setReport] = useState<{ type: 'post' | 'comment'; id: string } | null>(null)
   const [menu, setMenu] = useState(false)
   const [busy, setBusy] = useState(false)
+  const files = useAttachments(spaceId, limits, 'comment')
+  const drop = useDropZone(files)
 
   const load = async () => {
     try { setDetail((await api.get(`/social/posts/${post.id}`)).data.data) } catch (e) { toast(errorMessage(e), 'error') }
@@ -33,7 +37,8 @@ export default function PostCard({ post, canModerate, onChanged, startOpen = fal
   }
   const p = detail ?? post
   const react = (type: string, targetType: 'post' | 'comment' = 'post', id = post.id) => run(() => api.post('/social/reactions', { target_type: targetType, target_id: id, type }))
-  const send = () => run(() => api.post(`/social/posts/${post.id}/comments`, { body: comment, parent_id: reply }), () => { setComment(''); setReply(null) })
+  const send = () => run(() => api.post(`/social/posts/${post.id}/comments`, { body: comment, parent_id: reply, ...(files.payload.length ? { attachments: files.payload } : {}) }), () => { setComment(''); setReply(null); files.clear() })
+  const canSend = !files.uploading && !files.failed && (!!comment.trim() || files.payload.length > 0)
   const moderate = (action: string) => { setMenu(false); return run(() => api.post(`/social/posts/${post.id}/moderate`, { action })) }
 
   const comments: any[] = detail?.comments ?? []
@@ -71,7 +76,8 @@ export default function PostCard({ post, canModerate, onChanged, startOpen = fal
         </div>
       </header>
 
-      <div className="prose prose-sm mt-3 max-w-none text-ink" dangerouslySetInnerHTML={{ __html: safeHtml(p.body) }} />
+      {p.body && <div className="prose prose-sm mt-3 max-w-none text-ink" dangerouslySetInnerHTML={{ __html: safeHtml(p.body) }} />}
+      <AttachmentList items={p.attachments} />
       {p.poll && <Poll poll={p.poll} onVote={(ids) => run(() => api.post(`/social/polls/${p.poll.id}/vote`, { option_ids: ids }), () => toast(String(t('soc.post.voted'))))} />}
 
       <footer className="mt-4 flex flex-wrap items-center gap-2 border-t border-navy-50 pt-3">
@@ -99,12 +105,15 @@ export default function PostCard({ post, canModerate, onChanged, startOpen = fal
             </div>
           ))}
           {(!p.is_locked || canModerate) && (
-            <div className="flex items-start gap-2">
-              <textarea className="input min-h-11 flex-1" rows={reply ? 2 : 1} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={String(t(reply ? 'soc.post.reply' : 'soc.post.writeComment'))} />
-              <div className="flex flex-col gap-1">
-                <Button size="sm" variant="gold" loading={busy} disabled={!comment.trim()} onClick={send}>{t('soc.post.send')}</Button>
-                {reply && <Button size="sm" variant="ghost" onClick={() => setReply(null)}>{t('soc.common.cancel')}</Button>}
+            <div {...drop.props} className={clsx('space-y-2 rounded-2xl transition-shadow', drop.over && 'ring-2 ring-gold-400 ring-offset-2')}>
+              <div className="flex items-start gap-2">
+                <textarea className="input min-h-11 flex-1" rows={reply ? 2 : 1} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={String(t(reply ? 'soc.post.reply' : 'soc.post.writeComment'))} aria-label={String(t(reply ? 'soc.post.reply' : 'soc.post.writeComment'))} />
+                <div className="flex flex-col gap-1">
+                  <Button size="sm" variant="gold" loading={busy} disabled={!canSend} onClick={send}>{t('soc.post.send')}</Button>
+                  {reply && <Button size="sm" variant="ghost" onClick={() => setReply(null)}>{t('soc.common.cancel')}</Button>}
+                </div>
               </div>
+              <AttachmentTray state={files} compact />
             </div>
           )}
         </div>
@@ -126,7 +135,8 @@ function CommentRow({ c, post, onReply, onReact, onReport, onAccept, canAccept, 
         <span className="font-semibold text-navy-900">{c.author?.name}</span><span className="text-slate-400">{fmt.dateTime(c.created_at)}</span>
         {c.accepted && <Badge color="green"><CheckCircle2 className="size-3" />{t('soc.post.accepted')}</Badge>}
       </div>
-      {c.body === null ? <p className="mt-1 text-sm italic text-slate-400">{t('soc.post.hidden')}</p> : <div className="prose prose-sm mt-1 max-w-none" dangerouslySetInnerHTML={{ __html: safeHtml(c.body) }} />}
+      {c.body === null && !c.attachments?.length ? <p className="mt-1 text-sm italic text-slate-400">{t('soc.post.hidden')}</p> : c.body ? <div className="prose prose-sm mt-1 max-w-none" dangerouslySetInnerHTML={{ __html: safeHtml(c.body) }} /> : null}
+      <AttachmentList items={c.attachments} compact />
       <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-slate-500">
         <button type="button" onClick={onReact} className={clsx('hover:text-gold-700', c.my_reaction && 'text-gold-700')}>{t('soc.post.react.like')}{c.reactions > 0 && ` (${c.reactions})`}</button>
         {!post.is_locked && <button type="button" onClick={onReply} className="hover:text-gold-700">{t('soc.post.reply')}</button>}

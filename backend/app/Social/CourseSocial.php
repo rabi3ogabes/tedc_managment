@@ -7,6 +7,7 @@ use App\Models\CourseLesson;
 use App\Models\CourseQuestion;
 use App\Models\Employee;
 use App\Models\LessonNote;
+use App\Models\Material;
 use App\Models\Post;
 use App\Models\Program;
 use App\Models\Registration;
@@ -43,18 +44,38 @@ class CourseSocial
     /** @return Collection<int, LessonNote> */
     public function notes(User $user, CourseLesson $lesson)
     {
-        return LessonNote::where(['user_id' => $user->id, 'lesson_id' => $lesson->id])->latest()->get();
+        return $this->notesFor($user, 'lesson', $lesson->id);
     }
 
     public function addNote(User $user, CourseLesson $lesson, string $body): LessonNote
     {
-        $this->assertTakesPart($user, $lesson->program_id);
+        return $this->addNoteFor($user, 'lesson', $lesson->id, $body);
+    }
+
+    /**
+     * Private notes beside a lesson or a programme material (COL-02): only their author ever sees them.
+     *
+     * @return Collection<int, LessonNote>
+     */
+    public function notesFor(User $user, string $type, string $id)
+    {
+        return LessonNote::where(['user_id' => $user->id, 'subject_type' => $type, 'subject_id' => $id])->latest()->get();
+    }
+
+    public function addNoteFor(User $user, string $type, string $id, string $body): LessonNote
+    {
+        $subject = match ($type) {
+            'lesson' => CourseLesson::findOrFail($id),
+            'material' => Material::findOrFail($id),
+            default => abort(404),
+        };
+        $this->assertTakesPart($user, $subject->program_id);
         $body = trim(strip_tags($body));
         if ($body === '') {
             throw new BusinessRuleException('Write a note first.', 'empty');
         }
 
-        return LessonNote::create(['user_id' => $user->id, 'lesson_id' => $lesson->id, 'body' => Str::limit($body, 4000, '')]);
+        return LessonNote::create(['user_id' => $user->id, 'lesson_id' => $type === 'lesson' ? $subject->id : null, 'subject_type' => $type, 'subject_id' => $subject->id, 'body' => Str::limit($body, 4000, '')]);
     }
 
     public function deleteNote(User $user, LessonNote $note): void

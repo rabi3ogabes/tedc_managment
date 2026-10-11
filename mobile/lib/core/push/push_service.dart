@@ -14,6 +14,18 @@ import '../providers.dart';
 
 enum PushStatus { unsupported, notConfigured, denied, enabled, error }
 
+/// Plays the TEDC chime on the phone; answers false when the phone is on silent or Do Not Disturb.
+typedef ChimePlayer = Future<bool> Function();
+
+/// The native chime (Android `res/raw/tedc_chime`, iOS `tedc_chime.caf`). Tests replace it with a fake.
+final chimePlayerProvider = Provider<ChimePlayer>((ref) => () async {
+      try {
+        return await PushService._native.invokeMethod<bool>('chime') ?? false;
+      } on MissingPluginException {
+        return false;
+      }
+    });
+
 /// A notification received while the app is open (shown as an in-app banner).
 class PushMessage {
   const PushMessage({required this.title, this.body, required this.route});
@@ -41,6 +53,10 @@ class PushService {
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   String? _token;
   bool _starting = false;
+  bool? _soundOn;
+
+  /// The person's "sound" preference; read from the server once, then kept in step by the preferences screen.
+  set soundOn(bool value) => _soundOn = value;
 
   Stream<PushMessage> get messages => _messages.stream;
   ValueListenable<PushStatus> get status => _status;
@@ -104,6 +120,7 @@ class PushService {
           'projectId': options.projectId,
           'storageBucket': options.storageBucket,
           'channelName': (isArabic ? android['channel_name_ar'] : android['channel_name_en']) ?? 'TEDC',
+          'quietName': '${(isArabic ? android['channel_name_ar'] : android['channel_name_en']) ?? 'TEDC'} · ${isArabic ? 'بدون صوت' : 'silent'}',
         });
       }
 
@@ -120,7 +137,8 @@ class PushService {
       }
 
       step = 'token';
-      await messaging.setForegroundNotificationPresentationOptions(alert: false, badge: true, sound: true);
+      // In the foreground the app shows its own banner and plays the chime itself (see [foreground]).
+      await messaging.setForegroundNotificationPresentationOptions(alert: false, badge: true, sound: false);
       final token = await messaging.getToken();
       if (token == null || token.isEmpty) throw StateError('Firebase returned no device token');
 
@@ -154,6 +172,7 @@ class PushService {
     _retry = null;
     final token = _token;
     _token = null;
+    _soundOn = null;
     _status.value = PushStatus.notConfigured;
     if (token == null) return;
     try {
@@ -187,10 +206,30 @@ class PushService {
     if (_token != null) await _register(_token!);
   }
 
-  void _onForeground(RemoteMessage message) {
+  void _onForeground(RemoteMessage message) => unawaited(foreground(message));
+
+  /// A notification arrived while the app is open: show the banner, and play the chime when the person keeps the
+  /// sound on (the phone's silent mode is respected natively).
+  @visibleForTesting
+  Future<void> foreground(RemoteMessage message) async {
     final n = message.notification;
     if (n?.title == null) return;
     _messages.add(PushMessage(title: n!.title!, body: n.body, route: routeFor(message.data)));
+    if (!await _soundEnabled()) return;
+    try {
+      await _ref.read(chimePlayerProvider)();
+    } catch (_) {/* no sound is better than a crash */}
+  }
+
+  Future<bool> _soundEnabled() async {
+    if (_soundOn != null) return _soundOn!;
+    try {
+      final res = await _ref.read(apiProvider).get('/me/notification-preferences');
+      _soundOn = !(res is Map && res['data'] is Map && (res['data'] as Map)['sound'] == false);
+      return _soundOn!;
+    } catch (_) {
+      return true;
+    }
   }
 
   final _opened = StreamController<String>.broadcast();

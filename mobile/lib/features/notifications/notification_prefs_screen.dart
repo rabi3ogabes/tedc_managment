@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
+import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 
@@ -37,12 +38,19 @@ class _NotificationPrefsScreenState extends ConsumerState<NotificationPrefsScree
         'sound': _sound,
         'groups': [for (final e in _groups!.entries) {'group': e.key, 'channels': e.value}],
       });
+      ref.read(pushServiceProvider).soundOn = _sound ?? true;
       if (mounted) showSnack(context, context.s.t('prefs.saved'));
     } catch (e) {
       if (mounted) showSnack(context, e.toString(), error: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  /// Plays the TEDC chime so the person knows what a new notification sounds like.
+  Future<void> _preview() async {
+    final played = await ref.read(chimePlayerProvider)();
+    if (!played && mounted) showSnack(context, context.s.t('prefs.silentPhone'));
   }
 
   @override
@@ -60,7 +68,16 @@ class _NotificationPrefsScreenState extends ConsumerState<NotificationPrefsScree
           return ListView(padding: const EdgeInsets.all(16), children: [
             Text(s.t('prefs.hint')),
             const SizedBox(height: 8),
-            SwitchListTile(title: Text(s.t('prefs.sound')), value: _sound ?? true, onChanged: (v) => setState(() => _sound = v)),
+            SwitchListTile(title: Text(s.t('prefs.sound')), subtitle: Text(s.t('prefs.soundHint')), value: _sound ?? true, onChanged: (v) => setState(() => _sound = v)),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const ValueKey('chime-preview'),
+                onPressed: _preview,
+                icon: const Icon(Icons.play_circle_outline),
+                label: Text(s.t('prefs.preview')),
+              ),
+            ),
             for (final g in _groups!.entries)
               Card(
                 child: Padding(

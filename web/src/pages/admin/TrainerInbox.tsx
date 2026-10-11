@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { safeHtml } from '@/lib/safeHtml'
 import { toast } from '@/lib/toast'
+import { dialogs } from '@/lib/dialogs'
 
 type Tab = 'inbox' | 'reviews' | 'settings'
 
@@ -83,7 +84,12 @@ function InboxList() {
 function Reviews() {
   const { t } = useTranslation()
   const res = useGet<{ data: any[] }>('/social/reviews', undefined, { staleTime: 0 })
-  const set = async (id: string, status: string) => { try { await api.post(`/social/ratings/${id}/moderate`, { status }); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
+  const set = async (id: string, status: string) => {
+    const reason = status === 'hidden' ? await dialogs.prompt(String(t('soc.rating.hideReason'))) : ''
+    if (reason === null) return
+    if (status === 'hidden' && !reason.trim()) { toast(String(t('soc.rating.reasonNeeded')), 'error'); return }
+    try { await api.post(`/social/ratings/${id}/moderate`, { status, reason: reason || undefined }); toast(String(t(status === 'hidden' ? 'soc.rating.hidden' : 'soc.rating.shown'))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') }
+  }
   if (res.isLoading) return <Spinner />
   if (!res.data?.data.length) return <Empty text={String(t('soc.reviews.empty'))} />
   return (
@@ -117,6 +123,12 @@ function SettingsCard() {
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={f.daily_digest} onChange={(e) => setF({ ...f, daily_digest: e.target.checked })} />{t('soc.questions.digest')}</label>
       <Field label={t('soc.questions.digestHour')}><input type="number" min={0} max={23} className="input" value={f.digest_hour} onChange={(e) => setF({ ...f, digest_hour: Number(e.target.value) })} /></Field>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={f.rating_reviews} onChange={(e) => setF({ ...f, rating_reviews: e.target.checked })} />{t('soc.questions.reviews')}</label>
+      <fieldset className="grid gap-3 border-t border-navy-50 pt-4 sm:grid-cols-2">
+        <legend className="mb-1 text-sm font-semibold text-navy-900">{t('soc.files.limits')}</legend>
+        {([['file_max_mb', 1, 50], ['post_total_mb', 1, 200], ['files_per_post', 1, 20], ['files_per_comment', 1, 10]] as const).map(([k, min, max]) => (
+          <Field key={k} label={t(`soc.files.set.${k}`)}><input type="number" min={min} max={max} className="input" value={f[k] ?? ''} onChange={(e) => setF({ ...f, [k]: Number(e.target.value) })} /></Field>
+        ))}
+      </fieldset>
       <div className="flex justify-end"><Button variant="gold" loading={busy} onClick={save}>{t('soc.common.save')}</Button></div>
     </Card>
   )

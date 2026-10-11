@@ -136,7 +136,7 @@ class AppThemes
         }
         $t = $this->effective($id);
         // The look's own card order applies until the administrator sets one for the whole app.
-        $t['home'] = $home->customised() ? null : $t['home'];
+        $t['home'] = $home->customised(Role::EMPLOYEE) ? null : $t['home'];
 
         return $t;
     }

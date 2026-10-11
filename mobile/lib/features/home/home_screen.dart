@@ -48,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
             final recommended = d.list('recommended');
 
             return CustomScrollView(slivers: [
-              SliverToBoxAdapter(child: _Header(name: d.str('greeting_name'), identity: d.obj('identity') ?? const {})),
+              SliverToBoxAdapter(child: HomeHeader(name: d.str('greeting_name'), identity: d.obj('identity') ?? const {})),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
@@ -162,10 +162,13 @@ class _OccasionBanner extends StatelessWidget {
   }
 }
 
-class _Header extends StatelessWidget {
-  const _Header({required this.name, this.identity = const {}});
+class HomeHeader extends StatelessWidget {
+  const HomeHeader({super.key, required this.name, this.identity = const {}, this.roleLabel});
 
   final String name;
+
+  /// The name of the role the person works in, shown when they are neither trainee nor trainer (an administrator, for example).
+  final String? roleLabel;
 
   /// name, position, school, nationality {name, flag}, is_trainee, is_trainer.
   final Json identity;
@@ -204,7 +207,7 @@ class _Header extends StatelessWidget {
               Text(name, style: TextStyle(color: ink, fontSize: 24, fontWeight: FontWeight.w800)),
               if (identity.isNotEmpty) ...[
                 const SizedBox(height: 14),
-                _IdentityRow(identity: identity, light: flat),
+                IdentityRow(identity: identity, light: flat, roleLabel: roleLabel),
               ],
             ]),
           ),
@@ -214,12 +217,13 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Under the greeting: the role and position on the left, the nationality on the right (left and right as drawn, in both languages).
-class _IdentityRow extends StatelessWidget {
-  const _IdentityRow({required this.identity, required this.light});
+/// Under the greeting: the nationality on the left, the role and position on the right (left and right as drawn, in both languages).
+class IdentityRow extends StatelessWidget {
+  const IdentityRow({super.key, required this.identity, required this.light, this.roleLabel});
 
   final Json identity;
   final bool light;
+  final String? roleLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -247,21 +251,23 @@ class _IdentityRow extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // The nationality on the left, the role and position on the right (as drawn, in both languages).
+        if (nation.isNotEmpty) pill(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
+        const SizedBox(width: 10),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Wrap(spacing: 8, runSpacing: 8, children: [
+          child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Wrap(alignment: WrapAlignment.end, spacing: 8, runSpacing: 8, children: [
               if (identity.flag('is_trainee')) pill(leading: Icon(Icons.school_outlined, size: 16, color: ink), label: s.t('home.role.trainee')),
               if (identity.flag('is_trainer')) pill(leading: Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
+              if (!identity.flag('is_trainee') && !identity.flag('is_trainer') && (roleLabel ?? '').isNotEmpty) pill(leading: Icon(Icons.verified_user_outlined, size: 16, color: ink), label: roleLabel!),
             ]),
             if (position.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(position, maxLines: 2, overflow: TextOverflow.ellipsis, textDirection: s.isArabic ? TextDirection.rtl : TextDirection.ltr, style: TextStyle(color: light ? AppColors.gold700 : AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4)),
+                child: Text(position, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.end, textDirection: s.isArabic ? TextDirection.rtl : TextDirection.ltr, style: TextStyle(color: light ? AppColors.gold700 : AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4)),
               ),
           ]),
         ),
-        const SizedBox(width: 10),
-        if (nation.isNotEmpty) pill(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
       ]),
     );
   }

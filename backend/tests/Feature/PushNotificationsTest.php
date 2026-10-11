@@ -108,7 +108,7 @@ class PushNotificationsTest extends TestCase
         Http::assertSent(fn (Request $r) => $r->url() === self::FCM && $r['message']['token'] === str_repeat('a', 40)
             && $r['message']['notification']['title'] === 'Your certificate is ready' && $r->hasHeader('Authorization', 'Bearer ya29.test'));
         Http::assertSent(fn (Request $r) => $r->url() === self::FCM && $r['message']['notification']['title'] === 'تم إصدار شهادتك'
-            && $r['message']['data']['type'] === 'certificate.issued' && $r['message']['android']['notification']['channel_id'] === 'tedc_general');
+            && $r['message']['data']['type'] === 'certificate.issued' && $r['message']['android']['notification']['channel_id'] === 'tedc_alerts');   // the TEDC chime by default (NTF-09)
 
         $this->assertDatabaseHas('push_logs', ['type' => 'certificate.issued', 'devices' => 2, 'delivered' => 1, 'failed' => 1, 'pruned' => 1]);
         $this->assertSame(1, DeviceToken::count());

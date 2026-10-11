@@ -1,5 +1,6 @@
 import ExternalCourseModal from './ExternalCourseModal'
 import MyProgress from './MyProgress'
+import clsx from 'clsx'
 import { CalendarPlus, Check, Download, FileText, PlayCircle, QrCode, Star } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
@@ -11,6 +12,7 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import type { Registration } from '@/lib/types'
+import MaterialSocial from '@/components/social/MaterialSocial'
 
 type Material = { id: string; title: string; type: string; url?: string; has_file: boolean }
 
@@ -113,17 +115,37 @@ function EvaluationModal({ registration, onClose }: { registration: Registration
 function MaterialsModal({ registration, onClose }: { registration: Registration; onClose: () => void }) {
   const { t } = useTranslation()
   const { data, isLoading } = useGet<{ data: Material[] }>(`/me/registrations/${registration.id}/materials`)
+  const [picked, setPicked] = useState<Material | null>(null)
   const open = async (m: Material) => {
-    if (m.url) return window.open(m.url, '_blank', 'noopener')
-    const { data: res } = await api.get(`/me/materials/${m.id}/download`)
-    window.open(res.data.url, '_blank', 'noopener')
+    try {
+      if (m.url) { window.open(m.url, '_blank', 'noopener,noreferrer'); return }
+      const { data: res } = await api.get(`/me/materials/${m.id}/download`)
+      window.open(res.data.url, '_blank', 'noopener,noreferrer')
+    } catch (e) { toast(errorMessage(e), 'error') }
   }
   return (
-    <Modal open onClose={onClose} title={t('admin.programs.materials')}>
+    <Modal open onClose={onClose} title={t('admin.programs.materials')} wide>
       {isLoading ? <Spinner /> : !data?.data.length ? <Empty /> : (
-        <ul className="space-y-2">{data.data.map((m) => (
-          <li key={m.id}><button onClick={() => open(m)} className="flex w-full items-center gap-3 rounded-xl bg-ivory p-3 text-start text-sm font-semibold text-navy-800 hover:bg-gold-100"><FileText className="size-5 text-gold-600" />{m.title}<span className="ms-auto text-xs text-slate-400">{m.type}</span></button></li>
-        ))}</ul>
+        <div className="grid gap-4 md:grid-cols-[minmax(0,15rem)_1fr]">
+          <ul className={clsx('space-y-2', picked && 'hidden md:block')}>{data.data.map((m) => (
+            <li key={m.id}>
+              <button type="button" onClick={() => setPicked(m)} aria-current={picked?.id === m.id}
+                className={clsx('flex w-full items-center gap-3 rounded-xl p-3 text-start text-sm font-semibold text-navy-800 transition-colors', picked?.id === m.id ? 'bg-gold-100 ring-1 ring-gold-300' : 'bg-ivory hover:bg-gold-50')}>
+                <FileText className="size-5 shrink-0 text-gold-600" /><bdi className="min-w-0 flex-1 truncate">{m.title}</bdi>
+              </button>
+            </li>
+          ))}</ul>
+          {picked ? (
+            <div className="min-w-0 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <button type="button" onClick={() => setPicked(null)} className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-navy-50 md:hidden">{t('soc.space.back')}</button>
+                <h4 className="min-w-0 flex-1 truncate font-display text-lg font-bold text-navy-900"><bdi>{picked.title}</bdi></h4>
+                <Button size="sm" variant="outline" icon={<Download className="size-4" />} onClick={() => void open(picked)}>{t('soc.material.open')}</Button>
+              </div>
+              <MaterialSocial key={picked.id} materialId={picked.id} />
+            </div>
+          ) : <p className="hidden self-center text-center text-sm text-slate-500 md:block">{t('soc.material.pick')}</p>}
+        </div>
       )}
     </Modal>
   )

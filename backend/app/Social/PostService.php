@@ -29,7 +29,7 @@ class PostService
 
     public const REACTIONS = ['like', 'insightful', 'thanks'];
 
-    public function __construct(private readonly SpaceService $spaces, private readonly NotificationService $notifications) {}
+    public function __construct(private readonly SpaceService $spaces, private readonly NotificationService $notifications, private readonly SocialFiles $files) {}
 
     /** @param  array<string, mixed>  $d */
     public function create(Space $space, User $by, array $d): Post
@@ -46,16 +46,19 @@ class PostService
         }
         $this->throttle($by, 'post', 12, 600);
         $body = HtmlSanitizer::clean((string) ($d['body'] ?? ''));
-        if (trim(strip_tags($body)) === '' && $kind !== 'poll') {
+        // A post may be only a file or a link, but never completely empty.
+        if (trim(strip_tags($body)) === '' && $kind !== 'poll' && empty($d['attachments'])) {
             throw new BusinessRuleException('Write something first.', 'empty');
         }
         $hold = ($space->settings['moderation'] ?? false) && ! $this->spaces->canModerate($space, $by);
+        $files = $this->files->prepare($by, $space, array_values($d['attachments'] ?? []), 'post');
 
-        return DB::transaction(function () use ($space, $by, $d, $kind, $body, $hold) {
+        return DB::transaction(function () use ($space, $by, $d, $kind, $body, $hold, $files) {
             $post = Post::create([
                 'space_id' => $space->id, 'author_id' => $by->id, 'kind' => $kind, 'title' => isset($d['title']) ? Str::limit(strip_tags((string) $d['title']), 250, '') : null, 'body' => $body,
-                'attachments' => ($space->settings['allow_files'] ?? true) ? ($d['attachments'] ?? null) : null, 'status' => $hold ? 'hidden' : 'published',
+                'attachments' => $files['items'] ?: null, 'status' => $hold ? 'hidden' : 'published',
             ]);
+            $this->files->attach($files['uploads'], 'post', $post->id);
             if ($kind === 'poll') {
                 $opts = collect($d['poll']['options'] ?? [])->map(fn ($t) => trim(strip_tags((string) $t)))->filter()->values();
                 if ($opts->count() < 2 || $opts->count() > 10) {
@@ -143,11 +146,13 @@ class PostService
         }
         $this->throttle($by, 'comment', 30, 600);
         $body = HtmlSanitizer::clean((string) ($d['body'] ?? ''));
-        if (trim(strip_tags($body)) === '') {
+        if (trim(strip_tags($body)) === '' && empty($d['attachments'])) {
             throw new BusinessRuleException('Write something first.', 'empty');
         }
         $parent = ! empty($d['parent_id']) && Str::isUuid($d['parent_id']) ? Comment::where('post_id', $post->id)->find($d['parent_id']) : null;
-        $comment = Comment::create(['post_id' => $post->id, 'parent_id' => $parent?->parent_id ?? $parent?->id, 'author_id' => $by->id, 'body' => $body, 'attachments' => $d['attachments'] ?? null]);
+        $files = $this->files->prepare($by, $space, array_values($d['attachments'] ?? []), 'comment');
+        $comment = Comment::create(['post_id' => $post->id, 'parent_id' => $parent?->parent_id ?? $parent?->id, 'author_id' => $by->id, 'body' => $body, 'attachments' => $files['items'] ?: null]);
+        $this->files->attach($files['uploads'], 'comment', $comment->id);
         $post->increment('comments_count');
         $notify = collect([$post->author_id, $parent?->author_id])->filter()->unique()->reject(fn ($id) => $id === $by->id);
         $this->notifications->broadcast($notify, 'space.comment', ['ar' => 'تعليق جديد من '.$by->displayName('ar'), 'en' => 'New comment from '.$by->displayName('en')], ['ar' => Str::limit(strip_tags($body), 120), 'en' => Str::limit(strip_tags($body), 120)],

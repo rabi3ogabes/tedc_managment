@@ -3,9 +3,9 @@
 namespace App\Services\Library;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\ContentRating;
 use App\Models\Employee;
 use App\Models\LibraryItem;
-use App\Models\LibraryReview;
 use App\Models\LibraryShelf;
 use App\Models\User;
 use App\Services\Assessment\ArabicText;
@@ -90,7 +90,8 @@ class LibraryService
     public function present(LibraryItem $i, User $user): array
     {
         $r = $i->rights ?? [];
-        $stars = LibraryReview::where('item_id', $i->id);
+        // Library ratings live with every other rating (content_ratings, subject "library"); hidden reviews do not count.
+        $stars = ContentRating::where(['subject_type' => 'library', 'subject_id' => $i->id, 'status' => 'published']);
 
         return ['id' => $i->id, 'type' => $i->type, 'title_ar' => $i->title_ar, 'title_en' => $i->title_en, 'description_ar' => $i->description_ar, 'description_en' => $i->description_en, 'authors' => $i->authors ?? [], 'publisher' => $i->publisher, 'isbn' => $i->isbn, 'year' => $i->year, 'language' => $i->language, 'subjects' => $i->subjects ?? [],
             'cover_url' => $i->cover_path ? $this->storage->publicUrl($i->cover_path) : null, 'source' => $i->source, 'url' => $i->source !== 'local' || ! $i->file_path ? $i->url : null, 'has_file' => (bool) $i->file_path, 'status' => $i->status, 'views' => $i->views, 'downloads' => $i->downloads,
@@ -121,11 +122,11 @@ class LibraryService
         return ['url' => $this->storage->temporaryUrl('materials', $i->file_path, 600), 'name' => $i->title_en ?: $i->title_ar];
     }
 
-    public function review(LibraryItem $i, User $user, int $stars, ?string $text): LibraryReview
+    public function review(LibraryItem $i, User $user, int $stars, ?string $text): ContentRating
     {
         abort_unless($this->canView($i, $user), 404);
 
-        return LibraryReview::updateOrCreate(['item_id' => $i->id, 'user_id' => $user->id], ['stars' => $stars, 'review' => $text]);
+        return ContentRating::updateOrCreate(['subject_type' => 'library', 'subject_id' => $i->id, 'user_id' => $user->id], ['stars' => $stars, 'review' => $text ? trim(strip_tags($text)) : null, 'status' => 'published']);
     }
 
     public function shelf(LibraryItem $i, User $user, bool $on, ?float $progress = null, ?string $position = null): void

@@ -1,4 +1,7 @@
 import { api } from '@/lib/api'
+import { putFile, type SignedUpload as Signed } from '@/lib/upload'
+
+export { putFile }
 
 export type LessonType = 'video' | 'presentation' | 'quiz' | 'survey' | 'article' | 'package' | 'lti' | 'external'
 
@@ -26,28 +29,6 @@ export type Course = {
   settings: { has_course: boolean; sequential: boolean; completion_percent: number; auto_certificate: boolean }
   modules: Module[]
   totals: { modules: number; lessons: number; published: number; video_seconds: number; by_type: Record<string, number> }
-}
-
-type Signed = { path: string; url: string; method: 'PUT'; mode: 'form' | 'raw'; headers: Record<string, string> }
-
-/** Sends a big file straight to storage with a progress callback (the API cannot take large bodies on serverless hosting). */
-export function putFile(signed: Signed, file: File, onProgress: (percent: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open(signed.method, signed.url)
-    Object.entries(signed.headers).forEach(([k, v]) => xhr.setRequestHeader(k, v))
-    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100))
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload failed (${xhr.status})`)))
-    xhr.onerror = () => reject(new Error('Upload failed'))
-    if (signed.mode === 'form') {
-      const form = new FormData()
-      form.append('cacheControl', '3600')
-      form.append('', file)
-      xhr.send(form)
-    } else {
-      xhr.send(file)
-    }
-  })
 }
 
 /** Reads the length of a video file in the browser. */

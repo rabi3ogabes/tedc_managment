@@ -7,7 +7,8 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import SpacePanel from './SpacePanel'
-import StarRating from './StarRating'
+import RatingSummary from './RatingSummary'
+import SubjectNotes from './SubjectNotes'
 
 type Tab = 'rate' | 'notes' | 'ask' | 'discuss'
 
@@ -20,65 +21,11 @@ export default function LessonSocial({ lessonId, programId }: { lessonId: string
   return (
     <Card>
       <Tabs<Tab> value={tab} onChange={setTab} tabs={tabs} />
-      {tab === 'rate' && <Rate lessonId={lessonId} />}
-      {tab === 'notes' && <Notes lessonId={lessonId} />}
+      {tab === 'rate' && <RatingSummary type="lesson" id={lessonId} />}
+      {tab === 'notes' && <SubjectNotes type="lesson" id={lessonId} />}
       {tab === 'ask' && <Ask lessonId={lessonId} programId={programId} />}
       {tab === 'discuss' && <Discuss lessonId={lessonId} />}
     </Card>
-  )
-}
-
-function Rate({ lessonId }: { lessonId: string }) {
-  const { t } = useTranslation()
-  const res = useGet<{ data: any }>(`/social/ratings/lesson/${lessonId}`, undefined, { staleTime: 0 })
-  const [stars, setStars] = useState<number | null>(null)
-  const [review, setReview] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  if (res.isLoading) return <Spinner />
-  const d = res.data?.data
-  const cur = stars ?? d?.mine?.stars ?? 0
-  const submit = async () => {
-    setBusy(true)
-    try { await api.post('/social/ratings', { subject_type: 'lesson', subject_id: lessonId, stars: cur, review: (review ?? d?.mine?.review) || undefined }); toast(String(t('soc.lesson.ratingSaved'))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
-  }
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <StarRating value={d?.average ?? 0} size={22} />
-        <span className="text-sm text-slate-500">{d?.count ? `${t('soc.lesson.average')}: ${d.average} · ${t('soc.lesson.ratings', { n: d.count })}` : t('soc.lesson.noRatings')}</span>
-      </div>
-      <div className="flex flex-wrap items-start gap-3 border-t border-navy-50 pt-3">
-        <StarRating value={cur} onChange={setStars} size={26} />
-        <input className="input min-w-52 flex-1" value={review ?? d?.mine?.review ?? ''} onChange={(e) => setReview(e.target.value)} placeholder={String(t('soc.lesson.yourReview'))} maxLength={1000} />
-        <Button variant="gold" loading={busy} disabled={!cur} onClick={submit}>{t('soc.common.save')}</Button>
-      </div>
-      {(d?.reviews?.length ?? 0) > 0 && (
-        <ul className="space-y-2 border-t border-navy-50 pt-3">
-          {d.reviews.map((r: any) => <li key={r.id} className="text-sm"><StarRating value={r.stars} size={14} /> <span className="ms-2 text-xs text-slate-400">{r.author}</span><p className="text-ink">{r.review}</p></li>)}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-function Notes({ lessonId }: { lessonId: string }) {
-  const { t } = useTranslation()
-  const res = useGet<{ data: any[] }>('/social/lesson-notes', { lesson_id: lessonId }, { staleTime: 0 })
-  const [body, setBody] = useState('')
-  const [busy, setBusy] = useState(false)
-  const add = async () => {
-    setBusy(true)
-    try { await api.post('/social/lesson-notes', { lesson_id: lessonId, body }); setBody(''); toast(String(t('soc.lesson.noteSaved'))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
-  }
-  const del = async (id: string) => { try { await api.delete(`/social/lesson-notes/${id}`); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  return (
-    <div className="space-y-3">
-      <p className="text-xs text-slate-500">{t('soc.lesson.notesHint')}</p>
-      <div className="flex items-start gap-2"><textarea className="input min-h-20 flex-1" value={body} onChange={(e) => setBody(e.target.value)} maxLength={4000} /><Button variant="gold" loading={busy} disabled={!body.trim()} onClick={add}>{t('soc.lesson.addNote')}</Button></div>
-      {res.isLoading ? <Spinner /> : (res.data?.data.length ?? 0) === 0 ? <p className="text-sm text-slate-400">{t('soc.lesson.noNotes')}</p> : (
-        <ul className="space-y-2">{res.data!.data.map((n) => <li key={n.id} className="flex items-start justify-between gap-3 rounded-xl bg-gold-50/60 p-3 text-sm"><span className="whitespace-pre-line">{n.body}</span><button type="button" className="text-xs text-slate-400 hover:text-danger" onClick={() => del(n.id)}>{t('soc.common.delete')}</button></li>)}</ul>
-      )}
-    </div>
   )
 }
 

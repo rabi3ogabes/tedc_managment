@@ -2,6 +2,7 @@
 import { BookMarked, BookOpen, Download, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import RatingSummary from '@/components/social/RatingSummary'
 import { Badge, Button, Card, Empty, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -60,13 +61,10 @@ function ItemModal({ id, onClose }: { id: string; onClose: () => void }) {
   const ar = i18n.language === 'ar'
   const res = useGet<{ data: any }>(`/me/library/${id}`, undefined, { staleTime: 0 })
   const [reader, setReader] = useState<any | null>(null)
-  const [stars, setStars] = useState(0)
-  const [text, setText] = useState('')
   const d = res.data?.data
   const read = async () => { try { const { data } = await api.get(`/me/library/${id}/read`); data.data.external ? window.open(data.data.url, '_blank', 'noopener') : setReader(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
   const dl = async () => { try { const { data } = await api.get(`/me/library/${id}/download`); window.open(data.data.url, '_blank', 'noopener') } catch (e) { toast(errorMessage(e), 'error') } }
   const shelf = async () => { try { await api.put(`/me/library/${id}/shelf`, { on: !d.on_shelf }); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  const rate = async () => { try { await api.post(`/me/library/${id}/review`, { stars, review: text || null }); toast('✓'); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   return (
     <Modal wide open onClose={onClose} title={d ? (ar ? d.title_ar : d.title_en || d.title_ar) : '…'}>
       {!d ? <Spinner /> : reader ? (
@@ -81,9 +79,7 @@ function ItemModal({ id, onClose }: { id: string; onClose: () => void }) {
           <p className="text-sm text-slate-700">{ar ? d.description_ar : d.description_en || d.description_ar}</p>
           <div className="flex flex-wrap gap-2"><Button variant="gold" icon={<BookOpen className="size-4" />} onClick={() => void read()}>{t('content.library.read')}</Button>{d.has_file && d.rights.download && <Button variant="outline" icon={<Download className="size-4" />} onClick={() => void dl()}>{t('content.library.download')}</Button>}<Button variant="outline" onClick={() => void shelf()}>{d.on_shelf ? t('content.library.onShelf') : t('content.library.add')}</Button></div>
           {(d.rights.owner || !d.rights.download) && <div className="rounded-xl bg-ivory p-3 text-xs text-slate-600"><b>{t('content.library.rights')}:</b> {d.rights.owner} {d.rights.licence && `· ${d.rights.licence}`} {!d.rights.download && `· ${t('content.library.noDownload')}`}</div>}
-          <div className="space-y-2 border-t border-navy-50 pt-3"><div className="flex gap-1">{[1, 2, 3, 4, 5].map((n) => <button key={n} type="button" aria-label={`${n}`} onClick={() => setStars(n)}><Star className={`size-6 ${n <= stars ? 'fill-gold-500 text-gold-500' : 'text-slate-300'}`} /></button>)}</div>
-            <div className="flex gap-2"><input className="input" placeholder={t('content.library.review')} value={text} onChange={(e) => setText(e.target.value)} /><Button size="sm" variant="outline" disabled={!stars} onClick={() => void rate()}>{t('content.library.send')}</Button></div>
-            {(d.review_list ?? []).map((r: any, i: number) => <p key={i} className="text-sm text-slate-600">{'★'.repeat(r.stars)} {r.review}</p>)}</div>
+          <RatingSummary type="library" id={id} className="border-t border-navy-50 pt-4" />
         </div>)}
     </Modal>
   )
@@ -101,7 +97,19 @@ function Shared() {
   const ar = i18n.language === 'ar'
   const res = useGet<{ data: any[] }>('/me/shared', undefined, { staleTime: 0 })
   const [open, setOpen] = useState<string | null>(null)
+  const [kit, setKit] = useState<string | null>(null)
   return res.isLoading ? <Spinner /> : !res.data?.data.length ? <Card><Empty text={t('content.sharing.sharedEmpty')} /></Card> : (
-    <div className="space-y-2">{res.data.data.map((s) => <Card key={s.id} className="flex items-center gap-3"><Badge>{s.resource_type}</Badge><span className="flex-1 font-semibold">{ar ? s.title_ar : s.title_en || s.title_ar}</span>{s.view_only && <Badge color="gray">{t('content.library.viewOnly')}</Badge>}{s.resource_type === 'library_item' && <Button size="sm" variant="outline" onClick={() => setOpen(s.resource_id)}>{t('content.library.open')}</Button>}</Card>)}{open && <ItemModal id={open} onClose={() => setOpen(null)} />}</div>
+    <div className="space-y-2">
+      {res.data.data.map((s) => (
+        <Card key={s.id} className="flex flex-wrap items-center gap-3">
+          <Badge>{s.resource_type}</Badge><bdi className="min-w-0 flex-1 truncate font-semibold">{ar ? s.title_ar : s.title_en || s.title_ar}</bdi>
+          {s.view_only && <Badge color="gray">{t('content.library.viewOnly')}</Badge>}
+          {s.resource_type === 'library_item' && <Button size="sm" variant="outline" onClick={() => setOpen(s.resource_id)}>{t('content.library.open')}</Button>}
+          {s.resource_type === 'kit_file' && s.kit_id && <Button size="sm" variant="outline" icon={<Star className="size-4" />} onClick={() => setKit(s.kit_id)}>{t('soc.rating.rateKit')}</Button>}
+        </Card>
+      ))}
+      {open && <ItemModal id={open} onClose={() => setOpen(null)} />}
+      {kit && <Modal open onClose={() => setKit(null)} title={t('soc.rating.rateKit')}><RatingSummary type="kit" id={kit} /></Modal>}
+    </div>
   )
 }

@@ -12,6 +12,7 @@ use App\Models\Space;
 use App\Models\User;
 use App\Services\FeatureSettings;
 use App\Social\PostService;
+use App\Social\SocialFiles;
 use App\Social\SpaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ use Illuminate\Validation\Rule;
 /** The conversation inside a space: posts, comments, reactions, polls, accepted answers, reports and the moderators' queue. */
 class PostController extends Controller
 {
-    public function __construct(private readonly PostService $posts, private readonly SpaceService $spaces, private readonly FeatureSettings $features) {}
+    public function __construct(private readonly PostService $posts, private readonly SpaceService $spaces, private readonly FeatureSettings $features, private readonly SocialFiles $files) {}
 
     private function gate(Space $space): void
     {
@@ -52,15 +53,19 @@ class PostController extends Controller
         $page = $q->paginate($this->perPage($request, 15));
         $mine = Reaction::where(['target_type' => 'post', 'user_id' => $user->id])->whereIn('target_id', $page->pluck('id'))->pluck('type', 'target_id');
 
-        return response()->json(['data' => $page->getCollection()->map(fn (Post $p) => $this->row($p, $user, $mine[$p->id] ?? null))->values(), 'meta' => ['total' => $page->total(), 'last_page' => $page->lastPage(), 'current_page' => $page->currentPage()]]);
+        $files = $this->files->present($page->getCollection()->mapWithKeys(fn (Post $p) => [$p->id => $p->attachments])->all());
+
+        return response()->json(['data' => $page->getCollection()->map(fn (Post $p) => $this->row($p, $user, $mine[$p->id] ?? null, $files[$p->id] ?? []))->values(), 'meta' => ['total' => $page->total(), 'last_page' => $page->lastPage(), 'current_page' => $page->currentPage()]]);
     }
 
     /** @return array<string, mixed> */
-    private function row(Post $p, User $user, ?string $myReaction = null): array
+    /** @param  list<array<string, mixed>>|null  $attachments  already presented (signed links); computed here when not given */
+    private function row(Post $p, User $user, ?string $myReaction = null, ?array $attachments = null): array
     {
+        $attachments ??= $this->files->present([$p->attachments])[0];
         $anon = ($p->space->settings['anonymous_qa'] ?? false) && $p->kind === 'question' && $p->author_id !== $user->id && ! $this->spaces->canModerate($p->space, $user);
 
-        return ['id' => $p->id, 'space_id' => $p->space_id, 'kind' => $p->kind, 'title' => $p->title, 'body' => $p->body, 'attachments' => $p->attachments, 'is_pinned' => $p->is_pinned, 'is_locked' => $p->is_locked,
+        return ['id' => $p->id, 'space_id' => $p->space_id, 'kind' => $p->kind, 'title' => $p->title, 'body' => $p->body, 'attachments' => $attachments, 'is_pinned' => $p->is_pinned, 'is_locked' => $p->is_locked,
             'status' => $p->status, 'accepted_answer_id' => $p->accepted_answer_id, 'edited_at' => $p->edited_at?->toIso8601String(), 'created_at' => $p->created_at->toIso8601String(), 'comments_count' => $p->comments_count, 'reactions_count' => $p->reactions_count,
             'author' => $anon ? ['id' => null, 'name' => null, 'anonymous' => true] : ['id' => $p->author_id, 'name' => $p->author?->displayName(), 'anonymous' => false], 'mine' => $p->author_id === $user->id, 'my_reaction' => $myReaction,
             'poll' => $p->poll ? $this->posts->results($p->poll, $user) + ['id' => $p->poll->id] : null];
@@ -70,8 +75,8 @@ class PostController extends Controller
     {
         $this->gate($space);
         $d = $request->validate([
-            'kind' => ['nullable', Rule::in(PostService::KINDS)], 'title' => ['nullable', 'string', 'max:250'], 'body' => ['nullable', 'string', 'max:20000'], 'attachments' => ['nullable', 'array', 'max:10'], 'attachments.*.url' => ['nullable', 'string', 'max:500'],
-            'attachments.*.name' => ['nullable', 'string', 'max:200'], 'poll' => ['nullable', 'array'], 'poll.question' => ['nullable', 'string', 'max:250'], 'poll.options' => ['nullable', 'array', 'max:10'], 'poll.options.*' => ['string', 'max:200'],
+            'kind' => ['nullable', Rule::in(PostService::KINDS)], 'title' => ['nullable', 'string', 'max:250'], 'body' => ['nullable', 'string', 'max:20000'], 'attachments' => ['nullable', 'array', 'max:20'], 'attachments.*.type' => ['nullable', Rule::in(['file', 'link'])],
+            'attachments.*.upload_id' => ['nullable', 'uuid'], 'attachments.*.url' => ['nullable', 'string', 'max:500'], 'attachments.*.name' => ['nullable', 'string', 'max:200'], 'poll' => ['nullable', 'array'], 'poll.question' => ['nullable', 'string', 'max:250'], 'poll.options' => ['nullable', 'array', 'max:10'], 'poll.options.*' => ['string', 'max:200'],
             'poll.multiple' => ['boolean'], 'poll.anonymous' => ['boolean'], 'poll.closes_at' => ['nullable', 'date', 'after:now'],
         ]);
         $post = $this->posts->create($space, $this->user(), $d);
@@ -88,8 +93,10 @@ class PostController extends Controller
         $mine = Reaction::where(['user_id' => $user->id])->where(fn ($w) => $w->where(['target_type' => 'post', 'target_id' => $post->id])->orWhere(fn ($x) => $x->where('target_type', 'comment')->whereIn('target_id', $comments->pluck('id'))))->pluck('type', 'target_id');
         $counts = Reaction::where('target_type', 'comment')->whereIn('target_id', $comments->pluck('id'))->selectRaw('target_id, count(*) as n')->groupBy('target_id')->pluck('n', 'target_id');
         $mod = $this->spaces->canModerate($post->space, $user);
+        $files = $this->files->present($comments->mapWithKeys(fn (Comment $c) => [$c->id => $c->status === 'hidden' && ! $mod ? [] : $c->attachments])->all() + ['__post' => $post->attachments]);
 
-        return response()->json(['data' => $this->row($post->load('space', 'author', 'poll'), $user, $mine[$post->id] ?? null) + ['comments' => $comments->map(fn (Comment $c) => [
+        return response()->json(['data' => $this->row($post->load('space', 'author', 'poll'), $user, $mine[$post->id] ?? null, $files['__post']) + ['comments' => $comments->map(fn (Comment $c) => [
+            'attachments' => $files[$c->id] ?? [],
             'id' => $c->id, 'parent_id' => $c->parent_id, 'body' => $c->status === 'hidden' && ! $mod ? null : $c->body, 'status' => $c->status, 'created_at' => $c->created_at->toIso8601String(), 'edited_at' => $c->edited_at?->toIso8601String(),
             'author' => ['id' => $c->author_id, 'name' => $c->author?->displayName()], 'mine' => $c->author_id === $user->id, 'accepted' => $post->accepted_answer_id === $c->id, 'reactions' => (int) ($counts[$c->id] ?? 0), 'my_reaction' => $mine[$c->id] ?? null,
         ])->values()]]);
@@ -122,10 +129,11 @@ class PostController extends Controller
     public function comment(Request $request, Post $post): JsonResponse
     {
         $this->gate($post->space);
-        $d = $request->validate(['body' => ['required', 'string', 'max:10000'], 'parent_id' => ['nullable', 'uuid'], 'attachments' => ['nullable', 'array', 'max:5']]);
+        $d = $request->validate(['body' => ['required_without:attachments', 'nullable', 'string', 'max:10000'], 'parent_id' => ['nullable', 'uuid'], 'attachments' => ['nullable', 'array', 'max:10'],
+            'attachments.*.type' => ['nullable', Rule::in(['file', 'link'])], 'attachments.*.upload_id' => ['nullable', 'uuid'], 'attachments.*.url' => ['nullable', 'string', 'max:500'], 'attachments.*.name' => ['nullable', 'string', 'max:200']]);
         $c = $this->posts->comment($post, $this->user(), $d);
 
-        return response()->json(['data' => ['id' => $c->id, 'body' => $c->body, 'parent_id' => $c->parent_id, 'created_at' => $c->created_at->toIso8601String(), 'author' => ['id' => $c->author_id, 'name' => $c->author?->displayName()]]], 201);
+        return response()->json(['data' => ['id' => $c->id, 'body' => $c->body, 'parent_id' => $c->parent_id, 'attachments' => $this->files->present([$c->attachments])[0], 'created_at' => $c->created_at->toIso8601String(), 'author' => ['id' => $c->author_id, 'name' => $c->author?->displayName()]]], 201);
     }
 
     public function updateComment(Request $request, Comment $postComment): JsonResponse

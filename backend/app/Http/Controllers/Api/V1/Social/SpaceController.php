@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Social;
 
 use App\Http\Controllers\Controller;
 use App\Models\CourseLesson;
+use App\Models\Material;
 use App\Models\Program;
 use App\Models\Space;
 use App\Models\SpaceEvent;
@@ -14,6 +15,7 @@ use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\FeatureSettings;
 use App\Social\CourseSocial;
+use App\Social\SocialFiles;
 use App\Social\SpaceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,7 +75,7 @@ class SpaceController extends Controller
         $d = $request->validate([
             'title_ar' => ['required', 'string', 'max:200'], 'title_en' => ['required', 'string', 'max:200'], 'description_ar' => ['nullable', 'string', 'max:2000'], 'description_en' => ['nullable', 'string', 'max:2000'],
             'visibility' => ['nullable', Rule::in(['public_in_scope', 'members', 'private'])], 'join_policy' => ['nullable', Rule::in(['open', 'request', 'invite'])],
-            'settings' => ['nullable', 'array'], 'settings.allow_polls' => ['boolean'], 'settings.allow_files' => ['boolean'], 'settings.moderation' => ['boolean'], 'settings.anonymous_qa' => ['boolean'],
+            'settings' => ['nullable', 'array'], 'settings.allow_polls' => ['boolean'], 'settings.allow_files' => ['boolean'], 'settings.max_files' => ['nullable', 'integer', 'between:1,20'], 'settings.moderation' => ['boolean'], 'settings.anonymous_qa' => ['boolean'],
         ]);
 
         return response()->json(['data' => $this->detail($this->spaces->create($this->user(), $d))], 201);
@@ -95,7 +97,7 @@ class SpaceController extends Controller
         $m = $this->spaces->member($s, $user);
         $s->loadCount(['members as members_count' => fn ($q) => $q->where('status', 'active')]);
 
-        return $this->card($s, $m) + ['settings' => $s->settings, 'can_post' => $this->spaces->canPost($s, $user), 'can_moderate' => $this->spaces->canModerate($s, $user), 'can_manage' => $this->spaces->canManage($s, $user), 'can_read' => $this->spaces->canRead($s, $user)];
+        return $this->card($s, $m) + ['settings' => $s->settings, 'can_post' => $this->spaces->canPost($s, $user), 'can_moderate' => $this->spaces->canModerate($s, $user), 'can_manage' => $this->spaces->canManage($s, $user), 'can_read' => $this->spaces->canRead($s, $user), 'file_limits' => app(SocialFiles::class)->limits($s)];
     }
 
     public function update(Request $request, Space $space): JsonResponse
@@ -200,17 +202,26 @@ class SpaceController extends Controller
     /** Opens (creating when needed) the forum that belongs to a program, group or lesson, or the trainers' channel — only for people it concerns. */
     public function resolve(Request $request): JsonResponse
     {
-        $d = $request->validate(['type' => ['required', Rule::in(['program', 'group', 'lesson', 'trainers'])], 'id' => ['nullable', 'uuid']]);
+        $d = $request->validate(['type' => ['required', Rule::in(['program', 'group', 'lesson', 'material', 'trainers'])], 'id' => ['nullable', 'uuid']]);
         $user = $this->user();
         abort_unless($this->features->enabled('forums'), 403);
         $space = match ($d['type']) {
             'program' => $this->forProgram(Program::findOrFail($d['id'] ?? abort(422)), $user),
             'group' => $this->forGroup(TrainingGroup::findOrFail($d['id'] ?? abort(422)), $user),
             'lesson' => $this->forLesson(CourseLesson::findOrFail($d['id'] ?? abort(422)), $user),
+            'material' => $this->forMaterial(Material::findOrFail($d['id'] ?? abort(422)), $user),
             default => $this->forTrainers($user),
         };
 
         return response()->json(['data' => $this->detail($space)]);
+    }
+
+    /** The discussion beside a training material (COL-02), for the programme's trainees, trainers and staff. */
+    public function materialThread(Material $material): JsonResponse
+    {
+        abort_unless($this->features->enabled('forums'), 403);
+
+        return response()->json(['data' => $this->detail($this->forMaterial($material, $this->user()))]);
     }
 
     private function forProgram(Program $p, User $user): Space
@@ -233,6 +244,13 @@ class SpaceController extends Controller
         abort_unless($this->course->registrationFor($user, $l->program_id) || $this->course->staffOfProgram($user, $l->program_id), 403);
 
         return $this->spaces->lessonThread($l);
+    }
+
+    private function forMaterial(Material $m, User $user): Space
+    {
+        abort_unless($this->course->registrationFor($user, $m->program_id) || $this->course->staffOfProgram($user, $m->program_id), 403);
+
+        return $this->spaces->materialThread($m);
     }
 
     private function forTrainers(User $user): Space

@@ -37,7 +37,8 @@
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <!-- Push notifications (Firebase Cloud Messaging): brand channel, icon and color. -->
-        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="tedc_general" />
+        <!-- Channels: tedc_alerts (TEDC chime), tedc_quiet (silent), tedc_general (apps from before the chime). -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="tedc_alerts" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_notify" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/brand_primary" />
         <meta-data

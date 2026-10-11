@@ -46,7 +46,7 @@ class AppThemesTest extends TestCase
     {
         $admin = $this->makeUser(Role::CENTER_ADMIN);
         $this->asUser($admin)->putJson('/api/v1/admin/app-themes', ['assignments' => ['trainee' => 'care'], 'colors' => []])->assertOk();
-        $this->asUser($admin)->putJson('/api/v1/admin/app-home', ['sections' => [['key' => 'todo', 'enabled' => true]]])->assertOk();
+        $this->asUser($admin)->putJson('/api/v1/admin/app-home', ['role' => 'employee', 'sections' => [['key' => 'todo', 'enabled' => true]]])->assertOk();
         Cache::flush();
 
         $this->asUser($this->makeEmployee()->user)->getJson('/api/v1/me/app-theme')->assertOk()->assertJsonPath('data.home', null);

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../auth/session_store.dart';
@@ -143,6 +145,29 @@ class ApiClient {
   Future<dynamic> put(String path, [Object? body]) => _run(() => dio.put(path, data: body));
 
   Future<dynamic> delete(String path) => _run(() => dio.delete(path));
+
+  /// Sends a file through the API (multipart) and reports progress from 0 to 1.
+  Future<dynamic> upload(String path, FormData form, {void Function(double)? onProgress, CancelToken? cancel}) =>
+      _run(() => dio.post(path, data: form, cancelToken: cancel, onSendProgress: (sent, total) => total > 0 ? onProgress?.call(sent / total) : null));
+
+  /// Sends a big file straight to storage with the one-time address the API handed out (no API token goes there).
+  Future<void> putSigned(Map<String, dynamic> target, String filePath, String fileName, {void Function(double)? onProgress, CancelToken? cancel}) async {
+    final headers = Map<String, dynamic>.from((target['headers'] as Map?) ?? const {});
+    final raw = target['mode'] == 'raw';
+    try {
+      await Dio().request<dynamic>(
+        target['url'] as String,
+        data: raw
+            ? File(filePath).openRead()
+            : FormData.fromMap({'cacheControl': '3600', '': await MultipartFile.fromFile(filePath, filename: fileName)}),
+        options: Options(method: (target['method'] as String?) ?? 'PUT', headers: {...headers, if (raw) Headers.contentLengthHeader: await File(filePath).length()}),
+        cancelToken: cancel,
+        onSendProgress: (sent, total) => total > 0 ? onProgress?.call(sent / total) : null,
+      );
+    } catch (e) {
+      throw ApiException.from(e);
+    }
+  }
 
   Future<List<int>> bytes(String path) async {
     try {

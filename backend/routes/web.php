@@ -26,6 +26,10 @@ Route::get('/files/{bucket}/{path}', function (string $bucket, string $path) {
 
     // A file response supports Range requests, which video seeking needs; slides are read by script, hence CORS.
     $headers += ['Access-Control-Allow-Origin' => '*'];
+    // A signed `name` downloads the file under its original (possibly Arabic) name, encoded per RFC 5987.
+    if (is_string($name = request()->query('name')) && $name !== '') {
+        $headers['Content-Disposition'] = 'attachment; filename="'.preg_replace('/[^\x20-\x7E]|"/', '_', $name)."\"; filename*=UTF-8''".rawurlencode($name);
+    }
 
     return response()->file(Storage::disk('local')->path("{$bucket}/{$path}"), $headers);
 })->where('path', '.*')->middleware('signed')->name('files.local');

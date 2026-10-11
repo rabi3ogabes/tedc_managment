@@ -21,6 +21,12 @@ export const fmt = {
   time: (d: string | null | undefined) => (valid(d) ? new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(d)) : '—'),
   dateTime: (d: string | null | undefined) =>
     valid(d) ? new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(d)) : '—',
+  /** A file size with a localised unit (KB, MB, GB) and Western digits. */
+  size: (bytes: number | null | undefined) => {
+    if (bytes === null || bytes === undefined) return '—'
+    const [v, unit] = bytes >= 1024 ** 3 ? [bytes / 1024 ** 3, 'gigabyte'] : bytes >= 1024 ** 2 ? [bytes / 1024 ** 2, 'megabyte'] : [Math.max(1, bytes / 1024), 'kilobyte']
+    return new Intl.NumberFormat(locale(), { style: 'unit', unit, unitDisplay: 'short', maximumFractionDigits: v < 10 ? 1 : 0 }).format(v)
+  },
   month: (ym: string) => (valid(`${ym}-01T00:00:00`) ? new Intl.DateTimeFormat(locale(), { month: 'short' }).format(new Date(`${ym}-01T00:00:00`)) : '—'),
 }
 

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The chime is named only by the server's push payload ("sound": "tedc_chime"), so resource shrinking must keep it. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@raw/tedc_chime" />

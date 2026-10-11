@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Services\AppHomeLayout;
 use App\Services\AttendanceSettings;
 use App\Services\Push\PushSettings;
@@ -44,7 +45,7 @@ class MobileConfigController extends Controller
                 'latin_font_url' => $t['typography']['latin_font_url'] ?? null,
             ],
             // The cards of the home screen the administrator wants shown, in their order.
-            'home' => ['sections' => array_values(array_map(fn ($s) => $s['key'], array_filter($home->get(), fn ($s) => $s['enabled'])))],
+            'home' => ['sections' => $home->cards(Role::EMPLOYEE)],
             'navigation' => ['style' => $t['navigation']['style'] ?? 'classic'],
             'loading' => $t['loading'] ?? null,
             'occasion' => $t['active_occasion'] ?? null,

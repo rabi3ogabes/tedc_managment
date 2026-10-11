@@ -9,6 +9,7 @@ import '../../core/auth/session_store.dart';
 import '../../core/biometric.dart';
 import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
+import '../../core/models.dart';
 import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
@@ -16,6 +17,7 @@ import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../help/help_screens.dart';
+import '../home/role_home.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
 import '../security/biometric_offer.dart';
@@ -182,18 +184,22 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     final staff = me != null && me.employee == null;
     // A trainer without a trainee profile still reaches the certificate wallet (their thank-you certificates).
     final showStaffHome = staff && widget.shell.currentIndex < 4 && !(me.isTrainer && widget.shell.currentIndex == 3);
+    // Everyone who is not working as a trainee gets the home screen of their role: what needs their action.
+    final slug = me?.activeRole?.str('slug') ?? (me == null || me.employee != null ? 'employee' : (me.roles.isEmpty ? 'employee' : me.roles.first));
+    final roleHome = me != null && slug != 'employee' && widget.shell.currentIndex == 0;
+    final darkTop = (roleHome || !staff) && AppStyle.header != 'flat';
 
     return Scaffold(
       body: Stack(children: [
-        showStaffHome ? const StaffHome() : widget.shell,
+        roleHome ? const RoleHome() : (showStaffHome ? const StaffHome() : widget.shell),
         // The notifications button lives at the left of the home screen (physical left in both languages).
         if (widget.shell.currentIndex == 0)
           Positioned(
             left: 14,
             top: MediaQuery.paddingOf(context).top + 10,
             child: Row(children: [
-              NotificationBell(onDark: !staff && AppStyle.header != 'flat'),
-              IconButton(onPressed: () => context.push('/search'), icon: Icon(Icons.search, color: staff || AppStyle.header == 'flat' ? AppColors.navy900 : Colors.white), tooltip: context.s.t('search.title')),
+              NotificationBell(onDark: darkTop),
+              IconButton(onPressed: () => context.push('/search'), icon: Icon(Icons.search, color: darkTop ? Colors.white : AppColors.navy900), tooltip: context.s.t('search.title')),
             ]),
           ),
         PushBanner(

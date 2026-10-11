@@ -20,6 +20,7 @@ import KitForm from './KitForm'
 import TabErrorBoundary from '../settings/TabErrorBoundary'
 import { FILE_CATEGORIES, type Activity, type Anchor, type FileCategory, type KitDetail, type KitFile, type KitRole, type Suggestion } from './types'
 import { dialogs } from '@/lib/dialogs'
+import RatingSummary from '@/components/social/RatingSummary'
 
 type Dialog = { type: 'deck' | 'video' | 'image'; seed?: Record<string, unknown> } | null
 
@@ -376,6 +377,10 @@ function Overview({ kit, onGo }: { kit: KitDetail; onGo: (t: Section) => void })
               <li key={m.user_id} className="flex items-center gap-3"><Avatar name={m.name ?? ''} size={36} /><div className="min-w-0 flex-1"><div className="truncate text-sm font-semibold text-navy-900">{m.name}</div><div className="truncate text-xs text-slate-400">{m.email}</div></div><span className={clsx('rounded-full px-2 py-0.5 text-[11px] font-bold', m.role === 'qa' ? 'bg-gold-100 text-gold-700' : 'bg-navy-100 text-navy-800')}>{t(`kits.roles.${m.role}`)}</span></li>
             ))}
           </ul>
+        </Card>
+        <Card>
+          <h3 className="mb-3 text-lg font-bold text-navy-900">{t('soc.rating.title')}</h3>
+          <RatingSummary type="kit" id={kit.id} />
         </Card>
         <Card>
           <div className="mb-3 flex items-center justify-between"><h3 className="text-lg font-bold text-navy-900">{t('kits.workspace.tabs.activity')}</h3><button type="button" className="text-xs font-semibold text-link" onClick={() => onGo('activity')}>{t('kits.workspace.viewAll')}</button></div>

@@ -4,6 +4,8 @@ namespace App\Services\Push;
 
 use App\Models\DeviceToken;
 use App\Models\PushLog;
+use App\Models\UserNotificationPreference;
+use App\Services\Notifications\DeliveryPolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -28,15 +30,18 @@ class PushDispatcher
         }
 
         $userIds = collect($userIds)->filter()->unique()->values();
-        $devices = DeviceToken::query()->whereIn('user_id', $userIds)->get(['id', 'token', 'locale']);
-        if ($devices->isEmpty()) {
+        if (! DeviceToken::query()->whereIn('user_id', $userIds)->exists()) {
             return null;
         }
 
+        // People who switched the sound off get the silent channel; everyone else hears the TEDC chime (NTF-09).
+        $quiet = UserNotificationPreference::whereIn('user_id', $userIds)->where(['event_group' => DeliveryPolicy::SOUND, 'channel' => DeliveryPolicy::SOUND, 'enabled' => false])->pluck('user_id')->flip();
+        $devices = DeviceToken::query()->whereIn('user_id', $userIds)->get(['id', 'token', 'locale', 'user_id']);
         $messages = $devices->map(fn (DeviceToken $d) => [
             'token' => $d->token,
             'title' => $d->locale === 'en' ? $title['en'] : $title['ar'],
             'body' => $body ? ($d->locale === 'en' ? $body['en'] : $body['ar']) : null,
+            'sound' => ! $quiet->has($d->user_id),
         ])->all();
 
         try {

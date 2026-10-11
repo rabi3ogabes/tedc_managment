@@ -21,6 +21,7 @@ use App\Models\TrainingGroup;
 use App\Services\CertificateService;
 use App\Services\Communication\AnnouncementLifecycle;
 use App\Services\FileStorage;
+use App\Social\RatingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -90,8 +91,10 @@ class PublicController extends Controller
                 'groups' => fn ($q) => $q->whereNotNull('published_at')->whereIn('status', [TrainingGroup::PLANNED, TrainingGroup::REGISTRATION_OPEN, TrainingGroup::ONGOING])])
             ->where(fn ($q) => Str::isUuid($idOrCode) ? $q->whereKey($idOrCode) : $q->where('code', $idOrCode))
             ->firstOrFail();
+        $sum = app(RatingService::class)->summary('program', $program->id);
 
-        return new ProgramResource($program);
+        // Visitors see only the average and how many rated; review text and names stay inside the portal.
+        return (new ProgramResource($program))->additional(['meta' => ['rating' => ['average' => $sum['average'], 'count' => $sum['count']]]]);
     }
 
     public function categories(): JsonResponse

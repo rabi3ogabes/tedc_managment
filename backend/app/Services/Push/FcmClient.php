@@ -18,7 +18,19 @@ class FcmClient
 {
     public const TOKEN_CACHE = 'push.fcm.access_token';
 
-    public const CHANNEL_ID = 'tedc_general';
+    /**
+     * Android fixes a channel's sound when the channel is first created, so each sound has its own channel:
+     * `tedc_alerts` plays the TEDC chime, `tedc_quiet` is silent (for people who switched the sound off), and
+     * `tedc_general` is the channel of app versions from before the chime (it keeps the phone's default sound).
+     */
+    public const CHANNEL_ID = 'tedc_quiet';
+
+    public const SOUND_CHANNEL_ID = 'tedc_alerts';
+
+    public const LEGACY_CHANNEL_ID = 'tedc_general';
+
+    /** The chime: res/raw/tedc_chime.wav on Android, tedc_chime.caf in the iOS app bundle. */
+    public const SOUND = 'tedc_chime';
 
     public function __construct(private readonly PushSettings $settings) {}
 
@@ -53,7 +65,7 @@ class FcmClient
     }
 
     /**
-     * @param  list<array{token: string, title: string, body: ?string}>  $messages
+     * @param  list<array{token: string, title: string, body: ?string, sound?: bool}>  $messages
      * @param  array<string, string>  $data
      * @return array{delivered: int, failed: int, invalid_tokens: list<string>, error: ?string}
      */
@@ -78,9 +90,11 @@ class FcmClient
                     'data' => $data,
                     'android' => [
                         'priority' => 'high',
-                        'notification' => ['channel_id' => self::CHANNEL_ID, 'color' => $android['color'], 'icon' => 'ic_stat_notify', 'sound' => 'default'],
+                        'notification' => ($m['sound'] ?? true)
+                            ? ['channel_id' => self::SOUND_CHANNEL_ID, 'color' => $android['color'], 'icon' => 'ic_stat_notify', 'sound' => self::SOUND]
+                            : ['channel_id' => self::CHANNEL_ID, 'color' => $android['color'], 'icon' => 'ic_stat_notify'],
                     ],
-                    'apns' => ['payload' => ['aps' => ['sound' => 'default']]],
+                    'apns' => ['payload' => ['aps' => ($m['sound'] ?? true) ? ['sound' => self::SOUND.'.caf'] : new \stdClass]],
                 ]]), $chunk));
 
             foreach ($responses as $deviceToken => $response) {

@@ -36,14 +36,14 @@ function Feed({ space }: { space: any }) {
   const focus = new URLSearchParams(window.location.search).get('post')
   return (
     <div>
-      {space.can_post && !space.archived && <Composer spaceId={space.id} canModerate={space.can_moderate} allowPolls={space.settings?.allow_polls !== false} onPosted={() => { setPage(1); res.refetch() }} />}
+      {space.can_post && !space.archived && <Composer spaceId={space.id} canModerate={space.can_moderate} allowPolls={space.settings?.allow_polls !== false} limits={space.file_limits} onPosted={() => { setPage(1); res.refetch() }} />}
       <div className="relative mb-4">
         <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
         <input className="input ps-9" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder={String(t('soc.space.search'))} />
       </div>
       {res.isLoading ? <Spinner /> : (res.data?.data.length ?? 0) === 0 ? <Empty text={String(t('soc.space.noPosts'))} /> : (
         <div className="space-y-4">
-          {res.data!.data.map((p) => <PostCard key={p.id} post={p} canModerate={space.can_moderate} onChanged={() => res.refetch()} startOpen={focus === p.id} />)}
+          {res.data!.data.map((p) => <PostCard key={p.id} post={p} spaceId={space.id} limits={space.file_limits} canModerate={space.can_moderate} onChanged={() => res.refetch()} startOpen={focus === p.id} />)}
           {(res.data?.meta.last_page ?? 1) > 1 && (
             <div className="flex justify-center gap-2">
               <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>‹</Button>

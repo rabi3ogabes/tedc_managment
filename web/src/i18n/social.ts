@@ -62,6 +62,19 @@ export const socAr = {
       set: { disabledRoles: 'أدوار بلا نقاط (رموز الأدوار مفصولة بفاصلة)', disabledPrograms: 'برامج بلا نقاط (معرّفات مفصولة بفاصلة)', showNames: 'إظهار الأسماء في لوحات الصدارة', boardSize: 'عدد الصفوف في اللوحة' },
       adjust: { hint: 'إضافة أو خصم نقاط يدويًا مع ذكر السبب — يُسجَّل في سجل التدقيق.', user: 'المستخدم', userPh: 'ابحث بالاسم أو البريد', points: 'النقاط (سالب للخصم)', note: 'السبب', apply: 'تطبيق', done: 'تم التعديل. الرصيد الآن {{n}}.', ledger: 'سجل النقاط' },
     },
+    files: {
+      attach: 'إرفاق ملف', link: 'إضافة رابط', addLink: 'إضافة', linkUrl: 'عنوان الرابط', linkName: 'اسم الرابط (اختياري)', hint: 'حتى {{n}} ملفات، {{mb}} م.ب للملف',
+      uploading: 'جارٍ الرفع… {{p}}%', retry: 'إعادة المحاولة', remove: 'إزالة {{name}}', waiting: 'انتظر حتى يكتمل رفع الملفات', drop: 'أفلت الملفات هنا لإرفاقها', bodyHint: 'اكتب هنا… يمكنك أيضًا سحب الملفات أو لصق الصور',
+      tooMany: 'يمكنك إرفاق {{n}} ملفات على الأكثر.', badType: 'نوع الملف «{{name}}» غير مسموح.', tooBig: 'الملف «{{name}}» أكبر من {{mb}} م.ب.', badLink: 'أدخل رابطًا يبدأ بـ https://',
+      openImage: 'عرض الصورة {{name}}', download: 'تنزيل', previous: 'السابق', next: 'التالي',
+      spaceMax: 'أقصى عدد ملفات في المنشور', spaceMaxHint: 'اتركه فارغًا لاتباع حد المنصة ({{n}}).', limits: 'حدود الملفات في المجتمعات والنقاشات',
+      set: { file_max_mb: 'حجم الملف الواحد (م.ب)', post_total_mb: 'مجموع ملفات المنشور (م.ب)', files_per_post: 'ملفات المنشور', files_per_comment: 'ملفات التعليق' },
+    },
+    rating: {
+      title: 'التقييمات والمراجعات', spread: 'توزيع التقييمات', rate: 'قيّم هذا المحتوى', yours: 'تقييمك', newest: 'أحدث المراجعات', rateKit: 'تقييم الحقيبة',
+      hideReason: 'سبب إخفاء هذه المراجعة (يُسجَّل في سجل التدقيق):', reasonNeeded: 'اكتب سبب الإخفاء.', hidden: 'أُخفيت المراجعة.', shown: 'أُظهرت المراجعة.', mineHidden: 'أخفى المشرف مراجعتك، فلا يراها الآخرون ولا تُحسب في المتوسط.',
+    },
+    material: { discuss: 'النقاش', rate: 'التقييم', noDiscussion: 'النقاش غير متاح لهذه المادة.', open: 'فتح المادة', pick: 'اختر مادة لعرض نقاشها وملاحظاتك وتقييمها.' },
     common: { loading: 'جارٍ التحميل…', cancel: 'إلغاء', close: 'إغلاق', save: 'حفظ', delete: 'حذف', edit: 'تعديل', yes: 'نعم', no: 'لا', failed: 'تعذّر تنفيذ العملية.', featureOff: 'هذه الميزة غير مفعّلة حاليًا.' },
   },
 }
@@ -129,6 +142,19 @@ export const socEn = {
       set: { disabledRoles: 'Roles that earn no points (role slugs, comma separated)', disabledPrograms: 'Programmes that earn no points (ids, comma separated)', showNames: 'Show names on leaderboards', boardSize: 'Rows on a leaderboard' },
       adjust: { hint: 'Add or remove points by hand, with the reason — recorded in the audit log.', user: 'User', userPh: 'Search by name or email', points: 'Points (negative to remove)', note: 'Reason', apply: 'Apply', done: 'Done. Balance is now {{n}}.', ledger: 'Points ledger' },
     },
+    files: {
+      attach: 'Attach file', link: 'Add link', addLink: 'Add', linkUrl: 'Link address', linkName: 'Link name (optional)', hint: 'Up to {{n}} files, {{mb}} MB each',
+      uploading: 'Uploading… {{p}}%', retry: 'Try again', remove: 'Remove {{name}}', waiting: 'Wait for the files to finish uploading', drop: 'Drop files here to attach them', bodyHint: 'Write here… you can also drag files in or paste images',
+      tooMany: 'You can attach up to {{n}} files.', badType: '“{{name}}” is not a file type you can share.', tooBig: '“{{name}}” is larger than {{mb}} MB.', badLink: 'Enter a link that starts with https://',
+      openImage: 'View image {{name}}', download: 'Download', previous: 'Previous', next: 'Next',
+      spaceMax: 'Most files in one post', spaceMaxHint: 'Leave empty to follow the platform limit ({{n}}).', limits: 'File limits in communities and discussions',
+      set: { file_max_mb: 'One file (MB)', post_total_mb: 'All files in a post (MB)', files_per_post: 'Files per post', files_per_comment: 'Files per comment' },
+    },
+    rating: {
+      title: 'Ratings & reviews', spread: 'How people rated it', rate: 'Rate this content', yours: 'Your rating', newest: 'Newest reviews', rateKit: 'Rate the kit',
+      hideReason: 'Why hide this review? (kept in the audit log)', reasonNeeded: 'Write the reason for hiding it.', hidden: 'Review hidden.', shown: 'Review shown.', mineHidden: 'A moderator hid your review: others do not see it and it does not count in the average.',
+    },
+    material: { discuss: 'Discussion', rate: 'Rating', noDiscussion: 'Discussion is not available for this material.', open: 'Open material', pick: 'Choose a material to see its discussion, your notes and its rating.' },
     common: { loading: 'Loading…', cancel: 'Cancel', close: 'Close', save: 'Save', delete: 'Delete', edit: 'Edit', yes: 'Yes', no: 'No', failed: 'That did not work.', featureOff: 'This feature is switched off.' },
   },
 }

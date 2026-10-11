@@ -4,6 +4,7 @@ namespace App\Social;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\CourseLesson;
+use App\Models\Material;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Space;
@@ -43,10 +44,12 @@ class SpaceService
         });
     }
 
-    /** @param  array<string, mixed>  $s @return array<string, bool> */
+    /** @param  array<string, mixed>  $s @return array<string, bool|int|null> */
     public function settings(array $s): array
     {
-        return ['allow_polls' => (bool) ($s['allow_polls'] ?? true), 'allow_files' => (bool) ($s['allow_files'] ?? true), 'moderation' => (bool) ($s['moderation'] ?? false), 'anonymous_qa' => (bool) ($s['anonymous_qa'] ?? false)];
+        return ['allow_polls' => (bool) ($s['allow_polls'] ?? true), 'allow_files' => (bool) ($s['allow_files'] ?? true), 'moderation' => (bool) ($s['moderation'] ?? false), 'anonymous_qa' => (bool) ($s['anonymous_qa'] ?? false),
+            // A space may allow fewer files per post than the platform does (null = the platform limit).
+            'max_files' => isset($s['max_files']) && $s['max_files'] !== null ? max(1, min(20, (int) $s['max_files'])) : null];
     }
 
     // ---- platform spaces -----------------------------------------------------------------------------
@@ -92,11 +95,27 @@ class SpaceService
         return $space;
     }
 
+    /** The discussion beside one programme material (COL-02), open to the programme's people like a lesson thread. */
+    public function materialThread(Material $material): Space
+    {
+        $space = Space::firstOrCreate(['type' => 'material_thread', 'subject_type' => 'material', 'subject_id' => $material->id], [
+            'title_ar' => 'نقاش المادة: '.$material->title_ar, 'title_en' => 'Material discussion: '.($material->title_en ?: $material->title_ar), 'visibility' => 'private', 'join_policy' => 'invite',
+            'settings' => $this->settings(['allow_polls' => false]),
+        ]);
+        $this->syncMembers($space);
+
+        return $space;
+    }
+
     /** Members of a platform space follow registrations (and the trainers and supervisor); people who no longer qualify are removed. */
     public function syncMembers(Space $space): void
     {
         $want = match ($space->type) {
-            'program_forum', 'lesson_thread' => $this->programPeople($space->type === 'program_forum' ? $space->subject_id : CourseLesson::whereKey($space->subject_id)->value('program_id')),
+            'program_forum', 'lesson_thread', 'material_thread' => $this->programPeople(match ($space->type) {
+                'program_forum' => $space->subject_id,
+                'lesson_thread' => CourseLesson::whereKey($space->subject_id)->value('program_id'),
+                default => Material::whereKey($space->subject_id)->value('program_id'),
+            }),
             'group_forum' => $this->groupPeople($space->subject_id),
             'trainers_channel' => $this->trainerPeople(),
             default => null,

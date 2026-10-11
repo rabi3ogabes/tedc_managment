@@ -188,4 +188,15 @@ return [
     'help' => [
         'not_found' => 'The help article was not found, or it is not for your role.',
     ],
+    'social' => [
+        'file_type' => 'This type of file is not allowed, or its content does not match its extension.',
+        'file_too_big' => 'The file is larger than allowed (:mb MB).',
+        'files_too_big' => 'The files are larger than allowed for one post (:mb MB in total).',
+        'too_many_files' => 'At most :max files.',
+        'files_off' => 'Sharing files and links is switched off in this space.',
+        'file_unavailable' => 'One of the files is no longer available. Upload it again and retry.',
+        'file_missing' => 'The upload did not finish. Try again.',
+        'bad_link' => 'A link must start with http:// or https://',
+        'reason_required' => 'Give the reason for hiding it.',
+    ],
 ];

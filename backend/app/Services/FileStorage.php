@@ -171,6 +171,47 @@ class FileStorage
     }
 
     /**
+     * Short-lived URLs for many private objects at once (one request to Supabase instead of one per file). Call only after
+     * authorizing the requester. With `$names`, the link downloads the file under that name (path => file name).
+     *
+     * @param  list<string>  $paths
+     * @param  array<string, string>  $names
+     * @return array<string, string> path => URL
+     */
+    public function temporaryUrls(string $bucket, array $paths, ?int $ttl = null, array $names = []): array
+    {
+        $paths = array_values(array_unique(array_filter($paths)));
+        if (! $paths) {
+            return [];
+        }
+        $ttl ??= config('tedc.supabase.signed_url_ttl');
+        $bucketName = $this->bucket($bucket);
+        $out = [];
+
+        if ($this->usesSupabase() && ! $this->usesAzure()) {
+            foreach (array_chunk($paths, 100) as $chunk) {
+                $rows = $this->supabase()->post($this->endpoint("object/sign/{$bucketName}"), ['expiresIn' => $ttl, 'paths' => $chunk])->throw()->json();
+                foreach ((array) $rows as $row) {
+                    if (! empty($row['signedURL']) && ! empty($row['path'])) {
+                        $url = rtrim(config('tedc.supabase.url'), '/').'/storage/v1'.$row['signedURL'];
+                        $out[$row['path']] = isset($names[$row['path']]) ? $url.(str_contains($url, '?') ? '&' : '?').'download='.rawurlencode($names[$row['path']]) : $url;
+                    }
+                }
+            }
+
+            return $out;
+        }
+
+        foreach ($paths as $path) {
+            $out[$path] = isset($names[$path]) && ! $this->usesAzure()
+                ? URL::temporarySignedRoute('files.local', now()->addSeconds($ttl), ['bucket' => $bucketName, 'path' => $path, 'name' => $names[$path]])
+                : $this->temporaryUrl($bucket, $path, $ttl);
+        }
+
+        return $out;
+    }
+
+    /**
      * A one-time place to upload a big file to straight from the browser (the API itself cannot take large bodies
      * on serverless hosting). Supabase: a signed upload URL; local driver: a signed route of this API.
      *

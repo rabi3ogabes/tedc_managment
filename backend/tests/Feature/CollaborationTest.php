@@ -312,7 +312,7 @@ class CollaborationTest extends TestCase
 
         $rid = ContentRating::first()->id;
         $this->asUser($trainee)->postJson("/api/v1/social/ratings/{$rid}/moderate", ['status' => 'hidden'])->assertForbidden();
-        $this->asUser($this->admin)->postJson("/api/v1/social/ratings/{$rid}/moderate", ['status' => 'hidden'])->assertOk();
+        $this->asUser($this->admin)->postJson("/api/v1/social/ratings/{$rid}/moderate", ['status' => 'hidden', 'reason' => 'Off-topic'])->assertOk();
         $this->asUser($trainee)->getJson("/api/v1/social/ratings/lesson/{$lesson->id}")->assertOk()->assertJsonPath('data.count', 0);
     }
 

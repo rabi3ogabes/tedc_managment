@@ -4,12 +4,12 @@ namespace Database\Seeders\Samples;
 
 use App\Models\Announcement;
 use App\Models\AnnouncementRsvp;
+use App\Models\ContentRating;
 use App\Models\CourseLesson;
 use App\Models\DashboardPreset;
 use App\Models\KpiSample;
 use App\Models\LibraryCollection;
 use App\Models\LibraryItem;
-use App\Models\LibraryReview;
 use App\Models\LibraryShelf;
 use App\Models\Material;
 use App\Models\NotificationRule;
@@ -59,7 +59,7 @@ class SampleComms
             \DB::table('library_collection_items')->insertOrIgnore(['collection_id' => $col->id, 'item_id' => $item->id, 'sort_order' => $i]);
         }
         foreach ($this->c->trainees() as $i => $u) {
-            LibraryReview::firstOrCreate(['item_id' => $made[0]->id, 'user_id' => $u->id], ['stars' => 4 + ($i % 2), 'review' => 'مفيد وعملي.']);
+            ContentRating::firstOrCreate(['subject_type' => 'library', 'subject_id' => $made[0]->id, 'user_id' => $u->id], ['stars' => 4 + ($i % 2), 'review' => 'مفيد وعملي.', 'status' => 'published']);
             LibraryShelf::firstOrCreate(['item_id' => $made[$i % 3]->id, 'user_id' => $u->id], ['progress' => 20 * ($i + 1)]);
         }
     }

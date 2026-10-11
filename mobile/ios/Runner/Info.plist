@@ -5,7 +5,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>يُستخدم للتحقق من هويتك عند فتح التطبيق وتسجيل الحضور. Used to confirm it is you when opening the app and checking in.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>يستخدم التطبيق الكاميرا لمسح رمز الحضور في الجلسات التدريبية. The camera is used to scan attendance QR codes.</string>
+	<string>يستخدم التطبيق الكاميرا لمسح رمز الحضور ولالتقاط صور تشاركها في المجتمعات. The camera scans attendance QR codes and takes photos you share in communities.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>يتحقق التطبيق من وجودك في مكان التدريب عند تسجيل الحضور. The app checks that you are at the training venue when you record attendance.</string>
 	<key>CFBundleLocalizations</key>

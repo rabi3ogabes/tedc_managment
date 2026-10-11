@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 699 columns
-- Internal: 1936 columns
-- Confidential: 469 columns
+- Public: 702 columns
+- Internal: 1949 columns
+- Confidential: 470 columns
 - Restricted: 19 columns
 
 ## Application-level encryption
@@ -1870,6 +1870,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `body` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `subject_type` | Internal | — |
+| `subject_id` | Internal | — |
 
 ### `lesson_progress`
 
@@ -3697,6 +3699,26 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `descriptors` | Internal | — |
 | `licence_relevant` | Internal | — |
 | `is_active` | Internal | — |
+
+### `social_uploads`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `user_id` | Internal | — |
+| `space_id` | Internal | — |
+| `path` | Internal | — |
+| `thumb_path` | Internal | — |
+| `name` | Confidential | masked in exports |
+| `mime` | Internal | — |
+| `size` | Internal | — |
+| `width` | Internal | — |
+| `height` | Internal | — |
+| `status` | Internal | — |
+| `attached_type` | Internal | — |
+| `attached_id` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `space_event_rsvps`
 

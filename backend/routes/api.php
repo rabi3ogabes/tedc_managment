@@ -124,6 +124,7 @@ use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\LtiController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
+use App\Http\Controllers\Api\V1\Me\AppHomeController as AppHomeMeController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
 use App\Http\Controllers\Api\V1\Me\MeController;
 use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
@@ -156,6 +157,7 @@ use App\Http\Controllers\Api\V1\Social\CourseSocialController;
 use App\Http\Controllers\Api\V1\Social\GamificationAdminController;
 use App\Http\Controllers\Api\V1\Social\GamificationController;
 use App\Http\Controllers\Api\V1\Social\PostController;
+use App\Http\Controllers\Api\V1\Social\SocialFileController;
 use App\Http\Controllers\Api\V1\Social\SpaceController;
 use App\Http\Controllers\Api\V1\SystemController;
 use App\Http\Controllers\Api\V1\TicketsController;
@@ -372,6 +374,7 @@ Route::prefix('v1')->group(function () {
             Route::get('spaces', [SpaceController::class, 'index']);
             Route::post('spaces', [SpaceController::class, 'store'])->middleware('throttle:20,1');
             Route::get('spaces/resolve', [SpaceController::class, 'resolve']);
+            Route::get('materials/{material}/thread', [SpaceController::class, 'materialThread']);
             Route::get('people', [SpaceController::class, 'people'])->middleware('throttle:60,1');
             Route::get('spaces/{space}', [SpaceController::class, 'show']);
             Route::patch('spaces/{space}', [SpaceController::class, 'update']);
@@ -401,6 +404,14 @@ Route::prefix('v1')->group(function () {
             Route::post('reports', [PostController::class, 'report'])->middleware('throttle:20,1');
             Route::post('reports/{abuseReport}/resolve', [PostController::class, 'resolveReport']);
 
+            Route::post('uploads', [SocialFileController::class, 'store'])->middleware('throttle:30,10');
+            Route::post('uploads/sign', [SocialFileController::class, 'sign'])->middleware('throttle:30,10');
+            Route::post('uploads/{upload}/complete', [SocialFileController::class, 'complete'])->middleware('throttle:30,10');
+            Route::delete('uploads/{upload}', [SocialFileController::class, 'destroy']);
+            Route::get('files/{upload}', [SocialFileController::class, 'show'])->middleware('throttle:120,1');
+            Route::get('notes', [CourseSocialController::class, 'subjectNotes']);
+            Route::post('notes', [CourseSocialController::class, 'addSubjectNote'])->middleware('throttle:60,1');
+            Route::delete('notes/{lessonNote}', [CourseSocialController::class, 'deleteNote']);
             Route::get('lesson-notes', [CourseSocialController::class, 'notes']);
             Route::post('lesson-notes', [CourseSocialController::class, 'addNote'])->middleware('throttle:60,1');
             Route::delete('lesson-notes/{lessonNote}', [CourseSocialController::class, 'deleteNote']);
@@ -457,6 +468,7 @@ Route::prefix('v1')->group(function () {
             Route::get('programs-for-me', [MeController::class, 'programsForMe']);
             Route::get('menu-layout', [MenuLayoutController::class, 'show']);
             Route::get('app-theme', [AppThemesController::class, 'mine']);
+            Route::get('app-home', AppHomeMeController::class);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');

@@ -38,7 +38,7 @@ class LibraryController extends Controller
     public function show(LibraryItem $item): JsonResponse
     {
         abort_unless($this->library->canView($item, $this->user()), 404);
-        $reviews = DB::table('library_reviews')->where('item_id', $item->id)->whereNotNull('review')->latest()->limit(20)->get(['stars', 'review', 'created_at']);
+        $reviews = DB::table('content_ratings')->where(['subject_type' => 'library', 'subject_id' => $item->id, 'status' => 'published'])->whereNotNull('review')->latest()->limit(20)->get(['stars', 'review', 'created_at']);
 
         return response()->json(['data' => $this->library->present($item, $this->user()) + ['review_list' => $reviews]]);
     }
@@ -190,7 +190,7 @@ class LibraryController extends Controller
         $rows = $this->sharing->visibleShares($this->user())->map(function ($s) use ($policy) {
             $meta = match ($s->resource_type) {
                 'material' => Material::find($s->resource_id)?->only(['title_ar', 'title_en']),
-                'kit_file' => ($f = KitFile::find($s->resource_id)) ? ['title_ar' => $f->name, 'title_en' => $f->name] : null,
+                'kit_file' => ($f = KitFile::find($s->resource_id)) ? ['title_ar' => $f->name, 'title_en' => $f->name, 'kit_id' => $f->kit_id] : null,
                 'library_item' => LibraryItem::find($s->resource_id)?->only(['title_ar', 'title_en']),
                 'lesson' => CourseLessonMeta::of($s->resource_id),
                 default => null,

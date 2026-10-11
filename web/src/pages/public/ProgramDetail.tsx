@@ -10,6 +10,8 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useGet, useSend } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
+import RatingSummary from '@/components/social/RatingSummary'
+import StarRating from '@/components/social/StarRating'
 import { fmt } from '@/lib/format'
 import type { Eligibility, Program } from '@/lib/types'
 
@@ -17,7 +19,8 @@ export default function ProgramDetail() {
   const { code } = useParams()
   const { t } = useTranslation()
   const { user } = useAuth()
-  const { data, isLoading, error } = useGet<{ data: Program }>(`/public/programs/${code}`)
+  const { data, isLoading, error } = useGet<{ data: Program; meta?: { rating?: { average: number | null; count: number } } }>(`/public/programs/${code}`)
+  const rating = data?.meta?.rating
   const program = data?.data
   const eligibility = useGet<{ data: Eligibility }>(user?.employee && program ? `/me/programs/${program.id}/eligibility` : null)
   const register = useSend('post', () => `/me/programs/${program!.id}/register`, ['/me', '/public'])
@@ -38,6 +41,7 @@ export default function ProgramDetail() {
             <div className="flex flex-wrap gap-2"><StatusBadge status={program.status} /><Badge color="gold">{t(`levels.${program.level}`)}</Badge>{program.category && <Badge color="navy">{program.category.name}</Badge>}<span className="font-mono text-sm text-gold-300" dir="ltr">{program.code}</span></div>
             <h1 className="mt-4 max-w-4xl text-3xl font-bold sm:text-5xl">{program.title}</h1>
             {program.summary && <p className="mt-3 max-w-3xl text-white/80">{program.summary}</p>}
+            {!!rating?.count && <p className="mt-3 flex items-center gap-2 text-sm text-white/85"><StarRating value={rating.average} size={16} /><span>{fmt.number(rating.average, 1)} · {t('soc.lesson.ratings', { n: rating.count })}</span></p>}
           </div>
         </div>
       </section>
@@ -77,6 +81,13 @@ export default function ProgramDetail() {
                     </li>
                   ))}
                 </ol>
+              </Card>
+            )}
+
+            {user && (
+              <Card>
+                <h3 className="mb-5 text-lg font-bold text-navy-900">{t('soc.rating.title')}</h3>
+                <RatingSummary type="program" id={program.id} />
               </Card>
             )}
 
