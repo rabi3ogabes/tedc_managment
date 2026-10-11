@@ -8,6 +8,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../home/top_cards.dart';
 
 /// «Programs for me»: only what the person can take, in three tabs — for their role, general, and the smart picks.
 class ProgramsScreen extends ConsumerStatefulWidget {
@@ -53,6 +54,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
             final d = Map<String, dynamic>.from(raw as Map).obj('data') ?? const {};
             final position = d.str('position');
             return Column(children: [
+              const CourseProgressStrip(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
                 child: TextField(

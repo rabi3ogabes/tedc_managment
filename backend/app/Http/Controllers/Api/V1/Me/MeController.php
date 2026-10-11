@@ -21,6 +21,7 @@ use App\Services\PassportService;
 use App\Services\RecommendationEngine;
 use App\Support\Nationalities;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -70,6 +71,14 @@ class MeController extends Controller
                 'pending_surveys' => ImpactSurvey::where('employee_id', $employee->id)->where('status', 'sent')->count(),
                 'tasks_needing_changes' => $openTasks,
                 'unread_notifications' => $this->user()->appNotifications()->whereNull('read_at')->count(),
+            ],
+            // What the person still has to do: shown as the «tasks and surveys» card at the top of the app's home screen.
+            'todo' => [
+                'tasks' => DB::table('tasks as t')->join('registrations as r', fn ($j) => $j->on('r.program_id', '=', 't.program_id')->where('r.employee_id', $employee->id)->where('r.status', Registration::STATUS_APPROVED))
+                    ->whereNotExists(fn ($w) => $w->select(DB::raw(1))->from('task_submissions as ts')->whereColumn('ts.task_id', 't.id')->where('ts.employee_id', $employee->id))->count(),
+                'changes' => $openTasks,
+                'evaluations' => Registration::where('employee_id', $employee->id)->where('status', Registration::STATUS_COMPLETED)->where(fn ($w) => $w->where('evaluation_completed', false)->orWhereNull('evaluation_completed'))->count(),
+                'surveys' => ImpactSurvey::where('employee_id', $employee->id)->where('status', 'sent')->count(),
             ],
             'next_session' => $nextSession ? $card($nextSession) : null,
             'current_session' => $current ? $card($current) + ['live' => now()->gte($current->starts_at)] : null,

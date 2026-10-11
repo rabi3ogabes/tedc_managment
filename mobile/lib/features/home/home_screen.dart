@@ -12,6 +12,7 @@ import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
 import '../needs/needs_survey_screen.dart';
 import '../reports/dashboard_section.dart';
+import 'top_cards.dart';
 import 'upcoming_programs.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -51,6 +52,11 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
                   if (ref.watch(brandProvider).occasionName case final occasion?) ...[_OccasionBanner(name: occasion, message: ref.watch(brandProvider).message), const SizedBox(height: 14)],
+                  // The first things the person sees: the hours of the year, then what is waiting for them.
+                  const HoursHeroCard(),
+                  const SizedBox(height: 12),
+                  TodoCard(todo: d.obj('todo') ?? const {}, pendingNeeds: _pendingNeeds(ref)),
+                  const SizedBox(height: 16),
                   Row(children: [
                     Expanded(child: StatTile(label: s.t('home.active'), value: fmt.number(stats.number('active_programs')), icon: Icons.play_circle_outline)),
                     const SizedBox(width: 12),
@@ -90,6 +96,12 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+int _pendingNeeds(WidgetRef ref) {
+  final raw = ref.watch(getProvider(needsListPath)).value;
+  if (raw == null) return 0;
+  return Map<String, dynamic>.from(raw as Map).list('data').where((e) => e.flag('open') && e['responded_at'] == null).length;
 }
 
 /// A slim greeting while an occasion theme (Ramadan, Eid, National Day …) is on, set from the dashboard.

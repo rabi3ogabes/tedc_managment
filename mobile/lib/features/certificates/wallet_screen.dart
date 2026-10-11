@@ -15,6 +15,7 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
+import '../home/top_cards.dart';
 
 /// Certificate wallet: every issued certificate as a premium card with its verification QR.
 class WalletScreen extends ConsumerWidget {
@@ -70,10 +71,11 @@ class WalletScreen extends ConsumerWidget {
             if (items.isEmpty) return ListView(children: const [EmptyView(icon: Icons.workspace_premium_outlined)]);
             return ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: items.length,
+              itemCount: items.length + 1,
               separatorBuilder: (_, _) => const SizedBox(height: 16),
-              itemBuilder: (_, i) {
-                final c = items[i];
+              itemBuilder: (_, index) {
+                if (index == 0) return CertificatesSummary(items: items);
+                final c = items[index - 1];
                 final trainer = c.str('kind') == 'trainer';
                 final locked = !c.flag('downloadable');
                 return Container(

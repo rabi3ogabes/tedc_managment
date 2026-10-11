@@ -29,4 +29,19 @@ class HomeCheckInTest extends TestCase
         $this->assertNotContains($live->id, array_column($res->json('data.upcoming_sessions'), 'id'));
         $this->assertCount(2, $res->json('data.upcoming_sessions'));
     }
+
+    public function test_the_home_screen_counts_what_the_person_still_has_to_do(): void
+    {
+        $employee = $this->makeEmployee();
+        $program = $this->makeProgram();
+        Registration::create(['program_id' => $program->id, 'employee_id' => $employee->id, 'source' => 'self', 'status' => Registration::STATUS_APPROVED]);
+        $done = $this->makeProgram();
+        Registration::create(['program_id' => $done->id, 'employee_id' => $employee->id, 'source' => 'self', 'status' => Registration::STATUS_COMPLETED, 'evaluation_completed' => false]);
+
+        $todo = $this->asUser($employee->user)->getJson('/api/v1/me/home')->assertOk()->json('data.todo');
+
+        $this->assertSame(['tasks', 'changes', 'evaluations', 'surveys'], array_keys($todo));
+        $this->assertSame(1, $todo['evaluations']);
+        $this->assertSame(0, $todo['tasks']);
+    }
 }

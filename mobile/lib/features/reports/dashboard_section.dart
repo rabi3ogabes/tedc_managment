@@ -6,6 +6,10 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 
+/// The trainee's cards that have their own place in the app (hours and tasks on the home screen, progress on Programs,
+/// certificates on Certificates) or were removed (upcoming workshops, recommendations): never repeated as generic widgets.
+const _placedElsewhere = {'my_upcoming', 'my_progress', 'my_hours', 'my_certificates', 'my_tasks', 'recommendations'};
+
 /// The dashboard of the active role (principal, deputy, trainer, trainee…): the widgets its preset offers, in the person's own order.
 class DashboardSection extends ConsumerWidget {
   const DashboardSection({super.key});
@@ -17,7 +21,7 @@ class DashboardSection extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
       data: (raw) {
-        final widgets = Map<String, dynamic>.from((raw as Map)['data'] as Map).list('widgets').where((w) => !w.flag('hidden'));
+        final widgets = Map<String, dynamic>.from((raw as Map)['data'] as Map).list('widgets').where((w) => !w.flag('hidden') && !_placedElsewhere.contains(w.str('key')));
         if (widgets.isEmpty) return const SizedBox.shrink();
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 12),
