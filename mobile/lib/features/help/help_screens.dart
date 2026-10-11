@@ -256,12 +256,16 @@ Future<void> showTourIfPending(BuildContext context, WidgetRef ref) async {
     await showModalBottomSheet<void>(
       context: context,
       isDismissible: true,
+      showDragHandle: true,
+      isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           final step = steps[i];
           final last = i == steps.length - 1;
-          return Padding(
-            padding: const EdgeInsets.all(20),
+          // SafeArea keeps the buttons above the phone's own navigation bar.
+          return SafeArea(
+            child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(ar ? step.str('title_ar') : step.str('title_en'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
@@ -272,7 +276,7 @@ Future<void> showTourIfPending(BuildContext context, WidgetRef ref) async {
                 FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), onPressed: () => last ? Navigator.of(ctx).pop() : setState(() => i++), child: Text(context.tr(last ? 'help.tour.done' : 'help.tour.next'))),
               ]),
             ]),
-          );
+          ));
         },
       ),
     );
