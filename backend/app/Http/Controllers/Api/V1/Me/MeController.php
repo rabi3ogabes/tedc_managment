@@ -21,9 +21,9 @@ use App\Services\PassportService;
 use App\Services\RecommendationEngine;
 use App\Support\Nationalities;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Employee home, training passport, recommendations and notifications.
