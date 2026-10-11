@@ -119,7 +119,7 @@ jobs:
 
             - API: `${{ steps.api.outputs.url }}` (${{ steps.api.outputs.api_status }})
             - Branch: `${{ github.ref_name }}` · commit `${{ github.sha }}`
-            - Sign in with a demo account (password `Tedc@2026!`) or your own account.
+            - Sign in with your account. On a development or staging server the sign-in screen also lists the demo accounts.
             - Push notifications: enable and configure them on the dashboard → Settings → Notifications.
             - Change the server inside the app: long-press the emblem on the sign-in screen.
 

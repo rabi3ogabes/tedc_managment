@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\Admin\CompetencyController;
 use App\Http\Controllers\Api\V1\Admin\ContentImportController;
 use App\Http\Controllers\Api\V1\Admin\ContentLifecycleController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
+use App\Http\Controllers\Api\V1\Admin\DemoAccountsController;
 use App\Http\Controllers\Api\V1\Admin\EKitController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
@@ -1038,6 +1039,8 @@ Route::prefix('v1')->group(function () {
             });
 
             // Security: password policy, MFA, sessions, unlocking.
+            Route::get('security/demo-accounts', [DemoAccountsController::class, 'show'])->middleware('permission:security.policy');
+            Route::post('security/demo-accounts/neutralise', [DemoAccountsController::class, 'neutralise'])->middleware(['permission:security.policy', 'step_up']);
             Route::get('security-policy', [SecurityPolicyController::class, 'show'])->middleware('permission:security.policy|sessions.manage');
             Route::put('security-policy', [SecurityPolicyController::class, 'update'])->middleware(['permission:security.policy', 'step_up']);
             Route::middleware('permission:sessions.manage')->group(function () {

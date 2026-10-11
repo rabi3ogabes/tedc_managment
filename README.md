@@ -84,7 +84,7 @@ flutter run --dart-define=API_URL=http://10.0.2.2:8000/api/v1
 
 ### Demo accounts
 
-All demo passwords: `Tedc@2026!`
+All demo accounts share one password, defined in `App\Support\DemoCredentials::PASSWORD` (local development and staging only). Demo accounts never exist on a production system.
 
 | Role | E-mail |
 |------|--------|

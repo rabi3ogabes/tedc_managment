@@ -38,10 +38,6 @@ if ($status !== 0) {
     exit(0);
 }
 
-// Demo accounts with a shared password only on a demonstration deployment (TEDC_ALLOW_DEMO_IN_PRODUCTION=true).
-if (getenv('SUPABASE_SECRET_KEY') && filter_var(getenv('TEDC_SEED_DEMO'), FILTER_VALIDATE_BOOL) && filter_var(getenv('TEDC_ALLOW_DEMO_IN_PRODUCTION'), FILTER_VALIDATE_BOOL)) {
-    echo '→ Creating the demo accounts in Supabase Auth (existing accounts keep their password)…'.PHP_EOL;
-    passthru("{$php} {$artisan} tedc:supabase-sync-users --password=".escapeshellarg('Tedc@2026!').' --no-interaction 2>&1');
-}
-
+// Passwords are never set by a deployment: accounts keep the password their owner chose (demo accounts are created only
+// outside production, by the seeders).
 exit(0);

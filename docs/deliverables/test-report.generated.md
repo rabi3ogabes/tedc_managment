@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **106**; test methods: **666**.
+- Test files: **111**; test methods: **687**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -35,6 +35,8 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AiModelsTest.php | 8 |
 | AnnouncementsCmsPhase11Test.php | 10 |
 | AnnualPlanTest.php | 5 |
+| AppHomeLayoutTest.php | 2 |
+| AppThemesTest.php | 4 |
 | AssessmentEngineTest.php | 8 |
 | AssessmentExtrasTest.php | 7 |
 | AttendanceAndCertificateTest.php | 8 |
@@ -54,6 +56,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | DashboardsKpiPhase12Test.php | 5 |
 | DataMigrationTest.php | 8 |
 | DeliverablesTest.php | 6 |
+| DemoExposureTest.php | 7 |
 | DemoOnlineCoursesTest.php | 2 |
 | DemoScenarioTest.php | 7 |
 | EKitsTest.php | 7 |
@@ -72,7 +75,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | GlobalSearchTest.php | 3 |
 | GroupRegistrationTest.php | 5 |
 | HelpCentreTest.php | 14 |
-| HomeCheckInTest.php | 1 |
+| HomeCheckInTest.php | 2 |
 | HomeLayoutsTest.php | 2 |
 | IdentitySecurityTest.php | 10 |
 | ImpersonationTest.php | 2 |
@@ -86,6 +89,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | LibraryAndLifecycleTest.php | 9 |
 | LobbyScreenTest.php | 3 |
 | LtiTest.php | 8 |
+| MenuLayoutTest.php | 3 |
 | MinistryIntegrationsTest.php | 8 |
 | NationalSchoolsTest.php | 3 |
 | NeedsCycleTest.php | 5 |
@@ -102,6 +106,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | ProductionSafetyTest.php | 4 |
 | ProgramBuilderTest.php | 5 |
 | ProgramGrantsTest.php | 6 |
+| ProgramsForMeTest.php | 3 |
 | PublicAndAnalyticsTest.php | 7 |
 | PushNotificationsTest.php | 9 |
 | QtiAndCartridgeTest.php | 4 |
@@ -123,7 +128,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | SystemEndpointsTest.php | 8 |
 | TeamsIntegrationTest.php | 7 |
 | TestAccountsTest.php | 1 |
-| ThemeOccasionsTest.php | 6 |
+| ThemeOccasionsTest.php | 7 |
 | ThemeTest.php | 10 |
 | TrainerAssignmentTest.php | 5 |
 | TrainerManagementTest.php | 5 |

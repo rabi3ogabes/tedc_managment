@@ -16,16 +16,12 @@ class ProductionSafetyTest extends TestCase
         app(FeatureSettings::class)->flush();
     }
 
-    public function test_demo_data_is_never_seeded_in_production_without_an_explicit_switch(): void
+    public function test_demo_data_is_never_seeded_in_production(): void
     {
         $this->assertTrue(DemoGuard::allowed());
 
         $this->production();
-        config(['tedc.demo.allow_in_production' => false]);
         $this->assertFalse(DemoGuard::allowed());
-
-        config(['tedc.demo.allow_in_production' => true]);
-        $this->assertTrue(DemoGuard::allowed(), 'the demo deployment can still opt in on purpose');
     }
 
     public function test_in_production_the_error_fixer_only_suggests_unless_self_heal_is_on(): void
@@ -57,7 +53,6 @@ class ProductionSafetyTest extends TestCase
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
 
         $this->production();
-        config(['tedc.demo.allow_in_production' => false]);
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false);
     }
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLang } from '@/components/dashboard/Widget'
 import { Button, Card, Field, Modal, PageHeader, Spinner, Table, Td } from '@/components/ui'
+import DemoPasswordAccounts from '@/components/admin/DemoPasswordAccounts'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -66,6 +67,7 @@ export default function SecurityAdmin() {
           </Card>
         </div>
       )}
+      {can('security.policy') && <DemoPasswordAccounts guard={step.guard} />}
       {can('sessions.manage') && (
         <Card padded={false} className="mt-5">
           <div className="flex items-center justify-between gap-3 p-4"><h3 className="font-bold text-navy-900">{t('idn.sec.active')}</h3><input className={`${cls} w-64`} placeholder={String(t('idn.sec.search'))} value={q} onChange={(e) => setQ(e.target.value)} /></div>

@@ -70,8 +70,8 @@ Supabase Auth accounts for the platform users once, from your computer, with the
 `backend/.env`:
 
 ```bash
-php artisan tedc:supabase-sync-users --password="Tedc@2026!" --reset-password
-php artisan tedc:supabase-check --email=admin@tedc.qa --password="Tedc@2026!"
+php artisan tedc:supabase-sync-users --password="<a new password>" --reset-password
+php artisan tedc:supabase-check --email=admin@tedc.qa --password="<a new password>"
 ```
 
 Or run them inside the running service with the Railway CLI: `railway ssh`, then `php artisan …`.

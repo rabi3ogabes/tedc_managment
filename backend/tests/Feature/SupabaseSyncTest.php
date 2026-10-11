@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Role;
+use App\Support\DemoCredentials;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -19,7 +20,7 @@ class SupabaseSyncTest extends TestCase
             'demo.supabase.co/auth/v1/admin/users' => Http::response(['id' => '22222222-2222-2222-2222-222222222222'], 200),
         ]);
 
-        $this->artisan('tedc:supabase-sync-users', ['--password' => 'Tedc@2026!'])->assertSuccessful();
+        $this->artisan('tedc:supabase-sync-users', ['--password' => DemoCredentials::PASSWORD])->assertSuccessful();
 
         $this->assertSame('11111111-1111-1111-1111-111111111111', $existing->fresh()->auth_id);
         $this->assertSame('22222222-2222-2222-2222-222222222222', $new->fresh()->auth_id);

@@ -44,17 +44,16 @@ Any other variable from `backend/.env.example` can still be set to override a de
 ## 3. Deploy: the database sets itself up
 
 Redeploy after saving the variables. The build (`backend/scripts/vercel-build.php`) then runs the migrations and
-seeds an empty database: roles, reference data and, with `TEDC_SEED_DEMO`, the demo data. It also creates the
-demo accounts in Supabase Auth with the password `Tedc@2026!`; existing accounts keep their password. Later
-deployments only apply new migrations. The build never fails because of the database: check
+seeds an empty database: roles and reference data. Demo data and demo accounts are created only outside production
+(staging and development); a deployment never sets or resets anyone's password. Later deployments only apply new migrations. The build never fails because of the database: check
 `https://<project>.vercel.app/api/v1/public/health`. It lists any missing variable names and the database state.
 
-Manual alternative, e.g. to reset the demo passwords:
+Manual alternative on a staging server, e.g. to set the passwords of the accounts in Supabase Auth:
 
 ```bash
 curl -X POST https://<project>.vercel.app/api/v1/system/setup \
   -H "Authorization: Bearer <CRON_SECRET>" -H "Content-Type: application/json" \
-  -d '{"sync_users_password": "Tedc@2026!"}'
+  -d '{"sync_users_password": "<a new password>"}'
 ```
 
 ## Limits on Vercel

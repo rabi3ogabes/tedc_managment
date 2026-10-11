@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\JobTitle;
 use App\Models\Role;
+use App\Support\DemoCredentials;
 use Tests\TestCase;
 
 class TestAccountsTest extends TestCase
@@ -29,7 +30,7 @@ class TestAccountsTest extends TestCase
         $this->assertSame(4, collect($data['programs'])->count());
 
         // One tap on the app's login screen signs in with these accounts.
-        $login = $this->postJson('/api/v1/auth/login', ['email' => 'trainee2@tedc.qa', 'password' => 'Tedc@2026!'])->assertOk()->json();
+        $login = $this->postJson('/api/v1/auth/login', ['email' => 'trainee2@tedc.qa', 'password' => DemoCredentials::PASSWORD])->assertOk()->json();
         $this->app['auth']->forgetGuards();
         $this->withHeader('Authorization', 'Bearer '.$login['access_token'])->getJson('/api/v1/me/home')->assertOk();
 

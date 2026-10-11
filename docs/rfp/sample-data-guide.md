@@ -9,7 +9,7 @@ php artisan tedc:samples          # safe to run again: a part that already has i
 It also runs with `php artisan migrate:fresh --seed` when `TEDC_SEED_DEMO=true`, and on each release of a demonstration deployment.
 Switch on the optional features first (Settings → Features): payments, gamification, communities (plc) and forums are off until you do.
 
-## Accounts (password for all: `Tedc@2026!`)
+## Accounts (one shared password: `App\Support\DemoCredentials::PASSWORD` (local development and staging only))
 | Role | Account | Start here |
 |---|---|---|
 | System admin | admin@tedc.qa | everything |

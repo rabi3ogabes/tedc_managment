@@ -174,21 +174,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             // Demo accounts only where the server is in demo mode (never on a live system by default).
-            if (AppConfig.showDemoAccounts && _serverShowsDemo(ref)) _DemoAccounts(onPick: _useDemo),
+            if (AppConfig.showDemoAccounts && _serverShowsDemo(ref)) _DemoAccounts(onPick: _useDemo, password: _demoPassword(ref)!),
           ]),
         ),
       ]),
     );
   }
 
-  bool _serverShowsDemo(WidgetRef ref) {
+  /// The shared demo password is never part of the app: the server sends it only while demo mode is on (never on a live system).
+  String? _demoPassword(WidgetRef ref) {
     final config = ref.watch(getProvider('/public/mobile-config')).value;
-    return config is Map && config['data'] is Map && (config['data'] as Map)['demo_accounts'] == true;
+    if (config is! Map || config['data'] is! Map) return null;
+    final data = config['data'] as Map;
+    final password = data['demo_password'];
+    return data['demo_accounts'] == true && password is String && password.isNotEmpty ? password : null;
   }
 
+  bool _serverShowsDemo(WidgetRef ref) => _demoPassword(ref) != null;
+
   void _useDemo(String email) {
+    final password = _demoPassword(ref);
+    if (password == null) return;
     _email.text = email;
-    _password.text = _DemoAccounts.password;
+    _password.text = password;
     _submit();
   }
 
@@ -206,11 +214,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// One-tap sign-in with the demo accounts (all roles share the demo password).
+/// One-tap sign-in with the demo accounts (all roles share the demo password, which the server sends only in demo mode).
 class _DemoAccounts extends StatelessWidget {
-  const _DemoAccounts({required this.onPick});
+  const _DemoAccounts({required this.onPick, required this.password});
 
-  static const password = 'Tedc@2026!';
   static const accounts = [
     ('admin@tedc.qa', 'Super Admin'),
     ('center@tedc.qa', 'Center Admin'),
@@ -233,6 +240,7 @@ class _DemoAccounts extends StatelessWidget {
   ];
 
   final ValueChanged<String> onPick;
+  final String password;
 
   @override
   Widget build(BuildContext context) {

@@ -17,7 +17,8 @@ The app connects to `https://tedc-managment.vercel.app/api/v1` by default. To te
 
 ## Demo accounts
 
-The sign-in screen lists the 8 demo roles. Tap one to sign in; the password is `Tedc@2026!`. For a production
+On a development or staging server the sign-in screen lists the 8 demo roles; tap one to sign in. The app does not contain the
+password: the server sends it only while it runs in demo mode, which a production server never does. For a production
 build, pass `--dart-define=SHOW_DEMO_ACCOUNTS=false` to hide them.
 
 ## What to test

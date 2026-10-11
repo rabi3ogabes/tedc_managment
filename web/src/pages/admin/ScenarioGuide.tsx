@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card } from '@/components/ui'
+import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 
 type Item = { id: string; code: string; mode: 'in_person' | 'online' | 'hybrid'; status: string; title: string }
@@ -18,6 +19,8 @@ const TONE = { in_person: 'bg-navy-900 text-gold-300', online: 'bg-sky-600 text-
 /** Settings → Test accounts: the presentation scenario — build it, see its programs, who plays whom, and the running order. */
 export default function ScenarioGuide({ programs, onBuilt }: { programs: Item[]; onBuilt: () => void }) {
   const { t } = useTranslation()
+  // The shared password of the demo accounts comes from the server, and only while demo mode is on.
+  const config = useGet<{ data: { demo_password?: string | null } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
   const [busy, setBusy] = useState(false)
   const [step, setStep] = useState(0)
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
@@ -93,7 +96,7 @@ export default function ScenarioGuide({ programs, onBuilt }: { programs: Item[];
                 </tbody>
               </table>
             </div>
-            <p className="border-t border-navy-100 p-4 text-xs text-slate-500">{t('scenario.note')}</p>
+            <p className="border-t border-navy-100 p-4 text-xs text-slate-500">{t('scenario.note', { password: config.data?.data.demo_password ?? '—' })}</p>
           </Card>
         </>
       )}

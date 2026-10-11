@@ -14,6 +14,13 @@ export const idnAr = {
       sessions: 'جلساتي', thisOne: 'هذه الجلسة', end: 'إنهاء', since: 'منذ', lastSeen: 'آخر نشاط', ended: 'تم إنهاء الجلسة.',
     },
     sec: {
+      demo: {
+        title: 'حسابات قد تستخدم كلمة المرور التجريبية', hint: 'هذه الحسابات ما زالت تحمل كلمة مرور الحسابات التجريبية المنشورة، ولم يغيّرها أصحابها. أوقفها أو أعطها كلمة مرور عشوائية (يستعيد صاحبها الدخول عبر «نسيت كلمة المرور»).',
+        none: 'لا يوجد حساب يستخدم كلمة المرور التجريبية.', rescan: 'إعادة الفحص', suspend: 'إيقاف المحدد', reset: 'كلمة مرور عشوائية للمحدد', selectAll: 'تحديد الكل',
+        confirmSuspend: 'إيقاف {{n}} حساب وإنهاء جلساته؟ يمكن إعادة تفعيله من صفحة المستخدمين.', confirmReset: 'إعطاء {{n}} حساب كلمة مرور عشوائية؟ لن يتمكن أصحابها من الدخول بكلمة المرور القديمة.',
+        you: 'أنت', changeOwn: 'غيّر كلمة مرورك', lastLogin: 'آخر دخول', never: 'لم يدخل بعد', status: { active: 'نشط', suspended: 'موقوف' },
+        done: 'تمت معالجة {{n}} حساب.', demoMode: 'هذا الخادم يعمل في الوضع التجريبي: الحسابات التجريبية مقصودة هنا.',
+      },
       title: 'سياسة الأمان', password: 'كلمة المرور', minLength: 'الحد الأدنى للطول', upper: 'حرف كبير', lower: 'حرف صغير', digit: 'رقم', symbol: 'رمز', history: 'عدد كلمات المرور السابقة المحظورة', expiry: 'مدة الصلاحية (أيام، 0 = بلا انتهاء)', breached: 'فحص التسريبات المعروفة',
       lockout: 'القفل', attempts: 'عدد المحاولات الخاطئة', lockMinutes: 'مدة القفل (دقائق)', mfa: 'التحقق بخطوتين', enforce: 'إلزامي للأدوار', methods: 'الطرق المتاحة', remember: 'تذكّر الجهاز (أيام)',
       sessions: 'الجلسات', idle: 'الخمول (دقائق)', absolute: 'أقصى مدة للجلسة (ساعات)', save: 'حفظ السياسة', saved: 'تم حفظ السياسة.', stepUp: 'أكّد رمز التحقق لمتابعة هذا الإجراء.', stepCode: 'رمز التحقق',
@@ -52,6 +59,13 @@ export const idnEn = {
       sessions: 'My sessions', thisOne: 'This session', end: 'End', since: 'Since', lastSeen: 'Last active', ended: 'Session ended.',
     },
     sec: {
+      demo: {
+        title: 'Accounts that may still use the demo password', hint: 'These accounts still carry the published password of the demo accounts and their owners never changed it. Suspend them or give them a random password (the owner gets back in with "forgot password").',
+        none: 'No account uses the demo password.', rescan: 'Scan again', suspend: 'Suspend selected', reset: 'Random password for selected', selectAll: 'Select all',
+        confirmSuspend: 'Suspend {{n}} account(s) and end their sessions? You can reactivate them from the users page.', confirmReset: 'Give {{n}} account(s) a random password? Their owners can no longer sign in with the old one.',
+        you: 'You', changeOwn: 'Change your password', lastLogin: 'Last sign-in', never: 'Never signed in', status: { active: 'Active', suspended: 'Suspended' },
+        done: '{{n}} account(s) handled.', demoMode: 'This server runs in demo mode: the demo accounts are intended here.',
+      },
       title: 'Security policy', password: 'Password', minLength: 'Minimum length', upper: 'Uppercase letter', lower: 'Lowercase letter', digit: 'Digit', symbol: 'Symbol', history: 'Previous passwords blocked', expiry: 'Expiry (days, 0 = never)', breached: 'Check against known breaches',
       lockout: 'Lockout', attempts: 'Wrong attempts allowed', lockMinutes: 'Lock for (minutes)', mfa: 'Two-step verification', enforce: 'Required for roles', methods: 'Allowed methods', remember: 'Remember device (days)',
       sessions: 'Sessions', idle: 'Idle timeout (minutes)', absolute: 'Maximum session length (hours)', save: 'Save policy', saved: 'Policy saved.', stepUp: 'Confirm your verification code to continue with this action.', stepCode: 'Verification code',

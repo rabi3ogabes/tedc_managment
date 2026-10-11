@@ -8,11 +8,12 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Models\TrainingGroup;
 use App\Models\User;
+use App\Support\DemoCredentials;
 
 /** What the sample sections share: the demo accounts, programs and registrations that already exist, and the accounts the new roles still lack. */
 class SampleContext
 {
-    public const PASSWORD = 'Tedc@2026!';
+    public const PASSWORD = DemoCredentials::PASSWORD;
 
     /** email => [name_ar, name_en, role]. The roles added since the first release have no demo account until here. */
     public const ROLE_ACCOUNTS = [

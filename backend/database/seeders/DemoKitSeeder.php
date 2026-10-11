@@ -18,6 +18,7 @@ use App\Services\Kits\DeckGenerator;
 use App\Services\Kits\ImageGenerator;
 use App\Services\Kits\KitFiles;
 use App\Services\Kits\KitLog;
+use App\Support\DemoCredentials;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ use ZipArchive;
  */
 class DemoKitSeeder extends Seeder
 {
-    protected const PASSWORD = 'Tedc@2026!';
+    protected const PASSWORD = DemoCredentials::PASSWORD;
 
     public function run(): void
     {

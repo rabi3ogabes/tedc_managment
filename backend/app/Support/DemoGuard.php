@@ -3,14 +3,15 @@
 namespace App\Support;
 
 /**
- * Demo data (accounts with a shared password, sample programs, scenarios) must never appear on a live system by accident.
- * Outside production it is always allowed. In production it needs the explicit environment switch
- * TEDC_ALLOW_DEMO_IN_PRODUCTION=true, which only a demonstration deployment sets.
+ * Demo data (accounts with a shared password, sample programs, scenarios) never appears on a live system. Outside
+ * production it is always allowed; in production it never is. A demonstration deployment runs with APP_ENV=staging
+ * (or demo), not production. The old TEDC_ALLOW_DEMO_IN_PRODUCTION switch is ignored on purpose: since 11 Oct 2026 the
+ * live site is preparing for real data.
  */
 class DemoGuard
 {
     public static function allowed(): bool
     {
-        return ! app()->environment('production') || (bool) config('tedc.demo.allow_in_production');
+        return ! app()->environment('production');
     }
 }

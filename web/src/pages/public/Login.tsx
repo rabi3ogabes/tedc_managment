@@ -22,7 +22,6 @@ const TEST_ACCOUNTS: [string, string][] = [['trainee1@tedc.qa', 'متدرب 1'],
 // The demo accounts panel appears only where the server is in demo mode (never on a live system by default; see DemoGuard).
 // A build can still hide it with VITE_SHOW_DEMO_ACCOUNTS=false.
 const DEMO_BUILD = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS !== 'false'
-const DEMO_PASSWORD = 'Tedc@2026!'
 
 /** After signing in: the change-password page when the password has expired, else where the person was heading. */
 function landing(me: Parameters<typeof homeFor>[0], from?: string) {
@@ -46,8 +45,10 @@ export default function Login() {
   const [error, setError] = useState<string | null>(params.get('sso_error') ? String(t('idn.login.ssoError')) : null)
   const [loading, setLoading] = useState(false)
   const [opening, setOpening] = useState<string | null>(null)
-  const config = useGet<{ data: { demo_accounts?: boolean } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
-  const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true
+  const config = useGet<{ data: { demo_accounts?: boolean; demo_password?: string | null } }>('/public/mobile-config', undefined, { staleTime: 5 * 60_000, retry: false })
+  // The demo password is never part of the app: the server sends it only while demo mode is on (never on a live system).
+  const DEMO_PASSWORD = config.data?.data.demo_password ?? ''
+  const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true && DEMO_PASSWORD !== ''
 
   if (user) return <Navigate to={homeFor(user)} replace />
 

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Models\Role;
+use App\Support\DemoCredentials;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -48,11 +49,11 @@ class SystemEndpointsTest extends TestCase
         ]);
         $this->makeUser(Role::EMPLOYEE, ['email' => 'setup@tedc.qa']);
 
-        $this->postJson('/api/v1/system/setup', ['sync_users_password' => 'Tedc@2026!'], ['Authorization' => 'Bearer right-secret'])
+        $this->postJson('/api/v1/system/setup', ['sync_users_password' => DemoCredentials::PASSWORD], ['Authorization' => 'Bearer right-secret'])
             ->assertOk()
             ->assertJsonPath('data.status', 'ok');
 
-        Http::assertSent(fn ($r) => $r->method() === 'POST' && str_ends_with($r->url(), '/auth/v1/admin/users') && $r['password'] === 'Tedc@2026!');
+        Http::assertSent(fn ($r) => $r->method() === 'POST' && str_ends_with($r->url(), '/auth/v1/admin/users') && $r['password'] === DemoCredentials::PASSWORD);
     }
 
     public function test_liveness_probe_is_plain_json_without_session_cookies(): void

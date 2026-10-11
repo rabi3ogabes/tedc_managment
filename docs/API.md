@@ -260,3 +260,11 @@ Routes can be gated with the `feature:<key>` middleware; a disabled feature answ
 | GET | `/search?q=&types=` | signed in with `search.global`: grouped results for programs, people (scoped), trainers, kits, certificates, news |
 
 Attendance marking, task review and program notifications also accept a person who holds the matching program grant (`can_or_grant` middleware plus a program check in the controller).
+
+## Close-out (phases 19–27, from 11 Oct 2026)
+
+| Method | Path | Access |
+|---|---|---|
+| GET | `/public/mobile-config` | also returns `demo_password` — only while demo mode is on, which a production server never is |
+| GET | `/admin/security/demo-accounts[?rescan=1]` | `security.policy`: accounts whose stored password is still the shared demo password (`accounts[]`, `demo_mode`) |
+| POST | `/admin/security/demo-accounts/neutralise` | `security.policy` + step-up: `{mode: suspend|reset, user_ids[]}`; never touches the caller; audited (`demo_accounts_neutralised`) |

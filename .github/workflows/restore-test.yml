@@ -9,10 +9,29 @@ jobs:
   restore:
     runs-on: ubuntu-latest
     steps:
+      # Until the Azure subscription is connected (secrets AZURE_* and variable PROD_PG_ID), the scheduled run ends green with a notice.
+      - name: Check the Azure connection is configured
+        id: ready
+        env:
+          CLIENT: ${{ secrets.AZURE_CLIENT_ID }}
+          TENANT: ${{ secrets.AZURE_TENANT_ID }}
+          SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          PG: ${{ vars.PROD_PG_ID }}
+        run: |
+          if [ -n "$CLIENT" ] && [ -n "$TENANT" ] && [ -n "$SUBSCRIPTION" ] && [ -n "$PG" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Restore test skipped::The Azure subscription is not connected yet (secrets AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID and variable PROD_PG_ID). See docs/rfp/closeout/26_AZURE_GO_LIVE_AND_RESILIENCE.md."
+            echo "Skipped: the Azure subscription is not connected yet." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/checkout@v4
+        if: steps.ready.outputs.ok == 'true'
       - uses: azure/login@v2
+        if: steps.ready.outputs.ok == 'true'
         with: { client-id: '${{ secrets.AZURE_CLIENT_ID }}', tenant-id: '${{ secrets.AZURE_TENANT_ID }}', subscription-id: '${{ secrets.AZURE_SUBSCRIPTION_ID }}' }
       - name: Restore to an isolated server
+        if: steps.ready.outputs.ok == 'true'
         run: |
           set -e
           RG=rg-tedc-restore-test
@@ -21,5 +40,5 @@ jobs:
           az postgres flexible-server restore -g $RG -n tedc-restore-$(date +%Y%m) --source-server "${{ vars.PROD_PG_ID }}" --restore-time "$(date -u -d '-10 minutes' +%Y-%m-%dT%H:%M:%SZ)"
           echo "restore took $(( $(date +%s) - START )) s" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Cleanup
-        if: always()
+        if: always() && steps.ready.outputs.ok == 'true'
         run: az group delete -n rg-tedc-restore-test --yes --no-wait

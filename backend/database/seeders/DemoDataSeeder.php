@@ -24,6 +24,7 @@ use App\Models\TrainingNeed;
 use App\Models\TrainingRoom;
 use App\Models\User;
 use App\Services\ImpactService;
+use App\Support\DemoCredentials;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -31,13 +32,13 @@ use Illuminate\Support\Str;
 
 /**
  * Realistic demo data for a Qatar-based training center.
- * Demo accounts (password: Tedc@2026!):
+ * Demo accounts (password: App\Support\DemoCredentials::PASSWORD; local development and staging only):
  *   admin@tedc.qa, center@tedc.qa, coordinator@tedc.qa, trainer@tedc.qa,
  *   school@tedc.qa, teacher@tedc.qa, supervisor@tedc.qa, executive@tedc.qa
  */
 class DemoDataSeeder extends Seeder
 {
-    private const PASSWORD = 'Tedc@2026!';
+    private const PASSWORD = DemoCredentials::PASSWORD;
 
     private array $firstMale = ['محمد', 'أحمد', 'عبدالله', 'خالد', 'حمد', 'جاسم', 'علي', 'يوسف', 'فهد', 'ناصر', 'سعد', 'عبدالرحمن', 'راشد', 'مبارك', 'سلطان'];
 

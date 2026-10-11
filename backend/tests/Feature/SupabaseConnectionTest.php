@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Role;
+use App\Support\DemoCredentials;
 use App\Support\Supabase;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Client\ConnectionException;
@@ -99,7 +100,7 @@ class SupabaseConnectionTest extends TestCase
         ]);
         $this->makeUser(Role::EMPLOYEE, ['email' => 'sync@tedc.qa']);
 
-        $this->artisan('tedc:supabase-sync-users', ['--password' => 'Tedc@2026!'])->assertSuccessful();
+        $this->artisan('tedc:supabase-sync-users', ['--password' => DemoCredentials::PASSWORD])->assertSuccessful();
 
         Http::assertSent(fn (Request $r) => $r->hasHeader('apikey', 'sb_secret_test') && ! $r->hasHeader('Authorization'));
     }
@@ -134,9 +135,9 @@ class SupabaseConnectionTest extends TestCase
         ]);
         $user = $this->makeUser(Role::EMPLOYEE, ['email' => 'exists@tedc.qa']);
 
-        $this->artisan('tedc:supabase-sync-users', ['--password' => 'Tedc@2026!', '--email' => ['exists@tedc.qa'], '--reset-password' => true])->assertSuccessful();
+        $this->artisan('tedc:supabase-sync-users', ['--password' => DemoCredentials::PASSWORD, '--email' => ['exists@tedc.qa'], '--reset-password' => true])->assertSuccessful();
 
-        Http::assertSent(fn (Request $r) => $r->method() === 'PUT' && $r->url() === self::URL."/auth/v1/admin/users/{$id}" && $r['password'] === 'Tedc@2026!');
+        Http::assertSent(fn (Request $r) => $r->method() === 'PUT' && $r->url() === self::URL."/auth/v1/admin/users/{$id}" && $r['password'] === DemoCredentials::PASSWORD);
         $this->assertSame($id, $user->fresh()->auth_id);
     }
 

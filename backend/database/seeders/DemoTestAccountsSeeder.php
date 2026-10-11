@@ -13,6 +13,7 @@ use App\Models\TargetGroup;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
 use App\Models\User;
+use App\Support\DemoCredentials;
 use Illuminate\Database\Seeder;
 
 /**
@@ -22,7 +23,7 @@ use Illuminate\Database\Seeder;
  */
 class DemoTestAccountsSeeder extends Seeder
 {
-    public const PASSWORD = 'Tedc@2026!';
+    public const PASSWORD = DemoCredentials::PASSWORD;
 
     /** Which programs (1-4) each test account is assigned to. */
     public const TRAINEE_PROGRAMS = [1 => [1], 2 => [1, 2], 3 => [1, 2, 3], 4 => [1, 2, 3, 4]];

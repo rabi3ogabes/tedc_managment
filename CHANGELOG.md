@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-11 — Preflight of the close-out
+Production can no longer run in demo mode, deployments never set passwords, and the shared demo password is gone from the web app, the mobile app, the workflows and the docs (the sign-in screens get it from the server only on development and staging servers). Settings → Security lists the accounts that may still use it, with suspend and random-password actions (`tedc:demo-accounts`). The monthly restore test skips cleanly until Azure is connected. The project constitution (Spec Kit) is filled in, and the baseline is recorded in `docs/rfp/closeout/BASELINE.md`.
+
 ## 2026-10-11 — close-out prompt pack
 `docs/rfp/closeout/`: the list of the 50 RFP requirements still partial (`OPEN_ITEMS.md`, with what exists, what is missing, who unblocks it) and phase prompts 19–27 plus a master prompt with a Preflight. The Preflight covers the live site's demo-mode exposure, failing Vercel deploys, the container CVE exception and the scheduled restore job that cannot succeed yet.
 

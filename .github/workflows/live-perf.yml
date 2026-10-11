@@ -16,6 +16,9 @@ jobs:
       - name: Timings
         env:
           BASE: ${{ inputs.base_url }}
+          # Sign-in timing uses a dedicated monitoring account from the repository secrets; it is skipped when they are not set.
+          PERF_LOGIN_EMAIL: ${{ secrets.PERF_LOGIN_EMAIL }}
+          PERF_LOGIN_PASSWORD: ${{ secrets.PERF_LOGIN_PASSWORD }}
         run: |
           fmt='%{http_code} ttfb=%{time_starttransfer}s total=%{time_total}s size=%{size_download}B cache=%header{x-vercel-cache}\n'
           for path in / /api/v1/public/health /api/v1/public/theme /api/v1/public/home /api/v1/public/stats "/api/v1/public/programs?per_page=12" /api/v1/public/mobile-config; do
@@ -23,6 +26,11 @@ jobs:
             for i in 1 2 3 4; do curl -s -o /dev/null -w "$fmt" "$BASE$path"; done
           done
           echo "== login"
-          for i in 1 2 3; do curl -s -o /dev/null -w "$fmt" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{"email":"admin@tedc.qa","password":"Tedc@2026!"}' "$BASE/api/v1/auth/login"; done
+          if [ -n "$PERF_LOGIN_EMAIL" ] && [ -n "$PERF_LOGIN_PASSWORD" ]; then
+            body=$(jq -nc --arg e "$PERF_LOGIN_EMAIL" --arg p "$PERF_LOGIN_PASSWORD" '{email:$e,password:$p}')
+            for i in 1 2 3; do curl -s -o /dev/null -w "$fmt" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' -d "$body" "$BASE/api/v1/auth/login"; done
+          else
+            echo "skipped: set the PERF_LOGIN_EMAIL and PERF_LOGIN_PASSWORD secrets to time sign-in"
+          fi
           echo "== static assets"
           curl -s "$BASE/" | grep -oE '/assets/[^"]+\.(js|css)' | sort -u | while read a; do curl -s -o /dev/null -w "$a $fmt" --compressed "$BASE$a"; done
