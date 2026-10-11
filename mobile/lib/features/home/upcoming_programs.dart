@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 
@@ -149,14 +150,14 @@ class _ProgramSlide extends StatelessWidget {
       label: program.str('title'),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(AppStyle.radius(6)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: id.isEmpty ? null : open,
           child: Ink(
             decoration: BoxDecoration(
               gradient: LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy700]),
-              borderRadius: BorderRadius.circular(26),
+              borderRadius: BorderRadius.circular(AppStyle.radius(6)),
               boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .28), blurRadius: 22, offset: const Offset(0, 10))],
             ),
             child: Stack(children: [
@@ -214,7 +215,7 @@ class _Visual extends StatelessWidget {
           width: 96,
           height: 96,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(AppStyle.radius(6)),
             gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.white.withValues(alpha: .26), Colors.white.withValues(alpha: .08)]),
             border: Border.all(color: Colors.white.withValues(alpha: .35)),
           ),

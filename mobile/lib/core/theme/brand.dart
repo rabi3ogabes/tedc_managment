@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/response_cache.dart';
 import '../providers.dart';
+import 'app_style.dart';
 import 'app_theme.dart';
 import 'remote_font.dart';
 
@@ -98,8 +99,11 @@ class Brand {
   }
 
   /// The colours, as the app applies them.
-  void applyColors() =>
-      AppColors.apply(primary: primary, accent: accent, background: background);
+  void applyColors() => AppColors.apply(
+        primary: AppStyle.primary ?? primary,
+        accent: AppStyle.accent ?? accent,
+        background: AppStyle.background ?? background,
+      );
 }
 
 /// The look read from disk before the first frame (no network), and kept up to date when the config arrives.

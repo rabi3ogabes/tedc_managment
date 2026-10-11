@@ -12,6 +12,7 @@ import '../../core/l10n/strings.dart';
 import '../../core/notification_route.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
+import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/push_banner.dart';
 import '../help/help_screens.dart';
@@ -191,8 +192,8 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
             left: 14,
             top: MediaQuery.paddingOf(context).top + 10,
             child: Row(children: [
-              NotificationBell(onDark: !staff),
-              IconButton(onPressed: () => context.push('/search'), icon: Icon(Icons.search, color: staff ? AppColors.navy900 : Colors.white), tooltip: context.s.t('search.title')),
+              NotificationBell(onDark: !staff && AppStyle.header != 'flat'),
+              IconButton(onPressed: () => context.push('/search'), icon: Icon(Icons.search, color: staff || AppStyle.header == 'flat' ? AppColors.navy900 : Colors.white), tooltip: context.s.t('search.title')),
             ]),
           ),
         PushBanner(

@@ -18,6 +18,15 @@ export const apaAr = { apa: {
   fontPick: 'اختر خطًا جاهزًا', fontCustom: 'خط آخر (اكتب الاسم أو ارفع ملفًا)', fontNote: 'تُحمَّل الخطوط الجاهزة من Google Fonts عند اختيارها؛ الخطوط المضمّنة لا تحتاج اتصالًا خارجيًا.', bundled: 'مضمّن',
   layouts: 'تخطيطات جاهزة', layoutsHint: 'اختر تخطيطًا ليحلّ محل المسودة الحالية. يمكنك تعديله ثم نشره، ولا يتغير الموقع قبل النشر.', apply: 'استخدام التخطيط', applied: 'حُمّل التخطيط في المسودة. عدّله ثم انشره.', confirmApply: 'سيحلّ هذا التخطيط محل المسودة الحالية. المتابعة؟',
   blocks: { hero_slider: 'البطل', stats: 'الأرقام', featured_programs: 'البرامج', news: 'الأخبار', events: 'الفعاليات', rich_text: 'نص', cta: 'دعوة', logos: 'شعارات', faq: 'أسئلة', video: 'فيديو', custom_html_safe: 'HTML' },
+}, appThemes: {
+  title: 'مظاهر التطبيق الجاهزة', subtitle: 'اختر مظهراً جاهزاً لكل فئة من المستخدمين: ألوان وشكل البطاقات والترويسة والشريط السفلي وتوزيع البطاقات في الشاشة الرئيسية. يمكنك تعديل ألوان أي مظهر.',
+  assign: 'تعيين المظهر لكل فئة', gallery: 'المظاهر المتاحة', colors: 'تعديل الألوان', restoreColors: 'استعادة ألوان المظهر',
+  groups: { trainee: 'المتدربون', trainer: 'المدربون', school: 'قيادات المدارس والمشرفون', admin: 'الإدارة والمنسقون' },
+  groupHint: { trainee: 'حساب المتدرب (الموظف).', trainer: 'مدربو المركز.', school: 'مدير المدرسة والمشرف والنائب الأكاديمي.', admin: 'مدير النظام ومدير المركز والمنسق والقيادات.' },
+  header: { curved: 'ترويسة منحنية', flat: 'ترويسة فاتحة', glass: 'ترويسة زجاجية' },
+  color: { primary: 'اللون الأساسي', accent: 'لون التمييز', background: 'لون الخلفية' },
+  note: 'الفئة بلا مظهر تُبقي مظهر التطبيق الحالي. يظهر التغيير عند فتح التطبيق دون تحديثه. ترتيب البطاقات الخاص بالمظهر يُهمل إذا حددت ترتيباً عاماً من «شاشة التطبيق الرئيسية».',
+  unsaved: 'توجد تغييرات لم تُحفظ.', upToDate: 'لا تغييرات جديدة.', discard: 'تجاهل التغييرات', save: 'حفظ', saved: 'تم حفظ مظاهر التطبيق.', reset: 'إلغاء كل التعيينات', confirmReset: 'إلغاء تعيين كل المظاهر وإرجاع ألوانها؟', resetDone: 'عاد التطبيق إلى مظهره الحالي.',
 }, appHome: {
   title: 'ترتيب بطاقات شاشة التطبيق الرئيسية', subtitle: 'رتّب البطاقات التي تظهر للمتدرب في الشاشة الرئيسية للتطبيق وأخفِ ما لا تريده. يظهر التغيير عند فتح التطبيق دون تحديثه.',
   cards: {
@@ -82,4 +91,13 @@ export const apaEn = { apa: {
   up: 'Move up', down: 'Move down', note: 'A card with nothing to show (check-in with no session, for example) stays out of sight even when it is on.',
   unsaved: 'You have unsaved changes.', upToDate: 'No new changes.', discard: 'Discard changes', save: 'Save the order', saved: 'The home screen order is saved.',
   reset: 'Restore the original order', confirmReset: 'Put the cards back in their original order?', resetDone: 'The original order is back.',
+}, appThemes: {
+  title: 'Ready-made app looks', subtitle: 'Give each group of people a ready-made look: colours, card shape, header, bottom bar and how the home cards are laid out. You can change the colours of any look.',
+  assign: 'Assign a look to each group', gallery: 'Available looks', colors: 'Edit colours', restoreColors: 'Restore the look\'s colours',
+  groups: { trainee: 'Trainees', trainer: 'Trainers', school: 'School leaders and supervisors', admin: 'Administration and coordinators' },
+  groupHint: { trainee: 'The trainee (employee) account.', trainer: 'The centre\'s trainers.', school: 'School principal, supervisor and academic deputy.', admin: 'System and centre administrators, coordinators and leadership.' },
+  header: { curved: 'Curved header', flat: 'Light header', glass: 'Glass header' },
+  color: { primary: 'Main colour', accent: 'Accent colour', background: 'Background colour' },
+  note: 'A group with no look keeps the app as it is. The change appears when the app opens, with no update. A look\'s own card order is ignored when you set an order for the whole app under “App home screen”.',
+  unsaved: 'You have unsaved changes.', upToDate: 'No new changes.', discard: 'Discard changes', save: 'Save', saved: 'The app looks are saved.', reset: 'Clear all assignments', confirmReset: 'Clear every assignment and restore the looks\' colours?', resetDone: 'The app is back to its current look.',
 } }

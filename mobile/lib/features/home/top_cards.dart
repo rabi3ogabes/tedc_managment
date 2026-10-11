@@ -8,6 +8,7 @@ import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
+import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/brand.dart';
 
@@ -40,14 +41,14 @@ class HoursHeroCard extends ConsumerWidget {
           label: '${s.t('hours.title')}: ${fmt.number(total, digits: 1)}',
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppStyle.radius(8)),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => _details(context, h),
               child: Ink(
                 decoration: BoxDecoration(
                   gradient: AppColors.navyGradient,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(AppStyle.radius(8)),
                   boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .28), blurRadius: 26, offset: const Offset(0, 12))],
                 ),
                 child: Stack(children: [
@@ -229,7 +230,7 @@ class _Skeleton extends StatelessWidget {
   final double height;
 
   @override
-  Widget build(BuildContext context) => Container(height: height, decoration: BoxDecoration(color: AppColors.navy100.withValues(alpha: .6), borderRadius: BorderRadius.circular(28)));
+  Widget build(BuildContext context) => Container(height: height, decoration: BoxDecoration(color: AppColors.navy100.withValues(alpha: .6), borderRadius: BorderRadius.circular(AppStyle.radius(8))));
 }
 
 /// «My tasks and surveys»: what is waiting for the person, as tiles that open the right screen.
@@ -254,7 +255,7 @@ class TodoCard extends StatelessWidget {
     final open = rows.where((r) => r.count > 0).toList();
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.navy100), boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .06), blurRadius: 18, offset: const Offset(0, 8))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppStyle.radius(4)), border: Border.all(color: AppColors.navy100), boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .06), blurRadius: 18, offset: const Offset(0, 8))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(gradient: AppColors.goldGradient, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.task_alt, size: 18, color: AppColors.navy950)),
@@ -377,7 +378,7 @@ class CertificatesSummary extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
         gradient: AppColors.navyGradient,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(AppStyle.radius(6)),
         boxShadow: [BoxShadow(color: AppColors.navy900.withValues(alpha: .25), blurRadius: 22, offset: const Offset(0, 10))],
       ),
       child: Column(children: [

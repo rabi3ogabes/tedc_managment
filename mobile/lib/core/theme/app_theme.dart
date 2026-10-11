@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_style.dart';
 import 'brand.dart';
 import 'remote_font.dart';
 
@@ -107,16 +108,17 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
-        elevation: 0,
+        elevation: AppStyle.elevation.toDouble(),
+        shadowColor: primary.withValues(alpha: .28),
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: AppColors.navy100)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppStyle.cardRadius), side: AppStyle.elevation > 1 ? BorderSide.none : BorderSide(color: AppColors.navy100)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(50),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppStyle.buttonRadius)),
           textStyle: TextStyle(fontFamily: font, fontWeight: FontWeight.w700, fontSize: 15),
         ),
       ),
@@ -125,7 +127,7 @@ class AppTheme {
           foregroundColor: primary,
           minimumSize: const Size.fromHeight(48),
           side: BorderSide(color: AppColors.navy100),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppStyle.buttonRadius)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

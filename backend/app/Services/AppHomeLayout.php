@@ -24,6 +24,12 @@ class AppHomeLayout
         return $this->normalise((array) $stored);
     }
 
+    /** Whether the administrator has set an order of their own. */
+    public function customised(): bool
+    {
+        return SiteSetting::where('key', self::KEY)->exists();
+    }
+
     /** @param  list<array{key: string, enabled?: bool}>  $sections */
     public function save(array $sections, string $userId): array
     {

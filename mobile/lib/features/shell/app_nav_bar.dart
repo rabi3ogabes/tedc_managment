@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/strings.dart';
+import '../../core/theme/app_style.dart';
 import '../../core/theme/brand.dart';
 import 'nav_styles.dart';
 
@@ -30,7 +31,7 @@ class AppNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = context.s;
     return StyledNavBar(
-      style: ref.watch(brandProvider).navStyle,
+      style: AppStyle.nav ?? ref.watch(brandProvider).navStyle,
       selectedIndex: selectedIndex,
       onSelected: onSelected,
       tabs: [

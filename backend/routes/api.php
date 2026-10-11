@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
 use App\Http\Controllers\Api\V1\Admin\AppHomeController;
+use App\Http\Controllers\Api\V1\Admin\AppThemesController;
 use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
@@ -454,6 +455,7 @@ Route::prefix('v1')->group(function () {
             Route::get('recommendations', [MeController::class, 'recommendations']);
             Route::get('programs-for-me', [MeController::class, 'programsForMe']);
             Route::get('menu-layout', [MenuLayoutController::class, 'show']);
+            Route::get('app-theme', [AppThemesController::class, 'mine']);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
@@ -1262,6 +1264,9 @@ Route::prefix('v1')->group(function () {
 
             // Brand Studio (appearance)
             Route::middleware('permission:settings.manage')->group(function () {
+                Route::get('app-themes', [AppThemesController::class, 'show']);
+                Route::put('app-themes', [AppThemesController::class, 'update']);
+                Route::delete('app-themes', [AppThemesController::class, 'reset']);
                 Route::get('app-home', [AppHomeController::class, 'show']);
                 Route::put('app-home', [AppHomeController::class, 'update']);
                 Route::delete('app-home', [AppHomeController::class, 'reset']);

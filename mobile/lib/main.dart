@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'core/config.dart';
 import 'core/error_reporter.dart';
+import 'core/theme/app_style.dart';
 import 'core/theme/brand.dart';
 
 Future<void> main() async {
@@ -13,6 +14,7 @@ Future<void> main() async {
   ErrorReporter.install();
   await Future.wait([initializeDateFormatting('ar'), initializeDateFormatting('en'), AppConfig.load()]);
   await BrandStore.load();   // the last look the administrator set, before the first frame
+  await AppStyle.load();     // and the look of the person's group
 
   if (AppConfig.realtimeEnabled) {
     await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseAnonKey);

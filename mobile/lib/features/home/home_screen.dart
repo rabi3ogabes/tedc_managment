@@ -7,6 +7,7 @@ import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_style.dart';
 import '../../core/theme/brand.dart';
 import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
@@ -53,7 +54,7 @@ class HomeScreen extends ConsumerWidget {
                 sliver: SliverList.list(children: [
                   if (ref.watch(brandProvider).occasionName case final occasion?) ...[_OccasionBanner(name: occasion, message: ref.watch(brandProvider).message), const SizedBox(height: 14)],
                   // The cards, in the order the administrator chose (Settings → App home); each one skips itself when it has nothing to show.
-                  for (final key in ref.watch(brandProvider).homeSections) ..._card(key, context, ref, d: d, stats: stats, current: current, upcoming: upcoming, recommended: recommended, fmt: fmt),
+                  for (final key in AppStyle.home ?? ref.watch(brandProvider).homeSections) ..._card(key, context, ref, d: d, stats: stats, current: current, upcoming: upcoming, recommended: recommended, fmt: fmt),
                 ]),
               ),
             ]);
@@ -164,13 +165,18 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.s;
+    // The look assigned to the person's group sets the header: curved (default), light and flat, or glass.
+    final flat = AppStyle.header == 'flat';
+    final glass = AppStyle.header == 'glass';
+    final ink = flat ? AppColors.navy900 : Colors.white;
+    final soft = flat ? AppColors.muted : Colors.white70;
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.navyGradient,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+        gradient: flat ? null : (glass ? LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy700.withValues(alpha: .92)]) : AppColors.navyGradient),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(flat ? 0 : (glass ? 44 : 32))),
       ),
       child: Stack(children: [
-        const Positioned.fill(child: DotPattern(opacity: .12)),
+        if (!flat) const Positioned.fill(child: DotPattern(opacity: .12)),
         SafeArea(
           bottom: false,
           child: Padding(
@@ -182,29 +188,29 @@ class _Header extends StatelessWidget {
                 child: Row(children: [
                   const OfficialEmblem(size: 46),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(s.t('app.name'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13))),
+                  Expanded(child: Text(s.t('app.name'), style: TextStyle(color: ink, fontWeight: FontWeight.w700, fontSize: 13))),
                 ]),
               ),
               const SizedBox(height: 24),
-              Text(s.t('home.welcome'), style: const TextStyle(color: Colors.white70)),
-              Text(name, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+              Text(s.t('home.welcome'), style: TextStyle(color: soft)),
+              Text(name, style: TextStyle(color: ink, fontSize: 24, fontWeight: FontWeight.w800)),
               if (identity.str('position').isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     [identity.str('position'), identity.str('school')].where((e) => e.isNotEmpty).join(' · '),
-                    style: TextStyle(color: AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
+                    style: TextStyle(color: flat ? AppColors.gold700 : AppColors.gold300, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4),
                   ),
                 ),
               if (identity.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _IdentityChips(identity: identity),
+                _IdentityChips(identity: identity, light: flat),
               ],
               const SizedBox(height: 16),
               Row(children: [
-                Text(hours, style: TextStyle(color: AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
+                Text(hours, style: TextStyle(color: flat ? AppColors.navy900 : AppColors.gold300, fontSize: 36, fontWeight: FontWeight.w800)),
                 const SizedBox(width: 8),
-                Text(s.t('home.hours'), style: const TextStyle(color: Colors.white70)),
+                Text(s.t('home.hours'), style: TextStyle(color: soft)),
               ]),
             ]),
           ),
@@ -216,9 +222,12 @@ class _Header extends StatelessWidget {
 
 /// Nationality flag and the person's role(s): a trainee, a trainer, or both.
 class _IdentityChips extends StatelessWidget {
-  const _IdentityChips({required this.identity});
+  const _IdentityChips({required this.identity, this.light = false});
 
   final Json identity;
+
+  /// On a light header the chips are drawn dark.
+  final bool light;
 
   @override
   Widget build(BuildContext context) {
@@ -230,20 +239,20 @@ class _IdentityChips extends StatelessWidget {
     Widget chip({required Widget leading, required String label, bool gold = false}) => Container(
           padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 12, 6),
           decoration: BoxDecoration(
-            color: gold ? AppColors.gold500 : Colors.white.withValues(alpha: .14),
+            color: gold ? AppColors.gold500 : (light ? AppColors.navy100 : Colors.white.withValues(alpha: .14)),
             borderRadius: BorderRadius.circular(20),
-            border: gold ? null : Border.all(color: Colors.white.withValues(alpha: .22)),
+            border: gold ? null : Border.all(color: light ? AppColors.navy100 : Colors.white.withValues(alpha: .22)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             leading,
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: gold ? AppColors.navy950 : Colors.white, fontWeight: FontWeight.w800, fontSize: 12.5)),
+            Text(label, style: TextStyle(color: gold ? AppColors.navy950 : (light ? AppColors.navy900 : Colors.white), fontWeight: FontWeight.w800, fontSize: 12.5)),
           ]),
         );
 
     return Wrap(spacing: 8, runSpacing: 8, children: [
       if (nation.isNotEmpty) chip(leading: Text(flag.isNotEmpty ? flag : '🏳️', style: const TextStyle(fontSize: 16)), label: nation),
-      if (identity.flag('is_trainee')) chip(leading: const Icon(Icons.school_outlined, size: 16, color: Colors.white), label: s.t('home.role.trainee')),
+      if (identity.flag('is_trainee')) chip(leading: Icon(Icons.school_outlined, size: 16, color: light ? AppColors.navy900 : Colors.white), label: s.t('home.role.trainee')),
       if (identity.flag('is_trainer')) chip(leading: Icon(Icons.cast_for_education_outlined, size: 16, color: AppColors.navy950), label: s.t('home.role.trainer'), gold: true),
     ]);
   }
