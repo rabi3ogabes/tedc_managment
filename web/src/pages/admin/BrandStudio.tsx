@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, CalendarDays, Check, Hourglass, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, PanelBottom, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
+import { BadgeCheck, CalendarDays, Check, Hourglass, CircleAlert, CircleCheck, Droplets, ExternalLink, Image as ImageIcon, LayoutTemplate, MousePointerClick, Palette, PanelBottom, SwatchBook, Smartphone, RotateCcw, Shapes, Sparkles, Type, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, PageHeader, Spinner } from '@/components/ui'
@@ -11,11 +11,13 @@ import { contrast, FONT_CHOICES, mergeTheme, patternImage, PRESETS, type Pattern
 import BrandPreview from './brand/BrandPreview'
 import LoadingPanel from './brand/LoadingPanel'
 import NavigationPanel from './brand/NavigationPanel'
+import AppHomeSettings from './AppHomeSettings'
+import AppThemesSettings from './AppThemesSettings'
 import OccasionsPanel from './brand/OccasionsPanel'
 import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
 import { dialogs } from '@/lib/dialogs'
 
-type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading' | 'navigation'
+type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading' | 'navigation' | 'appthemes' | 'apphome'
 
 const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] = [
   { id: 'presets', icon: Sparkles },
@@ -29,6 +31,8 @@ const SECTIONS: { id: Section; icon: ComponentType<{ className?: string }> }[] =
   { id: 'occasions', icon: CalendarDays },
   { id: 'loading', icon: Hourglass },
   { id: 'navigation', icon: PanelBottom },
+  { id: 'appthemes', icon: SwatchBook },
+  { id: 'apphome', icon: Smartphone },
 ]
 
 const PATTERNS: PatternType[] = ['none', 'serrated', 'dots', 'grid', 'islamic_star', 'arabesque', 'diagonal', 'custom']
@@ -124,13 +128,13 @@ function Studio({ published, reloadBase }: { published: Theme; reloadBase: () =>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div className="space-y-5">
           {/* Section rail */}
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(5.5rem,1fr))] gap-2">
             {SECTIONS.map(({ id, icon: Icon }) => (
               <button key={id} onClick={() => setSection(id)}
                 className={clsx('flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-bold transition',
                   section === id ? 'border-transparent bg-navy-900 text-gold-300 shadow-glass' : 'border-navy-100 bg-white text-slate-500 hover:border-gold-300 hover:text-navy-900')}>
                 <Icon className="size-5" />
-                <span className="text-center leading-tight">{t(id === 'occasions' || id === 'loading' || id === 'navigation' ? `apa.${id}` : `admin.brand.sections.${id}`)}</span>
+                <span className="text-center leading-tight">{t(id === 'occasions' || id === 'loading' || id === 'navigation' ? `apa.${id}` : id === 'appthemes' || id === 'apphome' ? `mgmt.settings.sections.${id}.title` : `admin.brand.sections.${id}`)}</span>
               </button>
             ))}
           </div>
@@ -235,6 +239,9 @@ function Studio({ published, reloadBase }: { published: Theme; reloadBase: () =>
                 <NavigationPanel draft={draft} onChange={(style) => setDraft((d) => ({ ...d, navigation: { style } }))} />
               </Panel>
             )}
+
+            {section === 'appthemes' && <AppThemesSettings embedded />}
+            {section === 'apphome' && <AppHomeSettings embedded />}
 
             {section === 'colors' && (
               <Panel title={t('admin.brand.sections.colors')}>

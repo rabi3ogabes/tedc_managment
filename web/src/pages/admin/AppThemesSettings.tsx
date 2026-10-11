@@ -46,7 +46,7 @@ function Phone({ p, brand }: { p: Preset; brand: Colors }) {
 }
 
 /** Settings → App themes: ready-made looks for the mobile app, assigned to each group of people, with editable colours. */
-export default function AppThemesSettings() {
+export default function AppThemesSettings({ embedded = false }: { embedded?: boolean }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language === 'ar' ? 'ar' : 'en'
   const qc = useQueryClient()
@@ -89,7 +89,14 @@ export default function AppThemesSettings() {
 
   return (
     <div className="space-y-6 pb-24">
-      <PageHeader title={t('appThemes.title')} subtitle={t('appThemes.subtitle')} actions={<Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appThemes.reset')}</Button>} />
+      {embedded ? (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="max-w-2xl"><h2 className="text-lg font-bold text-navy-900">{t('appThemes.title')}</h2><p className="mt-1 text-sm text-slate-500">{t('appThemes.subtitle')}</p></div>
+          <Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appThemes.reset')}</Button>
+        </div>
+      ) : (
+        <PageHeader title={t('appThemes.title')} subtitle={t('appThemes.subtitle')} actions={<Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appThemes.reset')}</Button>} />
+      )}
 
       <section className="space-y-3">
         <h2 className="text-sm font-bold text-slate-500">{t('appThemes.assign')}</h2>

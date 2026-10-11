@@ -15,7 +15,7 @@ import HelpButton from '@/components/help/HelpButton'
 import TourHost from '@/components/help/TourHost'
 import ReportProblem from './ReportProblem'
 import UserMenu from './UserMenu'
-import { SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
+import { GROUP_ORDER, SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
 import { BrandMark, LogoMark } from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { useGet } from '@/hooks/useApi'
@@ -157,8 +157,15 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                   </div>
                   <div id="settings-submenu" className={clsx('grid transition-[grid-template-rows,opacity] duration-300 ease-out', settingsOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0')} aria-hidden={!settingsOpen}>
                     <div className="overflow-hidden">
-                      <ul className="relative mt-1 space-y-0.5 ms-5 border-s border-white/10 ps-2">
-                        {settingsChildren.map((s) => {
+                      <div className="relative mt-1 ms-5 space-y-2.5 border-s border-white/10 ps-2">
+                        {GROUP_ORDER.map((groupId) => {
+                          const rows = settingsChildren.filter((s) => s.group === groupId)
+                          if (!rows.length) return null
+                          return (
+                            <div key={groupId}>
+                              <div className="px-3 pb-1 pt-0.5 text-[10.5px] font-bold uppercase tracking-wider text-white/30">{t(`mgmt.settings.groups.${groupId}`)}</div>
+                              <ul className="space-y-0.5">
+                                {rows.map((s) => {
                           const active = onSettings && activeTab === s.id
                           return (
                             <li key={s.id}>
@@ -170,8 +177,12 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                               </Link>
                             </li>
                           )
+                                })}
+                              </ul>
+                            </div>
+                          )
                         })}
-                      </ul>
+                      </div>
                     </div>
                   </div>
                 </div>

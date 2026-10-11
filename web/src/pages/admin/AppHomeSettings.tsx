@@ -13,7 +13,7 @@ import { Switch } from './notifications/shared'
 type Section = { key: string; enabled: boolean }
 
 /** Settings → App home: the order of the cards on the mobile app's home screen, and which of them are shown. */
-export default function AppHomeSettings() {
+export default function AppHomeSettings({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation()
   const qc = useQueryClient()
   const saved = useGet<{ data: Section[] }>('/admin/app-home', undefined, { staleTime: 0 })
@@ -52,8 +52,14 @@ export default function AppHomeSettings() {
 
   return (
     <div className="space-y-5 pb-24">
-      <PageHeader title={t('appHome.title')} subtitle={t('appHome.subtitle')}
-        actions={<Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appHome.reset')}</Button>} />
+      {embedded ? (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="max-w-2xl"><h2 className="text-lg font-bold text-navy-900">{t('appHome.title')}</h2><p className="mt-1 text-sm text-slate-500">{t('appHome.subtitle')}</p></div>
+          <Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appHome.reset')}</Button>
+        </div>
+      ) : (
+        <PageHeader title={t('appHome.title')} subtitle={t('appHome.subtitle')} actions={<Button variant="outline" icon={<RotateCcw className="size-4" />} onClick={reset} disabled={busy}>{t('appHome.reset')}</Button>} />
+      )}
       <ol className="space-y-2">
         {draft.map((s, i) => (
           <li key={s.key}>
