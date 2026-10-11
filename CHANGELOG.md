@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-11 — close-out prompt pack
+`docs/rfp/closeout/`: the list of the 50 RFP requirements still partial (`OPEN_ITEMS.md`, with what exists, what is missing, who unblocks it) and phase prompts 19–27 plus a master prompt with a Preflight. The Preflight covers the live site's demo-mode exposure, failing Vercel deploys, the container CVE exception and the scheduled restore job that cannot succeed yet.
+
 ## 2026-10-10 — RFP comparison
 Every RFP requirement re-checked in the code: 228 of 278 available, 50 partial, none missing; 21 of the 25 software mandatory items met (`docs/rfp/rfp-comparison-2026-10-10.html`, `.md`). Fixed: the video full-screen rule and pause limit are now enforced (server-side count, web player and app), the minimum time per slide is enforced, evaluation forms marked “required before the certificate” now hold the certificate back, the lesson editor shows the real default for hidden-page time, and the lesson page no longer gives the player and the discussion panel the same React key. The register is corrected (scrambled exam rows, an overstated face-recognition item, stale mandatory items and roles) and kept consistent by `scripts/rfp_sync.py`.
 
