@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Admin\AiModelsController;
 use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
 use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
 use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
+use App\Http\Controllers\Api\V1\Admin\AppHomeController;
 use App\Http\Controllers\Api\V1\Admin\AssessmentController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
 use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
@@ -1261,6 +1262,9 @@ Route::prefix('v1')->group(function () {
 
             // Brand Studio (appearance)
             Route::middleware('permission:settings.manage')->group(function () {
+                Route::get('app-home', [AppHomeController::class, 'show']);
+                Route::put('app-home', [AppHomeController::class, 'update']);
+                Route::delete('app-home', [AppHomeController::class, 'reset']);
                 Route::put('menu-layout', [MenuLayoutController::class, 'update']);
                 Route::delete('menu-layout', [MenuLayoutController::class, 'reset']);
                 Route::put('theme', [ThemeController::class, 'update']);

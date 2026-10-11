@@ -54,4 +54,12 @@ void main() {
     expect(b.arabicFont, 'Cairo');
     expect(Brand.fromConfig({'data': {'loading': {'style': 'weird'}}}, arabic: true).loadingStyle, 'emblem');
   });
+
+  test('the home-screen cards follow the dashboard: their order, the hidden ones left out, unknown names ignored', () {
+    Brand of(Object? sections) => Brand.fromConfig({'data': {'home': {'sections': sections}}}, arabic: true);
+    expect(of(['programs', 'hours', 'bogus', 'todo']).homeSections, ['programs', 'hours', 'todo']);
+    expect(of(<String>[]).homeSections, isEmpty);
+    expect(of(null).homeSections, Brand.defaultHomeSections);
+    expect(Brand.none.homeSections.first, 'hours');
+  });
 }

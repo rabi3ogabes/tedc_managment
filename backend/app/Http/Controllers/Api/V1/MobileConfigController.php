@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Services\AppHomeLayout;
 use App\Services\AttendanceSettings;
 use App\Services\Push\PushSettings;
 use App\Services\ThemeService;
@@ -16,7 +17,7 @@ use Illuminate\Http\JsonResponse;
  */
 class MobileConfigController extends Controller
 {
-    public function __invoke(PushSettings $push, ThemeService $theme, AttendanceSettings $attendance): JsonResponse
+    public function __invoke(PushSettings $push, ThemeService $theme, AttendanceSettings $attendance, AppHomeLayout $home): JsonResponse
     {
         $t = $theme->get();
 
@@ -39,6 +40,8 @@ class MobileConfigController extends Controller
                 'arabic_font_url' => $t['typography']['arabic_font_url'] ?? null,
                 'latin_font_url' => $t['typography']['latin_font_url'] ?? null,
             ],
+            // The cards of the home screen the administrator wants shown, in their order.
+            'home' => ['sections' => array_values(array_map(fn ($s) => $s['key'], array_filter($home->get(), fn ($s) => $s['enabled'])))],
             'navigation' => ['style' => $t['navigation']['style'] ?? 'classic'],
             'loading' => $t['loading'] ?? null,
             'occasion' => $t['active_occasion'] ?? null,

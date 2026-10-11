@@ -21,6 +21,7 @@ class Brand {
     this.message,
     this.loadingStyle = 'emblem',
     this.navStyle = 'classic',
+    this.homeSections = defaultHomeSections,
     this.loadingBackground,
     this.loadingAccent,
     this.arabicFont,
@@ -41,6 +42,9 @@ class Brand {
 
   /// How the bottom navigation bar looks (see [navStyles]); chosen in the dashboard.
   final String navStyle;
+
+  /// The home-screen cards to show and their order, as the administrator set them (Settings → App home).
+  final List<String> homeSections;
   final Color? loadingBackground;
   final Color? loadingAccent;
   final String? arabicFont;
@@ -48,6 +52,7 @@ class Brand {
   final String? arabicFontUrl;
   final String? latinFontUrl;
 
+  static const defaultHomeSections = ['hours', 'todo', 'stats', 'scan', 'needs', 'programs', 'dashboard', 'sessions', 'recommended'];
   static const none = Brand();
   static const styles = ['emblem', 'bar', 'dots', 'pulse', 'crescent'];
   static const navStyles = ['classic', 'floating', 'center_fab', 'neumorphism', 'glass', 'outline'];
@@ -70,6 +75,7 @@ class Brand {
     String? text(Object? v) => v is String && v.trim().isNotEmpty ? v : null;
     final style = loading['style'];
     final nav = map(data['navigation'])['style'];
+    final home = map(data['home'])['sections'];
     return Brand(
       primary: hex(brand['primary']),
       accent: hex(brand['accent']),
@@ -80,6 +86,7 @@ class Brand {
       loadingStyle: style is String && styles.contains(style)
           ? style
           : 'emblem',
+      homeSections: home is List ? home.whereType<String>().where(defaultHomeSections.contains).toList() : defaultHomeSections,
       navStyle: nav is String && navStyles.contains(nav) ? nav : 'classic',
       loadingBackground: hex(loading['background']),
       loadingAccent: hex(loading['accent']),

@@ -18,6 +18,22 @@ export const apaAr = { apa: {
   fontPick: 'اختر خطًا جاهزًا', fontCustom: 'خط آخر (اكتب الاسم أو ارفع ملفًا)', fontNote: 'تُحمَّل الخطوط الجاهزة من Google Fonts عند اختيارها؛ الخطوط المضمّنة لا تحتاج اتصالًا خارجيًا.', bundled: 'مضمّن',
   layouts: 'تخطيطات جاهزة', layoutsHint: 'اختر تخطيطًا ليحلّ محل المسودة الحالية. يمكنك تعديله ثم نشره، ولا يتغير الموقع قبل النشر.', apply: 'استخدام التخطيط', applied: 'حُمّل التخطيط في المسودة. عدّله ثم انشره.', confirmApply: 'سيحلّ هذا التخطيط محل المسودة الحالية. المتابعة؟',
   blocks: { hero_slider: 'البطل', stats: 'الأرقام', featured_programs: 'البرامج', news: 'الأخبار', events: 'الفعاليات', rich_text: 'نص', cta: 'دعوة', logos: 'شعارات', faq: 'أسئلة', video: 'فيديو', custom_html_safe: 'HTML' },
+}, appHome: {
+  title: 'ترتيب بطاقات شاشة التطبيق الرئيسية', subtitle: 'رتّب البطاقات التي تظهر للمتدرب في الشاشة الرئيسية للتطبيق وأخفِ ما لا تريده. يظهر التغيير عند فتح التطبيق دون تحديثه.',
+  cards: {
+    hours: { title: 'ساعاتي هذا العام', hint: 'حلقة الساعات المنجزة من الهدف السنوي مع التفاصيل.' },
+    todo: { title: 'مهامي واستبياناتي', hint: 'المهام والتقييمات والاستبانات التي تنتظر المتدرب.' },
+    stats: { title: 'أرقام سريعة', hint: 'البرامج النشطة والمكتملة والشهادات.' },
+    scan: { title: 'تسجيل الحضور', hint: 'يظهر فقط عند وجود جلسة جارية أو تبدأ قريباً.' },
+    needs: { title: 'استبانات الاحتياجات', hint: 'تنبيه عند وجود استبانة احتياجات مفتوحة.' },
+    programs: { title: 'برامجي القادمة', hint: 'شريط البرامج المسجّل فيها حسب النمط: حضوري وعن بُعد ومدمج.' },
+    dashboard: { title: 'لوحة الدور', hint: 'مؤشرات الدور الحالي كما تحددها لوحات المؤشرات.' },
+    sessions: { title: 'الجلسات القادمة', hint: 'جلسات المتدرب القادمة.' },
+    recommended: { title: 'برامج موصى بها', hint: 'ترشيحات مناسبة للمتدرب.' },
+  },
+  up: 'تقديم', down: 'تأخير', note: 'البطاقة التي لا تجد ما تعرضه (مثل تسجيل الحضور بلا جلسة) لا تظهر حتى لو كانت مفعّلة.',
+  unsaved: 'توجد تغييرات لم تُحفظ.', upToDate: 'لا تغييرات جديدة.', discard: 'تجاهل التغييرات', save: 'حفظ الترتيب', saved: 'تم حفظ ترتيب الشاشة الرئيسية.',
+  reset: 'استعادة الترتيب الأصلي', confirmReset: 'إعادة البطاقات إلى ترتيبها الأصلي؟', resetDone: 'عاد الترتيب الأصلي.',
 }, menuEd: {
   title: 'ترتيب قائمة لوحة التحكم', subtitle: 'انقل أي زر من قسم إلى آخر، ورتّب الأزرار والأقسام، وغيّر اسم القسم وأيقونة أي زر. يظهر التغيير لكل المستخدمين فور الحفظ، وتبقى الصلاحيات كما هي.',
   nameAr: 'اسم القسم بالعربية', nameEn: 'اسم القسم بالإنجليزية', moveTo: 'نقل إلى', up: 'تقديم', down: 'تأخير', sectionUp: 'تقديم القسم', sectionDown: 'تأخير القسم', deleteSection: 'حذف القسم',
@@ -50,4 +66,20 @@ export const apaEn = { apa: {
   icon: 'Icon', pickIcon: 'Pick an icon', defaultIcon: 'Default icon', addSection: 'Add a new section', newSection: 'New section', untitled: 'Untitled', emptySection: 'No buttons in this section. Move some in from the other sections.',
   confirmDelete: 'Delete this section? Its buttons move to the section before it.', confirmReset: 'Restore the original menu order? All your changes are cleared.', reset: 'Restore the original order', resetDone: 'The menu is back to its original order.',
   unsaved: 'You have unsaved changes.', upToDate: 'No new changes.', discard: 'Discard changes', save: 'Save the order', saved: 'The menu order is saved.',
+}, appHome: {
+  title: 'App home screen card order', subtitle: 'Arrange the cards trainees see on the app\'s home screen and hide the ones you do not want. The change appears when the app opens, with no update.',
+  cards: {
+    hours: { title: 'My hours this year', hint: 'The ring of hours done against the annual target, with details.' },
+    todo: { title: 'My tasks and surveys', hint: 'The tasks, evaluations and surveys waiting for the trainee.' },
+    stats: { title: 'Quick numbers', hint: 'Active and completed programs and certificates.' },
+    scan: { title: 'Check in', hint: 'Shown only while a session is on or about to start.' },
+    needs: { title: 'Needs surveys', hint: 'A prompt when a needs survey is open.' },
+    programs: { title: 'My upcoming programs', hint: 'The slider of registered programs by kind: in person, online, hybrid.' },
+    dashboard: { title: 'Role dashboard', hint: 'The current role\'s indicators as the dashboards set them.' },
+    sessions: { title: 'Upcoming sessions', hint: 'The trainee\'s next sessions.' },
+    recommended: { title: 'Recommended programs', hint: 'Suggestions that fit the trainee.' },
+  },
+  up: 'Move up', down: 'Move down', note: 'A card with nothing to show (check-in with no session, for example) stays out of sight even when it is on.',
+  unsaved: 'You have unsaved changes.', upToDate: 'No new changes.', discard: 'Discard changes', save: 'Save the order', saved: 'The home screen order is saved.',
+  reset: 'Restore the original order', confirmReset: 'Put the cards back in their original order?', resetDone: 'The original order is back.',
 } }

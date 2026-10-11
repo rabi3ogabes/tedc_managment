@@ -52,42 +52,8 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
                   if (ref.watch(brandProvider).occasionName case final occasion?) ...[_OccasionBanner(name: occasion, message: ref.watch(brandProvider).message), const SizedBox(height: 14)],
-                  // The first things the person sees: the hours of the year, then what is waiting for them.
-                  const HoursHeroCard(),
-                  const SizedBox(height: 12),
-                  TodoCard(todo: d.obj('todo') ?? const {}, pendingNeeds: _pendingNeeds(ref)),
-                  const SizedBox(height: 16),
-                  Row(children: [
-                    Expanded(child: StatTile(label: s.t('home.active'), value: fmt.number(stats.number('active_programs')), icon: Icons.play_circle_outline)),
-                    const SizedBox(width: 12),
-                    Expanded(child: StatTile(label: s.t('home.completed'), value: fmt.number(stats.number('completed_programs')), icon: Icons.task_alt)),
-                    const SizedBox(width: 12),
-                    Expanded(child: StatTile(label: s.t('home.certificates'), value: fmt.number(stats.number('certificates')), icon: Icons.workspace_premium_outlined)),
-                  ]),
-                  const SizedBox(height: 16),
-                  // Check-in only exists for the session happening now (or about to start), never as a permanent button.
-                  if (current != null) _ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push(current.flag('biometric_required') ? '/scan?biometric=1' : '/scan')),
-                  const PendingNeedsBanner(),
-                  const DashboardSection(),
-                  if (stats.number('pending_surveys') > 0) ...[
-                    const SizedBox(height: 12),
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.insights, color: AppColors.gold700),
-                        title: Text('${fmt.number(stats.number('pending_surveys'))} ${s.t('home.pendingSurveys')}', style: const TextStyle(fontWeight: FontWeight.w700)),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => context.go('/training'),
-                      ),
-                    ),
-                  ],
-                  UpcomingProgramsSlider(items: d.list('upcoming_programs')),
-                  if (upcoming.isNotEmpty) ...[
-                    SectionTitle(s.t(current != null ? 'home.upcomingSessions' : 'home.nextSession')),
-                    for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),
-                  ],
-                  SectionTitle(s.t('home.recommended'), action: TextButton(onPressed: () => context.go('/programs'), child: Text(s.t('common.viewAll')))),
-                  if (recommended.isEmpty) const EmptyView(),
-                  for (final r in recommended) Padding(padding: const EdgeInsets.only(bottom: 14), child: RecommendationCard(item: r)),
+                  // The cards, in the order the administrator chose (Settings → App home); each one skips itself when it has nothing to show.
+                  for (final key in ref.watch(brandProvider).homeSections) ..._card(key, context, ref, d: d, stats: stats, current: current, upcoming: upcoming, recommended: recommended, fmt: fmt),
                 ]),
               ),
             ]);
@@ -95,6 +61,53 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// One card of the home screen, with the gap that follows it.
+List<Widget> _card(String key, BuildContext context, WidgetRef ref, {required Json d, required Json stats, required Json? current, required List<Json> upcoming, required List<Json> recommended, required Fmt fmt}) {
+  final s = context.s;
+  const gap = SizedBox(height: 14);
+  switch (key) {
+    case 'hours':
+      return [const HoursHeroCard(), gap];
+    case 'todo':
+      return [TodoCard(todo: d.obj('todo') ?? const {}, pendingNeeds: _pendingNeeds(ref)), gap];
+    case 'stats':
+      return [
+        Row(children: [
+          Expanded(child: StatTile(label: s.t('home.active'), value: fmt.number(stats.number('active_programs')), icon: Icons.play_circle_outline)),
+          const SizedBox(width: 12),
+          Expanded(child: StatTile(label: s.t('home.completed'), value: fmt.number(stats.number('completed_programs')), icon: Icons.task_alt)),
+          const SizedBox(width: 12),
+          Expanded(child: StatTile(label: s.t('home.certificates'), value: fmt.number(stats.number('certificates')), icon: Icons.workspace_premium_outlined)),
+        ]),
+        gap,
+      ];
+    case 'scan':
+      // Check-in only exists for the session happening now (or about to start), never as a permanent button.
+      return current == null ? const [] : [_ScanCard(program: current.str('program'), live: current.flag('live'), onTap: () => context.push(current.flag('biometric_required') ? '/scan?biometric=1' : '/scan')), gap];
+    case 'needs':
+      return const [PendingNeedsBanner()];
+    case 'programs':
+      return [UpcomingProgramsSlider(items: d.list('upcoming_programs')), gap];
+    case 'dashboard':
+      return const [DashboardSection()];
+    case 'sessions':
+      return upcoming.isEmpty
+          ? const []
+          : [
+              SectionTitle(s.t(current != null ? 'home.upcomingSessions' : 'home.nextSession')),
+              for (final u in upcoming) Padding(padding: const EdgeInsets.only(bottom: 10), child: _NextSession(session: u, fmt: fmt)),
+            ];
+    case 'recommended':
+      return [
+        SectionTitle(s.t('home.recommended'), action: TextButton(onPressed: () => context.go('/programs'), child: Text(s.t('common.viewAll')))),
+        if (recommended.isEmpty) const EmptyView(),
+        for (final r in recommended) Padding(padding: const EdgeInsets.only(bottom: 14), child: RecommendationCard(item: r)),
+      ];
+    default:
+      return const [];
   }
 }
 
