@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 233 | 45 | 0 | 45 |
+| 278 | 236 | 42 | 0 | 42 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -54,8 +54,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Trainer proposal per group → trainer fills the assignment form (web + app) → leadership approves with the competent authority reference (`TrainerAssignmentService`); kit developers assigned with a due date (`POST /admin/programs/{id}/kit-developers`).
 - [x] **NDS-07** ★ — Generate the annual plan (program, audience, priority) with review and approval  
   _Now:_ ✅ Available — Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`).
-- [ ] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
-  _Now:_ 🟡 Partial — Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced.
+- [x] **NDS-08** — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)  
+  _Now:_ ✅ Available — The five programme types (ترخيص، تمكين، تمهين، تخصيص، تخيير) on categories, programmes and plan items; generation keeps only the year's types (others listed with the reason), adds placeholders for mandatory categories and keeps items in priority order within the seat and hour caps (the rest deferred with the reason); submission is refused while a rule is broken unless the head of planning records an audited exception; compliance on the plan page and in its export (PlanRulesEnforcementTest). Phase 20.
 - [x] **NDS-09** — Program objectives, axes, units, competencies and summary  
   _Now:_ ✅ Available — Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills.
 - [x] **NDS-11** — Publish / cancel programs and edit group details  
@@ -310,8 +310,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12).
 - [x] **RPT-02** — Export reports to Excel, PDF and Word  
   _Now:_ ✅ Available — Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12).
-- [ ] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
-  _Now:_ 🟡 Partial — Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).
+- [x] **RPT-03** — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)  
+  _Now:_ ✅ Available — Employee data (entity type, workplace, licence, job title, experience, annual appraisal), employee courses (training path, programme, entity, job title, qualification, period), programmes with career paths, courses by employee number, attendance, licence matrix, trainers, results, hours, and yearly, quarterly and monthly statistics, in Excel, PDF and Word with coded values as words (RfpReportsTest). Phase 20.
 - [x] **RPT-04** — Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)  
   _Now:_ ✅ Available — Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12).
 - [x] **RPT-05** — Trainer reports (workshop calendar, delivered programs, process tracking)  
@@ -393,8 +393,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 15 — AI Completion  (6)
 
-- [ ] **RPT-11** — Predictive analytics and reports  
-  _Now:_ 🟡 Partial — Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.
+- [x] **RPT-11** — Predictive analytics and reports  
+  _Now:_ ✅ Available — Forecast and risk pages with explanations and plan hand-off, exported to Excel, PDF and Word (range, trend, confidence, explanation; risks with reasons), Arabic right to left and English (ForecastExportTest). Phase 20.
 - [x] **AI-01** ★ — Behavioural analytics and personalised recommendations  
   _Now:_ ✅ Available — Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.
 - [x] **AI-02** ★ — Smart assessment with instant feedback from answer analysis  
@@ -591,7 +591,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | NDS-05 | Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies | ✅ Available | Needs rules (`needs_rules`) run nightly and on demand for new hires, appraisals, classroom observations and specialisation/stage; every need carries an explanation and re-runs never duplicate. Licence and test triggers are wired for Phases 06 and 09. | — |
 | NDS-06 | Automatic gap analysis vs competency framework & licence requirements, prioritised | ✅ Available | Competency framework with level descriptors and required levels per job (stage/subject overrides); current level blended from verified level, manager rating, observations and self rating with editable weights and shown evidence; gaps ranked by gap × people × licence weight with explanations, uncovered gaps listed and sent to the plan. | — |
 | NDS-07 ★ | Generate the annual plan (program, audience, priority) with review and approval | ✅ Available | Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`). | — |
-| NDS-08 | Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير) | 🟡 Partial | Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced. | 2 |
+| NDS-08 | Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير) | ✅ Available | The five programme types (ترخيص، تمكين، تمهين، تخصيص، تخيير) on categories, programmes and plan items; generation keeps only the year's types (others listed with the reason), adds placeholders for mandatory categories and keeps items in priority order within the seat and hour caps (the rest deferred with the reason); submission is refused while a rule is broken unless the head of planning records an audited exception; compliance on the plan page and in its export (PlanRulesEnforcementTest). Phase 20. | — |
 | NDS-09 | Program objectives, axes, units, competencies and summary | ✅ Available | Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills. | — |
 | NDS-10 | Program & group catalogue with tabs per category and full details | ✅ Available | Public catalogue with categories, details and eligibility check. | — |
 | NDS-11 | Publish / cancel programs and edit group details | ✅ Available | Groups are created, edited, cloned, published/unpublished and cancelled with a mandatory reason and notifications to registrants, supervisor and managers; the public catalogue lists only published groups. | — |
@@ -795,7 +795,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | RPT-01 | Role-specific reports + self-service dynamic report builder | ✅ Available | Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12). | — |
 | RPT-02 | Export reports to Excel, PDF and Word | ✅ Available | Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12). | — |
-| RPT-03 | System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats) | 🟡 Partial | Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping). | 12 |
+| RPT-03 | System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats) | ✅ Available | Employee data (entity type, workplace, licence, job title, experience, annual appraisal), employee courses (training path, programme, entity, job title, qualification, period), programmes with career paths, courses by employee number, attendance, licence matrix, trainers, results, hours, and yearly, quarterly and monthly statistics, in Excel, PDF and Word with coded values as words (RfpReportsTest). Phase 20. | — |
 | RPT-04 | Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave) | ✅ Available | Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12). | — |
 | RPT-05 | Trainer reports (workshop calendar, delivered programs, process tracking) | ✅ Available | Trainer's workshop calendar, statistics of programs and groups delivered, process tracking of their groups (Phase 12). | — |
 | RPT-06 | Direct-manager reports (team courses, nominations & approval flow, attendance) | ✅ Available | Courses obtained by staff in a period, nominations and approval flow, staff attendance and absence — limited to the manager's own staff (Phase 12). | — |
@@ -803,7 +803,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | RPT-08 | QA and kit-developer reports | ✅ Available | Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12). | — |
 | RPT-09 | Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups | ✅ Available | Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12). | — |
 | RPT-10 | Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds) | ✅ Available | Low-satisfaction alert (response ≥80% and average <50%, editable), once per group | — |
-| RPT-11 | Predictive analytics and reports | 🟡 Partial | Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15. | 15 |
+| RPT-11 | Predictive analytics and reports | ✅ Available | Forecast and risk pages with explanations and plan hand-off, exported to Excel, PDF and Word (range, trend, confidence, explanation; risks with reasons), Arabic right to left and English (ForecastExportTest). Phase 20. | — |
 
 ### UTR · User Training, Help & Support — تدريب المستخدمين والدعم الفني
 

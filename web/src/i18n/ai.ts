@@ -23,6 +23,7 @@ export const aiAr = {
     fc: {
       title: 'التوقعات والمخاطر', subtitle: 'احتياجات التطوير المهني المتوقعة وقوائم المخاطر المبكرة.', tabs: { forecasts: 'التوقعات', risks: 'المخاطر' }, dimension: { competency: 'الكفايات', job: 'المسميات الوظيفية', school: 'المدارس' }, year: 'السنة', run: 'تحديث التوقعات', ran: 'تم تحديث التوقعات وقوائم المخاطر.',
       label: 'البند', value: 'المتوقع', range: 'المدى', confidence: 'الثقة', why: 'التفسير', history: 'التاريخ', toPlan: 'إضافة إلى الخطة', pickPlan: 'اختر خطة مسودة', added: 'أُضيفت {{n}} بنود مقترحة إلى الخطة.', none: 'لا توقعات بعد — شغّل التحديث.',
+      exportAs: 'تصدير', exporting: 'جارٍ تجهيز الملف…', exported: 'بدأ تنزيل الملف.',
       risk: { hours_shortfall: 'نقص ساعات التطوير', licence_gap: 'ترخيص يقترب من الانتهاء', group_underfill: 'مجموعة غير مكتملة', low_satisfaction: 'رضا منخفض' }, score: 'الخطورة', resolve: 'تمت المعالجة', noRisks: 'لا مخاطر مفتوحة.', reasons: 'الأسباب',
     },
     set: {
@@ -61,6 +62,7 @@ export const aiEn = {
     fc: {
       title: 'Forecasts & risks', subtitle: 'Expected professional-development needs and early-warning lists.', tabs: { forecasts: 'Forecasts', risks: 'Risks' }, dimension: { competency: 'Competencies', job: 'Job titles', school: 'Schools' }, year: 'Year', run: 'Refresh forecasts', ran: 'Forecasts and risk lists refreshed.',
       label: 'Item', value: 'Expected', range: 'Range', confidence: 'Confidence', why: 'Explanation', history: 'History', toPlan: 'Add to plan', pickPlan: 'Choose a draft plan', added: '{{n}} suggested items added to the plan.', none: 'No forecasts yet — run a refresh.',
+      exportAs: 'Export', exporting: 'Preparing the file…', exported: 'The file is downloading.',
       risk: { hours_shortfall: 'Hours shortfall', licence_gap: 'Licence about to expire', group_underfill: 'Under-filled group', low_satisfaction: 'Low satisfaction' }, score: 'Severity', resolve: 'Resolved', noRisks: 'No open risks.', reasons: 'Reasons',
     },
     set: {

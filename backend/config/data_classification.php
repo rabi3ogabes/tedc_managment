@@ -25,6 +25,8 @@ return [
 
     /** Individual columns that are Restricted (or otherwise differ from what the patterns say): "table.column" => class. */
     'overrides' => [
+        // Programme categories and their type are published reference data (the catalogue shows them); masking them in copies would spoil every report.
+        'program_categories.name_ar' => 'public', 'program_categories.name_en' => 'public', 'program_categories.program_type' => 'public',
         'sessions.payload' => 'restricted', 'integrations.config' => 'restricted', 'webhook_subscriptions.secret' => 'restricted', 'attendance_devices.api_config' => 'restricted', 'employees.national_id' => 'restricted',
         'users.password' => 'restricted', 'users.mfa_secret' => 'restricted', 'lti_tools.consumer_secret' => 'restricted', 'users.remember_token' => 'restricted', 'personal_access_tokens.token' => 'restricted', 'password_reset_tokens.token' => 'restricted',
     ],

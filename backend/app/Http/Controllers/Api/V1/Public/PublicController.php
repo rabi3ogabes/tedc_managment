@@ -44,7 +44,7 @@ class PublicController extends Controller
                 ->whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN])
                 ->where('start_date', '>=', today())->orderBy('start_date')->limit(6)->get())->resolve(),
             'categories' => ProgramCategory::withCount(['programs' => fn ($q) => $q->visible()])->get()
-                ->map(fn ($c) => ['id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color, 'programs' => $c->programs_count])->all(),
+                ->map(fn ($c) => ['id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color, 'program_type' => $c->program_type, 'programs' => $c->programs_count])->all(),
             'partners' => School::where('is_partner', true)->orderBy('name_ar')->limit(12)->get()
                 ->map(fn ($s) => ['id' => $s->id, 'name' => $s->translate('name'), 'logo_url' => FileStorage::publicUrl($s->logo_path), 'stage' => $s->stage])->all(),
             'testimonials' => Evaluation::with(['employee.user', 'employee.jobTitle', 'employee.school', 'program'])
@@ -100,7 +100,7 @@ class PublicController extends Controller
     public function categories(): JsonResponse
     {
         return response()->json(['data' => ProgramCategory::orderBy('name_ar')->get()->map(fn ($c) => [
-            'id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color,
+            'id' => $c->id, 'slug' => $c->slug, 'name' => $c->translate('name'), 'icon' => $c->icon, 'color' => $c->color, 'program_type' => $c->program_type,
         ])]);
     }
 

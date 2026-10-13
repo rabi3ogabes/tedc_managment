@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-13 — Phase 20: planning rules, the RFP report list, forecast exports
+The annual plan follows the year's rules: the five programme types (ترخيص، تمكين، تمهين، تخصيص، تخيير) set on categories and programmes, mandatory categories (with a placeholder when no need covers one), and seat and hour caps that keep items in priority order and defer the rest with the reason. A plan that breaks a rule cannot be submitted; the head of planning may continue only with a written, audited exception. The employee, course and path reports carry the RFP's filters (entity type, workplace, licence, job title, experience, annual appraisal, training path, qualification) and statistics come by year, quarter and month. Forecasts and risk lists export to Excel, PDF and Word. Fixed: the report viewer overflowed with wide tables.
+
 ## 2026-10-13 — Preflight follow-up
 The live site's Vercel settings overrode `APP_ENV`, so the production-only guards were off there and the public mobile configuration still served the shared demo password. The production deployment now always runs as production (`vercel-env.php`, `VercelEnvTest`). Sample forecasts no longer disappear on Mondays (`SampleForecastsMondayTest`).
 

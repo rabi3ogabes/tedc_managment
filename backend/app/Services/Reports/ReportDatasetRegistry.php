@@ -4,6 +4,7 @@ namespace App\Services\Reports;
 
 use App\Models\User;
 use App\Support\AccessScope;
+use App\Support\ProgramTypes;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -40,6 +41,18 @@ class ReportDatasetRegistry
     public static function day(string $col): string
     {
         return DB::getDriverName() === 'sqlite' ? "date({$col})" : "to_char({$col}, 'YYYY-MM-DD')";
+    }
+
+    /** The quarter (1–4) of a date column. */
+    public static function quarter(string $col): string
+    {
+        return DB::getDriverName() === 'sqlite' ? "((cast(strftime('%m', {$col}) as integer) + 2) / 3)" : "cast(extract(quarter from {$col}) as integer)";
+    }
+
+    /** Whole years from a date to today. */
+    public static function yearsSince(string $col): string
+    {
+        return DB::getDriverName() === 'sqlite' ? "cast((julianday('now') - julianday({$col})) / 365.25 as integer)" : "cast(extract(year from age(current_date, cast({$col} as date))) as integer)";
     }
 
     /** The academic year a date belongs to; it starts in September. */
@@ -93,15 +106,24 @@ class ReportDatasetRegistry
     /** @return array<string, array<string, mixed>> */
     private function build(): array
     {
+        // The employee's latest licence and appraisal, read per row inside the dataset's own scope (never a wider join).
+        $licence = fn (string $col) => "(select {$col} from professional_licences pl left join career_paths lp on lp.id = pl.path_id where pl.employee_id = e.id order by pl.issued_at desc, pl.created_at desc limit 1)";
+        $appraisal = fn (string $col) => "(select pa.{$col} from performance_appraisals pa where pa.employee_id = e.id order by pa.year desc limit 1)";
+        // The career path whose levels require the programme (a programme can serve one path level).
+        $path = fn (string $col) => "(select {$col} from career_path_levels cpl join career_paths cp on cp.id = cpl.path_id where cast(cpl.required_programs as text) like '%' || cast(p.id as text) || '%' order by cpl.level_no limit 1)";
         $emp = fn () => [
             'employee_no' => self::f('string', 'الرقم الوظيفي', 'Employee no.', 'e.employee_no', ['aggregates' => ['count', 'count_distinct']]),
             'name' => self::f('string', 'الاسم', 'Name', 'coalesce(u.name_ar, u.name)'),
+            'entity_type' => self::f('enum', 'نوع الجهة', 'Entity type', "case when e.school_id is not null then s.type when e.department_id is not null then 'centre' else 'other' end", ['values' => ['government', 'private', 'international', 'community', 'centre', 'other'],
+                'labels' => ['government' => ['ar' => 'حكومية', 'en' => 'Government'], 'private' => ['ar' => 'خاصة', 'en' => 'Private'], 'international' => ['ar' => 'دولية', 'en' => 'International'], 'community' => ['ar' => 'مجتمعية', 'en' => 'Community'], 'centre' => ['ar' => 'المركز / الإدارات', 'en' => 'Centre / departments'], 'other' => ['ar' => 'أخرى', 'en' => 'Other']]]),
+            'workplace' => self::f('string', 'جهة العمل', 'Workplace', 'coalesce(s.name_ar, (select wd.name_ar from departments wd where wd.id = e.department_id))'),
+            'qualification' => self::f('string', 'المؤهل', 'Qualification', 'e.qualification'),
             'school' => self::f('string', 'المدرسة', 'School', 's.name_ar'),
             'school_code' => self::f('string', 'رمز المدرسة', 'School code', 's.code'),
             'region' => self::f('enum', 'المنطقة', 'Region', 's.region'),
             'job_title' => self::f('string', 'المسمى الوظيفي', 'Job title', 'j.name_ar'),
             'job_category' => self::f('enum', 'الفئة الوظيفية', 'Job category', 'j.category'),
-            'gender' => self::f('enum', 'الجنس', 'Gender', 'e.gender', ['values' => ['male', 'female']]),
+            'gender' => self::f('enum', 'الجنس', 'Gender', 'e.gender', ['values' => ['male', 'female'], 'labels' => ['male' => ['ar' => 'ذكر', 'en' => 'Male'], 'female' => ['ar' => 'أنثى', 'en' => 'Female']]]),
         ];
 
         return [
@@ -117,9 +139,21 @@ class ReportDatasetRegistry
                     'nationality' => self::f('string', 'الجنسية', 'Nationality', 'e.nationality'),
                     'department' => self::f('string', 'القسم', 'Department', 'd.name_ar'),
                     'education_stage' => self::f('enum', 'المرحلة', 'Stage', 'e.education_stage'),
-                    'qualification' => self::f('string', 'المؤهل', 'Qualification', 'e.qualification'),
                     'specialization' => self::f('string', 'التخصص', 'Specialisation', 'e.specialization'),
                     'experience_years' => self::f('number', 'سنوات الخبرة', 'Experience (years)', 'e.experience_years', ['aggregates' => ['avg', 'min', 'max']]),
+                    'experience_moe_years' => self::f('number', 'الخبرة في الوزارة', 'Experience in the Ministry', 'e.experience_moe_years', ['aggregates' => ['avg', 'min', 'max']]),
+                    'experience_outside_years' => self::f('number', 'الخبرة خارج الوزارة', 'Experience outside the Ministry', 'e.experience_outside_years', ['aggregates' => ['avg']]),
+                    'years_in_title' => self::f('number', 'سنوات في المسمى الحالي', 'Years in the current title', self::yearsSince('e.current_title_since'), ['aggregates' => ['avg', 'min', 'max']]),
+                    'experience_band' => self::f('enum', 'فئة الخبرة', 'Experience band', "case when e.experience_years is null then null when e.experience_years < 5 then '0-4' when e.experience_years < 10 then '5-9' when e.experience_years < 15 then '10-14' else '15+' end", ['values' => ['0-4', '5-9', '10-14', '15+']]),
+                    'licence_path' => self::f('string', 'مسار الرخصة', 'Licence path', $licence('lp.title_ar')),
+                    'licence_level' => self::f('number', 'مستوى الرخصة', 'Licence level', $licence('pl.level_no'), ['aggregates' => ['avg', 'min', 'max']]),
+                    'licence_status' => self::f('enum', 'حالة الرخصة', 'Licence status', $licence('pl.status'), ['values' => ['active', 'expired', 'suspended', 'pending'],
+                        'labels' => ['active' => ['ar' => 'سارية', 'en' => 'Valid'], 'expired' => ['ar' => 'منتهية', 'en' => 'Expired'], 'suspended' => ['ar' => 'موقوفة', 'en' => 'Suspended'], 'pending' => ['ar' => 'قيد الإصدار', 'en' => 'Being issued']]]),
+                    'licence_expires' => self::f('date', 'انتهاء الرخصة', 'Licence expires', $licence('pl.expires_at')),
+                    'appraisal_year' => self::f('number', 'سنة آخر تقييم سنوي', 'Latest appraisal year', $appraisal('year')),
+                    'appraisal_rating' => self::f('enum', 'التقدير في التقييم السنوي', 'Annual appraisal rating', $appraisal('rating_code')),
+                    'appraisal_score' => self::f('number', 'درجة التقييم السنوي', 'Annual appraisal score', $appraisal('score'), ['aggregates' => ['avg', 'min', 'max']]),
+                    'employee_path' => self::f('string', 'المسار المهني للموظف', 'Employee career path', '(select ep.title_ar from employee_path_progress epp join career_paths ep on ep.id = epp.path_id where epp.employee_id = e.id order by epp.updated_at desc limit 1)'),
                     'hire_date' => self::f('date', 'تاريخ التعيين', 'Hire date', 'e.hire_date'),
                     'status' => self::f('enum', 'الحالة', 'Status', 'e.status'),
                     'supervisor_employee_id' => self::f('string', 'المدير المباشر (رقم داخلي)', 'Direct manager (internal id)', 'e.supervisor_id', ['hidden' => true]),
@@ -139,6 +173,9 @@ class ReportDatasetRegistry
                     'program_id' => self::f('string', 'معرّف البرنامج', 'Program id', 'p.id', ['hidden' => true]),
                     'employee_id' => self::f('string', 'المعرّف', 'Id', 'e.id', ['hidden' => true]),
                     'category' => self::f('string', 'فئة البرنامج', 'Program category', 'c.name_ar'),
+                    'program_type' => self::f('enum', 'نوع البرنامج', 'Programme type', 'coalesce(p.program_type, c.program_type)', ['values' => ProgramTypes::ALL, 'labels' => ProgramTypes::labels()]),
+                    'career_path' => self::f('string', 'مسار التدريب', 'Training path', $path('cp.title_ar')),
+                    'career_path_level' => self::f('number', 'مستوى المسار', 'Path level', $path('cpl.level_no')),
                     'group' => self::f('string', 'المجموعة', 'Group', 'g.code'),
                     'group_id' => self::f('string', 'معرّف المجموعة', 'Group id', 'r.training_group_id', ['hidden' => true]),
                     'group_start' => self::f('date', 'بداية المجموعة', 'Group start', 'g.start_date'),
@@ -157,6 +194,7 @@ class ReportDatasetRegistry
                     'created_at' => self::f('date', 'تاريخ التسجيل', 'Registered on', 'r.created_at'),
                     'year' => self::f('number', 'السنة', 'Year', self::year('r.created_at')),
                     'academic_year' => self::f('number', 'العام الدراسي', 'Academic year', self::academicYear('r.created_at')),
+                    'quarter' => self::f('number', 'الربع', 'Quarter', self::quarter('r.created_at')),
                     'month' => self::f('number', 'الشهر', 'Month', self::month('r.created_at')),
                     'program_hours' => self::f('number', 'ساعات البرنامج', 'Program hours', 'p.total_hours', ['aggregates' => ['sum', 'avg']]),
                     'registrations' => self::f('number', 'عدد التسجيلات', 'Registrations', 'r.id', ['aggregates' => ['count', 'count_distinct'], 'computed_only' => true]),
@@ -212,6 +250,9 @@ class ReportDatasetRegistry
                     'seats_taken' => self::f('number', 'المقاعد المشغولة', 'Seats taken', "(select count(*) from registrations x where x.training_group_id = g.id and x.status in ('pending','approved','completed'))", ['aggregates' => ['sum', 'avg']]),
                     'completed_count' => self::f('number', 'المكمِلون', 'Completed', "(select count(*) from registrations x where x.training_group_id = g.id and x.status = 'completed')", ['aggregates' => ['sum']]),
                     'year' => self::f('number', 'السنة', 'Year', self::year('g.start_date')),
+                    'quarter' => self::f('number', 'الربع', 'Quarter', self::quarter('g.start_date')),
+                    'month' => self::f('number', 'الشهر', 'Month', self::month('g.start_date')),
+                    'program_type' => self::f('enum', 'نوع البرنامج', 'Programme type', 'coalesce(p.program_type, c.program_type)', ['values' => ProgramTypes::ALL, 'labels' => ProgramTypes::labels()]),
                     'groups' => self::f('number', 'عدد المجموعات', 'Groups', 'g.id', ['aggregates' => ['count'], 'computed_only' => true]),
                 ],
             ],
@@ -252,6 +293,8 @@ class ReportDatasetRegistry
                     'hours_actual' => self::f('number', 'الساعات الفعلية', 'Actual hours', 'ce.hours_actual', ['aggregates' => ['sum']]),
                     'year' => self::f('number', 'السنة', 'Year', self::year('ce.issued_at')),
                     'academic_year' => self::f('number', 'العام الدراسي', 'Academic year', self::academicYear('ce.issued_at')),
+                    'quarter' => self::f('number', 'الربع', 'Quarter', self::quarter('ce.issued_at')),
+                    'month' => self::f('number', 'الشهر', 'Month', self::month('ce.issued_at')),
                     'certificates' => self::f('number', 'عدد الشهادات', 'Certificates', 'ce.id', ['aggregates' => ['count'], 'computed_only' => true]),
                     'employee_id' => self::f('string', 'المعرّف', 'Id', 'e.id', ['hidden' => true]),
                 ],

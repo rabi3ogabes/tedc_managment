@@ -34,16 +34,21 @@ class BuiltInReports
 
         return [
             // ---- system administration and centre staff ------------------------------------------------
+            // RFP: employee data by entity type, workplace, professional licence, job title, years of experience and annual appraisals.
             ['key' => 'employees_data', 'category' => 'admin', 'roles' => self::ADMIN, 'title' => ['تقرير بيانات الموظفين', 'Employee data'], 'dataset' => 'employees',
-                'columns' => $c('employee_no', 'name', 'school', 'job_title', 'job_category', 'gender', 'nationality', 'education_stage', 'qualification', 'experience_years', 'hire_date', 'status'),
-                'filters' => [self::flt('school', 'contains', null, true), self::flt('job_category', 'eq', null, true), self::flt('gender', 'eq', null, true), self::flt('nationality', 'contains', null, true), self::flt('education_stage', 'eq', null, true), self::flt('qualification', 'contains', null, true)],
+                'columns' => $c('employee_no', 'name', 'entity_type', 'workplace', 'job_title', 'job_category', 'gender', 'nationality', 'education_stage', 'qualification', 'experience_years', 'experience_moe_years', 'years_in_title', 'licence_path', 'licence_level', 'licence_status', 'appraisal_year', 'appraisal_rating', 'hire_date', 'status'),
+                'filters' => [self::flt('entity_type', 'eq', null, true), self::flt('workplace', 'contains', null, true), self::flt('job_title', 'contains', null, true), self::flt('job_category', 'eq', null, true), self::flt('experience_band', 'eq', null, true),
+                    self::flt('licence_status', 'eq', null, true), self::flt('licence_path', 'contains', null, true), self::flt('appraisal_year', 'eq', null, true), self::flt('appraisal_rating', 'eq', null, true),
+                    self::flt('gender', 'eq', null, true), self::flt('nationality', 'contains', null, true), self::flt('education_stage', 'eq', null, true), self::flt('qualification', 'contains', null, true)],
                 'sort' => [['field' => 'name']]],
+            // RFP: employee courses by training path, programme, entity, job title, qualification and period.
             ['key' => 'employee_courses', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['تقرير دورات الموظفين', 'Employee courses'], 'dataset' => 'registrations',
-                'columns' => $c('employee_no', 'name', 'school', 'program', 'group', 'status', 'attendance_percent', 'pass_status', 'completed_at'),
-                'filters' => [self::flt('status', 'eq', null, true), self::flt('school', 'contains', null, true), $from('created_at'), $to('created_at')], 'sort' => [['field' => 'name']]],
+                'columns' => $c('employee_no', 'name', 'entity_type', 'workplace', 'job_title', 'qualification', 'career_path', 'program', 'group', 'status', 'attendance_percent', 'pass_status', 'completed_at'),
+                'filters' => [self::flt('career_path', 'contains', null, true), self::flt('program', 'contains', null, true), self::flt('entity_type', 'eq', null, true), self::flt('workplace', 'contains', null, true), self::flt('job_title', 'contains', null, true),
+                    self::flt('qualification', 'contains', null, true), self::flt('status', 'eq', null, true), $from('created_at'), $to('created_at')], 'sort' => [['field' => 'name']]],
             ['key' => 'programs_paths_groups', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['تقرير البرامج والمسارات والمجموعات', 'Programs, paths and groups'], 'dataset' => 'registrations',
-                'columns' => $c('category', 'program', 'group', 'job_category', 'status', 'gender', 'employee_no', 'group_start', 'group_end'),
-                'filters' => [self::flt('job_category', 'eq', null, true), self::flt('gender', 'eq', null, true), self::flt('status', 'eq', null, true), $from('group_start'), $to('group_end')], 'sort' => [['field' => 'program']]],
+                'columns' => $c('career_path', 'career_path_level', 'category', 'program_type', 'program', 'group', 'job_category', 'status', 'gender', 'employee_no', 'group_start', 'group_end'),
+                'filters' => [self::flt('career_path', 'contains', null, true), self::flt('program_type', 'eq', null, true), self::flt('job_category', 'eq', null, true), self::flt('gender', 'eq', null, true), self::flt('status', 'eq', null, true), $from('group_start'), $to('group_end')], 'sort' => [['field' => 'program']]],
             ['key' => 'employee_courses_lookup', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['استعلام دورات موظف بالرقم الوظيفي', 'Courses of one employee by number'], 'dataset' => 'registrations',
                 'columns' => $c('employee_no', 'name', 'program', 'group', 'status', 'program_hours', 'completed_at'), 'filters' => [self::flt('employee_no', 'eq', null, true)]],
             ['key' => 'attendance_detail', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['الحضور والغياب التفصيلي لكل متدرب', 'Detailed attendance and absence per trainee'], 'dataset' => 'attendance',
@@ -79,8 +84,13 @@ class BuiltInReports
             ['key' => 'hours_approved_vs_actual', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['الساعات المعتمدة مقابل الفعلية لكل متدرب', 'Approved vs actual hours per trainee'], 'dataset' => 'certificates',
                 'columns' => [self::col('employee_no'), self::col('name'), self::col('hours_total', 'sum'), self::col('hours_actual', 'sum')], 'group_by' => ['employee_no', 'name'], 'filters' => [$from('issued_at'), $to('issued_at')]],
             ['key' => 'statistics_periodic', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['إحصائيات سنوية وفصلية وشهرية', 'Yearly, quarterly and monthly statistics'], 'dataset' => 'registrations',
-                'columns' => [self::col('year'), self::col('month'), self::col('registrations', 'count'), self::col('attendance_percent', 'avg')], 'group_by' => ['year', 'month'], 'sort' => [['field' => 'year'], ['field' => 'month']],
-                'chart' => ['type' => 'line', 'x' => 'month', 'y' => 'registrations__count']],
+                'columns' => [self::col('year'), self::col('quarter'), self::col('registrations', 'count'), self::col('attendance_percent', 'avg')], 'group_by' => ['year', 'quarter'], 'sort' => [['field' => 'year'], ['field' => 'quarter']],
+                'chart' => ['type' => 'line', 'x' => 'quarter', 'y' => 'registrations__count'],
+                'options' => ['parts' => [
+                    ['title' => ['سنوي', 'Yearly'], 'dataset' => 'registrations', 'columns' => [self::col('year'), self::col('registrations', 'count'), self::col('attendance_percent', 'avg'), self::col('program_hours', 'sum')], 'sort' => [['field' => 'year']]],
+                    ['title' => ['فصلي (ربع سنوي)', 'Quarterly'], 'dataset' => 'registrations', 'columns' => [self::col('year'), self::col('quarter'), self::col('registrations', 'count'), self::col('attendance_percent', 'avg')], 'sort' => [['field' => 'year'], ['field' => 'quarter']]],
+                    ['title' => ['شهري', 'Monthly'], 'dataset' => 'registrations', 'columns' => [self::col('year'), self::col('month'), self::col('registrations', 'count'), self::col('attendance_percent', 'avg')], 'sort' => [['field' => 'year'], ['field' => 'month']]],
+                ]]],
             ['key' => 'pd_hours', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['ساعات التطوير المهني', 'Professional development hours'], 'dataset' => 'pd',
                 'columns' => [self::col('school'), self::col('activities', 'count'), self::col('approved_hours', 'sum')], 'group_by' => ['school'], 'sort' => [['field' => 'approved_hours__sum', 'dir' => 'desc']]],
             ['key' => 'withdrawals_overview', 'category' => 'admin', 'roles' => self::STAFF, 'title' => ['طلبات الانسحاب', 'Withdrawal requests'], 'dataset' => 'withdrawals',

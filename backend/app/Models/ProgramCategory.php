@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['slug', 'name_en', 'name_ar', 'icon', 'color'])]
+#[Fillable(['slug', 'name_en', 'name_ar', 'icon', 'color', 'program_type'])]
 class ProgramCategory extends Model
 {
     use HasTranslations, HasUuids;

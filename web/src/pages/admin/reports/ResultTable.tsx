@@ -13,6 +13,7 @@ export default function ResultTable({ result }: { result: any }) {
     if (c.type === 'bool') return v ? '✔' : '—'
     if (c.type === 'date') return String(v).slice(0, String(v).length > 10 ? 16 : 10).replace('T', ' ')
     if (c.type === 'number' && typeof v === 'number') return fmt.number(v)
+    if (c.labels?.[v]) return L(c.labels[v])   // coded values (entity type, licence status …) read as words
     return String(v)
   }
   const chart = result.chart

@@ -7,6 +7,7 @@ use App\Models\IndividualNeed;
 use App\Models\InstitutionalRequest;
 use App\Models\NeedsCycle;
 use App\Models\Nomination;
+use App\Models\ProgramCategory;
 use App\Models\ProgramProposal;
 use App\Models\Registration;
 use App\Models\RegistrationForm;
@@ -26,6 +27,7 @@ class SamplePlanning
 
     public function run(): void
     {
+        $this->step('types', fn () => $this->programTypes());
         $this->step('plan', fn () => $this->plan());
         $this->step('needs', fn () => $this->needs());
         $this->step('registrations', fn () => $this->registrations());
@@ -38,20 +40,32 @@ class SamplePlanning
         if (TrainingPlan::where('year', $year)->exists()) {
             return;
         }
-        $plan = TrainingPlan::create(['year' => $year, 'version' => 1, 'title_ar' => "الخطة التدريبية السنوية {$year}", 'title_en' => "Annual training plan {$year}", 'status' => 'in_review', 'rules' => [], 'submitted_by' => $head->id, 'submitted_at' => now()->subDays(2), 'notes' => 'نسخة تجريبية للمراجعة.']);
+        $wellbeing = ProgramCategory::where('slug', 'wellbeing')->value('id');
+        $rules = ['program_types' => ['licensing', 'empowerment', 'professionalisation', 'specialisation'], 'mandatory_categories' => array_filter([$wellbeing]), 'max_seats_total' => 1200, 'max_hours_total' => 150];
+        $plan = TrainingPlan::create(['year' => $year, 'version' => 1, 'title_ar' => "الخطة التدريبية السنوية {$year}", 'title_en' => "Annual training plan {$year}", 'status' => 'in_review', 'rules' => $rules, 'submitted_by' => $head->id, 'submitted_at' => now()->subDays(2), 'notes' => 'نسخة تجريبية للمراجعة.']);
         $rows = [
-            ['التقويم التكويني في الصف', 'Formative assessment in class', 'high', 12, 360, 24, 'needs'],
-            ['القيادة التربوية لمديري المدارس', 'Educational leadership for principals', 'high', 6, 150, 30, 'needs'],
-            ['توظيف الذكاء الاصطناعي في التعليم', 'AI in education', 'medium', 8, 240, 18, 'manual'],
-            ['الدعم النفسي والاجتماعي للطلبة', 'Psychosocial support for students', 'medium', 5, 125, 12, 'carry_over'],
-            ['ورشة طارئة: استعداد الاختبارات الوطنية', 'Emergency: national exam readiness', 'high', 3, 90, 6, 'emergency'],
+            ['التقويم التكويني في الصف', 'Formative assessment in class', 'high', 12, 360, 24, 'needs', 'assessment'],
+            ['القيادة التربوية لمديري المدارس', 'Educational leadership for principals', 'high', 6, 150, 30, 'needs', 'leadership'],
+            ['توظيف الذكاء الاصطناعي في التعليم', 'AI in education', 'medium', 8, 240, 18, 'manual', 'digital'],
+            ['الدعم النفسي والاجتماعي للطلبة', 'Psychosocial support for students', 'medium', 5, 125, 12, 'carry_over', 'wellbeing'],
+            ['ورشة طارئة: استعداد الاختبارات الوطنية', 'Emergency: national exam readiness', 'high', 3, 90, 6, 'emergency', 'assessment'],
         ];
-        foreach ($rows as $i => [$ar, $en, $prio, $groups, $seats, $hours, $src]) {
+        $categories = ProgramCategory::all()->keyBy('slug');
+        foreach ($rows as $i => [$ar, $en, $prio, $groups, $seats, $hours, $src, $slug]) {
             $item = TrainingPlanItem::create(['plan_id' => $plan->id, 'title_ar' => $ar, 'title_en' => $en, 'audience' => 'معلمو المدارس', 'priority' => $prio, 'priority_score' => 90 - $i * 8, 'planned_groups' => $groups, 'planned_seats' => $seats, 'planned_hours' => $hours,
+                'category_id' => $categories[$slug]->id ?? null, 'program_type' => $categories[$slug]->program_type ?? null,
                 'window_start' => now()->addMonths(2 + $i)->startOfMonth(), 'window_end' => now()->addMonths(3 + $i)->startOfMonth(), 'source' => $src, 'status' => 'planned', 'is_emergency' => $src === 'emergency', 'rationale_ar' => 'استنادًا إلى فجوات الكفايات ونتائج الأثر.', 'rationale_en' => 'Based on competency gaps and impact results.']);
             if ($i === 2) {
                 TrainingPlanChange::create(['plan_id' => $plan->id, 'item_id' => $item->id, 'change_type' => 'modified', 'before' => ['planned_seats' => 200], 'after' => ['planned_seats' => 240], 'reason' => 'زيادة الطلب بحسب الاستبيان.', 'changed_by' => $head->id]);
             }
+        }
+    }
+
+    /** Gives the demonstration categories a programme type (only where none is set, so an administrator's choice stays). */
+    private function programTypes(): void
+    {
+        foreach (['leadership' => 'specialisation', 'pedagogy' => 'professionalisation', 'digital' => 'empowerment', 'assessment' => 'professionalisation', 'wellbeing' => 'empowerment', 'professional' => 'licensing'] as $slug => $type) {
+            ProgramCategory::where('slug', $slug)->whereNull('program_type')->update(['program_type' => $type]);
         }
     }
 

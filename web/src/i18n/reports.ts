@@ -1,6 +1,13 @@
 /** Reports hub and builder, role dashboards, live KPI dashboard (Phase 12). */
 export const reportsAr = {
   rep: {
+    anyValue: 'الكل', clearFilters: 'مسح عوامل التصفية', filtersRemembered: 'نحفظ آخر عوامل تصفية استخدمتها لكل تقرير على هذا الجهاز.',
+    values: {
+      entity_type: { government: 'حكومية', private: 'خاصة', international: 'دولية', community: 'مجتمعية', centre: 'المركز / الإدارات', other: 'أخرى' },
+      licence_status: { active: 'سارية', expired: 'منتهية', suspended: 'موقوفة', pending: 'قيد الإصدار' },
+      program_type: { licensing: 'ترخيص', empowerment: 'تمكين', professionalisation: 'تمهين', specialisation: 'تخصيص', electives: 'تخيير' },
+      gender: { male: 'ذكر', female: 'أنثى' },
+    },
     navReports: 'التقارير', navKpi: 'مؤشرات الأداء الحية', title: 'التقارير', subtitle: 'تقارير جاهزة لدورك، ويمكنك بناء تقاريرك الخاصة وجدولتها.',
     cat: { all: 'الكل', favorites: 'المفضلة', admin: 'الإدارة', supervisor: 'المشرفون', trainer: 'المدربون', manager: 'المديرون المباشرون', trainee: 'المتدربون', qa: 'الجودة', kit: 'الحقائب', general: 'عامة' },
     search: 'ابحث في التقارير', newReport: 'تقرير جديد', empty: 'لا توجد تقارير مطابقة.', system: 'جاهز', mine: 'خاص بي', favorite: 'تفضيل', copy: 'نسخة قابلة للتعديل', edit: 'تعديل', delete: 'حذف', deleteAsk: 'حذف هذا التقرير؟',
@@ -29,6 +36,13 @@ export const reportsAr = {
 
 export const reportsEn = {
   rep: {
+    anyValue: 'All', clearFilters: 'Clear filters', filtersRemembered: 'The last filters you used for each report are kept on this device.',
+    values: {
+      entity_type: { government: 'Government', private: 'Private', international: 'International', community: 'Community', centre: 'Centre / departments', other: 'Other' },
+      licence_status: { active: 'Valid', expired: 'Expired', suspended: 'Suspended', pending: 'Being issued' },
+      program_type: { licensing: 'Licensing', empowerment: 'Empowerment', professionalisation: 'Professionalisation', specialisation: 'Specialisation', electives: 'Electives' },
+      gender: { male: 'Male', female: 'Female' },
+    },
     navReports: 'Reports', navKpi: 'Live KPIs', title: 'Reports', subtitle: 'Ready-made reports for your role; build and schedule your own.',
     cat: { all: 'All', favorites: 'Favourites', admin: 'Administration', supervisor: 'Supervisors', trainer: 'Trainers', manager: 'Direct managers', trainee: 'Trainees', qa: 'Quality', kit: 'Kits', general: 'General' },
     search: 'Search reports', newReport: 'New report', empty: 'No matching reports.', system: 'Built-in', mine: 'Mine', favorite: 'Favourite', copy: 'Editable copy', edit: 'Edit', delete: 'Delete', deleteAsk: 'Delete this report?',

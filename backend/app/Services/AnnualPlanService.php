@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\AuditLog;
+use App\Models\Program;
+use App\Models\ProgramCategory;
 use App\Models\Registration;
 use App\Models\TrainingGroup;
 use App\Models\TrainingNeed;
@@ -11,17 +13,20 @@ use App\Models\TrainingPlan;
 use App\Models\TrainingPlanChange;
 use App\Models\TrainingPlanItem;
 use App\Models\User;
+use App\Support\ProgramTypes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The annual training plan: generated from approved needs by editable yearly rules, reviewed, approved
  * (baseline snapshot), executed and monitored (execution %, change %, deviations, emergency share).
+ * The year's rules (NDS-08) are enforced: only the year's programme types, every mandatory category, and the
+ * seat and hour caps; a broken rule blocks submission unless the head of planning documents an exception.
  */
 class AnnualPlanService
 {
     public const DEFAULT_RULES = [
-        'program_types' => ['licensing', 'empowerment', 'apprenticeship', 'specialisation', 'electives'],
+        'program_types' => ProgramTypes::ALL,
         'mandatory_categories' => [],
         'weights' => ['severity' => 60, 'headcount' => 30, 'breadth' => 10],
         'max_seats_per_group' => 25,
@@ -36,11 +41,31 @@ class AnnualPlanService
     /** Needs in these statuses feed the plan. */
     private const NEED_STATUSES = ['submitted', 'under_review', 'approved'];
 
+    /** Rules holding a list: a saved list replaces the default instead of being merged position by position. */
+    private const LIST_RULES = ['program_types', 'mandatory_categories'];
+
+    /** Items in these statuses are not part of the year's totals or its execution. */
+    public const OUT_OF_TOTALS = ['deferred', 'cancelled'];
+
     public function __construct(private readonly NotificationService $notifications) {}
 
     public function rules(TrainingPlan $plan): array
     {
-        return array_replace_recursive(self::DEFAULT_RULES, $plan->rules ?? []);
+        return $this->mergeRules(self::DEFAULT_RULES, $plan->rules ?? []);
+    }
+
+    /** Applies rule changes: maps (weights, windows) merge key by key, lists and single values replace. An empty list means "no rule". */
+    public function mergeRules(array $base, array $changes): array
+    {
+        $out = array_replace_recursive($base, array_diff_key($changes, array_flip(self::LIST_RULES)));
+        foreach (self::LIST_RULES as $key) {
+            if (array_key_exists($key, $changes)) {
+                $out[$key] = array_values((array) $changes[$key]);
+            }
+        }
+        $out['program_types'] = ProgramTypes::normalizeList($out['program_types'] ?? []);
+
+        return $out;
     }
 
     public function create(array $data, User $by): TrainingPlan
@@ -62,8 +87,14 @@ class AnnualPlanService
         $taken = $existing->pluck('source_refs')->flatten()->filter()->flip();
         $titles = $existing->map(fn ($i) => mb_strtolower($i->title_en))->flip();
 
-        $needs = TrainingNeed::whereIn('status', self::NEED_STATUSES)->whereNotIn('id', $taken->keys())->get();
-        $buckets = $needs->groupBy(fn ($n) => $n->skill_id ?: mb_strtolower(trim($n->skill_name)));
+        $buckets = $this->needBuckets($taken->keys()->all());
+        $excluded = [];
+        foreach ($buckets as $key => $bucket) {
+            if (! $this->typeAllowed($this->bucketType($bucket), $rules)) {
+                $excluded[] = $this->excludedRow($bucket);
+                $buckets->forget($key);
+            }
+        }
         $maxSeats = max(1, (int) $buckets->map(fn (Collection $b) => $b->sum('employees_count'))->max());
         $maxSchools = max(1, (int) $buckets->map(fn (Collection $b) => $b->pluck('school_id')->unique()->count())->max());
         $w = $rules['weights'];
@@ -83,9 +114,10 @@ class AnnualPlanService
                 $groups = max(1, (int) ceil($seats / max(1, $rules['max_seats_per_group'])));
                 $quarter = $rules['windows'][$top] ?? 2;
                 $start = now()->setDate($plan->year, ($quarter - 1) * 3 + 1, 1)->startOfDay();
+                $program = $this->bucketProgram($bucket);
 
                 TrainingPlanItem::create([
-                    'plan_id' => $plan->id, 'title_ar' => $name, 'title_en' => $name, 'category_id' => null,
+                    'plan_id' => $plan->id, 'title_ar' => $name, 'title_en' => $name, 'category_id' => $program?->category_id, 'program_type' => $program?->effectiveType(),
                     'priority' => $top, 'priority_score' => $score, 'planned_groups' => $groups, 'planned_seats' => $seats,
                     'planned_hours' => $groups * $rules['default_hours_per_group'], 'window_start' => $start->toDateString(), 'window_end' => $start->copy()->addMonths(3)->subDay()->toDateString(),
                     'source' => 'needs', 'source_refs' => $bucket->pluck('id')->all(),
@@ -103,16 +135,175 @@ class AnnualPlanService
                 if (isset($titles[mb_strtolower($old->title_en)]) || $plan->items()->where('source_refs', 'like', '%'.$old->id.'%')->exists()) {
                     continue;
                 }
-                $plan->items()->create($old->only(['title_ar', 'title_en', 'category_id', 'audience', 'priority', 'priority_score', 'planned_groups', 'planned_seats', 'planned_hours', 'program_id']) + [
+                $plan->items()->create($old->only(['title_ar', 'title_en', 'category_id', 'program_type', 'audience', 'priority', 'priority_score', 'planned_groups', 'planned_seats', 'planned_hours', 'program_id']) + [
                     'source' => 'carry_over', 'source_refs' => [$old->id], 'rationale_ar' => 'مرحّل من خطة '.$previous->year.' لعدم اكتماله.', 'rationale_en' => 'Carried over from the '.$previous->year.' plan: not completed.',
                 ]);
                 $carried++;
             }
         }
 
-        $this->audit($plan, 'generated', ['added' => $added, 'carried_over' => $carried]);
+        $placeholders = $this->addMandatoryPlaceholders($plan, $rules);
+        $deferred = $this->applyCaps($plan, $rules);
+        $this->audit($plan, 'generated', ['added' => $added, 'carried_over' => $carried, 'mandatory_placeholders' => $placeholders, 'deferred' => $deferred, 'excluded' => count($excluded)]);
 
-        return ['added' => $added, 'carried_over' => $carried];
+        return ['added' => $added, 'carried_over' => $carried, 'mandatory_placeholders' => $placeholders, 'deferred' => $deferred, 'excluded' => $excluded];
+    }
+
+    /**
+     * How the plan stands against the year's rules: seats and hours against the caps, items per type and category,
+     * mandatory categories covered, needs left out because of their type, the violations that block submission and
+     * the warnings (items without a type).
+     */
+    public function compliance(TrainingPlan $plan): array
+    {
+        $rules = $this->rules($plan);
+        $items = $plan->items()->get();
+        $active = $items->whereNotIn('status', self::OUT_OF_TOTALS);
+        $seats = (int) $active->sum('planned_seats');
+        $hours = (float) $active->sum('planned_hours');
+        $categories = ProgramCategory::whereIn('id', array_values(array_unique(array_merge($rules['mandatory_categories'], $active->pluck('category_id')->filter()->all()))))->get()->keyBy('id');
+        $violations = [];
+
+        $notAllowed = $active->reject(fn (TrainingPlanItem $i) => $this->typeAllowed($i->program_type, $rules));
+        if ($notAllowed->isNotEmpty()) {
+            $names = $notAllowed->pluck('program_type')->unique()->map(fn ($t) => ProgramTypes::name($t))->implode('، ');
+            $violations[] = $this->violation('type_not_allowed', $notAllowed->pluck('id')->all(), "أنواع برامج خارج خطة هذا العام: {$names}", 'Programme types outside this year\'s plan: '.$notAllowed->pluck('program_type')->unique()->map(fn ($t) => ProgramTypes::name($t, 'en'))->implode(', '));
+        }
+        $mandatory = collect($rules['mandatory_categories'])->map(fn ($id) => ['id' => $id, 'name_ar' => $categories[$id]->name_ar ?? '—', 'name_en' => $categories[$id]->name_en ?? '—', 'covered' => $active->contains('category_id', $id)])->values();
+        $missing = $mandatory->where('covered', false);
+        if ($missing->isNotEmpty()) {
+            $violations[] = $this->violation('mandatory_missing', [], 'فئات إلزامية بلا بنود: '.$missing->pluck('name_ar')->implode('، '), 'Mandatory categories without items: '.$missing->pluck('name_en')->implode(', '));
+        }
+        if ($rules['max_seats_total'] !== null && $seats > $rules['max_seats_total']) {
+            $violations[] = $this->violation('seats_over_cap', [], "المقاعد {$seats} تتجاوز الحد {$rules['max_seats_total']}", "Seats {$seats} exceed the cap of {$rules['max_seats_total']}");
+        }
+        if ($rules['max_hours_total'] !== null && $hours > $rules['max_hours_total']) {
+            $violations[] = $this->violation('hours_over_cap', [], "الساعات {$hours} تتجاوز الحد {$rules['max_hours_total']}", "Hours {$hours} exceed the cap of {$rules['max_hours_total']}");
+        }
+        $untyped = $active->whereNull('program_type');
+        $warnings = $untyped->isEmpty() ? [] : [$this->violation('type_missing', $untyped->pluck('id')->all(), "بنود بلا نوع برنامج: {$untyped->count()}", "Items without a programme type: {$untyped->count()}")];
+
+        return [
+            'caps' => ['seats' => ['used' => $seats, 'max' => $rules['max_seats_total']], 'hours' => ['used' => $hours, 'max' => $rules['max_hours_total']]],
+            'by_type' => collect(ProgramTypes::ALL)->mapWithKeys(fn ($t) => [$t => $active->where('program_type', $t)->count()])->all() + ['missing' => $untyped->count()],
+            'by_category' => $active->groupBy(fn ($i) => $i->category_id ?? '')->map(fn ($g, $id) => ['id' => $id ?: null, 'name_ar' => $categories[$id]->name_ar ?? null, 'name_en' => $categories[$id]->name_en ?? null, 'count' => $g->count(), 'mandatory' => in_array($id, $rules['mandatory_categories'], true)])->values()->all(),
+            'mandatory' => $mandatory->all(),
+            'allowed_types' => $rules['program_types'],
+            'violations' => $violations,
+            'warnings' => $warnings,
+            'excluded_needs' => $this->excludedNeeds($plan, $rules),
+            'deferred' => $items->where('status', 'deferred')->count(),
+            'exception' => $plan->rule_exception,
+        ];
+    }
+
+    /** @return Collection<string, Collection<int, TrainingNeed>> needs not yet planned, by topic */
+    private function needBuckets(array $taken): Collection
+    {
+        return TrainingNeed::with('program.category')->whereIn('status', self::NEED_STATUSES)->whereNotIn('id', $taken)->get()
+            ->groupBy(fn ($n) => $n->skill_id ?: mb_strtolower(trim($n->skill_name)));
+    }
+
+    private function bucketProgram(Collection $bucket): ?Program
+    {
+        return $bucket->pluck('program')->filter()->first();
+    }
+
+    private function bucketType(Collection $bucket): ?string
+    {
+        return $this->bucketProgram($bucket)?->effectiveType();
+    }
+
+    /** No list means every type; an item without a type is allowed but reported as "type missing". */
+    private function typeAllowed(?string $type, array $rules): bool
+    {
+        return ! $rules['program_types'] || $type === null || in_array($type, $rules['program_types'], true);
+    }
+
+    private function excludedRow(Collection $bucket): array
+    {
+        return ['need_ids' => $bucket->pluck('id')->all(), 'title' => trim($bucket->first()->skill_name), 'program_type' => $this->bucketType($bucket), 'seats' => (int) $bucket->sum('employees_count'), 'reason' => 'type_not_allowed'];
+    }
+
+    private function excludedNeeds(TrainingPlan $plan, array $rules): array
+    {
+        if (! $rules['program_types'] || $plan->status !== TrainingPlan::DRAFT) {
+            return [];
+        }
+        $taken = $plan->items()->pluck('source_refs')->flatten()->filter()->values()->all();
+
+        return $this->needBuckets($taken)->reject(fn ($b) => $this->typeAllowed($this->bucketType($b), $rules))->map(fn ($b) => $this->excludedRow($b))->values()->all();
+    }
+
+    /** Every mandatory category gets at least one item; without a need, a placeholder for the planner to complete. */
+    private function addMandatoryPlaceholders(TrainingPlan $plan, array $rules): int
+    {
+        $covered = $plan->items()->whereNotIn('status', self::OUT_OF_TOTALS)->pluck('category_id')->filter()->flip();
+        $n = 0;
+        foreach (ProgramCategory::whereIn('id', $rules['mandatory_categories'])->get() as $category) {
+            if (isset($covered[$category->id])) {
+                continue;
+            }
+            $plan->items()->create([
+                'title_ar' => $category->name_ar, 'title_en' => $category->name_en, 'category_id' => $category->id, 'program_type' => $category->program_type,
+                'priority' => 'high', 'priority_score' => 0, 'planned_groups' => 1, 'planned_seats' => 0, 'planned_hours' => 0, 'source' => 'mandatory', 'source_refs' => [],
+                'rationale_ar' => 'فئة إلزامية في خطة هذا العام: أكمل تفاصيل البرنامج والمقاعد والساعات.', 'rationale_en' => 'A mandatory category this year: complete the programme, seats and hours.',
+            ]);
+            $n++;
+        }
+
+        return $n;
+    }
+
+    /**
+     * Seat and hour caps: generated items are kept in priority order while they fit, the rest are deferred with the reason
+     * (an item larger than what is left never pushes out smaller ones behind it). Manual, mandatory and emergency items are
+     * the planner's decisions and always count first. Items deferred by an earlier run come back when the caps allow.
+     */
+    private function applyCaps(TrainingPlan $plan, array $rules): int
+    {
+        $maxSeats = $rules['max_seats_total'];
+        $maxHours = $rules['max_hours_total'];
+        $items = $plan->items()->get();
+        $candidate = fn (TrainingPlanItem $i) => in_array($i->source, ['needs', 'carry_over'], true) && ($i->status === 'planned' || ($i->status === 'deferred' && $i->deferred_reason !== null));
+        $fixed = $items->reject($candidate)->whereNotIn('status', self::OUT_OF_TOTALS);
+        $seats = (int) $fixed->sum('planned_seats');
+        $hours = (float) $fixed->sum('planned_hours');
+        $n = 0;
+        foreach ($items->filter($candidate)->sortByDesc('priority_score') as $item) {
+            $overSeats = $maxSeats !== null && $seats + (int) $item->planned_seats > $maxSeats;
+            $overHours = $maxHours !== null && $hours + (float) $item->planned_hours > $maxHours;
+            if ($overSeats || $overHours) {
+                $item->update(['status' => 'deferred', 'deferred_reason' => $overSeats ? 'seats_over_cap' : 'hours_over_cap']);
+                $n++;
+
+                continue;
+            }
+            if ($item->status === 'deferred') {
+                $item->update(['status' => 'planned', 'deferred_reason' => null]);
+            }
+            $seats += (int) $item->planned_seats;
+            $hours += (float) $item->planned_hours;
+        }
+
+        return $n;
+    }
+
+    private function violation(string $code, array $itemIds, string $ar, string $en): array
+    {
+        return ['code' => $code, 'item_ids' => $itemIds, 'message' => ['ar' => $ar, 'en' => $en]];
+    }
+
+    private function rulesList(array $violations): string
+    {
+        return collect($violations)->map(fn ($v) => $v['message'][app()->getLocale() === 'en' ? 'en' : 'ar'])->implode(app()->getLocale() === 'en' ? '; ' : '؛ ');
+    }
+
+    private function recordException(TrainingPlan $plan, string $reason, array $violations, User $by, string $stage): void
+    {
+        $plan->update(['rule_exception' => ['reason' => $reason, 'violations' => $violations, 'stage' => $stage, 'by' => $by->id, 'by_name' => $by->displayName(), 'at' => now()->toIso8601String()]]);
+        AuditLog::create(['user_id' => $by->id, 'action' => 'plan_rule_exception', 'auditable_type' => TrainingPlan::class, 'auditable_id' => $plan->id,
+            'new_values' => ['reason' => $reason, 'violations' => $violations, 'stage' => $stage], 'ip_address' => request()?->ip()]);
     }
 
     public function addItem(TrainingPlan $plan, array $data, User $by): TrainingPlanItem
@@ -122,7 +313,7 @@ class AnnualPlanService
         if ($plan->isBaselined() && ! filled($data['reason'] ?? null)) {
             throw new BusinessRuleException(__('messages.plans.reason_required'), 'reason_required');
         }
-        $item = $plan->items()->create(array_diff_key($data, ['reason' => 1]) + ['source' => $emergency ? 'emergency' : 'manual']);
+        $item = $plan->items()->create($this->withType(array_diff_key($data, ['reason' => 1])) + ['source' => $emergency ? 'emergency' : 'manual']);
         if ($plan->isBaselined()) {
             $this->log($plan, $item->id, 'added', null, $item->toArray(), $data['reason'], $by);
         }
@@ -138,6 +329,7 @@ class AnnualPlanService
         if ($plan->isBaselined() && ! filled($reason)) {
             throw new BusinessRuleException(__('messages.plans.reason_required'), 'reason_required');
         }
+        $data = $this->withType($data);
         $before = $item->only(array_keys($data));
         $item->update($data);
         if ($plan->isBaselined()) {
@@ -160,11 +352,19 @@ class AnnualPlanService
         $item->delete();
     }
 
-    public function submit(TrainingPlan $plan, User $by): TrainingPlan
+    public function submit(TrainingPlan $plan, User $by, ?string $exceptionReason = null): TrainingPlan
     {
         $this->expect($plan, [TrainingPlan::DRAFT]);
         if (! $plan->items()->exists()) {
             throw new BusinessRuleException(__('messages.plans.empty'), 'plan_empty');
+        }
+        $violations = $this->compliance($plan)['violations'];
+        if ($violations) {
+            // Only the head of planning (approval right) may go ahead, and only with the reason written down.
+            if (! filled($exceptionReason) || ! $by->hasPermission('plans.approve')) {
+                throw new BusinessRuleException(__('messages.plans.rules_broken', ['list' => $this->rulesList($violations)]), 'plan_rules_broken', ['violations' => $violations]);
+            }
+            $this->recordException($plan, trim($exceptionReason), $violations, $by, 'submit');
         }
         $plan->update(['status' => TrainingPlan::IN_REVIEW, 'submitted_by' => $by->id, 'submitted_at' => now()]);
         $this->tell($this->usersWith('plans.approve', 'plans.manage'), 'plan.submitted', $plan, ['ar' => 'خطة تدريبية بانتظار المراجعة', 'en' => 'A training plan awaits review'], $by->id);
@@ -181,9 +381,16 @@ class AnnualPlanService
         return $plan;
     }
 
-    public function approve(TrainingPlan $plan, User $by, ?string $signedPath = null): TrainingPlan
+    public function approve(TrainingPlan $plan, User $by, ?string $signedPath = null, ?string $exceptionReason = null): TrainingPlan
     {
         $this->expect($plan, [TrainingPlan::IN_REVIEW]);
+        $violations = $this->compliance($plan)['violations'];
+        if ($violations) {
+            if (! filled($exceptionReason)) {
+                throw new BusinessRuleException(__('messages.plans.exception_required', ['list' => $this->rulesList($violations)]), 'exception_reason_required', ['violations' => $violations]);
+            }
+            $this->recordException($plan, trim($exceptionReason), $violations, $by, 'approve');
+        }
         $items = $plan->items()->get();
         $plan->update([
             'status' => TrainingPlan::APPROVED, 'approved_by' => $by->id, 'approved_at' => now(), 'signed_pdf_path' => $signedPath ?? $plan->signed_pdf_path,
@@ -214,7 +421,7 @@ class AnnualPlanService
     public function execution(TrainingPlan $plan): array
     {
         $rules = $this->rules($plan);
-        $items = $plan->items()->with(['groups' => fn ($q) => $q->withCount(['registrations as taken' => fn ($r) => $r->whereIn('status', Registration::SEAT_HOLDING)])])->get();
+        $items = $plan->items()->where('status', '!=', 'deferred')->with(['groups' => fn ($q) => $q->withCount(['registrations as taken' => fn ($r) => $r->whereIn('status', Registration::SEAT_HOLDING)])])->get();
         $today = today();
         $deviations = [];
         $rows = [];
@@ -285,6 +492,21 @@ class AnnualPlanService
         }
 
         return $sent;
+    }
+
+    /** A planned item takes its programme's (or category's) type unless one is given. */
+    private function withType(array $data): array
+    {
+        if (array_key_exists('program_type', $data)) {
+            return $data;
+        }
+        if (! empty($data['program_id'])) {
+            $data['program_type'] = Program::with('category')->find($data['program_id'])?->effectiveType();
+        } elseif (! empty($data['category_id'])) {
+            $data['program_type'] = ProgramCategory::whereKey($data['category_id'])->value('program_type');
+        }
+
+        return $data;
     }
 
     private function deviation(string $type, TrainingPlanItem $item, ?TrainingGroup $group, array $message): array

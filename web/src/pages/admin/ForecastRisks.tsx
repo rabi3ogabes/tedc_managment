@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, FileSpreadsheet, FileText, FileType2, RefreshCw } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, PageHeader, Progress, Spinner, Table, Tabs, Td } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
-import { api, errorMessage } from '@/lib/api'
+import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
@@ -47,6 +47,7 @@ function Forecasts() {
       <div className="flex flex-wrap items-center gap-3">
         <select className="input w-auto" value={dimension} onChange={(e) => setDimension(e.target.value)}>{['competency', 'job', 'school'].map((d) => <option key={d} value={d}>{t(`aix.fc.dimension.${d}`)}</option>)}</select>
         {res.data && <Badge color="navy">{t('aix.fc.year')} {res.data.year}</Badge>}
+        <ExportButtons path="/admin/forecasts/export" query={{ dimension, year: res.data?.year }} name={`forecasts-${res.data?.year ?? ''}`} />
         {can('plans.manage') && draftPlans.length > 0 && <select className="input w-auto" value={plan} onChange={(e) => setPlan(e.target.value)}><option value="">{t('aix.fc.pickPlan')}</option>{draftPlans.map((p) => <option key={p.id} value={p.id}>{p.title_en || p.title_ar}</option>)}</select>}
       </div>
       {res.isLoading ? <Spinner /> : rows.length === 0 ? <Empty text={String(t('aix.fc.none'))} /> : (
@@ -79,6 +80,7 @@ function Risks() {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => setType('')} className={`rounded-full border px-3 py-1 text-xs font-semibold ${type === '' ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-slate-600'}`}>{t('soc.hub.all')}</button>
+        <ExportButtons path="/admin/risks/export" query={{ type: type || undefined }} name="risks" />
         {['hours_shortfall', 'licence_gap', 'group_underfill', 'low_satisfaction'].map((x) => <button key={x} type="button" onClick={() => setType(x)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${type === x ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-slate-600'}`}>{t(`aix.fc.risk.${x}`)} {res.data?.counts?.[x] ? `(${res.data.counts[x]})` : ''}</button>)}
       </div>
       {res.isLoading ? <Spinner /> : (res.data?.data.length ?? 0) === 0 ? <Empty text={String(t('aix.fc.noRisks'))} icon={<AlertTriangle className="size-8" />} /> : (
@@ -92,6 +94,28 @@ function Risks() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/** Excel, PDF and Word copies of what the page shows, in the language of the page (RPT-11). */
+function ExportButtons({ path, query, name }: { path: string; query: Record<string, string | number | undefined>; name: string }) {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState<string | null>(null)
+  const get = async (format: 'xlsx' | 'pdf' | 'docx') => {
+    setBusy(format)
+    // The API client adds the page language (`lang`) to every request, so the file comes in the language on screen.
+    const qs = new URLSearchParams(Object.entries(query).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => [k, String(v)]))
+    try { await downloadFile(`${path}/${format}?${qs}`, `${name}.${format}`); toast(String(t('aix.fc.exported'))) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
+  }
+  const icons = { xlsx: FileSpreadsheet, pdf: FileText, docx: FileType2 }
+  return (
+    <div className="ms-auto flex flex-wrap items-center gap-1.5" role="group" aria-label={String(t('aix.fc.exportAs'))}>
+      <span className="text-xs font-semibold text-slate-500">{busy ? t('aix.fc.exporting') : t('aix.fc.exportAs')}</span>
+      {(['xlsx', 'pdf', 'docx'] as const).map((f) => {
+        const Icon = icons[f]
+        return <Button key={f} size="sm" variant="outline" loading={busy === f} disabled={!!busy} icon={<Icon className="size-4" />} onClick={() => void get(f)}>{f === 'xlsx' ? 'Excel' : f === 'pdf' ? 'PDF' : 'Word'}</Button>
+      })}
     </div>
   )
 }

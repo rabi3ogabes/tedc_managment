@@ -82,7 +82,7 @@ class ReportRunner
         }
 
         return [
-            'columns' => array_map(fn ($c) => ['key' => $c['key'], 'label' => $c['label'], 'type' => $c['type'], 'format' => $c['format']], $columns),
+            'columns' => array_map(fn ($c) => ['key' => $c['key'], 'label' => $c['label'], 'type' => $c['type'], 'format' => $c['format'], 'labels' => $c['labels']], $columns),
             'rows' => $rows, 'total' => $total, 'totals' => $totals, 'chart' => $this->chart($def['chart'] ?? null, $columns, $rows),
             'personal' => collect($columns)->contains(fn ($c) => ! empty($dataset['fields'][$c['field']]['personal'])),
         ];
@@ -179,7 +179,8 @@ class ReportRunner
             if (is_string($label) && $label !== '') {
                 $label = ['ar' => $label, 'en' => $label];
             }
-            $out[] = ['key' => $key, 'field' => $field, 'aggregate' => $agg, 'label' => is_array($label) ? $label : $fd['label'], 'type' => $agg && in_array($agg, ['count', 'count_distinct', 'sum', 'avg'], true) ? 'number' : $fd['type'], 'format' => $c['format'] ?? null];
+            $out[] = ['key' => $key, 'field' => $field, 'aggregate' => $agg, 'label' => is_array($label) ? $label : $fd['label'], 'type' => $agg && in_array($agg, ['count', 'count_distinct', 'sum', 'avg'], true) ? 'number' : $fd['type'], 'format' => $c['format'] ?? null,
+                'labels' => $agg === null ? ($fd['labels'] ?? null) : null];
         }
 
         return $out;

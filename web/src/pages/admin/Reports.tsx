@@ -15,6 +15,9 @@ import { dialogs } from '@/lib/dialogs'
 
 const cls = 'rounded-xl border border-navy-100 px-3 py-2 text-sm'
 const looksLikeDate = (f: string, op: string) => ['gte', 'lte'].includes(op) && /(date|_at|starts|ends)/.test(f)
+/** The last filters used for a report, kept on this device (a convenience; reports never depend on it). */
+const remembered = (key: string): Record<string, string> => { try { return JSON.parse(localStorage.getItem(`tedc.reportFilters.${key}`) ?? '{}') } catch { return {} } }
+const remember = (key: string | undefined, value: Record<string, string>) => { if (!key) return; try { localStorage.setItem(`tedc.reportFilters.${key}`, JSON.stringify(value)) } catch { /* storage unavailable */ } }
 
 /** The reports hub: reports for your role by category, a viewer with adjustable filters, exports in three formats, schedules and a link to the builder. */
 export default function Reports() {
@@ -41,7 +44,8 @@ export default function Reports() {
   const cats = ['all', 'favorites', ...Array.from(new Set(rows.map((r) => r.category)))]
   const shown = rows.filter((r) => (cat === 'all' ? true : cat === 'favorites' ? r.favorite : r.category === cat))
 
-  const open = (def: any) => { setSelected(def); setFilters({}); setRange({ from: '', to: '' }); setPage(1); setResult(null); setError(null) }
+  const open = (def: any) => { setSelected(def); setFilters(remembered(def.key ?? def.id)); setRange({ from: '', to: '' }); setPage(1); setResult(null); setError(null) }
+  const setFilter = (key: string, value: string) => { const next = { ...filters, [key]: value }; setFilters(next); remember(selected?.key ?? selected?.id, next) }
   useEffect(() => {
     const key = params.get('report')
     if (key && rows.length && selected?.key !== key) { const d = rows.find((r) => r.key === key); if (d) open(d) }
@@ -82,7 +86,7 @@ export default function Reports() {
           {can('reports.builder') && <Button variant="gold" icon={<Plus className="size-4" />} to="/admin/reports/new">{t('rep.newReport')}</Button>}
         </div>
       )} />
-      <div className="grid gap-5 xl:grid-cols-[22rem_1fr]">
+      <div className="grid gap-5 xl:grid-cols-[22rem_minmax(0,1fr)]">
         <div className="space-y-3 print:hidden">
           <div className="relative"><Search className="pointer-events-none absolute start-3 top-2.5 size-4 text-slate-400" /><input className={`${cls} w-full ps-9`} placeholder={String(t('rep.search'))} value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className="flex flex-wrap gap-1.5">{cats.map((c) => <button key={c} type="button" onClick={() => setCat(c)} className={`rounded-full px-3 py-1 text-xs font-semibold transition ${cat === c ? 'bg-navy-900 text-gold-300' : 'bg-navy-50 text-navy-700 hover:bg-navy-100'}`}>{t(`rep.cat.${c}`, { defaultValue: c })}</button>)}</div>
@@ -121,11 +125,23 @@ export default function Reports() {
               <div className="mt-4 flex flex-wrap items-end gap-3 print:hidden">
                 <label className="text-xs font-semibold text-slate-500">{t('rep.from')}<input type="date" className={`${cls} mt-1 block`} value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} /></label>
                 <label className="text-xs font-semibold text-slate-500">{t('rep.to')}<input type="date" className={`${cls} mt-1 block`} value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} /></label>
-                {(selected.adjustable ?? []).filter((a: any) => !['gte', 'lte'].includes(a.operator) || !/(date|_at|starts|ends)/.test(a.field)).map((a: any) => (
-                  <label key={`${a.field}|${a.operator}`} className="text-xs font-semibold text-slate-500">{a.field}
-                    <input className={`${cls} mt-1 block`} type={looksLikeDate(a.field, a.operator) ? 'date' : 'text'} value={filters[`${a.field}|${a.operator}`] ?? ''} onChange={(e) => setFilters({ ...filters, [`${a.field}|${a.operator}`]: e.target.value })} />
-                  </label>
-                ))}
+                {(selected.adjustable ?? []).filter((a: any) => !['gte', 'lte'].includes(a.operator) || !/(date|_at|starts|ends)/.test(a.field)).map((a: any) => {
+                  const key = `${a.field}|${a.operator}`
+                  const label = a.label ? (lang === 'en' ? a.label.en : a.label.ar) : a.field
+                  return (
+                    <label key={key} className="text-xs font-semibold text-slate-500">{label}
+                      {a.type === 'enum' && Array.isArray(a.values) ? (
+                        <select className={`${cls} mt-1 block`} value={filters[key] ?? ''} onChange={(e) => setFilter(key, e.target.value)}>
+                          <option value="">{t('rep.anyValue')}</option>
+                          {a.values.map((v: string) => <option key={v} value={v}>{a.labels?.[v] ? (lang === 'en' ? a.labels[v].en : a.labels[v].ar) : t(`rep.values.${a.field}.${v}`, { defaultValue: v })}</option>)}
+                        </select>
+                      ) : (
+                        <input className={`${cls} mt-1 block`} type={looksLikeDate(a.field, a.operator) ? 'date' : a.type === 'number' ? 'number' : 'text'} inputMode={a.type === 'number' ? 'numeric' : undefined} value={filters[key] ?? ''} onChange={(e) => setFilter(key, e.target.value)} />
+                      )}
+                    </label>
+                  )
+                })}
+                {Object.values(filters).some(Boolean) && <Button variant="ghost" size="sm" onClick={() => { setFilters({}); remember(selected?.key ?? selected?.id, {}) }}>{t('rep.clearFilters')}</Button>}
                 <Button variant="gold" size="sm" loading={loading} onClick={() => load(1)}>{t('rep.apply')}</Button>
               </div>
               {error && <p className="mt-3 text-sm text-danger">{error}</p>}

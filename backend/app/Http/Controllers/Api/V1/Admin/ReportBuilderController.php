@@ -191,9 +191,22 @@ class ReportBuilderController extends Controller
     private function present(ReportDefinition $d, bool $full = false): array
     {
         $base = ['id' => $d->id, 'key' => $d->key, 'category' => $d->category, 'title' => ['ar' => $d->title_ar, 'en' => $d->title_en], 'dataset' => $d->dataset, 'is_system' => $d->is_system, 'visibility' => $d->visibility, 'owner_id' => $d->owner_id,
-            'kind' => $d->options['kind'] ?? (isset($d->options['parts']) ? 'composite' : 'table'), 'adjustable' => collect($d->filters ?? [])->where('adjustable', true)->values()->all()];
+            'kind' => $d->options['kind'] ?? (isset($d->options['parts']) ? 'composite' : 'table'), 'adjustable' => $this->adjustable($d)];
 
         return $full ? $base + ['columns' => $d->columns, 'filters' => $d->filters, 'group_by' => $d->group_by, 'sort' => $d->sort, 'chart' => $d->chart, 'options' => $d->options, 'roles' => $d->roles, 'description' => ['ar' => $d->description_ar, 'en' => $d->description_en]] : $base;
+    }
+
+    /** The filters a person may change at run time, with the field's label, type and allowed values so the screen can offer the right control. */
+    private function adjustable(ReportDefinition $d): array
+    {
+        $fields = $this->datasets->get((string) $d->dataset)['fields'] ?? [];
+
+        return collect($d->filters ?? [])->where('adjustable', true)->values()->map(fn (array $f) => $f + [
+            'label' => $fields[$f['field']]['label'] ?? ['ar' => $f['field'], 'en' => $f['field']],
+            'type' => $fields[$f['field']]['type'] ?? 'string',
+            'values' => $fields[$f['field']]['values'] ?? null,
+            'labels' => $fields[$f['field']]['labels'] ?? null,
+        ])->all();
     }
 
     private function presentRun(ReportRun $r): array

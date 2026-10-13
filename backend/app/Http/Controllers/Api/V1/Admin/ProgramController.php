@@ -9,6 +9,7 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -110,6 +111,7 @@ class ProgramController extends Controller
         return $request->validate([
             'code' => [$required, 'string', 'max:32', Rule::unique('programs', 'code')->ignore($program?->id)],
             'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],
+            'program_type' => ['nullable', Rule::in(ProgramTypes::ALL)],
             'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'],
             'title_ar' => [$required, 'string', 'max:255'],
             'title_en' => [$required, 'string', 'max:255'],

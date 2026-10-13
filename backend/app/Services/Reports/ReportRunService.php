@@ -203,6 +203,10 @@ class ReportRunService
         if ($col['type'] === 'date') {
             return substr((string) $v, 0, strlen((string) $v) > 10 ? 16 : 10);
         }
+        // Coded values (entity type, licence status, programme type …) read as words in the file's language.
+        if (isset($col['labels'][$v])) {
+            return $col['labels'][$v][$ar ? 'ar' : 'en'] ?? $v;
+        }
 
         return $v;
     }

@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\V1\Admin\WebhooksController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\Ai\AiAdminController;
 use App\Http\Controllers\Api\V1\Ai\AiLearnerController;
+use App\Http\Controllers\Api\V1\Ai\ForecastExportController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\AuthSecurityController;
 use App\Http\Controllers\Api\V1\ClientErrorController;
@@ -985,6 +986,7 @@ Route::prefix('v1')->group(function () {
             });
             Route::middleware('permission:programs.manage')->group(function () {
                 Route::post('categories', [CatalogController::class, 'storeCategory']);
+                Route::put('categories/{programCategory}', [CatalogController::class, 'updateCategory']);
                 Route::post('skills', [CatalogController::class, 'storeSkill']);
                 Route::post('job-titles', [CatalogController::class, 'storeJobTitle']);
             });
@@ -1257,6 +1259,8 @@ Route::prefix('v1')->group(function () {
                 Route::middleware('permission:ai.forecasts.view')->group(function () {
                     Route::get('forecasts', [AiAdminController::class, 'forecasts']);
                     Route::get('risks', [AiAdminController::class, 'risks']);
+                    Route::get('forecasts/export/{format}', [ForecastExportController::class, 'forecasts'])->whereIn('format', ['xlsx', 'pdf', 'docx'])->middleware('throttle:20,1');
+                    Route::get('risks/export/{format}', [ForecastExportController::class, 'risks'])->whereIn('format', ['xlsx', 'pdf', 'docx'])->middleware('throttle:20,1');
                     Route::post('risks/{riskFlag}/resolve', [AiAdminController::class, 'resolveRisk']);
                     Route::post('forecasts/run', [AiAdminController::class, 'runForecasts'])->middleware('throttle:6,1');
                     Route::post('forecasts/to-plan', [AiAdminController::class, 'toPlan'])->middleware('permission:plans.manage');
@@ -1753,6 +1757,7 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('approvals/{stage}', [AdmissionController::class, 'queue'])->middleware('permission:registrations.approve_manager|registrations.manage');
             Route::post('registrations/{registration}/manager-decision', [AdmissionController::class, 'managerDecision']);
+            Route::get('program-types', [CatalogController::class, 'programTypes'])->middleware('permission:plans.view|programs.view|programs.manage');
             // Annual training plan.
             Route::middleware('permission:plans.view')->group(function () {
                 Route::get('plans', [AnnualPlanController::class, 'index']);
@@ -1760,6 +1765,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('plans/{plan}/execution', [AnnualPlanController::class, 'execution']);
                 Route::get('plans/{plan}/changes', [AnnualPlanController::class, 'changes']);
                 Route::get('plans/{plan}/export', [AnnualPlanController::class, 'export']);
+                Route::get('plans/{plan}/compliance', [AnnualPlanController::class, 'compliance']);
             });
             Route::middleware('permission:plans.manage')->group(function () {
                 Route::post('plans', [AnnualPlanController::class, 'store']);

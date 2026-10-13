@@ -4,6 +4,7 @@ Verified in the code on **11 October 2026** (method: `docs/rfp/rfp-comparison-20
 This list is the checklist for the close-out prompt pack in this folder. Each item names the phase that closes it.
 
 **Progress:** Phase 19 done on 11 October 2026 — NTF-09, PLC-03 ★, COL-02, COL-03 and COL-04 are now Available (register: 233 available, 45 partial, 0 missing; mandatory item 25 available).
+**Progress:** Phase 20 done on 13 October 2026 — NDS-08, RPT-03 and RPT-11 are now Available (register: 236 available, 42 partial, 0 missing).
 
 **Who unblocks:** *We build it* = software only · *Your decision* = needs your yes/no · *Ministry input* = credentials, specifications or files from the Ministry · *Azure / real run* = needs the Azure subscription or a real test run · *Centre workshops & sign-off* = needs the training centre.
 
@@ -12,7 +13,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 | Phase | File | Items | ★ Mandatory |
 |---:|---|---|---:|
 | 19 ✅ | [19_COLLABORATION_COMPLETION.md](19_COLLABORATION_COMPLETION.md) | NTF-09, PLC-03 ★, COL-02, COL-03, COL-04 — done 11 Oct | 1 |
-| 20 | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 | 0 |
+| 20 ✅ | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 — done 13 Oct | 0 |
 | 21 | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★, TEC-08 ★ | 3 |
 | 22 | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ | 1 |
 | 23 | [23_IDENTITY_AND_MICROSOFT_365.md](23_IDENTITY_AND_MICROSOFT_365.md) | NFR-07 ★, NFR-08 ★, TEC-12 ★ | 3 |
@@ -65,6 +66,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### NDS · Needs Assessment & Annual Plan — حصر الاحتياجات وبناء الخطة التدريبية السنوية
 
 #### NDS-08 — Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)
+- **Status:** ✅ Available since Phase 20 (13 Oct 2026) — see `docs/rfp/phase-20-planning-reports-forecasts.md`.
 - **Built today:** Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced.
 - **Missing:** Programmes have no programme type (the RFP's five types); plan rules for types, mandatory categories and total seat/hour caps are stored but never enforced.
 - **Who unblocks:** We build it
@@ -128,6 +130,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### RPT · Reports & Analytics — التقارير والإحصائيات
 
 #### RPT-03 — System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)
+- **Status:** ✅ Available since Phase 20 (13 Oct 2026) — see `docs/rfp/phase-20-planning-reports-forecasts.md`.
 - **Built today:** Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).
 - **Missing:** Employee report lacks entity type, workplace, licence, job title, experience and annual-appraisal filters; courses report lacks the real career path; no quarterly statistics.
 - **Who unblocks:** We build it
@@ -135,6 +138,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Available
 
 #### RPT-11 — Predictive analytics and reports
+- **Status:** ✅ Available since Phase 20 (13 Oct 2026) — see `docs/rfp/phase-20-planning-reports-forecasts.md`.
 - **Built today:** Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.
 - **Missing:** Forecast and risk pages cannot be exported to Excel/PDF/Word.
 - **Who unblocks:** We build it

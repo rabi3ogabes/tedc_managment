@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { CheckCheck, FileSpreadsheet, FileText, Plus, Sparkles, Undo2 } from 'lucide-react'
+import type { AxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Progress, Spinner, StatCard, Tabs } from '@/components/ui'
@@ -8,10 +9,19 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { CategoryTypes, ComplianceCard, RulesBrokenDialog, TypeBadge, TypeChips } from './plans/PlanRules'
+import { useProgramTypes, type Compliance } from './plans/programTypes'
 
-type Rules = { weights: { severity: number; headcount: number; breadth: number }; max_seats_per_group: number; default_hours_per_group: number; min_fill_percent: number; carry_over: boolean }
-type Item = { id: string; title_ar: string; title_en: string; priority: string; priority_score: number; planned_groups: number; planned_seats: number; planned_hours: number; window_start: string | null; window_end: string | null; source: string; status: string; rationale_ar: string | null; rationale_en: string | null }
-type Plan = { id: string; year: number; version: number; title_ar: string; title_en: string; status: string; items_count: number; rules: Rules; items?: Item[] }
+type Rules = { weights: { severity: number; headcount: number; breadth: number }; max_seats_per_group: number; default_hours_per_group: number; min_fill_percent: number; carry_over: boolean; program_types: string[]; mandatory_categories: string[]; max_seats_total: number | null; max_hours_total: number | null }
+type Item = { id: string; title_ar: string; title_en: string; priority: string; priority_score: number; planned_groups: number; planned_seats: number; planned_hours: number; window_start: string | null; window_end: string | null; source: string; status: string; rationale_ar: string | null; rationale_en: string | null; program_type: string | null; category_id: string | null; deferred_reason: string | null }
+type Plan = { id: string; year: number; version: number; title_ar: string; title_en: string; status: string; items_count: number; rules: Rules; items?: Item[]; rule_exception: Compliance['exception'] }
+type Violation = Compliance['violations'][number]
+
+/** The violations when the API refused a step because the year's rules are broken, otherwise null. */
+const brokenRules = (e: unknown): Violation[] | null => {
+  const d = (e as AxiosError<{ code?: string; details?: { violations?: Violation[] } }>)?.response?.data
+  return d && (d.code === 'plan_rules_broken' || d.code === 'exception_reason_required') ? d.details?.violations ?? [] : null
+}
 type Exec = { totals: { execution_percent: number; changed_percent: number; emergency_percent: number; planned_groups: number; executed_groups: number; created_groups: number; deviations: number }; items: { id: string; title_ar: string; title_en: string; planned_groups: number; created_groups: number; executed_groups: number; percent: number }[]; deviations: { type: string; item_id: string | null; title_ar: string; title_en: string; message: { ar: string; en: string } }[] }
 type Change = { id: string; change_type: string; reason: string | null; changed_by: string | null; created_at: string; item_id: string | null }
 type Tab = 'items' | 'rules' | 'execution' | 'changes'
@@ -63,12 +73,28 @@ function PlanView({ id, ar, onChanged }: { id: string; ar: boolean; onChanged: (
   const plan = useGet<{ data: Plan }>(`/admin/plans/${id}`, undefined, { staleTime: 0 })
   const exec = useGet<{ data: Exec }>(`/admin/plans/${id}/execution`, undefined, { staleTime: 0 })
   const changes = useGet<{ data: Change[] }>(`/admin/plans/${id}/changes`, undefined, { staleTime: 0 })
+  const compliance = useGet<{ data: Compliance }>(`/admin/plans/${id}/compliance`, undefined, { staleTime: 0 })
+  const types = useProgramTypes()
   const [tab, setTab] = useState<Tab>('items')
+  const [blocked, setBlocked] = useState<{ step: 'submit' | 'approve'; violations: Violation[] } | null>(null)
+  const [stepBusy, setStepBusy] = useState(false)
   const [comment, setComment] = useState<{ open: boolean; text: string }>({ open: false, text: '' })
   const [reasonFor, setReasonFor] = useState<{ item: Item; patch: Partial<Item> } | null>(null)
   const [reason, setReason] = useState('')
 
-  const refresh = async () => { await Promise.all([plan.refetch(), exec.refetch(), changes.refetch()]); onChanged() }
+  const refresh = async () => { await Promise.all([plan.refetch(), exec.refetch(), changes.refetch(), compliance.refetch()]); onChanged() }
+  /** Submit or approve; a broken rule opens the list of violations (and, for the head of planning, the exception). */
+  const step = async (which: 'submit' | 'approve', exceptionReason?: string) => {
+    setStepBusy(true)
+    try {
+      await api.post(`/admin/plans/${id}/${which}`, exceptionReason ? { exception_reason: exceptionReason } : {})
+      toast(t('plans.done')); setBlocked(null); await refresh()
+    } catch (e) {
+      const v = brokenRules(e)
+      if (v && !exceptionReason) setBlocked({ step: which, violations: v })
+      else toast(errorMessage(e), 'error')
+    } finally { setStepBusy(false) }
+  }
   const run = async (fn: () => Promise<unknown>, ok?: string) => { try { await fn(); if (ok) toast(ok); await refresh() } catch (e) { toast(errorMessage(e), 'error') } }
   if (plan.isLoading || !plan.data) return <Spinner />
   const p = plan.data.data
@@ -86,8 +112,8 @@ function PlanView({ id, ar, onChanged }: { id: string; ar: boolean; onChanged: (
       <Card className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1"><h2 className="truncate text-lg font-bold text-navy-900">{ar ? p.title_ar : p.title_en}</h2><div className="mt-1 flex items-center gap-2 text-sm text-slate-500"><Badge color={TONE[p.status] ?? 'navy'}>{t(`plans.status.${p.status}`)}</Badge><span>{p.year} · {t('plans.version')} {p.version}</span></div></div>
         <div className="flex flex-wrap gap-2">
-          {p.status === 'draft' && can('plans.manage') && <><Button variant="outline" icon={<Sparkles className="size-4" />} onClick={() => void run(async () => { const { data } = await api.post(`${base}/generate`); toast(t('plans.generated', { added: data.data.added, carried: data.data.carried_over })) })}>{t('plans.generate')}</Button><Button variant="gold" onClick={() => void run(() => api.post(`${base}/submit`), t('plans.done'))}>{t('plans.submit')}</Button></>}
-          {p.status === 'in_review' && can('plans.approve') && <><Button variant="outline" icon={<Undo2 className="size-4" />} onClick={() => setComment({ open: true, text: '' })}>{t('plans.return')}</Button><Button variant="gold" icon={<CheckCheck className="size-4" />} onClick={() => void run(() => api.post(`${base}/approve`), t('plans.done'))}>{t('plans.approve')}</Button></>}
+          {p.status === 'draft' && can('plans.manage') && <><Button variant="outline" icon={<Sparkles className="size-4" />} onClick={() => void run(async () => { const { data } = await api.post(`${base}/generate`); toast(t('plans.generatedFull', { added: data.data.added, carried: data.data.carried_over, deferred: data.data.deferred ?? 0, excluded: data.data.excluded?.length ?? 0, mandatory: data.data.mandatory_placeholders ?? 0 })) })}>{t('plans.generate')}</Button><Button variant="gold" loading={stepBusy} onClick={() => void step('submit')}>{t('plans.submit')}</Button></>}
+          {p.status === 'in_review' && can('plans.approve') && <><Button variant="outline" icon={<Undo2 className="size-4" />} onClick={() => setComment({ open: true, text: '' })}>{t('plans.return')}</Button><Button variant="gold" loading={stepBusy} icon={<CheckCheck className="size-4" />} onClick={() => void step('approve')}>{t('plans.approve')}</Button></>}
           {p.status === 'approved' && can('plans.approve') && <Button variant="gold" onClick={() => void run(() => api.post(`${base}/activate`), t('plans.done'))}>{t('plans.activate')}</Button>}
           {(p.status === 'active' || p.status === 'approved') && can('plans.approve') && <Button variant="outline" onClick={() => void run(() => api.post(`${base}/close`), t('plans.done'))}>{t('plans.close')}</Button>}
           <Button variant="outline" icon={<FileSpreadsheet className="size-4" />} onClick={() => downloadFile(`${base}/export?format=xlsx`, `plan-${p.year}.xlsx`)}>{t('plans.exportXlsx')}</Button>
@@ -104,15 +130,18 @@ function PlanView({ id, ar, onChanged }: { id: string; ar: boolean; onChanged: (
         </div>
       )}
 
+      {compliance.data && !baselined && <ComplianceCard c={compliance.data.data} types={types} onFix={(where) => setTab(where)} />}
+
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[{ id: 'items', label: t('plans.tabs.items') }, { id: 'rules', label: t('plans.tabs.rules') }, ...(baselined ? [{ id: 'execution' as const, label: t('plans.tabs.execution') }, { id: 'changes' as const, label: t('plans.tabs.changes') }] : [])]} />
 
       {tab === 'items' && (
         <Card padded={false}>
           {(p.items ?? []).length === 0 ? <Empty text={t('plans.empty')} /> : (
-            <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-ivory text-xs text-slate-500"><tr>{['', t('plans.priority.high'), t('plans.score'), t('plans.groups'), t('plans.seats'), t('plans.hours'), t('plans.window')].map((h, i) => <th key={i} className="px-4 py-3 text-start font-bold">{i === 1 ? '' : h}</th>)}</tr></thead>
+            <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-ivory text-xs text-slate-500"><tr>{['', t('plans.types.label'), '', t('plans.score'), t('plans.groups'), t('plans.seats'), t('plans.hours'), t('plans.window')].map((h, i) => <th key={i} className="px-4 py-3 text-start font-bold">{h}</th>)}</tr></thead>
               <tbody>{p.items!.map((i) => (
-                <tr key={i.id} className="border-t border-navy-50 align-top">
-                  <td className="px-4 py-3"><div className="font-bold text-navy-900">{ar ? i.title_ar : i.title_en}</div><div className="mt-0.5 max-w-md text-xs text-slate-500" title={t('plans.why')}>{ar ? i.rationale_ar : i.rationale_en}</div><Badge color="slate" className="mt-1">{t(`plans.source.${i.source}`)}</Badge></td>
+                <tr key={i.id} className={clsx('border-t border-navy-50 align-top', i.status === 'deferred' && 'bg-amber-50/40 text-slate-500')}>
+                  <td className="px-4 py-3"><div className="font-bold text-navy-900">{ar ? i.title_ar : i.title_en}</div><div className="mt-0.5 max-w-md text-xs text-slate-500" title={t('plans.why')}>{ar ? i.rationale_ar : i.rationale_en}</div><div className="mt-1 flex flex-wrap gap-1"><Badge color="slate">{t(`plans.source.${i.source}`, { defaultValue: i.source })}</Badge>{i.status === 'deferred' && <Badge color="amber">{t(`plans.deferred.${i.deferred_reason ?? 'seats_over_cap'}`)}</Badge>}</div></td>
+                  <td className="px-4 py-3"><TypeBadge type={i.program_type} types={types} /></td>
                   <td className="px-4 py-3"><Badge color={PRIORITY_TONE[i.priority] ?? 'navy'}>{t(`plans.priority.${i.priority}`)}</Badge></td>
                   <td className="px-4 py-3 tabular-nums font-bold">{fmt.number(i.priority_score, 1)}</td>
                   <td className="px-4 py-3"><input type="number" min={1} className="input w-20" defaultValue={i.planned_groups} disabled={p.status === 'in_review' || p.status === 'closed' || !can('plans.manage')} onBlur={(e) => { const v = Number(e.target.value); if (v && v !== i.planned_groups) patchItem(i, { planned_groups: v }) }} /></td>
@@ -139,6 +168,8 @@ function PlanView({ id, ar, onChanged }: { id: string; ar: boolean; onChanged: (
       <Modal open={comment.open} onClose={() => setComment({ open: false, text: '' })} title={t('plans.return')}>
         <div className="space-y-4"><Field label={t('plans.comment')}><textarea className="input min-h-24" value={comment.text} onChange={(e) => setComment({ ...comment, text: e.target.value })} /></Field><Button variant="gold" onClick={() => void run(async () => { await api.post(`${base}/return`, { comment: comment.text }); setComment({ open: false, text: '' }) }, t('plans.done'))}>{t('plans.return')}</Button></div>
       </Modal>
+      <RulesBrokenDialog key={blocked ? blocked.step : 'none'} open={!!blocked} violations={blocked?.violations ?? []} canOverride={can('plans.approve')} busy={stepBusy}
+        onClose={() => setBlocked(null)} onConfirm={(reason) => blocked && void step(blocked.step, reason)} />
       <Modal open={!!reasonFor} onClose={() => setReasonFor(null)} title={t('plans.reasonPrompt')}>
         <div className="space-y-4"><textarea className="input min-h-24" value={reason} onChange={(e) => setReason(e.target.value)} /><Button variant="gold" disabled={!reason.trim()} onClick={() => void confirmReason()}>{t('groups.save')}</Button></div>
       </Modal>
@@ -148,6 +179,7 @@ function PlanView({ id, ar, onChanged }: { id: string; ar: boolean; onChanged: (
 
 function RulesPanel({ plan, editable, onSaved }: { plan: Plan; editable: boolean; onSaved: () => Promise<void> }) {
   const { t } = useTranslation()
+  const { can } = useAuth()
   const [r, setR] = useState<Rules>(plan.rules)
   const [busy, setBusy] = useState(false)
   const save = async () => {
@@ -155,8 +187,31 @@ function RulesPanel({ plan, editable, onSaved }: { plan: Plan; editable: boolean
     try { await api.put(`/admin/plans/${plan.id}/rules`, { rules: r }); toast(t('plans.rules.saved')); await onSaved() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const num = (v: string) => Number(v) || 0
+  const cap = (v: string) => (v.trim() === '' ? null : Math.max(1, Number(v) || 1))
+  const types = useProgramTypes()
+  const categories = useGet<{ data: { id: string; slug: string; name: string }[] }>('/public/categories')
+  const mandatory = r.mandatory_categories ?? []
   return (
-    <Card className="space-y-5">
+    <Card className="space-y-6">
+      <section className="space-y-3">
+        <div><h3 className="font-bold text-navy-900">{t('plans.rules.types')}</h3><p className="text-sm text-slate-500">{t('plans.rules.typesHint')}</p></div>
+        <TypeChips value={r.program_types ?? []} onChange={(v) => setR({ ...r, program_types: v })} disabled={!editable} types={types} />
+      </section>
+      <CategoryTypes types={types} editable={can('programs.manage')} />
+      <section className="space-y-3">
+        <div><h3 className="font-bold text-navy-900">{t('plans.rules.mandatory')}</h3><p className="text-sm text-slate-500">{t('plans.rules.mandatoryHint')}</p></div>
+        <div className="flex flex-wrap gap-2">
+          {(categories.data?.data ?? []).map((c) => (
+            <label key={c.id} className={clsx('inline-flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-1.5 text-sm', mandatory.includes(c.id) ? 'border-gold-500 bg-gold-50 font-semibold text-navy-900' : 'border-navy-100')}>
+              <input type="checkbox" className="accent-gold-600" disabled={!editable} checked={mandatory.includes(c.id)} onChange={(e) => setR({ ...r, mandatory_categories: e.target.checked ? [...mandatory, c.id] : mandatory.filter((x) => x !== c.id) })} />{c.name}
+            </label>
+          ))}
+        </div>
+      </section>
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Field label={t('plans.rules.maxSeatsTotal')} hint={t('plans.rules.capHint')}><input type="number" min={1} className="input" disabled={!editable} value={r.max_seats_total ?? ''} onChange={(e) => setR({ ...r, max_seats_total: cap(e.target.value) })} /></Field>
+        <Field label={t('plans.rules.maxHoursTotal')} hint={t('plans.rules.capHint')}><input type="number" min={1} className="input" disabled={!editable} value={r.max_hours_total ?? ''} onChange={(e) => setR({ ...r, max_hours_total: cap(e.target.value) })} /></Field>
+      </section>
       <div><h3 className="font-bold text-navy-900">{t('plans.rules.weights')}</h3>
         <div className="mt-3 grid gap-4 sm:grid-cols-3">{(['severity', 'headcount', 'breadth'] as const).map((k) => <Field key={k} label={`${t(`plans.rules.${k}`)} (${r.weights[k]})`}><input type="range" min={0} max={100} disabled={!editable} value={r.weights[k]} onChange={(e) => setR({ ...r, weights: { ...r.weights, [k]: num(e.target.value) } })} className="w-full accent-gold-500" /></Field>)}</div></div>
       <div className="grid gap-4 sm:grid-cols-3">

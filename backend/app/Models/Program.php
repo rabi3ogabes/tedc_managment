@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
-    'code', 'category_id', 'title_en', 'title_ar', 'summary_en', 'summary_ar', 'description_en', 'description_ar',
+    'code', 'category_id', 'program_type', 'title_en', 'title_ar', 'summary_en', 'summary_ar', 'description_en', 'description_ar',
     'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'require_biometric', 'requires_tasks',
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
@@ -120,6 +120,12 @@ class Program extends Model
     public function ownerSchool(): BelongsTo
     {
         return $this->belongsTo(School::class, 'owner_school_id');
+    }
+
+    /** The programme's own type, or its category's (NDS-08); null when neither is set. */
+    public function effectiveType(): ?string
+    {
+        return $this->program_type ?? $this->category?->program_type;
     }
 
     public function category(): BelongsTo

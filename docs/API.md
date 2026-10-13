@@ -280,3 +280,13 @@ Attendance marking, task review and program notifications also accept a person w
 | GET | `/social/ratings/{type}/{id}` | people who may rate the subject, and moderators (programmes: anyone signed in): `average, count, distribution{1..5}, reviews[], mine{stars, review, status}, can_rate` |
 | POST | `/social/ratings/{rating}/moderate` | `ratings.moderate`: `{status: hidden|published, reason}` — a reason is required to hide; audited (`rating_moderated`) |
 | GET | `/public/programs/{code}` | adds `meta.rating {average, count}` (no review text or names) |
+| GET | `/admin/program-types` | `plans.view` \| `programs.view` \| `programs.manage`: the five programme types with Arabic and English names and hints |
+| PUT | `/admin/categories/{category}` | `programs.manage`: `{name_ar?, name_en?, icon?, color?, program_type?}`; audited (`category_updated`). `POST /admin/categories` and `PUT /admin/programs/{program}` accept `program_type` too |
+| GET | `/admin/plans/{plan}/compliance` | `plans.view`: `caps{seats,hours}{used,max}`, `by_type`, `by_category`, `mandatory[]`, `allowed_types`, `violations[]`, `warnings[]`, `excluded_needs[]`, `deferred`, `exception` |
+| POST | `/admin/plans/{plan}/generate` | also returns `mandatory_placeholders`, `deferred`, `excluded[]` (needs left out because of their type) |
+| POST | `/admin/plans/{plan}/submit` | `plans.manage`; refused with `plan_rules_broken` (`details.violations`) unless a person with `plans.approve` sends `exception_reason` |
+| POST | `/admin/plans/{plan}/approve` | `plans.approve`; `exception_reason` required while a rule is broken (`exception_reason_required`); exceptions audited (`plan_rule_exception`) |
+| GET | `/admin/forecasts/export/{xlsx\|pdf\|docx}?year=&dimension=&lang=` | `ai.forecasts.view`: forecasts with range, trend, confidence and explanation |
+| GET | `/admin/risks/export/{xlsx\|pdf\|docx}?type=&lang=` | `ai.forecasts.view`: open risks with their reasons |
+| GET | `/admin/report-definitions[/{id}]` | `adjustable[]` now carries each filter's `label`, `type`, `values` and `labels`; result columns carry `labels` for coded values |
+| GET | `/public/categories` | adds `program_type` |

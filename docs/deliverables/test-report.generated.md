@@ -6,13 +6,13 @@
 
 ## 1. Automated suite
 
-- Test files: **113**; test methods: **715**.
+- Test files: **116**; test methods: **739**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
 ## 2. Requirement status behind the tests
 
-228 of 278 requirements are marked available; 50 partial; 0 missing (see the BRD, section "Open items").
+233 of 278 requirements are marked available; 45 partial; 0 missing (see the BRD, section "Open items").
 
 ## 3. UAT
 
@@ -70,6 +70,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | FeatureFlagsTest.php | 7 |
 | FeatureSamplesTest.php | 3 |
 | FingerprintTest.php | 4 |
+| ForecastExportTest.php | 4 |
 | GamificationTest.php | 12 |
 | GeofenceAttendanceTest.php | 10 |
 | GlobalSearchTest.php | 3 |
@@ -102,6 +103,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | OpsSecurityTest.php | 16 |
 | PassingRulesTest.php | 12 |
 | PaymentsTest.php | 25 |
+| PlanRulesEnforcementTest.php | 12 |
 | PresenceAndLockTest.php | 8 |
 | ProductionErrorsTest.php | 2 |
 | ProductionSafetyTest.php | 4 |
@@ -116,6 +118,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RegistrationWorkflowTest.php | 7 |
 | RemoteProgramsAndTemplatesTest.php | 4 |
 | ReportsPhase12Test.php | 9 |
+| RfpReportsTest.php | 8 |
 | RfpStatusTest.php | 4 |
 | RolesManagementTest.php | 5 |
 | RoomManagementTest.php | 6 |

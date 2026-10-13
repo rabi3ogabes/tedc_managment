@@ -7,6 +7,7 @@ use App\Models\TrainingPlan;
 use App\Models\TrainingPlanItem;
 use App\Services\AnnualPlanExport;
 use App\Services\AnnualPlanService;
+use App\Support\ProgramTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -48,10 +49,10 @@ class AnnualPlanController extends Controller
             'rules.max_seats_per_group' => ['sometimes', 'integer', 'min:1', 'max:5000'], 'rules.default_hours_per_group' => ['sometimes', 'numeric', 'min:1', 'max:500'],
             'rules.max_seats_total' => ['sometimes', 'nullable', 'integer', 'min:1'], 'rules.max_hours_total' => ['sometimes', 'nullable', 'numeric', 'min:1'],
             'rules.min_fill_percent' => ['sometimes', 'integer', 'min:0', 'max:100'], 'rules.carry_over' => ['sometimes', 'boolean'],
-            'rules.program_types' => ['sometimes', 'array'], 'rules.program_types.*' => ['string', 'max:40'], 'rules.mandatory_categories' => ['sometimes', 'array'], 'rules.mandatory_categories.*' => ['uuid'],
+            'rules.program_types' => ['sometimes', 'array'], 'rules.program_types.*' => [Rule::in([...ProgramTypes::ALL, ...array_keys(ProgramTypes::LEGACY)])], 'rules.mandatory_categories' => ['sometimes', 'array'], 'rules.mandatory_categories.*' => ['uuid'],
             'rules.windows' => ['sometimes', 'array'], 'rules.windows.*' => ['integer', 'min:1', 'max:4'],
         ]);
-        $plan->update(['rules' => array_replace_recursive($this->plans->rules($plan), $data['rules'])]);
+        $plan->update(['rules' => $this->plans->mergeRules($this->plans->rules($plan), $data['rules'])]);
 
         return response()->json(['data' => $this->present($plan->fresh(), true)]);
     }
@@ -83,9 +84,17 @@ class AnnualPlanController extends Controller
         return response()->json(['data' => ['deleted' => true]]);
     }
 
-    public function submit(TrainingPlan $plan): JsonResponse
+    public function submit(Request $request, TrainingPlan $plan): JsonResponse
     {
-        return response()->json(['data' => $this->present($this->plans->submit($plan, $this->user()))]);
+        $reason = $request->validate(['exception_reason' => ['nullable', 'string', 'max:1000']])['exception_reason'] ?? null;
+
+        return response()->json(['data' => $this->present($this->plans->submit($plan, $this->user(), $reason))]);
+    }
+
+    /** The plan against the year's rules (caps, types, mandatory categories, violations and warnings). */
+    public function compliance(TrainingPlan $plan): JsonResponse
+    {
+        return response()->json(['data' => $this->plans->compliance($plan)]);
     }
 
     public function return(Request $request, TrainingPlan $plan): JsonResponse
@@ -95,7 +104,9 @@ class AnnualPlanController extends Controller
 
     public function approve(Request $request, TrainingPlan $plan): JsonResponse
     {
-        return response()->json(['data' => $this->present($this->plans->approve($plan, $this->user(), $request->validate(['signed_pdf_path' => ['nullable', 'string', 'max:300']])['signed_pdf_path'] ?? null))]);
+        $d = $request->validate(['signed_pdf_path' => ['nullable', 'string', 'max:300'], 'exception_reason' => ['nullable', 'string', 'max:1000']]);
+
+        return response()->json(['data' => $this->present($this->plans->approve($plan, $this->user(), $d['signed_pdf_path'] ?? null, $d['exception_reason'] ?? null))]);
     }
 
     public function activate(TrainingPlan $plan): JsonResponse
@@ -140,7 +151,8 @@ class AnnualPlanController extends Controller
             'priority' => ['sometimes', Rule::in(['critical', 'high', 'medium', 'low'])], 'planned_groups' => ['sometimes', 'integer', 'min:1', 'max:500'],
             'planned_seats' => ['sometimes', 'integer', 'min:0', 'max:100000'], 'planned_hours' => ['sometimes', 'numeric', 'min:0', 'max:10000'],
             'window_start' => ['sometimes', 'nullable', 'date'], 'window_end' => ['sometimes', 'nullable', 'date', 'after_or_equal:window_start'],
-            'status' => ['sometimes', Rule::in(['planned', 'in_execution', 'done', 'postponed', 'cancelled'])], 'is_emergency' => ['sometimes', 'boolean'],
+            'status' => ['sometimes', Rule::in(['planned', 'in_execution', 'done', 'postponed', 'cancelled', 'deferred'])], 'is_emergency' => ['sometimes', 'boolean'],
+            'program_type' => ['sometimes', 'nullable', Rule::in(ProgramTypes::ALL)],
             'rationale_ar' => ['sometimes', 'nullable', 'string', 'max:2000'], 'rationale_en' => ['sometimes', 'nullable', 'string', 'max:2000'], 'review_comment' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'reason' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ];
@@ -151,7 +163,7 @@ class AnnualPlanController extends Controller
         $out = [
             'id' => $plan->id, 'year' => $plan->year, 'version' => $plan->version, 'title_ar' => $plan->title_ar, 'title_en' => $plan->title_en, 'status' => $plan->status, 'notes' => $plan->notes,
             'rules' => $this->plans->rules($plan), 'items_count' => $plan->items_count ?? $plan->items()->count(), 'submitted_at' => $plan->submitted_at?->toIso8601String(), 'approved_at' => $plan->approved_at?->toIso8601String(),
-            'signed_pdf_path' => $plan->signed_pdf_path,
+            'signed_pdf_path' => $plan->signed_pdf_path, 'rule_exception' => $plan->rule_exception,
         ];
         if ($withItems) {
             $out['items'] = $plan->items()->orderByDesc('priority_score')->get()->all();

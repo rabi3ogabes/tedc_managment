@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 233,
-        "partial": 45,
+        "available": 236,
+        "partial": 42,
         "missing": 0,
         "mandatory": 108,
-        "open": 45
+        "open": 42
     },
     "phases": [
         {
@@ -26,7 +26,7 @@
             "phase": 2,
             "title": "Training Structure & Annual Plan",
             "open": 11,
-            "items": 1,
+            "items": 0,
             "done": 0
         },
         {
@@ -96,7 +96,7 @@
             "phase": 12,
             "title": "Reports, Dashboards & KPIs",
             "open": 12,
-            "items": 1,
+            "items": 0,
             "done": 0
         },
         {
@@ -117,7 +117,7 @@
             "phase": 15,
             "title": "AI Completion",
             "open": 6,
-            "items": 3,
+            "items": 2,
             "done": 0
         },
         {
@@ -737,9 +737,9 @@
                     "id": "NDS-08",
                     "mandatory": false,
                     "requirement": "Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)",
-                    "status": "partial",
-                    "evidence": "Yearly rules per plan (priority weights, quarter per priority, max seats and hours per group, minimum fill, carry-over) drive generation. Program-type scope, mandatory categories and total seat/hour caps are stored but not yet enforced.",
-                    "phase": 2
+                    "status": "available",
+                    "evidence": "The five programme types (ترخيص، تمكين، تمهين، تخصيص، تخيير) on categories, programmes and plan items; generation keeps only the year's types (others listed with the reason), adds placeholders for mandatory categories and keeps items in priority order within the seat and hour caps (the rest deferred with the reason); submission is refused while a rule is broken unless the head of planning records an audited exception; compliance on the plan page and in its export (PlanRulesEnforcementTest). Phase 20.",
+                    "phase": null
                 },
                 {
                     "id": "NDS-09",
@@ -1874,9 +1874,9 @@
                     "id": "RPT-03",
                     "mandatory": false,
                     "requirement": "System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)",
-                    "status": "partial",
-                    "evidence": "Employee data, employee courses, programs-groups, courses by employee number, detailed attendance, programs/licences matrix, trainer follow-up, multi-table achievement statistics, process tracking, trainee results, programs by job category, satisfaction, approved vs actual hours, periodic statistics (Phase 12). Not covered: the 'path' column is the program category, appraisal and licence filters on the employee report, and a separate quarterly view (use month grouping).",
-                    "phase": 12
+                    "status": "available",
+                    "evidence": "Employee data (entity type, workplace, licence, job title, experience, annual appraisal), employee courses (training path, programme, entity, job title, qualification, period), programmes with career paths, courses by employee number, attendance, licence matrix, trainers, results, hours, and yearly, quarterly and monthly statistics, in Excel, PDF and Word with coded values as words (RfpReportsTest). Phase 20.",
+                    "phase": null
                 },
                 {
                     "id": "RPT-04",
@@ -1938,9 +1938,9 @@
                     "id": "RPT-11",
                     "mandatory": false,
                     "requirement": "Predictive analytics and reports",
-                    "status": "partial",
-                    "evidence": "Forecast and risk pages with explanations and plan hand-off; Excel/PDF export of forecasts is not built. Phase 15.",
-                    "phase": 15
+                    "status": "available",
+                    "evidence": "Forecast and risk pages with explanations and plan hand-off, exported to Excel, PDF and Word (range, trend, confidence, explanation; risks with reasons), Arabic right to left and English (ForecastExportTest). Phase 20.",
+                    "phase": null
                 }
             ]
         },
@@ -2787,5 +2787,5 @@
             "notes": "Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-11T13:57:27+03:00"
+    "generated_at": "2026-10-13T07:29:47+03:00"
 }

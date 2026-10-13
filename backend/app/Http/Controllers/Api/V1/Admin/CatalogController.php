@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Department;
 use App\Models\JobTitle;
 use App\Models\ProgramCategory;
@@ -13,6 +14,7 @@ use App\Models\Skill;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
 use App\Models\User;
+use App\Support\ProgramTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -51,7 +53,29 @@ class CatalogController extends Controller
             'name_en' => ['required', 'string', 'max:255'],
             'icon' => ['nullable', 'string', 'max:48'],
             'color' => ['nullable', 'string', 'max:16'],
+            'program_type' => ['nullable', Rule::in(ProgramTypes::ALL)],
         ]))], 201);
+    }
+
+    /** Renames a category or sets its programme type (NDS-08); programmes without their own type follow it. */
+    public function updateCategory(Request $request, ProgramCategory $programCategory): JsonResponse
+    {
+        $before = $programCategory->only(['name_ar', 'name_en', 'icon', 'color', 'program_type']);
+        $programCategory->update($request->validate([
+            'name_ar' => ['sometimes', 'string', 'max:255'], 'name_en' => ['sometimes', 'string', 'max:255'],
+            'icon' => ['nullable', 'string', 'max:48'], 'color' => ['nullable', 'string', 'max:16'],
+            'program_type' => ['sometimes', 'nullable', Rule::in(ProgramTypes::ALL)],
+        ]));
+        AuditLog::create(['user_id' => $this->user()->id, 'action' => 'category_updated', 'auditable_type' => ProgramCategory::class, 'auditable_id' => $programCategory->id,
+            'old_values' => $before, 'new_values' => $programCategory->only(array_keys($before)), 'ip_address' => $request->ip()]);
+
+        return response()->json(['data' => $programCategory]);
+    }
+
+    /** The five programme types of the annual plan, with their Arabic and English names. */
+    public function programTypes(): JsonResponse
+    {
+        return response()->json(['data' => ProgramTypes::catalogue()]);
     }
 
     public function storeSkill(Request $request): JsonResponse

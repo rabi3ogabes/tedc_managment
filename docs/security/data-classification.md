@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 702 columns
-- Internal: 1949 columns
-- Confidential: 470 columns
+- Public: 706 columns
+- Internal: 1952 columns
+- Confidential: 468 columns
 - Restricted: 19 columns
 
 ## Application-level encryption
@@ -2818,12 +2818,13 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 |---|---|---|
 | `id` | Public | — |
 | `slug` | Public | — |
-| `name_en` | Confidential | masked in exports |
-| `name_ar` | Confidential | masked in exports |
+| `name_en` | Public | — |
+| `name_ar` | Public | — |
 | `icon` | Public | — |
 | `color` | Public | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `program_type` | Public | — |
 
 ### `program_equivalences`
 
@@ -3030,6 +3031,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `repeat_policy` | Public | — |
 | `knowledge_transfer` | Public | — |
 | `external_platform` | Public | — |
+| `program_type` | Public | — |
 
 ### `public_stats`
 
@@ -4195,6 +4197,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `review_comment` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `program_type` | Internal | — |
+| `deferred_reason` | Internal | — |
 
 ### `training_plans`
 
@@ -4216,6 +4220,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `notes` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `rule_exception` | Internal | — |
 
 ### `training_rooms`
 

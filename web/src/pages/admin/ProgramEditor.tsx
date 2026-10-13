@@ -9,9 +9,10 @@ import { Switch } from './notifications/shared'
 import { api, errorMessage } from '@/lib/api'
 import { toDateInput, toDateTimeInput } from '@/lib/format'
 import type { Program } from '@/lib/types'
+import { useProgramTypes } from './plans/programTypes'
 
 type Lookups = {
-  categories: { id: string; name_ar: string; name_en: string }[]
+  categories: { id: string; name_ar: string; name_en: string; program_type?: string | null }[]
   coordinators?: { id: string; name: string; name_ar: string | null }[]
   skills: { id: string; name_ar: string; name_en: string; category: string }[]
   job_titles: { id: string; name_ar: string; name_en: string }[]
@@ -23,7 +24,7 @@ type Lookups = {
 const MODES = ['self', 'school_nomination', 'center_nomination', 'bulk_import']
 
 const empty = {
-  code: '', category_id: '', coordinator_id: '', title_ar: '', title_en: '', summary_ar: '', summary_en: '', description_ar: '', description_en: '',
+  code: '', category_id: '', program_type: '', coordinator_id: '', title_ar: '', title_en: '', summary_ar: '', summary_en: '', description_ar: '', description_en: '',
   objectives: [] as string[], delivery_mode: 'in_person', level: 'intermediate', total_hours: 12, capacity: 30, min_attendance_percent: 80, require_biometric: false,
   requires_tasks: true, requires_evaluation: true, start_date: '', end_date: '', registration_opens_at: '', registration_closes_at: '',
   registration_modes: MODES, status: 'draft', is_featured: false,
@@ -48,7 +49,7 @@ export default function ProgramEditor() {
     setForm({
       ...empty,
       ...Object.fromEntries(Object.entries(p).filter(([k]) => k in empty)),
-      category_id: p.category_id ?? '', coordinator_id: (p as { coordinator_id?: string | null }).coordinator_id ?? '',
+      category_id: p.category_id ?? '', program_type: (p as { program_type?: string | null }).program_type ?? '', coordinator_id: (p as { coordinator_id?: string | null }).coordinator_id ?? '',
       summary_ar: p.summary_ar ?? '', summary_en: p.summary_en ?? '', description_ar: p.description_ar ?? '', description_en: p.description_en ?? '',
       start_date: toDateInput(p.start_date), end_date: toDateInput(p.end_date),
       registration_opens_at: toDateTimeInput(p.registration_opens_at), registration_closes_at: toDateTimeInput(p.registration_closes_at),
@@ -68,7 +69,7 @@ export default function ProgramEditor() {
   const save = async () => {
     setSaving(true)
     setError(null)
-    const payload = { ...form, category_id: form.category_id || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const payload = { ...form, category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -95,6 +96,7 @@ export default function ProgramEditor() {
                   <option value="">—</option>{L.categories.map((c) => <option key={c.id} value={c.id}>{name(c)}</option>)}
                 </select>
               </Field>
+              <ProgramTypeField value={form.program_type} onChange={(v) => set('program_type', v)} inherited={L.categories.find((c) => c.id === form.category_id)?.program_type ?? null} />
               <Field label={t('lobby.coordinator')}>
                 <select className="input" value={form.coordinator_id} onChange={(e) => set('coordinator_id', e.target.value)}>
                   <option value="">—</option>{(L.coordinators ?? []).map((u) => <option key={u.id} value={u.id}>{u.name_ar || u.name}</option>)}
@@ -203,5 +205,22 @@ export default function ProgramEditor() {
         </div>
       </div>
     </>
+  )
+}
+
+/** The programme's type (NDS-08): its own, or the category's when left on "as the category". */
+function ProgramTypeField({ value, onChange, inherited }: { value: string; onChange: (v: string) => void; inherited: string | null }) {
+  const { t, i18n } = useTranslation()
+  const ar = i18n.language !== 'en'
+  const types = useProgramTypes()
+  const label = (id: string | null) => { const ty = types.find((x) => x.id === id); return ty ? (ar ? ty.name_ar : ty.name_en) : t('plans.types.missing') }
+  const chosen = types.find((x) => x.id === value)
+  return (
+    <Field label={t('plans.types.label')} hint={chosen ? (ar ? chosen.hint_ar : chosen.hint_en) : t('plans.types.inherited', { type: label(inherited) })}>
+      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{t('plans.types.asCategory', { type: label(inherited) })}</option>
+        {types.map((ty) => <option key={ty.id} value={ty.id}>{ar ? `${ty.name_ar} — ${ty.name_en}` : `${ty.name_en} — ${ty.name_ar}`}</option>)}
+      </select>
+    </Field>
   )
 }

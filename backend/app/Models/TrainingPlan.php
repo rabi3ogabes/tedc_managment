@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** The annual training plan: drafted from needs, reviewed, approved, executed and monitored. */
-#[Fillable(['year', 'version', 'title_ar', 'title_en', 'status', 'rules', 'submitted_by', 'submitted_at', 'approved_by', 'approved_at', 'baseline', 'signed_pdf_path', 'notes'])]
+#[Fillable(['year', 'version', 'title_ar', 'title_en', 'status', 'rules', 'submitted_by', 'submitted_at', 'approved_by', 'approved_at', 'baseline', 'signed_pdf_path', 'notes', 'rule_exception'])]
 class TrainingPlan extends Model
 {
     use Auditable, HasUuids;
@@ -27,7 +27,7 @@ class TrainingPlan extends Model
 
     protected function casts(): array
     {
-        return ['rules' => 'array', 'baseline' => 'array', 'submitted_at' => 'datetime', 'approved_at' => 'datetime'];
+        return ['rules' => 'array', 'baseline' => 'array', 'rule_exception' => 'array', 'submitted_at' => 'datetime', 'approved_at' => 'datetime'];
     }
 
     public function items(): HasMany

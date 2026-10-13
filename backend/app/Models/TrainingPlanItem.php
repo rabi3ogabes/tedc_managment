@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'plan_id', 'program_id', 'title_ar', 'title_en', 'category_id', 'audience', 'priority', 'priority_score', 'planned_groups', 'planned_seats', 'planned_hours',
-    'window_start', 'window_end', 'source', 'source_refs', 'status', 'is_emergency', 'rationale_ar', 'rationale_en', 'review_comment',
+    'window_start', 'window_end', 'source', 'source_refs', 'status', 'is_emergency', 'rationale_ar', 'rationale_en', 'review_comment', 'program_type', 'deferred_reason',
 ])]
 class TrainingPlanItem extends Model
 {

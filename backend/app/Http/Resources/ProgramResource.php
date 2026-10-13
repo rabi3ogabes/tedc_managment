@@ -62,6 +62,8 @@ class ProgramResource extends JsonResource
                 'icon' => $this->category->icon,
             ] : null),
             'category_id' => $this->category_id,
+            'program_type' => $this->program_type,
+            'effective_program_type' => $this->program_type ?? ($this->relationLoaded('category') ? $this->category?->program_type : null),
             'delivery_mode' => $this->delivery_mode,
             'external_platform' => $this->external_platform ? Arr::only($this->external_platform, ['name', 'provider']) : null,
             'level' => $this->level,
