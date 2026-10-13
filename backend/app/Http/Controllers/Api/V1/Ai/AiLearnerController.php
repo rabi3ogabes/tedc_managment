@@ -62,27 +62,39 @@ class AiLearnerController extends Controller
 
     // ---- assistant -----------------------------------------------------------------------------------
 
+    /**
+     * A question to the assistant. With "Accept: text/event-stream" (or stream=1) the answer arrives as server-sent
+     * events while it is written — "data: {delta}" pieces, then "event: done" with the saved message and its sources.
+     * Closing the connection stops the answer; what was said so far is kept.
+     */
     public function ask(Request $request): JsonResponse|StreamedResponse
     {
         $d = $request->validate(['message' => ['required', 'string', 'max:2000'], 'conversation_id' => ['nullable', 'uuid'], 'stream' => ['nullable', 'boolean']]);
         $user = $this->user();
         $c = $this->assistant->conversation($user, $d['conversation_id'] ?? null, app()->getLocale());
-        $m = $this->assistant->ask($user, $c, $d['message']);
-        $payload = ['conversation_id' => $c->id, 'message' => $this->present($m)];
-        if (! $request->boolean('stream')) {
-            return response()->json(['data' => $payload]);
+        if (! $request->boolean('stream') && ! str_contains((string) $request->header('Accept'), 'text/event-stream')) {
+            $m = $this->assistant->ask($user, $c, $d['message']);
+
+            return response()->json(['data' => ['conversation_id' => $c->id, 'message' => $this->present($m)]]);
         }
 
-        // Server-sent events: the answer arrives in pieces, then the full message with its sources.
-        return response()->stream(function () use ($m, $payload) {
-            foreach (preg_split('/(\s+)/u', $m->content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) ?: [] as $i => $piece) {
-                echo 'data: '.json_encode(['delta' => $piece], JSON_UNESCAPED_UNICODE)."\n\n";
-                if ($i % 6 === 0) {
-                    @ob_flush();
-                    @flush();
+        return response()->stream(function () use ($user, $c, $d) {
+            ignore_user_abort(true);   // notice the closed connection ourselves, and keep what was said
+            $send = function (?string $event, array $payload) {
+                echo ($event ? "event: {$event}\n" : '').'data: '.json_encode($payload, JSON_UNESCAPED_UNICODE)."\n\n";
+                @ob_flush();
+                @flush();
+            };
+            $send('start', ['conversation_id' => $c->id]);
+            try {
+                $m = $this->assistant->ask($user, $c, $d['message'], fn (string $delta) => $send(null, ['delta' => $delta]), fn () => connection_aborted() === 1);
+                if (connection_aborted() !== 1) {
+                    $send('done', ['conversation_id' => $c->id, 'message' => $this->present($m)]);
                 }
+            } catch (\Throwable $e) {
+                report($e);
+                $send('error', ['message' => __('messages.server_error')]);
             }
-            echo "event: done\ndata: ".json_encode($payload, JSON_UNESCAPED_UNICODE)."\n\n";
         }, 200, ['Content-Type' => 'text/event-stream', 'Cache-Control' => 'no-cache', 'X-Accel-Buffering' => 'no']);
     }
 
@@ -130,7 +142,7 @@ class AiLearnerController extends Controller
     /** @return array<string, mixed> */
     private function present(AssistantMessage $m): array
     {
-        return ['id' => $m->id, 'role' => $m->role, 'content' => $m->content, 'citations' => $m->citations ?? [], 'meta' => $m->meta ? ['source' => $m->meta['source'] ?? null, 'refused' => $m->meta['refused'] ?? false, 'confident' => $m->meta['confident'] ?? true, 'escalate' => $m->meta['escalate'] ?? null, 'escalated' => $m->meta['escalated'] ?? null] : null,
+        return ['id' => $m->id, 'role' => $m->role, 'content' => $m->content, 'citations' => $m->citations ?? [], 'meta' => $m->meta ? ['source' => $m->meta['source'] ?? null, 'refused' => $m->meta['refused'] ?? false, 'confident' => $m->meta['confident'] ?? true, 'escalate' => $m->meta['escalate'] ?? null, 'escalated' => $m->meta['escalated'] ?? null, 'cancelled' => (bool) ($m->meta['cancelled'] ?? false)] : null,
             'feedback' => $m->feedback, 'created_at' => $m->created_at?->toIso8601String()];
     }
 }

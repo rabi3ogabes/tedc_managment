@@ -1,5 +1,7 @@
 <?php
 
+use App\Ai\Rag\Embedders;
+use App\Ai\Rag\LocalEmbedder;
 use App\Ops\DataSubjectService;
 use Illuminate\Support\Facades\Schedule;
 
@@ -30,6 +32,8 @@ Schedule::command('tedc:siem-flush')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:payments-tick')->everyMinute()->withoutOverlapping();
 Schedule::command('tedc:payments-daily')->dailyAt('03:15')->withoutOverlapping();
 Schedule::command('tedc:ai-nightly')->dailyAt('02:30')->withoutOverlapping();
+// Pieces an embeddings model missed while it could not be reached catch up each night (the local vectors never miss any).
+Schedule::command('tedc:ai-reindex')->dailyAt('03:45')->withoutOverlapping()->when(fn () => ! app(Embedders::class)->active() instanceof LocalEmbedder);
 Schedule::command('tedc:social-tick')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:kpi-collect')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:reports-run')->everyMinute()->withoutOverlapping();

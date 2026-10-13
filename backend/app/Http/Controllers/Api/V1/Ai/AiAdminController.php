@@ -5,17 +5,27 @@ namespace App\Http\Controllers\Api\V1\Ai;
 use App\Ai\Adaptive\RemedialBuilder;
 use App\Ai\AiGuard;
 use App\Ai\AiPolicy;
+use App\Ai\Eval\GoldenSet;
 use App\Ai\Feedback\SmartFeedback;
 use App\Ai\Forecast\ForecastService;
 use App\Ai\Forecast\RiskService;
+use App\Ai\Rag\Embedders;
+use App\Ai\Rag\EmbedderUnavailable;
 use App\Ai\Rag\Indexer;
+use App\Ai\Rag\LocalEmbedder;
+use App\Ai\Rag\ModelEmbedder;
+use App\Ai\Rag\Reindexer;
+use App\Ai\Rag\Stores;
 use App\Ai\Recommend\HybridRecommender;
 use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Models\AdaptiveRule;
+use App\Models\AiEvalRun;
 use App\Models\AiFeedbackDraft;
+use App\Models\AiIndexRun;
 use App\Models\AiLog;
 use App\Models\AssessmentAttempt;
+use App\Models\AuditLog;
 use App\Models\CourseLesson;
 use App\Models\CourseModule;
 use App\Models\Embedding;
@@ -30,6 +40,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /** Settings, logs and controls of the AI features, the grader's drafts, adaptive rules, forecasts and risks. */
 class AiAdminController extends Controller
@@ -90,6 +101,67 @@ class AiAdminController extends Controller
     public function reindex(Indexer $indexer): JsonResponse
     {
         return response()->json(['data' => ['chunks' => $indexer->all()]]);
+    }
+
+    // ---- retrieval: embedder, store, re-embedding, golden set ---------------------------------------
+
+    /** The embedder and store in use, the embeddings models that may replace the embedder, and the latest re-embedding run. */
+    public function retrieval(Embedders $embedders, Stores $stores): JsonResponse
+    {
+        $active = $embedders->active();
+        $policy = $this->policy->all()['retrieval'];
+        $run = AiIndexRun::latest('created_at')->first();
+        $models = collect($embedders->choices())->keyBy('id');
+
+        return response()->json(['data' => [
+            'embedder' => ['id' => $active->id(), 'kind' => $active instanceof LocalEmbedder ? 'local' : 'model', 'label' => $active instanceof ModelEmbedder ? ($models[$active->modelId()]['label'] ?? $active->modelId()) : null,
+                'dim' => Embedding::where('model', $active->id())->value('dim') ?? $active->dim()],
+            'store' => ['name' => $stores->active()->name(), 'choice' => $policy['store'], 'pgvector_available' => $stores->pgvector()->supported()],
+            'models' => $models->values(), 'chunks' => Embedding::where('model', $active->id())->count(), 'sources' => Embedding::where('model', $active->id())->distinct()->count('source_id'),
+            'by_model' => Embedding::selectRaw('model, count(*) as n')->groupBy('model')->pluck('n', 'model'),
+            'thresholds' => ['local' => $policy['local'], 'model' => $policy['model']],
+            'run' => $run ? $this->presentRun($run) : null,
+        ]]);
+    }
+
+    /** Starts re-embedding with an embedder ("local" or an embeddings model) and works on it for a few seconds; the page continues it. */
+    public function startReindex(Request $request, Reindexer $reindexer): JsonResponse
+    {
+        $d = $request->validate(['model' => ['required', 'string', 'max:40']]);
+        try {
+            $run = $reindexer->start($d['model'], $this->user());
+        } catch (EmbedderUnavailable) {
+            throw ValidationException::withMessages(['model' => __('messages.ai.no_embeddings_model')]);
+        }
+        AuditLog::create(['user_id' => $this->user()->id, 'action' => 'ai_reindex_started', 'auditable_type' => AiIndexRun::class, 'auditable_id' => $run->id, 'new_values' => ['model' => $run->model]]);
+
+        return response()->json(['data' => $this->presentRun($reindexer->run($run, 20.0))], 202);
+    }
+
+    public function continueReindex(AiIndexRun $aiIndexRun, Reindexer $reindexer): JsonResponse
+    {
+        return response()->json(['data' => $this->presentRun($reindexer->run($aiIndexRun, 20.0))]);
+    }
+
+    /** The golden-set evaluations so far (newest first) and the thresholds they must meet. */
+    public function evals(): JsonResponse
+    {
+        return response()->json(['data' => ['thresholds' => $this->policy->all()['eval'], 'questions' => count(app(GoldenSet::class)->questions()),
+            'runs' => AiEvalRun::latest('created_at')->limit(20)->get()->map(fn (AiEvalRun $r) => $r->only(['id', 'embedder', 'store', 'with_model', 'questions', 'answerable', 'off_topic', 'hit_at_3', 'hit_at_5', 'citation_accuracy', 'refusal_accuracy', 'false_refusals', 'passed']) + ['created_at' => $r->created_at?->toIso8601String()])->all()]]);
+    }
+
+    public function evaluate(Request $request, GoldenSet $golden): JsonResponse
+    {
+        $d = $request->validate(['with_model' => ['sometimes', 'boolean']]);
+        $run = $golden->run((bool) ($d['with_model'] ?? false), $this->user());
+
+        return response()->json(['data' => $run->only(['id', 'embedder', 'store', 'with_model', 'questions', 'answerable', 'off_topic', 'hit_at_3', 'hit_at_5', 'citation_accuracy', 'refusal_accuracy', 'false_refusals', 'passed', 'details']) + ['created_at' => $run->created_at?->toIso8601String()]], 201);
+    }
+
+    /** @return array<string, mixed> */
+    private function presentRun(AiIndexRun $run): array
+    {
+        return $run->only(['id', 'model', 'dim', 'status', 'total', 'done', 'error']) + ['started_at' => $run->started_at?->toIso8601String(), 'finished_at' => $run->finished_at?->toIso8601String()];
     }
 
     // ---- grader's drafts -----------------------------------------------------------------------------

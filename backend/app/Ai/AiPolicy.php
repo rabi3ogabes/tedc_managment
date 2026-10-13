@@ -25,6 +25,12 @@ class AiPolicy
             // goes up after up_after correct answers in a row and down after down_after wrong ones. A review lesson is
             // assigned below remedial_below and leaves the learner's path at mastered_at.
             'adaptive' => ['easy_below' => 40, 'hard_above' => 75, 'up_after' => 2, 'down_after' => 1, 'remedial_below' => 60, 'mastered_at' => 80],
+            // Retrieval for the assistant: the store (auto picks pgvector where the database has it), the embedder in use
+            // (set by a finished re-embedding run, never typed in) and the similarity a passage needs to count — and to be
+            // a confident answer — for the local embedder and for an embeddings model, whose scores run higher.
+            'retrieval' => ['store' => 'auto', 'active' => 'local', 'local' => ['min' => 0.1, 'strong' => 0.2], 'model' => ['min' => 0.3, 'strong' => 0.45]],
+            // The golden question set must reach these shares for the assistant to pass its evaluation.
+            'eval' => ['hit_at_3' => 0.75, 'hit_at_5' => 0.85, 'citation' => 0.7, 'refusal' => 0.75],
         ];
     }
 
@@ -42,6 +48,11 @@ class AiPolicy
             $out['recommendations'] = array_replace($d['recommendations'], (array) ($saved['recommendations'] ?? []));
             $out['recommendations']['weights'] = array_replace($d['recommendations']['weights'], (array) ($saved['recommendations']['weights'] ?? []));
             $out['adaptive'] = array_map('intval', array_replace($d['adaptive'], array_intersect_key((array) ($saved['adaptive'] ?? []), $d['adaptive'])));
+            $r = (array) ($saved['retrieval'] ?? []);
+            $out['retrieval'] = ['store' => (string) ($r['store'] ?? 'auto'), 'active' => (string) ($r['active'] ?? 'local'),
+                'local' => array_map('floatval', array_replace($d['retrieval']['local'], array_intersect_key((array) ($r['local'] ?? []), $d['retrieval']['local']))),
+                'model' => array_map('floatval', array_replace($d['retrieval']['model'], array_intersect_key((array) ($r['model'] ?? []), $d['retrieval']['model'])))];
+            $out['eval'] = array_map('floatval', array_replace($d['eval'], array_intersect_key((array) ($saved['eval'] ?? []), $d['eval'])));
 
             return $out;
         });
@@ -57,6 +68,15 @@ class AiPolicy
     public function adaptive(): array
     {
         return $this->all()['adaptive'];
+    }
+
+    /** Switches retrieval to the embedder a finished run filled (local, or an embeddings model id). */
+    public function activate(string $embedder): void
+    {
+        $saved = SiteSetting::find(self::KEY)?->value ?? [];
+        $saved['retrieval'] = array_replace((array) ($saved['retrieval'] ?? []), ['active' => $embedder]);
+        SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $saved]);
+        Cache::forget('site.ai_policy');
     }
 
     /** @param  array<string, mixed>  $in @return array<string, mixed> */
@@ -86,6 +106,17 @@ class AiPolicy
             // A lesson is never assigned and cleared at the same mastery.
             'remedial_below' => $remedial, 'mastered_at' => max($remedial, min(100, (int) $a['mastered_at'])),
         ];
+        $share = fn ($v, $cur) => max(0.0, min(1.0, (float) ($v ?? $cur)));
+        $rin = (array) ($in['retrieval'] ?? []);
+        $retrieval = ['store' => in_array($rin['store'] ?? null, ['auto', 'json', 'pgvector'], true) ? $rin['store'] : $cur['retrieval']['store'], 'active' => $cur['retrieval']['active']];
+        foreach (['local', 'model'] as $kind) {
+            $min = $share($rin[$kind]['min'] ?? null, $cur['retrieval'][$kind]['min']);
+            $retrieval[$kind] = ['min' => $min, 'strong' => max($min, $share($rin[$kind]['strong'] ?? null, $cur['retrieval'][$kind]['strong']))];
+        }
+        $eval = [];
+        foreach ($cur['eval'] as $k => $v) {
+            $eval[$k] = $share($in['eval'][$k] ?? null, $v);
+        }
         $new = [
             'residency_enforced' => (bool) ($in['residency_enforced'] ?? $cur['residency_enforced']),
             'redaction' => (bool) ($in['redaction'] ?? $cur['redaction']),
@@ -94,6 +125,8 @@ class AiPolicy
             'features' => $features,
             'recommendations' => ['weights' => $weights, 'ab_test' => (bool) ($in['recommendations']['ab_test'] ?? $cur['recommendations']['ab_test']), 'ab_share' => max(0, min(100, (int) ($in['recommendations']['ab_share'] ?? $cur['recommendations']['ab_share'])))],
             'adaptive' => $adaptive,
+            'retrieval' => $retrieval,
+            'eval' => $eval,
         ];
         SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $new, 'updated_by' => $by]);
         Cache::forget('site.ai_policy');

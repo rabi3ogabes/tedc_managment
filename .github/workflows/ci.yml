@@ -25,10 +25,11 @@ jobs:
 
   backend-postgres:
     # Production runs on PostgreSQL (Supabase): catches type and SQL differences SQLite accepts.
+    # The pgvector image (PostgreSQL 16 with the vector extension) also runs the assistant's pgvector store tests.
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: tedc_test

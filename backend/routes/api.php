@@ -1250,6 +1250,11 @@ Route::prefix('v1')->group(function () {
                     Route::get('ai/logs', [AiAdminController::class, 'logs']);
                     Route::get('ai/recommendation-stats', [AiAdminController::class, 'recommendationStats']);
                     Route::post('assistant/reindex', [AiAdminController::class, 'reindex'])->middleware('throttle:6,1');
+                    Route::get('ai/retrieval', [AiAdminController::class, 'retrieval']);
+                    Route::post('ai/reindex', [AiAdminController::class, 'startReindex'])->middleware('throttle:6,1');
+                    Route::post('ai/reindex/{aiIndexRun}/continue', [AiAdminController::class, 'continueReindex'])->middleware('throttle:60,1');
+                    Route::get('ai/eval', [AiAdminController::class, 'evals']);
+                    Route::post('ai/eval', [AiAdminController::class, 'evaluate'])->middleware('throttle:6,1');
                 });
                 Route::middleware('permission:ai.feedback.review|assessments.grade')->group(function () {
                     Route::get('attempts/{attempt}/ai-feedback', [AiAdminController::class, 'drafts']);

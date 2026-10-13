@@ -10,6 +10,7 @@ use App\Ai\Rag\Indexer;
 use App\Ai\Recommend\HybridRecommender;
 use App\Models\AssessmentAttempt;
 use App\Models\CourseLesson;
+use App\Models\HelpArticle;
 use App\Models\LibraryItem;
 use App\Models\Program;
 use App\Models\Registration;
@@ -46,6 +47,8 @@ class AiHooks
         Program::saved(fn (Program $p) => self::safely(fn () => app(Indexer::class)->program($p)));
         LibraryItem::saved(fn (LibraryItem $i) => self::safely(fn () => app(Indexer::class)->library($i)));
         LibraryItem::deleted(fn (LibraryItem $i) => self::safely(fn () => app(Indexer::class)->forget('library', $i->id)));
+        HelpArticle::saved(fn (HelpArticle $a) => self::safely(fn () => app(Indexer::class)->help($a)));
+        HelpArticle::deleted(fn (HelpArticle $a) => self::safely(fn () => app(Indexer::class)->forget('help', $a->id)));
         Registration::created(fn (Registration $r) => self::safely(fn () => app(HybridRecommender::class)->registered($r)));
     }
 

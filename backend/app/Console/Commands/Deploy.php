@@ -2,6 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Ai\Rag\Embedders;
+use App\Ai\Rag\Indexer;
+use App\Ai\Rag\LocalEmbedder;
+use App\Models\Embedding;
 use App\Models\Role;
 use App\Models\School;
 use App\Needs\LegacyNeedsMigrator;
@@ -47,6 +51,14 @@ class Deploy extends Command
         // Starter help articles of this release (only the missing ones are created, so edited articles stay as they are).
         if (Schema::hasTable('help_articles')) {
             (new HelpArticlesSeeder)->run();
+        }
+
+        // The assistant's retrieval index: built when the local embedder of this release has no vectors yet (a first
+        // deploy, or a new version of the local embedder), and vectors of an older local version are removed.
+        if (Schema::hasColumn('embeddings', 'model') && Embedding::where('model', LocalEmbedder::ID)->doesntExist()) {
+            $chunks = app(Indexer::class)->all([app(Embedders::class)->local()]);
+            Embedding::where('model', 'like', 'local-%')->where('model', '!=', LocalEmbedder::ID)->delete();
+            $this->info("Retrieval index built: {$chunks} pieces.");
         }
 
         // Needs raised on the old school-request screen join the needs-cycle requests (each is copied once).

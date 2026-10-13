@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 712 columns
-- Internal: 1971 columns
+- Public: 718 columns
+- Internal: 1996 columns
 - Confidential: 483 columns
 - Restricted: 21 columns
 
@@ -100,6 +100,28 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `ai_eval_runs`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `embedder` | Internal | — |
+| `store` | Internal | — |
+| `with_model` | Internal | — |
+| `questions` | Internal | — |
+| `answerable` | Internal | — |
+| `off_topic` | Internal | — |
+| `hit_at_3` | Internal | — |
+| `hit_at_5` | Internal | — |
+| `citation_accuracy` | Internal | — |
+| `refusal_accuracy` | Internal | — |
+| `false_refusals` | Internal | — |
+| `passed` | Internal | — |
+| `details` | Internal | — |
+| `started_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `ai_feedback_drafts`
 
 | Column | Class | Control |
@@ -117,6 +139,23 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `final_score` | Internal | — |
 | `reviewed_by` | Internal | — |
 | `reviewed_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `ai_index_runs`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `model` | Internal | — |
+| `dim` | Internal | — |
+| `status` | Internal | — |
+| `total` | Internal | — |
+| `done` | Internal | — |
+| `error` | Internal | — |
+| `started_by` | Internal | — |
+| `started_at` | Internal | — |
+| `finished_at` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
@@ -1069,6 +1108,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `vector` | Internal | — |
 | `content_hash` | Internal | — |
 | `updated_at` | Public | — |
+| `model` | Internal | — |
+| `dim` | Internal | — |
 
 ### `employee_path_progress`
 

@@ -20,7 +20,7 @@ class AiModelSettings
 {
     public const KEY = 'ai_models';
 
-    public const TASKS = ['text', 'image', 'audio', 'video'];
+    public const TASKS = ['text', 'image', 'audio', 'video', 'embeddings'];
 
     public const DRIVERS = [
         'openrouter' => 'https://openrouter.ai/api/v1',
