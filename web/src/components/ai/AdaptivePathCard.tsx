@@ -22,7 +22,7 @@ export default function AdaptivePathCard({ registrationId }: { registrationId: s
       <p className="text-xs text-slate-500">{t('aix.path.hint')}</p>
       <ul className="space-y-2 text-sm">
         {d.skipped.map((s: any) => <li key={s.module_id} className="flex items-start gap-2"><SkipForward className="mt-0.5 size-4 shrink-0 text-emerald-600" /><span><b>{modTitle(s.module_id)}</b> — {t('aix.path.mastered', { skill: en ? s.skill.en || s.skill.ar : s.skill.ar, m: Math.round(s.mastery * 100) })}</span></li>)}
-        {d.remedial.map((r: any) => <li key={r.lesson_id} className="flex items-start gap-2"><Sparkles className="mt-0.5 size-4 shrink-0 text-gold-600" /><span><b>{titles[r.lesson_id]}</b> <Badge color="gold">{t('aix.path.remedial')}</Badge> — {t('aix.path.weak', { m: Math.round(r.mastery * 100) })}</span></li>)}
+        {d.remedial.map((r: any) => <li key={r.lesson_id} className="flex items-start gap-2"><Sparkles className="mt-0.5 size-4 shrink-0 text-gold-600" /><span><b>{titles[r.lesson_id]}</b> <Badge color="gold">{t('aix.path.remedial')}</Badge> — {r.text ? (en ? r.text.en || r.text.ar : r.text.ar) : t('aix.path.weak', { m: Math.round(r.mastery * 100) })}</span></li>)}
       </ul>
     </Card>
   )

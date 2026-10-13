@@ -46,6 +46,7 @@ export const courseAr = {
     responses: '{{count}} رد', learnersTitle: 'المتدربون', learnersHint: 'الأقل تقدماً أولاً.', name: 'الاسم', progress: 'التقدم', watched: 'وقت التعلّم', last: 'آخر نشاط', done: 'أتمّ',
   },
   learn: {
+    forYou: 'مراجعة لك',
     title: 'المحتوى التدريبي', back: 'العودة للمحتوى', outline: 'محتوى البرنامج', progress: 'تقدمك', lessonsDone: '{{done}} من {{total}} دروس', resume: 'تابع من حيث توقفت', start: 'ابدأ التعلّم', next: 'الدرس التالي', previous: 'السابق',
     cert: { issued: 'صدرت شهادتك 🎓', pending: 'الشهادة بانتظار استيفاء المتطلبات', ready: 'يمكنك تحميلها الآن من محفظة الشهادات.', needSurvey: 'عبّئ استبيان البرنامج لتتمكن من تحميلها.', open: 'محفظة الشهادات' },
     locked: 'مقفل', lockedHint: 'أكمل الدرس السابق لفتح هذا الدرس.', done: 'مكتمل', optional: 'اختياري', allDone: 'أحسنت! أتممت كل الدروس', allDoneHint: 'يمكنك الآن متابعة بقية متطلبات الشهادة.',
@@ -104,6 +105,7 @@ export const courseEn: typeof courseAr = {
     responses: '{{count}} responses', learnersTitle: 'Learners', learnersHint: 'Lowest progress first.', name: 'Name', progress: 'Progress', watched: 'Learning time', last: 'Last activity', done: 'Done',
   },
   learn: {
+    forYou: 'Review for you',
     title: 'Online course', back: 'Back to the course', outline: 'Course content', progress: 'Your progress', lessonsDone: '{{done}} of {{total}} lessons', resume: 'Resume where you left off', start: 'Start learning', next: 'Next lesson', previous: 'Previous',
     cert: { issued: 'Your certificate is issued 🎓', pending: 'The certificate is waiting for the remaining requirements', ready: 'You can download it now from the certificate wallet.', needSurvey: 'Fill in the program survey to download it.', open: 'Certificate wallet' },
     locked: 'Locked', lockedHint: 'Finish the previous lesson to unlock this one.', done: 'Done', optional: 'Optional', allDone: 'Well done! You finished every lesson', allDoneHint: 'You can now continue with the remaining certificate requirements.',

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AiDraftBox from '@/components/ai/AiDraftBox'
-import { Plus, Trash2 } from 'lucide-react'
+import AttemptReview from '@/components/assessment/AttemptReview'
+import { Plus, ShieldAlert, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, Spinner, Tabs, Table, Td } from '@/components/ui'
@@ -14,7 +15,8 @@ import { dialogs } from '@/lib/dialogs'
 
 const KINDS = ['final', 'quiz', 'diagnostic', 'pre_test', 'post_test', 'comprehensive', 'practice']
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
-const blank = (): any => ({ kind: 'quiz', title_ar: '', title_en: '', delivery: 'remote', access_code_mode: 'none', time_limit_minutes: '', max_attempts: 1, attempt_cooldown_hours: 0, pass_percent: 60, weight_in_course: 0, shuffle_questions: true, shuffle_options: true, feedback_mode: 'after_submit', show_score: true, show_correct_answers: false, require_restudy_on_fail: false, proctoring: { enabled: false, fullscreen: false, tab_switch_limit: 3, fullscreen_exit_limit: 3, action: 'flag', snapshots: false } })
+const blank = (): any => ({ kind: 'quiz', title_ar: '', title_en: '', delivery: 'remote', access_code_mode: 'none', time_limit_minutes: '', max_attempts: 1, attempt_cooldown_hours: 0, pass_percent: 60, weight_in_course: 0, shuffle_questions: true, shuffle_options: true, feedback_mode: 'after_submit', show_score: true, show_correct_answers: false, require_restudy_on_fail: false, adaptive: false, allow_offline: false, offline_window_hours: 72, proctoring: { enabled: false, fullscreen: false, tab_switch_limit: 3, fullscreen_exit_limit: 3, action: 'flag', snapshots: false } })
+const ADAPTIVE_KINDS = ['practice', 'quiz']
 const local = (v?: string | null) => (v ? v.slice(0, 16) : '')
 
 function Editor({ program, a, onDone }: { program: Program; a: any | null; onDone: () => void }) {
@@ -31,7 +33,8 @@ function Editor({ program, a, onDone }: { program: Program; a: any | null; onDon
     try {
       const body = { kind: f.kind, title_ar: f.title_ar, title_en: f.title_en, delivery: f.delivery, access_code_mode: f.access_code_mode, time_limit_minutes: f.time_limit_minutes ? Number(f.time_limit_minutes) : null, window_opens_at: f.window_opens_at || null, window_closes_at: f.window_closes_at || null,
         max_attempts: Number(f.max_attempts), attempt_cooldown_hours: Number(f.attempt_cooldown_hours), pass_percent: Number(f.pass_percent), weight_in_course: Number(f.weight_in_course), shuffle_questions: f.shuffle_questions, shuffle_options: f.shuffle_options, feedback_mode: f.feedback_mode,
-        show_score: f.show_score, show_correct_answers: f.show_correct_answers, require_restudy_on_fail: f.require_restudy_on_fail, proctoring: p }
+        show_score: f.show_score, show_correct_answers: f.show_correct_answers, require_restudy_on_fail: f.require_restudy_on_fail, proctoring: p,
+        adaptive: ADAPTIVE_KINDS.includes(f.kind) && !!f.adaptive, allow_offline: !f.adaptive && !!f.allow_offline, offline_window_hours: Math.max(1, Number(f.offline_window_hours) || 72) }
       const { data } = a ? await api.put(`/admin/assessments/${a.id}`, body) : await api.post(`/admin/programs/${program.id}/assessments`, body)
       const id = a?.id ?? data.data.id
       await api.put(`/admin/assessments/${id}/sections`, { sections: sections.map((s) => ({ title: s.title || null, selection: s.selection, bank_id: s.bank_id || null, count: s.selection === 'random' ? Number(s.count) || 1 : null, points_per_question: s.points_per_question ? Number(s.points_per_question) : null, difficulty_mix: s.selection === 'random' && s.difficulty_mix && Object.keys(s.difficulty_mix).length ? s.difficulty_mix : null, question_ids: s.question_ids ?? null })) })
@@ -44,7 +47,7 @@ function Editor({ program, a, onDone }: { program: Program; a: any | null; onDon
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={tx('kind')}>{sel('kind', KINDS, (k) => t(`assess.kinds.${k}`))}</Field>
+        <Field label={tx('kind')}><select className={input} value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value, adaptive: ADAPTIVE_KINDS.includes(e.target.value) && f.adaptive })}>{KINDS.map((o) => <option key={o} value={o}>{t(`assess.kinds.${o}`)}</option>)}</select></Field>
         <Field label={tx('delivery')}>{sel('delivery', ['remote', 'in_center', 'either'], (k) => t(`assess.builder.deliveries.${k}`))}</Field>
         <Field label={`${tx('title')} (ع)`}><input className={input} value={f.title_ar} onChange={(e) => setF({ ...f, title_ar: e.target.value })} /></Field>
         <Field label={`${tx('title')} (EN)`}><input dir="ltr" className={input} value={f.title_en} onChange={(e) => setF({ ...f, title_en: e.target.value })} /></Field>
@@ -59,6 +62,21 @@ function Editor({ program, a, onDone }: { program: Program; a: any | null; onDon
         <Field label={tx('feedback')}>{sel('feedback_mode', ['immediate', 'after_submit', 'after_close', 'never'], (k) => t(`assess.builder.feedbacks.${k}`))}</Field>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">{chk('shuffle_questions', tx('shuffleQ'))}{chk('shuffle_options', tx('shuffleO'))}{chk('show_score', tx('showScore'))}{chk('show_correct_answers', tx('showCorrect'))}{chk('require_restudy_on_fail', tx('restudy'))}</div>
+      <fieldset className="space-y-4 rounded-2xl border border-navy-100 p-4"><legend className="px-2 text-sm font-bold text-navy-900">{t('assess.modes.title')}</legend>
+        <label className={`flex items-start gap-3 text-sm ${ADAPTIVE_KINDS.includes(f.kind) ? '' : 'opacity-60'}`}>
+          <input type="checkbox" className="mt-1" disabled={!ADAPTIVE_KINDS.includes(f.kind)} checked={!!f.adaptive} onChange={(e) => setF({ ...f, adaptive: e.target.checked, allow_offline: e.target.checked ? false : f.allow_offline })} />
+          <span className="space-y-1"><b className="block text-navy-900">{t('assess.modes.adaptive')}</b><span className="block text-xs text-slate-500">{t('assess.modes.adaptiveHint')}</span>
+            <span className="block text-xs text-slate-500">{ADAPTIVE_KINDS.includes(f.kind) ? t('assess.modes.adaptiveNeeds') : t('assess.modes.adaptiveKinds')}</span>
+            {f.adaptive && f.kind === 'quiz' && f.feedback_mode !== 'immediate' && <span className="block rounded-lg bg-gold-50 p-2 text-xs text-gold-900">{t('assess.modes.adaptiveQuiz')}</span>}</span>
+        </label>
+        <label className={`flex items-start gap-3 text-sm ${f.adaptive ? 'opacity-60' : ''}`}>
+          <input type="checkbox" className="mt-1" disabled={!!f.adaptive} checked={!!f.allow_offline} onChange={(e) => setF({ ...f, allow_offline: e.target.checked })} />
+          <span className="space-y-1"><b className="block text-navy-900">{t('assess.modes.offline')}</b><span className="block text-xs text-slate-500">{f.adaptive ? t('assess.modes.offlineAdaptive') : t('assess.modes.offlineHint')}</span></span>
+        </label>
+        {f.allow_offline && !f.adaptive && <div className="grid gap-3 ps-7 sm:grid-cols-2">
+          <Field label={t('assess.modes.offlineWindow')}><input className={input} type="number" min="1" max="720" value={f.offline_window_hours} onChange={(e) => setF({ ...f, offline_window_hours: e.target.value })} /></Field>
+          <p className="flex items-start gap-2 self-end rounded-xl bg-amber-50 p-3 text-xs text-amber-900"><ShieldAlert className="mt-0.5 size-4 shrink-0" />{t('assess.modes.offlineCheck')}</p></div>}
+      </fieldset>
       <fieldset className="space-y-3 rounded-2xl border border-navy-100 p-4"><legend className="px-2 text-sm font-bold text-navy-900">{tx('proctoring')}</legend>
         {chk('enabled', tx('proctorOn'), 'p')}
         {p.enabled && <div className="grid gap-3 sm:grid-cols-2">
@@ -97,6 +115,8 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
   const grading = useGet<{ data: any[] }>(`/admin/assessments/${a.id}/grading`, undefined, { enabled: tab === 'grading', staleTime: 0 })
   const analytics = useGet<{ data: any }>(`/admin/assessments/${a.id}/analytics`, undefined, { enabled: tab === 'analytics', staleTime: 0 })
   const [grades, setGrades] = useState<Record<string, { points: string; comment: string }>>({})
+  const [review, setReview] = useState<string | null>(null)
+  const flag = (f: string) => t(`assess.flags.${f}`, { defaultValue: f })
 
   return (
     <div className="space-y-4">
@@ -105,6 +125,7 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
         <div className="space-y-3">
           {report && <div className={`rounded-xl p-3 text-sm ${report.valid ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-danger'}`}>{report.valid ? tx('valid', { q: report.questions, p: report.total_points }) : tx('notValid')}
             {report.sections?.flatMap((s: any) => s.shortages ?? []).map((s: any, i: number) => <div key={i}>{tx('shortage', { d: s.difficulty ?? '', needed: s.needed, available: s.available })}</div>)}</div>}
+          {(report?.warnings ?? []).map((w: string) => <div key={w} className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">{t(`assess.warnings.${w}`, { defaultValue: w })}</div>)}
           <div className="flex flex-wrap gap-2">
             {a.status === 'draft' && <Button variant="gold" disabled={!report?.valid} onClick={() => void act(() => api.post(`/admin/assessments/${a.id}/publish`), tx('published'))}>{tx('publish')}</Button>}
             {a.access_code_mode !== 'none' && <Button variant="outline" onClick={async () => { try { const { data } = await api.post(`/admin/assessments/${a.id}/access-codes`, {}); setCode(data.data.code) } catch (e) { toast(errorMessage(e), 'error') } }}>{tx('newCode')}</Button>}
@@ -116,8 +137,9 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
       {tab === 'live' && (!live.data ? <Spinner /> : <div className="space-y-3">
         {live.data.data.rotating_code && <div className="rounded-xl bg-navy-900 p-3 text-center text-white">{tx('rotating')}: <b className="text-2xl tabular-nums" dir="ltr">{live.data.data.rotating_code.code ?? live.data.data.rotating_code}</b></div>}
         {!live.data.data.attempts.length ? <Empty text={tx('noAttempts')} /> : <Table head={['', tx('answered'), tx('flags'), '']}>{live.data.data.attempts.map((r: any) => (
-          <tr key={r.id}><Td>{r.employee}<div className="text-xs text-slate-400">{r.status}{r.remaining_seconds !== null && ` · ${Math.floor(r.remaining_seconds / 60)}′`}</div></Td><Td>{r.answered}/{r.total}</Td><Td>{(r.flags ?? []).length ? <Badge color="red">{(r.flags ?? []).join(', ')}</Badge> : '—'}</Td>
-            <Td><div className="flex gap-1">{r.status === 'in_progress' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={async () => { const reason = await dialogs.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
+          <tr key={r.id}><Td>{r.employee}<div className="flex flex-wrap items-center gap-1 text-xs text-slate-400">{r.status}{r.remaining_seconds !== null && ` · ${Math.floor(r.remaining_seconds / 60)}′`}{r.delivery === 'offline' && <Badge color="blue">{t('assess.deliveries.offline')}</Badge>}{r.adaptive && <Badge color="gold">{t('assess.adaptive.title')}</Badge>}</div></Td><Td>{r.answered}/{r.total}</Td>
+            <Td>{(r.flags ?? []).length ? <div className="flex flex-wrap gap-1">{(r.flags ?? []).map((f: string) => <Badge key={f} color="red">{flag(f)}</Badge>)}</div> : '—'}</Td>
+            <Td><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setReview(r.id)}>{t('assess.review.open')}</Button>{r.status === 'in_progress' && r.delivery !== 'offline' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={async () => { const reason = await dialogs.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
       {tab === 'grading' && (!grading.data ? <Spinner /> : !grading.data.data.length ? <Empty text={tx('noAttempts')} /> : grading.data.data.map((g: any) => (
         <Card key={g.attempt_id} className="space-y-3"><div className="font-bold">{g.employee}</div><AiDraftBox attemptId={g.attempt_id} onGraded={() => void grading.refetch()} />
           {g.items.map((it: any) => { const k = `${g.attempt_id}:${it.question_id}`; return (
@@ -127,6 +149,7 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
       {tab === 'analytics' && (!analytics.data ? <Spinner /> : (() => { const d = analytics.data.data; return (
         <div className="space-y-4"><div className="grid gap-3 sm:grid-cols-4">{[[tx('passRate'), d.pass_rate !== null ? `${d.pass_rate}%` : '—'], [tx('average'), d.average ?? '—'], [tx('median'), d.median ?? '—'], [tx('avgMinutes'), d.average_minutes ?? '—']].map(([l, v]) => <Card key={String(l)} className="text-center"><div className="text-2xl font-extrabold text-navy-900">{typeof v === 'number' ? fmt.number(v, 1) : v}</div><div className="text-xs text-slate-500">{l}</div></Card>)}</div>
           {d.items?.length > 0 && <Table head={[tx('items'), tx('answered'), tx('difficultyIndex'), tx('discrimination')]}>{d.items.map((it: any) => <tr key={it.question_id}><Td><span dir="auto">{ar ? it.stem_ar : it.stem_en || it.stem_ar}</span></Td><Td>{it.answered}</Td><Td>{it.difficulty_index}</Td><Td>{it.discrimination ?? '—'}</Td></tr>)}</Table>}</div>) })())}
+      <AttemptReview attemptId={review} onClose={() => setReview(null)} />
     </div>
   )
 }

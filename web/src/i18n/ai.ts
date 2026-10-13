@@ -2,7 +2,31 @@
 export const aiAr = {
   aix: {
     nav: { forecasts: 'التوقعات والمخاطر', adaptive: 'قواعد التعلّم التكيّفي' },
+    adp: {
+      title: 'التدريب التكيّفي ودروس المراجعة', subtitle: 'يبدأ مستوى أسئلة التدريب التكيّفي من إتقان المتدرب لكل كفاية ثم يتبع إجاباته، وتُسند دروس المراجعة لمن يحتاجها فقط.',
+      easy_below: 'أسئلة سهلة تحت (%)', easy_belowHint: 'إتقان أقل من هذه النسبة يبدأ بأسئلة سهلة.', hard_above: 'أسئلة صعبة فوق (%)', hard_aboveHint: 'إتقان أعلى من هذه النسبة يبدأ بأسئلة صعبة، وما بينهما متوسط.',
+      up_after: 'صعود بعد إجابات صحيحة متتالية', up_afterHint: 'عدد الإجابات الصحيحة المتتالية قبل رفع المستوى.', down_after: 'نزول بعد إجابات خاطئة', down_afterHint: 'عدد الإجابات الخاطئة قبل خفض المستوى.',
+      remedial_below: 'درس مراجعة تحت (%)', remedial_belowHint: 'يُسند درس المراجعة للمتدرب إذا قلّ إتقانه عن هذه النسبة.', mastered_at: 'إتقان عند (%)', mastered_atHint: 'يختفي درس المراجعة من مسار المتدرب عند بلوغ هذه النسبة.',
+    },
+    ret: {
+      title: 'البحث الذي يجيب منه المساعد', subtitle: 'يجيب المساعد من مقاطع محتوى المنصة الأقرب إلى سؤال المتدرب. يمكن استبدال المضمِّن المحلي بنموذج تضمين داخل قطر دون انقطاع.',
+      embedder: 'المضمِّن المستخدم', local: 'محلي (داخل التطبيق)', dim: '{{n}} رقمًا لكل مقطع', store: 'مخزن المتجهات', stores: { json: 'JSON (كل قواعد البيانات)', pgvector: 'pgvector (PostgreSQL)' },
+      pgAvailable: 'pgvector متاح', pgMissing: 'pgvector غير متاح هنا', indexed: 'مقاطع مفهرسة', sources: 'من {{n}} مصدرًا', target: 'أعد التضمين بـ', reembed: 'أعد التضمين',
+      reembedHint: 'يُبنى الفهرس الجديد بجانب الحالي، ولا يتغير المضمِّن المستخدم إلا عند اكتمال البناء. يمكن إيقافه ثم متابعته دون تكرار ما أُنجز.',
+      noModels: 'لاستخدام نموذج تضمين أضِفه في «نماذج الذكاء الاصطناعي» واختر له عمل «التضمين».',
+      status: { queued: 'في الانتظار', running: 'قيد البناء', done: 'اكتمل', failed: 'توقف' },
+      done: 'اكتمل التضمين: {{n}} مقطعًا، والمضمِّن الجديد مستخدم الآن.', failed: 'توقف التضمين. أعد المحاولة لاحقًا وسيتابع من حيث توقف.',
+      advanced: 'المخزن وعتبات التشابه', storeChoice: 'المخزن', choices: { auto: 'تلقائي', json: 'JSON دائمًا', pgvector: 'pgvector عند توفره' },
+      th: { local_min: 'المحلي: أدنى تشابه', local_strong: 'المحلي: إجابة واثقة', model_min: 'النموذج: أدنى تشابه', model_strong: 'النموذج: إجابة واثقة', strongHint: 'فوقها يجيب المساعد بثقة ويُعدّ السؤال من صميم التدريب.' },
+      golden: 'مجموعة الأسئلة الذهبية', goldenHint: '{{n}} سؤالًا بالعربية والإنجليزية إجاباتها معروفة في مركز المساعدة، وأسئلة خارج الموضوع يجب أن يعتذر عنها المساعد.',
+      m: { hit_at_3: 'المصدر الصحيح ضمن أول 3', hit_at_5: 'المصدر الصحيح ضمن أول 5', citation_accuracy: 'دقة الاستشهاد', refusal_accuracy: 'الاعتذار عمّا ليس من التدريب' },
+      runMeta: '{{date}} · {{embedder}} · {{store}} · {{answerable}} سؤالًا يمكن الإجابة عنه و{{off}} خارج الموضوع', withModel: 'بإجابات النموذج', falseRefusals: 'اعتذر عن {{n}} سؤالًا كان يمكن الإجابة عنه',
+      trend: 'اتجاه آخر التقييمات: المصدر ضمن أول 3 (ذهبي) ودقة الاستشهاد (عنابي)، والخط المتقطع هو الحد المطلوب.', noRuns: 'لم يُجرَ تقييم بعد.',
+      useModel: 'بإجابات النموذج المضبوط (وإلا فالإجابات القاعدية القابلة للتكرار)', run: 'شغّل التقييم', passed: 'اجتاز المساعد التقييم.', below: 'نتائج المساعد أقل من الحدود المطلوبة.',
+      passedBadge: 'ناجح', belowBadge: 'دون الحد', thresholds: 'الحدود المطلوبة', need: { hit_at_3: 'ضمن أول 3', hit_at_5: 'ضمن أول 5', citation: 'دقة الاستشهاد', refusal: 'الاعتذار' },
+    },
     assistant: {
+      stop: 'إيقاف الإجابة', stopped: 'أُوقفت الإجابة — حُفظ ما كُتب حتى الآن',
       title: 'مساعد التدريب', subtitle: 'يجيب من محتوى المنصة وبياناتك فقط.', open: 'اسأل المساعد', close: 'إغلاق', placeholder: 'اكتب سؤالك عن برامجك أو دروسك أو جدولك…', send: 'إرسال', thinking: 'جارٍ البحث في المحتوى…',
       empty: 'اسألني عن دروسك وبرامجك وجدولك وشهاداتك وساعاتك.', suggestions: ['متى جلستي القادمة؟', 'كم ساعة تطوير مهني لدي؟', 'ما شهاداتي؟', 'ما تقدمي في الدورات؟'], sources: 'المصادر', helpful: 'مفيد', notHelpful: 'غير مفيد', thanks: 'شكرًا لملاحظتك.',
       notSure: 'لست متأكدًا من هذه الإجابة. يمكنك:', askTrainer: 'اسأل المدرب', askSupport: 'تواصل مع الدعم', pickProgram: 'اختر البرنامج', sentTrainer: 'أُرسل سؤالك إلى المدرب.', sentSupport: 'أُنشئ طلب دعم.', sourceAi: 'مولَّد بنموذج ذكاء اصطناعي', sourceRules: 'مقتبس من المحتوى', refused: 'خارج نطاق التدريب', newChat: 'محادثة جديدة', history: 'السجل', error: 'تعذّر الحصول على إجابة.',
@@ -41,7 +65,31 @@ export const aiAr = {
 export const aiEn = {
   aix: {
     nav: { forecasts: 'Forecasts & risks', adaptive: 'Adaptive learning rules' },
+    adp: {
+      title: 'Adaptive practice and review lessons', subtitle: 'An adaptive practice starts each competency from the learner\'s mastery and then follows their answers; review lessons go only to the learners who need them.',
+      easy_below: 'Easy questions below (%)', easy_belowHint: 'Mastery below this starts with easy questions.', hard_above: 'Hard questions above (%)', hard_aboveHint: 'Mastery above this starts with hard questions; in between is medium.',
+      up_after: 'Up after correct answers in a row', up_afterHint: 'Correct answers in a row before the level goes up.', down_after: 'Down after wrong answers', down_afterHint: 'Wrong answers before the level goes down.',
+      remedial_below: 'Review lesson below (%)', remedial_belowHint: 'A review lesson is given to a learner whose mastery falls below this.', mastered_at: 'Mastered at (%)', mastered_atHint: 'The review lesson leaves the learner\'s path once they reach this.',
+    },
+    ret: {
+      title: 'What the assistant searches', subtitle: 'The assistant answers from the passages of platform content closest to the question. The local embedder can be replaced by an embeddings model in Qatar without any downtime.',
+      embedder: 'Embedder in use', local: 'Local (in the application)', dim: '{{n}} numbers per passage', store: 'Vector store', stores: { json: 'JSON (every database)', pgvector: 'pgvector (PostgreSQL)' },
+      pgAvailable: 'pgvector available', pgMissing: 'pgvector not available here', indexed: 'Passages indexed', sources: 'from {{n}} sources', target: 'Re-embed with', reembed: 'Re-embed',
+      reembedHint: 'The new index is built next to the current one, and the embedder in use changes only when it is complete. It can stop and continue without repeating what is done.',
+      noModels: 'To use an embeddings model, add it in AI models with the work "embeddings".',
+      status: { queued: 'Waiting', running: 'Building', done: 'Done', failed: 'Stopped' },
+      done: 'Re-embedding finished: {{n}} passages, and the new embedder is now in use.', failed: 'Re-embedding stopped. Try again later; it continues where it stopped.',
+      advanced: 'Store and similarity thresholds', storeChoice: 'Store', choices: { auto: 'Automatic', json: 'Always JSON', pgvector: 'pgvector when available' },
+      th: { local_min: 'Local: least similarity', local_strong: 'Local: confident answer', model_min: 'Model: least similarity', model_strong: 'Model: confident answer', strongHint: 'Above this the assistant answers with confidence and the question counts as being about training.' },
+      golden: 'Golden question set', goldenHint: '{{n}} Arabic and English questions with known answers in the help centre, and off-topic questions the assistant must decline.',
+      m: { hit_at_3: 'Right source in the top 3', hit_at_5: 'Right source in the top 5', citation_accuracy: 'Citation accuracy', refusal_accuracy: 'Declines what is not training' },
+      runMeta: '{{date}} · {{embedder}} · {{store}} · {{answerable}} answerable and {{off}} off-topic questions', withModel: 'model answers', falseRefusals: 'declined {{n}} answerable question(s)',
+      trend: 'Recent evaluations: right source in the top 3 (gold) and citation accuracy (maroon); the dashed line is the threshold.', noRuns: 'No evaluation has been run yet.',
+      useModel: 'With the configured model\'s answers (otherwise the repeatable rule-based answers)', run: 'Run the evaluation', passed: 'The assistant passed the evaluation.', below: 'The assistant scored below the thresholds.',
+      passedBadge: 'Passed', belowBadge: 'Below threshold', thresholds: 'Thresholds', need: { hit_at_3: 'Top 3', hit_at_5: 'Top 5', citation: 'Citation accuracy', refusal: 'Declining' },
+    },
     assistant: {
+      stop: 'Stop the answer', stopped: 'Stopped — what was said so far is kept',
       title: 'Training assistant', subtitle: 'Answers only from platform content and your own data.', open: 'Ask the assistant', close: 'Close', placeholder: 'Ask about your programmes, lessons or schedule…', send: 'Send', thinking: 'Searching the content…',
       empty: 'Ask me about your lessons, programmes, schedule, certificates and hours.', suggestions: ['When is my next session?', 'How many PD hours do I have?', 'What are my certificates?', 'How far am I in my courses?'], sources: 'Sources', helpful: 'Helpful', notHelpful: 'Not helpful', thanks: 'Thanks for the feedback.',
       notSure: 'I am not sure about this answer. You can:', askTrainer: 'Ask the trainer', askSupport: 'Contact support', pickProgram: 'Choose the programme', sentTrainer: 'Your question was sent to the trainer.', sentSupport: 'A support ticket was created.', sourceAi: 'Generated by an AI model', sourceRules: 'Quoted from the content', refused: 'Outside training topics', newChat: 'New chat', history: 'History', error: 'Could not get an answer.',

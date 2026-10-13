@@ -129,10 +129,14 @@ class AdaptivePractice
         }
         $questions = $at->questions;
         $last = array_key_last($log['steps']);
-        if ($last !== null && $log['steps'][$last]['answered_at'] === null && array_key_exists($log['steps'][$last]['question_id'], $at->answers ?? [])) {
-            $item = collect($questions)->firstWhere('id', $log['steps'][$last]['question_id']);
-            $log['steps'][$last]['correct'] = $this->grade($item, ($at->answers ?? [])[$item['id']]);
-            $log['steps'][$last]['answered_at'] = now()->toIso8601String();
+        if ($last !== null && $log['steps'][$last]['answered_at'] === null) {
+            if (array_key_exists($log['steps'][$last]['question_id'], $at->answers ?? [])) {
+                $item = collect($questions)->firstWhere('id', $log['steps'][$last]['question_id']);
+                $log['steps'][$last]['correct'] = $this->grade($item, ($at->answers ?? [])[$item['id']]);
+                $log['steps'][$last]['answered_at'] = now()->toIso8601String();
+            } else {
+                $log['steps'][$last]['unanswered'] = true;   // on screen, left without an answer
+            }
         }
         while (count($log['steps']) < $log['total'] && ($item = $this->next($at->assessment, $log, true))) {
             $questions[] = $item;
@@ -182,7 +186,7 @@ class AdaptivePractice
             'total' => (int) $log['total'], 'answered' => $this->answered($log), 'rules' => $log['rules'],
             'competencies' => array_values(array_map(fn ($track, $t) => ['skill' => $this->skillOf($track, $names), 'start_mastery' => $t['mastery'] === null ? null : (int) round($t['mastery'] * 100), 'start_level' => $t['start'], 'level' => $t['level'], 'asked' => $t['asked']],
                 array_keys($log['tracks']), $log['tracks'])),
-            'steps' => array_map(fn ($s) => ['question_id' => $s['question_id'], 'level' => $s['level'], 'skill' => $this->skillOf($s['track'], $names), 'correct' => $s['correct'], 'skipped' => ! empty($s['skipped']),
+            'steps' => array_map(fn ($s) => ['question_id' => $s['question_id'], 'level' => $s['level'], 'skill' => $this->skillOf($s['track'], $names), 'correct' => $s['correct'], 'skipped' => ! empty($s['skipped']), 'unanswered' => ! empty($s['unanswered']),
                 'answered_at' => $s['answered_at'], 'why' => empty($s['skipped']) ? $this->why($s, $names, true) : $this->text('skipped', $s, $names)], $log['steps']),
         ];
     }

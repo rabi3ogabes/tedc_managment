@@ -52,7 +52,8 @@ class CourseService
                 }
                 $p = $progress->get($lesson->id);
                 $completed = $p?->status === 'completed';
-                $locked = $program->course_sequential && $blocked;
+                // A review lesson supports a weak competency now: it is never held back by the course order.
+                $locked = $program->course_sequential && $blocked && ! $lesson->isRemedial();
                 if ($lesson->is_required) {
                     $required++;
                     $done += $completed ? 1 : 0;
@@ -114,7 +115,7 @@ class CourseService
         if ($lesson->status !== 'published' || ! $lesson->program->has_course || ! app(RemedialAssignments::class)->visible($lesson, $registration)) {
             abort(404);
         }
-        if (! $lesson->program->course_sequential) {
+        if (! $lesson->program->course_sequential || $lesson->isRemedial()) {
             return;
         }
         $order = $this->orderedLessons($lesson->program)->pluck('id')->all();

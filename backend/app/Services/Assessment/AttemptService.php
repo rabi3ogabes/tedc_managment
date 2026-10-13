@@ -494,7 +494,8 @@ class AttemptService
                 $r = $type->grade($q['payload'], $answer);
 
                 return ['id' => $q['id'], 'type' => $q['type'], 'stem_ar' => $q['stem_ar'], 'stem_en' => $q['stem_en'], 'your_answer' => $answer, 'correct' => $r['manual'] ? null : $r['ratio'] >= 1, 'points_awarded' => $r['manual'] ? ($grades[$q['id']]->points_awarded ?? null) : round($r['ratio'] * $q['points'], 2),
-                    'max_points' => $q['points'], 'correct_answer' => $type->correctAnswer($q['payload']), 'explanation_ar' => $q['explanation_ar'], 'explanation_en' => $q['explanation_en'], 'comment' => $grades[$q['id']]->comment ?? null];
+                    'max_points' => $q['points'], 'correct_answer' => $type->correctAnswer($q['payload']), 'explanation_ar' => $q['explanation_ar'], 'explanation_en' => $q['explanation_en'], 'comment' => $grades[$q['id']]->comment ?? null,
+                    'options' => array_map(fn ($o) => ['id' => $o['id'] ?? null, 'text_ar' => $o['text_ar'] ?? null, 'text_en' => $o['text_en'] ?? null], (array) ($q['public']['options'] ?? []))];
             }, $at->questions);
         }
 

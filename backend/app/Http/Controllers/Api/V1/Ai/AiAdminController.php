@@ -59,7 +59,7 @@ class AiAdminController extends Controller
             $rows[$f] = $policy['features'][$f] + ['usable' => $this->guard->available($f, true)];
         }
 
-        return response()->json(['data' => ['policy' => ['residency_enforced' => $policy['residency_enforced'], 'redaction' => $policy['redaction'], 'retention_days' => $policy['retention_days'], 'features' => $rows, 'recommendations' => $policy['recommendations'], 'adaptive' => $policy['adaptive']], 'connections' => $conns, 'models' => $models, 'default_residency' => $this->models->resolve('text')['connection']['data_residency'] ?? null,
+        return response()->json(['data' => ['policy' => ['residency_enforced' => $policy['residency_enforced'], 'redaction' => $policy['redaction'], 'retention_days' => $policy['retention_days'], 'features' => $rows, 'recommendations' => $policy['recommendations'], 'adaptive' => $policy['adaptive'], 'retrieval' => $policy['retrieval'], 'eval' => $policy['eval']], 'connections' => $conns, 'models' => $models, 'default_residency' => $this->models->resolve('text')['connection']['data_residency'] ?? null,
             'stats' => $this->logStats(), 'index' => ['chunks' => Embedding::count(), 'sources' => Embedding::distinct()->count('source_id')]]]);
     }
 
@@ -71,6 +71,8 @@ class AiAdminController extends Controller
             'recommendations' => ['array'], 'recommendations.weights' => ['array'], 'recommendations.weights.*' => ['integer', 'between:0,100'], 'recommendations.ab_test' => ['boolean'], 'recommendations.ab_share' => ['integer', 'between:0,100'],
             'adaptive' => ['array'], 'adaptive.easy_below' => ['integer', 'between:0,100'], 'adaptive.hard_above' => ['integer', 'between:0,100'], 'adaptive.up_after' => ['integer', 'between:1,10'],
             'adaptive.down_after' => ['integer', 'between:1,10'], 'adaptive.remedial_below' => ['integer', 'between:0,100'], 'adaptive.mastered_at' => ['integer', 'between:0,100'],
+            'retrieval' => ['array'], 'retrieval.store' => ['string', 'in:auto,json,pgvector'], 'retrieval.local' => ['array'], 'retrieval.model' => ['array'], 'retrieval.local.*' => ['numeric', 'between:0,1'], 'retrieval.model.*' => ['numeric', 'between:0,1'],
+            'eval' => ['array'], 'eval.*' => ['numeric', 'between:0,1'],
         ]);
         $this->policy->save($d, $this->user()->id);
 

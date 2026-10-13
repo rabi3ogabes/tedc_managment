@@ -2,6 +2,7 @@
 import { BookOpen, Download, LifeBuoy, Mail, Phone, RefreshCw, Search, Ticket } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import ArticleView from '@/components/help/ArticleView'
 import { useLang, type HelpArticle } from '@/components/help/helpApi'
 import { Badge, Button, Card, Empty, PageHeader, Spinner } from '@/components/ui'
@@ -17,7 +18,10 @@ export default function HelpCentre() {
   const { t } = useTranslation()
   const { pick, lang } = useLang()
   const [q, setQ] = useState('')
-  const [slug, setSlug] = useState<string | null>(null)
+  // The open article lives in the address (?article=slug), so a link (an assistant's source, for one) opens it and Back closes it.
+  const [params, setParams] = useSearchParams()
+  const slug = params.get('article')
+  const setSlug = (next: string | null) => setParams(next ? { article: next } : {})
   const [busy, setBusy] = useState<string | null>(null)
   const query = q.trim().length > 1 ? { q: q.trim() } : undefined
   const list = useGet<{ data: HelpArticle[]; support: any }>('/me/help/articles', query, { staleTime: 30_000 })

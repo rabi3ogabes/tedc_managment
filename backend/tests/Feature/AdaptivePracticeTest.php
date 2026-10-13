@@ -114,6 +114,12 @@ class AdaptivePracticeTest extends TestCase
 
         $attempt = AssessmentAttempt::findOrFail($id);
         $this->assertCount(5, $attempt->questions);
+        $this->practice->update(['show_correct_answers' => true]);
+        $review = $this->asUser($u)->getJson("/api/v1/me/attempts/{$id}/result")->assertOk()->json('data.review.0');
+        $this->assertSame('صح', collect($review['options'])->firstWhere('id', 'a')['text_ar']);   // the learner sees the option, not its id
+        $trail = $this->asUser($this->makeUser(Role::TRAINING_HEAD))->getJson("/api/v1/admin/attempts/{$id}/review")->assertOk()->json('data.adaptive.steps');
+        $this->assertSame([false, true, false, false, false], array_column($trail, 'unanswered'));   // on screen when the learner stopped
+        $this->assertSame([false, false, true, true, true], array_column($trail, 'skipped'));
         $this->assertEquals(5, $attempt->max_score);
         $this->assertEquals(20, $attempt->score_percent);
 
@@ -139,6 +145,7 @@ class AdaptivePracticeTest extends TestCase
 
         $this->assertSame(['medium', 'medium', 'easy'], array_column($review['adaptive']['steps'], 'level'));
         $this->assertSame([true, false, null], array_column($review['adaptive']['steps'], 'correct'));
+        $this->assertSame('صح', $review['items'][0]['options'][0]['text_ar']);   // the review names the options, not just their ids
     }
 
     public function test_the_thresholds_come_from_the_ai_settings(): void
@@ -258,6 +265,21 @@ class AdaptivePracticeTest extends TestCase
         }
         $this->assertFalse($sees($weak, $weakReg));
         $this->assertDatabaseHas('notifications', ['user_id' => $weak->id, 'type' => 'course.remedial_assigned']);
+    }
+
+    public function test_an_assigned_review_lesson_is_never_locked_behind_the_course_order(): void
+    {
+        $this->program->update(['course_sequential' => true]);
+        $module = CourseModule::create(['program_id' => $this->program->id, 'title_ar' => 'و', 'title_en' => 'M', 'sort_order' => 1]);
+        CourseLesson::create(['program_id' => $this->program->id, 'module_id' => $module->id, 'type' => 'article', 'title_ar' => 'درس', 'title_en' => 'Lesson', 'body_ar' => 'نص', 'status' => 'published', 'sort_order' => 1, 'is_required' => true]);
+        [$u, $r] = $this->learner(0.2);
+        $review = CourseLesson::create(['program_id' => $this->program->id, 'module_id' => $module->id, 'type' => 'article', 'title_ar' => 'مراجعة', 'title_en' => 'Review', 'body_ar' => 'نص', 'status' => 'published', 'sort_order' => 900,
+            'settings' => ['remedial' => true, 'skill_id' => $this->skill->id]]);
+
+        $row = collect($this->asUser($u)->getJson("/api/v1/me/registrations/{$r->id}/course")->assertOk()->json('data.modules'))->flatMap(fn ($m) => $m['lessons'])->firstWhere('id', $review->id);
+
+        $this->assertFalse($row['locked']);
+        $this->asUser($u)->getJson("/api/v1/me/lessons/{$review->id}")->assertOk();
     }
 
     public function test_a_review_lesson_published_later_reaches_the_learners_already_below_the_threshold(): void

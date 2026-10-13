@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ShieldCheck } from 'lucide-react'
+import { GraduationCap, ShieldCheck } from 'lucide-react'
+import RetrievalPanel from '@/components/ai/RetrievalPanel'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Field, Spinner, Table, Td } from '@/components/ui'
@@ -31,8 +32,9 @@ export default function AiPolicySettings() {
     setBusy(true)
     try { await api.put('/admin/settings/ai', p); toast(String(t('aix.set.saved'))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
-  const reindex = async () => { try { const { data } = await api.post('/admin/assistant/reindex'); toast(String(t('aix.set.reindexed', { n: data.data.chunks }))); res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const w = p.recommendations.weights
+  const a = p.adaptive
+  const ADAPTIVE = [['easy_below', 0, 100], ['hard_above', 0, 100], ['up_after', 1, 10], ['down_after', 1, 10], ['remedial_below', 0, 100], ['mastered_at', 0, 100]] as const
 
   return (
     <div className="space-y-6">
@@ -83,13 +85,21 @@ export default function AiPolicySettings() {
           </Table>
         )}
       </Card>
+      <Card className="space-y-4">
+        <div className="flex items-start gap-3">
+          <GraduationCap className="mt-0.5 size-5 shrink-0 text-gold-600" />
+          <div><h3 className="text-lg font-bold text-navy-900">{t('aix.adp.title')}</h3><p className="text-sm text-slate-500">{t('aix.adp.subtitle')}</p></div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">{ADAPTIVE.map(([k, min, max]) => (
+          <Field key={k} label={t(`aix.adp.${k}`)} hint={t(`aix.adp.${k}Hint`)}><input type="number" min={min} max={max} className="input" value={a[k]} onChange={(e) => setP({ ...p, adaptive: { ...a, [k]: Number(e.target.value) } })} /></Field>))}</div>
+      </Card>
+
+      <RetrievalPanel policy={p} onChange={setP} />
+
       <div className="flex justify-end"><Button variant="gold" loading={busy} onClick={save}>{t('aix.set.save')}</Button></div>
 
       <Card className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><h3 className="font-bold text-navy-900">{t('aix.set.index')}</h3><p className="text-xs text-slate-500">{fmt.number(d.index.chunks)} {t('aix.set.chunks')}</p></div>
-          <Button variant="outline" onClick={reindex}>{t('aix.set.reindex')}</Button>
-        </div>
+        <h3 className="font-bold text-navy-900">{t('aix.set.stats')}</h3>
         <div className="grid gap-3 sm:grid-cols-3 text-center">
           {[[t('aix.set.calls'), d.stats.calls_30d], [t('aix.set.blocked'), d.stats.blocked_30d], [t('aix.set.redactions'), d.stats.redactions_30d]].map(([l, v]) => <div key={String(l)} className="rounded-xl bg-ivory p-3"><div className="font-display text-2xl font-bold text-navy-900">{fmt.number(Number(v))}</div><div className="text-xs text-slate-500">{l} · {t('aix.set.stats')}</div></div>)}
         </div>

@@ -10,6 +10,7 @@ import { Button, Field } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { homeFor, MfaRequired, useAuth, type MfaChallenge } from '@/lib/auth'
+import { safePath } from '@/lib/paths'
 import { useCenterName } from '@/lib/ThemeProvider'
 
 const DEMO = [
@@ -40,6 +41,8 @@ export default function Login() {
   const options = useGet<{ data: { sso: boolean; ldap: boolean } }>('/auth/options', undefined, { staleTime: 60_000, retry: false })
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
+  // Where to go after signing in: the page that asked for it, or a ?redirect= from a link (an LTI launch, for one).
+  const from = location.state?.from ?? safePath(params.get('redirect'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(params.get('sso_error') ? String(t('idn.login.ssoError')) : null)
@@ -50,12 +53,12 @@ export default function Login() {
   const DEMO_PASSWORD = config.data?.data.demo_password ?? ''
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true && DEMO_PASSWORD !== ''
 
-  if (user) return <Navigate to={homeFor(user)} replace />
+  if (user) return <Navigate to={from ?? homeFor(user)} replace />
 
   const sso = async () => {
     try { const { data } = await api.get('/auth/sso/start', { params: { redirect: `${window.location.origin}/sso/callback` } }); window.location.href = data.data.url } catch (err) { setError(errorMessage(err)) }
   }
-  const done = (data: unknown) => { const me = finish(data); navigate(landing(me, location.state?.from), { replace: true }) }
+  const done = (data: unknown) => { const me = finish(data); navigate(landing(me, from), { replace: true }) }
 
   const signIn = async (mail: string, pass: string, viaDirectory = false) => {
     setLoading(true)
@@ -64,11 +67,11 @@ export default function Login() {
       if (viaDirectory) {
         const { data } = await api.post('/auth/ldap/login', { username: mail, password: pass })
         const me = finish(data)
-        navigate(landing(me, location.state?.from), { replace: true })
+        navigate(landing(me, from), { replace: true })
         return
       }
       const me = await login(mail, pass)
-      navigate(landing(me, location.state?.from), { replace: true })
+      navigate(landing(me, from), { replace: true })
     } catch (err) {
       if (err instanceof MfaRequired) { setChallenge(err.challenge); return }
       setError(errorMessage(err))

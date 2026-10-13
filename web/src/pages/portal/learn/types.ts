@@ -1,6 +1,8 @@
 export type OutlineLesson = {
   id: string; type: 'video' | 'presentation' | 'quiz' | 'survey' | 'article' | 'package' | 'lti' | 'external'; title: string; description: string | null; duration_seconds: number; is_required: boolean
   locked: boolean; status: 'not_started' | 'in_progress' | 'completed'; percent: number; score: number | null; last_activity_at: string | null
+  /** A review lesson given to this learner only, with the reason (mastery below the threshold) — it leaves once mastered. */
+  remedial?: boolean; why?: { ar: string; en: string; mastery: number; mastered_at: number } | null
 }
 export type Outline = {
   registration_id: string; program: { id: string; code: string; title: string }

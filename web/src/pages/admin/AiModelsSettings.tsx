@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AudioLines, Check, FileText, Film, Image as ImageIcon, KeyRound, Plug, Plus, Search, Sparkles, Trash2, TriangleAlert, Zap } from 'lucide-react'
+import { AudioLines, Check, FileText, Film, Image as ImageIcon, KeyRound, Network, Plug, Plus, Search, Sparkles, Trash2, TriangleAlert, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Card, Field, PageHeader, Spinner } from '@/components/ui'
@@ -8,9 +8,9 @@ import { api, errorMessage } from '@/lib/api'
 import { Switch } from './notifications/shared'
 import { dialogs } from '@/lib/dialogs'
 
-type Task = 'text' | 'image' | 'audio' | 'video'
-const TASKS: Task[] = ['text', 'image', 'audio', 'video']
-const ICON: Record<Task, ReactNode> = { text: <FileText className="size-5" />, image: <ImageIcon className="size-5" />, audio: <AudioLines className="size-5" />, video: <Film className="size-5" /> }
+type Task = 'text' | 'image' | 'audio' | 'video' | 'embeddings'
+const TASKS: Task[] = ['text', 'image', 'audio', 'video', 'embeddings']
+const ICON: Record<Task, ReactNode> = { text: <FileText className="size-5" />, image: <ImageIcon className="size-5" />, audio: <AudioLines className="size-5" />, video: <Film className="size-5" />, embeddings: <Network className="size-5" /> }
 type Driver = 'openrouter' | 'openai' | 'anthropic' | 'custom'
 type Connection = { id: string; name: string; driver: Driver; base_url: string | null; enabled: boolean; has_key: boolean; key_hint: string | null }
 type Test = { ok: boolean; ms: number | null; at: string; error: string | null }

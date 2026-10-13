@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import clsx from 'clsx'
-import { Bot, Loader2, Plus, Send, ThumbsDown, ThumbsUp, X } from 'lucide-react'
+import { Bot, Loader2, Plus, Send, Square, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -22,6 +22,7 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
   const [busy, setBusy] = useState(false)
   const [conv, setConv] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [msgs, open])
   if (!enabled) return null
 
@@ -31,10 +32,14 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
     setText(''); setBusy(true)
     setMsgs((m) => [...m, { role: 'user', content: question }, { role: 'assistant', content: '' }])
     const patch = (fn: (m: Msg) => Msg) => setMsgs((all) => all.map((m, i) => (i === all.length - 1 ? fn(m) : m)))
+    const controller = new AbortController()
+    abortRef.current = controller
+    let streamed = ''
     try {
       const session = sessionStore.get()
       const res = await fetch(`${API_URL}/me/assistant/messages`, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}), ...(activeRoleStore.get() ? { 'X-Active-Role': activeRoleStore.get()! } : {}), 'X-Locale': i18n.language === 'en' ? 'en' : 'ar' },
         body: JSON.stringify({ message: question, conversation_id: conv, stream: true }),
       })
@@ -42,7 +47,6 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
       const reader = res.body.getReader()
       const dec = new TextDecoder()
       let buf = ''
-      let streamed = ''
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
@@ -50,17 +54,23 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
         const parts = buf.split('\n\n')
         buf = parts.pop() ?? ''
         for (const part of parts) {
-          const isDone = part.startsWith('event: done')
+          // Server-sent events: "event: start | done | error", or plain "data:" pieces of the answer as it is written.
+          const event = part.split('\n').find((l) => l.startsWith('event: '))?.slice(7).trim()
           const line = part.split('\n').find((l) => l.startsWith('data: '))
           if (!line) continue
           const data = JSON.parse(line.slice(6))
-          if (isDone) { setConv(data.conversation_id); patch(() => ({ ...data.message })) } else { streamed += data.delta; patch((m) => ({ ...m, content: streamed })) }
+          if (event === 'start') setConv(data.conversation_id)
+          else if (event === 'done') { setConv(data.conversation_id); patch(() => ({ ...data.message })) }
+          else if (event === 'error') patch((m) => ({ ...m, content: streamed || String(data.message ?? t('aix.assistant.error')) }))
+          else if (typeof data.delta === 'string') { streamed += data.delta; patch((m) => ({ ...m, content: streamed })) }
         }
       }
     } catch (e) {
-      patch((m) => ({ ...m, content: String(t('aix.assistant.error')) + (e instanceof Error && e.message ? ` (${e.message})` : '') }))
-    } finally { setBusy(false) }
+      if (controller.signal.aborted) patch((m) => ({ ...m, content: streamed, meta: { ...(m.meta ?? {}), cancelled: true } }))   // what was said so far stays
+      else patch((m) => ({ ...m, content: String(t('aix.assistant.error')) + (e instanceof Error && e.message ? ` (${e.message})` : '') }))
+    } finally { abortRef.current = null; setBusy(false) }
   }
+  const stop = () => abortRef.current?.abort()
 
   const rate = async (m: Msg, feedback: 'up' | 'down') => {
     if (!m.id) return
@@ -108,6 +118,7 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
                     <div className="mt-2 flex items-center gap-1 text-slate-400">
                       <button type="button" aria-label={String(t('aix.assistant.helpful'))} aria-pressed={m.feedback === 'up'} onClick={() => rate(m, 'up')} className={clsx('rounded p-1 hover:text-emerald-600', m.feedback === 'up' && 'text-emerald-600')}><ThumbsUp className="size-4" /></button>
                       <button type="button" aria-label={String(t('aix.assistant.notHelpful'))} aria-pressed={m.feedback === 'down'} onClick={() => rate(m, 'down')} className={clsx('rounded p-1 hover:text-danger', m.feedback === 'down' && 'text-danger')}><ThumbsDown className="size-4" /></button>
+                      {m.meta?.cancelled && <span className="text-[10px] font-semibold text-gold-700">{t('aix.assistant.stopped')}</span>}
                       {m.meta?.source && <span className="ms-auto text-[10px]">{t(m.meta.source === 'ai' ? 'aix.assistant.sourceAi' : 'aix.assistant.sourceRules')}</span>}
                     </div>
                   )}
@@ -127,7 +138,9 @@ export default function AssistantPanel({ portal }: { portal: boolean }) {
           </div>
           <form className="flex items-end gap-2 border-t border-navy-100 bg-white p-3" onSubmit={(e) => { e.preventDefault(); void ask(text) }}>
             <textarea className="input max-h-32 min-h-11 flex-1 resize-none" rows={1} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void ask(text) } }} placeholder={String(t('aix.assistant.placeholder'))} maxLength={2000} />
-            <Button type="submit" variant="gold" loading={busy} disabled={!text.trim()} aria-label={String(t('aix.assistant.send'))}><Send className="size-4 rtl:rotate-180" /></Button>
+            {busy
+              ? <Button type="button" variant="outline" onClick={stop} aria-label={String(t('aix.assistant.stop'))} title={String(t('aix.assistant.stop'))}><Square className="size-4 fill-current" /></Button>
+              : <Button type="submit" variant="gold" disabled={!text.trim()} aria-label={String(t('aix.assistant.send'))}><Send className="size-4 rtl:rotate-180" /></Button>}
           </form>
         </aside>
       )}

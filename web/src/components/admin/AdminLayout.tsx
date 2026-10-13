@@ -24,6 +24,7 @@ import CartDrawer from '@/components/shop/CartDrawer'
 import { useFeatures } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
 import { useRealtimeNotifications, useSseNotifications } from '@/lib/realtime'
+import { embedded } from '@/lib/embedded'
 import { useCenterName } from '@/lib/ThemeProvider'
 
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
@@ -110,6 +111,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const flagsLoaded = !!useFeatures().data
   const offItem = flagsLoaded ? groups.flatMap((g) => g.items).find((i) => i.feature && !featureOn(i.feature) && (pathname === i.to || pathname.startsWith(`${i.to}/`))) : undefined
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isEmbedded, setEmbedded] = useState(() => embedded.get())
+  useEffect(() => { const on = () => setEmbedded(embedded.get()); window.addEventListener('tedc:embedded', on); return () => window.removeEventListener('tedc:embedded', on) }, [])
   useSearchShortcut(() => setSearchOpen((v) => !v))
   // The "functions" the search can open: the menu entries and the settings sections this role may use.
   const functions: FunctionTarget[] = [
@@ -213,6 +216,28 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
       </div>
     </aside>
   )
+
+  // Opened from another LMS (an LTI launch): the content alone, with a slim bar and the way to the full site.
+  if (isEmbedded) {
+    return (
+      <div className="flex min-h-screen flex-col bg-ivory">
+        <header className="glass sticky top-0 z-20 border-x-0 border-t-0 print:hidden">
+          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+            <LogoMark className="size-8" />
+            <span className="hidden truncate text-sm text-slate-500 sm:block">{t('lti.embedded.note')}</span>
+            <div className="ms-auto flex items-center gap-2">
+              <LanguageToggle />
+              <button type="button" onClick={() => embedded.set(false)} className="rounded-xl border border-navy-100 bg-white px-3 py-1.5 text-xs font-semibold text-navy-900 transition-colors hover:border-gold-400">{t('lti.embedded.full')}</button>
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 px-4 py-6 sm:px-6">
+          <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
+          {portal && <AssistantPanel portal />}
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-ivory">

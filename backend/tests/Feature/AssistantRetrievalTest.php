@@ -259,6 +259,7 @@ class AssistantRetrievalTest extends TestCase
         $admin = $this->makeUser(Role::SUPER_ADMIN);
         $this->asUser($this->trainee())->getJson('/api/v1/admin/ai/retrieval')->assertForbidden();
 
+        $this->asUser($admin)->getJson('/api/v1/admin/settings/ai')->assertOk()->assertJsonPath('data.policy.retrieval.store', 'auto')->assertJsonPath('data.policy.eval.hit_at_3', 0.75);
         $status = $this->asUser($admin)->getJson('/api/v1/admin/ai/retrieval')->assertOk()->json('data');
         $this->assertSame(LocalEmbedder::ID, $status['embedder']['id']);
         $this->assertContains($status['store']['name'], ['json', 'pgvector']);

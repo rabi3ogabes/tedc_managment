@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Loader2, Inbox, AlertTriangle, X } from 'lucide-react'
-import { useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ButtonHTMLAttributes, type ReactNode, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
@@ -15,7 +15,7 @@ const variants: Record<Variant, string> = {
   light: 'bg-white/10 text-white border border-white/25 hover:bg-white/20 backdrop-blur',
 }
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg'; loading?: boolean; to?: string; icon?: ReactNode }
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg'; loading?: boolean; to?: string; icon?: ReactNode; ref?: Ref<HTMLButtonElement> }
 
 export function Button({ variant = 'primary', size = 'md', loading, to, icon, className, children, disabled, ...rest }: ButtonProps) {
   const classes = clsx(
@@ -164,8 +164,9 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-navy-950/50 p-4 backdrop-blur-sm sm:items-center" onMouseDown={onClose}>
-      <div ref={box} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={clsx('card my-8 w-full animate-fade-up p-6 outline-none', wide ? 'max-w-3xl' : 'max-w-lg')} onMouseDown={(e) => e.stopPropagation()}>
+    // Auto margins centre a short window and let a tall one start at the top (centring the container would push its top out of reach).
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-navy-950/50 p-4 backdrop-blur-sm" onMouseDown={onClose}>
+      <div ref={box} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} className={clsx('card my-8 w-full animate-fade-up p-6 outline-none sm:my-auto', wide ? 'max-w-3xl' : 'max-w-lg')} onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between">
           <h3 id={titleId} className="text-lg font-bold text-navy-900">{title}</h3>
           <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label={String(t('common.close', { defaultValue: 'Close' }))}><X className="size-5" /></button>

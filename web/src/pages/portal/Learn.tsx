@@ -33,7 +33,7 @@ function Ring({ value }: { value: number }) {
 /** The learner's online course: outline with progress and locks on one side, the lesson player on the other. */
 export default function Learn() {
   const { registrationId, lessonId } = useParams()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const outline = useGet<{ data: Outline }>(`/me/registrations/${registrationId}/course`, undefined, { staleTime: 0 })
   const o = outline.data?.data
@@ -158,6 +158,7 @@ export default function Learn() {
                         <span className={clsx('grid size-8 shrink-0 place-items-center rounded-full', l.status === 'completed' ? 'bg-emerald-500 text-white' : 'bg-navy-100/70 text-navy-800')}>{l.status === 'completed' ? <CheckCircle2 className="size-4" /> : l.locked ? <Lock className="size-4" /> : <Icon className="size-4" />}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-semibold text-navy-900">{l.title}</span>
+                          {l.remedial && l.why && <span className="mt-0.5 block rounded-md bg-gold-50 px-1.5 py-0.5 text-[11px] leading-snug text-gold-900 ring-1 ring-inset ring-gold-200">{t('learn.forYou')} · {i18n.language === 'en' ? l.why.en : l.why.ar}</span>}
                           <span className="flex items-center gap-2 text-[11px] text-slate-500">{t(`course.types.${l.type}`)}{l.duration_seconds > 0 && ` · ${clock(l.duration_seconds)}`}{!l.is_required && ` · ${t('learn.optional')}`}{l.status === 'in_progress' && l.percent > 0 && ` · ${Math.round(l.percent)}%`}{l.score != null && ` · ${Math.round(l.score)}%`}</span>
                           {l.status === 'in_progress' && l.percent > 0 && <span className="mt-1 block"><Progress value={l.percent} /></span>}
                         </span>

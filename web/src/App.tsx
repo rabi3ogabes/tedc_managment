@@ -73,6 +73,8 @@ const ReportBuilder = lazy(() => import('@/pages/admin/ReportBuilder'))
 const KpiDashboard = lazy(() => import('@/pages/admin/KpiDashboard'))
 const DashboardPresets = lazy(() => import('@/pages/admin/DashboardPresets'))
 const SsoCallback = lazy(() => import('@/pages/public/SsoCallback'))
+const LtiLaunch = lazy(() => import('@/pages/public/LtiLaunch'))
+const LtiLink = lazy(() => import('@/pages/portal/LtiLink'))
 const AccountSecurity = lazy(() => import('@/pages/AccountSecurity'))
 const SecurityAdmin = lazy(() => import('@/pages/admin/SecurityAdmin'))
 const IntegrationsHub = lazy(() => import('@/pages/admin/IntegrationsHub'))
@@ -132,7 +134,7 @@ function RequireAuth({ children, permission }: { children: ReactNode; permission
   const { user, loading, can } = useAuth()
   const location = useLocation()
   if (loading) return <LoadingScreen />
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
   if (permission && !permission.split('|').some((x) => can(x))) return <Navigate to="/portal" replace />
   return <>{children}</>
 }
@@ -173,6 +175,8 @@ export default function App() {
         </Route>
         <Route path="login" element={<Login />} />
         <Route path="sso/callback" element={<SsoCallback />} />
+        <Route path="lti/launch" element={<LtiLaunch />} />
+        <Route path="lti/link" element={<RequireAuth><LtiLink /></RequireAuth>} />
 
         <Route path="admin/kits/:kitId/files/:fileId" element={<RequireAuth permission="kits.view"><FileStudio /></RequireAuth>} />
         <Route path="room-screen/:token" element={<RoomScreen />} />

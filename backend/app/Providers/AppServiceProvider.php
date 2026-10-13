@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Ai\AiHooks;
 use App\Auth\SupabaseUserResolver;
 use App\Gamification\GamificationListener;
+use App\Http\Middleware\ThrottlePerRoute;
 use App\Integrations\EventBus;
 use App\Integrations\Ministry\SijilArchive;
 use App\Integrations\Teams\TeamsService;
@@ -33,6 +34,7 @@ use App\Services\Lti\LtiToolHooks;
 use App\Support\ActiveRole;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // "throttle:N,M" counts each route on its own (see ThrottlePerRoute); test helpers that switch ThrottleRequests off still work.
+        $this->app->bind(ThrottleRequests::class, ThrottlePerRoute::class);
         $this->app->scoped(ActiveRole::class);
         // One instance per request: it remembers the channels the administrator picked for the task in progress.
         $this->app->singleton(NotificationChannels::class);

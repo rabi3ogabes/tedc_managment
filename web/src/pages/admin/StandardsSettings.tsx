@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import LtiPlatforms from '@/pages/admin/standards/LtiPlatforms'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,7 +11,7 @@ import { toast } from '@/lib/toast'
 import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
-type Tab = 'lrs' | 'lti' | 'providers' | 'libraries'
+type Tab = 'lrs' | 'lti' | 'tool' | 'providers' | 'libraries'
 const copy = (v: string) => { void navigator.clipboard?.writeText(v); toast('✓') }
 
 /** Settings → Standards and integrations: LRS and Caliper, LTI tools and platform details, content providers, external libraries, offline. */
@@ -18,13 +19,13 @@ export default function StandardsSettings() {
   const { t } = useTranslation()
   const { can } = useAuth()
   const [tab, setTab] = useState<Tab>('lrs')
-  const tabs = [can('standards.manage') && { id: 'lrs' as Tab, label: t('content.standards.tabs.lrs') }, can('lti.manage') && { id: 'lti' as Tab, label: t('content.standards.tabs.lti') }, can('providers.manage') && { id: 'providers' as Tab, label: t('content.standards.tabs.providers') }, can('library.manage') && { id: 'libraries' as Tab, label: t('content.standards.tabs.libraries') }].filter(Boolean) as { id: Tab; label: string }[]
+  const tabs = [can('standards.manage') && { id: 'lrs' as Tab, label: t('content.standards.tabs.lrs') }, can('lti.manage') && { id: 'lti' as Tab, label: t('content.standards.tabs.lti') }, can('lti.manage') && { id: 'tool' as Tab, label: t('lti.admin.tab') }, can('providers.manage') && { id: 'providers' as Tab, label: t('content.standards.tabs.providers') }, can('library.manage') && { id: 'libraries' as Tab, label: t('content.standards.tabs.libraries') }].filter(Boolean) as { id: Tab; label: string }[]
   const cur = tabs.find((x) => x.id === tab) ? tab : tabs[0]?.id
   return (
     <>
       <PageHeader title={t('content.standards.title')} />
       <Tabs<Tab> value={cur ?? 'lrs'} onChange={setTab} tabs={tabs} />
-      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'providers' ? <Providers /> : <Libraries />}</div>
+      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'tool' ? <LtiPlatforms /> : cur === 'providers' ? <Providers /> : <Libraries />}</div>
     </>
   )
 }

@@ -67,8 +67,8 @@ export const opsAr = {
   },
   aimodels: {
     title: 'نماذج الذكاء الاصطناعي', subtitle: 'اربط مزوّد الذكاء الاصطناعي بمفتاحك، ثم اختر النموذج الذي ينفّذ كل عمل في المنصة.',
-    tasks: { text: 'المحتوى', image: 'الصور', audio: 'الصوت', video: 'الفيديو' },
-    taskHint: { text: 'الشرائح والخطط والمساعد والتحليل', image: 'رسم الصور في استوديو الحقائب', audio: 'تحويل النص إلى صوت للشرائح', video: 'توليد مقاطع الفيديو' },
+    tasks: { text: 'المحتوى', image: 'الصور', audio: 'الصوت', video: 'الفيديو', embeddings: 'التضمين' },
+    taskHint: { text: 'الشرائح والخطط والمساعد والتحليل', image: 'رسم الصور في استوديو الحقائب', audio: 'تحويل النص إلى صوت للشرائح', video: 'توليد مقاطع الفيديو', embeddings: 'بحث المساعد في محتوى المنصة (يُفعَّل بإعادة التضمين في إعدادات الذكاء الاصطناعي)' },
     videoNote: 'يُحفظ النموذج الآن، وسيعمل توليد الفيديو عند إضافة محوّل المزوّد. حتى ذلك الحين يبقى تسجيل الفيديو من المتصفح.',
     builtin: 'الإعداد الافتراضي للمنصة', active: 'يعمل بنموذجك', fallback: 'يعمل بالإعداد الافتراضي',
     addConnection: 'ربط مزوّد', connectOpenRouter: 'ربط OpenRouter', emptyTitle: 'ابدأ بربط مزوّد', emptyHint: 'أنشئ مفتاحًا من openrouter.ai والصقه هنا. يمكن إضافة أكثر من مزوّد، ولكل عمل نموذجه.',
@@ -203,8 +203,8 @@ export const opsEn: typeof opsAr = {
   },
   aimodels: {
     title: 'AI models', subtitle: 'Connect your AI provider with your key, then choose which model does each job on the platform.',
-    tasks: { text: 'Content', image: 'Images', audio: 'Sound', video: 'Video' },
-    taskHint: { text: 'Slides, plans, the assistant and analysis', image: 'Drawing pictures in the kit studio', audio: 'Turning text into narration for slides', video: 'Generating video clips' },
+    tasks: { text: 'Content', image: 'Images', audio: 'Sound', video: 'Video', embeddings: 'Embeddings' },
+    taskHint: { text: 'Slides, plans, the assistant and analysis', image: 'Drawing pictures in the kit studio', audio: 'Turning text into narration for slides', video: 'Generating video clips', embeddings: 'The assistant\'s search in platform content (switched on by re-embedding in AI settings)' },
     videoNote: 'The model is saved now; video generation starts working when the provider adapter is added. Until then, recording video from the browser stays as it is.',
     builtin: 'Platform default', active: 'Running on your model', fallback: 'Running on the default',
     addConnection: 'Connect a provider', connectOpenRouter: 'Connect OpenRouter', emptyTitle: 'Start by connecting a provider', emptyHint: 'Create a key at openrouter.ai and paste it here. You can add more than one provider, and each job gets its own model.',

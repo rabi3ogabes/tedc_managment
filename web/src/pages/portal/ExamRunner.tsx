@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import SmartFeedbackCard from '@/components/ai/SmartFeedbackCard'
+import AdaptiveRunner, { type AdaptiveAttempt, type AdaptiveState } from '@/pages/portal/AdaptiveRunner'
 import clsx from 'clsx'
 import { Check, Flag, Maximize } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -12,7 +13,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
-type Attempt = { id: string; status: string; remaining_seconds: number | null; answers: Record<string, any>; questions: ExamQuestion[]; proctoring: { enabled: boolean; fullscreen: boolean; snapshots: boolean } }
+type Attempt = { id: string; status: string; remaining_seconds: number | null; answers: Record<string, any>; questions: ExamQuestion[]; proctoring: { enabled: boolean; fullscreen: boolean; snapshots: boolean }; adaptive?: AdaptiveState | null }
 
 const answered = (v: any) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0) && !(typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0)
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -37,7 +38,8 @@ export default function ExamRunner() {
 
   // Start or resume (the server returns the open attempt when there is one).
   useEffect(() => {
-    api.post(`/me/assessments/${id}/start`).then(({ data }) => { setAttempt(data.data); setAnswers(data.data.answers ?? {}); answersRef.current = data.data.answers ?? {}; setLeft(data.data.remaining_seconds) }).catch((e) => setError(errorMessage(e)))
+    // An adaptive practice keeps its own timer and flow (one question at a time).
+    api.post(`/me/assessments/${id}/start`).then(({ data }) => { setAttempt(data.data); setAnswers(data.data.answers ?? {}); answersRef.current = data.data.answers ?? {}; setLeft(data.data.adaptive ? null : data.data.remaining_seconds) }).catch((e) => setError(errorMessage(e)))
   }, [id])
 
   const save = useCallback(async () => {
@@ -98,6 +100,7 @@ export default function ExamRunner() {
 
   if (error) return <div className="mx-auto max-w-xl py-16"><Card className="space-y-4 text-center"><p className="text-danger">{error}</p><Link to="/portal/assessments" className="font-bold text-link">{t('assess.runner.back')}</Link></Card></div>
   if (!attempt) return <Spinner className="min-h-screen" />
+  if (attempt.adaptive) return <AdaptiveRunner start={attempt as AdaptiveAttempt} />
   const qs = attempt.questions
   const q = qs[cur]
   const pending = qs.filter((x) => !answered(answers[x.id])).length
@@ -131,7 +134,7 @@ export default function ExamRunner() {
   )
 }
 
-type Review = { id: string; stem_ar: string; stem_en: string | null; your_answer: any; correct: boolean | null; points_awarded: number | null; max_points: number; correct_answer: any; explanation_ar: string | null; explanation_en: string | null; comment: string | null }
+type Review = { id: string; stem_ar: string; stem_en: string | null; your_answer: any; correct: boolean | null; points_awarded: number | null; max_points: number; correct_answer: any; explanation_ar: string | null; explanation_en: string | null; comment: string | null; options?: { id: string; text_ar: string | null; text_en: string | null }[] }
 type Result = { id: string; status: string; passed: boolean | null; score_percent: number | null; points: number | null; max_points: number | null; feedback: string | null; review: Review[]; submitted_at: string | null }
 
 /** The result page, as far as the feedback rules allow. */
@@ -142,7 +145,14 @@ export function AttemptResult() {
   const { data, isLoading } = useGet<{ data: Result }>(`/me/attempts/${id}/result`, undefined, { staleTime: 0 })
   if (isLoading || !data) return <Spinner className="min-h-[50vh]" />
   const r = data.data
-  const show = (v: any) => (v === null || v === undefined ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+  // Choice answers are option ids: show the option's text in the reader's language.
+  const show = (v: any, options?: Review['options']) => {
+    if (v === null || v === undefined || v === '') return '—'
+    const opt = (id: string) => { const o = options?.find((x) => x.id === id); return o ? (ar ? o.text_ar || o.text_en : o.text_en || o.text_ar) || id : id }
+    if (options?.length && typeof v === 'string') return opt(v)
+    if (options?.length && Array.isArray(v)) return v.map((x) => opt(String(x))).join(ar ? '، ' : ', ')
+    return typeof v === 'object' ? JSON.stringify(v) : String(v)
+  }
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-8">
       <Card className="space-y-3 text-center">
@@ -158,8 +168,8 @@ export function AttemptResult() {
           {r.review.map((x, i) => (
             <div key={x.id} className={clsx('space-y-1 rounded-xl border p-3', x.correct === true ? 'border-emerald-200 bg-emerald-50/50' : x.correct === false ? 'border-red-200 bg-red-50/50' : 'border-navy-100')}>
               <div className="font-semibold text-navy-900">{i + 1}. {ar ? x.stem_ar : x.stem_en || x.stem_ar}</div>
-              <div className="text-sm text-slate-600">{t('assess.runner.yourAnswer')}: <span dir="auto">{show(x.your_answer)}</span></div>
-              {x.correct !== true && x.correct_answer !== null && <div className="text-sm text-emerald-800">{t('assess.runner.correctAnswer')}: <span dir="auto">{show(x.correct_answer)}</span></div>}
+              <div className="text-sm text-slate-600">{t('assess.runner.yourAnswer')}: <span dir="auto">{show(x.your_answer, x.options)}</span></div>
+              {x.correct !== true && x.correct_answer !== null && <div className="text-sm text-emerald-800">{t('assess.runner.correctAnswer')}: <span dir="auto">{show(x.correct_answer, x.options)}</span></div>}
               {(ar ? x.explanation_ar : x.explanation_en) && <div className="text-xs text-slate-500">{t('assess.runner.explanation')}: {ar ? x.explanation_ar : x.explanation_en}</div>}
               {x.comment && <div className="text-xs text-amber-800">{x.comment}</div>}
               {x.points_awarded !== null && <div className="text-xs text-slate-400">{x.points_awarded} / {x.max_points}</div>}
