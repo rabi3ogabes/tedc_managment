@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 236 | 42 | 0 | 42 |
+| 278 | 239 | 39 | 0 | 39 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -242,8 +242,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 
 ### Phase 10 — Content Standards, Library & Offline  (15)
 
-- [ ] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
-  _Now:_ 🟡 Partial — Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built
+- [x] **TYP-12** — Offline learning: watched content offline, sync on reconnect, resume exams  
+  _Now:_ ✅ Available — Encrypted, resumable, checksum-verified downloads in the app (AES-256-GCM, a key per phone kept in its keystore) with expiry; offline video from a private temporary copy, PDF slides and articles; offline exams (signed single-use package bound to the phone, encrypted answers, monotonic timer, handed in later with the server's timing checks); Downloads screen (space, expiry, remove, Wi-Fi only); safe idempotent sync with purge and revocation; everything deleted on sign-out. Phase 21.
 - [ ] **TYP-14** — Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs  
   _Now:_ 🟡 Partial — External provider courses become programs with completion sync; needs real provider access
 - [x] **TYP-15** ★ — SCORM and H5P support with tracking and reuse  
@@ -264,8 +264,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Job groups as sharing targets
 - [x] **KIT-06** — Sharing-permission settings that protect IP  
   _Now:_ ✅ Available — Per-role sharing policies, view-only protection, audited shares
-- [ ] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
-  _Now:_ 🟡 Partial — LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built
+- [x] **TEC-08** ★ — LTI 1.1 and LTI 1.3 with Deep Linking  
+  _Now:_ ✅ Available — TEDC is an LTI platform (Phase 10) and now also an LTI tool: LTI 1.3 (OIDC login, id_token checks, Deep Linking 2.0, AGS, NRPS) and LTI 1.1 (OAuth 1.0a, outcomes), safe account linking (trusted domains, confirmation, staff never signed in by a launch), a registry with configuration to copy and a setup test; loopback tests. Phase 21.
 - [x] **TEC-09** ★ — xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5  
   _Now:_ ✅ Available — xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run)
 - [x] **TEC-11** ★ — Common Cartridge import (full or selected parts)  
@@ -399,12 +399,12 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.
 - [x] **AI-02** ★ — Smart assessment with instant feedback from answer analysis  
   _Now:_ ✅ Available — Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15.
-- [ ] **AI-03** ★ — Adaptive content that adjusts to each learner  
-  _Now:_ 🟡 Partial — Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.
+- [x] **AI-03** ★ — Adaptive content that adjusts to each learner  
+  _Now:_ ✅ Available — Adaptive practice and quizzes: difficulty per competency from mastery, up after two correct answers and down after a wrong one, the reason for every question shown to the learner (web and app) and the difficulty path to the teacher; review lessons assigned below the mastery threshold, visible only to that learner and cleared when mastered; thresholds in Settings → AI. Phase 21.
 - [x] **AI-04** ★ — Predictive reports on future PD needs  
   _Now:_ ✅ Available — Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15.
 - [ ] **AI-05** ★ — ML assistant that answers trainees’ questions  
-  _Now:_ 🟡 Partial — Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.
+  _Now:_ 🟡 Partial — **Ready — waiting for:** the in-country model endpoint (Azure OpenAI in Qatar or the Ministry's approved provider) and a golden-set run against it. Built in Phase 21: pgvector store (HNSW per embedder) with the JSON fallback, model embeddings with resumable re-embedding, answers streamed with Stop, and a 40-question Arabic/English golden set measured in CI (hit@3, hit@5, citations, refusals); assistant answering from permitted content with citations since Phase 15.
 
 ### Phase 16 — Course Purchasing & Payments  (4)
 
@@ -542,7 +542,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TYP-09 | Final exams with retry rules and re-study after failure | ✅ Available | Final exams with attempt limits, a cooldown between attempts and a re-study rule: after a failed attempt the linked lessons must be studied again before the next try (`restudy_on_fail`, `cooldown_hours`). | — |
 | TYP-10 | Contact the trainer and ask questions from inside the course | ✅ Available | Ask the trainer from any lesson (web and app): routed to the group's trainers with a reply deadline, trainer inbox, answer notifies the learner. Phase 14. | — |
 | TYP-11 ★ | Exams taken remotely or in-centre via a secret access code | ✅ Available | Static and rotating secret access codes for exams taken remotely or in the centre (`POST /admin/assessments/{id}/access-codes`); the code is checked when the attempt starts. | — |
-| TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | 🟡 Partial | Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built | 10 |
+| TYP-12 | Offline learning: watched content offline, sync on reconnect, resume exams | ✅ Available | Encrypted, resumable, checksum-verified downloads in the app (AES-256-GCM, a key per phone kept in its keystore) with expiry; offline video from a private temporary copy, PDF slides and articles; offline exams (signed single-use package bound to the phone, encrypted answers, monotonic timer, handed in later with the server's timing checks); Downloads screen (space, expiry, remove, Wi-Fi only); safe idempotent sync with purge and revocation; everything deleted on sign-out. Phase 21. | — |
 | TYP-13 ★ | Anti-distraction: prevent pause, seek or minimise during video | ✅ Available | Seek lock, maximum speed, minimum watched share, automatic pause and no credited time while the page is hidden, a full-screen requirement (no time counts outside full screen) and a pause limit counted on the server (`lock_pause`, survives reloads); the app enforces the pause limit — full screen is a web-player rule. | — |
 | TYP-14 | Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs | 🟡 Partial | External provider courses become programs with completion sync; needs real provider access | 10 |
 | TYP-15 ★ | SCORM and H5P support with tracking and reuse | ✅ Available | SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried) | — |
@@ -852,9 +852,9 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 |---|---|---|---|---:|
 | AI-01 ★ | Behavioural analytics and personalised recommendations | ✅ Available | Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15. | — |
 | AI-02 ★ | Smart assessment with instant feedback from answer analysis | ✅ Available | Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15. | — |
-| AI-03 ★ | Adaptive content that adjusts to each learner | 🟡 Partial | Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15. | 15 |
+| AI-03 ★ | Adaptive content that adjusts to each learner | ✅ Available | Adaptive practice and quizzes: difficulty per competency from mastery, up after two correct answers and down after a wrong one, the reason for every question shown to the learner (web and app) and the difficulty path to the teacher; review lessons assigned below the mastery threshold, visible only to that learner and cleared when mastered; thresholds in Settings → AI. Phase 21. | — |
 | AI-04 ★ | Predictive reports on future PD needs | ✅ Available | Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15. | — |
-| AI-05 ★ | ML assistant that answers trainees’ questions | 🟡 Partial | Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15. | 15 |
+| AI-05 ★ | ML assistant that answers trainees’ questions | 🟡 Partial | **Ready — waiting for:** the in-country model endpoint (Azure OpenAI in Qatar or the Ministry's approved provider) and a golden-set run against it. Built in Phase 21: pgvector store (HNSW per embedder) with the JSON fallback, model embeddings with resumable re-embedding, answers streamed with Stop, and a 40-question Arabic/English golden set measured in CI (hit@3, hit@5, citations, refusals); assistant answering from permitted content with citations since Phase 15. | 15 |
 
 ### GAM · Phase 2 · Gamification — المرحلة الثانية · التلعيب
 
@@ -903,7 +903,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | TEC-05 ★ | Disaster recovery and business continuity with automation | 🟡 Partial | DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17. | 17 |
 | TEC-06 ★ | Real-time message-based sync between systems | ✅ Available | Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13). | — |
 | TEC-07 ★ | Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website | 🟡 Partial | Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13). | 13 |
-| TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | 🟡 Partial | LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built | 10 |
+| TEC-08 ★ | LTI 1.1 and LTI 1.3 with Deep Linking | ✅ Available | TEDC is an LTI platform (Phase 10) and now also an LTI tool: LTI 1.3 (OIDC login, id_token checks, Deep Linking 2.0, AGS, NRPS) and LTI 1.1 (OAuth 1.0a, outcomes), safe account linking (trusted domains, confirmation, staff never signed in by a launch), a registry with configuration to copy and a setup test; loopback tests. Phase 21. | — |
 | TEC-09 ★ | xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5 | ✅ Available | xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run) | — |
 | TEC-10 ★ | HTML5 content | ✅ Available | HTML5 video, slides and articles. | — |
 | TEC-11 ★ | Common Cartridge import (full or selected parts) | ✅ Available | Common Cartridge 1.1-1.3 / thin CC preview and selective import | — |
@@ -962,4 +962,4 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | 28 | Integrated notifications + multimedia scheduled announcements | 🟡 Partial | Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available. |
 | 29 | Comprehensive PD records outside the Ministry | ✅ Available | CPD-01, CPD-02, CPD-03, CPD-04, CPD-05, CPD-06 — all available. |
 | 30 | Permissions at Ministry / school-group / school level | ✅ Available | RBA-13 — all available. |
-| 31 | AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant | 🟡 Partial | Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available. |
+| 31 | AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant | 🟡 Partial | Open: AI-05 (partial); AI-01, AI-02, AI-03, AI-04 available. |

@@ -1,19 +1,27 @@
 import 'dart:convert';
 import 'dart:math';
 
-/// Progress made without a connection, kept until it can be sent. Events for the same lesson are merged
-/// (watched stretches are united, the furthest position wins) and the batch carries one idempotency key,
-/// so a retry after a dropped connection never counts twice. The server never lowers progress.
+/// Progress made without a connection, kept until it can be sent. Watched stretches of one lesson are merged (the
+/// furthest position wins); every slide view is kept with the time it happened, because the server credits a slide
+/// only after the lesson's minimum time per slide and refuses views out of order. A batch carries one idempotency key
+/// and is frozen once sent: what is added meanwhile waits for the next batch, so a retry never counts twice and never
+/// hides new progress behind a key the server already answered. The server never lowers progress.
 class OfflineQueue {
-  // A private field cannot be a named parameter, so the batch id is assigned in the initializer list.
-  // ignore: prefer_initializing_formals
-  OfflineQueue({List<Map<String, dynamic>>? items, String? batchId}) : _items = items ?? [], _batchId = batchId;
+  OfflineQueue({List<Map<String, dynamic>>? items, List<Map<String, dynamic>>? sending, String? batchId})
+      : _items = items ?? [],
+        _sending = sending,
+        _batchId = sending == null ? null : batchId;
+
+  /// The most the server takes in one batch.
+  static const maxBatch = 500;
 
   final List<Map<String, dynamic>> _items;
+  List<Map<String, dynamic>>? _sending;
   String? _batchId;
 
-  List<Map<String, dynamic>> get items => List.unmodifiable(_items);
-  bool get isEmpty => _items.isEmpty;
+  /// Everything not yet confirmed: the batch on its way first, then what came after.
+  List<Map<String, dynamic>> get items => List.unmodifiable([...?_sending, ..._items]);
+  bool get isEmpty => _items.isEmpty && (_sending?.isEmpty ?? true);
 
   /// A stretch of video watched offline, in seconds.
   void videoProgress(String lessonId, double from, double to, {double? position}) {
@@ -29,13 +37,13 @@ class OfflineQueue {
   }
 
   void lessonComplete(String lessonId) {
-    if (_items.any((i) => i['type'] == 'lesson_complete' && i['lesson_id'] == lessonId)) return;
+    if (items.any((i) => i['type'] == 'lesson_complete' && i['lesson_id'] == lessonId)) return;
     _items.add({'type': 'lesson_complete', 'lesson_id': lessonId});
   }
 
-  void slideView(String lessonId, int slide, int total) {
-    _items.removeWhere((i) => i['type'] == 'slide_view' && i['lesson_id'] == lessonId && (i['slide'] as int) <= slide);
-    _items.add({'type': 'slide_view', 'lesson_id': lessonId, 'slide': slide, 'total': total});
+  /// A slide shown for the lesson's minimum time, with when that was.
+  void slideView(String lessonId, int slide, int total, {DateTime? at}) {
+    _items.add({'type': 'slide_view', 'lesson_id': lessonId, 'slide': slide, 'total': total, 'at': (at ?? DateTime.now()).toUtc().toIso8601String()});
   }
 
   /// Unites overlapping or touching stretches.
@@ -52,22 +60,28 @@ class OfflineQueue {
     return out;
   }
 
-  /// The batch to send. The same key is reused until the server confirms it.
+  /// The batch to send. The same key and the same items are sent again until the server confirms them.
   Map<String, dynamic> batch() {
-    _batchId ??= 'b-${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}';
-    return {'batch_id': _batchId, 'items': _items};
+    if (_sending == null) {
+      final take = min(maxBatch, _items.length);
+      _sending = _items.sublist(0, take);
+      _items.removeRange(0, take);
+      _batchId = 'b-${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 20)}';
+    }
+    return {'batch_id': _batchId, 'items': _sending};
   }
 
-  /// The server accepted the batch (or already had it): the queue is emptied and the next batch gets a new key.
+  /// The server accepted the batch (or already had it): it leaves the queue and the next batch gets a new key.
   void confirmed() {
-    _items.clear();
+    _sending = null;
     _batchId = null;
   }
 
-  String toJson() => jsonEncode({'batch_id': _batchId, 'items': _items});
+  String toJson() => jsonEncode({'batch_id': _batchId, 'sending': _sending, 'items': _items});
 
   factory OfflineQueue.fromJson(String s) {
     final m = jsonDecode(s) as Map<String, dynamic>;
-    return OfflineQueue(items: (m['items'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList(), batchId: m['batch_id'] as String?);
+    List<Map<String, dynamic>>? list(Object? v) => v is List ? v.map((e) => Map<String, dynamic>.from(e as Map)).toList() : null;
+    return OfflineQueue(items: list(m['items']), sending: list(m['sending']), batchId: m['batch_id'] as String?);
   }
 }

@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 236,
-        "partial": 42,
+        "available": 239,
+        "partial": 39,
         "missing": 0,
         "mandatory": 108,
-        "open": 42
+        "open": 39
     },
     "phases": [
         {
@@ -82,7 +82,7 @@
             "phase": 10,
             "title": "Content Standards, Library & Offline",
             "open": 15,
-            "items": 5,
+            "items": 3,
             "done": 0
         },
         {
@@ -117,7 +117,7 @@
             "phase": 15,
             "title": "AI Completion",
             "open": 6,
-            "items": 2,
+            "items": 1,
             "done": 0
         },
         {
@@ -477,9 +477,9 @@
                     "id": "TYP-12",
                     "mandatory": false,
                     "requirement": "Offline learning: watched content offline, sync on reconnect, resume exams",
-                    "status": "partial",
-                    "evidence": "Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "Encrypted, resumable, checksum-verified downloads in the app (AES-256-GCM, a key per phone kept in its keystore) with expiry; offline video from a private temporary copy, PDF slides and articles; offline exams (signed single-use package bound to the phone, encrypted answers, monotonic timer, handed in later with the server's timing checks); Downloads screen (space, expiry, remove, Wi-Fi only); safe idempotent sync with purge and revocation; everything deleted on sign-out. Phase 21.",
+                    "phase": null
                 },
                 {
                     "id": "TYP-13",
@@ -2132,9 +2132,9 @@
                     "id": "AI-03",
                     "mandatory": true,
                     "requirement": "Adaptive content that adjusts to each learner",
-                    "status": "partial",
-                    "evidence": "Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.",
-                    "phase": 15
+                    "status": "available",
+                    "evidence": "Adaptive practice and quizzes: difficulty per competency from mastery, up after two correct answers and down after a wrong one, the reason for every question shown to the learner (web and app) and the difficulty path to the teacher; review lessons assigned below the mastery threshold, visible only to that learner and cleared when mastered; thresholds in Settings → AI. Phase 21.",
+                    "phase": null
                 },
                 {
                     "id": "AI-04",
@@ -2149,7 +2149,7 @@
                     "mandatory": true,
                     "requirement": "ML assistant that answers trainees’ questions",
                     "status": "partial",
-                    "evidence": "Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.",
+                    "evidence": "**Ready — waiting for:** the in-country model endpoint (Azure OpenAI in Qatar or the Ministry's approved provider) and a golden-set run against it. Built in Phase 21: pgvector store (HNSW per embedder) with the JSON fallback, model embeddings with resumable re-embedding, answers streamed with Stop, and a 40-question Arabic/English golden set measured in CI (hit@3, hit@5, citations, refusals); assistant answering from permitted content with citations since Phase 15.",
                     "phase": 15
                 }
             ]
@@ -2441,9 +2441,9 @@
                     "id": "TEC-08",
                     "mandatory": true,
                     "requirement": "LTI 1.1 and LTI 1.3 with Deep Linking",
-                    "status": "partial",
-                    "evidence": "LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built",
-                    "phase": 10
+                    "status": "available",
+                    "evidence": "TEDC is an LTI platform (Phase 10) and now also an LTI tool: LTI 1.3 (OIDC login, id_token checks, Deep Linking 2.0, AGS, NRPS) and LTI 1.1 (OAuth 1.0a, outcomes), safe account linking (trusted domains, confirmation, staff never signed in by a launch), a registry with configuration to copy and a setup test; loopback tests. Phase 21.",
+                    "phase": null
                 },
                 {
                     "id": "TEC-09",
@@ -2784,8 +2784,8 @@
             "no": 31,
             "requirement": "AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant",
             "status": "partial",
-            "notes": "Open: AI-03 (partial), AI-05 (partial); AI-01, AI-02, AI-04 available."
+            "notes": "Open: AI-05 (partial); AI-01, AI-02, AI-03, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-13T07:29:47+03:00"
+    "generated_at": "2026-10-13T22:55:12+03:00"
 }

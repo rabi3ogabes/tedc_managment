@@ -8,6 +8,8 @@ import 'core/providers.dart';
 import 'features/course/course_screen.dart';
 import 'features/course/lesson_screen.dart';
 import 'features/assessment/assessments_screen.dart';
+import 'features/assessment/offline_exam_screen.dart';
+import 'features/offline/downloads_screen.dart';
 import 'features/evaluation/evaluations_screen.dart';
 import 'features/growth/growth_screen.dart';
 import 'features/community/achievements_screen.dart';
@@ -115,9 +117,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/tasks/:id', builder: (_, s) => TaskScreen(taskId: s.pathParameters['id']!)),
           GoRoute(path: '/surveys/:id', builder: (_, s) => SurveyScreen(surveyId: s.pathParameters['id']!)),
           GoRoute(path: '/needs-surveys', builder: (_, _) => const NeedsSurveysScreen()),
+          GoRoute(path: '/downloads', builder: (_, _) => const DownloadsScreen()),
         ],
       ),
       GoRoute(path: '/assessments/:id/take', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: ExamScreen(id: s.pathParameters['id']!, needsCode: s.extra == true))),
+      GoRoute(path: '/offline-exams/:token', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: OfflineExamScreen(tokenId: s.pathParameters['token']!))),
       GoRoute(path: '/evaluations/:id', builder: (_, s) => EvaluationFormScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/attempts/:id', builder: (_, s) => AttemptResultScreen(id: s.pathParameters['id']!)),
       GoRoute(path: '/needs-surveys/:id', pageBuilder: (_, s) => MaterialPage(fullscreenDialog: true, child: NeedsSurveyScreen(id: s.pathParameters['id']!))),

@@ -45,6 +45,7 @@ return [
     'template' => ['default_in_use' => 'The default design cannot be deleted. Make another design the default first.'],
     'remote' => ['remind_wait' => 'A reminder was just sent. Wait a few minutes before sending another.'],
     'course' => [
+        'view_slides' => 'Open the slides and go through them: this lesson completes from the slides you view.',
         'nothing_to_import' => 'No importable files selected (videos, presentations and PDFs only).',
         'locked' => 'Finish the previous lesson first to open this one.',
         'cannot_complete' => 'This kind of lesson cannot be marked done by hand.',

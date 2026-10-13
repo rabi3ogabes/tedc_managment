@@ -283,6 +283,11 @@ class CourseService
         if (! in_array($lesson->type, [CourseLesson::ARTICLE, CourseLesson::PRESENTATION], true)) {
             throw new BusinessRuleException(__('messages.course.cannot_complete'), 'cannot_complete');
         }
+        // A PDF is shown slide by slide (web and app) and completes from the slides viewed, under the lesson's minimum
+        // time per slide; confirming is only for files that cannot be shown that way.
+        if ($lesson->type === CourseLesson::PRESENTATION && $lesson->file_mime === 'application/pdf' && (int) $lesson->slide_count > 0) {
+            throw new BusinessRuleException(__('messages.course.view_slides'), 'view_slides');
+        }
         $p = $this->progressFor($lesson, $registration);
         $p->fill(['status' => 'completed', 'percent' => 100, 'completed_at' => $p->completed_at ?? now(), 'last_activity_at' => now()])->save();
         $this->recompute($registration);

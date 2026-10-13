@@ -11,6 +11,7 @@ import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/notification_route.dart';
+import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
 import '../../core/theme/app_style.dart';
@@ -52,6 +53,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     _listenForNotifications();
     _startPush();
     _startPresence();
+    // Offline content: send what was learned offline, hand in exams answered offline, delete what expired.
+    Future<void>.delayed(const Duration(seconds: 4), () {
+      if (mounted) ref.read(offlineCoordinatorProvider).start();
+    });
     Future<void>.delayed(const Duration(milliseconds: 2500), _offerBiometric);
     Future<void>.delayed(const Duration(seconds: 7), _tour);
   }
@@ -103,6 +108,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     if (_foreground) {
       lock.returned();
       _beat();
+      unawaited(ref.read(offlineCoordinatorProvider).tick());
     }
   }
 

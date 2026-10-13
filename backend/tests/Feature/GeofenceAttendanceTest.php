@@ -137,6 +137,8 @@ class GeofenceAttendanceTest extends TestCase
 
     public function test_demo_trainer_account_can_be_used_as_a_trainee(): void
     {
+        // The demo session runs 07:00–22:00 today: check in at midday, whatever the hour the suite runs.
+        $this->travelTo(today()->setTime(12, 0));
         $this->makeUser(Role::TRAINER)->update(['email' => 'trainer@tedc.qa']);
         $this->makeEmployee()->user->update(['email' => 'teacher@tedc.qa']);
         JobTitle::firstOrCreate(['code' => 'TEACHER'], ['name_ar' => 'معلم', 'name_en' => 'Teacher']);

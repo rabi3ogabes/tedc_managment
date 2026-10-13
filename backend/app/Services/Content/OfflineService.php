@@ -35,8 +35,10 @@ class OfflineService
         $device = $deviceId ? $this->device($r->employee->user_id, $deviceId, $platform) : null;
         $active = in_array($r->status, [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED], true);
         $base = ['manifest_version' => 2, 'registration_id' => $r->id, 'expires_at' => $expires, 'expiry_days' => $days];
-        if (! $active || $device?->revoked()) {
-            return $base + ['delete' => true, 'revoked' => true, 'content_key' => null, 'lessons' => [], 'assessments' => []];
+        $revoked = (bool) $device?->revoked();
+        // A withdrawn registration deletes that course; a revoked phone deletes everything and forgets its key.
+        if (! $active || $revoked) {
+            return $base + ['delete' => true, 'revoked' => $revoked, 'withdrawn' => ! $active, 'content_key' => null, 'lessons' => [], 'assessments' => []];
         }
 
         $assigned = app(RemedialAssignments::class)->open($r);
@@ -55,8 +57,10 @@ class OfflineService
                         return $item + ['reason' => 'unavailable'];
                     }
 
-                    return array_replace($item, ['downloadable' => true, 'mime' => $l->file_mime, 'size' => (int) $l->file_size, 'sha256' => $sha, 'expires_at' => $expires,
-                        'url' => $this->storage->temporaryUrl('materials', $l->file_path, 86400), 'settings' => array_intersect_key($l->settings ?? [], array_flip(['min_seconds_per_slide', 'min_view_percent', 'min_watch_percent', 'require_fullscreen']))]);
+                    // The app's player applies the same rules offline as online (seeking, speed, pauses, full screen, time per slide).
+                    return array_replace($item, ['downloadable' => true, 'mime' => $l->file_mime, 'size' => (int) $l->file_size, 'sha256' => $sha, 'expires_at' => $expires, 'duration_seconds' => (int) $l->duration_seconds,
+                        'url' => $this->storage->temporaryUrl('materials', $l->file_path, 86400),
+                        'settings' => array_intersect_key($l->settings ?? [], array_flip(['min_seconds_per_slide', 'min_view_percent', 'min_watch_percent', 'require_fullscreen', 'allow_seeking', 'max_speed', 'pause_when_hidden']))]);
                 }
                 $pkg = $l->type === CourseLesson::PACKAGE && $l->package_id ? ContentPackage::find($l->package_id) : null;
                 // Only HTML5 and H5P packages run offline; SCORM needs the player's server round trips.
@@ -70,7 +74,7 @@ class OfflineService
         $assessments = Assessment::where('program_id', $r->program_id)->where('status', 'published')->where('allow_offline', true)->orderBy('created_at')
             ->get(['id', 'title_ar', 'title_en', 'time_limit_minutes', 'offline_window_hours', 'max_attempts'])->toArray();
 
-        return $base + ['delete' => false, 'revoked' => false, 'content_key' => $device?->content_key, 'lessons' => $lessons, 'assessments' => $assessments];
+        return $base + ['delete' => false, 'revoked' => false, 'withdrawn' => false, 'content_key' => $device?->content_key, 'lessons' => $lessons, 'assessments' => $assessments];
     }
 
     /** The device that keeps the content offline; a new device gets its own random 256-bit key. */
@@ -94,12 +98,18 @@ class OfflineService
         if ($held === []) {
             return [];
         }
-        if ($deviceId && OfflineDevice::where('user_id', $user->id)->where('device_id', $deviceId)->whereNotNull('revoked_at')->exists()) {
+        if ($this->deviceRevoked($user, $deviceId)) {
             return $held;
         }
         $active = Registration::whereIn('id', $held)->where('employee_id', $user->employee?->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->pluck('id')->all();
 
         return array_values(array_diff($held, $active));
+    }
+
+    /** Whether this person removed the phone from their offline devices (it must then delete everything and forget its key). */
+    public function deviceRevoked(User $user, ?string $deviceId): bool
+    {
+        return $deviceId !== null && $deviceId !== '' && OfflineDevice::where('user_id', $user->id)->where('device_id', $deviceId)->whereNotNull('revoked_at')->exists();
     }
 
     /** SHA-256 of a lesson file, worked out once and kept until the file changes. */

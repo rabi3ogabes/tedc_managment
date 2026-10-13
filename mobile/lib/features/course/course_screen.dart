@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../offline/offline_course_card.dart';
 
 /// The online course of a program: progress, the modules and lessons with locks, and "continue where you left off".
 class CourseScreen extends ConsumerWidget {
@@ -29,6 +31,10 @@ class CourseScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = context.s;
     final fmt = Fmt(s.languageCode);
+    final offline = featureOn(ref, 'offline_mobile');
+    final kept = offline ? ref.watch(offlineCourseProvider(registrationId)).value : null;
+    final progress = offline ? (ref.watch(downloadProgressProvider(registrationId)).value ?? const <String, double>{}) : const <String, double>{};
+    final keptIds = {...?kept?.items.map((i) => i.lessonId)};
 
     return Scaffold(
       appBar: AppBar(title: Text(s.t('course.title'))),
@@ -85,13 +91,19 @@ class CourseScreen extends ConsumerWidget {
                   if (summary['completed_course'] == true) Padding(padding: const EdgeInsets.only(top: 12), child: Text('🎉 ${s.t('course.allDone')}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
                 ]),
               ),
+              if (offline) OfflineCourseCard(registrationId: registrationId, title: d.obj('program')?.str('title') ?? ''),
               for (final m in modules) ...[
                 SectionTitle(m.str('title')),
                 Card(
                   clipBehavior: Clip.antiAlias,
                   child: Column(children: [
                     for (final l in m.list('lessons')) ...[
-                      _LessonTile(lesson: l, onTap: () => context.push('/lessons/${l.str('id')}?registration=$registrationId'), fmt: fmt),
+                      _LessonTile(
+                        lesson: l,
+                        onTap: () => context.push('/lessons/${l.str('id')}?registration=$registrationId'),
+                        fmt: fmt,
+                        offline: offline ? OfflineLessonMark(kept: keptIds.contains(l.str('id')), progress: progress[l.str('id')]) : null,
+                      ),
                       if (l != m.list('lessons').last) Divider(height: 1, color: AppColors.navy100),
                     ],
                   ]),
@@ -106,11 +118,12 @@ class CourseScreen extends ConsumerWidget {
 }
 
 class _LessonTile extends StatelessWidget {
-  const _LessonTile({required this.lesson, required this.onTap, required this.fmt});
+  const _LessonTile({required this.lesson, required this.onTap, required this.fmt, this.offline});
 
   final Json lesson;
   final VoidCallback onTap;
   final Fmt fmt;
+  final Widget? offline;
 
   @override
   Widget build(BuildContext context) {
@@ -130,9 +143,20 @@ class _LessonTile extends StatelessWidget {
       title: Text(lesson.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
       subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text([s.t('course.type.${lesson.str('type')}'), if (minutes > 0) '$minutes ${s.t('course.min')}', if (!lesson.flag('is_required')) s.t('course.optional')].join(' · '), style: const TextStyle(fontSize: 12)),
+        // A review lesson assigned to this learner, with the reason (their mastery of the competency).
+        if (lesson.flag('remedial')) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.circular(99)),
+            child: Text(s.t('course.review'), style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppColors.gold700)),
+          ),
+          if ((lesson.obj('why')?.str(s.isArabic ? 'ar' : 'en') ?? '').isNotEmpty)
+            Padding(padding: const EdgeInsets.only(top: 4), child: Text(lesson.obj('why')!.str(s.isArabic ? 'ar' : 'en'), style: const TextStyle(fontSize: 12, height: 1.5))),
+        ],
         if (status == 'in_progress' && lesson.number('percent') > 0) Padding(padding: const EdgeInsets.only(top: 6), child: ProgressBar(lesson.number('percent').toDouble())),
       ]),
-      trailing: locked ? null : const Icon(Icons.chevron_right),
+      trailing: locked ? null : Row(mainAxisSize: MainAxisSize.min, children: [?offline, const Icon(Icons.chevron_right)]),
     );
   }
 }

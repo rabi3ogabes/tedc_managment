@@ -57,7 +57,8 @@ class OfflineLearningTest extends TestCase
     {
         $bytes = str_repeat('video-bytes', 100);
         $path = app(FileStorage::class)->put('materials', 'lessons/v.mp4', $bytes, 'video/mp4');
-        $video = $this->lesson(['type' => 'video', 'duration_seconds' => 60, 'file_path' => $path, 'file_mime' => 'video/mp4', 'file_size' => strlen($bytes)]);
+        $video = $this->lesson(['type' => 'video', 'duration_seconds' => 60, 'file_path' => $path, 'file_mime' => 'video/mp4', 'file_size' => strlen($bytes),
+            'settings' => ['allow_seeking' => false, 'max_speed' => 1.5, 'require_fullscreen' => true, 'min_watch_percent' => 95]]);
         $locked = $this->lesson(['type' => 'presentation', 'file_path' => $path, 'file_mime' => 'application/pdf', 'file_size' => 10, 'settings' => ['downloadable' => false]]);
 
         $m = $this->manifest()->assertOk()->json('data');
@@ -68,6 +69,11 @@ class OfflineLearningTest extends TestCase
         $this->assertSame(hash('sha256', $bytes), $items[$video->id]['sha256']);
         $this->assertSame(strlen($bytes), $items[$video->id]['size']);
         $this->assertNotEmpty($items[$video->id]['expires_at']);
+        // The app's player applies the same rules offline as online.
+        $rules = array_intersect_key($items[$video->id]['settings'], array_flip(['allow_seeking', 'max_speed', 'min_watch_percent', 'require_fullscreen']));
+        ksort($rules);
+        $this->assertSame(['allow_seeking' => false, 'max_speed' => 1.5, 'min_watch_percent' => 95, 'require_fullscreen' => true], $rules);
+        $this->assertSame(60, $items[$video->id]['duration_seconds']);
         $this->assertFalse($items[$locked->id]['downloadable']);
         $this->assertArrayNotHasKey('url', $items[$locked->id]);
         $this->assertSame('not_downloadable', $items[$locked->id]['reason']);
@@ -93,15 +99,20 @@ class OfflineLearningTest extends TestCase
         $this->manifest()->assertOk();
 
         $this->r->update(['status' => Registration::STATUS_WITHDRAWN]);
-        $this->manifest()->assertOk()->assertJsonPath('data.delete', true)->assertJsonPath('data.lessons', []);
+        // A withdrawn registration deletes that course only; the phone itself stays trusted.
+        $this->manifest()->assertOk()->assertJsonPath('data.delete', true)->assertJsonPath('data.lessons', [])->assertJsonPath('data.withdrawn', true)->assertJsonPath('data.revoked', false);
         $sync = $this->asUser($this->user)->postJson('/api/v1/me/sync', ['batch_id' => 'p-1', 'device_id' => $this->device, 'held' => [$this->r->id], 'items' => []])->assertOk();
         $this->assertSame([$this->r->id], $sync->json('data.purge'));
+        $this->assertFalse($sync->json('data.device_revoked'));
 
         $this->r->update(['status' => Registration::STATUS_APPROVED]);
         $id = OfflineDevice::where('device_id', $this->device)->value('id');
         $this->asUser($this->user)->deleteJson("/api/v1/me/offline-devices/{$id}")->assertOk();
-        $this->manifest()->assertOk()->assertJsonPath('data.delete', true)->assertJsonPath('data.content_key', null);
-        $this->assertSame([$this->r->id], $this->asUser($this->user)->postJson('/api/v1/me/sync', ['batch_id' => 'p-2', 'device_id' => $this->device, 'held' => [$this->r->id], 'items' => []])->json('data.purge'));
+        // A revoked phone deletes everything and forgets its key.
+        $this->manifest()->assertOk()->assertJsonPath('data.delete', true)->assertJsonPath('data.content_key', null)->assertJsonPath('data.revoked', true)->assertJsonPath('data.withdrawn', false);
+        $sync = $this->asUser($this->user)->postJson('/api/v1/me/sync', ['batch_id' => 'p-2', 'device_id' => $this->device, 'held' => [$this->r->id], 'items' => []]);
+        $this->assertSame([$this->r->id], $sync->json('data.purge'));
+        $this->assertTrue($sync->json('data.device_revoked'));
     }
 
     public function test_offline_slide_views_obey_the_minimum_seconds_per_slide_by_their_recorded_time(): void
@@ -133,6 +144,22 @@ class OfflineLearningTest extends TestCase
         RemedialAssignment::create(['registration_id' => $this->r->id, 'lesson_id' => $review->id, 'skill_id' => $skill->id, 'mastery' => 0.2, 'assigned_at' => now()]);
 
         $this->assertTrue($ids()->contains($review->id));
+    }
+
+    public function test_a_pdf_presentation_is_completed_by_viewing_its_slides_not_by_confirming(): void
+    {
+        $pdf = $this->lesson(['type' => 'presentation', 'file_path' => 'p.pdf', 'file_mime' => 'application/pdf', 'file_size' => 10, 'slide_count' => 2, 'settings' => ['min_seconds_per_slide' => 0, 'min_view_percent' => 100]]);
+        $pptx = $this->lesson(['type' => 'presentation', 'file_path' => 'p.pptx', 'file_mime' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'file_size' => 10]);
+
+        $this->asUser($this->user)->getJson("/api/v1/me/lessons/{$pdf->id}")->assertOk();
+        $this->asUser($this->user)->postJson("/api/v1/me/lessons/{$pdf->id}/complete")->assertStatus(422)->assertJsonPath('code', 'view_slides');
+        $this->asUser($this->user)->postJson("/api/v1/me/lessons/{$pdf->id}/slide", ['slide' => 1, 'total' => 2])->assertOk();
+        $this->asUser($this->user)->postJson("/api/v1/me/lessons/{$pdf->id}/slide", ['slide' => 2, 'total' => 2])->assertOk();
+        $this->assertSame('completed', LessonProgress::where('lesson_id', $pdf->id)->value('status'));
+
+        // A file the app cannot show slide by slide is still confirmed by the learner.
+        $this->asUser($this->user)->getJson("/api/v1/me/lessons/{$pptx->id}")->assertOk();
+        $this->asUser($this->user)->postJson("/api/v1/me/lessons/{$pptx->id}/complete")->assertOk();
     }
 
     public function test_the_person_sees_and_removes_their_offline_devices(): void

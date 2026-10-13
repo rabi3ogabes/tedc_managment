@@ -17,4 +17,22 @@ void main() {
       }
     }
   });
+
+  test('counts take the right Arabic and English forms', () {
+    final ar = S('ar');
+    final en = S('en');
+    expect(ar.count('count.lessons', 1), 'درس واحد');
+    expect(ar.count('count.lessons', 2), 'درسان');
+    expect(ar.count('count.lessons', 3), '3 دروس');
+    expect(ar.count('count.lessons', 10), '10 دروس');
+    expect(ar.count('count.lessons', 11), '11 درساً');
+    expect(ar.count('count.lessons', 100), '100 درس');
+    expect(ar.count('count.lessons', 103), '103 دروس');
+    expect(ar.count('count.days', 9), '9 أيام');
+    expect(ar.count('count.questions', 12), '12 سؤالاً');
+    expect(ar.count('count.minutes', 30), '30 دقيقة');
+    expect(en.count('count.lessons', 1), '1 lesson');
+    expect(en.count('count.lessons', 2), '2 lessons');
+    expect(en.count('count.days', 9), '9 days');
+  });
 }

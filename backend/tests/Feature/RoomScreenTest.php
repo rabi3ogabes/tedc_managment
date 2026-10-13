@@ -13,6 +13,8 @@ class RoomScreenTest extends TestCase
 {
     public function test_the_room_screen_shows_the_days_sessions_with_live_attendance_by_token(): void
     {
+        // A session that started half an hour ago and runs two hours must stay within today, whatever the hour the suite runs.
+        $this->travelTo(today()->setTime(12, 0));
         $admin = $this->makeUser(Role::CENTER_ADMIN);
         $room = TrainingRoom::create(['code' => 'R-1', 'name_ar' => 'قاعة 1', 'name_en' => 'Hall 1', 'capacity' => 30, 'status' => 'active']);
         $program = $this->makeProgram(['title_ar' => 'برنامج القيادة', 'title_en' => 'Leadership']);

@@ -96,5 +96,24 @@
   "DeliverablesTest.php",
   "EKitsTest.php",
   "HelpCentreTest.php"
+ ],
+ "19": [
+  "FeatureSamplesTest.php",
+  "SocialFilesTest.php"
+ ],
+ "20": [
+  "ForecastExportTest.php",
+  "PlanRulesEnforcementTest.php",
+  "RfpReportsTest.php"
+ ],
+ "21": [
+  "AdaptivePracticeTest.php",
+  "AssistantRetrievalTest.php",
+  "FeatureSamplesTest.php",
+  "LibraryAndLifecycleTest.php",
+  "LtiToolTest.php",
+  "OfflineExamTest.php",
+  "OfflineLearningTest.php",
+  "ThrottlePerRouteTest.php"
  ]
 }

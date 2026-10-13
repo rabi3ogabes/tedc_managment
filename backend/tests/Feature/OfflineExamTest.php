@@ -64,6 +64,15 @@ class OfflineExamTest extends TestCase
         ]);
     }
 
+    public function test_the_list_says_which_assessments_can_be_taken_offline(): void
+    {
+        $row = collect($this->asUser($this->user)->getJson('/api/v1/me/assessments')->assertOk()->json('data'))->firstWhere('id', $this->a->id);
+
+        $this->assertTrue($row['allow_offline']);
+        $this->assertSame(72, $row['offline_window_hours']);
+        $this->assertFalse($row['adaptive']);
+    }
+
     public function test_the_package_never_contains_the_correct_answers(): void
     {
         $package = $this->token()->assertCreated()->json('data');

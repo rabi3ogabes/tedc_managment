@@ -29,7 +29,8 @@ class MyOfflineController extends MeController
             'held' => ['nullable', 'array', 'max:200'], 'held.*' => ['string', 'max:64']]);
         $result = $this->offline->sync($this->user(), $d['batch_id'], $d['items']);
 
-        return response()->json(['data' => $result + ['purge' => $this->offline->purge($this->user(), $d['device_id'] ?? null, $d['held'] ?? [])]]);
+        return response()->json(['data' => $result + ['purge' => $this->offline->purge($this->user(), $d['device_id'] ?? null, $d['held'] ?? []),
+            'device_revoked' => $this->offline->deviceRevoked($this->user(), $d['device_id'] ?? null)]]);
     }
 
     /** The phones that keep this person's courses offline. */

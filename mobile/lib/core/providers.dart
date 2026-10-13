@@ -8,6 +8,7 @@ import 'biometric.dart';
 import 'api/response_cache.dart';
 import 'auth/session_store.dart';
 import 'models.dart';
+import 'offline/offline_providers.dart';
 import 'push/push_service.dart';
 
 final sessionStoreProvider = Provider<SessionStore>((ref) => SessionStore());
@@ -171,6 +172,8 @@ class AuthController extends AsyncNotifier<Me?> {
     try {
       await ref.read(appLockProvider.notifier).setEnabled(false);
     } catch (_) {}
+    // Offline courses, exam answers and their keys belong to this person: they leave the phone with them.
+    await wipeOffline(ref);
     await ref.read(pushServiceProvider).stop();
     await ref.read(sessionStoreProvider).write(null);
     await ref.read(activeRoleProvider.notifier).set(null);

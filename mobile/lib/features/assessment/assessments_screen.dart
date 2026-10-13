@@ -4,13 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api/api_client.dart';
+import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/offline/offline_exams.dart';
+import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import 'adaptive_practice.dart';
+import 'question_view.dart';
 
-/// The trainee's assessments: what is open, and the way into the exam.
+/// The trainee's assessments: what is open, the way into the exam, and (when the trainer allows it) taking it offline.
 class AssessmentsScreen extends ConsumerWidget {
   const AssessmentsScreen({super.key});
 
@@ -21,12 +27,15 @@ class AssessmentsScreen extends ConsumerWidget {
     final s = context.s;
     final ar = s.languageCode == 'ar';
     final list = ref.watch(getProvider(path));
+    final offline = featureOn(ref, 'offline_mobile');
+    final packages = offline ? (ref.watch(offlineExamListProvider).value ?? const <OfflineExam>[]) : const <OfflineExam>[];
     return Scaffold(
       backgroundColor: AppColors.ivory,
       appBar: AppBar(title: Text(s.t('assess.title'))),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(getProvider(path));
+          ref.invalidate(offlineExamListProvider);
           await ref.read(getProvider(path).future);
         },
         child: AsyncView(
@@ -34,21 +43,40 @@ class AssessmentsScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(getProvider(path)),
           builder: (raw) {
             final rows = Map<String, dynamic>.from(raw as Map).list('data');
-            if (rows.isEmpty) return ListView(children: [Padding(padding: const EdgeInsets.all(40), child: Center(child: Text(s.t('assess.empty'))))]);
+            final waiting = packages.where((p) => p.waiting).toList();
+            if (rows.isEmpty && waiting.isEmpty) return ListView(children: [Padding(padding: const EdgeInsets.all(40), child: Center(child: Text(s.t('assess.empty'))))]);
             return ListView(padding: const EdgeInsets.all(20), children: [
+              for (final p in waiting) _WaitingCard(exam: p),
               for (final a in rows)
                 Card(
-                  child: ListTile(
-                    title: Text(a.str(ar ? 'title_ar' : 'title_en'), style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: Text('${a.str('program')}\n${s.t('assess.attempts')} ${a.str('attempts_used')}/${a.str('max_attempts')}'
-                        '${a['best_score'] != null ? '  •  ${s.t('assess.best')} ${a.str('best_score')}%' : ''}'),
-                    isThreeLine: true,
-                    trailing: a.flag('open')
-                        ? FilledButton(style: FilledButton.styleFrom(minimumSize: const Size(0, 48)), 
-                            onPressed: () => context.push('/assessments/${a.str('id')}/take', extra: a.flag('requires_code')),
-                            child: Text(s.t(a.str('open_attempt_id').isNotEmpty ? 'assess.resume' : 'assess.start')),
-                          )
-                        : Text(s.t('assess.closed')),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(a.str(ar ? 'title_ar' : 'title_en'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5)),
+                            const SizedBox(height: 4),
+                            Text('${a.str('program')}\n${s.t('assess.attempts')} ${a.str('attempts_used')}/${a.str('max_attempts')}'
+                                '${a['best_score'] != null ? '  •  ${s.t('assess.best')} ${a.str('best_score')}%' : ''}', style: const TextStyle(color: AppColors.muted, height: 1.5, fontSize: 13)),
+                          ]),
+                        ),
+                        const SizedBox(width: 8),
+                        a.flag('open')
+                            ? FilledButton(
+                                style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                                onPressed: () => context.push('/assessments/${a.str('id')}/take', extra: a.flag('requires_code')),
+                                child: Text(s.t(a.str('open_attempt_id').isNotEmpty ? 'assess.resume' : 'assess.start')),
+                              )
+                            : Padding(padding: const EdgeInsets.only(top: 12), child: Text(s.t('assess.closed'))),
+                      ]),
+                      if (a.flag('adaptive'))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(children: [Icon(Icons.auto_graph_rounded, size: 16, color: AppColors.gold700), const SizedBox(width: 6), Text(s.t('adaptive.title'), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.gold700))]),
+                        ),
+                      if (offline && a.flag('allow_offline')) _OfflineAction(assessment: a, package: packages.where((p) => p.assessmentId == a.str('id') && (p.open || p.waiting)).lastOrNull),
+                    ]),
                   ),
                 ),
             ]);
@@ -56,6 +84,111 @@ class AssessmentsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Taking the assessment without a connection: download its package, take it, or hand it in.
+class _OfflineAction extends ConsumerStatefulWidget {
+  const _OfflineAction({required this.assessment, required this.package});
+
+  final Json assessment;
+  final OfflineExam? package;
+
+  @override
+  ConsumerState<_OfflineAction> createState() => _OfflineActionState();
+}
+
+class _OfflineActionState extends ConsumerState<_OfflineAction> {
+  bool _busy = false;
+
+  Future<void> _download() async {
+    setState(() => _busy = true);
+    try {
+      final e = await ref.read(offlineExamsProvider).download(widget.assessment.str('id'));
+      if (!mounted) return;
+      ref.invalidate(offlineExamListProvider);
+      showSnack(context, context.s.t('oexam.downloaded').replaceAll('{date}', Fmt(context.s.languageCode).dateTime(e.expiresAt?.toLocal())));
+    } catch (e) {
+      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final p = widget.package;
+    final fmt = Fmt(s.languageCode);
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 6, 6),
+        decoration: BoxDecoration(color: AppColors.gold100.withValues(alpha: .55), borderRadius: BorderRadius.circular(14)),
+        child: Row(children: [
+          Icon(p == null ? Icons.download_for_offline_outlined : p.waiting ? Icons.cloud_upload_outlined : Icons.offline_pin_rounded, size: 20, color: AppColors.gold700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              p == null
+                  ? s.t('oexam.offlineHint').replaceAll('{hours}', s.count('count.hours', widget.assessment.number('offline_window_hours').toInt()))
+                  : p.waiting
+                      ? s.t('oexam.waiting')
+                      : s.t('oexam.until').replaceAll('{date}', fmt.dateTime(p.expiresAt?.toLocal())),
+              style: const TextStyle(fontSize: 12.5, height: 1.4),
+            ),
+          ),
+          if (_busy)
+            const Padding(padding: EdgeInsets.all(12), child: SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2.2)))
+          else if (p == null)
+            TextButton(onPressed: _download, child: Text(s.t('oexam.download')))
+          else if (p.waiting)
+            TextButton(onPressed: () => handInOfflineExam(context, ref, p), child: Text(s.t('oexam.handIn')))
+          else
+            TextButton(onPressed: () => context.push('/offline-exams/${p.tokenId}'), child: Text(s.t(p.status == 'started' ? 'oexam.continue' : 'oexam.take'))),
+        ]),
+      ),
+    );
+  }
+}
+
+/// An exam answered offline that waits for a connection to be handed in.
+class _WaitingCard extends ConsumerWidget {
+  const _WaitingCard({required this.exam});
+
+  final OfflineExam exam;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    return Card(
+      color: AppColors.navy100.withValues(alpha: .45),
+      child: ListTile(
+        leading: Icon(Icons.cloud_upload_outlined, color: AppColors.navy800),
+        title: Text(exam.title(s.isArabic), style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(s.t('oexam.waiting')),
+        trailing: TextButton(onPressed: () => handInOfflineExam(context, ref, exam), child: Text(s.t('oexam.handIn'))),
+      ),
+    );
+  }
+}
+
+/// Hands in an exam answered offline and opens its result; says plainly what happened otherwise.
+Future<void> handInOfflineExam(BuildContext context, WidgetRef ref, OfflineExam exam) async {
+  final s = context.s;
+  final exams = ref.read(offlineExamsProvider);
+  try {
+    final r = await exams.submit(exam.tokenId);
+    if (!context.mounted) return;
+    ref.invalidate(offlineExamListProvider);
+    ref.invalidate(getProvider(AssessmentsScreen.path));
+    context.push('/attempts/${r['id']}');
+  } on ApiException catch (e) {
+    if (!context.mounted) return;
+    ref.invalidate(offlineExamListProvider);
+    showSnack(context, e.code == 'network' ? s.t('oexam.stillOffline') : s.t('oexam.refused').replaceAll('{reason}', s.t('oexam.reason.${e.code ?? 'refused'}')), error: true);
+  } catch (e) {
+    if (context.mounted) showSnack(context, e.toString(), error: true);
   }
 }
 
@@ -196,15 +329,23 @@ class _ExamScreenState extends ConsumerState<ExamScreen> with WidgetsBindingObse
     if (_attempt == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final qs = _attempt!.list('questions');
     if (qs.isEmpty) return Scaffold(appBar: AppBar(), body: Center(child: Text(s.t('assess.empty'))));
+    final timer = _left == null ? null : Padding(padding: const EdgeInsetsDirectional.only(end: 16), child: Center(child: Text(_clock(_left!), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18))));
+    if (_attempt!.obj('adaptive') != null) {
+      return Scaffold(
+        backgroundColor: AppColors.ivory,
+        appBar: AppBar(title: Text(s.t('adaptive.title')), actions: [?timer]),
+        body: AdaptivePractice(attempt: _attempt!, onDraft: _set, onFinish: _submit),
+      );
+    }
     final q = qs[_index];
     return Scaffold(
       backgroundColor: AppColors.ivory,
       appBar: AppBar(
         title: Text(s.t('assess.question').replaceAll('{n}', '${_index + 1}').replaceAll('{total}', '${qs.length}')),
-        actions: [if (_left != null) Padding(padding: const EdgeInsetsDirectional.only(end: 16), child: Center(child: Text(_clock(_left!), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18))))],
+        actions: [?timer],
       ),
       body: Column(children: [
-        Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [_question(q)])),
+        Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [QuestionView(q: q, answer: _answers[q.str('id')], onChanged: (v) => _set(q.str('id'), v))])),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -235,73 +376,6 @@ class _ExamScreenState extends ConsumerState<ExamScreen> with WidgetsBindingObse
       ),
     );
     if (ok == true) _submit();
-  }
-
-  Widget _question(Json q) {
-    final s = context.s;
-    final ar = s.languageCode == 'ar';
-    final id = q.str('id');
-    final p = q.obj('payload') ?? {};
-    final stem = q.str(ar ? 'stem_ar' : 'stem_en').isNotEmpty ? q.str(ar ? 'stem_ar' : 'stem_en') : q.str('stem_ar');
-    final head = Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(stem, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.6)));
-    switch (q.str('type')) {
-      case 'single_choice':
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          head,
-          RadioGroup<String>(
-            groupValue: _answers[id] as String?,
-            onChanged: (v) => _set(id, v),
-            child: Column(children: [
-              for (final o in p.list('options')) RadioListTile<String>(value: o.str('id'), title: Text(o.str(ar ? 'text_ar' : 'text_en').isNotEmpty ? o.str(ar ? 'text_ar' : 'text_en') : o.str('text_ar'))),
-            ]),
-          ),
-        ]);
-      case 'multiple_select':
-        final cur = List<String>.from((_answers[id] as List?) ?? const []);
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          head,
-          for (final o in p.list('options'))
-            CheckboxListTile(
-              value: cur.contains(o.str('id')),
-              title: Text(o.str(ar ? 'text_ar' : 'text_en').isNotEmpty ? o.str(ar ? 'text_ar' : 'text_en') : o.str('text_ar')),
-              onChanged: (v) => _set(id, v == true ? [...cur, o.str('id')] : cur.where((x) => x != o.str('id')).toList()),
-            ),
-        ]);
-      case 'true_false':
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          head,
-          Row(children: [
-            for (final v in [true, false])
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: _answers[id] == v
-                      ? FilledButton(onPressed: () => _set(id, v), child: Text(s.t(v ? 'assess.true' : 'assess.false')))
-                      : OutlinedButton(onPressed: () => _set(id, v), child: Text(s.t(v ? 'assess.true' : 'assess.false'))),
-                ),
-              ),
-          ]),
-        ]);
-      case 'short_answer':
-      case 'numeric':
-      case 'essay':
-        final multi = q.str('type') == 'essay';
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          head,
-          TextFormField(
-            key: ValueKey(id),
-            initialValue: _answers[id]?.toString() ?? '',
-            minLines: multi ? 6 : 1,
-            maxLines: multi ? 12 : 1,
-            keyboardType: q.str('type') == 'numeric' ? const TextInputType.numberWithOptions(decimal: true, signed: true) : TextInputType.multiline,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            onChanged: (v) => _set(id, v),
-          ),
-        ]);
-      default:
-        // Drag, matrix and hotspot interactions are completed on the web; the trainee is told clearly instead of seeing a broken question.
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [head, Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(s.t('assess.webOnly'))))]);
-    }
   }
 }
 

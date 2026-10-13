@@ -8,6 +8,7 @@ import '../../core/format.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/config.dart';
+import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
 import '../../core/push/push_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -20,6 +21,31 @@ class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   static const path = '/me/passport';
+
+  /// Signing out deletes what is kept offline: when something learned or answered offline was not sent yet, the person
+  /// is told first.
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    var unsent = 0;
+    try {
+      unsent = await ref.read(offlineUnsentProvider.future).timeout(const Duration(seconds: 3));
+    } catch (_) {}
+    if (unsent > 0 && context.mounted) {
+      final s = context.s;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(s.t('offline.unsentTitle')),
+          content: Text(s.t('offline.unsentText')),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.t('common.cancel'))),
+            FilledButton(style: FilledButton.styleFrom(backgroundColor: AppColors.danger), onPressed: () => Navigator.pop(ctx, true), child: Text(s.t('offline.signOutAnyway'))),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+    await ref.read(authProvider.notifier).logout();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -193,6 +219,17 @@ class ProfileScreen extends ConsumerWidget {
                     onTap: () => context.push('/achievements'),
                   ),
                 ),
+              if (featureOn(ref, 'offline_mobile'))
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: Icon(Icons.download_for_offline_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('offline.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/downloads'),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: ListTile(
@@ -303,7 +340,7 @@ class ProfileScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.logout, color: AppColors.danger),
                     title: Text(s.t('auth.logout'), style: const TextStyle(color: AppColors.danger)),
-                    onTap: () => ref.read(authProvider.notifier).logout(),
+                    onTap: () => _signOut(context, ref),
                   ),
                 ]),
               ),

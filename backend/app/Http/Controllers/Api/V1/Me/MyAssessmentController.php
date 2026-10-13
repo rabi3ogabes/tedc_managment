@@ -29,7 +29,8 @@ class MyAssessmentController extends MeController
 
             return ['id' => $a->id, 'kind' => $a->kind, 'title_ar' => $a->title_ar, 'title_en' => $a->title_en, 'program' => $a->program?->translate('title'), 'delivery' => $a->delivery, 'time_limit_minutes' => $a->time_limit_minutes, 'max_attempts' => $a->max_attempts, 'attempts_used' => $tries->count(),
                 'window_opens_at' => $a->window_opens_at?->toIso8601String(), 'window_closes_at' => $a->window_closes_at?->toIso8601String(), 'open' => (! $a->window_opens_at || $a->window_opens_at->lte($now)) && (! $a->window_closes_at || $a->window_closes_at->gte($now)), 'requires_code' => $a->delivery === 'in_center',
-                'open_attempt_id' => $tries->firstWhere('status', 'in_progress')?->id, 'best_score' => $tries->where('status', 'graded')->max('score_percent'), 'last_attempt_id' => $tries->sortByDesc('started_at')->first()?->id];
+                'open_attempt_id' => $tries->firstWhere('status', 'in_progress')?->id, 'best_score' => $tries->where('status', 'graded')->max('score_percent'), 'last_attempt_id' => $tries->sortByDesc('started_at')->first()?->id,
+                'allow_offline' => (bool) $a->allow_offline && ! $a->adaptive && $a->delivery !== 'in_center', 'offline_window_hours' => (int) $a->offline_window_hours, 'adaptive' => (bool) $a->adaptive];
         })->values()->all()]);
     }
 

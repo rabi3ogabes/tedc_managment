@@ -34,6 +34,17 @@ build, pass `--dart-define=SHOW_DEMO_ACCOUNTS=false` to hide them.
 | Notifications, push notifications, mark all read | Notifications tab |
 | Training passport, skills, language, push status, sign out | Profile tab |
 | School management (School Admin account) | Profile → **إدارة المدرسة** |
+| Learning without a connection (flag `offline_mobile`): download a course, play its videos, read its PDF slides and articles in flight mode, then reconnect and see the progress arrive | A course → **تنزيل للتعلّم دون اتصال**; Profile → **التنزيلات** |
+| Offline exam: download it, take it in flight mode (timer keeps running), hand it in when back online | My assessments → an assessment that allows it → **تنزيل** → **ابدأ دون اتصال** |
+| PDF slides in the app: each slide counts after the lesson's minimum time; no "confirm" for PDFs | A presentation lesson |
+| Full-screen lessons: the video plays only in the landscape player | A video lesson with "must be watched full screen" |
+| Adaptive practice: one question at a time with the level, the competency and "why this question" | My assessments → an adaptive practice |
+
+### Offline learning, in short
+* Downloads resume where they stopped, are checked against the server's SHA-256 and kept **encrypted** (AES-256-GCM, a key for this phone only, held in the Keychain / Android Keystore). A video is opened into a private temporary file only while it plays.
+* Everything downloaded expires (14 days by default, Settings → Standards → Offline); the Downloads screen shows the space used, the expiry of each course, **remove**, and **Wi-Fi only**.
+* Signing out deletes every download, every offline exam answer and their keys (the app warns first when something learned offline was not sent yet). Removing the phone from *my offline devices* on another device deletes them at its next contact.
+* Offline exams time themselves with the phone's monotonic clock; time away from the app counts, as it would online, and the server checks the timing again.
 
 ## Push notifications (Firebase)
 

@@ -5,6 +5,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 
 **Progress:** Phase 19 done on 11 October 2026 — NTF-09, PLC-03 ★, COL-02, COL-03 and COL-04 are now Available (register: 233 available, 45 partial, 0 missing; mandatory item 25 available).
 **Progress:** Phase 20 done on 13 October 2026 — NDS-08, RPT-03 and RPT-11 are now Available (register: 236 available, 42 partial, 0 missing).
+**Progress:** Phase 21 done on 13 October 2026 — TYP-12, AI-03 ★ and TEC-08 ★ are now Available; AI-05 ★ is Ready, waiting for the in-country model endpoint and a golden-set run against it (register: 239 available, 39 partial, 0 missing).
 
 **Who unblocks:** *We build it* = software only · *Your decision* = needs your yes/no · *Ministry input* = credentials, specifications or files from the Ministry · *Azure / real run* = needs the Azure subscription or a real test run · *Centre workshops & sign-off* = needs the training centre.
 
@@ -14,7 +15,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 |---:|---|---|---:|
 | 19 ✅ | [19_COLLABORATION_COMPLETION.md](19_COLLABORATION_COMPLETION.md) | NTF-09, PLC-03 ★, COL-02, COL-03, COL-04 — done 11 Oct | 1 |
 | 20 ✅ | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 — done 13 Oct | 0 |
-| 21 | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★, TEC-08 ★ | 3 |
+| 21 ✅ | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★ (Ready), TEC-08 ★ — done 13 Oct | 3 |
 | 22 | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ | 1 |
 | 23 | [23_IDENTITY_AND_MICROSOFT_365.md](23_IDENTITY_AND_MICROSOFT_365.md) | NFR-07 ★, NFR-08 ★, TEC-12 ★ | 3 |
 | 24 | [24_MINISTRY_SYSTEMS_AND_PROVIDERS.md](24_MINISTRY_SYSTEMS_AND_PROVIDERS.md) | UX-03, TYP-14, CAR-05, ATT-05, CNT-05, NTF-03 ★, UTR-03, PAY-02, TEC-07 ★, TEC-13 ★ | 3 |
@@ -41,6 +42,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### TYP · Training Types — إدارة أنواع التدريب
 
 #### TYP-12 — Offline learning: watched content offline, sync on reconnect, resume exams
+- **Status:** ✅ Available since Phase 21 (13 Oct 2026) — see `docs/rfp/phase-21-learning-engine-completion.md`.
 - **Built today:** Offline manifest and idempotent sync done; encrypted downloads and offline exams in the app not built
 - **Missing:** No encrypted downloads, offline playback/reading, offline exams or Downloads screen in the app (server manifest and sync exist).
 - **Who unblocks:** We build it
@@ -208,6 +210,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### AI · Phase 2 · Artificial Intelligence — المرحلة الثانية · الذكاء الاصطناعي
 
 #### AI-03 ★ — Adaptive content that adjusts to each learner
+- **Status:** ✅ Available since Phase 21 (13 Oct 2026) — see `docs/rfp/phase-21-learning-engine-completion.md`.
 - **Built today:** Mastery per competency, skip-module (test-out, audited) and remedial-lesson rules, personal path with reasons, AI-drafted remedial lessons reviewed by the trainer; difficulty of practice draws is not adapted. Phase 15.
 - **Missing:** Practice questions do not adapt to mastery; remedial lessons are recommended, not assigned.
 - **Who unblocks:** We build it
@@ -215,6 +218,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Available
 
 #### AI-05 ★ — ML assistant that answers trainees’ questions
+- **Status:** 🟡 Ready since Phase 21 (13 Oct 2026) — waiting for the in-country model endpoint and a golden-set run against it; see `docs/rfp/phase-21-learning-engine-completion.md`.
 - **Built today:** Assistant answering from permitted lessons, programmes and library with citations plus the person's own records, declines off-topic, hands over to trainer or support, in-country by default; retrieval uses local hashed embeddings (no pgvector) and generating answers needs a connected model (extractive answers otherwise); not run against a real Azure endpoint. Phase 15.
 - **Missing:** No pgvector, no neural embeddings, no provider streaming, no retrieval benchmark; never run against an in-country model.
 - **Who unblocks:** We build it + Ministry input
@@ -345,6 +349,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 - **Expected after the phase:** Ready; Available after testing with the real system
 
 #### TEC-08 ★ — LTI 1.1 and LTI 1.3 with Deep Linking
+- **Status:** ✅ Available since Phase 21 (13 Oct 2026) — see `docs/rfp/phase-21-learning-engine-completion.md`.
 - **Built today:** LTI 1.1/1.3 platform with Deep Linking, AGS, NRPS done; TEDC as an LTI tool not built
 - **Missing:** TEDC works as an LTI platform only; other LMSs cannot launch TEDC as a tool.
 - **Who unblocks:** We build it

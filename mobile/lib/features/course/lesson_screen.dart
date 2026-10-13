@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,10 +10,16 @@ import 'package:video_player/video_player.dart';
 import '../../core/api/api_client.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
+import '../../core/offline/offline_providers.dart';
+import '../../core/offline/offline_store.dart';
+import '../../core/offline/offline_sync.dart';
+import '../../core/offline_queue.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../community/subject_social.dart';
+import 'fullscreen_video.dart';
+import 'slides_lesson.dart';
 
 /// One lesson of an online course: a tracked video, slides, a quiz, a survey or an article.
 class LessonScreen extends ConsumerStatefulWidget {
@@ -50,8 +57,57 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
         _completed = data.obj('progress')?.str('status') == 'completed';
       });
     } catch (e) {
-      if (mounted) setState(() => _error = ApiException.from(e).message);
+      final err = ApiException.from(e);
+      // No answer from the server: the copy kept on the phone, when there is one.
+      if (err.status == null) {
+        try {
+          final offline = await _offlineLesson();
+          if (!mounted) return;
+          if (offline != null) {
+            setState(() => _lesson = offline);
+            return;
+          }
+          setState(() => _error = context.s.t('offline.notDownloaded'));
+          return;
+        } on OfflineError catch (o) {
+          if (mounted) setState(() => _error = context.s.t('offline.err.${o.code}'));
+          return;
+        }
+      }
+      if (mounted) setState(() => _error = err.message);
     }
+  }
+
+  /// The lesson as kept on the phone (manifest settings, encrypted article text).
+  Future<Json?> _offlineLesson() async {
+    final store = ref.read(offlineStoreProvider);
+    final reg = widget.registrationId ?? await store.registrationOf(widget.id);
+    if (reg == null) return null;
+    final item = await store.item(reg, widget.id);
+    if (item == null || !mounted) return null;
+    final ar = context.s.isArabic;
+    final body = item.type == 'article' ? await store.readArticle(reg, widget.id) : null;
+    final set = item.settings;
+    return {
+      'id': widget.id, 'type': item.type, 'title': item.title(ar), 'description': '', 'offline': true, 'registration_id': reg,
+      'body': body == null ? '' : (((ar ? body['ar'] : body['en']) as String?)?.isNotEmpty == true ? (ar ? body['ar'] : body['en']) : body['ar']) ?? '',
+      'duration_seconds': item.json['duration_seconds'] ?? 0,
+      'media': item.type == 'article' ? null : {'kind': 'offline', 'mime': item.mime, 'url': ''},
+      'rules': {
+        'allow_seeking': set['allow_seeking'] ?? true, 'max_speed': set['max_speed'] ?? 2, 'pause_when_hidden': set['pause_when_hidden'] ?? true,
+        'min_watch_percent': set['min_watch_percent'] ?? 90, 'min_view_percent': set['min_view_percent'] ?? 80, 'min_seconds_per_slide': set['min_seconds_per_slide'] ?? 0,
+        'require_fullscreen': set['require_fullscreen'] ?? false,
+      },
+      'progress': {'status': 'not_started', 'percent': 0, 'position': 0, 'furthest': 0, 'segments': []},
+    };
+  }
+
+  bool get _offline => _lesson?.flag('offline') ?? false;
+
+  /// The private plain copy of this lesson's file, for the player (deleted when the lesson closes).
+  Future<File> _openOffline() async {
+    final store = ref.read(offlineStoreProvider);
+    return store.openFile(_lesson!.str('registration_id'), widget.id);
   }
 
   /// Called by the lesson widgets whenever the server reports progress.
@@ -63,6 +119,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   }
 
   Future<void> _markDone() async {
+    if (_offline) {
+      await ref.read(offlineSyncProvider).record((q) => q.lessonComplete(widget.id));
+      if (mounted) setState(() => _completed = true);
+      return;
+    }
     try {
       await ref.read(apiProvider).post('/me/lessons/${widget.id}/complete');
       _progress(true);
@@ -96,7 +157,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       appBar: AppBar(
         title: Text(l?.str('title') ?? s.t('course.title'), overflow: TextOverflow.ellipsis),
         actions: [
-          if (l != null) ...[
+          if (l != null && !_offline) ...[
             IconButton(tooltip: s.t('notes.title'), icon: const Icon(Icons.sticky_note_2_outlined), onPressed: () => _sheet(NotesView(type: 'lesson', id: widget.id))),
             IconButton(tooltip: s.t('rating.title'), icon: const Icon(Icons.star_outline_rounded), onPressed: () => _sheet(ListView(padding: const EdgeInsets.all(12), children: [RatingCard(type: 'lesson', id: widget.id)]))),
             IconButton(tooltip: s.t('lesson.discuss'), icon: const Icon(Icons.forum_outlined), onPressed: _discuss),
@@ -108,10 +169,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           : l == null
               ? const LoadingView()
               : ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 32), children: [
+                  if (_offline)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(14)),
+                      child: Row(children: [
+                        Icon(Icons.cloud_off_rounded, size: 18, color: AppColors.gold300),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(s.t('offline.lessonBanner'), style: const TextStyle(color: Colors.white, fontSize: 12.5, height: 1.5))),
+                      ]),
+                    ),
                   if (l.str('description').isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(l.str('description'), style: const TextStyle(color: AppColors.muted, height: 1.5))),
                   switch (l.str('type')) {
-                    'video' => _VideoLesson(lesson: l, onProgress: _progress),
-                    'presentation' => _SlidesLesson(lesson: l, onConfirm: _markDone),
+                    'video' => _VideoLesson(lesson: l, onProgress: _progress, offlineFile: _offline ? _openOffline : null),
+                    'presentation' => SlidesLesson(lesson: l, onConfirm: _markDone, onProgress: _progress, offlineFile: _offline ? _openOffline : null),
                     'quiz' => _QuizLesson(lesson: l, onProgress: _progress),
                     'survey' => _SurveyLesson(lesson: l, onProgress: _progress),
                     _ => _ArticleLesson(lesson: l, done: _completed, onDone: _markDone),
@@ -137,10 +209,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 // Video -------------------------------------------------------------------------------------------------------
 
 class _VideoLesson extends ConsumerStatefulWidget {
-  const _VideoLesson({required this.lesson, required this.onProgress});
+  const _VideoLesson({required this.lesson, required this.onProgress, this.offlineFile});
 
   final Json lesson;
   final void Function(bool completed) onProgress;
+
+  /// The private plain copy of the offline download; progress then waits in the offline queue.
+  final Future<File> Function()? offlineFile;
 
   @override
   ConsumerState<_VideoLesson> createState() => _VideoLessonState();
@@ -158,8 +233,14 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   bool _failed = false;
   String _noSeekText = '';
   int? _pausesLeft; // the lesson's pause limit, counted on the server; null = no limit
+  File? _plain; // the offline copy being played
+  late final OfflineSync _sync; // kept: the last stretch is recorded while the lesson closes
+  List<List<double>> _segments = []; // watched offline, for the share shown
+  bool _fullscreen = false;
 
   Json get _rules => widget.lesson.obj('rules') ?? {};
+  bool get _offline => widget.offlineFile != null;
+  bool get _requireFullscreen => _rules['require_fullscreen'] == true;
   bool get _allowSeek => _rules['allow_seeking'] != false;
   Json? get _media => widget.lesson.obj('media');
   bool get _embedded => _media?.str('kind') == 'link' && _media!.str('embed').isNotEmpty;
@@ -168,6 +249,7 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _sync = ref.read(offlineSyncProvider);
     final progress = widget.lesson.obj('progress') ?? {};
     _percent = progress.number('percent').toDouble();
     _furthest = progress.number('furthest').toDouble();
@@ -180,7 +262,28 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
   }
 
   Future<void> _setUp(String url, double resumeAt, bool completed) async {
-    final c = VideoPlayerController.networkUrl(Uri.parse(url));
+    final VideoPlayerController c;
+    if (_offline) {
+      try {
+        final f = await widget.offlineFile!();
+        if (!mounted) {
+          await f.delete();
+          return;
+        }
+        _plain = f;
+        c = VideoPlayerController.file(f);
+      } on OfflineError catch (e) {
+        if (mounted) {
+          setState(() {
+            _notice = context.s.t('offline.err.${e.code}');
+            _failed = true;
+          });
+        }
+        return;
+      }
+    } else {
+      c = VideoPlayerController.networkUrl(Uri.parse(url));
+    }
     try {
       await c.initialize();
     } catch (_) {
@@ -231,9 +334,23 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     final to = c.value.position.inMilliseconds / 1000;
     if ((to <= from && !paused) || (to - from < 0.5 && !force)) return;
     _sent = to > from ? to : from;
+    if (_offline) {
+      // Watched without a connection: the stretch waits in the queue and the share shown is worked out here.
+      if (to > from) {
+        final id = widget.lesson.str('id');
+        await _sync.record((q) => q.videoProgress(id, from, to, position: to));
+        _segments = OfflineQueue.merge([..._segments, [from, to]]);
+        final total = c.value.duration.inMilliseconds / 1000;
+        final covered = _segments.fold<double>(0, (a, s) => a + s[1] - s[0]);
+        if (mounted && total > 0) setState(() => _percent = (covered / total * 100).clamp(0, 100).toDouble());
+      }
+      return;
+    }
     try {
       final res = await ref.read(apiProvider).post('/me/lessons/${widget.lesson.str('id')}/heartbeat', {
         'from': from, 'to': to > from ? to : from, 'duration': c.value.duration.inSeconds, 'rate': c.value.playbackSpeed, if (paused) 'paused': true,
+        // A lesson watched full screen: only time in the full-screen player counts.
+        if (_requireFullscreen) 'fullscreen': _fullscreen,
       });
       final r = Map<String, dynamic>.from(res['data'] as Map);
       if (!mounted) return;
@@ -291,8 +408,32 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
     _timer?.cancel();
     _beat(force: true);
     _c?.removeListener(_onTick);
-    _c?.dispose();
+    final c = _c;
+    final plain = _plain;
+    // The plain copy of an offline download lives only while it plays.
+    unawaited(Future.sync(() => c?.dispose()).whenComplete(() async {
+      if (plain != null && await plain.exists()) await plain.delete();
+    }));
     super.dispose();
+  }
+
+  /// Opens the landscape full-screen player; only the time watched there counts.
+  Future<void> _openFullscreen() async {
+    final c = _c;
+    if (c == null) return;
+    await Navigator.of(context, rootNavigator: true).push(MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => FullscreenVideoPage(
+        controller: c,
+        controls: (ctx) => _controls(ctx, c),
+        onEnter: () => _fullscreen = true,
+        onLeave: () {
+          // The stretch watched full screen is sent as such; anything after it is not full screen.
+          unawaited(_beat(force: true).whenComplete(() => _fullscreen = false));
+        },
+      ),
+    ));
+    if (mounted) setState(() {});
   }
 
   String _clock(double seconds) {
@@ -318,13 +459,43 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
       ]);
     }
     final c = _c;
-    if (_failed) return _Note(icon: Icons.error_outline, text: s.t('course.videoFailed'), danger: true);
-    if (c == null) return const AspectRatio(aspectRatio: 16 / 9, child: Center(child: CircularProgressIndicator()));
+    if (_failed) return _Note(icon: Icons.error_outline, text: _offline && _notice != null ? _notice! : s.t('course.videoFailed'), danger: true);
+    if (c == null) {
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const CircularProgressIndicator(),
+            // An offline download is opened (decrypted) before it plays.
+            if (_offline) Padding(padding: const EdgeInsets.only(top: 12), child: Text(s.t('offline.preparing'), style: const TextStyle(color: AppColors.muted))),
+          ]),
+        ),
+      );
+    }
 
-    final duration = c.value.duration.inMilliseconds / 1000;
-    final position = c.value.position.inMilliseconds / 1000;
-    final maxSpeed = (_rules['max_speed'] as num?)?.toDouble() ?? 2;
-    final speeds = [0.75, 1.0, 1.25, 1.5, 2.0].where((x) => x <= maxSpeed).toList();
+    if (_requireFullscreen) {
+      // Watched only in the full-screen player.
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(alignment: Alignment.center, children: [
+            AspectRatio(aspectRatio: c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio, child: VideoPlayer(c)),
+            Container(color: Colors.black38),
+            FilledButton.icon(
+              key: const ValueKey('watch-fullscreen'),
+              onPressed: _openFullscreen,
+              style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.navy900, minimumSize: const Size(0, 48)),
+              icon: const Icon(Icons.fullscreen_rounded),
+              label: Text(s.t('course.watchFullscreen')),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 10),
+        _Note(icon: Icons.screen_rotation_rounded, text: s.t('course.fullscreenNote')),
+        const SizedBox(height: 10),
+        _progressRow(s),
+      ]);
+    }
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       ClipRRect(
@@ -335,7 +506,25 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
         ]),
       ),
       const SizedBox(height: 8),
-      // The seek bar cannot go beyond what was reached when skipping is off.
+      _controls(context, c),
+      _progressRow(s),
+    ]);
+  }
+
+  Widget _progressRow(S s) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [Text('${s.t('course.watched')} ${_percent.round()}%', style: const TextStyle(fontWeight: FontWeight.w700)), const Spacer(), Text('${s.t('course.needWatch')} ${(_rules['min_watch_percent'] as num?) ?? 90}%', style: const TextStyle(fontSize: 12, color: AppColors.muted))]),
+        const SizedBox(height: 6),
+        ProgressBar(_percent),
+      ]);
+
+  /// The seek bar (it cannot go beyond what was reached when skipping is off), play/pause with the pause limit, and speed.
+  Widget _controls(BuildContext context, VideoPlayerController c) {
+    final s = context.s;
+    final duration = c.value.duration.inMilliseconds / 1000;
+    final position = c.value.position.inMilliseconds / 1000;
+    final maxSpeed = (_rules['max_speed'] as num?)?.toDouble() ?? 2;
+    final speeds = [0.75, 1.0, 1.25, 1.5, 2.0].where((x) => x <= maxSpeed).toList();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
       Slider(
         value: duration > 0 ? position.clamp(0, duration) : 0,
         max: duration > 0 ? duration : 1,
@@ -380,33 +569,6 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
         ),
       ]),
       if (_notice != null) Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(_notice!, style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.w600))),
-      Row(children: [Text('${s.t('course.watched')} ${_percent.round()}%', style: const TextStyle(fontWeight: FontWeight.w700)), const Spacer(), Text('${s.t('course.needWatch')} ${(_rules['min_watch_percent'] as num?) ?? 90}%', style: const TextStyle(fontSize: 12, color: AppColors.muted))]),
-      const SizedBox(height: 6),
-      ProgressBar(_percent),
-    ]);
-  }
-}
-
-// Slides ------------------------------------------------------------------------------------------------------
-
-class _SlidesLesson extends StatelessWidget {
-  const _SlidesLesson({required this.lesson, required this.onConfirm});
-
-  final Json lesson;
-  final Future<void> Function() onConfirm;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.s;
-    final media = lesson.obj('media');
-    if (media == null) return _Note(icon: Icons.slideshow_outlined, text: s.t('course.mediaMissing'));
-    final done = lesson.obj('progress')?.str('status') == 'completed';
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _Note(icon: Icons.info_outline, text: s.t('course.slidesNote')),
-      const SizedBox(height: 12),
-      FilledButton.icon(onPressed: () => launchUrl(Uri.parse(media.str('url')), mode: LaunchMode.externalApplication), icon: const Icon(Icons.open_in_new), label: Text(s.t('course.openFile'))),
-      const SizedBox(height: 10),
-      if (!done) OutlinedButton.icon(onPressed: onConfirm, icon: const Icon(Icons.check), label: Text(s.t('course.confirmReviewed'))),
     ]);
   }
 }
