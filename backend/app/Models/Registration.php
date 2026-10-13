@@ -50,6 +50,9 @@ class Registration extends Model
 
     public const SOURCE_BULK = 'bulk_import';
 
+    /** Enrolled by a launch from another LMS (TEDC as an LTI tool). */
+    public const SOURCE_LTI = 'lti';
+
     protected function casts(): array
     {
         return [

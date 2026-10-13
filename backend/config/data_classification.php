@@ -20,7 +20,7 @@ return [
         'security_events' => 'confidential', 'siem_outbox' => 'confidential', 'audit_logs' => 'confidential', 'error_logs' => 'internal', 'ai_logs' => 'internal', 'assistant_messages' => 'confidential', 'assistant_conversations' => 'confidential',
         'orders' => 'confidential', 'payments' => 'confidential', 'refunds' => 'confidential', 'entity_accounts' => 'confidential', 'seat_vouchers' => 'confidential', 'data_subject_requests' => 'confidential', 'notifications' => 'confidential',
         'registrations' => 'confidential', 'attendance' => 'confidential', 'certificates' => 'confidential', 'evaluations' => 'confidential', 'assessment_attempts' => 'confidential', 'pd_activities' => 'confidential', 'trainers' => 'confidential',
-        'user_identities' => 'confidential', 'auth_sessions' => 'confidential', 'remedial_assignments' => 'confidential',
+        'user_identities' => 'confidential', 'auth_sessions' => 'confidential', 'remedial_assignments' => 'confidential', 'lti_tool_launches' => 'confidential',
     ],
 
     /** Columns that exist only on some databases (embeddings.vec: PostgreSQL with pgvector); listed in the register everywhere. */
@@ -32,6 +32,8 @@ return [
         'program_categories.name_ar' => 'public', 'program_categories.name_en' => 'public', 'program_categories.program_type' => 'public',
         // Offline learning: each device's content key and each exam package's nonce are secrets; the frozen exam questions hold the answers.
         'offline_devices.content_key' => 'restricted', 'offline_exam_tokens.nonce' => 'restricted', 'offline_exam_tokens.questions' => 'confidential',
+        // TEDC as an LTI tool: a platform's OAuth 1.0a secret is a secret; the one-time linking ticket of a launch is a credential.
+        'lti_platforms.consumer_secret' => 'restricted', 'lti_tool_launches.ticket' => 'restricted',
         'sessions.payload' => 'restricted', 'integrations.config' => 'restricted', 'webhook_subscriptions.secret' => 'restricted', 'attendance_devices.api_config' => 'restricted', 'employees.national_id' => 'restricted',
         'users.password' => 'restricted', 'users.mfa_secret' => 'restricted', 'lti_tools.consumer_secret' => 'restricted', 'users.remember_token' => 'restricted', 'personal_access_tokens.token' => 'restricted', 'password_reset_tokens.token' => 'restricted',
     ],
@@ -48,5 +50,5 @@ return [
     ],
 
     /** Columns known to be encrypted at application level (Laravel `encrypted` casts). Restricted columns not listed here are hashes, secrets held in Key Vault, or tokens that expire. */
-    'app_encrypted' => ['offline_devices.content_key', 'employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config'],
+    'app_encrypted' => ['lti_platforms.consumer_secret', 'offline_devices.content_key', 'employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config'],
 ];

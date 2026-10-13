@@ -15,13 +15,14 @@
 
 ## Totals
 
-- Public: 718 columns
-- Internal: 1997 columns
-- Confidential: 483 columns
-- Restricted: 21 columns
+- Public: 721 columns
+- Internal: 2009 columns
+- Confidential: 507 columns
+- Restricted: 23 columns
 
 ## Application-level encryption
 
+- `lti_platforms.consumer_secret`
 - `offline_devices.content_key`
 - `employees.national_id`
 - `attendance_devices.api_config`
@@ -2058,6 +2059,27 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `lti_platforms`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `name` | Confidential | masked in exports |
+| `version` | Internal | — |
+| `issuer` | Internal | — |
+| `client_id` | Internal | — |
+| `deployment_ids` | Internal | — |
+| `auth_login_url` | Internal | — |
+| `auth_token_url` | Internal | — |
+| `jwks_url` | Internal | — |
+| `public_key` | Internal | — |
+| `consumer_key` | Internal | — |
+| `consumer_secret` | Restricted | application-level encryption |
+| `status` | Internal | — |
+| `settings` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `lti_scores`
 
 | Column | Class | Control |
@@ -2089,6 +2111,36 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `used_at` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `platform_id` | Internal | — |
+
+### `lti_tool_launches`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Confidential | masked in exports |
+| `platform_id` | Confidential | masked in exports |
+| `sub` | Confidential | masked in exports |
+| `user_id` | Confidential | masked in exports |
+| `message_type` | Confidential | masked in exports |
+| `context_id` | Confidential | masked in exports |
+| `resource_link_id` | Confidential | masked in exports |
+| `target_type` | Confidential | masked in exports |
+| `target_id` | Confidential | masked in exports |
+| `registration_id` | Confidential | masked in exports |
+| `claims` | Confidential | masked in exports |
+| `ags_lineitem` | Confidential | masked in exports |
+| `ags_lineitems` | Confidential | masked in exports |
+| `ags_scopes` | Confidential | masked in exports |
+| `nrps_url` | Confidential | masked in exports |
+| `outcome_url` | Confidential | masked in exports |
+| `outcome_sourcedid` | Confidential | masked in exports |
+| `deep_link` | Confidential | masked in exports |
+| `ticket` | Restricted | hash / secret / expiring token |
+| `used_at` | Confidential | masked in exports |
+| `last_score_at` | Confidential | masked in exports |
+| `last_score_error` | Confidential | masked in exports |
+| `created_at` | Confidential | masked in exports |
+| `updated_at` | Confidential | masked in exports |
 
 ### `lti_tools`
 

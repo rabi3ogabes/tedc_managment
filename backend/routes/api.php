@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\KpiController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
+use App\Http\Controllers\Api\V1\Admin\LtiPlatformController;
 use App\Http\Controllers\Api\V1\Admin\LtiToolController;
 use App\Http\Controllers\Api\V1\Admin\MaterialController;
 use App\Http\Controllers\Api\V1\Admin\MenuLayoutController;
@@ -124,6 +125,7 @@ use App\Http\Controllers\Api\V1\HudhudReceiptController;
 use App\Http\Controllers\Api\V1\InboundWebhookController;
 use App\Http\Controllers\Api\V1\LibraryController;
 use App\Http\Controllers\Api\V1\LtiController;
+use App\Http\Controllers\Api\V1\LtiToolEndpointController;
 use App\Http\Controllers\Api\V1\Me\AccountController;
 use App\Http\Controllers\Api\V1\Me\AppHomeController as AppHomeMeController;
 use App\Http\Controllers\Api\V1\Me\DeviceController;
@@ -134,6 +136,7 @@ use App\Http\Controllers\Api\V1\Me\MyCareerController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyEventsController;
+use App\Http\Controllers\Api\V1\Me\MyLtiController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyNotificationPreferencesController;
 use App\Http\Controllers\Api\V1\Me\MyOfflineController;
@@ -193,6 +196,14 @@ Route::prefix('v1')->group(function () {
         Route::get('nrps/{program}/memberships', [LtiController::class, 'memberships']);
         Route::post('deep-link/return', [LtiController::class, 'deepLinkReturn']);
         Route::post('outcomes', [LtiController::class, 'outcomes']);
+    });
+    // TEDC as an LTI tool: other LMSs launch TEDC (the platform proves itself: signed id_token, single-use state, OAuth 1.0a).
+    Route::prefix('lti/tool')->group(function () {
+        Route::get('jwks', [LtiToolEndpointController::class, 'jwks']);
+        Route::match(['GET', 'POST'], 'login', [LtiToolEndpointController::class, 'login'])->middleware('throttle:120,1');
+        Route::post('launch', [LtiToolEndpointController::class, 'launch'])->middleware('throttle:120,1');
+        Route::post('launch11', [LtiToolEndpointController::class, 'launch11'])->middleware('throttle:120,1');
+        Route::post('deep-link', [LtiToolEndpointController::class, 'deepLink'])->middleware('throttle:60,1');
     });
     // The xAPI learning record store (its own Basic authentication).
     Route::prefix('xapi')->group(function () {
@@ -534,6 +545,7 @@ Route::prefix('v1')->group(function () {
             Route::post('packages/{lesson}/complete', [MyPackageController::class, 'complete']);
             Route::post('packages/{lesson}/xapi', [MyPackageController::class, 'xapi'])->middleware('throttle:240,1');
             Route::post('lti/{lesson}/launch', [MyPackageController::class, 'ltiLaunch'])->middleware('throttle:60,1');
+            Route::post('lti/tool/link', [MyLtiController::class, 'link'])->middleware('throttle:20,1');
             Route::get('courses/{registration}/offline-manifest', [MyOfflineController::class, 'manifest'])->middleware('feature:offline_mobile');
             Route::post('sync', [MyOfflineController::class, 'sync'])->middleware(['feature:offline_mobile', 'throttle:60,1']);
             Route::get('offline-devices', [MyOfflineController::class, 'devices'])->middleware('feature:offline_mobile');
@@ -1561,6 +1573,13 @@ Route::prefix('v1')->group(function () {
                 Route::put('kits/{kit}/programs', [ContentLifecycleController::class, 'syncKitPrograms']);
             });
             Route::middleware('permission:lti.manage')->group(function () {
+                Route::get('lti-platforms/tool-config', [LtiPlatformController::class, 'toolConfig']);
+                Route::get('lti-platforms', [LtiPlatformController::class, 'index']);
+                Route::post('lti-platforms', [LtiPlatformController::class, 'store']);
+                Route::put('lti-platforms/{ltiPlatform}', [LtiPlatformController::class, 'update']);
+                Route::delete('lti-platforms/{ltiPlatform}', [LtiPlatformController::class, 'destroy']);
+                Route::post('lti-platforms/{ltiPlatform}/test', [LtiPlatformController::class, 'test'])->middleware('throttle:20,1');
+                Route::get('lti-platforms/{ltiPlatform}/roster', [LtiPlatformController::class, 'roster'])->middleware('throttle:20,1');
                 Route::get('lti-tools', [LtiToolController::class, 'index']);
                 Route::post('lti-tools', [LtiToolController::class, 'save']);
                 Route::put('lti-tools/{tool}', [LtiToolController::class, 'save']);

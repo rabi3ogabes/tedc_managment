@@ -29,6 +29,7 @@ use App\Services\Channels\ChannelSettings;
 use App\Services\Channels\NotificationChannels;
 use App\Services\Content\CaliperService;
 use App\Services\Content\XapiService;
+use App\Services\Lti\LtiToolHooks;
 use App\Support\ActiveRole;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -53,11 +54,12 @@ class AppServiceProvider extends ServiceProvider
         Auth::viaRequest('supabase-jwt', app(SupabaseUserResolver::class));
 
         // Route-model binding parameters are UUIDs; reject anything else early.
-        foreach (['upload', 'programCategory', 'offlineDevice', 'aiIndexRun', 'room', 'program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount', 'dsr'] as $param) {
+        foreach (['upload', 'programCategory', 'offlineDevice', 'aiIndexRun', 'ltiPlatform', 'room', 'program', 'session', 'registration', 'employee', 'task', 'submission', 'certificate', 'material', 'school', 'trainer', 'announcement', 'need', 'user', 'role', 'notification', 'survey', 'definition', 'run', 'schedule', 'rule', 'scheduled', 'subscription', 'delivery', 'authSession', 'assessment', 'space', 'post', 'spacePoll', 'spaceEvent', 'courseQuestion', 'challenge', 'reward', 'badge', 'redemption', 'abuseReport', 'lessonNote', 'postComment', 'rating', 'aiDraft', 'riskFlag', 'shopOrder', 'shopRefund', 'discountCode', 'entityAccount', 'dsr'] as $param) {
             Route::pattern($param, '[0-9a-fA-F-]{36}');
         }
         GamificationListener::register();
         AiHooks::register();
+        LtiToolHooks::register();
         // Audit records and failed calls to other systems go to the SIEM (queued first, so it never slows a request).
         AuditLog::created(fn (AuditLog $a) => app(SiemForwarder::class)->push('audit', ['action' => $a->action, 'user_id' => $a->user_id, 'subject_type' => $a->auditable_type, 'subject_id' => $a->auditable_id, 'ip' => $a->ip_address, 'url' => $a->url]));
         IntegrationLog::created(function (IntegrationLog $l) {
