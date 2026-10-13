@@ -45,7 +45,7 @@ Any other variable from `backend/.env.example` can still be set to override a de
 
 Redeploy after saving the variables. The build (`backend/scripts/vercel-build.php`) then runs the migrations and
 seeds an empty database: roles and reference data. Demo data and demo accounts are created only outside production
-(staging and development); a deployment never sets or resets anyone's password. Later deployments only apply new migrations. The build never fails because of the database: check
+(staging and development); a deployment never sets or resets anyone's password. The **production** deployment (`VERCEL_ENV=production`) always runs with `APP_ENV=production`, even if the dashboard holds another value, so these guards cannot be switched off by accident; preview deployments keep the dashboard's `APP_ENV`. Later deployments only apply new migrations. The build never fails because of the database: check
 `https://<project>.vercel.app/api/v1/public/health`. It lists any missing variable names and the database state.
 
 Manual alternative on a staging server, e.g. to set the passwords of the accounts in Supabase Auth:

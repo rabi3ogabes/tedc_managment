@@ -14,6 +14,9 @@ Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, int
 - 16 Course purchasing and payments. 17 Azure hosting code and IaC, SIEM, classification, data-subject rights.
 - 18 Help centre, guided tours, e-kits, deliverables pack.
 
+## 2026-10-13 — Preflight follow-up
+The live site's Vercel settings overrode `APP_ENV`, so the production-only guards were off there and the public mobile configuration still served the shared demo password. The production deployment now always runs as production (`vercel-env.php`, `VercelEnvTest`). Sample forecasts no longer disappear on Mondays (`SampleForecastsMondayTest`).
+
 ## 2026-10-11 — Phase 19: collaboration completion
 Members share real files in communities and discussions on the web and in the app (photos, PDF, Office, audio, video, ZIP): checked by their content, photos cleaned of location data and given thumbnails, kept private behind short-lived links, with limits set in the settings and per space. Every training material has its own discussion and private notes; lessons, materials, kits, library items and programmes have one rating card (average, spread, newest reviews), and moderators hide a review with a reason. Phones play the TEDC chime for new notifications (and stay silent for people who switched the sound off). Seven colour shades the web app used but never defined are now part of the theme, so hairlines and light tints draw correctly.
 

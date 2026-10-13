@@ -105,6 +105,7 @@ class SampleCommerce
                 AiRecommendationEvent::create(['user_id' => $u->id, 'item_type' => 'program', 'item_id' => $p->id, 'event' => $i % 2 ? 'clicked' : 'shown', 'variant' => 'hybrid', 'score' => 0.8 - $i * 0.1, 'reasons' => ['يناسب مسماك الوظيفي'], 'created_at' => now()->subHours($i + 1)]);
             }
         }
-        Artisan::call('tedc:ai-nightly');   // forecasts, risk flags and recommendation similarity from the data above
+        // Risk flags and recommendation similarity from the data above; the sample forecasts stay (on Mondays the job would rebuild them from too little history).
+        Artisan::call('tedc:ai-nightly', ['--skip-forecasts' => true]);
     }
 }

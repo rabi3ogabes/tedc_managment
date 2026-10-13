@@ -2,7 +2,8 @@
 
 /*
  * Environment defaults for Vercel (used by api/index.php at runtime and scripts/vercel-build.php at build time).
- * Values set in Vercel → Settings → Environment Variables always win; only missing ones get a default.
+ * Values set in Vercel → Settings → Environment Variables win (only missing ones get a default), except APP_ENV on
+ * the production deployment, which is always production.
  * Only public, non-secret values live here — secrets (APP_KEY, DB_URL, SUPABASE_SECRET_KEY, CRON_SECRET) must
  * be set in Vercel.
  */
@@ -45,6 +46,15 @@ function tedc_vercel_env(bool $runtime = true): void
         'SUPABASE_JWKS_URL' => 'https://wlgvhrmdooembvvoqjnc.supabase.co/auth/v1/.well-known/jwks.json',
         'TEDC_SEED_DEMO' => 'true',
     ];
+
+    // The production deployment is always production, whatever APP_ENV the dashboard holds: every "never on a live
+    // system" guard (demo mode and its shared password, fake payment and sign-in drivers, risky tools off by default)
+    // keys on it. A dashboard value of staging/local silently switched them all off on the live site until 12 Oct 2026.
+    // Preview deployments keep the dashboard's value.
+    if (getenv('VERCEL_ENV') === 'production') {
+        putenv('APP_ENV=production');
+        $_ENV['APP_ENV'] = $_SERVER['APP_ENV'] = 'production';
+    }
 
     foreach ($defaults as $key => $value) {
         if ($value !== null && getenv($key) === false && ! isset($_ENV[$key]) && ! isset($_SERVER[$key])) {

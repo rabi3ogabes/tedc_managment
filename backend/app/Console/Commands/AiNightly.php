@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 
 class AiNightly extends Command
 {
-    protected $signature = 'tedc:ai-nightly {--forecasts : also rebuild the next-year forecasts}';
+    protected $signature = 'tedc:ai-nightly {--forecasts : also rebuild the next-year forecasts} {--skip-forecasts : never rebuild forecasts, even on Mondays (the sample data keeps its examples)}';
 
     protected $description = 'Item similarity, risk flags, the retrieval index, log retention (and forecasts with --forecasts) — Phase 15';
 
@@ -27,7 +27,7 @@ class AiNightly extends Command
         $this->line('risks: '.json_encode($risks->run()));
         $this->line('index chunks: '.$indexer->all());
         $this->line('log lines pruned: '.$guard->prune());
-        if ($this->option('forecasts') || now()->dayOfWeek === 1) {
+        if (! $this->option('skip-forecasts') && ($this->option('forecasts') || now()->dayOfWeek === 1)) {
             $this->line('forecasts: '.$forecasts->run());
         }
 

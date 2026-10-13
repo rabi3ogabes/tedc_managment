@@ -21,3 +21,10 @@ Recorded before Phase 19, on branch `claude/intelligent-brahmagupta-7pysbz`, wit
 ## Still open from the Preflight
 - The container-scan exception for CVE-2026-78669 stays until FrankenPHP ships golang.org/x/net ≥ 0.60.0 (latest release 1.13.0 still has 0.59.0). It needs the owner's written risk acceptance (`docs/security/patching.md`).
 - The repository is public. Making it private, and whether to rewrite its history, is the owner's decision.
+
+## Preflight follow-up (13 October 2026)
+- **The live site was still in demo mode.** The project's Vercel settings override `APP_ENV` with a value other than `production`, so every "never in production" guard was off on the live site: demo mode (and `GET /api/v1/public/mobile-config` returned the shared demo password), the fake payment and sign-in drivers, the risky tools' safe defaults, and the demo seeders on every deploy, which rewrote the test accounts' passwords. Fixed in `backend/scripts/vercel-env.php`: the production deployment (`VERCEL_ENV=production`) always runs as `production` (`VercelEnvTest`). After the deploy, confirm that `mobile-config` reports `demo_accounts: false` and no `demo_password`. Setting `APP_ENV=production` in Vercel → Settings → Environment Variables as well removes the contradiction.
+- **The owner still has to change the production passwords** (the shared one is in the public repository history) or suspend those accounts from Settings → Security (`tedc:demo-accounts`).
+- **Mondays:** the nightly AI job rebuilt forecasts on Mondays and wiped the sample forecasts, so CI failed every Monday. The sample seeder now runs it with `--skip-forecasts` (`SampleForecastsMondayTest`).
+- Phase 19 was re-verified in the running app (material discussion with an Arabic-named PDF upload, a signed download link with the Arabic name, a material rating), with no console errors.
+
