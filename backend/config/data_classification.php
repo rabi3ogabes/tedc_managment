@@ -27,6 +27,8 @@ return [
     'overrides' => [
         // Programme categories and their type are published reference data (the catalogue shows them); masking them in copies would spoil every report.
         'program_categories.name_ar' => 'public', 'program_categories.name_en' => 'public', 'program_categories.program_type' => 'public',
+        // Offline learning: each device's content key and each exam package's nonce are secrets; the frozen exam questions hold the answers.
+        'offline_devices.content_key' => 'restricted', 'offline_exam_tokens.nonce' => 'restricted', 'offline_exam_tokens.questions' => 'confidential',
         'sessions.payload' => 'restricted', 'integrations.config' => 'restricted', 'webhook_subscriptions.secret' => 'restricted', 'attendance_devices.api_config' => 'restricted', 'employees.national_id' => 'restricted',
         'users.password' => 'restricted', 'users.mfa_secret' => 'restricted', 'lti_tools.consumer_secret' => 'restricted', 'users.remember_token' => 'restricted', 'personal_access_tokens.token' => 'restricted', 'password_reset_tokens.token' => 'restricted',
     ],
@@ -43,5 +45,5 @@ return [
     ],
 
     /** Columns known to be encrypted at application level (Laravel `encrypted` casts). Restricted columns not listed here are hashes, secrets held in Key Vault, or tokens that expire. */
-    'app_encrypted' => ['employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config'],
+    'app_encrypted' => ['offline_devices.content_key', 'employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config'],
 ];

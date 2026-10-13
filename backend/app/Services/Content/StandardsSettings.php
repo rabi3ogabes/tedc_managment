@@ -19,7 +19,9 @@ class StandardsSettings
             'lrs_forward' => ['enabled' => false, 'endpoint' => '', 'key' => '', 'secret' => ''],
             'caliper' => ['enabled' => false, 'endpoint' => '', 'api_key' => '', 'sensor_id' => ''],
             'lrs_credentials' => [],
-            'offline' => ['enabled' => false, 'expiry_days' => 14],
+            // Offline exams: an attempt shorter than min_seconds_per_question × questions is flagged; one longer than the time
+            // limit plus elapsed_grace_seconds is refused; a package may be handed in up to sync_grace_hours after it expires.
+            'offline' => ['enabled' => false, 'expiry_days' => 14, 'min_seconds_per_question' => 10, 'elapsed_grace_seconds' => 120, 'sync_grace_hours' => 24],
         ];
     }
 
@@ -51,7 +53,10 @@ class StandardsSettings
             }
         }
         if (isset($in['offline'])) {
-            $cur['offline'] = ['enabled' => (bool) ($in['offline']['enabled'] ?? false), 'expiry_days' => max(1, min(365, (int) ($in['offline']['expiry_days'] ?? 14)))];
+            $o = $in['offline'] + $cur['offline'];
+            $cur['offline'] = ['enabled' => (bool) ($o['enabled'] ?? false), 'expiry_days' => max(1, min(365, (int) ($o['expiry_days'] ?? 14))),
+                'min_seconds_per_question' => max(0, min(600, (int) $o['min_seconds_per_question'])), 'elapsed_grace_seconds' => max(0, min(1800, (int) $o['elapsed_grace_seconds'])),
+                'sync_grace_hours' => max(0, min(168, (int) $o['sync_grace_hours']))];
         }
         SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $cur, 'updated_by' => $by?->id]);
         Cache::forget('site.standards');

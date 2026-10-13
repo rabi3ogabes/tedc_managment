@@ -10,13 +10,16 @@ use App\Models\AttemptAnswerGrade;
 use App\Models\AuditLog;
 use App\Models\CourseLesson;
 use App\Models\LessonProgress;
+use App\Models\OfflineExamToken;
 use App\Models\Question;
 use App\Models\Registration;
 use App\Models\User;
 use App\Services\CertificateService;
+use App\Services\Content\StandardsSettings;
 use App\Services\CourseService;
 use App\Services\FileStorage;
 use App\Services\NotificationService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /** The life of an attempt: start (window, attempts, cooldown, access code), autosave, integrity events, submit, grading and results. */
@@ -44,15 +47,7 @@ class AttemptService
             }
         }
 
-        $taken = AssessmentAttempt::where('assessment_id', $a->id)->where('registration_id', $registration->id)->where('status', '!=', 'voided')->get();
-        if ($taken->count() >= $a->max_attempts) {
-            throw new BusinessRuleException(__('messages.assessment.attempts_exhausted'), 'attempts_exhausted');
-        }
-        $last = $taken->sortByDesc('submitted_at')->first();
-        if ($a->attempt_cooldown_hours > 0 && $last?->submitted_at && $last->submitted_at->copy()->addHours($a->attempt_cooldown_hours)->gt($now)) {
-            throw new BusinessRuleException(__('messages.assessment.cooldown', ['time' => $last->submitted_at->copy()->addHours($a->attempt_cooldown_hours)->toDateTimeString()]), 'cooldown');
-        }
-        $this->assertRestudied($a, $registration, $last);
+        $taken = $this->assertCanStart($registration, $a, $this->outstandingOfflinePackages($registration, $a));
 
         $delivery = 'remote';
         $code = $opts['access_code'] ?? null;
@@ -79,8 +74,37 @@ class AttemptService
         ]);
     }
 
+    /**
+     * The rules every new attempt obeys, online or offline: the attempt limit (counting offline packages still out),
+     * the cool-down after a try and re-studying after a failed one.
+     *
+     * @return Collection<int, AssessmentAttempt> the attempts already taken
+     */
+    public function assertCanStart(Registration $registration, Assessment $a, int $reserved = 0): Collection
+    {
+        $taken = AssessmentAttempt::where('assessment_id', $a->id)->where('registration_id', $registration->id)->where('status', '!=', 'voided')->get();
+        if ($taken->count() + $reserved >= $a->max_attempts) {
+            throw new BusinessRuleException(__('messages.assessment.attempts_exhausted'), 'attempts_exhausted');
+        }
+        $last = $taken->sortByDesc('submitted_at')->first();
+        if ($a->attempt_cooldown_hours > 0 && $last?->submitted_at && $last->submitted_at->copy()->addHours($a->attempt_cooldown_hours)->gt(now())) {
+            throw new BusinessRuleException(__('messages.assessment.cooldown', ['time' => $last->submitted_at->copy()->addHours($a->attempt_cooldown_hours)->toDateTimeString()]), 'cooldown');
+        }
+        $this->assertRestudied($a, $registration, $last);
+
+        return $taken;
+    }
+
+    /** Offline packages issued to the trainee and not handed in yet; each holds one attempt. */
+    public function outstandingOfflinePackages(Registration $registration, Assessment $a): int
+    {
+        $grace = (int) app(StandardsSettings::class)->all()['offline']['sync_grace_hours'];
+
+        return OfflineExamToken::where('assessment_id', $a->id)->where('registration_id', $registration->id)->whereNull('used_at')->where('expires_at', '>', now()->subHours($grace))->count();
+    }
+
     /** @return list<array<string, mixed>> the questions drawn for this attempt, frozen with the version the trainee sees */
-    private function freeze(Assessment $a): array
+    public function freeze(Assessment $a): array
     {
         $items = [];
         $seen = [];

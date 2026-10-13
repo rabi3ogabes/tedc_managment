@@ -9,14 +9,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** One try at an assessment: the drawn questions, the answers and the result. */
-#[Fillable(['assessment_id', 'registration_id', 'attempt_no', 'started_at', 'submitted_at', 'expires_at', 'ip', 'device', 'delivery', 'questions', 'answers', 'auto_score', 'manual_score', 'max_score', 'score_percent', 'passed', 'status', 'integrity', 'graded_by', 'graded_at', 'feedback', 'extra_minutes', 'void_reason'])]
+#[Fillable(['assessment_id', 'registration_id', 'attempt_no', 'started_at', 'submitted_at', 'expires_at', 'ip', 'device', 'delivery', 'questions', 'answers', 'auto_score', 'manual_score', 'max_score', 'score_percent', 'passed', 'status', 'integrity', 'graded_by', 'graded_at', 'feedback', 'extra_minutes', 'void_reason', 'device_elapsed_seconds', 'client_started_at'])]
 class AssessmentAttempt extends Model
 {
     use Auditable, HasUuids;
 
     protected function casts(): array
     {
-        return ['started_at' => 'datetime', 'submitted_at' => 'datetime', 'expires_at' => 'datetime', 'graded_at' => 'datetime', 'questions' => 'array', 'answers' => 'array', 'integrity' => 'array', 'passed' => 'boolean', 'score_percent' => 'float', 'auto_score' => 'float', 'manual_score' => 'float', 'max_score' => 'float'];
+        return ['started_at' => 'datetime', 'submitted_at' => 'datetime', 'expires_at' => 'datetime', 'graded_at' => 'datetime', 'questions' => 'array', 'answers' => 'array', 'integrity' => 'array', 'passed' => 'boolean', 'score_percent' => 'float', 'auto_score' => 'float', 'manual_score' => 'float', 'max_score' => 'float', 'device_elapsed_seconds' => 'integer', 'client_started_at' => 'datetime'];
     }
 
     public function assessment(): BelongsTo

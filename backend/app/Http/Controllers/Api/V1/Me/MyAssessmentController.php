@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\Registration;
 use App\Services\Assessment\AttemptService;
+use App\Services\Assessment\OfflineExamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,6 +41,29 @@ class MyAssessmentController extends MeController
         $attempt = $this->attempts->start($registration, $assessment, $d + ['ip' => $request->ip(), 'device' => $request->userAgent()]);
 
         return response()->json(['data' => $this->attempts->state($attempt->load('assessment'))]);
+    }
+
+    /** A single-use package for taking the assessment in the app without a connection (TYP-12). */
+    public function offlineToken(Request $request, Assessment $assessment, OfflineExamService $offline): JsonResponse
+    {
+        $d = $request->validate(['device_id' => ['required', 'string', 'min:8', 'max:64']]);
+        $registration = Registration::where('program_id', $assessment->program_id)->where('employee_id', $this->employee()->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])
+            ->when($assessment->group_id, fn ($q) => $q->where('training_group_id', $assessment->group_id))->firstOrFail();
+
+        return response()->json(['data' => $offline->issue($registration, $assessment, $d['device_id'])], 201);
+    }
+
+    /** The answers of an offline attempt, handed in when the phone is back online. */
+    public function submitOffline(Request $request, OfflineExamService $offline): JsonResponse
+    {
+        $d = $request->validate([
+            'token_id' => ['required', 'uuid'], 'nonce' => ['required', 'string', 'max:64'], 'signature' => ['required', 'string', 'max:64'], 'device_id' => ['required', 'string', 'max:64'],
+            'answers' => ['present', 'array', 'max:500'], 'device_elapsed_seconds' => ['required', 'integer', 'min:0', 'max:604800'],
+            'client_started_at' => ['nullable', 'date'], 'client_submitted_at' => ['nullable', 'date'],
+        ]);
+        $attempt = $offline->submit($this->user(), $d);
+
+        return response()->json(['data' => $this->attempts->result($attempt->fresh('assessment'))], 201);
     }
 
     public function answers(Request $request, AssessmentAttempt $attempt): JsonResponse

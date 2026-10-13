@@ -9,12 +9,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['program_id', 'module_id', 'type', 'title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'sort_order', 'is_required', 'status', 'duration_seconds', 'package_id', 'package_item_id', 'lti_tool_id', 'external_course_id', 'version', 'source', 'file_path', 'file_name', 'file_mime', 'file_size', 'external_url', 'slide_count', 'settings'])]
+#[Fillable(['program_id', 'module_id', 'type', 'title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'sort_order', 'is_required', 'status', 'duration_seconds', 'package_id', 'package_item_id', 'lti_tool_id', 'external_course_id', 'version', 'source', 'file_path', 'file_name', 'file_mime', 'file_size', 'external_url', 'slide_count', 'settings', 'file_sha256'])]
 class CourseLesson extends Model
 {
     use HasTranslations, HasUuids;
 
     protected $casts = ['settings' => 'array', 'is_required' => 'boolean'];
+
+    protected static function booted(): void
+    {
+        // A new file needs a new checksum for the offline manifest (worked out on the next request).
+        static::saving(function (CourseLesson $lesson) {
+            if ($lesson->isDirty('file_path') && ! $lesson->isDirty('file_sha256')) {
+                $lesson->file_sha256 = null;
+            }
+        });
+    }
 
     public const VIDEO = 'video';
 

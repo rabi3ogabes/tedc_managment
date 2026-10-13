@@ -15,6 +15,7 @@ use App\Models\LearnerMastery;
 use App\Models\Material;
 use App\Models\NeedsRule;
 use App\Models\NotificationDelivery;
+use App\Models\OfflineDevice;
 use App\Models\PageBlock;
 use App\Models\PageVersion;
 use App\Models\ProgramGrant;
@@ -24,6 +25,8 @@ use App\Models\RegistrationPriorityRule;
 use App\Models\ResourceShare;
 use App\Models\Skill;
 use App\Services\Assessment\AttemptService;
+use App\Services\Assessment\OfflineExamService;
+use App\Services\Content\OfflineService;
 use App\Services\CourseService;
 use Illuminate\Support\Str;
 
@@ -38,6 +41,7 @@ class SampleMore
     {
         $this->step('kit learners', fn () => $this->kitLearners());
         $this->step('assessment', fn () => $this->assessment());
+        $this->step('offline', fn () => $this->offline());
         $this->step('content', fn () => $this->content());
         $this->step('access', fn () => $this->access());
         $this->step('delivery', fn () => $this->delivery());
@@ -67,6 +71,24 @@ class SampleMore
             }
             $this->course->recompute($reg->fresh());
         }
+    }
+
+    /** A phone that keeps a course offline, and an offline exam package issued to it (TYP-12). */
+    private function offline(): void
+    {
+        $program = $this->c->program('EKIT-QUESTIONING');
+        $t = $this->c->trainees();
+        $u = $t[3] ?? null;
+        $a = $program ? Assessment::where('program_id', $program->id)->where('status', 'published')->first() : null;
+        if (! $u || ! $a || OfflineDevice::query()->exists()) {
+            return;
+        }
+        $reg = $this->c->registration($u, $program)
+            ?? Registration::create(['program_id' => $program->id, 'employee_id' => $u->employee->id, 'source' => Registration::SOURCE_CENTER, 'status' => Registration::STATUS_APPROVED, 'approved_at' => now()]);
+        $a->update(['allow_offline' => true, 'offline_window_hours' => 72]);
+        $device = app(OfflineService::class)->device($u->id, 'sample-device-'.substr($u->id, 0, 8), 'android');
+        $device->update(['name' => 'Sample phone']);
+        app(OfflineExamService::class)->issue($reg, $a, $device->device_id);
     }
 
     private function assessment(): void

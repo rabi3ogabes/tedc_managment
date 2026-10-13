@@ -18,6 +18,7 @@ use App\Models\TrainingKit;
 use App\Services\AnnualHoursService;
 use App\Services\Content\StandardsSettings;
 use App\Services\CourseBlueprints;
+use App\Services\FileStorage;
 use App\Services\Library\ExternalLearningService;
 use App\Services\Library\JobGroupService;
 use App\Services\Library\LibraryService;
@@ -224,7 +225,9 @@ class LibraryAndLifecycleTest extends TestCase
     public function test_offline_manifest_and_idempotent_sync_never_lower_progress(): void
     {
         Storage::fake('local');
-        [$user, $lesson, $r] = $this->lesson(['type' => 'video', 'duration_seconds' => 100, 'file_path' => 'v/x.mp4', 'file_mime' => 'video/mp4', 'file_size' => 1000]);
+        // The manifest only offers a file it can checksum, so the fixture's file must exist.
+        $path = app(FileStorage::class)->put('materials', 'v/x.mp4', str_repeat('v', 1000), 'video/mp4');
+        [$user, $lesson, $r] = $this->lesson(['type' => 'video', 'duration_seconds' => 100, 'file_path' => $path, 'file_mime' => 'video/mp4', 'file_size' => 1000]);
         $this->asUser($user)->getJson("/api/v1/me/courses/{$r->id}/offline-manifest")->assertForbidden();         // the feature flag is off
 
         $admin = $this->makeUser(Role::SUPER_ADMIN);

@@ -11,6 +11,7 @@ use App\Models\Registration;
 use App\Models\SurveyResponse;
 use App\Services\Assessment\InteractionService;
 use App\Services\Content\LessonVersionService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -232,9 +233,18 @@ class CourseService
     // Presentations & articles ----------------------------------------------------------------------------------
 
     /** A slide was shown. Progress is the share of distinct slides seen. */
-    public function viewSlide(CourseLesson $lesson, Registration $registration, int $slide, int $total): array
+    /**
+     * A slide shown to the trainee. $at is when an offline app recorded it: the minimum time per slide is then measured
+     * between recorded times, and an event older than the last one applied is refused (out of order).
+     */
+    public function viewSlide(CourseLesson $lesson, Registration $registration, int $slide, int $total, ?Carbon $at = null): array
     {
         $p = $this->progressFor($lesson, $registration);
+        if ($at && $p->offline_last_at && $at->lt($p->offline_last_at)) {
+            throw new \InvalidArgumentException('out_of_order');
+        }
+        $previous = $at ? $p->offline_last_at : $p->last_activity_at;
+        $when = $at ?? now();
         $total = max(1, min($total, 2000));
         if ($lesson->slide_count !== $total) {
             $lesson->update(['slide_count' => $total]);
@@ -242,12 +252,13 @@ class CourseService
         $slide = max(1, min($slide, $total));
         // With a minimum time per slide, a slide reported sooner than that after the previous report is not counted as seen.
         $minSeconds = (int) $lesson->setting('min_seconds_per_slide', 0);
-        $rushed = $minSeconds > 0 && $p->last_activity_at && $p->last_activity_at->diffInSeconds(now(), true) < $minSeconds - 1;
+        $rushed = $minSeconds > 0 && $previous && $previous->diffInSeconds($when, true) < $minSeconds - 1;
         $segments = $rushed ? ($p->segments ?? []) : $this->merge($p->segments ?? [], [$slide, $slide]);
         $seen = (int) $this->covered($segments, 1);
         $percent = min(100, round($seen / $total * 100, 2));
 
-        $p->fill(['segments' => $segments, 'percent' => max($p->percent, $percent), 'last_position' => $slide, 'furthest_position' => max($p->furthest_position, $slide), 'last_activity_at' => now()]);
+        $p->fill(['segments' => $segments, 'percent' => max($p->percent, $percent), 'last_position' => $slide, 'furthest_position' => max($p->furthest_position, $slide),
+            'last_activity_at' => $p->last_activity_at && $p->last_activity_at->gt($when) ? $p->last_activity_at : $when] + ($at ? ['offline_last_at' => $at] : []));
         if ($percent >= (float) $lesson->setting('min_view_percent', 80) && $p->status !== 'completed') {
             $p->fill(['status' => 'completed', 'completed_at' => now()]);
         }

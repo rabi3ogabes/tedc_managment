@@ -536,6 +536,10 @@ Route::prefix('v1')->group(function () {
             Route::post('lti/{lesson}/launch', [MyPackageController::class, 'ltiLaunch'])->middleware('throttle:60,1');
             Route::get('courses/{registration}/offline-manifest', [MyOfflineController::class, 'manifest'])->middleware('feature:offline_mobile');
             Route::post('sync', [MyOfflineController::class, 'sync'])->middleware(['feature:offline_mobile', 'throttle:60,1']);
+            Route::get('offline-devices', [MyOfflineController::class, 'devices'])->middleware('feature:offline_mobile');
+            Route::delete('offline-devices/{offlineDevice}', [MyOfflineController::class, 'revokeDevice'])->middleware('feature:offline_mobile');
+            Route::post('assessments/{assessment}/offline-token', [MyAssessmentController::class, 'offlineToken'])->middleware(['feature:offline_mobile', 'throttle:20,1']);
+            Route::post('attempts/offline', [MyAssessmentController::class, 'submitOffline'])->middleware(['feature:offline_mobile', 'throttle:30,1']);
             Route::post('registrations/{registration}/external-launch', [MyOfflineController::class, 'launch']);
             Route::post('registrations/{registration}/external-completion', [MyOfflineController::class, 'evidence'])->middleware('throttle:20,1');
             Route::get('library', [LibraryController::class, 'index']);

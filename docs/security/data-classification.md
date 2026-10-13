@@ -15,13 +15,14 @@
 
 ## Totals
 
-- Public: 706 columns
-- Internal: 1952 columns
-- Confidential: 468 columns
-- Restricted: 19 columns
+- Public: 712 columns
+- Internal: 1971 columns
+- Confidential: 472 columns
+- Restricted: 21 columns
 
 ## Application-level encryption
 
+- `offline_devices.content_key`
 - `employees.national_id`
 - `attendance_devices.api_config`
 - `users.mfa_secret`
@@ -259,6 +260,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `void_reason` | Confidential | masked in exports |
 | `created_at` | Confidential | masked in exports |
 | `updated_at` | Confidential | masked in exports |
+| `device_elapsed_seconds` | Confidential | masked in exports |
+| `client_started_at` | Confidential | masked in exports |
 
 ### `assessment_sections`
 
@@ -312,6 +315,9 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 | `forms_url` | Internal | — |
+| `allow_offline` | Internal | — |
+| `offline_window_hours` | Internal | — |
+| `adaptive` | Internal | — |
 
 ### `assistant_conversations`
 
@@ -902,6 +908,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `lti_tool_id` | Internal | — |
 | `external_course_id` | Internal | — |
 | `version` | Internal | — |
+| `file_sha256` | Internal | — |
 
 ### `course_modules`
 
@@ -1897,6 +1904,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Public | — |
 | `lesson_version` | Internal | — |
 | `pause_count` | Internal | — |
+| `offline_last_at` | Internal | — |
 
 ### `levels`
 
@@ -2380,6 +2388,40 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Confidential | masked in exports |
 | `campaign_id` | Confidential | masked in exports |
 | `seen_at` | Confidential | masked in exports |
+
+### `offline_devices`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `user_id` | Internal | — |
+| `device_id` | Internal | — |
+| `platform` | Internal | — |
+| `name` | Confidential | masked in exports |
+| `content_key` | Restricted | application-level encryption |
+| `last_seen_at` | Internal | — |
+| `revoked_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `offline_exam_tokens`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `assessment_id` | Internal | — |
+| `registration_id` | Internal | — |
+| `device_id` | Internal | — |
+| `issued_at` | Internal | — |
+| `expires_at` | Internal | — |
+| `nonce` | Restricted | hash / secret / expiring token |
+| `question_ids` | Internal | — |
+| `questions` | Confidential | masked in exports |
+| `seed` | Internal | — |
+| `used_at` | Internal | — |
+| `attempt_id` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `offline_sync_log`
 
