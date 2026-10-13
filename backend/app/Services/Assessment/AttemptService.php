@@ -2,6 +2,7 @@
 
 namespace App\Services\Assessment;
 
+use App\Ai\Adaptive\AdaptivePractice;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Assessment;
 use App\Models\AssessmentAccessCode;
@@ -20,6 +21,7 @@ use App\Services\CourseService;
 use App\Services\FileStorage;
 use App\Services\NotificationService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /** The life of an attempt: start (window, attempts, cooldown, access code), autosave, integrity events, submit, grading and results. */
@@ -27,7 +29,7 @@ class AttemptService
 {
     private const EVENTS = ['visibility_hidden', 'blur', 'multi_tab', 'fullscreen_exit', 'paste', 'copy', 'contextmenu', 'devtools', 'face_absent'];
 
-    public function __construct(private readonly AssessmentService $builder, private readonly KnowledgeService $knowledge, private readonly NotificationService $notifications, private readonly FileStorage $files) {}
+    public function __construct(private readonly AssessmentService $builder, private readonly KnowledgeService $knowledge, private readonly NotificationService $notifications, private readonly FileStorage $files, private readonly AdaptivePractice $adaptive) {}
 
     // Start ------------------------------------------------------------------------------------------------------
 
@@ -59,7 +61,8 @@ class AttemptService
             $delivery = 'in_center';
         }
 
-        $items = $this->freeze($a);
+        // An adaptive assessment asks one question at a time, each chosen from the answers before it (AI-03).
+        [$items, $trail] = $a->adaptive ? $this->adaptive->begin($a, $registration) : [$this->freeze($a), null];
         if ($items === []) {
             throw new BusinessRuleException(__('messages.assessment.not_ready'), 'assessment_not_ready');
         }
@@ -71,6 +74,7 @@ class AttemptService
         return AssessmentAttempt::create([
             'assessment_id' => $a->id, 'registration_id' => $registration->id, 'attempt_no' => $taken->count() + 1, 'started_at' => $now, 'expires_at' => $expires, 'ip' => $opts['ip'] ?? null,
             'device' => isset($opts['device']) ? substr((string) $opts['device'], 0, 255) : null, 'delivery' => $delivery, 'questions' => $items, 'answers' => [], 'max_score' => array_sum(array_column($items, 'points')), 'status' => 'in_progress',
+            'adaptive_log' => $trail,
         ]);
     }
 
@@ -114,10 +118,7 @@ class AttemptService
                     continue;
                 }
                 $seen[$q->id] = true;
-                $type = QuestionTypes::get($q->type);
-                $q->payload = $type->validate($q->payload);
-                $items[] = ['id' => $q->id, 'question_id' => $q->id, 'version' => $q->version, 'type' => $q->type, 'stem_ar' => $q->stem_ar, 'stem_en' => $q->stem_en, 'media' => $q->media, 'points' => (float) ($s->points_per_question ?? $q->points),
-                    'payload' => $q->payload, 'public' => $type->publicPayload($q->payload, $a->shuffle_options), 'explanation_ar' => $q->explanation_ar, 'explanation_en' => $q->explanation_en, 'skill_ids' => $q->skill_ids, 'section' => $i];
+                $items[] = $this->builder->freezeItem($q, (float) ($s->points_per_question ?? $q->points), $i, (bool) $a->shuffle_options);
             }
         }
         if ($a->shuffle_questions) {
@@ -219,7 +220,8 @@ class AttemptService
         if ($at->status !== 'in_progress') {
             throw new BusinessRuleException(__('messages.assessment.expired'), $timedOut ? 'attempt_expired' : 'attempt_closed');
         }
-        $ids = array_column($at->questions, 'id');
+        // In adaptive practice only the question on screen takes a draft; the answered ones are settled.
+        $ids = $at->adaptive_log ? array_filter([$this->adaptive->currentId($at)]) : array_column($at->questions, 'id');
         $merged = $at->answers ?? [];
         foreach ($answers as $id => $value) {
             if (in_array($id, $ids, true)) {
@@ -229,6 +231,31 @@ class AttemptService
         $at->update(['answers' => $merged]);
 
         return $at;
+    }
+
+    /**
+     * Adaptive practice: answers the question on screen and returns the next one, chosen by the learner's level (AI-03).
+     *
+     * @return array<string, mixed>
+     */
+    public function adaptiveAnswer(AssessmentAttempt $at, string $questionId, mixed $answer): array
+    {
+        $timedOut = $at->status === 'in_progress' && $at->expires_at && $at->expires_at->copy()->addMinutes($at->extra_minutes)->lte(now());
+        $at = $this->settle($at);
+        if ($at->status !== 'in_progress') {
+            throw new BusinessRuleException(__('messages.assessment.expired'), $timedOut ? 'attempt_expired' : 'attempt_closed');
+        }
+
+        return DB::transaction(function () use ($at, $questionId, $answer) {
+            $at = AssessmentAttempt::with('assessment')->whereKey($at->id)->lockForUpdate()->first();
+            if ($at->status !== 'in_progress') {
+                throw new BusinessRuleException(__('messages.assessment.expired'), 'attempt_closed');
+            }
+            $out = $this->adaptive->answer($at, $questionId, $answer);
+            $at->save();
+
+            return $out + ['remaining_seconds' => $this->remaining($at)];
+        });
     }
 
     /** @return array{ignored: bool, warnings: int, submitted: bool, flags: list<string>} */
@@ -283,6 +310,9 @@ class AttemptService
     {
         if ($at->status !== 'in_progress') {
             return $at;
+        }
+        if ($at->adaptive_log) {
+            $this->adaptive->fill($at->loadMissing('assessment'));   // the questions not asked count, unanswered
         }
         [$earned, $manual] = $this->autoGrade($at);
         $at->fill(['auto_score' => $earned, 'submitted_at' => now(), 'status' => $manual ? 'grading' : 'graded']);
@@ -436,8 +466,9 @@ class AttemptService
     public function state(AssessmentAttempt $at): array
     {
         return ['id' => $at->id, 'assessment_id' => $at->assessment_id, 'status' => $at->status, 'attempt_no' => $at->attempt_no, 'delivery' => $at->delivery, 'expires_at' => $at->expires_at?->copy()->addMinutes($at->extra_minutes)->toIso8601String(), 'remaining_seconds' => $this->remaining($at), 'answers' => $at->answers ?? [],
-            'questions' => array_map(fn ($q) => ['id' => $q['id'], 'type' => $q['type'], 'stem_ar' => $q['stem_ar'], 'stem_en' => $q['stem_en'], 'media' => $q['media'], 'points' => $q['points'], 'payload' => $q['public']], $at->questions),
-            'proctoring' => ['enabled' => (bool) ($at->assessment->proctoring['enabled'] ?? false), 'fullscreen' => (bool) ($at->assessment->proctoring['fullscreen'] ?? false), 'snapshots' => (bool) ($at->assessment->proctoring['snapshots'] ?? false)]];
+            'questions' => array_map(fn ($q) => AssessmentService::publicItem($q), $at->questions),
+            'proctoring' => ['enabled' => (bool) ($at->assessment->proctoring['enabled'] ?? false), 'fullscreen' => (bool) ($at->assessment->proctoring['fullscreen'] ?? false), 'snapshots' => (bool) ($at->assessment->proctoring['snapshots'] ?? false)],
+            'adaptive' => $this->adaptive->view($at)];
     }
 
     /** The result as the feedback rules allow the trainee to see it. */

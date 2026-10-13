@@ -2,6 +2,7 @@
 
 namespace App\Services\Content;
 
+use App\Ai\Adaptive\RemedialAssignments;
 use App\Models\Assessment;
 use App\Models\ContentPackage;
 use App\Models\CourseLesson;
@@ -38,31 +39,33 @@ class OfflineService
             return $base + ['delete' => true, 'revoked' => true, 'content_key' => null, 'lessons' => [], 'assessments' => []];
         }
 
-        $lessons = CourseLesson::where('program_id', $r->program_id)->where('status', 'published')->orderBy('sort_order')->get()->map(function (CourseLesson $l) use ($expires) {
-            $item = ['id' => $l->id, 'type' => $l->type, 'title_ar' => $l->title_ar, 'title_en' => $l->title_en, 'version' => $l->version, 'downloadable' => false];
-            if ($l->type === CourseLesson::ARTICLE) {
-                return array_replace($item, ['downloadable' => true, 'body_ar' => $l->body_ar, 'body_en' => $l->body_en, 'expires_at' => $expires]);
-            }
-            if (in_array($l->type, [CourseLesson::VIDEO, CourseLesson::PRESENTATION, CourseLesson::PACKAGE], true) && $l->setting('downloadable', $l->type !== CourseLesson::PRESENTATION) === false) {
-                return $item + ['reason' => 'not_downloadable'];
-            }
-            if (in_array($l->type, [CourseLesson::VIDEO, CourseLesson::PRESENTATION], true) && $l->file_path) {
-                $sha = $this->checksum($l);
-                if ($sha === null) {
-                    return $item + ['reason' => 'unavailable'];
+        $assigned = app(RemedialAssignments::class)->open($r);
+        $lessons = CourseLesson::where('program_id', $r->program_id)->where('status', 'published')->orderBy('sort_order')->get()
+            ->filter(fn (CourseLesson $l) => ! $l->isRemedial() || $assigned->has($l->id))->values()->map(function (CourseLesson $l) use ($expires) {
+                $item = ['id' => $l->id, 'type' => $l->type, 'title_ar' => $l->title_ar, 'title_en' => $l->title_en, 'version' => $l->version, 'downloadable' => false];
+                if ($l->type === CourseLesson::ARTICLE) {
+                    return array_replace($item, ['downloadable' => true, 'body_ar' => $l->body_ar, 'body_en' => $l->body_en, 'expires_at' => $expires]);
+                }
+                if (in_array($l->type, [CourseLesson::VIDEO, CourseLesson::PRESENTATION, CourseLesson::PACKAGE], true) && $l->setting('downloadable', $l->type !== CourseLesson::PRESENTATION) === false) {
+                    return $item + ['reason' => 'not_downloadable'];
+                }
+                if (in_array($l->type, [CourseLesson::VIDEO, CourseLesson::PRESENTATION], true) && $l->file_path) {
+                    $sha = $this->checksum($l);
+                    if ($sha === null) {
+                        return $item + ['reason' => 'unavailable'];
+                    }
+
+                    return array_replace($item, ['downloadable' => true, 'mime' => $l->file_mime, 'size' => (int) $l->file_size, 'sha256' => $sha, 'expires_at' => $expires,
+                        'url' => $this->storage->temporaryUrl('materials', $l->file_path, 86400), 'settings' => array_intersect_key($l->settings ?? [], array_flip(['min_seconds_per_slide', 'min_view_percent', 'min_watch_percent', 'require_fullscreen']))]);
+                }
+                $pkg = $l->type === CourseLesson::PACKAGE && $l->package_id ? ContentPackage::find($l->package_id) : null;
+                // Only HTML5 and H5P packages run offline; SCORM needs the player's server round trips.
+                if ($pkg && in_array($pkg->standard, ['h5p', 'html5'], true)) {
+                    return array_replace($item, ['downloadable' => true, 'standard' => $pkg->standard, 'size' => $pkg->size, 'base_url' => PackageToken::url($pkg->id, '', null), 'expires_at' => $expires]);
                 }
 
-                return array_replace($item, ['downloadable' => true, 'mime' => $l->file_mime, 'size' => (int) $l->file_size, 'sha256' => $sha, 'expires_at' => $expires,
-                    'url' => $this->storage->temporaryUrl('materials', $l->file_path, 86400), 'settings' => array_intersect_key($l->settings ?? [], array_flip(['min_seconds_per_slide', 'min_view_percent', 'min_watch_percent', 'require_fullscreen']))]);
-            }
-            $pkg = $l->type === CourseLesson::PACKAGE && $l->package_id ? ContentPackage::find($l->package_id) : null;
-            // Only HTML5 and H5P packages run offline; SCORM needs the player's server round trips.
-            if ($pkg && in_array($pkg->standard, ['h5p', 'html5'], true)) {
-                return array_replace($item, ['downloadable' => true, 'standard' => $pkg->standard, 'size' => $pkg->size, 'base_url' => PackageToken::url($pkg->id, '', null), 'expires_at' => $expires]);
-            }
-
-            return $item + ['reason' => 'requires_connection'];
-        })->values()->all();
+                return $item + ['reason' => 'requires_connection'];
+            })->values()->all();
 
         $assessments = Assessment::where('program_id', $r->program_id)->where('status', 'published')->where('allow_offline', true)->orderBy('created_at')
             ->get(['id', 'title_ar', 'title_en', 'time_limit_minutes', 'offline_window_hours', 'max_attempts'])->toArray();

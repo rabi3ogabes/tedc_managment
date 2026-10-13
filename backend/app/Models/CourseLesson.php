@@ -23,6 +23,10 @@ class CourseLesson extends Model
             if ($lesson->isDirty('file_path') && ! $lesson->isDirty('file_sha256')) {
                 $lesson->file_sha256 = null;
             }
+            // A review lesson reaches only the learners it is assigned to, so it can never be required of everyone.
+            if ($lesson->isRemedial()) {
+                $lesson->is_required = false;
+            }
         });
     }
 
@@ -73,5 +77,11 @@ class CourseLesson extends Model
     public function setting(string $key, mixed $default = null): mixed
     {
         return $this->settings[$key] ?? $default;
+    }
+
+    /** A review lesson for one competency (drafted by RemedialBuilder): shown only to the learners it is assigned to. */
+    public function isRemedial(): bool
+    {
+        return (bool) $this->setting('remedial', false) && filled($this->setting('skill_id'));
     }
 }

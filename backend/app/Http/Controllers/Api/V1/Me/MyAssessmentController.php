@@ -75,6 +75,15 @@ class MyAssessmentController extends MeController
         return response()->json(['data' => ['saved' => count($a->answers ?? []), 'remaining_seconds' => $this->attempts->remaining($a)]]);
     }
 
+    /** Adaptive practice: the answer to the question on screen, and the next question with the reason it was chosen. */
+    public function adaptiveAnswer(Request $request, AssessmentAttempt $attempt): JsonResponse
+    {
+        $this->own($attempt);
+        $d = $request->validate(['question_id' => ['required', 'string', 'max:64'], 'answer' => ['present']]);
+
+        return response()->json(['data' => $this->attempts->adaptiveAnswer($attempt, $d['question_id'], $d['answer'])]);
+    }
+
     public function event(Request $request, AssessmentAttempt $attempt): JsonResponse
     {
         $this->own($attempt);

@@ -47,7 +47,22 @@ class AssessmentService
             $valid = false;
         }
 
-        return ['valid' => $valid, 'total_points' => round($points, 2), 'questions' => $questions, 'sections' => $report, 'issues' => array_values(array_filter([$needsCode ? 'access_code_required' : null, $a->sections->isEmpty() ? 'no_sections' : null]))];
+        // Advice that does not block publishing: an adaptive practice with one level of difficulty cannot adapt.
+        $warnings = $a->adaptive && $a->sections->isNotEmpty() && count($this->levels($a)) < 2 ? ['adaptive_one_level'] : [];
+
+        return ['valid' => $valid, 'total_points' => round($points, 2), 'questions' => $questions, 'sections' => $report, 'issues' => array_values(array_filter([$needsCode ? 'access_code_required' : null, $a->sections->isEmpty() ? 'no_sections' : null])), 'warnings' => $warnings];
+    }
+
+    /** @return list<string> the difficulty levels among the questions the sections may draw */
+    private function levels(Assessment $a): array
+    {
+        $levels = collect();
+        foreach ($a->sections as $s) {
+            $q = $s->selection === 'fixed' ? Question::whereIn('id', $s->question_ids ?? []) : Question::where('bank_id', $s->bank_id)->where('status', 'active')->when($s->category_ids, fn ($q, $c) => $q->whereIn('category_id', $c));
+            $levels = $levels->merge($q->distinct()->pluck('difficulty')->map(fn ($d) => $d ?: 'medium'));
+        }
+
+        return $levels->unique()->values()->all();
     }
 
     public function publish(Assessment $a): Assessment
@@ -85,6 +100,22 @@ class AssessmentService
         }
 
         return $base()->inRandomOrder()->limit((int) ($s->count ?? 0))->get();
+    }
+
+    /** @return array<string, mixed> one question frozen for an attempt, at the version the trainee sees */
+    public function freezeItem(Question $q, float $points, int $section, bool $shuffleOptions): array
+    {
+        $type = QuestionTypes::get($q->type);
+        $payload = $type->validate($q->payload);
+
+        return ['id' => $q->id, 'question_id' => $q->id, 'version' => $q->version, 'type' => $q->type, 'stem_ar' => $q->stem_ar, 'stem_en' => $q->stem_en, 'media' => $q->media, 'points' => $points,
+            'payload' => $payload, 'public' => $type->publicPayload($payload, $shuffleOptions), 'explanation_ar' => $q->explanation_ar, 'explanation_en' => $q->explanation_en, 'skill_ids' => $q->skill_ids, 'section' => $section];
+    }
+
+    /** @param  array<string, mixed>  $item @return array<string, mixed> what the trainee may see of a frozen question: no answers, no explanations */
+    public static function publicItem(array $item): array
+    {
+        return ['id' => $item['id'], 'type' => $item['type'], 'stem_ar' => $item['stem_ar'], 'stem_en' => $item['stem_en'], 'media' => $item['media'], 'points' => $item['points'], 'payload' => $item['public']];
     }
 
     /** @return array{0: int, 1: int, 2: list<array<string, mixed>>, 3: float} needed, available, shortages, points */

@@ -126,10 +126,21 @@ class OfflineExamTest extends TestCase
         $this->assertSame(2, OfflineExamToken::count());
     }
 
+    public function test_the_builder_saves_the_offline_switch_and_window(): void
+    {
+        $admin = $this->makeUser(Role::TRAINING_HEAD);
+        $this->asUser($admin)->putJson("/api/v1/admin/assessments/{$this->a->id}", ['allow_offline' => false, 'offline_window_hours' => 48])->assertOk()
+            ->assertJsonPath('data.allow_offline', false)->assertJsonPath('data.offline_window_hours', 48);
+        $this->asUser($admin)->putJson("/api/v1/admin/assessments/{$this->a->id}", ['offline_window_hours' => 0])->assertStatus(422)->assertJsonValidationErrors('offline_window_hours');
+    }
+
     public function test_only_assessments_that_allow_offline_issue_a_package(): void
     {
         $this->a->update(['allow_offline' => false]);
         $this->token()->assertStatus(422)->assertJsonPath('code', 'offline_not_allowed');
+        $this->a->update(['allow_offline' => true, 'kind' => 'practice', 'adaptive' => true]);   // adaptive practice needs the server for every question
+        $this->token()->assertStatus(422)->assertJsonPath('code', 'offline_not_allowed');
+        $this->a->update(['adaptive' => false, 'kind' => 'quiz']);
         $this->asUser($this->makeEmployee()->user)->postJson("/api/v1/me/assessments/{$this->a->id}/offline-token", ['device_id' => $this->device])->assertNotFound();
     }
 }

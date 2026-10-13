@@ -571,6 +571,7 @@ Route::prefix('v1')->group(function () {
             Route::get('assessments', [MyAssessmentController::class, 'index']);
             Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
             Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/adaptive-answer', [MyAssessmentController::class, 'adaptiveAnswer'])->middleware('throttle:120,1');
             Route::post('attempts/{attempt}/events', [MyAssessmentController::class, 'event'])->middleware('throttle:120,1');
             Route::post('attempts/{attempt}/snapshot', [MyAssessmentController::class, 'snapshot'])->middleware('throttle:60,1');
             Route::post('attempts/{attempt}/submit', [MyAssessmentController::class, 'submit']);
@@ -1678,6 +1679,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('attempts/{attempt}/extend', [AssessmentController::class, 'extend']);
                 Route::post('attempts/{attempt}/void', [AssessmentController::class, 'void']);
             });
+            Route::get('attempts/{attempt}/review', [AssessmentController::class, 'review'])->middleware('permission:assessments.grade|assessments.manage|assessments.invigilate');
             Route::middleware('permission:assessments.grade|assessments.manage')->group(function () {
                 Route::get('assessments/{assessment}/grading', [AssessmentController::class, 'grading']);
                 Route::post('attempts/{attempt}/grade', [AssessmentController::class, 'grade']);

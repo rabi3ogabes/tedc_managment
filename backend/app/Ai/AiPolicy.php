@@ -21,6 +21,10 @@ class AiPolicy
             'residency_enforced' => true, 'redaction' => true, 'retention_days' => 30, 'log_prompts' => false,
             'features' => array_fill_keys(self::FEATURES, ['enabled' => true, 'model_id' => null, 'allow_external' => false]),
             'recommendations' => ['weights' => ['rules' => 40, 'gap' => 20, 'peers' => 20, 'behaviour' => 10, 'rating' => 10], 'ab_test' => false, 'ab_share' => 50],
+            // Adaptive practice (percent of mastery): below easy_below draws easy, above hard_above draws hard; the level
+            // goes up after up_after correct answers in a row and down after down_after wrong ones. A review lesson is
+            // assigned below remedial_below and leaves the learner's path at mastered_at.
+            'adaptive' => ['easy_below' => 40, 'hard_above' => 75, 'up_after' => 2, 'down_after' => 1, 'remedial_below' => 60, 'mastered_at' => 80],
         ];
     }
 
@@ -37,6 +41,7 @@ class AiPolicy
             }
             $out['recommendations'] = array_replace($d['recommendations'], (array) ($saved['recommendations'] ?? []));
             $out['recommendations']['weights'] = array_replace($d['recommendations']['weights'], (array) ($saved['recommendations']['weights'] ?? []));
+            $out['adaptive'] = array_map('intval', array_replace($d['adaptive'], array_intersect_key((array) ($saved['adaptive'] ?? []), $d['adaptive'])));
 
             return $out;
         });
@@ -46,6 +51,12 @@ class AiPolicy
     public function feature(string $feature): array
     {
         return $this->all()['features'][$feature] ?? ['enabled' => false, 'model_id' => null, 'allow_external' => false];
+    }
+
+    /** @return array{easy_below: int, hard_above: int, up_after: int, down_after: int, remedial_below: int, mastered_at: int} */
+    public function adaptive(): array
+    {
+        return $this->all()['adaptive'];
     }
 
     /** @param  array<string, mixed>  $in @return array<string, mixed> */
@@ -66,6 +77,15 @@ class AiPolicy
         foreach (array_keys($cur['recommendations']['weights']) as $k) {
             $weights[$k] = max(0, min(100, (int) ($w[$k] ?? $cur['recommendations']['weights'][$k])));
         }
+        $a = array_replace($cur['adaptive'], array_intersect_key((array) ($in['adaptive'] ?? []), $cur['adaptive']));
+        $easy = max(0, min(100, (int) $a['easy_below']));
+        $remedial = max(0, min(100, (int) $a['remedial_below']));
+        $adaptive = [
+            'easy_below' => $easy, 'hard_above' => max($easy, min(100, (int) $a['hard_above'])),
+            'up_after' => max(1, min(10, (int) $a['up_after'])), 'down_after' => max(1, min(10, (int) $a['down_after'])),
+            // A lesson is never assigned and cleared at the same mastery.
+            'remedial_below' => $remedial, 'mastered_at' => max($remedial, min(100, (int) $a['mastered_at'])),
+        ];
         $new = [
             'residency_enforced' => (bool) ($in['residency_enforced'] ?? $cur['residency_enforced']),
             'redaction' => (bool) ($in['redaction'] ?? $cur['redaction']),
@@ -73,6 +93,7 @@ class AiPolicy
             'log_prompts' => false,   // prompts are never stored: only sizes, timings and outcomes
             'features' => $features,
             'recommendations' => ['weights' => $weights, 'ab_test' => (bool) ($in['recommendations']['ab_test'] ?? $cur['recommendations']['ab_test']), 'ab_share' => max(0, min(100, (int) ($in['recommendations']['ab_share'] ?? $cur['recommendations']['ab_share'])))],
+            'adaptive' => $adaptive,
         ];
         SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $new, 'updated_by' => $by]);
         Cache::forget('site.ai_policy');

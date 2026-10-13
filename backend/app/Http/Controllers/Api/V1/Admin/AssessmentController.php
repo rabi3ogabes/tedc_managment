@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Ai\Adaptive\AdaptivePractice;
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
+use App\Models\AttemptAnswerGrade;
 use App\Models\Program;
 use App\Services\Assessment\AssessmentAnalytics;
 use App\Services\Assessment\AssessmentService;
@@ -14,6 +16,7 @@ use App\Services\Assessment\QuestionTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /** Assessments: builder, publishing, access codes, invigilation, grading, release, regrade and analytics. */
 class AssessmentController extends Controller
@@ -27,7 +30,9 @@ class AssessmentController extends Controller
 
     public function store(Request $request, Program $program): JsonResponse
     {
-        $a = Assessment::create($request->validate($this->rules(true)) + ['program_id' => $program->id, 'status' => 'draft']);
+        $d = $request->validate($this->rules(true));
+        $this->assertModes($d);
+        $a = Assessment::create($d + ['program_id' => $program->id, 'status' => 'draft']);
         $request->has('sections') && $this->builder->replaceSections($a, $request->validate(['sections' => ['array', 'max:30']])['sections']);
 
         return response()->json(['data' => $a->fresh('sections')], 201);
@@ -35,12 +40,14 @@ class AssessmentController extends Controller
 
     public function show(Assessment $assessment): JsonResponse
     {
-        return response()->json(['data' => $assessment->load('sections') + [], 'validation' => $this->builder->validate($assessment)]);
+        return response()->json(['data' => $assessment->load('sections'), 'validation' => $this->builder->validate($assessment)]);
     }
 
     public function update(Request $request, Assessment $assessment): JsonResponse
     {
-        $assessment->update($request->validate($this->rules(false)));
+        $d = $request->validate($this->rules(false));
+        $this->assertModes($d + $assessment->only(['kind', 'adaptive', 'allow_offline']));
+        $assessment->update($d);
 
         return response()->json(['data' => $assessment->fresh('sections')]);
     }
@@ -88,7 +95,7 @@ class AssessmentController extends Controller
 
         return response()->json(['data' => [
             'rotating_code' => $this->attempts->rotatingCode($assessment),
-            'attempts' => $rows->map(fn ($a) => ['id' => $a->id, 'employee' => $a->registration->employee->user?->displayName(), 'status' => $a->status, 'started_at' => $a->started_at->toIso8601String(), 'remaining_seconds' => $this->attempts->remaining($a), 'delivery' => $a->delivery, 'flags' => $a->integrity['flags'] ?? [], 'events' => $a->integrity['events'] ?? [], 'answered' => count($a->answers ?? []), 'total' => count($a->questions)])->all(),
+            'attempts' => $rows->map(fn ($a) => ['id' => $a->id, 'employee' => $a->registration->employee->user?->displayName(), 'status' => $a->status, 'started_at' => $a->started_at->toIso8601String(), 'remaining_seconds' => $this->attempts->remaining($a), 'delivery' => $a->delivery, 'flags' => $a->integrity['flags'] ?? [], 'events' => $a->integrity['events'] ?? [], 'answered' => count($a->answers ?? []), 'total' => (int) ($a->adaptive_log['total'] ?? count($a->questions)), 'adaptive' => $a->adaptive_log !== null])->all(),
         ]]);
     }
 
@@ -115,6 +122,34 @@ class AssessmentController extends Controller
 
             return ['attempt_id' => $a->id, 'employee' => $a->registration->employee->user?->displayName(), 'submitted_at' => $a->submitted_at?->toIso8601String(), 'items' => $manual->map(fn ($q) => ['question_id' => $q['id'], 'stem_ar' => $q['stem_ar'], 'stem_en' => $q['stem_en'], 'max_points' => $q['points'], 'rubric' => $q['payload']['rubric'] ?? [], 'answer' => ($a->answers ?? [])[$q['id']] ?? null])->values()->all()];
         })->all()]);
+    }
+
+    /**
+     * One attempt as the teacher reviews it: every question with the answer and the result, and for adaptive practice
+     * the difficulty trajectory with the reason each question was chosen.
+     */
+    public function review(AssessmentAttempt $attempt, AdaptivePractice $adaptive): JsonResponse
+    {
+        $attempt->load('assessment', 'registration.employee.user:id,name,name_ar');
+        abort_unless($attempt->registration?->employee && $this->scope()->allowsEmployee($attempt->registration->employee), 404);
+        $grades = AttemptAnswerGrade::where('attempt_id', $attempt->id)->get()->keyBy('question_id');
+        $a = $attempt->assessment;
+
+        return response()->json(['data' => [
+            'id' => $attempt->id, 'status' => $attempt->status, 'attempt_no' => $attempt->attempt_no, 'delivery' => $attempt->delivery, 'employee' => $attempt->registration->employee->user?->displayName(),
+            'assessment' => ['id' => $a->id, 'kind' => $a->kind, 'title_ar' => $a->title_ar, 'title_en' => $a->title_en, 'adaptive' => (bool) $a->adaptive, 'pass_percent' => $a->pass_percent],
+            'started_at' => $attempt->started_at?->toIso8601String(), 'submitted_at' => $attempt->submitted_at?->toIso8601String(), 'score_percent' => $attempt->score_percent, 'passed' => $attempt->passed,
+            'points' => round((float) $attempt->auto_score + (float) $attempt->manual_score, 2), 'max_points' => (float) $attempt->max_score, 'flags' => $attempt->integrity['flags'] ?? [],
+            'items' => array_map(function ($q) use ($attempt, $grades) {
+                $type = QuestionTypes::get($q['type']);
+                $answer = ($attempt->answers ?? [])[$q['id']] ?? null;
+                $r = $type->grade($q['payload'], $answer);
+
+                return ['id' => $q['id'], 'type' => $q['type'], 'stem_ar' => $q['stem_ar'], 'stem_en' => $q['stem_en'], 'points' => $q['points'], 'answer' => $answer, 'correct' => $r['manual'] ? null : $r['ratio'] >= 1,
+                    'points_awarded' => $r['manual'] ? ($grades[$q['id']]->points_awarded ?? null) : round($r['ratio'] * $q['points'], 2), 'correct_answer' => $type->correctAnswer($q['payload']), 'comment' => $grades[$q['id']]->comment ?? null];
+            }, $attempt->questions),
+            'adaptive' => $adaptive->trail($attempt),
+        ]]);
     }
 
     public function grade(Request $request, AssessmentAttempt $attempt): JsonResponse
@@ -152,6 +187,24 @@ class AssessmentController extends Controller
         return response()->json(['data' => ['rows' => $rows, 'average_gain_percent' => $with->whereNotNull('gain_percent')->avg('gain_percent') !== null ? round($with->whereNotNull('gain_percent')->avg('gain_percent'), 1) : null, 'target_percent' => 35]]);
     }
 
+    /**
+     * Adaptive practice suits practice and quizzes, and needs the server for every next question, so it cannot be
+     * taken offline. @param  array<string, mixed>  $a
+     */
+    private function assertModes(array $a): void
+    {
+        $errors = [];
+        if (! empty($a['adaptive']) && ! in_array($a['kind'] ?? null, ['practice', 'quiz'], true)) {
+            $errors['adaptive'] = __('messages.assessment.adaptive_kind');
+        }
+        if (! empty($a['adaptive']) && ! empty($a['allow_offline'])) {
+            $errors['allow_offline'] = __('messages.assessment.adaptive_offline');
+        }
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
     private function rules(bool $create): array
     {
         $r = $create ? 'required' : 'sometimes';
@@ -164,6 +217,7 @@ class AssessmentController extends Controller
             'feedback_mode' => ['sometimes', Rule::in(['immediate', 'after_submit', 'after_close', 'never'])], 'show_score' => ['sometimes', 'boolean'], 'show_correct_answers' => ['sometimes', 'boolean'], 'require_restudy_on_fail' => ['sometimes', 'boolean'],
             'proctoring' => ['nullable', 'array'], 'proctoring.enabled' => ['sometimes', 'boolean'], 'proctoring.fullscreen' => ['sometimes', 'boolean'], 'proctoring.tab_switch_limit' => ['nullable', 'integer', 'min:0', 'max:100'], 'proctoring.fullscreen_exit_limit' => ['nullable', 'integer', 'min:0', 'max:100'],
             'proctoring.paste_limit' => ['nullable', 'integer', 'min:0', 'max:100'], 'proctoring.action' => ['sometimes', Rule::in(['flag', 'auto_submit'])], 'proctoring.snapshots' => ['sometimes', 'boolean'], 'proctoring.face_check' => ['sometimes', 'boolean'],
+            'allow_offline' => ['sometimes', 'boolean'], 'offline_window_hours' => ['sometimes', 'integer', 'min:1', 'max:720'], 'adaptive' => ['sometimes', 'boolean'],
         ];
     }
 }

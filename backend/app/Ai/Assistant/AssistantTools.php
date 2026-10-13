@@ -2,6 +2,7 @@
 
 namespace App\Ai\Assistant;
 
+use App\Ai\Adaptive\RemedialAssignments;
 use App\Models\Certificate;
 use App\Models\CourseLesson;
 use App\Models\Employee;
@@ -71,7 +72,8 @@ class AssistantTools
     {
         $out = [];
         foreach (Registration::with('program:id,title_ar,title_en')->where('employee_id', $emp->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->get() as $r) {
-            $total = CourseLesson::where('program_id', $r->program_id)->where('status', 'published')->count();
+            $assigned = app(RemedialAssignments::class)->open($r);
+            $total = CourseLesson::where('program_id', $r->program_id)->where('status', 'published')->get(['id', 'settings'])->filter(fn (CourseLesson $l) => ! $l->isRemedial() || $assigned->has($l->id))->count();
             if ($total === 0) {
                 continue;
             }

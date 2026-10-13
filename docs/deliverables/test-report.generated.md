@@ -6,13 +6,13 @@
 
 ## 1. Automated suite
 
-- Test files: **116**; test methods: **739**.
+- Test files: **120**; test methods: **768**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
 ## 2. Requirement status behind the tests
 
-233 of 278 requirements are marked available; 45 partial; 0 missing (see the BRD, section "Open items").
+236 of 278 requirements are marked available; 42 partial; 0 missing (see the BRD, section "Open items").
 
 ## 3. UAT
 
@@ -30,6 +30,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AccessScopeTest.php | 3 |
 | AccountAndChangeRequestTest.php | 3 |
 | ActiveRoleTest.php | 4 |
+| AdaptivePracticeTest.php | 12 |
 | AdmissionToolsTest.php | 3 |
 | AiCompletionTest.php | 23 |
 | AiModelsTest.php | 8 |
@@ -99,6 +100,8 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | NotificationChannelsTest.php | 7 |
 | NotificationTemplatesAndSurveyTest.php | 4 |
 | NotificationsPhase11Test.php | 10 |
+| OfflineExamTest.php | 7 |
+| OfflineLearningTest.php | 6 |
 | OnlineCourseTest.php | 3 |
 | OpsSecurityTest.php | 16 |
 | PassingRulesTest.php | 12 |
@@ -125,6 +128,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RoomScreenTest.php | 3 |
 | RoomsLogisticsTest.php | 6 |
 | RoutingIntegrityTest.php | 3 |
+| SampleForecastsMondayTest.php | 1 |
 | SecurityHardeningTest.php | 2 |
 | SocialFilesTest.php | 14 |
 | SpaFallbackTest.php | 2 |

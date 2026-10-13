@@ -17,7 +17,7 @@
 
 - Public: 712 columns
 - Internal: 1971 columns
-- Confidential: 472 columns
+- Confidential: 483 columns
 - Restricted: 21 columns
 
 ## Application-level encryption
@@ -262,6 +262,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Confidential | masked in exports |
 | `device_elapsed_seconds` | Confidential | masked in exports |
 | `client_started_at` | Confidential | masked in exports |
+| `adaptive_log` | Confidential | masked in exports |
 
 ### `assessment_sections`
 
@@ -3304,6 +3305,21 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `pass_status` | Confidential | masked in exports |
 | `passed_via` | Confidential | masked in exports |
 | `computed_at` | Confidential | masked in exports |
+
+### `remedial_assignments`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Confidential | masked in exports |
+| `registration_id` | Confidential | masked in exports |
+| `lesson_id` | Confidential | masked in exports |
+| `skill_id` | Confidential | masked in exports |
+| `mastery` | Confidential | masked in exports |
+| `assigned_at` | Confidential | masked in exports |
+| `cleared_at` | Confidential | masked in exports |
+| `cleared_mastery` | Confidential | masked in exports |
+| `created_at` | Confidential | masked in exports |
+| `updated_at` | Confidential | masked in exports |
 
 ### `report_definitions`
 

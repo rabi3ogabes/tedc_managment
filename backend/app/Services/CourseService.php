@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Ai\Adaptive\RemedialAssignments;
 use App\Exceptions\BusinessRuleException;
 use App\Models\CourseLesson;
 use App\Models\LessonProgress;
@@ -34,6 +35,8 @@ class CourseService
     {
         $modules = $program->courseModules()->with(['lessons' => fn ($q) => $q->where('status', 'published')])->get();
         $progress = LessonProgress::where('registration_id', $registration->id)->get()->keyBy('lesson_id');
+        $remedial = app(RemedialAssignments::class);
+        $assigned = $remedial->open($registration);
 
         $blocked = false;
         $required = 0;
@@ -43,6 +46,10 @@ class CourseService
         foreach ($modules as $module) {
             $lessons = [];
             foreach ($module->lessons as $lesson) {
+                // A review lesson appears only for the learner it was assigned to, until they master its competency.
+                if ($lesson->isRemedial() && ! $assigned->has($lesson->id)) {
+                    continue;
+                }
                 $p = $progress->get($lesson->id);
                 $completed = $p?->status === 'completed';
                 $locked = $program->course_sequential && $blocked;
@@ -57,6 +64,7 @@ class CourseService
                     'duration_seconds' => $lesson->duration_seconds, 'is_required' => $lesson->is_required, 'locked' => $locked,
                     'status' => $completed ? 'completed' : ($p ? 'in_progress' : 'not_started'), 'percent' => (float) ($p?->percent ?? 0),
                     'score' => $p?->best_score, 'last_activity_at' => $p?->last_activity_at?->toIso8601String(),
+                    'remedial' => $lesson->isRemedial(), 'why' => $lesson->isRemedial() ? $remedial->why($assigned->get($lesson->id), $lesson) : null,
                 ];
             }
             if ($lessons) {
@@ -103,7 +111,7 @@ class CourseService
 
     public function assertOpen(CourseLesson $lesson, Registration $registration): void
     {
-        if ($lesson->status !== 'published' || ! $lesson->program->has_course) {
+        if ($lesson->status !== 'published' || ! $lesson->program->has_course || ! app(RemedialAssignments::class)->visible($lesson, $registration)) {
             abort(404);
         }
         if (! $lesson->program->course_sequential) {

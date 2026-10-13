@@ -20,7 +20,7 @@ return [
         'security_events' => 'confidential', 'siem_outbox' => 'confidential', 'audit_logs' => 'confidential', 'error_logs' => 'internal', 'ai_logs' => 'internal', 'assistant_messages' => 'confidential', 'assistant_conversations' => 'confidential',
         'orders' => 'confidential', 'payments' => 'confidential', 'refunds' => 'confidential', 'entity_accounts' => 'confidential', 'seat_vouchers' => 'confidential', 'data_subject_requests' => 'confidential', 'notifications' => 'confidential',
         'registrations' => 'confidential', 'attendance' => 'confidential', 'certificates' => 'confidential', 'evaluations' => 'confidential', 'assessment_attempts' => 'confidential', 'pd_activities' => 'confidential', 'trainers' => 'confidential',
-        'user_identities' => 'confidential', 'auth_sessions' => 'confidential',
+        'user_identities' => 'confidential', 'auth_sessions' => 'confidential', 'remedial_assignments' => 'confidential',
     ],
 
     /** Individual columns that are Restricted (or otherwise differ from what the patterns say): "table.column" => class. */

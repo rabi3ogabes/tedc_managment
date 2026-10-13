@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\ContentRating;
 use App\Models\CourseLesson;
 use App\Models\CourseLessonVersion;
+use App\Models\CourseModule;
 use App\Models\DeviceToken;
 use App\Models\EntityAccount;
 use App\Models\ExternalCompletion;
@@ -20,6 +21,7 @@ use App\Models\PageBlock;
 use App\Models\PageVersion;
 use App\Models\ProgramGrant;
 use App\Models\Question;
+use App\Models\QuestionBank;
 use App\Models\Registration;
 use App\Models\RegistrationPriorityRule;
 use App\Models\ResourceShare;
@@ -42,6 +44,7 @@ class SampleMore
         $this->step('kit learners', fn () => $this->kitLearners());
         $this->step('assessment', fn () => $this->assessment());
         $this->step('offline', fn () => $this->offline());
+        $this->step('adaptive', fn () => $this->adaptive());
         $this->step('content', fn () => $this->content());
         $this->step('access', fn () => $this->access());
         $this->step('delivery', fn () => $this->delivery());
@@ -89,6 +92,64 @@ class SampleMore
         $device = app(OfflineService::class)->device($u->id, 'sample-device-'.substr($u->id, 0, 8), 'android');
         $device->update(['name' => 'Sample phone']);
         app(OfflineExamService::class)->issue($reg, $a, $device->device_id);
+    }
+
+    /**
+     * Adaptive practice (AI-03): questions on questioning at three levels, one learner part-way through, and a review
+     * lesson that reaches the learners whose mastery is low (the lesson hook assigns it when it is published).
+     */
+    private function adaptive(): void
+    {
+        $program = $this->c->program('EKIT-QUESTIONING');
+        $t = $this->c->trainees();
+        // The competency the first learner is weakest in, so the review lesson has someone to reach.
+        $first = $program && $t ? $this->c->registration($t[0], $program) : null;
+        $skill = Skill::find($first ? LearnerMastery::where('registration_id', $first->id)->orderBy('mastery')->value('skill_id') : null) ?? Skill::first();
+        $module = $program ? CourseModule::where('program_id', $program->id)->orderBy('sort_order')->first() : null;
+        if (! $program || ! $skill || ! $module || count($t) < 2 || Assessment::where('program_id', $program->id)->where('adaptive', true)->exists()) {
+            return;
+        }
+        $bank = QuestionBank::create(['title_ar' => 'بنك التدريب التكيّفي: طرح الأسئلة', 'title_en' => 'Adaptive practice bank: questioning', 'program_id' => $program->id, 'visibility' => 'program']);
+        $items = [
+            'easy' => [
+                ['أيّ الأسئلة الآتية يدعو المتعلم إلى إجابة أطول؟', 'Which question invites a longer answer?', [['لماذا تعتقد أن النبتة نمت أسرع؟', 'Why do you think the plant grew faster?'], ['هل نمت النبتة؟', 'Did the plant grow?']]],
+                ['كم ينتظر المعلم عادةً بعد طرح السؤال؟', 'How long should a teacher usually wait after asking a question?', [['من 3 إلى 5 ثوانٍ تقريباً', 'About 3 to 5 seconds'], ['أقل من ثانية', 'Less than a second'], ['دقيقة كاملة قبل أن يتحدث أحد', 'A full minute before anyone speaks']]],
+                ['يبدأ السؤال المفتوح عادةً بـ…', 'An open question usually starts with…', [['كيف أو لماذا', 'How or why'], ['هل', 'Is or are']]],
+            ],
+            'medium' => [
+                ['أجاب متعلم إجابة خاطئة. أيّ متابعة تُبقيه يفكّر؟', 'A student answers wrongly. Which follow-up keeps them thinking?', [['ما الذي جعلك تختار هذه الإجابة؟', 'What made you choose that answer?'], ['خطأ، التالي.', 'Wrong. Next.'], ['من يجيب غيره؟', 'Anyone else?']]],
+                ['أيّ سؤال يتحقق من الفهم لا من التذكّر؟', 'Which question checks understanding rather than recall?', [['كيف تشرح هذه القاعدة لتلميذ أصغر منك؟', 'How would you explain this rule to a younger pupil?'], ['ما التعريف الوارد في الصفحة 12؟', 'What is the definition on page 12?']]],
+                ['ما الغرض الرئيس من «سؤال المفصل»؟', 'What is the main purpose of a hinge question?', [['أن يقرر المعلم بسرعة إن كان الصف مستعداً للانتقال', 'To decide quickly whether the class is ready to move on'], ['ملء الوقت في نهاية الحصة', 'To fill time at the end of the lesson'], ['رصد درجات للتقرير', 'To record marks for the report']]],
+            ],
+            'hard' => [
+                ['في أسلوب «دون رفع الأيدي» يقوم المعلم بـ…', 'In a "no hands up" approach the teacher…', [['اختيار من يجيب، فيستعد كل متعلم بإجابة', 'chooses who answers, so every student prepares an answer'], ['سؤال المتطوعين فقط', 'asks only the volunteers'], ['طرح الأسئلة كتابةً فقط', 'asks questions only in writing']]],
+                ['يقدّم المتعلمون إجابات قصيرة عن أسئلتك المفتوحة. ما الخطوة التالية الأفضل؟', 'Students give short answers to your open questions. What is the best next step?', [['قدّم نموذجاً لإجابة كاملة وامنحهم وقتاً للتفكير في أزواج قبل المشاركة', 'Model a full answer and give pairs thinking time before sharing'], ['تحوّل إلى أسئلة نعم أو لا', 'Switch to yes-or-no questions'], ['أجب عن الأسئلة بنفسك', 'Answer the questions yourself']]],
+                ['أيّ تسلسل يصعد في مستويات بلوم؟', "Which sequence climbs Bloom's levels?", [['تذكّر ← شرح ← تطبيق ← تقويم', 'Recall → explain → apply → evaluate'], ['تقويم ← تذكّر ← تطبيق ← شرح', 'Evaluate → recall → apply → explain'], ['تطبيق ← تذكّر ← تقويم ← شرح', 'Apply → recall → evaluate → explain']]],
+            ],
+        ];
+        foreach ($items as $level => $questions) {
+            foreach ($questions as [$ar, $en, $options]) {
+                Question::create(['bank_id' => $bank->id, 'type' => 'single_choice', 'stem_ar' => $ar, 'stem_en' => $en, 'difficulty' => $level, 'points' => 1, 'version' => 1, 'status' => 'active', 'skill_ids' => [$skill->id],
+                    'payload' => ['options' => array_map(fn ($o, $k) => ['id' => chr(97 + $k), 'text_ar' => $o[0], 'text_en' => $o[1], 'correct' => $k === 0], $options, array_keys($options))]]);
+            }
+        }
+        $practice = Assessment::create(['program_id' => $program->id, 'kind' => 'practice', 'adaptive' => true, 'title_ar' => 'تدريب تكيّفي: طرح الأسئلة', 'title_en' => 'Adaptive practice: questioning',
+            'max_attempts' => 5, 'pass_percent' => 60, 'shuffle_options' => true, 'feedback_mode' => 'after_submit', 'show_score' => true, 'show_correct_answers' => true, 'status' => 'published']);
+        $practice->sections()->create(['selection' => 'random', 'bank_id' => $bank->id, 'count' => 6, 'points_per_question' => 1, 'sort_order' => 0]);
+
+        // One learner part-way through: two right answers so far, so the next question is harder.
+        if ($first) {
+            $at = $this->attempts->start($first, $practice);
+            foreach (range(1, 2) as $i) {
+                $current = collect($at->fresh()->questions)->last();
+                $right = collect($current['payload']['options'])->firstWhere('correct', true)['id'];
+                $this->attempts->adaptiveAnswer($at->fresh(), $current['id'], $right);
+            }
+        }
+
+        CourseLesson::create(['program_id' => $program->id, 'module_id' => $module->id, 'type' => 'article', 'title_ar' => 'مراجعة: '.$skill->name_ar, 'title_en' => 'Review: '.$skill->name_en,
+            'body_ar' => '<p>عودة سريعة إلى أساسيات هذه الكفاية بأمثلة من الصف، ثم ثلاثة أسئلة قصيرة للتأكد.</p>', 'body_en' => '<p>A short return to the basics of this competency with classroom examples, then three quick checks.</p>',
+            'sort_order' => 900, 'is_required' => false, 'status' => 'published', 'settings' => ['remedial' => true, 'skill_id' => $skill->id]]);
     }
 
     private function assessment(): void

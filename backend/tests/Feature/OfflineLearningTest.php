@@ -7,7 +7,9 @@ use App\Models\CourseModule;
 use App\Models\LessonProgress;
 use App\Models\OfflineDevice;
 use App\Models\Registration;
+use App\Models\RemedialAssignment;
 use App\Models\Role;
+use App\Models\Skill;
 use App\Models\User;
 use App\Services\FileStorage;
 use Illuminate\Support\Carbon;
@@ -119,6 +121,18 @@ class OfflineLearningTest extends TestCase
         $p = LessonProgress::where('lesson_id', $slides->id)->firstOrFail();
         $this->assertEqualsWithDelta(66.67, (float) $p->percent, 0.01);   // slides 1 and 3 counted, 2 was rushed
         $this->assertNotSame('completed', $p->status);
+    }
+
+    public function test_a_review_lesson_goes_offline_only_for_the_learner_it_is_assigned_to(): void
+    {
+        $skill = Skill::create(['code' => 'OFF-1', 'name_ar' => 'مهارة', 'name_en' => 'Skill', 'category' => 'pedagogy']);
+        $review = $this->lesson(['type' => 'article', 'body_ar' => 'مراجعة', 'body_en' => 'review', 'settings' => ['remedial' => true, 'skill_id' => $skill->id]]);
+        $ids = fn () => collect($this->manifest()->assertOk()->json('data.lessons'))->pluck('id');
+        $this->assertFalse($ids()->contains($review->id));
+
+        RemedialAssignment::create(['registration_id' => $this->r->id, 'lesson_id' => $review->id, 'skill_id' => $skill->id, 'mastery' => 0.2, 'assigned_at' => now()]);
+
+        $this->assertTrue($ids()->contains($review->id));
     }
 
     public function test_the_person_sees_and_removes_their_offline_devices(): void

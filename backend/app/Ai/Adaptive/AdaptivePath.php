@@ -17,7 +17,7 @@ use App\Services\CourseService;
  */
 class AdaptivePath
 {
-    public function __construct(private readonly CourseService $course) {}
+    public function __construct(private readonly CourseService $course, private readonly RemedialAssignments $remedial) {}
 
     /** @return array<string, mixed> */
     public function for(Registration $r): array
@@ -42,11 +42,20 @@ class AdaptivePath
         }
         $modules = CourseModule::with(['lessons' => fn ($q) => $q->where('status', 'published')->orderBy('sort_order')])->where('program_id', $r->program_id)->orderBy('sort_order')->get();
         $done = LessonProgress::where('registration_id', $r->id)->where('status', 'completed')->pluck('lesson_id')->all();
+        // Review lessons assigned to this learner (AI-03); the others are not part of their path.
+        $assigned = $this->remedial->open($r);
+        foreach ($modules->flatMap->lessons as $l) {
+            if ($l->isRemedial() && $assigned->has($l->id) && ! isset($added[$l->id])) {
+                $why = $this->remedial->why($assigned->get($l->id), $l);
+                $added[$l->id] = ['lesson_id' => $l->id, 'skill' => $why['skill'], 'mastery' => round($why['mastery'] / 100, 2), 'threshold' => round($why['threshold'] / 100, 2), 'reason' => 'assigned', 'text' => ['ar' => $why['ar'], 'en' => $why['en']]];
+            }
+        }
         $out = [];
         foreach ($modules as $mod) {
             $skip = $skipped[$mod->id] ?? null;
+            $lessons = $mod->lessons->filter(fn (CourseLesson $l) => ! $l->isRemedial() || $assigned->has($l->id));
             $out[] = ['module_id' => $mod->id, 'title_ar' => $mod->title_ar, 'title_en' => $mod->title_en, 'state' => $skip ? 'skipped' : 'required', 'why' => $skip,
-                'lessons' => $mod->lessons->map(fn (CourseLesson $l) => ['id' => $l->id, 'title_ar' => $l->title_ar, 'title_en' => $l->title_en, 'completed' => in_array($l->id, $done, true), 'remedial' => isset($added[$l->id]), 'why' => $added[$l->id] ?? null])->all()];
+                'lessons' => $lessons->map(fn (CourseLesson $l) => ['id' => $l->id, 'title_ar' => $l->title_ar, 'title_en' => $l->title_en, 'completed' => in_array($l->id, $done, true), 'remedial' => isset($added[$l->id]), 'why' => $added[$l->id] ?? null])->values()->all()];
         }
 
         return ['modules' => $out, 'skipped' => array_values($skipped), 'remedial' => array_values($added), 'mastery' => $mastery->map(fn ($v) => round($v, 2))->all()];
