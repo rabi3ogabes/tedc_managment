@@ -17,6 +17,13 @@ class DataClassification
                 $out[$name][$col] = $this->classify($name, $col);
             }
         }
+        // Columns that only some databases have (pgvector's native vectors) are in the register everywhere, so it reads the same on every database.
+        foreach ((array) config('data_classification.optional_columns', []) as $key) {
+            [$table, $col] = explode('.', (string) $key, 2);
+            if (isset($out[$table]) && ! isset($out[$table][$col])) {
+                $out[$table][$col] = $this->classify($table, $col);
+            }
+        }
         ksort($out);
 
         return $out;

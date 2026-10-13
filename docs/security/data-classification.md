@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 718 columns
-- Internal: 1996 columns
+- Internal: 1997 columns
 - Confidential: 483 columns
 - Restricted: 21 columns
 
@@ -1110,6 +1110,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Public | — |
 | `model` | Internal | — |
 | `dim` | Internal | — |
+| `vec` | Internal | — |
 
 ### `employee_path_progress`
 

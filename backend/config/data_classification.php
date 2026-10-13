@@ -23,6 +23,9 @@ return [
         'user_identities' => 'confidential', 'auth_sessions' => 'confidential', 'remedial_assignments' => 'confidential',
     ],
 
+    /** Columns that exist only on some databases (embeddings.vec: PostgreSQL with pgvector); listed in the register everywhere. */
+    'optional_columns' => ['embeddings.vec'],
+
     /** Individual columns that are Restricted (or otherwise differ from what the patterns say): "table.column" => class. */
     'overrides' => [
         // Programme categories and their type are published reference data (the catalogue shows them); masking them in copies would spoil every report.
