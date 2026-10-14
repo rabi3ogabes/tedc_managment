@@ -41,6 +41,20 @@ export const minAr = {
       runs: { title: 'آخر القراءات', trigger: { schedule: 'مجدولة', manual: 'يدوية' }, summary: '{{courses}} دورة · {{done}} إتمام مُحتسَب · {{issues}} مشكلة' },
       reviews: { title: 'إتمامات بانتظار المراجعة', hint: 'برامج على منصات لا تُقرأ آليًا: يرفع المتدرب إثباتًا ويراجعه المركز.', none: 'لا إثباتات بانتظار المراجعة.' },
     },
+    libraries: {
+      driver: 'طريقة البحث', imported: 'أُضيف إلى المكتبة مع رابط مصدره وحقوقه', search: 'بحث', none: 'لا نتائج.', source: 'المصدر',
+      drivers: { figshare: 'مستودع «منارة» (واجهة Figshare العامة)', link: 'رابط إلى صفحة البحث في المكتبة', fake: 'وضع التدريب (بيانات تجريبية)' },
+      how: {
+        maktabati: 'لا توثّق المكتبة واجهة بحث عامة، فيفتح البحث صفحتها (أدخل رابط البحث واستعمل {q} مكان الكلمة).',
+        qnl: 'مستودع «منارة» للبحوث يُبحث فيه عبر الواجهة العامة الموثّقة لـFigshare. أما فهرس الكتب فلا واجهة عامة موثّقة له: يبقى رابطًا إلى صفحة البحث.',
+      },
+      catalogueLink: 'اختياري هنا: يُضاف رابط إلى فهرس الكتب بعد نتائج «منارة».',
+      institution: 'رقم مؤسسة «منارة» في Figshare', institutionHint: 'كما تعلنه صفحة المستودع manara.qnl.qa؛ أكّده مع مكتبة قطر الوطنية. صفر يعني غير مضبوط فلا يُبحث.',
+      portal: 'عنوان بوابة «منارة»', portalHint: 'لا يُعرض ولا يُستورد إلا ما كانت صفحته على هذا العنوان.',
+      figshareNote: 'تُقرأ سجلات «منارة» العامة فقط، بطلب واحد لكل بحث. يُحفظ لكل عنصر مستورد رابط صفحته على «منارة» وترخيصه ومؤلفوه ومعرّفه الرقمي؛ والملف يبقى هناك.',
+      searchHint: 'نتائج «منارة» تُستورد بحقوقها؛ وما سواها رابط إلى صفحة البحث في المكتبة.',
+      types: { journal: 'مقالة', book: 'كتاب' },
+    },
   },
 }
 
@@ -85,6 +99,20 @@ export const minEn = {
       },
       runs: { title: 'Recent readings', trigger: { schedule: 'scheduled', manual: 'by hand' }, summary: '{{courses}} courses · {{done}} completions counted · {{issues}} problems' },
       reviews: { title: 'Completions waiting for review', hint: 'Programmes on platforms that cannot be read automatically: the trainee uploads evidence and the centre reviews it.', none: 'No evidence is waiting for review.' },
+    },
+    libraries: {
+      driver: 'How it is searched', imported: 'Added to the library with its source link and its rights', search: 'Search', none: 'No results.', source: 'Source',
+      drivers: { figshare: 'The Manara repository (the public Figshare API)', link: 'A link to the library\'s own search page', fake: 'Training mode (sample data)' },
+      how: {
+        maktabati: 'The library documents no public search interface, so a search opens its own page (enter the search address and use {q} where the word goes).',
+        qnl: 'The Manara research repository is searched through the documented public Figshare API. The catalogue of books has no documented public interface: it stays a link to its search page.',
+      },
+      catalogueLink: 'Optional here: a link to the book catalogue is added after the Manara results.',
+      institution: 'Manara\'s institution number on Figshare', institutionHint: 'As the repository page manara.qnl.qa states it; confirm it with Qatar National Library. Zero means not set, so nothing is searched.',
+      portal: 'Address of the Manara portal', portalHint: 'Only a record whose page is on this address is shown or imported.',
+      figshareNote: 'Only public Manara records are read, with one request per search. Each item imported keeps the link to its page on Manara, its licence, its authors and its DOI; the file stays there.',
+      searchHint: 'Manara results are imported with their rights; everything else is a link to the library\'s own search page.',
+      types: { journal: 'Article', book: 'Book' },
     },
   },
 }

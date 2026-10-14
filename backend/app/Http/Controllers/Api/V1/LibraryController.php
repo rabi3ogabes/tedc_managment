@@ -137,7 +137,9 @@ class LibraryController extends Controller
     {
         $q = trim((string) $request->validate(['q' => ['required', 'string', 'min:2', 'max:200']])['q']);
 
-        return response()->json(['data' => $this->external->search($q)]);
+        $found = $this->external->lookup($q);
+
+        return response()->json(['data' => $found['results'], 'meta' => ['problems' => $found['problems']]]);
     }
 
     public function externalImport(Request $request): JsonResponse
@@ -150,7 +152,8 @@ class LibraryController extends Controller
     public function externalSettings(Request $request): JsonResponse
     {
         if ($request->isMethod('PUT')) {
-            $d = $request->validate(['maktabati' => ['array'], 'qnl' => ['array'], 'maktabati.enabled' => ['boolean'], 'qnl.enabled' => ['boolean'], 'maktabati.driver' => [Rule::in(['link', 'fake'])], 'qnl.driver' => [Rule::in(['link', 'fake'])], 'maktabati.search_url' => ['nullable', 'string', 'max:500'], 'qnl.search_url' => ['nullable', 'string', 'max:500'],
+            $d = $request->validate(['maktabati' => ['array'], 'qnl' => ['array'], 'maktabati.enabled' => ['boolean'], 'qnl.enabled' => ['boolean'], 'maktabati.driver' => [Rule::in(['link', 'fake'])], 'qnl.driver' => [Rule::in(['link', 'fake', 'figshare'])],
+                'qnl.figshare_institution' => ['nullable', 'integer', 'min:0'], 'qnl.portal_host' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$/'], 'maktabati.search_url' => ['nullable', 'string', 'max:500'], 'qnl.search_url' => ['nullable', 'string', 'max:500'],
                 'maktabati.api_url' => ['nullable', 'url', 'max:500'], 'qnl.api_url' => ['nullable', 'url', 'max:500'], 'maktabati.api_key' => ['nullable', 'string', 'max:300'], 'qnl.api_key' => ['nullable', 'string', 'max:300']]);
 
             return response()->json(['data' => $this->external->update($d, $this->user())]);

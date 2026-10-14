@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import LtiPlatforms from '@/pages/admin/standards/LtiPlatforms'
+import ExternalLibraries from '@/pages/admin/providers/ExternalLibraries'
 import ProvidersMarketplace from '@/pages/admin/providers/ProvidersMarketplace'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -25,7 +26,7 @@ export default function StandardsSettings() {
     <>
       <PageHeader title={t('content.standards.title')} />
       <Tabs<Tab> value={cur ?? 'lrs'} onChange={setTab} tabs={tabs} />
-      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'tool' ? <LtiPlatforms /> : cur === 'providers' ? <ProvidersMarketplace /> : <Libraries />}</div>
+      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'tool' ? <LtiPlatforms /> : cur === 'providers' ? <ProvidersMarketplace /> : <ExternalLibraries />}</div>
     </>
   )
 }
@@ -91,29 +92,6 @@ function Lti() {
           <div className="flex flex-wrap gap-4 text-sm sm:col-span-2"><label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.privacy?.share_name} onChange={(e) => setCur({ ...cur, privacy: { ...cur.privacy, share_name: e.target.checked } })} />{t('content.lti.shareName')}</label><label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.privacy?.share_email} onChange={(e) => setCur({ ...cur, privacy: { ...cur.privacy, share_email: e.target.checked } })} />{t('content.lti.shareEmail')}</label>{cur.version === '1.3' && <label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.supports_ags} onChange={(e) => setCur({ ...cur, supports_ags: e.target.checked })} />{t('content.lti.ags')}</label>}<label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.is_active} onChange={(e) => setCur({ ...cur, is_active: e.target.checked })} />{t('content.lti.active')}</label></div>
           <div className="sm:col-span-2"><Button variant="gold" onClick={() => void save()}>{t('common.save')}</Button></div></div>}
       </Modal>
-    </div>
-  )
-}
-
-function Libraries() {
-  const { t } = useTranslation()
-  const res = useGet<{ data: any }>('/admin/settings/external-libraries', undefined, { staleTime: 0 })
-  const [s, setS] = useState<any>(null)
-  const [q, setQ] = useState('')
-  const [found, setFound] = useState<any[]>([])
-  useEffect(() => { if (res.data) setS(res.data.data) }, [res.data])
-  if (!s) return <Spinner />
-  const set = (p: string, f: string, v: any) => setS({ ...s, [p]: { ...s[p], [f]: v } })
-  const save = async () => { try { await api.put('/admin/settings/external-libraries', s); toast(t('content.standards.saved')) } catch (e) { toast(errorMessage(e), 'error') } }
-  const search = async () => { try { const { data } = await api.get('/admin/external-libraries/search', { params: { q } }); setFound(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
-  const imp = async (r: any) => { try { await api.post('/admin/external-libraries/import', r); toast(t('content.libs.imported')) } catch (e) { toast(errorMessage(e), 'error') } }
-  return (
-    <div className="space-y-4">
-      {['maktabati', 'qnl'].map((p) => <Card key={p} className="space-y-2"><div className="flex items-center gap-3"><b>{s[p].name_ar} / {s[p].name_en}</b><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={s[p].enabled} onChange={(e) => set(p, 'enabled', e.target.checked)} />{t('content.standards.enabled')}</label></div>
-        {s[p].enabled && <div className="grid gap-3 sm:grid-cols-3"><Field label={t('content.providers.driver')}><select className={input} value={s[p].driver} onChange={(e) => set(p, 'driver', e.target.value)}><option value="link">Link / API</option><option value="fake">Demo</option></select></Field><Field label={t('content.libs.searchUrl')}><input dir="ltr" className={input} value={s[p].search_url} onChange={(e) => set(p, 'search_url', e.target.value)} /></Field><Field label={t('content.libs.apiUrl')}><input dir="ltr" className={input} value={s[p].api_url} onChange={(e) => set(p, 'api_url', e.target.value)} /></Field></div>}</Card>)}
-      <Button variant="gold" onClick={() => void save()}>{t('content.standards.save')}</Button>
-      <div className="flex gap-2"><input className={input} placeholder={t('content.libs.search')} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && void search()} /><Button variant="outline" disabled={q.length < 2} onClick={() => void search()}>🔍</Button></div>
-      {found.map((r, i) => <Card key={i} className="flex items-center gap-3"><Badge>{r.library}</Badge><span className="flex-1">{r.title}</span>{r.deep_link ? <Button size="sm" variant="outline" onClick={() => window.open(r.url, '_blank', 'noopener')}>{t('content.libs.deepLink')}</Button> : <Button size="sm" variant="gold" onClick={() => void imp(r)}>{t('content.libs.import')}</Button>}</Card>)}
     </div>
   )
 }
