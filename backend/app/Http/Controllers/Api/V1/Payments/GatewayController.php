@@ -20,7 +20,11 @@ class GatewayController extends Controller
     /** POST /payments/callback/{gateway} — the raw body is what is signed. */
     public function callback(Request $request, string $gateway): JsonResponse
     {
-        $r = $this->checkout->callback($gateway, $request->getContent(), $request->header('X-Signature'));
+        $headers = [];
+        foreach ($request->headers->all() as $name => $values) {
+            $headers[strtolower((string) $name)] = (string) ($values[0] ?? '');
+        }
+        $r = $this->checkout->callback($gateway, $request->getContent(), $request->header('X-Signature'), $headers);
         if ($r['outcome'] === 'rejected') {
             return response()->json(['message' => 'Invalid signature.'], 401);
         }

@@ -100,7 +100,8 @@ class IntegrationContractController extends Controller
         $problems = ContractValidator::problems($key, 'mapping', $mapping, $this->store->secretSettings($key), $this->store->knownSettings($key));
         $operation = collect($contract->operations())->first(fn ($op) => ($op['entity'] ?? null) === $d['entity']);
         $body = is_array($fixture['body'] ?? null) ? $fixture['body'] : json_decode((string) ($fixture['body'] ?? ''), true);
-        $found = isset($operation['response']['records']) ? JsonPath::get($body, $operation['response']['records']) : $body;
+        $recordsPath = $d['entity'] === 'receipt' ? ($contract->inbound()['receipt']['records'] ?? null) : ($operation['response']['records'] ?? null);   // a gateway's receipts come in, they are not an operation's answer
+        $found = $recordsPath ? JsonPath::get($body, $recordsPath) : $body;
         $records = is_array($found) ? array_values(array_filter($found, 'is_array')) : [];
 
         return response()->json([

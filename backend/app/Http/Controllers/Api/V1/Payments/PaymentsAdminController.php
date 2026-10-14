@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Payments;
 
 use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
+use App\Integrations\IntegrationAudit;
 use App\Models\DiscountCode;
 use App\Models\EntityAccount;
 use App\Models\Order;
@@ -211,6 +212,16 @@ class PaymentsAdminController extends Controller
         $d = $request->validate(['day' => ['nullable', 'date']]);
 
         return response()->json(['data' => $this->reconciliation->run(isset($d['day']) ? Carbon::parse($d['day']) : null)]);
+    }
+
+    /** The gateway's statement as a file (CSV): the same comparison as the daily one, for a gateway that sends its day as a file. */
+    public function importStatement(Request $request): JsonResponse
+    {
+        $d = $request->validate(['file' => ['required', 'file', 'max:2048'], 'day' => ['nullable', 'date']]);
+        $row = $this->reconciliation->importCsv(isset($d['day']) ? Carbon::parse($d['day']) : now()->subDay(), (string) file_get_contents($d['file']->getRealPath()));
+        IntegrationAudit::record('moe_epay', 'payments.reconciliation.imported', $request->user()->id, ['day' => $row->day->toDateString(), 'matched' => $row->matched, 'fixed' => $row->fixed, 'differences' => count((array) $row->mismatches)], null, $request->ip());
+
+        return response()->json(['data' => $row]);
     }
 
     public function report(Request $request): JsonResponse

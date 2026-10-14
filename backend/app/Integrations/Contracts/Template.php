@@ -23,7 +23,7 @@ final class Template
      */
     private const SELF_ESCAPING = ['json', 'urlencode', 'raw'];
 
-    private const FILTERS = ['json', 'urlencode', 'upper', 'lower', 'trim', 'int', 'float', 'bool', 'default', 'date', 'amount', 'minor', 'hex', 'base64', 'utf16hex', 'sha256', 'raw'];
+    private const FILTERS = ['json', 'urlencode', 'upper', 'lower', 'trim', 'int', 'float', 'bool', 'default', 'date', 'amount', 'minor', 'hex', 'base64', 'utf16hex', 'sha256', 'map', 'raw'];
 
     /** Fills a string template. $escape: raw | json (inside a JSON string) | url | header. @param  array<string, mixed>  $context */
     public static function render(string $template, array $context, string $escape = 'raw'): string
@@ -154,6 +154,8 @@ final class Template
                 $problems[] = 'unknown filter "'.mb_substr($name, 0, 30).'"';
             } elseif ($name === 'raw' && ($segments[0] !== 'settings' || $i !== array_key_last($parts))) {
                 $problems[] = '"raw" is only for a setting of the system and must be the last filter: '.$path;
+            } elseif ($name === 'map' && ! preg_match('/^[^=,]+=[^=,]*(,[^=,]+=[^=,]*)*$/', trim(explode(':', $part, 2)[1] ?? ''))) {
+                $problems[] = '"map" needs pairs of value=word, such as map:ar=ARA,en=ENG';
             }
         }
 
@@ -220,8 +222,22 @@ final class Template
             'base64' => base64_encode($text()),
             'utf16hex' => strtoupper(bin2hex((string) mb_convert_encoding($text(), 'UTF-16BE', 'UTF-8'))),
             'sha256' => hash('sha256', $text()),
+            'map' => self::mapped($text(), (string) $arg),
             'raw' => $v,
         };
+    }
+
+    /** A value looked up in a table written inline ("ar=ARA,en=ENG"); a value the table does not know stays as it is. */
+    private static function mapped(string $value, string $table): string
+    {
+        foreach (explode(',', $table) as $pair) {
+            [$from, $to] = array_pad(explode('=', $pair, 2), 2, null);
+            if ($to !== null && trim($from) === $value) {
+                return trim($to);
+            }
+        }
+
+        return $value;
     }
 
     private static function date(mixed $v, string $format): string

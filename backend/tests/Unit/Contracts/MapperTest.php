@@ -68,6 +68,17 @@ class MapperTest extends TestCase
         $this->assertSame(['name' => 'Solo'], Mapper::apply(['fields' => ['name' => ['path' => '$.n', 'transform' => ['name_part:en']]]], ['n' => 'Solo']));
     }
 
+    public function test_an_amount_in_minor_units_becomes_a_decimal_amount(): void
+    {
+        $e = ['fields' => ['amount' => ['path' => '$.amount', 'transform' => ['minor:2']], 'big' => ['path' => '$.big', 'transform' => ['minor:3']]]];
+        $this->assertSame(['amount' => 10.0, 'big' => 10.5], Mapper::apply($e, ['amount' => '1000', 'big' => 10500]));
+        $this->assertSame(['amount' => 19.99], Mapper::apply($e, ['amount' => 1999]), 'no rounding error');
+        $this->assertSame([], Mapper::apply($e, ['amount' => 'not a number']), 'a value that is not a number stays out');
+        $this->assertSame([], Mapper::problems($e));
+        $this->assertNotSame([], Mapper::problems(['fields' => ['a' => ['path' => '$.a', 'transform' => ['minor:x']]]]));
+        $this->assertNotSame([], Mapper::problems(['fields' => ['a' => ['path' => '$.a', 'transform' => ['minor']]]]));
+    }
+
     public function test_a_mapping_is_checked_before_it_is_saved(): void
     {
         $this->assertSame([], Mapper::problems($this->entity()));

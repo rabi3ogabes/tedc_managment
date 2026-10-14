@@ -45,7 +45,7 @@ final class ContractDriver
     public function request(string $operation, array $params = [], array $options = []): PreparedRequest
     {
         $op = $this->contract->operation($operation);
-        $context = $params + ['settings' => $this->visibleSettings(), 'now' => Carbon::now()->toIso8601String()];
+        $context = $this->contract->prepare($params) + ['settings' => $this->visibleSettings(), 'now' => Carbon::now()->toIso8601String()];
 
         $base = $this->baseUrl().$this->path((string) $op['path'], $context);
         $query = Template::renderValue((array) ($op['query'] ?? []), $context);
@@ -286,9 +286,17 @@ final class ContractDriver
 
             return $v;
         };
-        // A system that relies on the network (an allow-list) can be reached without a key: "optional" leaves the credential out when it is not set.
-        if (in_array($auth['type'] ?? '', ['bearer', 'api_key'], true) && ! empty($auth['optional']) && $this->secret((string) ($auth['setting'] ?? '')) === '') {
-            return;
+        if (in_array($auth['type'] ?? '', ['bearer', 'api_key'], true) && $this->secret((string) ($auth['setting'] ?? '')) === '') {
+            if (isset($auth['fallback']) && is_array($auth['fallback'])) {
+                // The first credential is not set: the one behind it is used (a token if there is one, else a user name and password).
+                $this->applyAuth(array_diff_key($auth['fallback'], ['fallback' => 1]), $method, $path, $headers, $query, $body, $maskedHeaders, $maskedQuery, $preview);
+
+                return;
+            }
+            // A system that relies on the network (an allow-list) can be reached without a key: "optional" leaves the credential out when it is not set.
+            if (! empty($auth['optional'])) {
+                return;
+            }
         }
         switch ($auth['type'] ?? 'none') {
             case 'bearer':
@@ -404,6 +412,13 @@ final class ContractDriver
         $json = $response->json();
         $result = new ContractResponse($status, is_array($json) ? $json : null, (string) $response->body(), $op);
         if ($ok) {
+            if (! $this->accepted($op, $result)) {
+                $theirs = isset($op['response']['error']) ? JsonPath::get($result->json, $op['response']['error']) : null;
+                $detail = is_scalar($theirs) ? trim(strip_tags((string) $theirs)) : '';
+
+                throw new ContractException('rejected', $this->scrub('The system answered but did not accept the request (HTTP '.$status.')'.($detail !== '' ? ': '.mb_substr($detail, 0, 160) : '')), $status, false);
+            }
+
             return $result;
         }
         $table = $this->contract->errorFor($op, $status);
@@ -413,6 +428,44 @@ final class ContractDriver
         $detail = is_scalar($theirs) ? trim(strip_tags((string) $theirs)) : '';
 
         throw new ContractException($code, $this->scrub($text.' (HTTP '.$status.')'.($detail !== '' ? ': '.mb_substr($detail, 0, 160) : '')), $status, (bool) ($table['retryable'] ?? ($status === 429 || $status >= 500)));
+    }
+
+    /** Whether the answer meets the operation's success rule(s): some systems answer 200 and say in the body that they did not take it. */
+    private function accepted(array $op, ContractResponse $result): bool
+    {
+        $rules = (array) ($op['success_when'] ?? []);
+        if ($rules === []) {
+            return true;
+        }
+        foreach (array_is_list($rules) ? $rules : [$rules] as $rule) {
+            $rule = (array) $rule;
+            if (isset($rule['body_contains']) && ! str_contains($result->body, (string) $rule['body_contains'])) {
+                return false;
+            }
+            if (isset($rule['body_not_contains']) && str_contains($result->body, (string) $rule['body_not_contains'])) {
+                return false;
+            }
+            if (! isset($rule['path'])) {
+                continue;
+            }
+            $value = JsonPath::get($result->json, (string) $rule['path']);
+            $text = fn ($v) => is_bool($v) ? ($v ? 'true' : 'false') : (is_scalar($v) ? (string) $v : json_encode($v));
+            $present = $value !== null && $value !== '';
+            $holds = match (true) {
+                array_key_exists('equals', $rule) => $present && $text($value) === $text($rule['equals']),
+                array_key_exists('not_equals', $rule) => ! $present || $text($value) !== $text($rule['not_equals']),
+                isset($rule['in']) => $present && in_array($text($value), array_map($text, (array) $rule['in']), true),
+                isset($rule['not_in']) => ! $present || ! in_array($text($value), array_map($text, (array) $rule['not_in']), true),
+                ! empty($rule['exists']) => $present,
+                ! empty($rule['absent']) => ! $present,
+                default => true,
+            };
+            if (! $holds) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function builtInCode(int $status): string
@@ -439,8 +492,8 @@ final class ContractDriver
         };
     }
 
-    /** Takes every secret value out of a text, so an error can be shown or logged safely. */
-    private function scrub(string $text): string
+    /** Takes every secret value out of a text, so an error or an answer can be shown or logged safely. */
+    public function scrub(string $text): string
     {
         foreach ($this->secretSettings as $name) {
             $v = $this->settings[$name] ?? null;

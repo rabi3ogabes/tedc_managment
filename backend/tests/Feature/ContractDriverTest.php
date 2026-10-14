@@ -6,6 +6,7 @@ use App\Integrations\Contracts\Contract;
 use App\Integrations\Contracts\ContractDriver;
 use App\Integrations\Contracts\ContractException;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -112,6 +113,64 @@ class ContractDriverTest extends TestCase
 
         $this->expectException(ContractException::class);
         $this->driver(settings: ['api_key' => ''])->call('list');
+    }
+
+    public function test_a_success_rule_can_refuse_an_answer_the_http_status_accepted(): void
+    {
+        $op = fn (array $rule) => ['send' => ['method' => 'POST', 'path' => '/send', 'response' => ['error' => '$.message', 'values' => ['id' => ['$.id']]], 'success_when' => $rule]];
+        $answer = function (array $body, string $raw = '') {
+            Http::swap(new HttpFactory);   // a new stand-in: the first stub that matches wins, so an old one would answer again
+            Http::fake(['sys.test/*' => $raw !== '' ? Http::response($raw, 200) : Http::response($body)]);
+        };
+        $ok = function (array $rule, array $body, string $raw = '') use ($op, $answer): bool {
+            $answer($body, $raw);
+            try {
+                $this->driver($op($rule))->call('send');
+
+                return true;
+            } catch (ContractException $e) {
+                $this->assertSame(['rejected', 200, false], [$e->errorCode, $e->status, $e->retryable]);
+
+                return false;
+            }
+        };
+
+        $this->assertTrue($ok(['path' => '$.status', 'not_in' => ['failed', 'error']], ['status' => 'queued']));
+        $this->assertFalse($ok(['path' => '$.status', 'not_in' => ['failed', 'error']], ['status' => 'failed', 'message' => 'No credit']));
+        $this->assertTrue($ok(['path' => '$.status', 'not_in' => ['failed']], ['id' => 'A']), 'a missing status is not a refusal');
+        $this->assertTrue($ok(['path' => '$.code', 'equals' => 0], ['code' => 0]));
+        $this->assertFalse($ok(['path' => '$.code', 'equals' => 0], ['code' => 5]));
+        $this->assertTrue($ok(['path' => '$.state', 'in' => ['OK', 'QUEUED']], ['state' => 'OK']));
+        $this->assertFalse($ok(['path' => '$.state', 'in' => ['OK', 'QUEUED']], ['state' => 'NO']));
+        $this->assertTrue($ok(['path' => '$.id', 'exists' => true], ['id' => 'X']));
+        $this->assertFalse($ok(['path' => '$.id', 'exists' => true], ['status' => 'x']));
+        $this->assertTrue($ok(['path' => '$.error', 'absent' => true], ['id' => 1]));
+        $this->assertFalse($ok(['path' => '$.error', 'absent' => true], ['error' => 'boom']));
+        $this->assertTrue($ok(['body_contains' => 'OK'], [], 'OK|MSG-1'), 'a plain-text answer');
+        $this->assertFalse($ok(['body_contains' => 'OK'], [], 'ERR|no credit'));
+        $this->assertTrue($ok([['path' => '$.a', 'equals' => 'x'], ['path' => '$.b', 'exists' => true]], ['a' => 'x', 'b' => 1]), 'every rule of a list must hold');
+        $this->assertFalse($ok([['path' => '$.a', 'equals' => 'x'], ['path' => '$.b', 'exists' => true]], ['a' => 'x']));
+
+        $answer(['status' => 'failed', 'message' => 'No credit']);
+        try {
+            $this->driver($op(['path' => '$.status', 'not_in' => ['failed']]))->call('send');
+        } catch (ContractException $e) {
+            $this->assertStringContainsString('No credit', $e->getMessage(), 'the system\'s own reason is part of the message');
+        }
+    }
+
+    public function test_a_fallback_credential_is_used_when_the_first_is_not_set(): void
+    {
+        Http::fake(['*' => Http::response(['data' => []])]);
+        $auth = ['type' => 'bearer', 'setting' => 'api_key', 'fallback' => ['type' => 'basic', 'user_setting' => 'username', 'password_setting' => 'password']];
+
+        $this->driver(auth: $auth, settings: ['api_key' => '', 'username' => 'tedc', 'password' => 'p@ss'])->call('list');
+        $this->driver(auth: $auth, settings: ['username' => 'tedc', 'password' => 'p@ss'])->call('list');
+        Http::assertSent(fn (Request $r) => $r->hasHeader('Authorization', 'Basic '.base64_encode('tedc:p@ss')));
+        Http::assertSent(fn (Request $r) => $r->hasHeader('Authorization', 'Bearer KEY-123'));
+
+        $this->expectException(ContractException::class);
+        $this->driver(auth: $auth, settings: ['api_key' => ''])->call('list');   // neither is set
     }
 
     public function test_bearer_api_key_and_basic_auth(): void

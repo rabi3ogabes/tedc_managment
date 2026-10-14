@@ -12,7 +12,7 @@ use Throwable;
  */
 final class Mapper
 {
-    private const TRANSFORMS = ['trim', 'upper', 'lower', 'int', 'float', 'bool', 'date', 'table', 'split', 'join', 'first', 'name_part'];
+    private const TRANSFORMS = ['trim', 'upper', 'lower', 'int', 'float', 'bool', 'minor', 'date', 'table', 'split', 'join', 'first', 'name_part'];
 
     /**
      * @param  array{fields: array<string, mixed>, tables?: array<string, array<string, mixed>>}  $entity
@@ -114,6 +114,9 @@ final class Mapper
         if ($name === 'name_part' && ! in_array($arg, ['ar', 'en'], true)) {
             return ['transform "name_part" is name_part:ar or name_part:en'];
         }
+        if ($name === 'minor' && ! preg_match('/^[0-6]$/', (string) $arg)) {
+            return ['transform "minor" needs the number of decimals, such as minor:2 (1000 → 10.00)'];
+        }
 
         return [];
     }
@@ -130,6 +133,7 @@ final class Mapper
             'int' => is_numeric($v) ? (int) $v : null,
             'float' => is_numeric($v) ? (float) $v : null,
             'bool' => filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            'minor' => is_numeric($v) ? round((float) $v / (10 ** max(0, min(6, (int) $arg))), max(0, min(6, (int) $arg))) : null,   // 1999 in fils → 19.99
             'date' => self::date($text, (string) $arg),
             'table' => (array_key_exists($text, (array) ($tables[(string) $arg] ?? [])) ? $tables[(string) $arg][$text] : $v),
             'split' => array_values(array_filter(array_map('trim', explode((string) $arg, $text)), fn ($x) => $x !== '')),

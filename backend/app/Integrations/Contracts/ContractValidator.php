@@ -58,6 +58,9 @@ final class ContractValidator
         if (isset($doc['inbound'])) {
             $p = array_merge($p, self::inbound($doc['inbound'], $secrets, $known));
         }
+        if (isset($doc['sms'])) {
+            $p = array_merge($p, self::sms($doc['sms']));
+        }
         foreach ((array) ($doc['tests'] ?? []) as $i => $t) {
             if (! is_array($t) || ! isset($t['name'], $t['operation']) || ! isset($ops[$t['operation']])) {
                 $p[] = 'test case #'.($i + 1).' must name an operation of this contract';
@@ -120,6 +123,29 @@ final class ContractValidator
                 }
             }
         }
+        if (isset($inbound['samples'])) {
+            $samples = $inbound['samples'];
+            if (! is_array($samples)) {
+                $p[] = 'inbound.samples must be an object of sample messages';
+            } else {
+                foreach ($samples as $name => $sample) {
+                    if (! is_array($sample) || $sample === []) {
+                        $p[] = 'inbound.samples.'.$name.' must be a message (an object)';
+
+                        continue;
+                    }
+                    $p = array_merge($p, array_map(fn ($x) => 'inbound.samples.'.$name.': '.$x, Template::problemsIn($sample, $secrets, $known)));
+                }
+            }
+        }
+        if (isset($inbound['receipt'])) {
+            $r = $inbound['receipt'];
+            if (! is_array($r)) {
+                $p[] = 'inbound.receipt must be an object';
+            } elseif (isset($r['records']) && (! is_string($r['records']) || ! JsonPath::valid($r['records']))) {
+                $p[] = 'inbound.receipt.records is not a supported path';
+            }
+        }
         if (isset($inbound['idempotency'])) {
             $i = $inbound['idempotency'];
             if (! is_array($i)) {
@@ -158,6 +184,16 @@ final class ContractValidator
         foreach ($need as $k) {
             if (empty($a[$k])) {
                 $p[] = 'auth type "'.$type.'" needs "'.$k.'"';
+            }
+        }
+        if (isset($a['fallback'])) {
+            $fb = $a['fallback'];
+            if (! is_array($fb) || ! in_array($fb['type'] ?? '', ['bearer', 'api_key', 'basic'], true) || ! in_array($type, ['bearer', 'api_key'], true)) {
+                $p[] = 'auth.fallback is a simple credential (bearer, api_key or basic) behind a bearer or api_key one';
+            } elseif (isset($fb['fallback'])) {
+                $p[] = 'auth.fallback cannot have a fallback of its own';
+            } else {
+                $p = array_merge($p, array_map(fn ($x) => 'auth.fallback: '.$x, self::auth($fb, $known)));
             }
         }
         if ($type === 'api_key') {
@@ -246,6 +282,9 @@ final class ContractValidator
                 }
             }
         }
+        if (isset($op['success_when'])) {
+            $p = array_merge($p, self::successRules($op['success_when']));
+        }
         if (isset($op['idempotency']['header'])) {
             $p = array_merge($p, self::headerProblems((string) $op['idempotency']['header'], 'idempotency.header', false));
         }
@@ -278,6 +317,66 @@ final class ContractValidator
         $fixed = (string) preg_replace('/\{\{[^{}]*\}\}/', 'x', $fixed);
 
         return (bool) preg_match('#^/[A-Za-z0-9_\-.~/%:,]*$#', $fixed) && ! str_starts_with($fixed, '//');
+    }
+
+    /** How a text message is encoded for this gateway. @return list<string> */
+    private static function sms(mixed $sms): array
+    {
+        if (! is_array($sms)) {
+            return ['sms must be an object'];
+        }
+        $p = [];
+        if (! in_array($sms['encoding'] ?? 'auto', ['auto', 'unicode'], true)) {
+            $p[] = 'sms.encoding must be auto (by the text) or unicode (always UCS-2)';
+        }
+        if (! in_array($sms['unicode_as'] ?? 'hex', ['hex', 'base64', 'text'], true)) {
+            $p[] = 'sms.unicode_as must be hex, base64 or text';
+        }
+        foreach (['gsm7', 'ucs2'] as $k) {
+            $name = ($sms['encoding_names'] ?? [])[$k] ?? null;
+            if ($name !== null && (! is_string($name) || ! preg_match('/^[A-Za-z0-9_\-]{1,20}$/', $name))) {
+                $p[] = 'sms.encoding_names.'.$k.' is how the gateway names it (letters, digits, - and _)';
+            }
+        }
+
+        return $p;
+    }
+
+    /** What the success rule(s) of an operation may say. @return list<string> */
+    private static function successRules(mixed $rules): array
+    {
+        if (! is_array($rules) || $rules === []) {
+            return ['success_when must say something: a rule, or a list of rules'];
+        }
+        $p = [];
+        foreach (array_is_list($rules) ? $rules : [$rules] as $i => $rule) {
+            $at = 'success_when'.(array_is_list($rules) ? ' #'.($i + 1) : '');
+            if (! is_array($rule)) {
+                $p[] = $at.' must be an object';
+
+                continue;
+            }
+            $conditions = array_intersect(array_keys($rule), ['equals', 'not_equals', 'in', 'not_in', 'exists', 'absent', 'body_contains', 'body_not_contains']);
+            if ($conditions === []) {
+                $p[] = $at.' needs a condition: equals, not_equals, in, not_in, exists, absent, body_contains or body_not_contains';
+            }
+            $needsPath = array_diff($conditions, ['body_contains', 'body_not_contains']);
+            if ($needsPath !== [] && (! isset($rule['path']) || ! is_string($rule['path']) || ! JsonPath::valid($rule['path']))) {
+                $p[] = $at.' needs a "path" in the supported subset for '.implode(', ', $needsPath);
+            }
+            foreach (['in', 'not_in'] as $k) {
+                if (isset($rule[$k]) && (! is_array($rule[$k]) || ! array_is_list($rule[$k]) || array_filter($rule[$k], fn ($v) => ! is_scalar($v)))) {
+                    $p[] = $at.': "'.$k.'" is a list of plain values';
+                }
+            }
+            foreach (['body_contains', 'body_not_contains'] as $k) {
+                if (isset($rule[$k]) && (! is_string($rule[$k]) || $rule[$k] === '' || mb_strlen($rule[$k]) > 200)) {
+                    $p[] = $at.': "'.$k.'" is a short text (up to 200 characters)';
+                }
+            }
+        }
+
+        return $p;
     }
 
     /** @return list<string> */

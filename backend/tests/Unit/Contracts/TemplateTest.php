@@ -95,6 +95,26 @@ class TemplateTest extends TestCase
         $this->assertNotSame([], Template::problemsIn(['q' => ['k' => '{{ settings.nope }}']], [], ['base_url']));
     }
 
+    public function test_map_turns_a_value_into_the_word_a_system_uses(): void
+    {
+        $this->assertSame('ARA', Template::render('{{ language|map:ar=ARA,en=ENG }}', ['language' => 'ar']));
+        $this->assertSame('ENG', Template::render('{{ language|map:ar=ARA,en=ENG }}', ['language' => 'en']));
+        $this->assertSame('xx', Template::render('{{ language|map:ar=ARA,en=ENG }}', ['language' => 'xx']), 'a value the table does not know stays as it is');
+        $this->assertSame('1', Template::render('{{ locale|map:ar=1,en=2 }}', ['locale' => 'ar']));
+        $this->assertSame([], Template::problems('{{ language|map:ar=ARA,en=ENG }}'));
+        $this->assertNotSame([], Template::problems('{{ language|map:nonsense }}'), 'a table is pairs of value=word');
+        $this->assertNotSame([], Template::problems('{{ language|map: }}'));
+    }
+
+    public function test_minor_and_amount_format_money_for_systems_that_want_fils_or_three_decimals(): void
+    {
+        $this->assertSame('10.00', Template::render('{{ total|amount:2 }}', ['total' => 10]));
+        $this->assertSame('10.000', Template::render('{{ total|amount:3 }}', ['total' => 10]));
+        $this->assertSame('1000', Template::render('{{ total|minor:2 }}', ['total' => 10]));
+        $this->assertSame('10500', Template::render('{{ total|minor:3 }}', ['total' => 10.5]));
+        $this->assertSame('1999', Template::render('{{ total|minor:2 }}', ['total' => 19.99]), 'binary floating point must not lose a fils');
+    }
+
     public function test_placeholders_are_listed(): void
     {
         $this->assertSame(['since', 'employee.no'], Template::placeholders('/x?s={{ since }}&e={{ employee.no|upper }}&again={{since}}'));

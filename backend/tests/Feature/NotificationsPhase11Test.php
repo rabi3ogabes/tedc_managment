@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Integrations\Contracts\ContractStore;
 use App\Models\AppNotification;
 use App\Models\JobTitle;
 use App\Models\NotificationDelivery;
@@ -13,7 +14,6 @@ use App\Models\User;
 use App\Models\UserNotificationPreference;
 use App\Services\Channels\ChannelSettings;
 use App\Services\Channels\NotificationChannels;
-use App\Services\Channels\SmsGateway;
 use App\Services\Notifications\AudienceResolver;
 use App\Services\Notifications\DeliveryPolicy;
 use App\Services\Notifications\NotificationScheduler;
@@ -71,9 +71,10 @@ class NotificationsPhase11Test extends TestCase
     public function test_latin_text_goes_as_plain_text_and_an_unconfigured_provider_stays_silent(): void
     {
         $this->hudhud();
-        $p = app(SmsGateway::class)->hudhudPayload(['sender' => 'TEDC'], '97455512345', 'Hello', 'ref');
+        $p = app(ContractStore::class)->active('hudhud')->prepare(['to' => '97455512345', 'text' => 'Hello', 'reference' => 'ref']);
         $this->assertSame('GSM', $p['encoding']);
-        $this->assertSame('Hello', $p['message']);
+        $this->assertSame('Hello', $p['body']);
+        $this->assertSame('', $p['body_format']);
 
         app(ChannelSettings::class)->update(['sms' => ['driver' => 'none']]);
         $user = $this->makeUser(Role::EMPLOYEE, ['phone' => '55512345']);

@@ -118,7 +118,7 @@ class RefundService
         try {
             $payment = $r->payment_id ? Payment::find($r->payment_id) : null;
             if ($payment && $payment->gateway_ref) {
-                $res = $this->gateways->make()->refund($payment, (float) $r->amount, (string) ($r->reason ?? 'Refund '.$o->number));
+                $res = $this->gateways->make()->refund($payment, (float) $r->amount, (string) ($r->reason ?? 'Refund '.$o->number), 'tedc-refund-'.$r->id);
                 $r->update(['gateway_ref' => $res['ref']]);
             }
         } catch (Throwable $e) {

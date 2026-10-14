@@ -26,14 +26,17 @@ final class ContractFixtures
     }
 
     /**
-     * Makes the HTTP client answer for a system's address from its fixtures (what `tedc:mock-ministry` serves, without a server).
+     * Makes the HTTP client answer for a system's address from its fixtures (what `tedc:mock-ministry` serves, without a server), following the
+     * contract in force.
      *
      * @param  array<string, string>  $scenarios  operation => scenario (ok, unauthorised, server_error…)
      * @param  array<string, mixed>  $settings  the settings that decide addresses, when they are not the contract's defaults
+     * @param  array<string, array{status: int, body: mixed}>  $answers  operation => an answer to give instead of the recorded one
      */
-    public static function fake(string $system, string $baseUrl = 'https://sys.test/api', array $scenarios = [], string $scenario = 'ok', array $settings = []): void
+    public static function fake(string $system, string $baseUrl = 'https://sys.test/api', array $scenarios = [], string $scenario = 'ok', array $settings = [], array $answers = []): void
     {
-        $mock = MockMinistry::fromDirectory(self::dir($system), $system, $scenario)->withScenarios($scenarios)->withSettings($settings);
+        // The contract in force answers (the shipped one, or the administrator's override), so a test of an override talks to a system that follows it.
+        $mock = (new MockMinistry(app(ContractStore::class)->active($system), self::dir($system).'/fixtures', $scenario))->withScenarios($scenarios)->withSettings($settings)->withAnswers($answers);
         $parts = parse_url($baseUrl);
         $host = ($parts['host'] ?? '').(isset($parts['port']) ? ':'.$parts['port'] : '');
         $basePath = rtrim((string) ($parts['path'] ?? ''), '/');

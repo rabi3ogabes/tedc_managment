@@ -16,6 +16,9 @@ final class MockMinistry
     /** @var array<string, mixed> the system's settings that decide an address (an operation whose path is a setting) */
     private array $settings = [];
 
+    /** @var array<string, array{status: int, body: mixed}> operation => an answer to give instead of its recorded one (a sample the Ministry sent) */
+    private array $answers = [];
+
     public function __construct(private readonly Contract $contract, private readonly string $fixtures, private readonly string $scenario = 'ok', private readonly ?string $requireKey = null) {}
 
     public static function fromDirectory(string $dir, string $system, string $scenario = 'ok', ?string $requireKey = null): self
@@ -30,6 +33,15 @@ final class MockMinistry
     {
         $copy = clone $this;
         $copy->scenarios = $scenarios;
+
+        return $copy;
+    }
+
+    /** @param  array<string, array{status: int, body: mixed}>  $answers  operation => the answer to give for it, whatever the scenario */
+    public function withAnswers(array $answers): self
+    {
+        $copy = clone $this;
+        $copy->answers = $answers;
 
         return $copy;
     }
@@ -90,6 +102,12 @@ final class MockMinistry
         $scenario = $this->chosenScenario($name, $query, $headers);
         if (! $this->authorised($headers, $query)) {
             return $this->fixture($name, 'unauthorised') ?? $this->json(401, ['message' => 'Authentication is required.']);
+        }
+
+        if (isset($this->answers[$name]) && ! isset($headers['x-mock-scenario']) && ! isset($query['_scenario'])) {
+            $given = $this->answers[$name];
+
+            return ['status' => (int) $given['status'], 'headers' => ['Content-Type' => 'application/json'], 'body' => is_string($given['body']) ? $given['body'] : (string) json_encode($given['body'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'delay_ms' => 0];
         }
 
         return $this->fixture($name, $scenario) ?? $this->json(501, ['message' => 'The mock has no recorded answer for "'.$name.'.'.$scenario.'".']);

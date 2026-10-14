@@ -82,6 +82,25 @@ class ChannelSettings
         }
     }
 
+    /**
+     * The SMS settings as the gateway's contract reads them (base_url, send_path, api_key, username, password, sender, receipt_url,
+     * receipt_secret): the same values as on the settings page, under the names a contract uses.
+     *
+     * @return array<string, string>
+     */
+    public function contractSettings(): array
+    {
+        $s = $this->all()['sms'];
+        $secrets = $this->secrets('sms');
+        $path = trim((string) ($s['hudhud_send_path'] ?? ''));
+
+        return [
+            'base_url' => rtrim((string) ($s['hudhud_base_url'] ?? ''), '/'), 'send_path' => '/'.ltrim($path !== '' ? $path : '/api/v1/messages', '/'),
+            'api_key' => (string) ($secrets['hudhud_api_key'] ?? ''), 'username' => (string) ($s['hudhud_username'] ?? ''), 'password' => (string) ($secrets['hudhud_password'] ?? ''),
+            'sender' => (string) (($s['sender'] ?? '') ?: 'TEDC'), 'receipt_url' => (string) ($s['hudhud_receipt_url'] ?? ''), 'receipt_secret' => (string) ($secrets['hudhud_receipt_secret'] ?? ''),
+        ];
+    }
+
     public function enabled(string $channel): bool
     {
         return (bool) ($this->all()[$channel]['enabled'] ?? false);

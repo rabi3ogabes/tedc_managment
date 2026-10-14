@@ -1,0 +1,483 @@
+{
+  "system": "moe_epay",
+  "version": "1.0",
+  "title": {
+    "ar": "بوابة الدفع الإلكتروني للوزارة",
+    "en": "Ministry e-payment gateway"
+  },
+  "description": {
+    "ar": "الدفع عبر صفحة البوابة المستضافة: بدء الدفع، التحقق من النداء الموقَّع، الاسترداد، وكشف الحساب للمطابقة. لا تمرّ بيانات البطاقة بـ TEDC.",
+    "en": "Payment on the gateway's hosted page: starting a payment, the signed callback, refunds and the statement for reconciliation. Card data never passes through TEDC."
+  },
+  "auth": {
+    "type": "hmac",
+    "secret_setting": "secret",
+    "signature_header": "X-Signature",
+    "algorithm": "hmac-sha256",
+    "encoding": "hex",
+    "payload": "{{ body }}"
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "initiate": {
+      "title": {
+        "ar": "بدء عملية دفع",
+        "en": "Start a payment"
+      },
+      "method": "POST",
+      "path": "/payments",
+      "headers": {
+        "X-Merchant-Id": "{{ settings.merchant_id }}"
+      },
+      "idempotency": {
+        "header": "Idempotency-Key"
+      },
+      "body": {
+        "format": "json",
+        "template": {
+          "merchant_id": "{{ settings.merchant_id }}",
+          "order_number": "{{ order_number }}",
+          "amount": "{{ amount|amount:2 }}",
+          "currency": "{{ currency }}",
+          "language": "{{ language }}",
+          "return_url": "{{ return_url }}",
+          "callback_url": "{{ callback_url }}",
+          "description": "{{ description }}"
+        }
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "merchant_id",
+          "order_number",
+          "amount",
+          "currency",
+          "return_url",
+          "callback_url"
+        ]
+      },
+      "success": [
+        200,
+        201
+      ],
+      "timeout": 30,
+      "response": {
+        "values": {
+          "payment_id": [
+            "$.payment_id",
+            "$.id"
+          ],
+          "redirect_url": [
+            "$.redirect_url",
+            "$.payment_url"
+          ]
+        },
+        "error": "$.message"
+      }
+    },
+    "refund": {
+      "title": {
+        "ar": "استرداد (كلي أو جزئي)",
+        "en": "Refund (full or partial)"
+      },
+      "method": "POST",
+      "path": "/payments/{{ payment_id }}/refund",
+      "headers": {
+        "X-Merchant-Id": "{{ settings.merchant_id }}"
+      },
+      "idempotency": {
+        "header": "Idempotency-Key"
+      },
+      "body": {
+        "format": "json",
+        "template": {
+          "amount": "{{ amount|amount:2 }}",
+          "reason": "{{ reason }}"
+        }
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "amount"
+        ]
+      },
+      "success": [
+        200,
+        201
+      ],
+      "timeout": 30,
+      "response": {
+        "values": {
+          "refund_id": [
+            "$.refund_id",
+            "$.id"
+          ]
+        },
+        "error": "$.message"
+      }
+    },
+    "statement": {
+      "title": {
+        "ar": "كشف معاملات يوم",
+        "en": "The day's transactions"
+      },
+      "method": "GET",
+      "safe": true,
+      "path": "/transactions",
+      "headers": {
+        "X-Merchant-Id": "{{ settings.merchant_id }}"
+      },
+      "query": {
+        "date": "{{ date }}"
+      },
+      "entity": "transaction",
+      "response": {
+        "records": "$.data",
+        "error": "$.message"
+      },
+      "pagination": {
+        "type": "none"
+      },
+      "timeout": 30
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "A payment starts and the buyer is sent to the hosted page",
+      "operation": "initiate",
+      "params": {
+        "order_number": "ORD-2610-AB12CD",
+        "amount": 150,
+        "currency": "QAR",
+        "language": "ar",
+        "return_url": "https://tedc.example/payments/return?order=ORD-2610-AB12CD",
+        "callback_url": "https://tedc.example/api/v1/payments/callback/moe_epay",
+        "description": "TEDC ORD-2610-AB12CD"
+      },
+      "fixture": "initiate.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/payments",
+          "body": {
+            "order_number": "ORD-2610-AB12CD",
+            "amount": "150.00",
+            "currency": "QAR",
+            "language": "ar"
+          }
+        },
+        "values": {
+          "payment_id": "P-1001",
+          "redirect_url": "https://pay.moe.example/redirect/P-1001"
+        }
+      }
+    },
+    {
+      "name": "The gateway refuses the merchant credentials",
+      "operation": "initiate",
+      "params": {
+        "order_number": "ORD-1",
+        "amount": 10,
+        "currency": "QAR",
+        "language": "en",
+        "return_url": "https://tedc.example/r",
+        "callback_url": "https://tedc.example/c",
+        "description": "x"
+      },
+      "fixture": "initiate.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised"
+        }
+      }
+    },
+    {
+      "name": "The gateway is down: nothing is charged",
+      "operation": "initiate",
+      "params": {
+        "order_number": "ORD-1",
+        "amount": 10,
+        "currency": "QAR",
+        "language": "en",
+        "return_url": "https://tedc.example/r",
+        "callback_url": "https://tedc.example/c",
+        "description": "x"
+      },
+      "fixture": "initiate.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "A partial refund is accepted",
+      "operation": "refund",
+      "params": {
+        "payment_id": "P-1001",
+        "amount": 40.5,
+        "reason": "Withdrawn within the free window"
+      },
+      "fixture": "refund.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/payments/P-1001/refund",
+          "body": {
+            "amount": "40.50"
+          }
+        },
+        "values": {
+          "refund_id": "RF-1"
+        }
+      }
+    },
+    {
+      "name": "A refund above what was captured is refused",
+      "operation": "refund",
+      "params": {
+        "payment_id": "P-1001",
+        "amount": 999,
+        "reason": "x"
+      },
+      "fixture": "refund.rejected",
+      "expect": {
+        "error": {
+          "code": "rejected"
+        }
+      }
+    },
+    {
+      "name": "The day's statement maps to captured and failed payments",
+      "operation": "statement",
+      "params": {
+        "date": "2026-10-13"
+      },
+      "fixture": "statement.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/transactions",
+          "query": {
+            "date": "2026-10-13"
+          }
+        },
+        "records": 2,
+        "mapped": {
+          "0": {
+            "ref": "P-1001",
+            "status": "captured",
+            "amount": 150.0
+          },
+          "1": {
+            "ref": "P-1002",
+            "status": "failed"
+          }
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "spec",
+      "group": "ministry_provides",
+      "ar": "مواصفات البوابة الرسمية: مسارات بدء الدفع والاسترداد والكشف، وحقول الطلب والاستجابة، وأكواد الحالة",
+      "en": "The gateway's official specification: the start, refund and statement paths, the request and response fields and the status codes"
+    },
+    {
+      "id": "merchant",
+      "group": "ministry_provides",
+      "ar": "رقم التاجر (Merchant ID) والسر المشترك أو زوج المفاتيح (خاص/عام) وخوارزمية التوقيع",
+      "en": "The merchant id, the shared secret or the key pair, and the signing algorithm"
+    },
+    {
+      "id": "amounts",
+      "group": "ministry_provides",
+      "ar": "صيغة المبلغ (منزلتان أو ثلاث، بالريال أو بالدرهم) ورمز العملة ولغة الصفحة المستضافة",
+      "en": "The amount format (two or three decimals, riyals or dirhams), the currency code and the language of the hosted page"
+    },
+    {
+      "id": "sandbox_gateway",
+      "group": "ministry_provides",
+      "ar": "بيئة تجريبية للبوابة مع بطاقات اختبار لكل حالة (نجاح، رفض، إلغاء)",
+      "en": "A sandbox with test cards for each outcome (success, decline, cancellation)"
+    },
+    {
+      "id": "callback_address",
+      "group": "ministry_provides",
+      "ar": "تسجيل عنوان النداء الموقَّع لدى البوابة وقائمة العناوين الصادرة منها للسماح بها",
+      "en": "The signed callback address registered with the gateway, and the addresses it calls from"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "certification",
+      "group": "joint_tests",
+      "ar": "تشغيل خطة الاعتماد كاملة مع الوزارة: نجاح، رفض، إلغاء، انتهاء المهلة، نداء مكرر، فرق مبلغ، استرداد كلي وجزئي، مطابقة الكشف",
+      "en": "The whole certification plan with the Ministry: success, decline, cancel, timeout, duplicate callback, amount mismatch, full and partial refund, statement reconciliation"
+    },
+    {
+      "id": "callback_roundtrip",
+      "group": "joint_tests",
+      "ar": "نداء حقيقي موقَّع من البوابة يغيّر حالة طلب تجريبي إلى «مدفوع» مرة واحدة فقط",
+      "en": "A real signed callback from the gateway turns a test order to paid, once only"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ],
+  "inbound": {
+    "signature": {
+      "header": "X-Signature",
+      "algorithm": "hmac-sha256",
+      "encoding": "hex",
+      "payload": "{{ body }}",
+      "secret_setting": "secret"
+    },
+    "samples": {
+      "captured": {
+        "event_id": "{{ event_id }}",
+        "payment_id": "{{ payment_id }}",
+        "status": "SUCCESS",
+        "amount": "{{ amount|amount:2 }}",
+        "order_number": "{{ order_number }}"
+      },
+      "failed": {
+        "event_id": "{{ event_id }}",
+        "payment_id": "{{ payment_id }}",
+        "status": "DECLINED",
+        "amount": "{{ amount|amount:2 }}",
+        "order_number": "{{ order_number }}"
+      },
+      "cancelled": {
+        "event_id": "{{ event_id }}",
+        "payment_id": "{{ payment_id }}",
+        "status": "CANCELLED",
+        "amount": "{{ amount|amount:2 }}",
+        "order_number": "{{ order_number }}"
+      }
+    }
+  }
+}

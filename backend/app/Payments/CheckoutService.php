@@ -90,12 +90,13 @@ class CheckoutService
     /**
      * The gateway's server-to-server message. Idempotent: the same event twice changes nothing.
      *
+     * @param  array<string, string>  $headers  the request's headers, names in lower case (a gateway may sign in a header of its own)
      * @return array{outcome: string, order: ?Order}
      */
-    public function callback(string $gateway, string $rawBody, ?string $signature): array
+    public function callback(string $gateway, string $rawBody, ?string $signature, array $headers = []): array
     {
         $gw = $this->gateways->make();
-        $valid = $gw->verify($rawBody, $signature);
+        $valid = $gw->verify($rawBody, $signature, $headers);
         $payload = json_decode($rawBody, true) ?: [];
         $e = $gw->parse($payload);
         if (! $valid) {   // recorded under its own key, so a forged message can never use up a real event id

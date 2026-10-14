@@ -22,10 +22,13 @@ final class ContractStore
     public const KINDS = ['contract', 'mapping'];
 
     /** Systems whose settings do not live on their integration card, with the settings that are secrets. */
-    private const OWN_SECRETS = ['ministry_site' => ['api_key']];
+    private const OWN_SECRETS = ['ministry_site' => ['api_key'], 'hudhud' => ['api_key', 'password', 'receipt_secret']];
 
-    /** What the Ministry website's own settings (Communication → Ministry website) offer a contract. */
-    private const OWN_SETTINGS = ['ministry_site' => ['base_url', 'publish_path', 'publish_query', 'auth_header', 'api_key', 'site_name']];
+    /** What the settings that live outside the integration card (Communication → Ministry website, Settings → Notification channels) offer a contract. */
+    private const OWN_SETTINGS = [
+        'ministry_site' => ['base_url', 'publish_path', 'publish_query', 'auth_header', 'api_key', 'site_name'],
+        'hudhud' => ['base_url', 'send_path', 'api_key', 'username', 'password', 'sender', 'receipt_url', 'receipt_secret'],
+    ];
 
     public function has(string $key): bool
     {

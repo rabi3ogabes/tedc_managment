@@ -32,7 +32,7 @@ class FakeGateway implements PaymentGateway
         return hash_hmac('sha256', $body, $this->secret);
     }
 
-    public function verify(string $rawBody, ?string $signature): bool
+    public function verify(string $rawBody, ?string $signature, array $headers = []): bool
     {
         return $signature !== null && hash_equals($this->sign($rawBody), $signature);
     }
@@ -43,7 +43,7 @@ class FakeGateway implements PaymentGateway
             'amount' => (float) ($payload['amount'] ?? 0), 'order_number' => $payload['order_number'] ?? null];
     }
 
-    public function refund(Payment $payment, float $amount, string $reason): array
+    public function refund(Payment $payment, float $amount, string $reason, ?string $idempotencyKey = null): array
     {
         return ['ref' => 'FAKE-RF-'.strtoupper(Str::random(10))];
     }

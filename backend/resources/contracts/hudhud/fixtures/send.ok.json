@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "body": {
+    "message_id": "MSG-1",
+    "status": "queued"
+  }
+}

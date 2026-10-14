@@ -96,6 +96,25 @@ class ContractValidatorTest extends TestCase
         $this->assertNotSame([], $check(['response' => 'text']));
     }
 
+    public function test_success_rules_and_a_fallback_credential_are_checked(): void
+    {
+        $rule = fn ($rule) => ContractValidator::problems('hr', 'contract', $this->contract(['operations' => ['fetch_employees' => ['success_when' => $rule]]]), self::SECRETS);
+        $this->assertSame([], $rule(['path' => '$.status', 'not_in' => ['failed']]));
+        $this->assertSame([], $rule([['path' => '$.a', 'equals' => 1], ['body_contains' => 'OK']]));
+        $this->assertNotSame([], $rule(['path' => '$..status', 'equals' => 'x']), 'a path outside the subset');
+        $this->assertNotSame([], $rule(['equals' => 'x']), 'a comparison with nothing to compare');
+        $this->assertNotSame([], $rule([]), 'a rule that says nothing');
+        $this->assertNotSame([], $rule(['path' => '$.a']), 'a path without a condition');
+        $this->assertNotSame([], $rule(['path' => '$.a', 'in' => 'x']), '"in" is a list');
+        $this->assertNotSame([], $rule(['body_contains' => str_repeat('x', 300)]));
+
+        $auth = fn ($fallback) => ContractValidator::problems('hr', 'contract', $this->contract(['auth' => ['type' => 'bearer', 'setting' => 'api_key', 'fallback' => $fallback]]), self::SECRETS);
+        $this->assertSame([], $auth(['type' => 'basic', 'user_setting' => 'username', 'password_setting' => 'password']));
+        $this->assertNotSame([], $auth(['type' => 'basic']), 'a fallback needs what its type needs');
+        $this->assertNotSame([], $auth(['type' => 'hmac', 'secret_setting' => 'x', 'signature_header' => 'X-S']), 'only a simple credential can be a fallback');
+        $this->assertNotSame([], $auth(['type' => 'bearer', 'setting' => 'x', 'fallback' => ['type' => 'basic', 'user_setting' => 'u', 'password_setting' => 'p']]), 'no fallback of a fallback');
+    }
+
     public function test_methods_auth_types_and_pagination_are_checked(): void
     {
         $bad = fn (array $patch) => ContractValidator::problems('hr', 'contract', $this->contract($patch), self::SECRETS);

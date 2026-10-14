@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
+use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -151,6 +152,7 @@ use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Me\RealtimeController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Payments\GatewayController;
+use App\Http\Controllers\Api\V1\Payments\CertificationController;
 use App\Http\Controllers\Api\V1\Payments\PaymentsAdminController;
 use App\Http\Controllers\Api\V1\Payments\ShopController;
 use App\Http\Controllers\Api\V1\PrivacyController;
@@ -1133,6 +1135,9 @@ Route::prefix('v1')->group(function () {
                 Route::post('integrations/{key}/test-case', [IntegrationContractController::class, 'testCase'])->middleware('throttle:30,1');
                 Route::post('integrations/{key}/test-case/live', [IntegrationContractController::class, 'testCaseLive'])->middleware(['step_up', 'throttle:6,1']);
                 Route::get('integrations/{key}/reconciliation', [IntegrationContractController::class, 'reconciliation'])->middleware('throttle:6,1');
+                Route::post('payments/certification', CertificationController::class)->middleware('throttle:3,1');
+                Route::get('sms/presets', [SmsSandboxController::class, 'presets']);
+                Route::post('sms/sandbox-send', [SmsSandboxController::class, 'send'])->middleware('throttle:6,1');
                 Route::get('integrations/{key}/checklist', [IntegrationContractController::class, 'checklist']);
                 Route::put('integrations/{key}/checklist/{item}', [IntegrationContractController::class, 'tick'])->middleware('throttle:60,1');
             });
@@ -1287,6 +1292,7 @@ Route::prefix('v1')->group(function () {
                 });
                 Route::post('refunds/{shopRefund}/decision', [PaymentsAdminController::class, 'decideRefund'])->middleware('permission:refunds.approve');
                 Route::post('payment-reconciliations/run', [PaymentsAdminController::class, 'reconcile'])->middleware(['permission:refunds.approve|finance.reports', 'throttle:6,1']);
+                Route::post('payment-reconciliations/import', [PaymentsAdminController::class, 'importStatement'])->middleware(['permission:refunds.approve|finance.reports', 'throttle:6,1']);
                 Route::middleware('permission:entity_accounts.manage')->group(function () {
                     Route::get('entity-accounts', [PaymentsAdminController::class, 'entities']);
                     Route::post('entity-accounts', [PaymentsAdminController::class, 'saveEntity']);

@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "body": {
+    "event_id": "evt-3",
+    "payment_id": "P-1003",
+    "status": "CANCELLED",
+    "amount": "25.00",
+    "order_number": "ORD-2610-EF56GH"
+  }
+}

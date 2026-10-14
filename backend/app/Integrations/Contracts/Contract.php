@@ -44,6 +44,40 @@ final class Contract
         return new self($this->system, $contract ?? $this->contract, $mapping ?? $this->mapping);
     }
 
+    /**
+     * The request values a contract derives from the ones it is given. A text message ("sms" in the contract, and a "text" to send) gets
+     * the alphabet it needs (GSM 7-bit or UCS-2, as the gateway names it), its body in the form the gateway wants (the text itself, or
+     * UCS-2 as hexadecimal or base64), the data coding scheme, its length and its parts, and the number with a "+".
+     *
+     * @param  array<string, mixed>  $params
+     * @return array<string, mixed>
+     */
+    public function prepare(array $params): array
+    {
+        $sms = $this->contract['sms'] ?? null;
+        if (! is_array($sms) || ! isset($params['text']) || ! is_string($params['text'])) {
+            return $params;
+        }
+        $text = $params['text'];
+        $kind = SmsEncoding::choose($text, (string) ($sms['encoding'] ?? 'auto'));
+        $unicode = $kind === 'ucs2';
+        $form = (string) ($sms['unicode_as'] ?? 'hex');
+        $info = SmsEncoding::describe($text);
+        if ($unicode && $info['encoding'] !== 'ucs2') {   // forced Unicode for a text that would have fit GSM 7-bit
+            $length = intdiv(strlen((string) mb_convert_encoding($text, 'UTF-16BE', 'UTF-8')), 2);
+            $info = ['encoding' => 'ucs2', 'length' => $length, 'segments' => $length <= 70 ? 1 : (int) ceil($length / 67)];
+        }
+
+        return $params + [
+            'unicode' => $unicode, 'encoding' => (string) (($sms['encoding_names'] ?? [])[$kind] ?? strtoupper($kind)), 'dcs' => $unicode ? 8 : 0,
+            'body' => $unicode ? match ($form) {
+                'hex' => SmsEncoding::utf16Hex($text), 'base64' => SmsEncoding::utf16Base64($text), default => $text
+            } : $text,
+            'body_format' => $unicode && in_array($form, ['hex', 'base64'], true) ? $form : '',
+            'length' => $info['length'], 'segments' => $info['segments'],
+        ] + (isset($params['to']) ? ['to_plus' => '+'.ltrim((string) $params['to'], '+')] : []);
+    }
+
     /** @return array<string, mixed> */
     public function document(): array
     {

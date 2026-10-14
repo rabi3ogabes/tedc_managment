@@ -3,6 +3,7 @@
 namespace App\Integrations\Contracts;
 
 use App\Integrations\IntegrationManager;
+use App\Services\Channels\ChannelSettings;
 use App\Services\Communication\MinistrySiteSettings;
 
 /**
@@ -19,10 +20,14 @@ final class ContractGateway
         return $this->store->active($key);
     }
 
-    /** The system's settings as the driver reads them (the Ministry website keeps its own settings). @return array<string, mixed> */
+    /** The system's settings as the driver reads them (the Ministry website and the SMS gateway keep their own settings). @return array<string, mixed> */
     public function settings(string $key): array
     {
-        return $key === 'ministry_site' ? app(MinistrySiteSettings::class)->contractSettings() : $this->hub->settings($key);
+        return match ($key) {
+            'ministry_site' => app(MinistrySiteSettings::class)->contractSettings(),
+            'hudhud' => app(ChannelSettings::class)->contractSettings(),
+            default => $this->hub->settings($key),
+        };
     }
 
     /** @param  array<string, mixed>|null  $settings */

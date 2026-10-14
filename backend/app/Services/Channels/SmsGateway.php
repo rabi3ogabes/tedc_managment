@@ -2,6 +2,10 @@
 
 namespace App\Services\Channels;
 
+use App\Integrations\Contracts\ContractDriver;
+use App\Integrations\Contracts\ContractException;
+use App\Integrations\Contracts\ContractStore;
+use App\Integrations\Contracts\SmsEncoding;
 use App\Support\Supabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -37,45 +41,64 @@ class SmsGateway
     }
 
     /**
-     * Hudhud, the Ministry's messaging gateway. Base URL, send path, credentials and sender are settings; Arabic text goes as UCS-2
-     * (hex of UTF-16BE) with the encoding named, Latin text as plain text. The provider's message id is kept so its delivery receipt
-     * (POST /integrations/sms/hudhud/receipt) can update the same row.
+     * Hudhud, the Ministry's messaging gateway, or any gateway: the request is the template of the gateway's contract (Settings →
+     * Notification channels picks a preset and edits it), Arabic goes in the alphabet and the form the contract names (UCS-2, in hex by
+     * default) and Latin text as plain text, a rule in the contract says what counts as accepted, and the provider's message id is kept so
+     * its delivery receipt (POST /integrations/sms/hudhud/receipt) can update the same row.
      */
     private function hudhud(array $s, array $secrets, string $to, string $message, ?string $reference): array
     {
         if (! filled($s['hudhud_base_url'] ?? null)) {
             return ['ok' => false, 'error' => 'not_configured'];
         }
-        $payload = $this->hudhudPayload($s, $to, $message, $reference);
-        $request = Http::withOptions(['verify' => Supabase::caBundle()])->timeout(20)->acceptJson();
-        if (filled($secrets['hudhud_api_key'] ?? null)) {
-            $request = $request->withToken((string) $secrets['hudhud_api_key']);
-        } elseif (filled($s['hudhud_username'] ?? null)) {
-            $request = $request->withBasicAuth((string) $s['hudhud_username'], (string) ($secrets['hudhud_password'] ?? ''));
-        }
-        $response = $request->post(rtrim((string) $s['hudhud_base_url'], '/').'/'.ltrim((string) ($s['hudhud_send_path'] ?: '/api/v1/messages'), '/'), $payload);
-        $result = $this->result($response, fn ($r) => $r->successful() && $r->json('status') !== 'failed');
-        $result['id'] = $response->json('message_id') ?? $response->json('id') ?? $response->json('data.message_id');
+        $answer = $this->driver()->call('send', ['to' => $to, 'text' => $message, 'reference' => $reference]);   // a refusal or a failure is an exception, caught by send()
+        $id = $answer->value('message_id');
 
-        return $result;
+        return ['ok' => true, 'error' => null, 'id' => is_scalar($id) ? (string) $id : null];
     }
 
-    /** What is sent to Hudhud for one message. @return array<string, mixed> */
-    public function hudhudPayload(array $s, string $to, string $message, ?string $reference = null): array
+    /**
+     * What a test message would send, and (unless $dry) sends it: the exact request with every credential masked, the alphabet and the
+     * parts it takes, and what the gateway answered. Never throws: a refusal is part of the answer.
+     *
+     * @return array{request: array<string, mixed>, encoding: array<string, mixed>, sent: bool, ok: ?bool, error: ?string, response: ?array<string, mixed>}
+     */
+    public function sandbox(string $to, string $message, bool $dry): array
     {
-        $arabic = (bool) preg_match('/[^\x00-\x7F]/u', $message);
-        $payload = ['sender' => $s['sender'] ?: 'TEDC', 'recipients' => [$to], 'reference' => $reference, 'encoding' => $arabic ? 'UCS2' : 'GSM'];
-        if ($arabic) {
-            $payload['message'] = strtoupper(bin2hex((string) mb_convert_encoding($message, 'UTF-16BE', 'UTF-8')));
-            $payload['message_format'] = 'hex';
-        } else {
-            $payload['message'] = $message;
+        $driver = $this->driver();
+        $params = ['to' => $to, 'text' => $message, 'reference' => 'sandbox'];
+        $info = SmsEncoding::describe($message);
+        $prepared = $driver->contract()->prepare($params);
+        $out = [
+            'request' => $driver->request('send', $params)->masked(),
+            'encoding' => ['alphabet' => $info['encoding'], 'name' => $prepared['encoding'] ?? $info['encoding'], 'length' => $prepared['length'] ?? $info['length'], 'segments' => $prepared['segments'] ?? $info['segments']],
+            'sent' => false, 'ok' => null, 'error' => null, 'response' => null,
+        ];
+        if ($dry) {
+            return $out;
         }
-        if (! empty($s['hudhud_receipt_url'])) {
-            $payload['callback_url'] = $s['hudhud_receipt_url'];
+        $out['sent'] = true;
+        try {
+            $answer = $driver->call('send', $params);
+            $id = $answer->value('message_id');
+            $status = $answer->value('status');
+            $out['ok'] = true;
+            $out['response'] = ['status' => $answer->status, 'body' => mb_substr($driver->scrub($answer->body), 0, 500), 'message_id' => is_scalar($id) ? (string) $id : null, 'gateway_status' => is_scalar($status) ? (string) $status : null];
+        } catch (ContractException $e) {
+            $out['ok'] = false;
+            $out['error'] = $e->getMessage();
+            $out['response'] = $e->status > 0 ? ['status' => $e->status, 'body' => null, 'message_id' => null, 'gateway_status' => null] : null;
         }
 
-        return $payload;
+        return $out;
+    }
+
+    /** The driver of the gateway's contract (the shipped one, or the administrator's version of it) with the settings of the SMS channel. */
+    private function driver(): ContractDriver
+    {
+        $store = app(ContractStore::class);
+
+        return new ContractDriver($store->active('hudhud'), $this->settings->contractSettings(), $store->secretSettings('hudhud'), 'hudhud');
     }
 
     /** A provider that is not one of the built-in ones: the administrator describes the request (URL, headers, body with {{to}}, {{message}}, {{sender}}). */
