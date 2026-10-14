@@ -1,0 +1,2 @@
+# The one finding of the contract kit's tests that predates the allowance in .gitleaks.toml: a made-up idempotency key asserted in a test.
+dd22e3b4700a2802afb437022928abf5cf5318c1:backend/tests/Feature/MoeEpayContractTest.php:generic-api-key:56

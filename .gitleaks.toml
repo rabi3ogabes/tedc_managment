@@ -5,5 +5,5 @@ title = "TEDC gitleaks"
 useDefault = true
 
 [allowlist]
-description = "The Azurite storage emulator's account key is published by Microsoft and is the same for everyone; the Firebase key in the push tests (AIzaSyTest_key-123) is a made-up fixture. Neither is a secret."
-regexes = ['''Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==''', '''AIzaSyTest_key-123''']
+description = "The Azurite storage emulator's account key is published by Microsoft and is the same for everyone; the Firebase key in the push tests (AIzaSyTest_key-123) is a made-up fixture; a test that asserts an idempotency key or an API key header names the header and a made-up value. None is a secret."
+regexes = ['''Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==''', '''AIzaSyTest_key-123''', '''hasHeader\('(Idempotency-Key|X-Api-Key|X-[A-Za-z-]+-Key)', ''']
