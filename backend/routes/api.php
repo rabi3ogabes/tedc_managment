@@ -167,6 +167,7 @@ use App\Http\Controllers\Api\V1\Social\PostController;
 use App\Http\Controllers\Api\V1\Social\SocialFileController;
 use App\Http\Controllers\Api\V1\Social\SpaceController;
 use App\Http\Controllers\Api\V1\SystemController;
+use App\Http\Controllers\Api\V1\TeamsConnectController;
 use App\Http\Controllers\Api\V1\TicketsController;
 use App\Http\Controllers\Api\V1\XapiController;
 use App\Models\TrainingRoom;
@@ -232,6 +233,9 @@ Route::prefix('v1')->group(function () {
     Route::get('report-runs/{run}/download', ReportSignedDownloadController::class)->name('report-runs.signed')->middleware(['signed', 'throttle:30,1']);
     // Messages from the Ministry systems: signed, idempotent.
     Route::post('integrations/{key}/inbound', InboundWebhookController::class)->where('key', '[a-z_]+')->middleware('throttle:120,1');
+    // Microsoft Teams: the organiser account's sign-in comes back here (the state, single-use, says who started it); the tab page TEDC shows inside Teams.
+    Route::get('integrations/teams/organizer/callback', [TeamsConnectController::class, 'callback'])->middleware('throttle:login');
+    Route::get('teams/tab', [TeamsConnectController::class, 'tab'])->middleware('throttle:public');
     // Hudhud posts delivery receipts here; the body is signed with the shared secret.
     Route::post('integrations/sms/hudhud/receipt', HudhudReceiptController::class)->middleware('throttle:public');
 
@@ -1061,6 +1065,14 @@ Route::prefix('v1')->group(function () {
                 Route::post('batches/{batch}/rollback', [MigrationController::class, 'rollback'])->whereUuid('batch')->middleware('step_up');
                 Route::get('batches/{batch}/rows', [MigrationController::class, 'rows'])->whereUuid('batch');
                 Route::get('batches/{batch}/errors', [MigrationController::class, 'errors'])->whereUuid('batch');
+            });
+
+            // Microsoft Teams integration card: permissions checklist, the organiser account for town halls, the Teams app package.
+            Route::middleware('permission:integrations.manage')->prefix('teams')->group(function () {
+                Route::get('overview', [TeamsController::class, 'overview'])->middleware('throttle:20,1');
+                Route::get('app-package', [TeamsController::class, 'appPackage'])->middleware('throttle:10,1');
+                Route::post('organizer', [TeamsConnectController::class, 'connect'])->middleware(['step_up', 'throttle:10,1']);
+                Route::delete('organizer', [TeamsConnectController::class, 'disconnect'])->middleware('step_up');
             });
 
             // Microsoft Teams: meeting and attendance on the session, team and files on the group, Forms quizzes on an assessment.

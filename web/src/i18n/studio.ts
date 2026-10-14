@@ -80,7 +80,7 @@ export const studioAr = {
   remote: { title: 'استوديو البرامج عن بُعد', subtitle: 'ابنِ برنامجاً تدريبياً عن بُعد: اقتراح ذكي للموضوع والجدول، وتحديد الفئات المستهدفة، وروابط الاجتماعات، وتصميم الشهادة — وتتبّع الحضور مباشرة.' },
   delivery: {
     title: 'التقديم عن بُعد', subtitle: 'المنصة ورابط الاجتماع وموعد فتح الانضمام. يمكن تخصيص رابط لكل جلسة من خطوة الجدول.',
-    platform: 'منصة الاجتماع', platforms: { zoom: 'Zoom', teams: 'Teams', meet: 'Google Meet', webex: 'Webex', other: 'أخرى' },
+    platform: 'منصة الاجتماع', platforms: { zoom: 'Zoom', teams: 'اجتماع Teams', teams_townhall: 'لقاء مفتوح في Teams', meet: 'Google Meet', webex: 'Webex', other: 'أخرى' },
     link: 'رابط الاجتماع', linkHint: 'يستخدمه البرنامج لكل الجلسات ما لم يكن لجلسة رابطها الخاص.', linkInvalid: 'أدخل رابطاً صحيحاً يبدأ بـ https://',
     passcode: 'رمز الدخول (اختياري)', opens: 'يفتح الانضمام قبل البدء بـ (دقيقة)', opensHint: 'قبلها لا يرى المتدرب الرابط ولا يستطيع تسجيل حضوره.',
     instructionsAr: 'تعليمات للمتدربين (عربي)', instructionsEn: 'تعليمات للمتدربين (إنجليزي)',
@@ -187,7 +187,7 @@ export const studioEn: typeof studioAr = {
   remote: { title: 'Remote programs studio', subtitle: 'Build an online program: smart topic and schedule suggestions, target categories, meeting links and the certificate design — then track attendance live.' },
   delivery: {
     title: 'Remote delivery', subtitle: 'The platform, the meeting link and when joining opens. A session can have its own link in the schedule step.',
-    platform: 'Meeting platform', platforms: { zoom: 'Zoom', teams: 'Teams', meet: 'Google Meet', webex: 'Webex', other: 'Other' },
+    platform: 'Meeting platform', platforms: { zoom: 'Zoom', teams: 'Teams meeting', teams_townhall: 'Teams town hall', meet: 'Google Meet', webex: 'Webex', other: 'Other' },
     link: 'Meeting link', linkHint: 'Used for every session unless a session has its own link.', linkInvalid: 'Enter a valid link starting with https://',
     passcode: 'Passcode (optional)', opens: 'Joining opens before the start (minutes)', opensHint: 'Before this the trainee cannot see the link or record attendance.',
     instructionsAr: 'Instructions for trainees (Arabic)', instructionsEn: 'Instructions for trainees (English)',

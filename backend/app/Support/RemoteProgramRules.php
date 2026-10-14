@@ -9,6 +9,9 @@ class RemoteProgramRules
 {
     public const PLATFORMS = ['zoom', 'teams', 'meet', 'webex', 'other'];
 
+    /** A session may also be a Teams town hall (large audiences; the trainees registered are invited by TEDC). */
+    public const SESSION_PLATFORMS = ['zoom', 'teams', 'teams_townhall', 'meet', 'webex', 'other'];
+
     /** @return array<string, mixed> */
     public static function rules(): array
     {
@@ -32,7 +35,7 @@ class RemoteProgramRules
         return [
             $prefix.'mode' => ['nullable', Rule::in(['in_person', 'online'])],
             $prefix.'online_url' => ['nullable', 'url:http,https', 'max:500'],
-            $prefix.'online_platform' => ['nullable', Rule::in(self::PLATFORMS)],
+            $prefix.'online_platform' => ['nullable', Rule::in(self::SESSION_PLATFORMS)],
             $prefix.'online_passcode' => ['nullable', 'string', 'max:64'],
             $prefix.'recording_url' => ['nullable', 'url:http,https', 'max:500'],
         ];

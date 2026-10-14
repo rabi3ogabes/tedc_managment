@@ -42,7 +42,12 @@ class IntegrationRegistry
             'teams' => ['group' => 'collaboration', 'name' => ['ar' => 'مايكروسوفت Teams (Graph)', 'en' => 'Microsoft Teams (Graph)'], 'drivers' => ['fake', 'graph'], 'fields' => [
                 ['k' => 'tenant_id'], ['k' => 'client_id'], ['k' => 'client_secret', 'secret' => true], ['k' => 'organizer_upn'], ['k' => 'lobby', 'default' => 'organization'],
                 ['k' => 'auto_meetings', 'type' => 'bool', 'default' => true], ['k' => 'create_teams', 'type' => 'bool', 'default' => false], ['k' => 'min_presence_percent', 'type' => 'number', 'default' => 50],
-                ['k' => 'fake_attendance', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
+                ['k' => 'townhalls', 'type' => 'bool', 'default' => false, 'hint' => 'Sessions set to "Teams town hall" get a town hall (needs the connected organiser account)'],
+                ['k' => 'townhall_invite_only', 'type' => 'bool', 'default' => false, 'hint' => 'Only the registered trainees can join'],
+                ['k' => 'organizer_account', 'hint' => 'Set by "Connect the organiser account"'], ['k' => 'organizer_refresh_token', 'secret' => true, 'hint' => 'Set by "Connect the organiser account"'],
+                ['k' => 'activity_feed', 'type' => 'bool', 'default' => false, 'hint' => 'TEDC notifications in the Teams activity feed (needs the TEDC Teams app installed)'],
+                ['k' => 'teams_app_id', 'hint' => 'The TEDC Teams app id (made with the app package)'],
+                ['k' => 'fake_attendance', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'], ['k' => 'fake_permissions', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
             ]],
             'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],
             'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],

@@ -131,6 +131,13 @@ jobs:
             echo "LDAP_TEST_USER_PASSWORD=$user"
             echo "LDAP_TEST_CA_FILE=$PWD/ldap-certs/ca.crt"
           } >> "$GITHUB_ENV"
+      - name: The directory answers over LDAPS and STARTTLS (with the OpenLDAP tools, before PHP is involved)
+        working-directory: ${{ runner.temp }}
+        run: |
+          export LDAPTLS_CACERT="$PWD/ldap-certs/ca.crt"
+          openssl s_client -connect localhost:636 -servername localhost -CAfile "$LDAPTLS_CACERT" -verify_hostname localhost -brief </dev/null 2>&1 | head -12 || true
+          ldapwhoami -x -H ldaps://localhost:636 -D cn=admin,dc=tedc,dc=test -y admin.pw
+          ldapwhoami -x -ZZ -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'

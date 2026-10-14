@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import clsx from 'clsx'
 import { Activity, Copy, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { useLang } from '@/components/dashboard/Widget'
 import { Badge, Button, Card, Field, Modal, PageHeader, Spinner, Table, Tabs, Td } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -10,6 +11,8 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import SsoPanel, { SsoTestDialog } from './integrations/SsoPanel'
+import TeamsPanel from './integrations/TeamsPanel'
 import { useStepUp } from './SecurityAdmin'
 
 const cls = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
@@ -110,7 +113,10 @@ export default function IntegrationsHub() {
   const L = useLang()
   const { can } = useAuth()
   const list = useGet<{ data: any[] }>('/admin/integrations', undefined, { staleTime: 0, refetchInterval: 60_000 })
-  const [tab, setTab] = useState<'systems' | 'webhooks'>('systems')
+  const [params, setParams] = useSearchParams()
+  const ssoTest = params.get('sso_test')
+  const organizer = params.get('teams_organizer')
+  const [tab, setTab] = useState<'systems' | 'sso' | 'teams' | 'webhooks'>(ssoTest ? 'sso' : organizer ? 'teams' : 'systems')
   const [edit, setEdit] = useState<any | null>(null)
   const [logs, setLogs] = useState<any | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -118,13 +124,29 @@ export default function IntegrationsHub() {
     setBusy(key + kind)
     try { const { data } = await api.post(`/admin/integrations/${key}/${kind}`); toast(String(kind === 'sync' ? `${t('idn.hub.synced')} ${JSON.stringify(data.data)}` : t(`idn.hub.health.${data.data.health}`)), kind === 'check' && data.data.health !== 'ok' ? 'error' : 'success'); list.refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
   }
+  // Coming back from the identity provider (a test sign-in) or from Microsoft (connecting the organiser account).
+  useEffect(() => {
+    if (!organizer) return
+    toast(String(organizer === 'connected' ? t('m365.teams.townhalls.organizer.done') : t('m365.teams.townhalls.organizer.failed')), organizer === 'connected' ? 'success' : 'error')
+    const next = new URLSearchParams(params)
+    next.delete('teams_organizer')
+    setParams(next, { replace: true })
+  }, [organizer]) // eslint-disable-line react-hooks/exhaustive-deps
+  const closeTest = () => { const next = new URLSearchParams(params); next.delete('sso_test'); setParams(next, { replace: true }) }
+  const tabs = [
+    { id: 'systems' as const, label: t('idn.hub.tabs.systems') },
+    ...(can('integrations.manage') || can('sso.manage') ? [{ id: 'sso' as const, label: t('m365.tabs.sso') }] : []),
+    ...(can('integrations.manage') ? [{ id: 'teams' as const, label: t('m365.tabs.teams') }] : []),
+    ...(can('webhooks.manage') ? [{ id: 'webhooks' as const, label: t('idn.hub.tabs.webhooks') }] : []),
+  ]
+  const items = list.data?.data ?? []
   const groups = ['identity', 'collaboration', 'ministry']
   const syncable = ['hr', 'mawared', 'licences', 'nsis', 'qneds', 'sijil']
   return (
     <>
       <PageHeader title={t('idn.hub.title')} subtitle={t('idn.hub.subtitle')} />
-      {can('webhooks.manage') && <div className="mb-4"><Tabs<'systems' | 'webhooks'> value={tab} onChange={setTab} tabs={[{ id: 'systems', label: t('idn.hub.tabs.systems') }, { id: 'webhooks', label: t('idn.hub.tabs.webhooks') }]} /></div>}
-      {tab === 'webhooks' ? <Webhooks /> : !list.data ? <Spinner /> : groups.map((g) => (
+      {tabs.length > 1 && <div className="mb-4"><Tabs<'systems' | 'sso' | 'teams' | 'webhooks'> value={tab} onChange={setTab} tabs={tabs} /></div>}
+      {tab === 'webhooks' ? <Webhooks /> : !list.data ? <Spinner /> : tab === 'sso' ? <SsoPanel items={items} onEdit={setEdit} onChanged={() => list.refetch()} /> : tab === 'teams' ? <TeamsPanel item={items.find((i) => i.key === 'teams')} onEdit={setEdit} onChanged={() => list.refetch()} /> : groups.map((g) => (
         <section key={g} className="mb-8">
           <h2 className="mb-3 text-sm font-bold text-slate-500">{t(`idn.hub.groups.${g}`)}</h2>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -135,7 +157,7 @@ export default function IntegrationsHub() {
                 {i.last_error && <p className="mt-2 truncate text-xs text-danger" title={i.last_error}>{i.last_error}</p>}
                 <div className="mt-2 text-xs text-slate-400">{t('idn.hub.calls')}: {i.stats.ok} · {t('idn.hub.errors')}: {i.stats.error}{i.last_sync_at ? ` · ${t('idn.hub.last')}: ${fmt.date(i.last_sync_at, { dateStyle: 'short', timeStyle: 'short' } as any)}` : ''}</div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {can('integrations.manage') || (can('sso.manage') && ['entra', 'ldap'].includes(i.key)) ? <Button size="sm" variant="outline" onClick={() => setEdit(i)}>{t('idn.hub.settings')}</Button> : null}
+                  {can('integrations.manage') || (can('sso.manage') && ['entra', 'saml', 'ldap'].includes(i.key)) ? <Button size="sm" variant="outline" onClick={() => setEdit(i)}>{t('idn.hub.settings')}</Button> : null}
                   {can('integrations.manage') && !i.managed_elsewhere && <Button size="sm" variant="outline" icon={<Activity className="size-3.5" />} loading={busy === i.key + 'check'} onClick={() => act(i.key, 'check')}>{t('idn.hub.check')}</Button>}
                   {can('integrations.manage') && syncable.includes(i.key) && <Button size="sm" variant="outline" icon={<RefreshCw className="size-3.5" />} loading={busy === i.key + 'sync'} onClick={() => act(i.key, 'sync')}>{t('idn.hub.sync')}</Button>}
                   <Button size="sm" variant="outline" onClick={() => setLogs(i)}>{t('idn.hub.logs')}</Button>
@@ -146,6 +168,7 @@ export default function IntegrationsHub() {
         </section>
       ))}
       {edit && <SettingsDialog item={edit} onClose={() => setEdit(null)} onSaved={() => list.refetch()} />}
+      {ssoTest && <SsoTestDialog id={ssoTest} onClose={closeTest} />}
       {logs && <LogsDialog item={logs} onClose={() => setLogs(null)} />}
     </>
   )

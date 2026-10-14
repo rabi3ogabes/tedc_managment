@@ -28,7 +28,7 @@ class ChannelSettings
     {
         return [
             // Which channels are on by default for every notification (push, e-mail, SMS) — the administrator can narrow it per event and per task.
-            'defaults' => ['push' => true, 'email' => true, 'sms' => true],
+            'defaults' => ['push' => true, 'email' => true, 'sms' => true, 'teams' => true],
             'email' => [
                 'enabled' => true, 'driver' => 'none',    // none | log | smtp
                 'from_name' => null, 'from_address' => null, 'reply_to' => null,
@@ -123,7 +123,7 @@ class ChannelSettings
         $next = array_replace_recursive(self::defaults(), Arr::only($stored, array_keys(self::defaults())));
 
         if (isset($input['defaults'])) {
-            $next['defaults'] = array_replace($next['defaults'], array_map('boolval', Arr::only($input['defaults'], ['push', 'email', 'sms'])));
+            $next['defaults'] = array_replace($next['defaults'], array_map('boolval', Arr::only($input['defaults'], ['push', 'email', 'sms', 'teams'])));
         }
         foreach (['email', 'sms'] as $channel) {
             if (! isset($input[$channel])) {

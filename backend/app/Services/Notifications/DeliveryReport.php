@@ -10,14 +10,14 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * What happened to every notification, per person and channel: in the app (delivered, read) and by push, e-mail and SMS
+ * What happened to every notification, per person and channel: in the app (delivered, read) and by push, e-mail, SMS and the Teams activity feed
  * (queued, sent, delivered, read, failed, skipped with the reason). "Read" for a message sent outside the app means the person opened the same notification in the app.
  */
 class DeliveryReport
 {
     public const STATUSES = ['queued', 'sent', 'delivered', 'read', 'failed', 'skipped'];
 
-    public const CHANNELS = ['in_app', 'push', 'email', 'sms'];
+    public const CHANNELS = ['in_app', 'push', 'email', 'sms', 'teams'];
 
     /** @param  array{campaign_id?: ?string, type?: ?string, channel?: ?string, status?: ?string, from?: ?string, to?: ?string, q?: ?string}  $f */
     public function query(array $f, ?User $by = null): Builder

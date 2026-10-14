@@ -22,6 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _form = GlobalKey<FormState>();
   bool _loading = false;
   bool _obscure = true;
+  bool _showPassword = false;
   String? _error;
 
   @override
@@ -66,6 +67,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _ssoOffered(WidgetRef ref) {
     final config = ref.watch(getProvider('/public/mobile-config')).value;
     return config is Map && config['data'] is Map && (config['data'] as Map)['sso'] == true;
+  }
+
+  /// Staff must sign in with the Ministry account: the password form is for administrators and outside accounts, so it waits behind a link.
+  bool _ssoMandatory(WidgetRef ref) {
+    final config = ref.watch(getProvider('/public/mobile-config')).value;
+    return _ssoOffered(ref) && (config as Map)['data']['sso_mandatory'] == true;
   }
 
   Future<void> _askSecondFactor(MfaRequired m) async {
@@ -167,15 +174,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       icon: const Icon(Icons.account_balance_outlined),
                       label: Text(s.t('auth.sso')),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: Row(children: [
-                        Expanded(child: Divider(color: AppColors.navy100)),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text(s.t('auth.orPassword'), style: const TextStyle(color: AppColors.muted, fontSize: 12.5))),
-                        Expanded(child: Divider(color: AppColors.navy100)),
-                      ]),
-                    ),
+                    if (_ssoMandatory(ref) && !_showPassword)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: TextButton(key: const ValueKey('show-password'), onPressed: () => setState(() => _showPassword = true), child: Text(s.t('auth.usePassword'), textAlign: TextAlign.center)),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(children: [
+                          Expanded(child: Divider(color: AppColors.navy100)),
+                          Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text(s.t('auth.orPassword'), style: const TextStyle(color: AppColors.muted, fontSize: 12.5))),
+                          Expanded(child: Divider(color: AppColors.navy100)),
+                        ]),
+                      ),
                   ],
+                  if (!_ssoMandatory(ref) || _showPassword) ...[
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
@@ -207,6 +221,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: _loading ? null : _submit,
                     child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(s.t('auth.signIn')),
                   ),
+                  ],
+                  // A sign-in problem also shows when only the single sign-on button is on screen.
+                  if (_error != null && _ssoMandatory(ref) && !_showPassword) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, style: const TextStyle(color: AppColors.danger))),
                 ]),
               ),
             ),

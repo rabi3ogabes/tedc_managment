@@ -5,7 +5,7 @@
 | Service | Purpose | Data shared | Residency | Contract / DPA | Risk | Mitigation | Kill-switch |
 |---|---|---|---|---|---|---|---|
 | Microsoft Azure (Qatar Central) | hosting | all platform data | Qatar | Ministry enterprise agreement | Low | private networking, CMK option | n/a |
-| Microsoft Entra ID / Graph | SSO, Teams meetings | names, e-mails, meeting metadata | Microsoft tenant of the Ministry | tenant terms | Low | least-privilege app permissions | Integrations → entra / teams off |
+| Microsoft Entra ID / Graph | SSO (OpenID Connect, SAML), Teams meetings, town halls and activity-feed notifications | names, e-mails, Entra object ids, meeting and town hall metadata, notification titles with a link | Microsoft tenant of the Ministry | tenant terms | Low | least-privilege app permissions | Integrations → entra / teams off |
 | Firebase Cloud Messaging | Android/iOS push | device token, notification **titles and ids only** | Google (outside Qatar) | Google terms — **DPA to be confirmed** | Medium | no personal content in payloads | Settings → Notifications off |
 | AI providers (Azure OpenAI; optional others) | Phase 15 features | redacted prompts | per connection `data_residency` | per provider — **to be confirmed** | Medium | residency guard, redaction, per-feature switch, no prompt storage | Settings → AI & privacy |
 | Hudhud SMS | SMS | phone number, message text | Qatar (assumed) | Ministry — **to be confirmed** | Low | templates without sensitive data | Channels → SMS off |
@@ -28,3 +28,5 @@
 | `onelogin/php-saml` | 4.3.2 | MIT | SAML 2.0 service provider (strict mode): sign-in, single logout, metadata |
 | `robrichards/xmlseclibs` (brought by php-saml) | 3.1.5 | BSD-3-Clause | XML signatures and encryption for SAML |
 | `flutter_appauth` (Flutter, with AppAuth-Android and AppAuth-iOS) | 12.1.0 | BSD-3-Clause (AppAuth: Apache-2.0) | single sign-on in the app through the system browser with PKCE |
+| `justinrainbow/json-schema` (development only) | 6.13.1 | MIT | checks the generated Teams app package against Microsoft's manifest schema (never shipped) |
+| Microsoft Teams app manifest and localization JSON schemas, version 1.29 (test fixtures, copied from developer.microsoft.com/json-schemas on 14 Oct 2026) | 1.29 | published by Microsoft for validating Teams apps | the test that the Teams app package is valid (never shipped) |

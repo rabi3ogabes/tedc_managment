@@ -29,7 +29,7 @@ class IntegrationsController extends Controller
     {
         abort_unless(isset(IntegrationRegistry::all()[$key]), 404);
         // Identity settings can also be managed by whoever may manage single sign-on.
-        abort_unless($this->user()->hasPermission('integrations.manage') || (in_array($key, ['entra', 'ldap'], true) && $this->user()->hasPermission('sso.manage')), 403);
+        abort_unless($this->user()->hasPermission('integrations.manage') || (in_array($key, ['entra', 'saml', 'ldap'], true) && $this->user()->hasPermission('sso.manage')), 403);
         $d = $request->validate(['driver' => ['sometimes', Rule::in(IntegrationRegistry::all()[$key]['drivers'])], 'enabled' => ['sometimes', 'boolean'], 'settings' => ['sometimes', 'array'], 'clear' => ['sometimes', 'array']]);
 
         return response()->json(['data' => $this->hub->update($key, $d)]);

@@ -29,6 +29,15 @@ class TeamsSync extends Command
             } catch (Throwable) {
             }
         });
+        // Town halls: a draft whose publishing failed is finished, and the invitations of the coming ones follow the registrations.
+        TeamsMeeting::where('kind', 'townhall')->whereIn('status', ['draft', 'scheduled'])->whereHas('session', fn ($q) => $q->where('starts_at', '>', now())->where('status', '!=', 'cancelled'))->with('session')->limit(50)->get()
+            ->each(function (TeamsMeeting $m) use ($teams) {
+                try {
+                    $m->status === 'draft' ? $teams->ensureMeeting($m->session) : $teams->syncAttendees($m->session);
+                } catch (Throwable $e) {
+                    $m->update(['last_error' => mb_substr($e->getMessage(), 0, 300)]);
+                }
+            });
         // Sessions that ended ten minutes ago or more and have no attendance yet; retried a few times because Teams publishes the report late.
         TeamsMeeting::where('status', 'scheduled')->where('attendance_attempts', '<', 6)->whereHas('session', fn ($q) => $q->where('ends_at', '<=', now()->subMinutes(10))->where('ends_at', '>=', now()->subDays(3)))->with('session')->limit(50)->get()->each(function (TeamsMeeting $m) use ($teams, &$synced) {
             try {

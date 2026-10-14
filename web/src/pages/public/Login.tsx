@@ -38,7 +38,9 @@ export default function Login() {
   const [params] = useSearchParams()
   const [challenge, setChallenge] = useState<MfaChallenge | null>(null)
   const [directory, setDirectory] = useState(false)
-  const options = useGet<{ data: { sso: boolean; ldap: boolean } }>('/auth/options', undefined, { staleTime: 60_000, retry: false })
+  // With single sign-on mandatory the Ministry account leads; the password form waits for administrators and outside accounts.
+  const [showPassword, setShowPassword] = useState(false)
+  const options = useGet<{ data: { sso: boolean; sso_mandatory?: boolean; ldap: boolean } }>('/auth/options', undefined, { staleTime: 60_000, retry: false })
   const navigate = useNavigate()
   const location = useLocation() as { state?: { from?: string } }
   // Where to go after signing in: the page that asked for it, or a ?redirect= from a link (an LTI launch, for one).
@@ -54,6 +56,7 @@ export default function Login() {
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true && DEMO_PASSWORD !== ''
 
   if (user) return <Navigate to={from ?? homeFor(user)} replace />
+  const mandatory = !!options.data?.data.sso && !!options.data?.data.sso_mandatory
 
   const sso = async () => {
     try { const { data } = await api.get('/auth/sso/start', { params: { redirect: `${window.location.origin}/sso/callback` } }); window.location.href = data.data.url } catch (err) { setError(errorMessage(err)) }
@@ -99,10 +102,13 @@ export default function Login() {
           {options.data?.data.sso && (
             <div className="mt-8">
               <Button type="button" variant="gold" size="lg" className="w-full" icon={<Building2 className="size-5" />} onClick={sso}>{t('idn.login.sso')}</Button>
-              <div className="my-5 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-navy-100" />{t('idn.login.or')}<span className="h-px flex-1 bg-navy-100" /></div>
+              {mandatory && <p className="mt-3 text-center text-xs text-slate-500">{t('m365.login.mandatoryNote')}</p>}
+              {mandatory && !showPassword ? <div className="mt-4 text-center"><button type="button" className="text-sm text-link" onClick={() => setShowPassword(true)}>{t('m365.login.usePassword')}</button></div>
+                : <div className="my-5 flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-navy-100" />{t('idn.login.or')}<span className="h-px flex-1 bg-navy-100" /></div>}
             </div>
           )}
-          <form onSubmit={submit} className="mt-8 space-y-5">
+          {mandatory && !showPassword && error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</p>}
+          {(!mandatory || showPassword) && <form onSubmit={submit} className="mt-8 space-y-5">
             <Field label={t('common.email')}>
               <div className="relative"><Mail className="absolute start-3 top-3 size-5 text-slate-400" /><input className="input ps-11" type={directory ? 'text' : 'email'} dir="ltr" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
             </Field>
@@ -112,7 +118,7 @@ export default function Login() {
             {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</p>}
             <Button variant="primary" size="lg" className="w-full" loading={loading}>{t('auth.signIn')}</Button>
             {options.data?.data.ldap && <button type="button" className="text-sm text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
-          </form></>)}
+          </form>}</>)}
           {SHOW_DEMO && (
             <div className="mt-8 rounded-2xl border border-dashed border-gold-300 bg-gold-100/40 p-4">
               <p className="text-sm font-bold text-navy-900">{t('auth.demo')}</p>

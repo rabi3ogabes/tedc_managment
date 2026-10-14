@@ -21,6 +21,14 @@ On a development or staging server the sign-in screen lists the 8 demo roles; ta
 password: the server sends it only while it runs in demo mode, which a production server never does. For a production
 build, pass `--dart-define=SHOW_DEMO_ACCOUNTS=false` to hide them.
 
+## Signing in with the Ministry account
+
+When the platform has single sign-on switched on (Settings → Integrations → Single sign-on), the sign-in screen shows **Sign in with your Ministry account**. It opens
+the phone's browser at the Ministry's own page (PKCE, never a web view), then returns to the app by the address `qa.edu.tedc.app://sso` with a one-time code that works
+once, briefly and only for this app. If single sign-on is mandatory for staff, the e-mail and password form waits behind a link for administrators and outside
+accounts. The fingerprint lock works after either sign-in. The scheme is declared in `android/app/build.gradle.kts` (`appAuthRedirectScheme`) and
+`ios/Runner/Info.plist` (`CFBundleURLTypes`); it was not run on a real phone here.
+
 ## What to test
 
 | Area | Where |

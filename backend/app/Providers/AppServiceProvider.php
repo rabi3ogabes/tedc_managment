@@ -96,9 +96,9 @@ class AppServiceProvider extends ServiceProvider
         ProgramSession::saved(function (ProgramSession $session) {
             try {
                 $teams = app(TeamsService::class);
-                if ($session->status === 'cancelled') {
-                    $teams->cancelMeeting($session);
-                } elseif ($session->wasRecentlyCreated || $session->wasChanged(['starts_at', 'ends_at', 'title_ar', 'title_en', 'mode'])) {
+                if ($session->status === 'cancelled' || ($session->wasChanged(['online_platform', 'mode']) && ! $teams->staysOnTeams($session))) {
+                    $teams->cancelMeeting($session);   // cancelled, or moved off Teams (another platform, or in person): its meeting or town hall goes too
+                } elseif ($session->wasRecentlyCreated || $session->wasChanged(['starts_at', 'ends_at', 'title_ar', 'title_en', 'mode', 'online_platform'])) {
                     $teams->ensureMeeting($session);
                 }
             } catch (\Throwable) {

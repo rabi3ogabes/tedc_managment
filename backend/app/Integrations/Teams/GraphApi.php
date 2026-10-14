@@ -34,4 +34,48 @@ interface GraphApi
     public function uploadFile(string $driveId, string $folderItemId, string $name, string $content, string $mime): ?string;
 
     public function ping(): bool;
+
+    // ---- town halls: the organiser's delegated permission (Graph has no application permission for them) ----
+
+    /**
+     * A town hall, created as a draft (solutions/virtualEvents/townhalls).
+     *
+     * @param  list<string>  $attendeeIds  Entra object ids of the people invited
+     * @return string the town hall's id
+     */
+    public function createTownhall(string $subject, string $description, Carbon $start, Carbon $end, array $attendeeIds, bool $inviteOnly): string;
+
+    /** Makes a draft town hall visible to its audience (and creates its session). */
+    public function publishTownhall(string $townhallId): void;
+
+    /** @return list<array{id: string, join_url: ?string}> the town hall's sessions (one for a single event) */
+    public function townhallSessions(string $townhallId): array;
+
+    /** @param  list<string>|null  $attendeeIds  null leaves the invitations as they are */
+    public function updateTownhall(string $townhallId, string $subject, Carbon $start, Carbon $end, ?array $attendeeIds = null): void;
+
+    public function cancelTownhall(string $townhallId): void;
+
+    /**
+     * Participants of a finished town hall (all its sessions, or the one given), as attendance() reports them.
+     *
+     * @return list<array{email: ?string, name: ?string, role: ?string, total_seconds: int, intervals: list<array{join: string, leave: string, seconds: int}>}>
+     */
+    public function townhallAttendance(string $townhallId, ?string $sessionId = null): array;
+
+    // ---- people, the activity feed and what the tenant granted ----
+
+    /** The Entra object id of a person in the tenant (by UPN or e-mail), or null when there is none. */
+    public function userId(string $upn): ?string;
+
+    /** One notification in a person's Teams activity feed (sendActivityNotification). @param  array<string, mixed>  $payload */
+    public function sendActivity(string $userId, array $payload): void;
+
+    /**
+     * What the tenant granted TEDC: the application permissions of its app, and the organiser's delegated ones (null when
+     * no organiser is connected).
+     *
+     * @return array{application: list<string>, delegated: list<string>|null}
+     */
+    public function granted(): array;
 }

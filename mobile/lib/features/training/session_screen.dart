@@ -225,6 +225,7 @@ class _OnlineCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (platform.isNotEmpty) Text(s.t('session.platform.$platform'), style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700)),
+          if (platform == 'teams_townhall') Padding(padding: const EdgeInsets.only(top: 6), child: Text(s.t('session.townhallHint'), style: const TextStyle(height: 1.5, fontSize: 13, color: AppColors.muted))),
           if (info.str('instructions').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(info.str('instructions'), style: const TextStyle(height: 1.5, fontSize: 13))),
           const SizedBox(height: 14),
           FilledButton.icon(

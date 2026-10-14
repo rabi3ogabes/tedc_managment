@@ -124,7 +124,7 @@ class ProgramBuilderController extends Controller
             'invite_audience' => ['sometimes', 'boolean'],
             'nominate_audience' => ['sometimes', 'boolean'],
             'sessions.*.mode' => ['nullable', Rule::in(['in_person', 'online'])],
-            'sessions.*.online_url' => ['nullable', 'url:http,https', 'max:500'], 'sessions.*.online_platform' => ['nullable', Rule::in(RemoteProgramRules::PLATFORMS)],
+            'sessions.*.online_url' => ['nullable', 'url:http,https', 'max:500'], 'sessions.*.online_platform' => ['nullable', Rule::in(RemoteProgramRules::SESSION_PLATFORMS)],
             'sessions.*.online_passcode' => ['nullable', 'string', 'max:64'],
         ] + RemoteProgramRules::rules() + SurveyAudience::rules('audience.'));
 

@@ -12,6 +12,27 @@ import type { Program, Session } from '@/lib/types'
 
 type Report = { expected: number; present: number; late: number; absent: number; rows: { registration_id: string; name: string; school?: string; status: string; check_in_at?: string; check_out_at?: string; minutes: number; attendance_id?: string | null; method?: string | null; participated?: boolean; leave_minutes?: number }[] }
 type TrainerRow = { trainer_id: string; name: string | null; check_in_at: string | null; check_out_at: string | null; method: string | null; minutes: number }
+type TeamsInfo = { kind: 'meeting' | 'townhall'; blocked: string | null; meeting: { status: string; join_url: string | null; invited_count: number | null; last_error: string | null } | null }
+
+/** The platforms a session can use; the two Teams kinds are created and kept in step by TEDC. */
+const SESSION_PLATFORMS = ['zoom', 'teams', 'teams_townhall', 'meet', 'webex', 'other'] as const
+const isTeams = (p: string | null | undefined) => p === 'teams' || p === 'teams_townhall'
+
+/** What Teams did for the session: the event, how many were invited, or what stands in the way. */
+function TeamsStatus({ sessionId }: { sessionId: string }) {
+  const { t } = useTranslation()
+  const res = useGet<{ data: TeamsInfo }>(`/admin/sessions/${sessionId}/teams`, undefined, { staleTime: 0, retry: false })
+  const d = res.data?.data
+  if (!d) return null
+  return (
+    <div className="rounded-xl bg-ivory p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2 font-semibold text-navy-900">{t('m365.teams.session.status')}: {d.kind === 'townhall' ? t('m365.teams.session.townhall') : t('m365.teams.session.meeting')}{d.meeting && <StatusBadge status={d.meeting.status} />}</div>
+      {d.blocked ? <p className="mt-1 text-xs text-amber-800">{t(`m365.teams.session.blocked.${d.blocked}`)}</p> : d.meeting ? (
+        <p className="mt-1 text-xs text-slate-600">{d.meeting.invited_count != null && <span>{t('m365.teams.session.invited', { n: d.meeting.invited_count })} · </span>}{d.meeting.last_error ? <span className="text-danger">{d.meeting.last_error}</span> : d.meeting.join_url ? <span>{t('m365.teams.session.join')}: <bdi dir="ltr" className="break-all">{d.meeting.join_url}</bdi></span> : null}</p>
+      ) : d.kind === 'townhall' ? <p className="mt-1 text-xs text-slate-500">{t('m365.teams.session.hintTownhall')}</p> : null}
+    </div>
+  )
+}
 
 export default function SessionsTab({ program }: { program: Program }) {
   const { t, i18n } = useTranslation()
@@ -84,7 +105,8 @@ export default function SessionsTab({ program }: { program: Program }) {
           {form.mode === 'in_person' && <Field label="Room"><select className="input" value={form.training_room_id} onChange={(e) => setForm({ ...form, training_room_id: e.target.value })}><option value="">—</option>{lookups.data?.data.rooms.map((x) => <option key={x.id} value={x.id}>{nm(x)}</option>)}</select></Field>}
           {form.mode === 'in_person' ? <Field label="Location" className="sm:col-span-2"><input className="input" value={form.location_text} onChange={(e) => setForm({ ...form, location_text: e.target.value })} /></Field> : (
             <>
-              <Field label={t('studio.sessions.url')} hint={t('studio.sessions.urlHint')} className="sm:col-span-2"><input className="input" dir="ltr" placeholder="https://" value={form.online_url} onChange={(e) => setForm({ ...form, online_url: e.target.value })} /></Field>
+              <Field label={t('studio.delivery.platform')} hint={form.online_platform === 'teams_townhall' ? t('m365.teams.session.hintTownhall') : undefined} className="sm:col-span-2"><select className="input" value={form.online_platform} onChange={(e) => setForm({ ...form, online_platform: e.target.value })}><option value="">—</option>{SESSION_PLATFORMS.map((p) => <option key={p} value={p}>{t(`studio.delivery.platforms.${p}`)}</option>)}</select></Field>
+              <Field label={t('studio.sessions.url')} hint={isTeams(form.online_platform) ? undefined : t('studio.sessions.urlHint')} className="sm:col-span-2"><input className="input" dir="ltr" placeholder="https://" value={form.online_url} onChange={(e) => setForm({ ...form, online_url: e.target.value })} /></Field>
               <Field label={t('studio.delivery.passcode')}><input className="input font-mono" dir="ltr" value={form.online_passcode} onChange={(e) => setForm({ ...form, online_passcode: e.target.value })} /></Field>
             </>
           )}
@@ -97,9 +119,10 @@ export default function SessionsTab({ program }: { program: Program }) {
         <div className="grid gap-3">
           <Field label={t('studio.sessions.url')}><input className="input" dir="ltr" placeholder="https://" value={link.online_url} onChange={(e) => setLink({ ...link, online_url: e.target.value })} /></Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label={t('studio.delivery.platform')}><select className="input" value={link.online_platform} onChange={(e) => setLink({ ...link, online_platform: e.target.value })}><option value="">—</option>{(['zoom', 'teams', 'meet', 'webex', 'other'] as const).map((p) => <option key={p} value={p}>{t(`studio.delivery.platforms.${p}`)}</option>)}</select></Field>
+            <Field label={t('studio.delivery.platform')}><select className="input" value={link.online_platform} onChange={(e) => setLink({ ...link, online_platform: e.target.value })}><option value="">—</option>{SESSION_PLATFORMS.map((p) => <option key={p} value={p}>{t(`studio.delivery.platforms.${p}`)}</option>)}</select></Field>
             <Field label={t('studio.delivery.passcode')}><input className="input font-mono" dir="ltr" value={link.online_passcode} onChange={(e) => setLink({ ...link, online_passcode: e.target.value })} /></Field>
           </div>
+          {editing && isTeams(editing.online_platform) && <TeamsStatus sessionId={editing.id} />}
           <Field label={t('studio.sessions.recording')} hint={t('studio.sessions.recordingHint')}><input className="input" dir="ltr" placeholder="https://" value={link.recording_url} onChange={(e) => setLink({ ...link, recording_url: e.target.value })} /></Field>
         </div>
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}

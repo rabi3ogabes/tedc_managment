@@ -296,7 +296,9 @@ class SamlSsoTest extends TestCase
 
         $this->asUser($admin)->postJson('/api/v1/admin/sso/saml/keys', ['stage' => 'promote'])->assertOk()->assertJsonPath('data.next', null);
         $this->assertNotSame($first, (string) app(IntegrationManager::class)->settings('saml')['sp_certificate']);
-        $this->assertArrayNotHasKey('sp_private_key', $this->asUser($admin)->getJson('/api/v1/admin/sso/saml')->assertOk()->json('data.settings'), 'the private key never reaches the browser');
+        $overview = $this->asUser($admin)->getJson('/api/v1/admin/sso/saml')->assertOk();
+        $this->assertArrayNotHasKey('sp_private_key', $overview->json('data.settings'), 'the private key never reaches the browser');
+        $this->assertSame(url('/api/v1/auth/sso/callback'), $overview->json('data.oidc.redirect_uri'));
     }
 
     /** The request id inside a redirect to the IdP. */
@@ -367,6 +369,25 @@ class SamlSsoTest extends TestCase
         $this->withHeader('Authorization', '');
         parse_str(parse_url((string) $this->acs($this->response($b['request_id'], ['audience' => 'https://someone-else.test/sp']), $b['relay'])->headers->get('Location'), PHP_URL_QUERY), $r);
         $this->asUser($admin)->getJson('/api/v1/admin/sso/test/'.$r['sso_test'])->assertOk()->assertJsonPath('data.ok', false)->assertJsonPath('data.reason', 'invalid');
+    }
+
+    public function test_the_metadata_address_may_not_point_inside_the_network(): void
+    {
+        Http::fake();
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        foreach (['https://127.0.0.1/metadata.xml', 'https://10.0.0.5/metadata.xml', 'https://169.254.169.254/latest', 'https://[::1]/metadata.xml', 'https://192.168.1.10/m.xml'] as $internal) {
+            $this->asUser($admin)->postJson('/api/v1/admin/sso/saml/metadata', ['url' => $internal])->assertStatus(422);
+        }
+        $this->asUser($admin)->postJson('/api/v1/admin/sso/saml/metadata', ['url' => 'http://idp.test/metadata.xml'])->assertStatus(422);   // not HTTPS
+        Http::assertNothingSent();
+        // Pasted XML with a DOCTYPE or an external entity is refused, never expanded.
+        $xxe = '<?xml version="1.0"?><!DOCTYPE m [<!ENTITY x SYSTEM "file:///etc/passwd">]><md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="&x;"/>';
+        $this->asUser($admin)->postJson('/api/v1/admin/sso/saml/metadata', ['xml' => $xxe])->assertStatus(422);
+
+        // The same rule holds for the daily refresh of a stored address.
+        app(IntegrationManager::class)->update('saml', ['settings' => ['idp_metadata_url' => 'https://10.0.0.5/metadata.xml']]);
+        $this->artisan('tedc:sso-metadata-refresh')->assertFailed();
+        Http::assertNothingSent();
     }
 
     /** IdP metadata as Entra ID and ADFS publish it. @param list<string> $certs */

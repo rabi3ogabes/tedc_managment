@@ -6,11 +6,11 @@ use App\Integrations\IntegrationManager;
 use App\Models\AuditLog;
 use App\Models\Integration;
 use App\Models\SsoReplay;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\IdPMetadataParser;
@@ -172,13 +172,16 @@ class SamlSp
         });
     }
 
-    /** The same assertion never signs anyone in twice (every server shares the register). */
+    /**
+     * The same assertion never signs anyone in twice (every server shares the register). One atomic insert that ignores a
+     * duplicate: catching a unique-key error would abort the surrounding transaction on PostgreSQL.
+     */
     private function remember(string $assertionId, int $notOnOrAfter): void
     {
         SsoReplay::where('expires_at', '<', now()->subMinutes(5))->delete();
-        try {
-            SsoReplay::create(['assertion_id' => $assertionId, 'expires_at' => now()->setTimestamp($notOnOrAfter + Constants::ALLOWED_CLOCK_DRIFT)]);
-        } catch (UniqueConstraintViolationException) {
+        $now = now();
+        $stored = SsoReplay::query()->insertOrIgnore([['id' => (string) Str::uuid(), 'assertion_id' => $assertionId, 'expires_at' => $now->copy()->setTimestamp($notOnOrAfter + Constants::ALLOWED_CLOCK_DRIFT), 'created_at' => $now, 'updated_at' => $now]]);
+        if ($stored === 0) {
             throw new SamlRefused('replayed');
         }
     }
@@ -291,11 +294,23 @@ class SamlSp
             'certificates' => array_values(array_filter(array_map(fn ($c) => self::describe($c), self::certificates($pem))))];
     }
 
-    /** Reads metadata from an HTTPS address (ten seconds, no redirects, at most 500 kB). @throws RuntimeException */
+    /**
+     * Reads metadata from an HTTPS address (ten seconds, no redirects, at most 500 kB). The address may not point inside the
+     * network: a name that resolves to a private, loopback or link-local address, or such an address itself, is refused.
+     *
+     * @throws RuntimeException
+     */
     public static function fetchMetadata(string $url): string
     {
         if (! str_starts_with(strtolower($url), 'https://')) {
             throw new RuntimeException('metadata address must be HTTPS');
+        }
+        $host = trim((string) parse_url($url, PHP_URL_HOST), '[]');
+        $addresses = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : (@gethostbynamel($host) ?: []);   // a name that does not resolve fails when fetched
+        foreach ($addresses as $ip) {
+            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                throw new RuntimeException('metadata address points inside the network');
+            }
         }
         $r = Http::timeout(10)->withOptions(['allow_redirects' => false])->get($url);
         if (! $r->successful() || strlen($r->body()) > 500000) {

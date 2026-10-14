@@ -32,6 +32,7 @@ class SsoAdminController extends Controller
             'sp' => ['current' => SamlSp::describe($s['sp_certificate'] ?? null), 'next' => SamlSp::describe($s['sp_next_certificate'] ?? null)],
             'idp_certificates' => array_values(array_filter(array_map(fn ($c) => SamlSp::describe($c), SamlSp::certificates((string) ($s['idp_certificates'] ?? ''))))),
             'configured' => ['saml' => $this->saml->configured(), 'oidc' => $this->sso->configured('oidc')], 'mandatory' => $this->sso->mandatory(),
+            'oidc' => ['redirect_uri' => url('/api/v1/auth/sso/callback'), 'enabled' => $this->hub->get('entra')->enabled],
             'metadata_refresh' => Cache::get('saml.metadata_refresh'),
         ]]);
     }

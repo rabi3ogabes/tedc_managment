@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationRule;
+use App\Services\Channels\NotificationChannels;
 use App\Services\Notifications\AudienceResolver;
 use App\Services\Notifications\DeliveryPolicy;
 use App\Services\Notifications\NotificationCatalog;
@@ -54,13 +55,13 @@ class NotificationRulesController extends Controller
             'audience_filter' => ['nullable', 'array'],
             'audience_filter.roles' => ['sometimes', 'array'], 'audience_filter.job_titles' => ['sometimes', 'array'], 'audience_filter.schools' => ['sometimes', 'array'],
             'audience_filter.school_groups' => ['sometimes', 'array'], 'audience_filter.programs' => ['sometimes', 'array'],
-            'channels' => ['nullable', 'array'], 'channels.*' => [Rule::in(['push', 'email', 'sms'])],
+            'channels' => ['nullable', 'array'], 'channels.*' => [Rule::in(NotificationChannels::ALL)],
             'enabled' => ['sometimes', 'boolean'],
             'quiet_hours' => ['nullable', 'array'],
             'quiet_hours.days' => ['sometimes', 'array'], 'quiet_hours.days.*' => ['integer', 'between:0,6'],
             'quiet_hours.from' => ['sometimes', 'date_format:H:i'], 'quiet_hours.to' => ['sometimes', 'date_format:H:i'],
             'quiet_hours.timezone' => ['sometimes', 'timezone:all'],
-            'quiet_hours.channels' => ['sometimes', 'array'], 'quiet_hours.channels.*' => [Rule::in(['push', 'email', 'sms'])],
+            'quiet_hours.channels' => ['sometimes', 'array'], 'quiet_hours.channels.*' => [Rule::in(NotificationChannels::ALL)],
             'delay_minutes' => ['sometimes', 'integer', 'between:0,10080'],
             'program_id' => ['nullable', 'uuid', 'exists:programs,id'],
             'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],

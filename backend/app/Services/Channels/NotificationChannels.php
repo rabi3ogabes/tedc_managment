@@ -2,6 +2,7 @@
 
 namespace App\Services\Channels;
 
+use App\Integrations\Teams\TeamsActivityFeed;
 use App\Models\AppNotification;
 use App\Models\NotificationDelivery;
 use App\Models\User;
@@ -19,7 +20,8 @@ use Illuminate\Support\Str;
  */
 class NotificationChannels
 {
-    public const ALL = ['push', 'email', 'sms'];
+    /** teams: the Teams activity feed (the Microsoft 365 integration; it is on only when that is set up and switched on). */
+    public const ALL = ['push', 'email', 'sms', 'teams'];
 
     /** Up to this many messages are sent right away; more wait for the scheduler. */
     private const INLINE = 5;
@@ -51,7 +53,27 @@ class NotificationChannels
 
     private function masterOn(string $channel): bool
     {
-        return $channel === 'push' ? true : $this->settings->enabled($channel);
+        return match ($channel) {
+            'push' => true,
+            'teams' => $this->feed()->enabled(),
+            default => $this->settings->enabled($channel),
+        };
+    }
+
+    /** Looked up when needed: the Teams service reaches back into notifications, so it is not a constructor dependency. */
+    private function feed(): TeamsActivityFeed
+    {
+        return app(TeamsActivityFeed::class);
+    }
+
+    /** Messages can really leave on this channel: push always, the activity feed when Teams is set up, e-mail and SMS when their provider is. */
+    private function channelReady(string $channel): bool
+    {
+        return match ($channel) {
+            'push' => true,
+            'teams' => $this->feed()->enabled(),
+            default => $this->settings->ready($channel),
+        };
     }
 
     /** What each channel can do right now, for the screens that offer the choice. @return array<string, array{on: bool, ready: bool}> */
@@ -61,6 +83,7 @@ class NotificationChannels
             'push' => ['on' => $this->settings->defaultOn('push'), 'ready' => $this->push->isReady()],
             'email' => ['on' => $this->settings->enabled('email') && $this->settings->defaultOn('email'), 'ready' => $this->settings->ready('email')],
             'sms' => ['on' => $this->settings->enabled('sms') && $this->settings->defaultOn('sms'), 'ready' => $this->settings->ready('sms')],
+            'teams' => ['on' => $this->feed()->enabled() && $this->settings->defaultOn('teams'), 'ready' => $this->feed()->enabled()],
         ];
     }
 
@@ -87,7 +110,7 @@ class NotificationChannels
                     continue;      // push leaves at once through its own dispatcher
                 }
                 // A channel whose provider is not set up yet stays silent (the settings page says so); nothing is written for it.
-                if ($channel !== 'push' && ! $this->settings->ready($channel)) {
+                if ($channel !== 'push' && ! $this->channelReady($channel)) {
                     continue;
                 }
                 $rows[] = [
@@ -142,6 +165,9 @@ class NotificationChannels
                 }
                 $result = $this->email->send($user->email, $title, $body, $locale);
                 $this->finish($row, $result['ok'] ? 'sent' : 'failed', $result['error'], $this->maskEmail($user->email), $out);
+            } elseif ($row->channel === 'teams') {
+                $result = $this->feed()->deliver($user, $notification, $locale);
+                $this->finish($row, $result['status'], $result['reason'], $result['to'], $out);
             } else {
                 $number = $this->sms->normalise($user->phone);
                 if (! $number) {
@@ -187,7 +213,7 @@ class NotificationChannels
         $since = now()->subDays(7);
         $rows = NotificationDelivery::where('created_at', '>=', $since)->selectRaw('channel, status, count(*) as n')->groupBy('channel', 'status')->get();
         $stats = [];
-        foreach (['email', 'sms'] as $channel) {
+        foreach (['email', 'sms', 'teams'] as $channel) {
             $stats[$channel] = ['sent' => 0, 'failed' => 0, 'skipped' => 0, 'queued' => 0];
             foreach ($rows->where('channel', $channel) as $r) {
                 $stats[$channel][$r->status] = (int) $r->n;

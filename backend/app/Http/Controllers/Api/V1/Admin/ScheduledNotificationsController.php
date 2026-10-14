@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Models\ScheduledNotification;
+use App\Services\Channels\NotificationChannels;
 use App\Services\Notifications\AudienceResolver;
 use App\Services\Notifications\DeliveryPolicy;
 use Illuminate\Http\JsonResponse;
@@ -81,7 +82,7 @@ class ScheduledNotificationsController extends Controller
             'title_ar' => [$req, 'string', 'max:255'], 'title_en' => [$req, 'string', 'max:255'],
             'body_ar' => ['nullable', 'string', 'max:2000'], 'body_en' => ['nullable', 'string', 'max:2000'],
             'template_id' => ['nullable', 'uuid', 'exists:notification_templates,id'],
-            'channels' => ['nullable', 'array'], 'channels.*' => [Rule::in(['push', 'email', 'sms'])],
+            'channels' => ['nullable', 'array'], 'channels.*' => [Rule::in(NotificationChannels::ALL)],
             'audience' => ['nullable', 'array'],
             'send_at' => [$req, 'date'],
             'repeat' => ['sometimes', Rule::in(['none', 'daily', 'weekly', 'monthly'])],

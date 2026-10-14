@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 724 columns
-- Internal: 2011 columns
+- Internal: 2014 columns
 - Confidential: 508 columns
 - Restricted: 23 columns
 
@@ -4133,6 +4133,9 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `last_error` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `graph_session_id` | Internal | — |
+| `attendees_hash` | Internal | — |
+| `invited_count` | Internal | — |
 
 ### `teams_teams`
 

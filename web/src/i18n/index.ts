@@ -26,6 +26,7 @@ import { mgmtAr, mgmtEn } from './management'
 import { studioAr, studioEn } from './studio'
 import { surveysAr, surveysEn } from './surveys'
 import { ltiAr, ltiEn } from './lti'
+import { m365Ar, m365En } from './m365'
 
 export type Locale = 'ar' | 'en'
 
@@ -46,7 +47,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr, ...structureAr, ...assessAr, ...passAr, ...evalAr, ...careerAr, ...contentAr, ...commAr, ...reportsAr, ...idnAr, ...socAr, ...aiAr, ...payAr, ...prvAr, ...hlpAr, ...apaAr, ...cmpAr, ...ltiAr } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn, ...structureEn, ...assessEn, ...passEn, ...evalEn, ...careerEn, ...contentEn, ...commEn, ...reportsEn, ...idnEn, ...socEn, ...aiEn, ...payEn, ...prvEn, ...hlpEn, ...apaEn, ...cmpEn, ...ltiEn } } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr, ...structureAr, ...assessAr, ...passAr, ...evalAr, ...careerAr, ...contentAr, ...commAr, ...reportsAr, ...idnAr, ...socAr, ...aiAr, ...payAr, ...prvAr, ...hlpAr, ...apaAr, ...cmpAr, ...ltiAr, ...m365Ar } }, en: { translation: { ...en, surveys: surveysEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn, ...structureEn, ...assessEn, ...passEn, ...evalEn, ...careerEn, ...contentEn, ...commEn, ...reportsEn, ...idnEn, ...socEn, ...aiEn, ...payEn, ...prvEn, ...hlpEn, ...apaEn, ...cmpEn, ...ltiEn, ...m365En } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },

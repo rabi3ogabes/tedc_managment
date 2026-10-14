@@ -137,6 +137,17 @@ on the TEDC app) or the ADFS access-control policy of the TEDC relying party.
   certificates.
 - The gateway is built in Phase 25.
 
+### Optional: app links instead of the custom scheme
+
+The app returns to `qa.edu.tedc.app://sso`, which works without any domain. If the Ministry later gives TEDC a verified domain, app links (Android) and universal links
+(iOS) are the stronger choice because only the app that owns the domain can receive the address:
+
+- Android: serve `https://<domain>/.well-known/assetlinks.json` with the app's package name (`app.tedcmanagment.vercel`) and the SHA-256 fingerprint of its signing certificate;
+  add an `https` intent filter with `android:autoVerify="true"` for the return path.
+- iOS: serve `https://<domain>/.well-known/apple-app-site-association` (no extension, `application/json`) listing the bundle id (`qa.edu.tedc.tedcMobile`) and the return
+  path; add the Associated Domains capability (`applinks:<domain>`).
+- In TEDC add the `https://<domain>/sso` address to the `TEDC_MOBILE_SSO_REDIRECTS` setting (comma separated, next to `qa.edu.tedc.app://sso`); only listed addresses are ever accepted, and the PKCE verifier still binds the code.
+
 ### How TEDC links a sign-in to an account
 
 1. **By identity.** The provider's stable id (object id, NameID or `objectGUID`) once linked: e-mail changes do not matter.
@@ -301,6 +312,17 @@ ID أو ADFS، فيصل إلى المنصة دخول عادي عبر OpenID Conn
 - تبقى بيانات اعتماد العميل في OAuth (‏Entra) والإشعارات الموقّعة بـ HMAC (موجودة في المنصة) متاحة للشركاء الذين لا يستطيعون استخدام
   الشهادات.
 - تُبنى البوابة في المرحلة 25.
+
+### اختياري: روابط التطبيق بدل المخطط المخصص
+
+يعود التطبيق إلى `qa.edu.tedc.app://sso` وهو يعمل دون أي نطاق. إذا منحت الوزارة المنصة نطاقًا موثّقًا فروابط التطبيق (أندرويد) والروابط العالمية (iOS)
+أقوى لأن التطبيق الذي يملك النطاق وحده يستلم العنوان:
+
+- أندرويد: اعرض الملف `https://<النطاق>/.well-known/assetlinks.json` باسم حزمة التطبيق (`app.tedcmanagment.vercel`) وبصمة SHA-256 لشهادة توقيعه، وأضف نية `https`
+  بالخاصية `android:autoVerify="true"` لمسار العودة.
+- iOS: اعرض الملف `https://<النطاق>/.well-known/apple-app-site-association` (دون امتداد، من نوع `application/json`) وفيه معرّف الحزمة (`qa.edu.tedc.tedcMobile`)
+  ومسار العودة، وأضف قدرة النطاقات المرتبطة (`applinks:<النطاق>`).
+- في المنصة أضف العنوان `https://<النطاق>/sso` إلى الإعداد `TEDC_MOBILE_SSO_REDIRECTS` (مفصولًا بفاصلة بجانب `qa.edu.tedc.app://sso`)؛ لا يُقبل أبدًا إلا عنوان مدرج، ويبقى مُحقِّق PKCE رابطًا للرمز.
 
 ### كيف تربط المنصة الدخول بالحساب
 

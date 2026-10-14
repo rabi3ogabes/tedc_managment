@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Http\Controllers\Controller;
+use App\Integrations\Teams\TeamsActivityFeed;
 use App\Models\UserNotificationPreference;
+use App\Services\Channels\NotificationChannels;
 use App\Services\Notifications\DeliveryPolicy;
 use App\Services\Notifications\NotificationCatalog;
 use Illuminate\Http\JsonResponse;
@@ -32,7 +34,7 @@ class MyNotificationPreferencesController extends Controller
         return response()->json(['data' => [
             'groups' => $groups->values()->map(fn ($g) => $g + [
                 'mandatory_events' => (int) ($mandatory[$g['group']] ?? 0),
-                'channels' => collect(['push', 'email', 'sms'])->mapWithKeys(fn ($c) => [$c => (bool) ($stored[$g['group'].'|'.$c] ?? true)]),
+                'channels' => collect(app(TeamsActivityFeed::class)->enabled() ? NotificationChannels::ALL : ['push', 'email', 'sms'])->mapWithKeys(fn ($c) => [$c => (bool) ($stored[$g['group'].'|'.$c] ?? true)]),
             ])->all(),
             'sound' => (bool) ($stored[DeliveryPolicy::SOUND.'|'.DeliveryPolicy::SOUND] ?? true),
         ]]);
@@ -51,7 +53,7 @@ class MyNotificationPreferencesController extends Controller
         }
         foreach ($d['groups'] ?? [] as $g) {
             foreach ($g['channels'] as $channel => $on) {
-                if (in_array($channel, ['push', 'email', 'sms'], true)) {
+                if (in_array($channel, NotificationChannels::ALL, true)) {
                     UserNotificationPreference::updateOrCreate(['user_id' => $user->id, 'event_group' => $g['group'], 'channel' => $channel], ['enabled' => (bool) $on]);
                 }
             }

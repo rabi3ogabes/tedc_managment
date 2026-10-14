@@ -645,6 +645,8 @@ class S {
     'session.platform.teams': 'Microsoft Teams',
     'session.platform.meet': 'Google Meet',
     'session.platform.webex': 'Webex',
+    'session.platform.teams_townhall': 'لقاء مفتوح في Teams',
+    'session.townhallHint': 'لقاء مباشر في Teams: يُحتسب حضورك من الوقت الذي تقضيه فيه. افتح الرابط من حسابك في المنظومة.',
     'session.platform.other': 'اجتماع عن بُعد',
     'course.certIssued': 'صدرت شهادتك — افتح المحفظة',
     'course.certPending': 'الشهادة بانتظار',
@@ -951,6 +953,7 @@ class S {
     'assess.faceComputerFlagged': 'يتحقق هذا الاختبار من حضورك بالكاميرا، فيُؤدّى من حاسوب فيه كاميرا عبر المتصفح.',
     'auth.sso': 'الدخول بحساب الوزارة',
     'auth.orPassword': 'أو بالبريد وكلمة المرور',
+    'auth.usePassword': 'مسؤول أو حساب من خارج الوزارة؟ ادخل بالبريد وكلمة المرور',
     'auth.ssoFailed': 'تعذّر الدخول بحساب الوزارة. حاول مرة أخرى أو استخدم كلمة المرور.',
   };
 
@@ -1566,6 +1569,8 @@ class S {
     'session.platform.teams': 'Microsoft Teams',
     'session.platform.meet': 'Google Meet',
     'session.platform.webex': 'Webex',
+    'session.platform.teams_townhall': 'Teams town hall',
+    'session.townhallHint': 'A live Teams town hall: your attendance is counted from the time you spend in it. Open it with your organisation account.',
     'session.platform.other': 'Online meeting',
     'course.certIssued': 'Your certificate is issued — open the wallet',
     'course.certPending': 'Certificate waiting for',
@@ -1857,6 +1862,7 @@ class S {
     'assess.faceComputerFlagged': 'This exam checks your presence with the camera: take it in a browser on a computer with a camera.',
     'auth.sso': 'Sign in with your Ministry account',
     'auth.orPassword': 'or with e-mail and password',
+    'auth.usePassword': 'Administrator or outside account? Use e-mail and password',
     'auth.ssoFailed': 'Signing in with your Ministry account did not work. Try again, or use your password.',
   };
 }

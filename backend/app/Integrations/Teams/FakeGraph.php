@@ -78,4 +78,58 @@ class FakeGraph implements GraphApi
     {
         return true;
     }
+
+    public function createTownhall(string $subject, string $description, Carbon $start, Carbon $end, array $attendeeIds, bool $inviteOnly): string
+    {
+        $id = 'fake-townhall-'.Str::uuid();
+        Cache::forever("fakegraph.townhall.{$id}", ['subject' => $subject, 'start' => $start->toIso8601String(), 'end' => $end->toIso8601String(), 'attendees' => array_values($attendeeIds), 'invite_only' => $inviteOnly, 'status' => 'draft']);
+
+        return $id;
+    }
+
+    public function publishTownhall(string $townhallId): void
+    {
+        Cache::forever("fakegraph.townhall.{$townhallId}", ['status' => 'published'] + Cache::get("fakegraph.townhall.{$townhallId}", []));
+    }
+
+    public function townhallSessions(string $townhallId): array
+    {
+        return [['id' => 'fake-session-'.substr(md5($townhallId), 0, 12), 'join_url' => "https://teams.example/l/townhall/{$townhallId}"]];
+    }
+
+    public function updateTownhall(string $townhallId, string $subject, Carbon $start, Carbon $end, ?array $attendeeIds = null): void
+    {
+        $t = Cache::get("fakegraph.townhall.{$townhallId}", []);
+        Cache::forever("fakegraph.townhall.{$townhallId}", ['subject' => $subject, 'start' => $start->toIso8601String(), 'end' => $end->toIso8601String()] + ($attendeeIds === null ? [] : ['attendees' => array_values($attendeeIds)]) + $t);
+    }
+
+    public function cancelTownhall(string $townhallId): void
+    {
+        Cache::forever("fakegraph.townhall.{$townhallId}", ['status' => 'canceled'] + Cache::get("fakegraph.townhall.{$townhallId}", []));
+    }
+
+    public function townhallAttendance(string $townhallId, ?string $sessionId = null): array
+    {
+        return $this->attendance('', $townhallId);
+    }
+
+    public function userId(string $upn): ?string
+    {
+        return 'fake-oid-'.substr(md5(strtolower($upn)), 0, 16);
+    }
+
+    public function sendActivity(string $userId, array $payload): void
+    {
+        $sent = Cache::get('fakegraph.activity', []);
+        $sent[] = ['user' => $userId] + $payload;
+        Cache::forever('fakegraph.activity', array_slice($sent, -50));
+    }
+
+    public function granted(): array
+    {
+        $listed = is_string($this->s['fake_permissions'] ?? null) ? json_decode($this->s['fake_permissions'], true) : ($this->s['fake_permissions'] ?? null);
+        $names = is_array($listed) ? array_values($listed) : array_column(GraphPermissions::all(), 'permission');
+
+        return ['application' => $names, 'delegated' => $names];
+    }
 }

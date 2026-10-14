@@ -204,7 +204,9 @@ class LdapDirectory implements DirectoryClient
             ldap_set_option($conn, LDAP_OPT_TIMEOUT, $timeout);
         }
         if (! $ldaps && ! @ldap_start_tls($conn)) {
-            throw new RuntimeException('The directory refused STARTTLS.');
+            $diag = '';
+            @ldap_get_option($conn, LDAP_OPT_DIAGNOSTIC_MESSAGE, $diag);
+            throw new RuntimeException('The directory refused STARTTLS: '.ldap_error($conn).($diag ? ' ('.trim((string) $diag).')' : '').'.');
         }
 
         return $conn;
@@ -228,8 +230,14 @@ class LdapDirectory implements DirectoryClient
 
     private function bind($conn, string $dn, string $password): void
     {
-        if ($dn === '' || ! @ldap_bind($conn, $dn, $password)) {
-            throw new RuntimeException('The service account could not bind.');
+        if ($dn === '') {
+            throw new RuntimeException('No service account is set.');
+        }
+        if (! @ldap_bind($conn, $dn, $password)) {
+            // The reason, for the integration's health card and log (never shown to the person signing in).
+            $diag = '';
+            @ldap_get_option($conn, LDAP_OPT_DIAGNOSTIC_MESSAGE, $diag);
+            throw new RuntimeException('The service account could not bind: '.ldap_error($conn).($diag ? ' ('.trim((string) $diag).')' : '').'.');
         }
     }
 }
