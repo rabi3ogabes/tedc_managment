@@ -1,0 +1,7 @@
+{
+  "status": 201,
+  "body": {
+    "ticket_no": "SAEED-0001",
+    "status": "open"
+  }
+}

@@ -2,16 +2,18 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\IntegrationManager;
 use App\Models\Certificate;
 use App\Models\Registration;
 use App\Models\School;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /** QNEDS: publishes aggregated training indicators per school (no names, no personal data). */
 class QnedsPublisher
 {
-    public function __construct(private readonly IntegrationManager $hub) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly ContractGateway $contracts) {}
 
     /** @return array{schools: int} */
     public function publish(?int $year = null): array
@@ -25,7 +27,10 @@ class QnedsPublisher
         $schools = School::whereIn('id', collect($participants->keys())->merge($hours->keys())->unique())->get(['id', 'code', 'moe_no']);
         $items = $schools->map(fn ($s) => ['school_code' => $s->moe_no ?: $s->code, 'year' => $year, 'trained_staff' => (int) ($participants[$s->id] ?? 0), 'completed_programs' => (int) ($completed[$s->id] ?? 0), 'training_hours' => round((float) ($hours[$s->id] ?? 0), 1)])->values()->all();
 
-        $this->hub->call('qneds', 'publish_indicators', fn (array $s, $i) => $i->driver === 'fake' ? ['accepted' => count($items)] : (new MinistryHttp($s))->post('/indicators', ['year' => $year, 'items' => $items]), ['year' => $year, 'schools' => count($items)]);
+        $publication = (string) Str::uuid();   // one publication: its retries carry the same key, a later publication a new one
+        $this->hub->call('qneds', 'publish_indicators', fn (array $s, $i) => $i->driver === 'fake'
+            ? ['accepted' => count($items)]
+            : ($this->contracts->call('qneds', 'publish_indicators', ['year' => $year, 'items' => $items], $s, ['idempotency_key' => $publication])->json ?? []), ['year' => $year, 'schools' => count($items)]);
         $this->hub->markSynced('qneds');
 
         return ['schools' => count($items)];

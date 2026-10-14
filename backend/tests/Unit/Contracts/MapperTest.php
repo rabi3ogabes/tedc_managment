@@ -1,0 +1,81 @@
+<?php
+
+namespace Tests\Unit\Contracts;
+
+use App\Integrations\Contracts\Mapper;
+use PHPUnit\Framework\TestCase;
+
+/** A mapping turns a system's record into TEDC's fields with a fixed set of transforms: a field map is data, never code. */
+class MapperTest extends TestCase
+{
+    private function entity(): array
+    {
+        return [
+            'fields' => [
+                'employee_no' => '$.staff.no',
+                'name' => ['path' => '$.full_name.en', 'transform' => ['trim']],
+                'name_ar' => ['path' => '$.full_name.ar', 'transform' => ['trim']],
+                'hire_date' => ['path' => '$.joined', 'transform' => ['date:d/m/Y>Y-m-d']],
+                'status' => ['path' => '$.state', 'transform' => ['table:status'], 'default' => 'active'],
+                'email' => ['paths' => ['$.work_email', '$.personal_email'], 'transform' => ['lower']],
+                'grades' => ['path' => '$.grades', 'transform' => ['split:;']],
+                'experience_years' => ['path' => '$.exp', 'transform' => ['int']],
+                'source' => ['const' => 'mawared'],
+                'label' => ['template' => '{{ staff.no }} — {{ full_name.en|trim }}'],
+                'job_title_code' => '$.position.code',
+            ],
+            'tables' => ['status' => ['A' => 'active', 'T' => 'left', 'R' => 'left']],
+        ];
+    }
+
+    public function test_it_maps_paths_transforms_tables_constants_and_templates(): void
+    {
+        $out = Mapper::apply($this->entity(), [
+            'staff' => ['no' => 'E-77'], 'full_name' => ['en' => '  Sara Ali ', 'ar' => ' سارة علي '], 'joined' => '15/01/2020', 'state' => 'T',
+            'work_email' => '', 'personal_email' => 'SARA@Example.COM', 'grades' => '4;5;6', 'exp' => '12', 'position' => ['code' => 'T-9'],
+        ]);
+        $this->assertSame('E-77', $out['employee_no']);
+        $this->assertSame(['Sara Ali', 'سارة علي'], [$out['name'], $out['name_ar']]);
+        $this->assertSame('2020-01-15', $out['hire_date']);
+        $this->assertSame('left', $out['status']);
+        $this->assertSame('sara@example.com', $out['email'], 'the first non-empty path wins');
+        $this->assertSame(['4', '5', '6'], $out['grades']);
+        $this->assertSame(12, $out['experience_years']);
+        $this->assertSame(['mawared', 'E-77 — Sara Ali', 'T-9'], [$out['source'], $out['label'], $out['job_title_code']]);
+    }
+
+    public function test_missing_values_use_the_default_or_stay_out(): void
+    {
+        $out = Mapper::apply($this->entity(), ['staff' => ['no' => 'E-1']]);
+        $this->assertSame('active', $out['status'], 'the default fills a gap');
+        $this->assertArrayNotHasKey('hire_date', $out);
+        $this->assertArrayNotHasKey('name', $out);
+        $this->assertArrayNotHasKey('email', $out);
+    }
+
+    public function test_an_unknown_code_passes_through_the_table_unchanged_and_a_bad_date_stays_out(): void
+    {
+        $out = Mapper::apply($this->entity(), ['staff' => ['no' => 'E-2'], 'state' => 'Z', 'joined' => 'not a date']);
+        $this->assertSame('Z', $out['status']);
+        $this->assertArrayNotHasKey('hire_date', $out);
+    }
+
+    public function test_the_system_s_arabic_and_english_names_can_share_one_field(): void
+    {
+        $e = ['fields' => ['name_ar' => ['path' => '$.name', 'transform' => ['name_part:ar']], 'name' => ['path' => '$.name', 'transform' => ['name_part:en']]]];
+        $out = Mapper::apply($e, ['name' => 'سارة علي / Sara Ali']);
+        $this->assertSame(['سارة علي', 'Sara Ali'], [$out['name_ar'], $out['name']]);
+        $this->assertSame(['name' => 'Solo'], Mapper::apply(['fields' => ['name' => ['path' => '$.n', 'transform' => ['name_part:en']]]], ['n' => 'Solo']));
+    }
+
+    public function test_a_mapping_is_checked_before_it_is_saved(): void
+    {
+        $this->assertSame([], Mapper::problems($this->entity()));
+        $bad = Mapper::problems(['fields' => [
+            'a' => '$.a..b', 'b' => ['path' => '$.b', 'transform' => ['eval:1']], 'c' => ['path' => '$.c', 'transform' => ['table:missing']], 'd' => ['template' => '{{ x|php }}'],
+            'e' => ['nothing' => 1], 'f' => ['path' => '$.f', 'transform' => ['date:Y']], 'g' => ['const' => ['no' => 'arrays']],
+        ], 'tables' => ['t' => 'not a map']]);
+        $this->assertGreaterThanOrEqual(7, count($bad), implode('; ', $bad));
+        $this->assertNotSame([], Mapper::problems(['nofields' => []]));
+    }
+}

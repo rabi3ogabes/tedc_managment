@@ -258,6 +258,8 @@ class TeamsTownhallTest extends TestCase
         $this->assertSame('refresh-new', $s['organizer_refresh_token']);
         $this->assertSame('tedc-events@moe.gov.qa', $s['organizer_account']);
         $this->assertSame(1, AuditLog::where('action', 'teams_organizer_connected')->where('user_id', $admin->id)->count());
+        $entry = AuditLog::where('action', 'teams_organizer_connected')->firstOrFail();
+        $this->assertSame(['teams', 'tedc-events@moe.gov.qa'], [$entry->new_values['integration'], $entry->new_values['account']]);
         $this->assertArrayNotHasKey('organizer_refresh_token', app(IntegrationManager::class)->present('teams')['settings'], 'the token never reaches the browser');
 
         // The state works once.

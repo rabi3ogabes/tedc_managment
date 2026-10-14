@@ -36,6 +36,24 @@ class MinistrySiteSettings
         }
     }
 
+    /**
+     * What the contract of the Ministry website reads: the intake address split into the system's address and a path (a query string
+     * on it travels separately), the header the key goes in, and the key.
+     *
+     * @return array<string, mixed>
+     */
+    public function contractSettings(): array
+    {
+        $a = $this->all();
+        $parts = parse_url((string) $a['endpoint']) ?: [];
+        $base = ($parts['scheme'] ?? '') !== '' && ($parts['host'] ?? '') !== '' ? $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '') : '';
+
+        return [
+            'base_url' => $base, 'publish_path' => ($parts['path'] ?? '') !== '' ? $parts['path'] : '/', 'publish_query' => (string) ($parts['query'] ?? ''),
+            'auth_header' => (string) ($a['auth_header'] ?: 'X-Api-Key'), 'api_key' => (string) $this->apiKey(), 'site_name' => (string) ($a['site_name'] ?: 'tedc'),
+        ];
+    }
+
     public function masked(): array
     {
         $a = $this->all();

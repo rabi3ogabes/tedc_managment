@@ -1,0 +1,343 @@
+{
+  "system": "saaed",
+  "version": "1.0",
+  "title": {
+    "ar": "سعيد (التذاكر)",
+    "en": "Saaed (ticketing)"
+  },
+  "description": {
+    "ar": "بلاغات المستخدمين تُرسل إلى سعيد، ويعود رقم التذكرة وحالتها إلى إشعاراتهم.",
+    "en": "Users' reports go to Saaed, and the ticket number and status come back to their notifications."
+  },
+  "auth": {
+    "type": "bearer",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "create_ticket": {
+      "title": {
+        "ar": "إنشاء تذكرة",
+        "en": "Create a ticket"
+      },
+      "method": "POST",
+      "path": "/tickets",
+      "body": {
+        "format": "json",
+        "template": {
+          "reference": "{{ reference }}",
+          "subject": "{{ subject }}",
+          "description": "{{ description }}",
+          "category": "{{ category }}",
+          "priority": "{{ priority }}",
+          "page_url": "{{ page_url }}",
+          "context": "{{ context }}",
+          "reporter": {
+            "name": "{{ reporter.name }}",
+            "email": "{{ reporter.email }}",
+            "employee_no": "{{ reporter.employee_no }}"
+          },
+          "screenshot": "{{ screenshot }}"
+        }
+      },
+      "idempotency": {
+        "header": "Idempotency-Key"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "reference",
+          "subject",
+          "description"
+        ]
+      },
+      "success": [
+        200,
+        201,
+        202
+      ],
+      "response": {
+        "values": {
+          "ticket_no": [
+            "$.ticket_no",
+            "$.id"
+          ],
+          "status": [
+            "$.status"
+          ]
+        },
+        "error": "$.message"
+      }
+    },
+    "ticket_status": {
+      "title": {
+        "ar": "حالة تذكرة",
+        "en": "A ticket's status"
+      },
+      "method": "GET",
+      "safe": true,
+      "path": "/tickets/{{ ticket_no }}",
+      "response": {
+        "values": {
+          "ticket_no": [
+            "$.ticket_no",
+            "$.id"
+          ],
+          "status": [
+            "$.status"
+          ],
+          "comment": [
+            "$.comment"
+          ]
+        },
+        "error": "$.message"
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "New ticket: Saaed returns its number",
+      "operation": "create_ticket",
+      "params": {
+        "reference": "0b9d4c1e-1111-4a2b-9c3d-5e6f7a8b9c0d",
+        "subject": "The certificate does not open",
+        "description": "The certificate page stays blank",
+        "category": "bug",
+        "priority": "normal",
+        "page_url": "https://tedc.example/certificates",
+        "context": {
+          "role": "employee"
+        },
+        "reporter": {
+          "name": "Sara Al-Kuwari",
+          "email": "sara.kuwari@example.test",
+          "employee_no": "E-1001"
+        },
+        "screenshot": null
+      },
+      "fixture": "create_ticket.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/tickets",
+          "body": {
+            "subject": "The certificate does not open",
+            "reporter": {
+              "employee_no": "E-1001"
+            }
+          }
+        },
+        "values": {
+          "ticket_no": "SAEED-0001",
+          "status": "open"
+        }
+      }
+    },
+    {
+      "name": "New ticket: Saaed is down (the ticket waits)",
+      "operation": "create_ticket",
+      "params": {
+        "reference": "r",
+        "subject": "s",
+        "description": "d"
+      },
+      "fixture": "create_ticket.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Ticket status: resolved with a comment",
+      "operation": "ticket_status",
+      "params": {
+        "ticket_no": "SAEED-0001"
+      },
+      "fixture": "ticket_status.resolved",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/tickets/SAEED-0001"
+        },
+        "values": {
+          "status": "resolved",
+          "comment": "Fixed in the last update"
+        }
+      }
+    },
+    {
+      "name": "Ticket status: unknown number",
+      "operation": "ticket_status",
+      "params": {
+        "ticket_no": "SAEED-9999"
+      },
+      "fixture": "ticket_status.not_found",
+      "expect": {
+        "error": {
+          "code": "not_found"
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "ticket_api",
+      "group": "ministry_provides",
+      "ar": "مسار إنشاء التذكرة وشكل ردّها ومسار قراءة حالتها (أو webhook لتحديثاتها)",
+      "en": "The ticket creation path and its answer, and the status path (or a webhook for updates)"
+    },
+    {
+      "id": "categories",
+      "group": "ministry_provides",
+      "ar": "جدول مطابقة فئات البلاغات بفئات سعيد (يُدخل في إعداد category_map)",
+      "en": "The table matching report categories to Saaed's (entered in the category_map setting)"
+    },
+    {
+      "id": "attachments",
+      "group": "ministry_provides",
+      "ar": "حد حجم المرفقات وصيغها المقبولة",
+      "en": "The attachment size limit and accepted formats"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "ticket_roundtrip",
+      "group": "joint_tests",
+      "ar": "بلاغ تجريبي من البوابة يظهر في سعيد، وتغيير حالته يصل إلى المستخدم",
+      "en": "A test report from the portal appears in Saaed, and a status change reaches the user"
+    },
+    {
+      "id": "ticket_retry",
+      "group": "joint_tests",
+      "ar": "عند تعطل سعيد يبقى البلاغ في الانتظار ويُرسل لاحقًا دون تكرار",
+      "en": "When Saaed is down the report waits and is sent later, once"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ]
+}

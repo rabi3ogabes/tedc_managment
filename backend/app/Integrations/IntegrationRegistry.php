@@ -11,7 +11,16 @@ class IntegrationRegistry
     public static function all(): array
     {
         $fake = fn (string $k) => ['k' => $k, 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'];
-        $http = [['k' => 'base_url', 'type' => 'url'], ['k' => 'api_key', 'secret' => true], ['k' => 'health_path', 'default' => '/health'], ['k' => 'inbound_secret', 'secret' => true]];
+        // The way into a Ministry system is set by its contract (Contract tab). These are the settings each way can read; a field with "for_auth"
+        // only matters when the contract's authentication is one of those types.
+        $http = [
+            ['k' => 'base_url', 'type' => 'url'], ['k' => 'api_key', 'secret' => true], ['k' => 'health_path', 'default' => '/health'], ['k' => 'inbound_secret', 'secret' => true],
+            ['k' => 'auth_header', 'for_auth' => ['api_key'], 'hint' => 'The header (or parameter) the key travels in, when the contract leaves it to the settings'],
+            ['k' => 'username', 'for_auth' => ['basic']], ['k' => 'password', 'secret' => true, 'for_auth' => ['basic']],
+            ['k' => 'token_url', 'type' => 'url', 'for_auth' => ['oauth2'], 'hint' => 'The address that issues access tokens (client credentials)'], ['k' => 'client_id', 'for_auth' => ['oauth2']], ['k' => 'client_secret', 'secret' => true, 'for_auth' => ['oauth2']],
+            ['k' => 'signing_secret', 'secret' => true, 'for_auth' => ['hmac'], 'hint' => 'Signs every request'],
+            ['k' => 'client_certificate', 'secret' => true, 'type' => 'text', 'for_auth' => ['mtls'], 'hint' => 'PEM'], ['k' => 'client_key', 'secret' => true, 'type' => 'text', 'for_auth' => ['mtls'], 'hint' => 'PEM'],
+        ];
 
         return [
             'entra' => ['group' => 'identity', 'name' => ['ar' => 'مايكروسوفت Entra ID (الدخول الموحد)', 'en' => 'Microsoft Entra ID (single sign-on)'], 'drivers' => ['fake', 'oidc'], 'fields' => [

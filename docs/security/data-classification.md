@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 724 columns
-- Internal: 2014 columns
+- Public: 729 columns
+- Internal: 2027 columns
 - Confidential: 508 columns
 - Restricted: 23 columns
 
@@ -1575,6 +1575,34 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Public | — |
 | `legacy_need_id` | Internal | — |
 | `employees_count` | Internal | — |
+
+### `integration_checklist_items`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `integration_key` | Internal | — |
+| `item` | Internal | — |
+| `done_by` | Internal | — |
+| `done_at` | Internal | — |
+| `note` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `integration_contract_versions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `integration_key` | Internal | — |
+| `kind` | Internal | — |
+| `version` | Internal | — |
+| `document` | Internal | — |
+| `source` | Internal | — |
+| `restored_from` | Internal | — |
+| `note` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
 
 ### `integration_logs`
 

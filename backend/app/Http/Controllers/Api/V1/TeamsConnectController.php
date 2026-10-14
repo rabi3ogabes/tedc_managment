@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Integrations\IntegrationAudit;
 use App\Integrations\IntegrationManager;
 use App\Integrations\Teams\HttpGraph;
 use App\Integrations\Teams\TeamsActivityFeed;
-use App\Models\AuditLog;
-use App\Models\Integration;
 use App\Models\SsoState;
 use App\Support\Supabase;
 use Illuminate\Http\JsonResponse;
@@ -93,8 +92,7 @@ class TeamsConnectController extends Controller
             return $this->back('failed');
         }
         $this->hub->update('teams', ['settings' => ['organizer_refresh_token' => $refresh, 'organizer_account' => $account]]);
-        AuditLog::create(['user_id' => $row->nonce, 'action' => 'teams_organizer_connected', 'auditable_type' => Integration::class, 'auditable_id' => $this->hub->get('teams')->id,
-            'new_values' => ['account' => $account, 'scopes' => $scopes], 'ip_address' => $request->ip()]);
+        IntegrationAudit::record('teams', 'teams_organizer_connected', (string) $row->nonce, ['account' => $account, 'scopes' => $scopes], null, $request->ip());
 
         return $this->back('connected');
     }
@@ -102,7 +100,7 @@ class TeamsConnectController extends Controller
     public function disconnect(Request $request): JsonResponse
     {
         $this->hub->update('teams', ['settings' => ['organizer_account' => ''], 'clear' => ['organizer_refresh_token']]);
-        AuditLog::create(['user_id' => $request->user()->id, 'action' => 'teams_organizer_disconnected', 'auditable_type' => Integration::class, 'auditable_id' => $this->hub->get('teams')->id, 'ip_address' => $request->ip()]);
+        IntegrationAudit::record('teams', 'teams_organizer_disconnected', $request->user()->id, [], null, $request->ip());
 
         return response()->json(['data' => ['connected' => false]]);
     }

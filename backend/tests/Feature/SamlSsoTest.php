@@ -420,6 +420,7 @@ class SamlSsoTest extends TestCase
         $this->assertSame('https://idp.test/sso2', $s['idp_sso_url']);
         $this->assertSame('https://idp.test/slo2', $s['idp_slo_url']);
         $this->assertSame(1, AuditLog::where('action', 'saml_idp_metadata_refreshed')->count());
+        $this->assertSame('saml', AuditLog::where('action', 'saml_idp_metadata_refreshed')->first()->new_values['integration'], 'the entry says which system it is about');
 
         // Unchanged metadata changes nothing; another identity provider, unreadable XML or an error are refused and reported.
         $this->artisan('tedc:sso-metadata-refresh')->assertSuccessful();

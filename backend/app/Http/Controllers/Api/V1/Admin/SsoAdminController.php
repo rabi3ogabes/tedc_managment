@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Integrations\IntegrationAudit;
 use App\Integrations\IntegrationManager;
-use App\Models\AuditLog;
-use App\Models\Integration;
 use App\Security\Sso\SamlSp;
 use App\Security\Sso\SsoService;
 use Illuminate\Http\JsonResponse;
@@ -55,8 +54,8 @@ class SsoAdminController extends Controller
             $this->hub->update('saml', ['settings' => $stage === 'next' ? ['sp_next_private_key' => $pair['key'], 'sp_next_certificate' => $pair['cert']] : ['sp_private_key' => $pair['key'], 'sp_certificate' => $pair['cert']]]);
         }
         $s = $this->hub->settings('saml');
-        AuditLog::create(['user_id' => $request->user()->id, 'action' => 'saml_keys_'.$stage, 'auditable_type' => Integration::class, 'auditable_id' => $this->hub->get('saml')->id,
-            'new_values' => ['current' => SamlSp::describe($s['sp_certificate'] ?? null)['fingerprint'] ?? null, 'next' => SamlSp::describe($s['sp_next_certificate'] ?? null)['fingerprint'] ?? null], 'ip_address' => $request->ip()]);
+        IntegrationAudit::record('saml', 'saml_keys_'.$stage, $request->user()->id,
+            ['current' => SamlSp::describe($s['sp_certificate'] ?? null)['fingerprint'] ?? null, 'next' => SamlSp::describe($s['sp_next_certificate'] ?? null)['fingerprint'] ?? null], null, $request->ip());
 
         return response()->json(['data' => ['current' => SamlSp::describe($s['sp_certificate'] ?? null), 'next' => SamlSp::describe($s['sp_next_certificate'] ?? null)]]);
     }
@@ -79,8 +78,7 @@ class SsoAdminController extends Controller
         if ($request->boolean('apply')) {
             $this->hub->update('saml', ['settings' => array_filter(['idp_entity_id' => $m['entity_id'], 'idp_sso_url' => $m['sso_url'], 'idp_slo_url' => $m['slo_url'], 'idp_certificates' => $m['pem'],
                 'idp_metadata_url' => $d['url'] ?? null], fn ($v) => $v !== null)]);
-            AuditLog::create(['user_id' => $request->user()->id, 'action' => 'saml_idp_metadata_applied', 'auditable_type' => Integration::class, 'auditable_id' => $this->hub->get('saml')->id,
-                'new_values' => ['entity_id' => $m['entity_id'], 'certificates' => array_column($m['certificates'], 'fingerprint')], 'ip_address' => $request->ip()]);
+            IntegrationAudit::record('saml', 'saml_idp_metadata_applied', $request->user()->id, ['entity_id' => $m['entity_id'], 'certificates' => array_column($m['certificates'], 'fingerprint')], null, $request->ip());
         }
 
         return response()->json(['data' => $preview + ['applied' => $request->boolean('apply')]]);

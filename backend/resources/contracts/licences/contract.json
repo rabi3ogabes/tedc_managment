@@ -1,0 +1,324 @@
+{
+  "system": "licences",
+  "version": "1.0",
+  "title": {
+    "ar": "نظام الرخص المهنية",
+    "en": "Professional licences system"
+  },
+  "description": {
+    "ar": "مستويات الرخص المهنية وصلاحيتها من نظام الرخص، وإبلاغه بالشهادات الصادرة.",
+    "en": "Licence levels and validity from the licensing system, and the certificates issued reported to it."
+  },
+  "auth": {
+    "type": "bearer",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "fetch_licences": {
+      "title": {
+        "ar": "قائمة الرخص",
+        "en": "Licence list"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "licence",
+      "path": "/licences",
+      "query": {
+        "since?": "{{ since }}"
+      },
+      "response": {
+        "records": "$.data",
+        "error": "$.message"
+      },
+      "pagination": {
+        "type": "none"
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "licence_no"
+              ],
+              "properties": {
+                "licence_no": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "push_completions": {
+      "title": {
+        "ar": "إبلاغ الشهادات الصادرة",
+        "en": "Report issued certificates"
+      },
+      "method": "POST",
+      "path": "/completions",
+      "body": {
+        "format": "json",
+        "template": {
+          "items": {
+            "$each": "items",
+            "as": "c",
+            "template": {
+              "employee_no": "{{ c.employee_no }}",
+              "program_code": "{{ c.program_code }}",
+              "certificate_no": "{{ c.certificate_no }}",
+              "hours": "{{ c.hours }}",
+              "issued_at": "{{ c.issued_at }}"
+            }
+          }
+        }
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      },
+      "response": {
+        "values": {
+          "accepted": "$.accepted"
+        },
+        "error": "$.message"
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Licence list: one active, one expired",
+      "operation": "fetch_licences",
+      "fixture": "fetch_licences.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/licences"
+        },
+        "records": 2,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "licence_no": "LIC-2024-001",
+            "level_no": 2
+          },
+          "1": {
+            "status": "expired"
+          }
+        }
+      }
+    },
+    {
+      "name": "Licence list: the key is refused",
+      "operation": "fetch_licences",
+      "fixture": "fetch_licences.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised"
+        }
+      }
+    },
+    {
+      "name": "Certificates: the system accepts the batch",
+      "operation": "push_completions",
+      "params": {
+        "items": [
+          {
+            "employee_no": "E-1001",
+            "program_code": "PRG-100",
+            "certificate_no": "C-2026-000001",
+            "hours": 12.5,
+            "issued_at": "2026-10-01"
+          }
+        ]
+      },
+      "fixture": "push_completions.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/completions",
+          "body": {
+            "items": [
+              {
+                "employee_no": "E-1001",
+                "certificate_no": "C-2026-000001",
+                "hours": 12.5
+              }
+            ]
+          }
+        },
+        "values": {
+          "accepted": 1
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "licence_list",
+      "group": "ministry_provides",
+      "ar": "مسار قائمة الرخص وحقولها (رقم الرخصة، المستوى، تاريخا الإصدار والانتهاء، الحالة)",
+      "en": "The licence list path and fields (number, level, issue and expiry dates, status)"
+    },
+    {
+      "id": "completions",
+      "group": "ministry_provides",
+      "ar": "مسار استقبال الشهادات الصادرة وما يقبله من حقول",
+      "en": "The path that receives issued certificates and the fields it accepts"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "licence_sync",
+      "group": "joint_tests",
+      "ar": "مزامنة الرخص لعدد من الموظفين التجريبيين ومطابقة المستويات في TEDC",
+      "en": "A licence sync for a few test employees, levels matching in TEDC"
+    },
+    {
+      "id": "completion_push",
+      "group": "joint_tests",
+      "ar": "شهادة صادرة في TEDC تظهر في نظام الرخص",
+      "en": "A certificate issued in TEDC appears in the licensing system"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ]
+}

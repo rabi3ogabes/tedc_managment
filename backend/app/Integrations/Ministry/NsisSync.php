@@ -2,13 +2,14 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\IntegrationManager;
 use App\Models\Employee;
 
 /** NSIS: which grades and subjects each teacher teaches, for targeting. Only those two facts are stored — no student data is read. */
 class NsisSync
 {
-    public function __construct(private readonly IntegrationManager $hub) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly ContractGateway $contracts) {}
 
     /** @return array{updated: int, unmatched: int} */
     public function run(): array
@@ -18,7 +19,7 @@ class NsisSync
                 return (array) (is_string($s['fake_teachers'] ?? null) ? json_decode($s['fake_teachers'], true) : ($s['fake_teachers'] ?? []));
             }
 
-            return (array) ((new MinistryHttp($s))->get('/teachers')['data'] ?? []);
+            return $this->contracts->records('nsis', 'fetch_teacher_assignments', [], $s);
         });
         $out = ['updated' => 0, 'unmatched' => 0];
         foreach ($rows as $r) {

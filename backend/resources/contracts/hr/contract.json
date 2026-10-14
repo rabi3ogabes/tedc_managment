@@ -1,0 +1,418 @@
+{
+  "system": "hr",
+  "version": "1.0",
+  "title": {
+    "ar": "نظام الموارد البشرية",
+    "en": "HR system"
+  },
+  "description": {
+    "ar": "الموظفون ومعلوماتهم الوظيفية من نظام الموارد البشرية، وإرسال طلبات تعديل الملف الشخصي إليه.",
+    "en": "Employees and their job data from the HR system, and the routing of profile change requests to it."
+  },
+  "auth": {
+    "type": "bearer",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "fetch_employees": {
+      "title": {
+        "ar": "قائمة الموظفين",
+        "en": "Employee list"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "employee",
+      "path": "{{ settings.employees_path|default:/employees|raw }}",
+      "query": {
+        "since?": "{{ since }}"
+      },
+      "response": {
+        "records": "$.data",
+        "error": "$.message"
+      },
+      "pagination": {
+        "type": "none"
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "employee_no"
+              ],
+              "properties": {
+                "employee_no": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                },
+                "email": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "send_profile_change": {
+      "title": {
+        "ar": "إرسال طلب تعديل الملف الشخصي",
+        "en": "Send a profile change request"
+      },
+      "method": "POST",
+      "path": "/profile-changes",
+      "body": {
+        "format": "json",
+        "template": {
+          "reference": "{{ reference }}",
+          "employee_no": "{{ employee_no }}",
+          "requested_at": "{{ requested_at }}",
+          "approved_at": "{{ approved_at }}",
+          "changes": "{{ changes }}",
+          "note": "{{ note }}"
+        }
+      },
+      "idempotency": {
+        "header": "Idempotency-Key"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "reference",
+          "employee_no",
+          "changes"
+        ],
+        "properties": {
+          "changes": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      },
+      "success": [
+        200,
+        201,
+        202
+      ],
+      "response": {
+        "values": {
+          "hr_reference": [
+            "$.reference",
+            "$.id",
+            "$.request_no"
+          ],
+          "hr_status": [
+            "$.status"
+          ]
+        },
+        "error": "$.message"
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Employee list: three records, one has left",
+      "operation": "fetch_employees",
+      "fixture": "fetch_employees.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/employees"
+        },
+        "records": 3,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "employee_no": "E-1001",
+            "email": "sara.kuwari@example.test",
+            "job_title_code": "TEACHER"
+          },
+          "2": {
+            "status": "left"
+          }
+        }
+      }
+    },
+    {
+      "name": "Employee list: only the changes since a date",
+      "operation": "fetch_employees",
+      "params": {
+        "since": "2026-10-01T00:00:00+03:00"
+      },
+      "fixture": "fetch_employees.ok",
+      "expect": {
+        "request": {
+          "query": {
+            "since": "2026-10-01T00:00:00+03:00"
+          }
+        },
+        "records": 3
+      }
+    },
+    {
+      "name": "Employee list: the key is refused",
+      "operation": "fetch_employees",
+      "fixture": "fetch_employees.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Employee list: the HR system is down",
+      "operation": "fetch_employees",
+      "fixture": "fetch_employees.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Profile change: HR receives the request",
+      "operation": "send_profile_change",
+      "params": {
+        "reference": "REQ-2026-0001",
+        "employee_no": "E-1001",
+        "requested_at": "2026-10-12T09:00:00+03:00",
+        "approved_at": "2026-10-13T10:00:00+03:00",
+        "changes": [
+          {
+            "field": "job_title",
+            "from": "Teacher",
+            "to": "Senior teacher"
+          }
+        ],
+        "note": ""
+      },
+      "fixture": "send_profile_change.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/profile-changes",
+          "body": {
+            "reference": "REQ-2026-0001",
+            "employee_no": "E-1001"
+          }
+        },
+        "values": {
+          "hr_reference": "HR-REQ-77",
+          "hr_status": "received"
+        }
+      }
+    },
+    {
+      "name": "Profile change: HR refuses the request",
+      "operation": "send_profile_change",
+      "params": {
+        "reference": "REQ-2026-0002",
+        "employee_no": "E-1002",
+        "changes": [
+          {
+            "field": "qualification",
+            "from": "Bachelor",
+            "to": "PhD"
+          }
+        ]
+      },
+      "fixture": "send_profile_change.rejected",
+      "expect": {
+        "error": {
+          "code": "rejected"
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "employee_list",
+      "group": "ministry_provides",
+      "ar": "مسار قائمة الموظفين (كاملة وبالتغييرات منذ تاريخ) وحقولها وأكواد المسميات الوظيفية والمدارس والأقسام",
+      "en": "The employee list path (full, and changes since a date), its fields, and the job title, school and department codes"
+    },
+    {
+      "id": "change_request",
+      "group": "ministry_provides",
+      "ar": "مسار استقبال طلبات تعديل الملف الشخصي وشكل ردّ القبول والرفض",
+      "en": "The path that receives profile change requests and how acceptance and refusal come back"
+    },
+    {
+      "id": "callback",
+      "group": "ministry_provides",
+      "ar": "سر توقيع الردّ العائد (webhook) وطريقة التوقيع",
+      "en": "The signing secret of the answer that comes back (webhook) and how it is signed"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "full_sync",
+      "group": "joint_tests",
+      "ar": "مزامنة كاملة على بيانات تجريبية: عدد الموظفين المنشأ والمحدّث يطابق المتوقع",
+      "en": "A full sync on test data: the created and updated counts match what is expected"
+    },
+    {
+      "id": "delta_sync",
+      "group": "joint_tests",
+      "ar": "مزامنة التغييرات بعد تعديل موظف واحد في نظام الموارد البشرية",
+      "en": "A delta sync after one employee is changed in the HR system"
+    },
+    {
+      "id": "leaver",
+      "group": "joint_tests",
+      "ar": "موظف منتهي الخدمة يُعطَّل حسابه وتبقى سجلاته التدريبية",
+      "en": "A leaver's account is deactivated and their training records are kept"
+    },
+    {
+      "id": "profile_change",
+      "group": "joint_tests",
+      "ar": "طلب تعديل معتمد يصل إلى الموارد البشرية، ويعود القبول والرفض بتوقيع صحيح",
+      "en": "An approved change reaches HR, and acceptance and refusal come back correctly signed"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    },
+    {
+      "id": "hr_rollback",
+      "group": "rollback",
+      "ar": "إيقاف التكامل لا يحذف أي موظف؛ المنتهون يمكن إعادة تفعيلهم من ملف الموظف",
+      "en": "Switching the integration off deletes nobody; leavers can be reactivated from the employee file"
+    }
+  ]
+}

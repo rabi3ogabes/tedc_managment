@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "entities": {
+    "ticket": {
+      "fields": {
+        "ticket_no": {
+          "paths": [
+            "$.ticket_no",
+            "$.id"
+          ]
+        },
+        "status": "$.status",
+        "comment": "$.comment"
+      }
+    }
+  }
+}

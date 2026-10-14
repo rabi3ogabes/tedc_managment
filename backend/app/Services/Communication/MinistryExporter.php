@@ -2,13 +2,12 @@
 
 namespace App\Services\Communication;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Models\Announcement;
 use App\Models\MinistryExport;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\NotificationService;
-use App\Support\Supabase;
-use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /** Pushes news and events flagged for the Ministry website to its endpoint, with a few retries and a log; failures reach the administrators once. */
@@ -16,7 +15,7 @@ class MinistryExporter
 {
     private const RETRY_MINUTES = [15, 60, 360];
 
-    public function __construct(private readonly MinistrySiteSettings $settings, private readonly FeedBuilder $feeds, private readonly NotificationService $notifications) {}
+    public function __construct(private readonly MinistrySiteSettings $settings, private readonly FeedBuilder $feeds, private readonly NotificationService $notifications, private readonly ContractGateway $contracts) {}
 
     /** Puts an item in the queue; it goes out on the next run. */
     public function queue(Announcement $a): ?MinistryExport
@@ -76,15 +75,13 @@ class MinistryExporter
     /** null when the Ministry site accepted the item, else the reason. */
     public function push(Announcement $a): ?string
     {
-        $s = $this->settings->all();
         try {
-            $request = Http::withOptions(['verify' => Supabase::caBundle()])->timeout(20)->acceptJson();
-            if ($key = $this->settings->apiKey()) {
-                $request = $request->withHeaders([$s['auth_header'] ?: 'X-Api-Key' => $key]);
-            }
-            $response = $request->post($s['endpoint'], ['source' => $s['site_name'] ?: 'tedc', 'item' => $this->feeds->item($a)]);
+            $s = $this->contracts->settings('ministry_site');
+            parse_str((string) $s['publish_query'], $query);   // a query string on the intake address travels with every push
 
-            return $response->successful() ? null : 'HTTP '.$response->status().' '.mb_substr(strip_tags((string) $response->body()), 0, 160);
+            $this->contracts->call('ministry_site', 'publish_item', ['source' => $s['site_name'], 'item' => $this->feeds->item($a)], $s, ['query' => $query]);
+
+            return null;
         } catch (Throwable $e) {
             return mb_substr($e->getMessage(), 0, 240);
         }

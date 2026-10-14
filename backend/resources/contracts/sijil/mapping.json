@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "entities": {
+    "archive_receipt": {
+      "fields": {
+        "reference": {
+          "paths": [
+            "$.reference",
+            "$.id"
+          ]
+        }
+      }
+    }
+  }
+}

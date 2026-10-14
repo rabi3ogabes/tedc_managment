@@ -2,6 +2,7 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\IntegrationManager;
 use App\Models\ArchiveItem;
 use App\Models\Certificate;
@@ -14,7 +15,7 @@ use Throwable;
  */
 class SijilArchive
 {
-    public function __construct(private readonly IntegrationManager $hub, private readonly CertificateService $certificates) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly CertificateService $certificates, private readonly ContractGateway $contracts) {}
 
     /** Puts a certificate in the queue (called when it is issued). */
     public function queueCertificate(Certificate $c): ?ArchiveItem
@@ -63,7 +64,15 @@ class SijilArchive
         }
         $pdf = $this->certificates->pdf($c);
         $meta = ['type' => 'certificate', 'certificate_no' => $c->certificate_no, 'verification_code' => $c->verification_code, 'employee_no' => $c->employee?->employee_no, 'program_code' => $c->program?->code, 'program' => $c->program?->title_ar, 'hours' => (float) $c->hours, 'issued_at' => $c->issued_at?->toDateString()];
-        $res = $this->hub->call('sijil', 'archive_certificate', fn (array $s, $i) => $i->driver === 'fake' ? ['reference' => 'SIJIL-'.strtoupper(substr(md5($c->id), 0, 8))] : (new MinistryHttp($s))->post('/archive', ['metadata' => $meta, 'file' => ['name' => $c->certificate_no.'.pdf', 'mime' => 'application/pdf', 'content_base64' => base64_encode($pdf)]]), ['certificate' => $c->certificate_no]);
+        $res = $this->hub->call('sijil', 'archive_certificate', function (array $s, $i) use ($c, $meta, $pdf) {
+            if ($i->driver === 'fake') {
+                return ['reference' => 'SIJIL-'.strtoupper(substr(md5($c->id), 0, 8))];
+            }
+            $file = ['name' => $c->certificate_no.'.pdf', 'mime' => 'application/pdf', 'content_base64' => base64_encode($pdf)];
+
+            // Every attempt for this certificate carries the same key, so the archive can tell a retry from a second file.
+            return ['reference' => $this->contracts->call('sijil', 'archive_certificate', ['metadata' => $meta, 'file' => $file], $s, ['idempotency_key' => 'tedc-cert-'.$c->certificate_no])->value('reference')];
+        }, ['certificate' => $c->certificate_no]);
 
         return (string) ($res['reference'] ?? $res['id'] ?? '') ?: null;
     }

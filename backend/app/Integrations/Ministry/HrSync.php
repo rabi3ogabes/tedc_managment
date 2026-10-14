@@ -2,6 +2,7 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\EventBus;
 use App\Integrations\IntegrationManager;
 use App\Models\Department;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\DB;
  */
 class HrSync
 {
-    public function __construct(private readonly IntegrationManager $hub, private readonly EventBus $bus) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly EventBus $bus, private readonly ContractGateway $contracts) {}
 
     /** The HR system in use: Mawared when it is on, else the current system. */
     public function active(): ?string
@@ -38,12 +39,12 @@ class HrSync
     public function run(string $key = 'hr'): array
     {
         $since = $this->hub->get($key)->last_sync_at?->toIso8601String();
-        $rows = $this->hub->call($key, 'fetch_employees', function (array $s, $i) use ($since) {
+        $rows = $this->hub->call($key, 'fetch_employees', function (array $s, $i) use ($since, $key) {
             if ($i->driver === 'fake') {
                 return (array) (is_string($s['fake_employees'] ?? null) ? json_decode($s['fake_employees'], true) : ($s['fake_employees'] ?? []));
             }
 
-            return (array) ((new MinistryHttp($s))->get((string) ($s['employees_path'] ?? '/employees'), array_filter(['since' => $since]))['data'] ?? []);
+            return $this->contracts->records($key, 'fetch_employees', ['since' => $since], $s);   // the contract and mapping in force say where and how
         }, ['delta' => (bool) $since]);
 
         $policy = (string) ($this->hub->settings($key)['conflict_policy'] ?? 'hr_wins');

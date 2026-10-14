@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
+use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -1119,6 +1120,19 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:integrations.manage')->group(function () {
                 Route::post('integrations/{key}/check', [IntegrationsController::class, 'check'])->where('key', '[a-z_]+')->middleware('throttle:20,1');
                 Route::post('integrations/{key}/sync', [IntegrationsController::class, 'sync'])->where('key', '[a-z_]+')->middleware('throttle:6,1');
+            });
+            // Contract kit: the contract and mapping of a Ministry system (versioned, audited), its test cases and its go-live checklist.
+            Route::middleware('permission:integrations.manage')->where(['key' => '[a-z_]+', 'item' => '[a-z0-9_]+'])->group(function () {
+                Route::get('integrations/{key}/contract', [IntegrationContractController::class, 'show']);
+                Route::put('integrations/{key}/contract', [IntegrationContractController::class, 'save'])->middleware(['step_up', 'throttle:30,1']);
+                Route::get('integrations/{key}/contract/diff', [IntegrationContractController::class, 'diff']);
+                Route::post('integrations/{key}/contract/rollback', [IntegrationContractController::class, 'rollback'])->middleware(['step_up', 'throttle:30,1']);
+                Route::post('integrations/{key}/contract/reset', [IntegrationContractController::class, 'reset'])->middleware(['step_up', 'throttle:30,1']);
+                Route::post('integrations/{key}/contract/preview', [IntegrationContractController::class, 'preview'])->middleware('throttle:60,1');
+                Route::post('integrations/{key}/test-case', [IntegrationContractController::class, 'testCase'])->middleware('throttle:30,1');
+                Route::post('integrations/{key}/test-case/live', [IntegrationContractController::class, 'testCaseLive'])->middleware(['step_up', 'throttle:6,1']);
+                Route::get('integrations/{key}/checklist', [IntegrationContractController::class, 'checklist']);
+                Route::put('integrations/{key}/checklist/{item}', [IntegrationContractController::class, 'tick'])->middleware('throttle:60,1');
             });
             Route::middleware('permission:webhooks.manage')->group(function () {
                 Route::get('webhooks', [WebhooksController::class, 'index']);

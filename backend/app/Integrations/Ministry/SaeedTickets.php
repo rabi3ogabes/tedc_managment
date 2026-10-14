@@ -2,6 +2,7 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\IntegrationManager;
 use App\Models\SupportTicket;
 use App\Models\User;
@@ -18,7 +19,7 @@ class SaeedTickets
 {
     public const CATEGORIES = ['bug', 'access', 'data', 'request', 'other'];
 
-    public function __construct(private readonly IntegrationManager $hub, private readonly NotificationService $notifications, private readonly FileStorage $storage) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly NotificationService $notifications, private readonly FileStorage $storage, private readonly ContractGateway $contracts) {}
 
     /** @param  array{category: string, priority?: ?string, subject: string, description: string, page_url?: ?string, context?: ?array<string, mixed>}  $d */
     public function create(User $user, array $d, ?UploadedFile $screenshot = null): SupportTicket
@@ -52,7 +53,14 @@ class SaeedTickets
             'screenshot' => $t->screenshot_path ? $this->screenshot($t) : null,
         ];
         try {
-            $res = $this->hub->call('saaed', 'create_ticket', fn (array $s, $i) => $i->driver === 'fake' ? ['ticket_no' => 'SAEED-'.strtoupper(substr(md5($t->id), 0, 6)), 'status' => 'open'] : (new MinistryHttp($s))->post('/tickets', $payload), ['ticket' => $t->id, 'category' => $t->category]);
+            $res = $this->hub->call('saaed', 'create_ticket', function (array $s, $i) use ($t, $payload) {
+                if ($i->driver === 'fake') {
+                    return ['ticket_no' => 'SAEED-'.strtoupper(substr(md5($t->id), 0, 6)), 'status' => 'open'];
+                }
+                $r = $this->contracts->call('saaed', 'create_ticket', $payload, $s, ['idempotency_key' => 'tedc-ticket-'.$t->id]);   // every attempt for this report carries the same key
+
+                return ['ticket_no' => $r->value('ticket_no'), 'status' => $r->value('status')];
+            }, ['ticket' => $t->id, 'category' => $t->category]);
             $t->update(['saaed_ticket_no' => (string) ($res['ticket_no'] ?? $res['id'] ?? ''), 'saaed_status' => $res['status'] ?? 'open', 'status' => 'open', 'attempts' => $t->attempts + 1, 'last_error' => null, 'last_synced_at' => now()]);
             if ($user) {
                 $this->notifications->send($user, 'ticket.created', ['ar' => 'استلمنا بلاغك', 'en' => 'We received your report'], ['ar' => 'رقم التذكرة: '.$t->saaed_ticket_no, 'en' => 'Ticket number: '.$t->saaed_ticket_no], ['route' => '/support'], raw: true);
@@ -74,7 +82,11 @@ class SaeedTickets
         if ($this->hub->isReady('saaed') && $this->hub->get('saaed')->driver !== 'fake') {
             SupportTicket::whereIn('status', ['open', 'in_progress'])->whereNotNull('saaed_ticket_no')->where(fn ($q) => $q->whereNull('last_synced_at')->orWhere('last_synced_at', '<', now()->subMinutes(30)))->limit(30)->get()->each(function (SupportTicket $t) use (&$out) {
                 try {
-                    $r = $this->hub->call('saaed', 'ticket_status', fn (array $s) => (new MinistryHttp($s))->get('/tickets/'.rawurlencode((string) $t->saaed_ticket_no)), ['ticket' => $t->id], 0);
+                    $r = $this->hub->call('saaed', 'ticket_status', function (array $s) use ($t) {
+                        $answer = $this->contracts->call('saaed', 'ticket_status', ['ticket_no' => (string) $t->saaed_ticket_no], $s);
+
+                        return ['status' => $answer->value('status'), 'comment' => $answer->value('comment')];
+                    }, ['ticket' => $t->id], 0);
                     $this->setStatus($t, (string) ($r['status'] ?? ''), $r['comment'] ?? null);
                     $out['updated']++;
                 } catch (Throwable) {

@@ -2,6 +2,7 @@
 
 namespace App\Integrations\Ministry;
 
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\IntegrationManager;
 use App\Models\CareerPath;
 use App\Models\Certificate;
@@ -11,7 +12,7 @@ use App\Models\ProfessionalLicence;
 /** Professional licences: read levels and validity from the licensing system, and tell it which certificates (training completions) were issued. */
 class LicenceSync
 {
-    public function __construct(private readonly IntegrationManager $hub) {}
+    public function __construct(private readonly IntegrationManager $hub, private readonly ContractGateway $contracts) {}
 
     /** @return array{created: int, updated: int, unmatched: int, pushed: int} */
     public function run(): array
@@ -22,7 +23,7 @@ class LicenceSync
                 return (array) (is_string($s['fake_licences'] ?? null) ? json_decode($s['fake_licences'], true) : ($s['fake_licences'] ?? []));
             }
 
-            return (array) ((new MinistryHttp($s))->get('/licences', array_filter(['since' => $since]))['data'] ?? []);
+            return $this->contracts->records('licences', 'fetch_licences', ['since' => $since], $s);
         });
         $out = ['created' => 0, 'updated' => 0, 'unmatched' => 0, 'pushed' => 0];
         foreach ($rows as $row) {
@@ -87,7 +88,7 @@ class LicenceSync
         }
         $payload = $certs->map(fn ($c) => ['employee_no' => $c->employee?->employee_no, 'program_code' => $c->program?->code, 'certificate_no' => $c->certificate_no, 'hours' => (float) $c->hours, 'issued_at' => $c->issued_at?->toDateString()])->all();
         $this->hub->call('licences', 'push_completions', function (array $s, $integration) use ($payload) {
-            return $integration->driver === 'fake' ? ['accepted' => count($payload)] : (new MinistryHttp($s))->post('/completions', ['items' => $payload]);
+            return $integration->driver === 'fake' ? ['accepted' => count($payload)] : ($this->contracts->call('licences', 'push_completions', ['items' => $payload], $s)->json ?? []);
         }, ['items' => $certs->count()]);
         $settings = $i->settings();
         $settings['last_push_at'] = $certs->max('issued_at')?->toDateTimeString();

@@ -2,9 +2,8 @@
 
 namespace App\Security\Sso;
 
+use App\Integrations\IntegrationAudit;
 use App\Integrations\IntegrationManager;
-use App\Models\AuditLog;
-use App\Models\Integration;
 use App\Models\SsoReplay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -343,9 +342,9 @@ class SamlSp
             $changed = array_filter($new, fn ($v, $k) => (string) ($s[$k] ?? '') !== $v, ARRAY_FILTER_USE_BOTH);
             if ($changed !== []) {
                 $this->hub->update('saml', ['settings' => $new]);
-                AuditLog::create(['user_id' => null, 'action' => 'saml_idp_metadata_refreshed', 'auditable_type' => Integration::class, 'auditable_id' => $this->hub->get('saml')->id,
-                    'old_values' => ['certificates' => array_column(array_filter(array_map(fn ($c) => self::describe($c), self::certificates((string) ($s['idp_certificates'] ?? '')))), 'fingerprint')],
-                    'new_values' => ['changed' => array_keys($changed), 'certificates' => array_column($m['certificates'], 'fingerprint')]]);
+                IntegrationAudit::record('saml', 'saml_idp_metadata_refreshed', null,
+                    ['changed' => array_keys($changed), 'certificates' => array_column($m['certificates'], 'fingerprint')],
+                    ['certificates' => array_column(array_filter(array_map(fn ($c) => self::describe($c), self::certificates((string) ($s['idp_certificates'] ?? '')))), 'fingerprint')]);
                 $result['changed'] = true;
             }
         } catch (\Throwable $e) {

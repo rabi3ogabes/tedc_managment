@@ -2,6 +2,8 @@
 
 namespace App\Integrations;
 
+use App\Integrations\Contracts\ContractException;
+use App\Integrations\Contracts\ContractGateway;
 use App\Integrations\Identity\LdapDirectory;
 use App\Integrations\Teams\HttpGraph;
 use App\Models\Integration;
@@ -142,6 +144,9 @@ class IntegrationManager
                 $last = $e;
                 $ms = (int) round((microtime(true) - $t0) * 1000);
                 $this->log($key, 'out', $operation, 'error', $ms, $request, null, mb_substr($e->getMessage(), 0, 400), $corr);
+                if ($e instanceof ContractException && ! $e->retryable) {
+                    break;   // a refusal or a rejected request will not change by asking again
+                }
                 if ($attempt < $retries && ($backoff = (int) config('tedc.integrations.backoff_ms', 300)) > 0) {
                     usleep($backoff * 1000 * ($attempt + 1));
                 }
@@ -223,6 +228,10 @@ class IntegrationManager
         }
         if ($key === 'ldap') {
             return app(LdapDirectory::class)->ping($s) ? 'ok' : 'down';
+        }
+        $gateway = app(ContractGateway::class);
+        if ($gateway->canPing($key)) {
+            return $gateway->ping($key, $s);   // the contract says how to sign in and where to ask
         }
         $base = rtrim((string) ($s['base_url'] ?? ''), '/');
         if ($base === '') {

@@ -1,0 +1,307 @@
+{
+  "system": "qneds",
+  "version": "1.0",
+  "title": {
+    "ar": "النظام الوطني للبيانات التعليمية (QNEDS)",
+    "en": "Qatar National Educational Data System (QNEDS)"
+  },
+  "description": {
+    "ar": "مؤشرات التدريب المجمّعة لكل مدرسة: بلا أسماء ولا بيانات شخصية.",
+    "en": "Aggregated training indicators per school: no names, no personal data."
+  },
+  "auth": {
+    "type": "bearer",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "publish_indicators": {
+      "title": {
+        "ar": "نشر المؤشرات السنوية",
+        "en": "Publish the yearly indicators"
+      },
+      "method": "POST",
+      "path": "/indicators",
+      "body": {
+        "format": "json",
+        "template": {
+          "year": "{{ year }}",
+          "items": {
+            "$each": "items",
+            "as": "i",
+            "template": {
+              "school_code": "{{ i.school_code }}",
+              "year": "{{ i.year }}",
+              "trained_staff": "{{ i.trained_staff }}",
+              "completed_programs": "{{ i.completed_programs }}",
+              "training_hours": "{{ i.training_hours }}"
+            }
+          }
+        }
+      },
+      "idempotency": {
+        "header": "Idempotency-Key"
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "year",
+          "items"
+        ],
+        "properties": {
+          "year": {
+            "type": [
+              "integer",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array"
+          }
+        }
+      },
+      "response": {
+        "values": {
+          "accepted": "$.accepted"
+        },
+        "error": "$.message"
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Indicators: the system accepts two schools",
+      "operation": "publish_indicators",
+      "params": {
+        "year": 2026,
+        "items": [
+          {
+            "school_code": "S-001",
+            "year": 2026,
+            "trained_staff": 40,
+            "completed_programs": 55,
+            "training_hours": 312.5
+          },
+          {
+            "school_code": "S-002",
+            "year": 2026,
+            "trained_staff": 12,
+            "completed_programs": 12,
+            "training_hours": 80.0
+          }
+        ]
+      },
+      "fixture": "publish_indicators.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "path": "/indicators",
+          "body": {
+            "year": 2026,
+            "items": [
+              {
+                "school_code": "S-001",
+                "trained_staff": 40
+              }
+            ]
+          }
+        },
+        "values": {
+          "accepted": 2
+        }
+      }
+    },
+    {
+      "name": "Indicators: the data is rejected",
+      "operation": "publish_indicators",
+      "params": {
+        "year": 2026,
+        "items": [
+          {
+            "school_code": "S-001",
+            "year": 2026,
+            "trained_staff": 1,
+            "completed_programs": 1,
+            "training_hours": 1
+          }
+        ]
+      },
+      "fixture": "publish_indicators.rejected",
+      "expect": {
+        "error": {
+          "code": "rejected"
+        }
+      }
+    },
+    {
+      "name": "Indicators: the system is down",
+      "operation": "publish_indicators",
+      "params": {
+        "year": 2026,
+        "items": [
+          {
+            "school_code": "S-001",
+            "year": 2026,
+            "trained_staff": 1,
+            "completed_programs": 1,
+            "training_hours": 1
+          }
+        ]
+      },
+      "fixture": "publish_indicators.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "indicators",
+      "group": "ministry_provides",
+      "ar": "مسار استقبال المؤشرات وقائمة المؤشرات المطلوبة وصيغها ودوريتها",
+      "en": "The indicator intake path, the indicators required, their formats and how often"
+    },
+    {
+      "id": "school_codes",
+      "group": "ministry_provides",
+      "ar": "رموز المدارس المعتمدة (الرقم الوزاري) للمطابقة مع بيانات TEDC",
+      "en": "The school codes in use (the Ministry number), to match TEDC's"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "indicator_publish",
+      "group": "joint_tests",
+      "ar": "نشر مؤشرات سنة تجريبية ومطابقة الأرقام في QNEDS",
+      "en": "A test year published, the figures matching in QNEDS"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ]
+}
