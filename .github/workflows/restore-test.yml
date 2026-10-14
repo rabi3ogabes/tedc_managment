@@ -25,7 +25,7 @@ jobs:
             echo "::notice title=Restore test skipped::The Azure subscription is not connected yet (secrets AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID and variable PROD_PG_ID). See docs/rfp/closeout/26_AZURE_GO_LIVE_AND_RESILIENCE.md."
             echo "Skipped: the Azure subscription is not connected yet." >> "$GITHUB_STEP_SUMMARY"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.ready.outputs.ok == 'true'
       - uses: azure/login@v2
         if: steps.ready.outputs.ok == 'true'
