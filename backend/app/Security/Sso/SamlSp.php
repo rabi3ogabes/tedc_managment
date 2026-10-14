@@ -349,9 +349,11 @@ class SamlSp
      */
     public static function newKeyPair(): array
     {
-        $key = openssl_pkey_new(['private_key_bits' => 3072, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
-        $csr = openssl_csr_new(['commonName' => 'TEDC SAML'], $key, ['digest_alg' => 'sha256']);
-        $x509 = openssl_csr_sign($csr, null, $key, 5 * 365, ['digest_alg' => 'sha256'], random_int(1, PHP_INT_MAX));
+        // TEDC's own OpenSSL configuration: the host's would add its default subject fields (and differs between hosts).
+        $config = ['config' => resource_path('openssl/minimal.cnf'), 'digest_alg' => 'sha256'];
+        $key = openssl_pkey_new(['private_key_bits' => 3072, 'private_key_type' => OPENSSL_KEYTYPE_RSA] + $config);
+        $csr = openssl_csr_new(['commonName' => 'TEDC SAML'], $key, $config);
+        $x509 = openssl_csr_sign($csr, null, $key, 5 * 365, $config, random_int(1, PHP_INT_MAX));
         openssl_x509_export($x509, $cert);
         openssl_pkey_export($key, $pem);
 

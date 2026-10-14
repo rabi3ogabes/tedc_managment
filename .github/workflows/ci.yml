@@ -100,7 +100,9 @@ jobs:
           openssl req -newkey rsa:2048 -nodes -subj "/CN=localhost" -keyout server.key -out server.csr
           printf 'subjectAltName=DNS:localhost\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n' > server.ext
           openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 2 -extfile server.ext -out server.crt
-          openssl dhparam -dsaparam -out dhparam.pem 2048 2>/dev/null
+          # The RFC 7919 ffdhe2048 group, written as PKCS#3 ("-dsaparam" would write X9.42, which GnuTLS in the image cannot read).
+          openssl genpkey -genparam -algorithm DH -pkeyopt group:ffdhe2048 -out dhparam.pem || openssl dhparam -out dhparam.pem 2048
+          grep -q 'BEGIN DH PARAMETERS' dhparam.pem
           chmod 644 ca.crt server.crt server.key dhparam.pem
       - name: Start OpenLDAP and seed the test directory
         working-directory: ${{ runner.temp }}
@@ -108,7 +110,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ldap-utils > /dev/null
           admin=$(openssl rand -hex 16); user=$(openssl rand -hex 16)
           echo "::add-mask::$admin"; echo "::add-mask::$user"
-          printf '%s' "$admin" > admin.pw; printf '%s' "$user" > user.pw
+          printf '%s' "$admin" > admin.pw; printf '%s' "$user" > user.pw; chmod 600 admin.pw user.pw
           docker run -d --name ldap -p 389:389 -p 636:636 \
             -e LDAP_DOMAIN=tedc.test -e LDAP_ORGANISATION="TEDC CI" -e LDAP_ADMIN_PASSWORD="$admin" \
             -e LDAP_TLS=true -e LDAP_TLS_CRT_FILENAME=server.crt -e LDAP_TLS_KEY_FILENAME=server.key -e LDAP_TLS_CA_CRT_FILENAME=ca.crt \
@@ -116,6 +118,7 @@ jobs:
             -v "$PWD/ldap-certs:/container/service/slapd/assets/certs" osixia/openldap:1.5.0 --copy-service
           for i in $(seq 1 60); do
             ldapsearch -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -b dc=tedc,dc=test -s base > /dev/null 2>&1 && break
+            [ "$(docker inspect -f '{{.State.Running}}' ldap)" = true ] || { echo "The directory server stopped."; exit 1; }
             sleep 2
           done
           ldapadd -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -f "$GITHUB_WORKSPACE/backend/tests/Fixtures/ldap/seed.ldif"
