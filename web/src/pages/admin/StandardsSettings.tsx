@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import LtiPlatforms from '@/pages/admin/standards/LtiPlatforms'
+import ProvidersMarketplace from '@/pages/admin/providers/ProvidersMarketplace'
 import { Copy, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +9,6 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
-import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
 type Tab = 'lrs' | 'lti' | 'tool' | 'providers' | 'libraries'
@@ -25,7 +25,7 @@ export default function StandardsSettings() {
     <>
       <PageHeader title={t('content.standards.title')} />
       <Tabs<Tab> value={cur ?? 'lrs'} onChange={setTab} tabs={tabs} />
-      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'tool' ? <LtiPlatforms /> : cur === 'providers' ? <Providers /> : <Libraries />}</div>
+      <div className="mt-4">{cur === 'lrs' ? <Lrs /> : cur === 'lti' ? <Lti /> : cur === 'tool' ? <LtiPlatforms /> : cur === 'providers' ? <ProvidersMarketplace /> : <Libraries />}</div>
     </>
   )
 }
@@ -91,33 +91,6 @@ function Lti() {
           <div className="flex flex-wrap gap-4 text-sm sm:col-span-2"><label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.privacy?.share_name} onChange={(e) => setCur({ ...cur, privacy: { ...cur.privacy, share_name: e.target.checked } })} />{t('content.lti.shareName')}</label><label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.privacy?.share_email} onChange={(e) => setCur({ ...cur, privacy: { ...cur.privacy, share_email: e.target.checked } })} />{t('content.lti.shareEmail')}</label>{cur.version === '1.3' && <label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.supports_ags} onChange={(e) => setCur({ ...cur, supports_ags: e.target.checked })} />{t('content.lti.ags')}</label>}<label className="flex items-center gap-2"><input type="checkbox" checked={!!cur.is_active} onChange={(e) => setCur({ ...cur, is_active: e.target.checked })} />{t('content.lti.active')}</label></div>
           <div className="sm:col-span-2"><Button variant="gold" onClick={() => void save()}>{t('common.save')}</Button></div></div>}
       </Modal>
-    </div>
-  )
-}
-
-function Providers() {
-  const { t } = useTranslation()
-  const res = useGet<{ data: any }>('/admin/settings/content-providers', undefined, { staleTime: 0 })
-  const cat = useGet<{ data: any[] }>('/admin/external-courses', undefined, { staleTime: 0 })
-  const rev = useGet<{ data: any[] }>('/admin/external-completions', { status: 'pending' }, { staleTime: 0 })
-  const [s, setS] = useState<any>(null)
-  useEffect(() => { if (res.data) setS(res.data.data) }, [res.data])
-  if (!s) return <Spinner />
-  const set = (p: string, f: string, v: any) => setS({ ...s, [p]: { ...s[p], [f]: v } })
-  const save = async () => { try { await api.put('/admin/settings/content-providers', s); toast(t('content.standards.saved')) } catch (e) { toast(errorMessage(e), 'error') } }
-  const sync = async () => { try { const { data } = await api.post('/admin/content-providers/sync'); toast(String(t('content.providers.synced', data.data))); void cat.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  const make = async (id: string) => { try { await api.post(`/admin/external-courses/${id}/program`); toast(t('content.providers.programMade')); void cat.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  const decide = async (id: string, decision: string) => { const note = decision === 'approve' ? undefined : await dialogs.prompt(t('content.providers.note')) ?? ''; if (decision !== 'approve' && !note) return; try { await api.post(`/admin/external-completions/${id}/decision`, { decision, note }); void rev.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
-  return (
-    <div className="space-y-4">
-      {Object.keys(s).map((p) => (
-        <Card key={p} className="space-y-2"><div className="flex items-center gap-3"><b className="capitalize">{p.replace('_', ' ')}</b><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={s[p].enabled} onChange={(e) => set(p, 'enabled', e.target.checked)} />{t('content.standards.enabled')}</label></div>
-          {s[p].enabled && <div className="grid gap-3 sm:grid-cols-4"><Field label={t('content.providers.driver')}><select className={input} value={s[p].driver} onChange={(e) => set(p, 'driver', e.target.value)}><option value="rest">REST</option><option value="fake">Demo</option></select></Field><Field label={t('content.providers.base')}><input dir="ltr" className={input} value={s[p].base_url} onChange={(e) => set(p, 'base_url', e.target.value)} /></Field><Field label={t('content.standards.apiKey')}><input dir="ltr" type="password" className={input} value={s[p].api_key} onChange={(e) => set(p, 'api_key', e.target.value)} /></Field><Field label={t('content.providers.catalogue')}><input dir="ltr" className={input} value={s[p].catalogue_path} onChange={(e) => set(p, 'catalogue_path', e.target.value)} /></Field></div>}</Card>))}
-      <div className="flex gap-2"><Button variant="gold" onClick={() => void save()}>{t('content.standards.save')}</Button><Button variant="outline" onClick={() => void sync()}>{t('content.providers.sync')}</Button></div>
-      <h3 className="font-bold text-navy-900">{t('content.providers.catalogueTitle')}</h3>
-      {!cat.data?.data.length ? <Empty /> : cat.data.data.map((c) => <Card key={c.id} className="flex items-center gap-3"><Badge>{c.provider}</Badge><span className="flex-1">{c.title}</span><span className="text-xs text-slate-400">{c.hours} h</span>{c.program_id ? <Badge color="green">✓</Badge> : <Button size="sm" variant="outline" onClick={() => void make(c.id)}>{t('content.providers.makeProgram')}</Button>}</Card>)}
-      <h3 className="font-bold text-navy-900">{t('content.providers.reviews')}</h3>
-      {!rev.data?.data.length ? <Empty /> : rev.data.data.map((c) => <Card key={c.id} className="flex flex-wrap items-center gap-3"><div className="flex-1"><b>{c.employee_name}</b><div className="text-sm">{c.program}</div>{c.note && <div className="text-xs text-slate-500">{c.note}</div>}</div><Button size="sm" variant="gold" onClick={() => void decide(c.id, 'approve')}>{t('content.providers.approve')}</Button><Button size="sm" variant="ghost" onClick={() => void decide(c.id, 'reject')}>{t('content.providers.reject')}</Button></Card>)}
     </div>
   )
 }

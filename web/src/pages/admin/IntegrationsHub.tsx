@@ -140,7 +140,7 @@ export default function IntegrationsHub() {
     ...(can('webhooks.manage') ? [{ id: 'webhooks' as const, label: t('idn.hub.tabs.webhooks') }] : []),
   ]
   const items = list.data?.data ?? []
-  const groups = ['identity', 'collaboration', 'ministry']
+  const groups = ['identity', 'collaboration', 'ministry', 'providers']
   const syncable = ['hr', 'mawared', 'licences', 'nsis', 'qneds', 'sijil']
   return (
     <>
