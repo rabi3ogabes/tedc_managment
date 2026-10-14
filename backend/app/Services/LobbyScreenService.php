@@ -37,7 +37,7 @@ class LobbyScreenService
             'program' => ['code' => $x->program->code, 'title_ar' => $x->program->title_ar, 'title_en' => $x->program->title_en],
             'starts_at' => $x->starts_at->toIso8601String(), 'ends_at' => $x->ends_at->toIso8601String(),
             'state' => $x->ends_at->lt($now) ? 'ended' : ($x->starts_at->lte($now) ? 'live' : 'upcoming'),
-            'mode' => $x->mode, 'platform' => $x->online_platform,
+            'mode' => $x->mode, 'platform' => $x->online_platform === 'teams_townhall' ? 'teams' : $x->online_platform,   // a town hall is Teams to a visitor
             'room' => $x->room ? ['code' => $x->room->code, 'name_ar' => $x->room->name_ar, 'name_en' => $x->room->name_en, 'floor' => $x->room->floor, 'building' => $x->room->building] : null,
             'coordinator' => $x->program->coordinator ? ['name_ar' => $x->program->coordinator->name_ar ?: $x->program->coordinator->name, 'name_en' => $x->program->coordinator->name] : null,
             'attendees' => (int) ($attending[$x->program_id] ?? 0),

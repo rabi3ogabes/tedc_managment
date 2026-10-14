@@ -117,5 +117,18 @@
   "OfflineLearningTest.php",
   "RoomScreenTest.php",
   "ThrottlePerRouteTest.php"
+ ],
+ "22": [
+  "FacePresenceTest.php",
+  "FeatureSamplesTest.php"
+ ],
+ "23": [
+  "IdentitySecurityTest.php",
+  "LdapDirectoryIntegrationTest.php",
+  "LdapFilterTest.php",
+  "MobileSsoExchangeTest.php",
+  "SamlSsoTest.php",
+  "TeamsActivityFeedTest.php",
+  "TeamsTownhallTest.php"
  ]
 }

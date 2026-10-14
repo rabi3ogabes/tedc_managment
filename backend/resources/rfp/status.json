@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 240,
-        "partial": 38,
+        "available": 241,
+        "partial": 37,
         "missing": 0,
         "mandatory": 108,
-        "open": 38
+        "open": 37
     },
     "phases": [
         {
@@ -103,7 +103,7 @@
             "phase": 13,
             "title": "Integrations & Enterprise Identity",
             "open": 12,
-            "items": 5,
+            "items": 4,
             "done": 0
         },
         {
@@ -2259,16 +2259,16 @@
                     "mandatory": true,
                     "requirement": "Single sign-on and IAM integration",
                     "status": "partial",
-                    "evidence": "OpenID Connect single sign-on with Microsoft Entra ID (PKCE, strict token validation, just-in-time accounts, group-to-role mapping with scopes, single logout, break-glass), tested against a mock IdP. SAML 2.0 is not built natively and mobile SSO is not wired; needs the Ministry tenant and app registration (Phase 13).",
+                    "evidence": "**Ready — waiting for:** the Ministry's Entra ID tenant (app registration) or its identity provider's metadata, and a real sign-in test. Built in Phase 23 and tested against test identity providers: OpenID Connect and SAML 2.0 on the web (the signed assertion is the one used, audience, recipient, destination, time within 3 minutes, request id, replay register, encrypted assertions, signed single logout both ways, signing-key rollover, daily metadata refresh with certificate expiry warnings), single sign-on in the app (system browser, PKCE, a one-time code bound to the app's verifier, only the registered address accepted), a test sign-in that shows the claims, the account and the roles without signing anyone in, safe account linking (domain or verified e-mail only) and a mandatory switch for staff with the super administrator's break-glass sign-in. Go-live checklist: docs/rfp/phase-23-identity-and-microsoft-365.md; guide: docs/security/identity-methods.md.",
                     "phase": 13
                 },
                 {
                     "id": "NFR-08",
                     "mandatory": true,
                     "requirement": "Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP",
-                    "status": "partial",
-                    "evidence": "LDAP / Active Directory bind-and-search (TLS required) and TOTP, e-mail and SMS one-time codes with recovery codes. Kerberos, certificates and smart-card/FIDO2 are provided by the identity provider (documented, not coded); LDAP needs PHP's ldap extension on the host (Phase 13).",
-                    "phase": 13
+                    "status": "available",
+                    "evidence": "LDAP / Active Directory verified against OpenLDAP in CI (job `backend-ldap`, LDAPS and STARTTLS with a CA made by the job): bind-and-search, wrong password, disabled account, nested groups mapped to roles, plain LDAP and untrusted or misnamed certificates refused, injection-safe filters, timeout. The ldap extension is in the image (the image scan stayed clean). TOTP, e-mail and SMS codes with recovery codes since Phase 13. Kerberos, certificates and smart cards, FIDO2, and mutual TLS for partner systems are written up in docs/security/identity-methods.md (Arabic and English): what the Ministry configures for each and how TEDC receives the result. The Ministry's own Active Directory connection is a go-live checklist item. Phase 23.",
+                    "phase": null
                 },
                 {
                     "id": "NFR-09",
@@ -2474,7 +2474,7 @@
                     "mandatory": true,
                     "requirement": "Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming",
                     "status": "partial",
-                    "evidence": "Meetings, attendance by duration, Team per group with membership sync, channel files and Forms results import (CSV export). Live events are link-only and Teams activity-feed notifications are not wired (Phase 13).",
+                    "evidence": "**Ready — waiting for:** the Ministry's tenant, admin consent for the Graph permissions listed in the Teams card, connecting the organiser account, and uploading the Teams app. Meetings, attendance by duration, a Team per group with membership sync, channel files and Forms results import since Phase 13; Phase 23 adds **town halls** (Graph virtualEvents, created through the connected organiser account, published, invited from the registrations, attendance by the same duration rules, taken down when the session leaves Teams), the **Teams activity-feed channel** (notification rules, opt-outs, deep link, retries that never block other channels) and the downloadable **Teams app package** (manifest 1.29 validated against Microsoft's schema). Tested with Graph fakes; not seen in a real tenant.",
                     "phase": 13
                 },
                 {
@@ -2787,5 +2787,5 @@
             "notes": "Open: AI-05 (partial); AI-01, AI-02, AI-03, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-13T23:53:05+03:00"
+    "generated_at": "2026-10-14T12:51:03+03:00"
 }

@@ -7,6 +7,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 **Progress:** Phase 20 done on 13 October 2026 — NDS-08, RPT-03 and RPT-11 are now Available (register: 236 available, 42 partial, 0 missing).
 **Progress:** Phase 21 done on 13 October 2026 — TYP-12, AI-03 ★ and TEC-08 ★ are now Available; AI-05 ★ is Ready, waiting for the in-country model endpoint and a golden-set run against it (register: 239 available, 39 partial, 0 missing).
 **Progress:** Phase 22 done on 13 October 2026 — EXM-10 ★ is now Available as face presence detection (never recognition); mandatory item 27 is available (register: 240 available, 38 partial, 0 missing).
+**Progress:** Phase 23 done on 14 October 2026 — NFR-08 ★ is now Available (LDAP proven against OpenLDAP in CI; the identity-methods guide covers Kerberos, certificates, FIDO2 and partner mutual TLS); NFR-07 ★ is Ready, waiting for the Ministry's tenant or identity provider metadata and a real sign-in test (SAML 2.0, OpenID Connect and single sign-on in the app are built and tested with test identity providers); TEC-12 ★ is Ready, waiting for the Ministry's tenant, admin consent, the organiser account and uploading the Teams app (town halls, the activity-feed channel and the app package are built and tested with Graph fakes) (register: 241 available, 37 partial, 0 missing).
 
 **Who unblocks:** *We build it* = software only · *Your decision* = needs your yes/no · *Ministry input* = credentials, specifications or files from the Ministry · *Azure / real run* = needs the Azure subscription or a real test run · *Centre workshops & sign-off* = needs the training centre.
 
@@ -18,7 +19,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 | 20 ✅ | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 — done 13 Oct | 0 |
 | 21 ✅ | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★ (Ready), TEC-08 ★ — done 13 Oct | 3 |
 | 22 ✅ | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ — done 13 Oct | 1 |
-| 23 | [23_IDENTITY_AND_MICROSOFT_365.md](23_IDENTITY_AND_MICROSOFT_365.md) | NFR-07 ★, NFR-08 ★, TEC-12 ★ | 3 |
+| 23 ✅ | [23_IDENTITY_AND_MICROSOFT_365.md](23_IDENTITY_AND_MICROSOFT_365.md) | NFR-07 ★ (Ready), NFR-08 ★, TEC-12 ★ (Ready) — done 14 Oct | 3 |
 | 24 | [24_MINISTRY_SYSTEMS_AND_PROVIDERS.md](24_MINISTRY_SYSTEMS_AND_PROVIDERS.md) | UX-03, TYP-14, CAR-05, ATT-05, CNT-05, NTF-03 ★, UTR-03, PAY-02, TEC-07 ★, TEC-13 ★ | 3 |
 | 25 | [25_SECURITY_ENGINEERING_AND_PERFORMANCE.md](25_SECURITY_ENGINEERING_AND_PERFORMANCE.md) | NFR-15 ★, NFR-16 ★, NFR-17 ★, NFR-18 ★, TEC-02 ★, TEC-03 ★ | 6 |
 | 26 | [26_AZURE_GO_LIVE_AND_RESILIENCE.md](26_AZURE_GO_LIVE_AND_RESILIENCE.md) | NFR-01 ★, NFR-02 ★, NFR-03 ★, NFR-19 ★, NFR-20 ★, TEC-01 ★, TEC-05 ★, TEC-16 ★ | 8 |

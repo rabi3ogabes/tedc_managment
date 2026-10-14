@@ -71,6 +71,16 @@ class LobbyScreenTest extends TestCase
         $this->asUser($this->admin)->getJson("/api/v1/admin/programs/{$program->id}")->assertJsonPath('data.coordinator.id', $this->admin->id);
     }
 
+    public function test_an_online_session_shows_its_platform_by_a_name_a_visitor_can_read(): void
+    {
+        $program = $this->makeProgram(['status' => Program::STATUS_IN_PROGRESS]);
+        $today = now(config('app.timezone'))->startOfDay();
+        $program->sessions()->create(['title_ar' => 'لقاء', 'title_en' => 'Town hall', 'starts_at' => $today->copy()->setTime(8, 0), 'ends_at' => $today->copy()->setTime(13, 0), 'mode' => 'online', 'online_platform' => 'teams_townhall']);
+
+        $token = $this->asUser($this->admin)->getJson('/api/v1/admin/settings/lobby-screen')->json('data.token');
+        $this->assertSame('teams', $this->screen($token)->assertOk()->json('data.programs.0.platform'), 'a Teams town hall is "Teams" on the screen, not the stored identifier');
+    }
+
     public function test_images_become_slides_with_their_own_time_and_transition_in_the_order_chosen(): void
     {
         $up = fn (string $name) => $this->asUser($this->admin)->post('/api/v1/admin/settings/lobby-screen/slides', ['image' => UploadedFile::fake()->image($name, 1080, 1920), 'title' => $name], ['Accept' => 'application/json']);
