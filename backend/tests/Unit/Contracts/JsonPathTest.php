@@ -37,11 +37,28 @@ class JsonPathTest extends TestCase
         $this->assertSame([1], JsonPath::all($this->doc, '$.data[0].id'), 'a path without a wildcard yields at most one value');
     }
 
+    public function test_an_equality_filter_keeps_the_elements_whose_key_has_that_text(): void
+    {
+        $doc = ['activities' => [
+            ['engagementType' => 'VIEWS', 'engagementValue' => 3],
+            ['engagementType' => 'COMPLETIONS', 'engagementValue' => 1, 'lastEngagedAt' => 1760261400000],
+            ['engagementType' => 'COMPLETIONS', 'engagementValue' => 0, 'lastEngagedAt' => 5],
+        ]];
+        $this->assertSame([1760261400000, 5], JsonPath::all($doc, "$.activities[?(@.engagementType=='COMPLETIONS')].lastEngagedAt"));
+        $this->assertSame([1, 0], JsonPath::all($doc, '$.activities[?(@.engagementType=="COMPLETIONS")].engagementValue'), 'double quotes work too');
+        $this->assertSame(1760261400000, JsonPath::get($doc, "$.activities[?(@.engagementType=='COMPLETIONS')].lastEngagedAt"), 'without a wildcard the first match is the value');
+        $this->assertSame([], JsonPath::all($doc, "$.activities[?(@.engagementType=='SECONDS_VIEWED')].engagementValue"));
+        $this->assertSame([], JsonPath::all(['activities' => 'text'], "$.activities[?(@.engagementType=='COMPLETIONS')]"), 'a filter over something that is not a list finds nothing');
+        $this->assertCount(2, JsonPath::all($doc, "$.activities[?(@.engagementType=='COMPLETIONS')]"));
+    }
+
     public function test_only_the_safe_subset_is_accepted(): void
     {
         $this->assertTrue(JsonPath::valid('$.a.b[0].c[*].d'));
         $this->assertTrue(JsonPath::valid("$['a b']['c']"));
-        foreach (['a.b', '$..a', '$.a[?(@.x==1)]', '$.a[1:3]', '$.a[(@.length-1)]', '$.a[0,1]', '$.a.', '', '$.a[x]'] as $bad) {
+        $this->assertTrue(JsonPath::valid("$.a[?(@.kind=='done')].at"));
+        foreach (['a.b', '$..a', '$.a[?(@.x==1)]', '$.a[1:3]', '$.a[(@.length-1)]', '$.a[0,1]', '$.a.', '', '$.a[x]',
+            "$.a[?(@.k=='v' && @.j=='w')]", "$.a[?(@['k']=='v')]", "$.a[?(@.k=~'v')]", "$.a[?(@.k!='v')]", "$.a[?(@.k=='it\\'s')]", "$.a[?(@.k=='v')", "$.a[?(@.k=='')]x", '$.a[?(@.k==$x)]'] as $bad) {
             $this->assertFalse(JsonPath::valid($bad), $bad);
         }
     }

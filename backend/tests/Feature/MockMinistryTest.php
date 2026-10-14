@@ -75,6 +75,56 @@ class MockMinistryTest extends TestCase
         $this->assertSame(401, $this->standIn('ministry_site')->respond('POST', '/', [], [], '{}')['status']);
     }
 
+    /** @return array<string, mixed> a small system that signs in with OAuth2 client credentials (as the learning providers do) */
+    private function oauthDirectory(array $auth): string
+    {
+        $dir = sys_get_temp_dir().'/mock-oauth-'.bin2hex(random_bytes(4));
+        mkdir($dir.'/fixtures', 0777, true);
+        file_put_contents($dir.'/contract.json', json_encode(['system' => 'prov', 'version' => '1.0', 'auth' => $auth + ['type' => 'oauth2', 'client_id_setting' => 'client_id', 'client_secret_setting' => 'client_secret'],
+            'operations' => ['list' => ['method' => 'GET', 'path' => '/api/orgs/{{ settings.org_id }}/items', 'safe' => true, 'response' => ['records' => '$.elements']]]]));
+        file_put_contents($dir.'/mapping.json', '{}');
+        file_put_contents($dir.'/fixtures/list.ok.json', json_encode(['status' => 200, 'body' => ['elements' => [['id' => 1]]]]));
+
+        return $dir;
+    }
+
+    public function test_a_path_with_a_setting_that_is_not_given_matches_any_value(): void
+    {
+        $m = MockMinistry::fromDirectory($this->oauthDirectory(['token_path' => '/oauth2/token']), 'prov');
+        $this->assertSame(200, $m->respond('GET', '/api/orgs/ANY-ORG/items', [], ['authorization' => 'Bearer t'], '')['status']);
+        $given = $m->withSettings(['org_id' => 'ORG-1']);
+        $this->assertSame(200, $given->respond('GET', '/api/orgs/ORG-1/items', [], ['authorization' => 'Bearer t'], '')['status']);
+        $this->assertSame(404, $given->respond('GET', '/api/orgs/ORG-2/items', [], ['authorization' => 'Bearer t'], '')['status'], 'a setting that is given is the address');
+    }
+
+    public function test_it_issues_a_token_where_the_contract_says_and_wants_the_client_in_the_way_the_contract_says(): void
+    {
+        $m = MockMinistry::fromDirectory($this->oauthDirectory(['token_path' => '/oauth2/access_token', 'client_auth' => 'basic', 'token_params' => ['token_type' => 'jwt'], 'header_scheme' => 'JWT']), 'prov');
+        $basic = ['authorization' => 'Basic '.base64_encode('id:secret'), 'content-type' => 'application/x-www-form-urlencoded'];
+        $ok = $m->respond('POST', '/oauth2/access_token', [], $basic, 'grant_type=client_credentials&token_type=jwt');
+        $this->assertSame(200, $ok['status']);
+        $this->assertSame('JWT', json_decode($ok['body'], true)['token_type']);
+        $this->assertNotSame('', json_decode($ok['body'], true)['access_token']);
+        $this->assertSame(401, $m->respond('POST', '/oauth2/access_token', [], ['content-type' => 'application/x-www-form-urlencoded'], 'grant_type=client_credentials&client_id=id&client_secret=secret')['status'], 'this contract wants the client in the header');
+        $this->assertSame(400, $m->respond('POST', '/oauth2/access_token', [], $basic, 'grant_type=password')['status'], 'only client credentials');
+        $this->assertSame(401, $this->ask($m, '/api/orgs/O/items', ['authorization' => 'Bearer t'])['status'], 'the scheme the contract names is the one it accepts');
+        $this->assertSame(200, $this->ask($m, '/api/orgs/O/items', ['authorization' => 'JWT t'])['status']);
+
+        $form = MockMinistry::fromDirectory($this->oauthDirectory(['token_path' => '/oauth2/token']), 'prov');
+        $this->assertSame(200, $form->respond('POST', '/oauth2/token', [], ['content-type' => 'application/x-www-form-urlencoded'], 'grant_type=client_credentials&client_id=id&client_secret=secret')['status']);
+        $this->assertSame(401, $form->respond('POST', '/oauth2/token', [], ['content-type' => 'application/x-www-form-urlencoded'], 'grant_type=client_credentials')['status'], 'no client, no token');
+        $this->assertSame('Bearer', json_decode($form->respond('POST', '/oauth2/token', [], [], 'grant_type=client_credentials&client_id=id&client_secret=secret')['body'], true)['token_type']);
+    }
+
+    public function test_the_address_of_the_token_service_is_known_to_the_mock(): void
+    {
+        $fixed = MockMinistry::fromDirectory($this->oauthDirectory(['token_url' => 'https://auth.provider.test/oauth2/client_credentials/token', 'client_auth' => 'basic']), 'prov');
+        $this->assertSame('https://auth.provider.test/oauth2/client_credentials/token', $fixed->tokenUrl('https://sys.test/ent'), 'a token service of its own, beside the system');
+        $relative = MockMinistry::fromDirectory($this->oauthDirectory(['token_path' => '/oauth2/access_token']), 'prov');
+        $this->assertSame('https://sys.test/ent/oauth2/access_token', $relative->tokenUrl('https://sys.test/ent'), 'a token path is under the system\'s own address');
+        $this->assertNull($this->standIn('hr')->tokenUrl('https://sys.test/api'), 'a system that does not sign in with a token has none');
+    }
+
     public function test_the_mock_never_echoes_what_it_was_sent(): void
     {
         $res = $this->standIn('hr', 'ok', 'secret-key')->respond('GET', '/employees', [], ['authorization' => 'Bearer wrong-key-123'], '');

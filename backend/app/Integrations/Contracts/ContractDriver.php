@@ -25,6 +25,12 @@ final class ContractDriver
     /** @var list<string> temporary key files to remove */
     private array $tempFiles = [];
 
+    /** Whether the token the current call used was asked for during it (a token that was just issued and is refused is not asked for again). */
+    private bool $tokenWasFetched = false;
+
+    /** The next token is asked for even if one is kept (the system refused the kept one). */
+    private bool $renewToken = false;
+
     /**
      * @param  array<string, mixed>  $settings  the integration's settings (secrets included: they only ever go to the auth scheme)
      * @param  list<string>  $secretSettings  the names of the settings that are secrets
@@ -81,13 +87,16 @@ final class ContractDriver
     {
         $op = $this->contract->operation($operation);
         $this->throttle($operation, $op);
+        if (isset($op['idempotency']['header'])) {
+            $options['idempotency_key'] ??= (string) Str::uuid();   // one key for the call and for the send that follows a renewed token
+        }
         try {
-            $request = $this->request($operation, $params, $options);
-            $pending = Http::withOptions($this->clientOptions())->timeout((int) ($op['timeout'] ?? 20))->withHeaders($request->headers);
-            if ($request->body !== null) {
-                $pending = $pending->withBody($request->body, $request->contentType);
+            $this->tokenWasFetched = false;
+            $response = $this->send($operation, $op, $params, $options);
+            if ($response->status() === 401 && ($this->contract->auth()['type'] ?? '') === 'oauth2' && ! $this->tokenWasFetched) {
+                $this->renewToken = true;   // the token that was kept is refused (revoked, or expired early): one new token, the same request
+                $response = $this->send($operation, $op, $params, $options);
             }
-            $response = $pending->send($request->method, $request->url);
         } catch (ConnectionException $e) {
             $timedOut = preg_match('/timed? ?out|error 28/i', $e->getMessage()) === 1;
 
@@ -97,6 +106,18 @@ final class ContractDriver
         }
 
         return $this->read($op, $response);
+    }
+
+    /** @param  array<string, mixed>  $op @param  array<string, mixed>  $params @param  array<string, mixed>  $options */
+    private function send(string $operation, array $op, array $params, array $options): Response
+    {
+        $request = $this->request($operation, $params, $options);
+        $pending = Http::withOptions($this->clientOptions())->timeout((int) ($op['timeout'] ?? 20))->withHeaders($request->headers);
+        if ($request->body !== null) {
+            $pending = $pending->withBody($request->body, $request->contentType);
+        }
+
+        return $pending->send($request->method, $request->url);
     }
 
     /**
@@ -205,6 +226,9 @@ final class ContractDriver
     {
         $base = rtrim(trim((string) ($this->settings['base_url'] ?? '')), '/');
         if ($base === '') {
+            $base = $this->addressFromName();   // an address the administrator sets wins; otherwise the contract's own, made from a name
+        }
+        if ($base === '') {
             throw new ContractException('not_configured', 'The system address is not set.');
         }
         $parts = parse_url($base);
@@ -219,6 +243,31 @@ final class ContractDriver
     }
 
     /**
+     * The address a contract makes from a name (a tenant's subdomain): the scheme and the domain are the contract's, the name is one plain
+     * DNS label that also has to match the contract's pattern, so it cannot add a dot, a path, a port or a user name.
+     */
+    private function addressFromName(): string
+    {
+        $spec = $this->contract->document()['base_url'] ?? null;
+        if (! is_array($spec) || ! is_string($spec['pattern'] ?? null)) {
+            return '';
+        }
+        $url = $spec['pattern'];
+        foreach ((array) ($spec['variables'] ?? []) as $name => $regex) {
+            $value = is_scalar($this->settings[$name] ?? null) ? (string) $this->settings[$name] : '';
+            if ($value === '') {
+                throw new ContractException('not_configured', 'The system address is not set: "'.$name.'" is missing.');
+            }
+            if (! preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/D', $value) || ! preg_match('/'.str_replace('/', '\\/', (string) $regex).'/D', $value)) {   // D: "$" is the very end, not "before a final newline"
+                throw new ContractException('not_configured', 'The '.$name.' "'.mb_substr($value, 0, 40).'" cannot make a system address.');
+            }
+            $url = str_replace('{'.$name.'}', $value, $url);
+        }
+
+        return $url;
+    }
+
+    /**
      * The finished path, checked once more whatever the template did: it must stay a plain path under the system's own address (a value
      * or a setting that adds a host, a query, a fragment or a "." / ".." segment is refused).
      *
@@ -229,6 +278,10 @@ final class ContractDriver
         $path = Template::render($template, $context, 'url');
         if (! preg_match('#^/[A-Za-z0-9_\-.~/%:,]*$#', $path) || str_starts_with($path, '//') || preg_match('#(^|/)\.\.?(/|$)#', $path)) {
             throw new ContractException('bad_path', 'The path of this operation does not stay on the system\'s own address: '.mb_substr($path, 0, 60));
+        }
+
+        if (str_contains($path, '//')) {
+            throw new ContractException('not_configured', 'The address of this operation is incomplete: a setting it needs is empty ('.mb_substr($path, 0, 80).').');
         }
 
         return $path;
@@ -319,7 +372,7 @@ final class ContractDriver
                 $maskedHeaders[] = 'Authorization';
                 break;
             case 'oauth2':
-                $headers['Authorization'] = 'Bearer '.($preview ? '•••' : $this->token($auth));
+                $headers['Authorization'] = (string) ($auth['header_scheme'] ?? 'Bearer').' '.($preview ? '•••' : $this->token($auth));
                 $maskedHeaders[] = 'Authorization';
                 break;
             case 'hmac':
@@ -354,30 +407,66 @@ final class ContractDriver
         return $name;
     }
 
-    /** A client-credentials token, kept until a minute before it expires. */
+    /** A client-credentials token, kept until a minute before the system says it expires. */
     private function token(array $auth): string
     {
-        $url = $this->secret((string) $auth['token_url_setting']);
-        $id = $this->secret((string) $auth['client_id_setting']);
-        $secret = $this->secret((string) $auth['client_secret_setting']);
+        $renew = $this->renewToken;
+        $this->renewToken = false;
+        $id = $this->secret((string) ($auth['client_id_setting'] ?? ''));
+        $secret = $this->secret((string) ($auth['client_secret_setting'] ?? ''));
+        $url = $this->tokenUrl($auth);
         if ($url === '' || $id === '' || $secret === '') {
             throw new ContractException('not_configured', 'The token address, client id and client secret are not all set.');
         }
+        if (! str_starts_with($url, 'https://') && app()->isProduction()) {
+            throw new ContractException('insecure_address', 'The token address must use https in production.');
+        }
+        $key = 'contract.token.'.md5($this->system.'|'.$url.'|'.$id);
+        if ($renew) {
+            Cache::forget($key);
+        }
+        $kept = Cache::get($key);
+        if (is_string($kept) && $kept !== '') {
+            $this->tokenWasFetched = false;
 
-        return Cache::remember('contract.token.'.md5($this->system.'|'.$url.'|'.$id), 3000, function () use ($auth, $url, $id, $secret) {
-            try {
-                $r = Http::withOptions(['verify' => Supabase::caBundle()])->timeout(15)->asForm()->post($url, array_filter([
-                    'grant_type' => 'client_credentials', 'client_id' => $id, 'client_secret' => $secret, 'scope' => $auth['scope'] ?? null, 'audience' => $auth['audience'] ?? null,
-                ]));
-            } catch (Throwable $e) {
-                throw new ContractException('unreachable', 'The token service could not be reached: '.$this->scrub(mb_substr($e->getMessage(), 0, 120)), 0, true);
-            }
-            if (! $r->successful() || ! $r->json('access_token')) {
-                throw new ContractException('unauthorised', 'The token service refused the client credentials (HTTP '.$r->status().').', $r->status());
-            }
+            return $kept;
+        }
 
-            return (string) $r->json('access_token');
-        });
+        $form = array_filter(['grant_type' => 'client_credentials', 'scope' => $auth['scope'] ?? null, 'audience' => $auth['audience'] ?? null] + (array) ($auth['token_params'] ?? []), fn ($v) => $v !== null && $v !== '');
+        $client = Http::withOptions(['verify' => Supabase::caBundle()])->timeout(15)->asForm();
+        if (($auth['client_auth'] ?? 'body') === 'basic') {
+            $client = $client->withBasicAuth($id, $secret);   // the client signs in with the Authorization header, not the form
+        } else {
+            $form += ['client_id' => $id, 'client_secret' => $secret];
+        }
+        try {
+            $r = $client->post($url, $form);
+        } catch (Throwable $e) {
+            throw new ContractException('unreachable', 'The token service could not be reached: '.$this->scrub(mb_substr($e->getMessage(), 0, 120)), 0, true);
+        }
+        if (! $r->successful() || ! is_string($r->json('access_token')) || $r->json('access_token') === '') {
+            throw new ContractException('unauthorised', 'The token service refused the client credentials (HTTP '.$r->status().').', $r->status());
+        }
+        $token = (string) $r->json('access_token');
+        $seconds = is_numeric($r->json('expires_in')) && (int) $r->json('expires_in') > 0 ? (int) $r->json('expires_in') : 3000;
+        Cache::put($key, $token, max(30, min(3600, $seconds - 60)));   // a minute early, and never longer than an hour
+        $this->tokenWasFetched = true;
+
+        return $token;
+    }
+
+    /** Where the token is asked for: a setting that holds the address (it wins, so a mock or a proxy can stand in), the contract's own address, or a path on the system's own address. */
+    private function tokenUrl(array $auth): string
+    {
+        $fromSetting = isset($auth['token_url_setting']) ? trim($this->secret((string) $auth['token_url_setting'])) : '';
+        if ($fromSetting !== '') {
+            return $fromSetting;
+        }
+        if (! empty($auth['token_url'])) {
+            return (string) $auth['token_url'];
+        }
+
+        return ! empty($auth['token_path']) ? $this->baseUrl().$auth['token_path'] : '';
     }
 
     private function tempFile(string $content): string
@@ -413,8 +502,7 @@ final class ContractDriver
         $result = new ContractResponse($status, is_array($json) ? $json : null, (string) $response->body(), $op);
         if ($ok) {
             if (! $this->accepted($op, $result)) {
-                $theirs = isset($op['response']['error']) ? JsonPath::get($result->json, $op['response']['error']) : null;
-                $detail = is_scalar($theirs) ? trim(strip_tags((string) $theirs)) : '';
+                $detail = $this->theirWords($op, $result);
 
                 throw new ContractException('rejected', $this->scrub('The system answered but did not accept the request (HTTP '.$status.')'.($detail !== '' ? ': '.mb_substr($detail, 0, 160) : '')), $status, false);
             }
@@ -423,11 +511,24 @@ final class ContractDriver
         }
         $table = $this->contract->errorFor($op, $status);
         $code = (string) ($table['code'] ?? self::builtInCode($status));
-        $theirs = isset($op['response']['error']) ? JsonPath::get($result->json, $op['response']['error']) : null;
         $text = $table['message']['en'] ?? self::builtInText($status);
-        $detail = is_scalar($theirs) ? trim(strip_tags((string) $theirs)) : '';
+        $detail = $this->theirWords($op, $result);
 
         throw new ContractException($code, $this->scrub($text.' (HTTP '.$status.')'.($detail !== '' ? ': '.mb_substr($detail, 0, 160) : '')), $status, (bool) ($table['retryable'] ?? ($status === 429 || $status >= 500)));
+    }
+
+    /** What the system itself says about a failure: the first of the paths the contract names ("error" is one path or a few to try in order) that holds a text, shortened and without markup. */
+    private function theirWords(array $op, ContractResponse $result): string
+    {
+        $paths = (array) ($op['response']['error'] ?? []);
+        foreach ($paths as $path) {
+            $found = is_string($path) ? JsonPath::get($result->json, $path) : null;
+            if (is_scalar($found) && trim(strip_tags((string) $found)) !== '') {
+                return trim(strip_tags((string) $found));
+            }
+        }
+
+        return '';
     }
 
     /** Whether the answer meets the operation's success rule(s): some systems answer 200 and say in the body that they did not take it. */

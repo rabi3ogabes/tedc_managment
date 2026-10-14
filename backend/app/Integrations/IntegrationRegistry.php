@@ -28,6 +28,21 @@ class IntegrationRegistry
             ['k' => 'hr_mastered_fields', 'type' => 'json', 'default' => ['name_ar', 'name_en', 'job_title', 'grade_level', 'qualification', 'specialization', 'hire_date', 'experience_years'], 'hint' => 'What HR masters while it wins: read-only in TEDC, changed through HR. Keys: name_ar, name_en, job_title, school, department, grade_level, education_stage, qualification, specialization, hire_date, experience_years'],
         ];
 
+        // Learning providers (TYP-14, TEC-13): what every one of them needs beside the way it signs in, which its contract sets.
+        $learning = [
+            ['k' => 'completions_lookback_days', 'type' => 'number', 'default' => 7, 'hint' => 'How many days back each nightly check looks for completions (a provider\'s reports can arrive late)',
+                'doc' => ['ar' => 'كم يومًا إلى الوراء يبحث الفحص الليلي عن الإتمام (قد تتأخر تقارير المزوّد).', 'en' => 'How many days back each nightly check looks for completions (a provider\'s reports can arrive late).']],
+            ['k' => 'default_hours', 'type' => 'number', 'hint' => 'Hours counted for a course when the provider states no duration',
+                'doc' => ['ar' => 'الساعات المحتسبة لدورة لا يذكر المزوّد مدتها.', 'en' => 'The hours counted for a course when the provider states no duration.']],
+            ['k' => 'fake_catalogue', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'], ['k' => 'fake_completions', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
+        ];
+        $clientPair = [
+            ['k' => 'client_id', 'required' => true, 'doc' => ['ar' => 'معرّف العميل (مفتاح التطبيق) الذي يمنحه المزوّد.', 'en' => 'The client id (the app key) the provider gives.']],
+            ['k' => 'client_secret', 'secret' => true, 'required' => true, 'doc' => ['ar' => 'سرّ العميل الذي يمنحه المزوّد.', 'en' => 'The client secret the provider gives.']],
+        ];
+        $tokenOverride = ['k' => 'token_url', 'type' => 'url', 'hint' => 'Only to point at a mock or a proxy; empty uses the provider\'s own token service',
+            'doc' => ['ar' => 'لا يُستعمل إلا للإشارة إلى محاكٍ أو وسيط؛ إن تُرك فارغًا استُخدمت خدمة الرموز لدى المزوّد.', 'en' => 'Only to point at a mock or a proxy; empty uses the provider\'s own token service.']];
+
         return [
             'entra' => ['group' => 'identity', 'name' => ['ar' => 'مايكروسوفت Entra ID (الدخول الموحد)', 'en' => 'Microsoft Entra ID (single sign-on)'], 'drivers' => ['fake', 'oidc'], 'fields' => [
                 ['k' => 'tenant_id'], ['k' => 'client_id'], ['k' => 'client_secret', 'secret' => true], ['k' => 'redirect_uri', 'type' => 'url'], ['k' => 'scopes', 'default' => 'openid profile email'],
@@ -76,6 +91,31 @@ class IntegrationRegistry
             'moe_epay' => ['group' => 'ministry', 'name' => ['ar' => 'بوابة الدفع الإلكتروني للوزارة', 'en' => 'Ministry e-payment gateway'], 'drivers' => ['fake', 'http'], 'fields' => [['k' => 'base_url', 'type' => 'url'], ['k' => 'merchant_id'], ['k' => 'secret', 'secret' => true, 'hint' => 'The shared secret that signs requests and callbacks (HMAC)'], ['k' => 'health_path', 'default' => '/health'],
                 ['k' => 'private_key', 'secret' => true, 'type' => 'text', 'hint' => 'RSA: TEDC\'s private key (PEM) that signs requests; the Ministry holds the public half'],
                 ['k' => 'callback_key', 'type' => 'text', 'hint' => 'RSA: the Ministry\'s public key (PEM) that checks the gateway\'s callbacks']]],
+            'coursera' => ['group' => 'providers', 'name' => ['ar' => 'كورسيرا للأعمال (Coursera for Business)', 'en' => 'Coursera for Business'], 'drivers' => ['fake', 'http'], 'fields' => array_merge([
+                ['k' => 'base_url', 'type' => 'url', 'default' => 'https://api.coursera.com/ent', 'doc' => ['ar' => 'عنوان منصة واجهات كورسيرا (الافتراضي صحيح).', 'en' => 'The address of Coursera\'s API platform (the default is right).']],
+                ['k' => 'org_id', 'required' => true, 'doc' => ['ar' => 'معرّف المنظمة كما يظهر أعلى صفحة إعدادات المسؤول في كورسيرا.', 'en' => 'The organization id, shown at the top of the organization\'s admin settings page at Coursera.']],
+                ...$clientPair, $tokenOverride,
+            ], $learning)],
+            'udemy' => ['group' => 'providers', 'name' => ['ar' => 'يوديمي للأعمال (Udemy Business)', 'en' => 'Udemy Business'], 'drivers' => ['fake', 'http'], 'fields' => array_merge([
+                ['k' => 'subdomain', 'required' => true, 'unless' => 'base_url', 'hint' => 'The first part of your Udemy Business address: acme for https://acme.udemy.com', 'doc' => ['ar' => 'الجزء الأول من عنوان موقعكم: acme في https://acme.udemy.com.', 'en' => 'The first part of your Udemy Business address: acme for https://acme.udemy.com.']],
+                ['k' => 'organization_id', 'required' => true, 'hint' => 'The numeric Account ID under API documentation', 'doc' => ['ar' => 'المعرّف الرقمي للحساب (Account ID) في إعدادات الواجهة البرمجية.', 'en' => 'The numeric Account ID, in the API settings.']],
+                ...$clientPair,
+                ['k' => 'base_url', 'type' => 'url', 'hint' => 'Only for a mock or a proxy; empty means https://<subdomain>.udemy.com', 'doc' => ['ar' => 'لا يُستعمل إلا لمحاكٍ أو وسيط؛ إن تُرك فارغًا استُخدم https://<subdomain>.udemy.com.', 'en' => 'Only for a mock or a proxy; empty means https://<subdomain>.udemy.com.']],
+            ], $learning)],
+            'linkedin_learning' => ['group' => 'providers', 'name' => ['ar' => 'لينكدإن ليرنينغ (LinkedIn Learning)', 'en' => 'LinkedIn Learning'], 'drivers' => ['fake', 'http'], 'fields' => array_merge([
+                ['k' => 'base_url', 'type' => 'url', 'default' => 'https://api.linkedin.com/v2', 'doc' => ['ar' => 'عنوان واجهة LinkedIn (الافتراضي صحيح).', 'en' => 'The address of LinkedIn\'s API (the default is right).']],
+                ...$clientPair, $tokenOverride,
+                ['k' => 'locale_language', 'hint' => 'Catalogue language: de en es fr in it ja ko pl pt tr zh (empty: what the licence gives)', 'doc' => ['ar' => 'لغة الكتالوج: de en es fr in it ja ko pl pt tr zh (فارغ: ما يمنحه الترخيص). لا توجد دورات بالعربية.', 'en' => 'Catalogue language: de en es fr in it ja ko pl pt tr zh (empty: what the licence gives). There are no Arabic courses.']],
+                ['k' => 'locale_country', 'hint' => 'Catalogue country, such as US', 'doc' => ['ar' => 'بلد الكتالوج، مثل US.', 'en' => 'Catalogue country, such as US.']],
+            ], $learning)],
+            'edx' => ['group' => 'providers', 'name' => ['ar' => 'منصة Open edX', 'en' => 'Open edX'], 'drivers' => ['fake', 'http'], 'fields' => array_merge([
+                ['k' => 'base_url', 'type' => 'url', 'required' => true, 'hint' => 'The address of your Open edX platform (the LMS)', 'doc' => ['ar' => 'عنوان منصة Open edX (LMS) كما يراه المتعلمون.', 'en' => 'The address of your Open edX platform (the LMS) as learners see it.']],
+                ...$clientPair,
+                ['k' => 'username', 'required' => true, 'hint' => 'The Open edX service account whose visible courses are listed', 'doc' => ['ar' => 'اسم حساب الخدمة في Open edX الذي تُسرد الدورات التي يراها.', 'en' => 'The Open edX service account whose visible courses are listed.']],
+                ['k' => 'org', 'hint' => 'Only the courses of this organization (optional)', 'doc' => ['ar' => 'دورات هذه المنظمة فقط (اختياري).', 'en' => 'Only the courses of this organization (optional).']],
+                ['k' => 'username_source', 'default' => 'employee_no', 'options' => ['employee_no', 'email', 'email_local'], 'hint' => 'What an employee\'s username on the platform is: the employee number, the e-mail address, or the part before the @', 'doc' => ['ar' => 'ما هو اسم مستخدم الموظف في المنصة: الرقم الوظيفي أو البريد الإلكتروني أو الجزء الذي يسبق @.', 'en' => 'What an employee\'s username on the platform is: the employee number, the e-mail address, or the part before the @.']],
+                $tokenOverride,
+            ], $learning)],
             'ministry_site' => ['group' => 'ministry', 'name' => ['ar' => 'موقع الوزارة', 'en' => 'Ministry website'], 'drivers' => ['http'], 'fields' => [], 'managed_elsewhere' => 'Communication → Ministry website'],
             'hudhud' => ['group' => 'ministry', 'name' => ['ar' => 'هدهد (الرسائل النصية)', 'en' => 'Hudhud (SMS)'], 'drivers' => ['http'], 'fields' => [], 'managed_elsewhere' => 'Settings → Notification channels'],
         ];

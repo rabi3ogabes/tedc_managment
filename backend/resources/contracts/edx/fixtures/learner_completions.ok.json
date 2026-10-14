@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "body": [
+    {
+      "username": "E-1001",
+      "course_id": "course-v1:MOE+TEACH101+2026",
+      "course_display_name": "Classroom Management",
+      "course_organization": "MOE",
+      "certificate_type": "verified",
+      "created_date": "2026-10-12T09:30:00Z",
+      "modified_date": "2026-10-12T09:30:00Z",
+      "status": "downloadable",
+      "is_passing": true,
+      "download_url": "https://lms.example.test/certificates/39896153",
+      "grade": "0.92",
+      "uuid": "0b8e3f0a-4641-4c1e-9d0f-1a2b3c4d5e6f"
+    },
+    {
+      "username": "E-1001",
+      "course_id": "course-v1:MOE+OLD001+2025",
+      "course_display_name": "A Course TEDC Does Not Offer",
+      "course_organization": "MOE",
+      "certificate_type": "verified",
+      "created_date": "2026-06-02T07:00:00Z",
+      "modified_date": "2026-06-02T07:00:00Z",
+      "status": "downloadable",
+      "is_passing": true,
+      "download_url": "https://lms.example.test/certificates/29302592",
+      "grade": "0.81",
+      "uuid": "0b8e3f0a-1662-4c1e-9d0f-1a2b3c4d5e6f"
+    }
+  ]
+}

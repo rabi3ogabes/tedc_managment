@@ -3,106 +3,70 @@
 namespace App\Services\Library;
 
 use App\Exceptions\BusinessRuleException;
+use App\Integrations\IntegrationManager;
+use App\Integrations\IntegrationRegistry;
 use App\Models\Employee;
 use App\Models\ExternalCompletion;
+use App\Models\ExternalCompletionIssue;
 use App\Models\ExternalCourse;
 use App\Models\Program;
 use App\Models\Registration;
-use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\CertificateService;
 use App\Services\EvaluationService;
+use App\Services\Library\Providers\ProviderNormaliser;
+use App\Services\Library\Providers\ProviderSync;
 use App\Services\NotificationService;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
- * Courses on other platforms. Providers (Coursera for Business, edX, Udemy Business, LinkedIn Learning) are reached through a
- * generic REST adapter configured in Settings, plus a `fake` driver for development; programs on other platforms (I-earn,
- * cyber-security platforms …) are completed by evidence the centre reviews. Either way a completion counts hours in the record.
+ * Courses on other platforms. The providers (Coursera for Business, Udemy Business, LinkedIn Learning, Open edX) are reached through their
+ * contracts in the integration hub, each following the provider's own published API; the training mode gives sample courses. Programs on
+ * other platforms (I-earn, cyber-security platforms …) are completed by evidence the centre reviews. Either way a completion counts hours in the record.
  */
 class ExternalLearningService
 {
     public const PROVIDERS = ['coursera', 'edx', 'udemy', 'linkedin_learning'];
 
+    /** What happened to a completion a provider reported. */
+    public const COMPLETED = 'completed';
+
+    public const ALREADY_COMPLETED = 'already_completed';
+
+    public const NOT_COMPLETED = 'not_completed';
+
+    public const UNKNOWN_COURSE = 'unknown_course';       // not a course TEDC offers: the provider reports everything its account does
+
+    public const NO_PROGRAMME = 'course_without_programme';
+
     public function __construct(private readonly CertificateService $certificates, private readonly EvaluationService $evaluations, private readonly NotificationService $notifications) {}
 
-    /** @return array<string, array<string, mixed>> */
-    public function config(): array
+    /**
+     * Reads the providers that are switched on (the catalogue, then the completions; with $catalogue false, only the completions). One failing never stops another.
+     *
+     * @return array{courses: int, completed: int, errors: list<string>, providers: array<string, array<string, mixed>>}
+     */
+    public function sync(?string $only = null, bool $full = false, string $trigger = 'schedule', ?User $by = null, bool $catalogue = true): array
     {
-        $base = array_fill_keys(self::PROVIDERS, ['enabled' => false, 'driver' => 'rest', 'base_url' => '', 'api_key' => '', 'catalogue_path' => '/catalogue', 'completions_path' => '/completions']);
-
-        return array_replace_recursive($base, SiteSetting::find('content_providers')?->value ?? []);
+        return app(ProviderSync::class)->run($only, $full, $trigger, $by, $catalogue);
     }
 
-    public function update(array $in, ?User $by = null): array
+    /** The settings a provider cannot work without that are not filled in yet. @return list<string> */
+    public function missing(string $provider): array
     {
-        $cur = $this->config();
-        foreach (self::PROVIDERS as $p) {
-            foreach (['enabled', 'driver', 'base_url', 'api_key', 'catalogue_path', 'completions_path'] as $f) {
-                if (isset($in[$p]) && array_key_exists($f, $in[$p]) && $in[$p][$f] !== '••••••••') {
-                    $cur[$p][$f] = $f === 'enabled' ? (bool) $in[$p][$f] : (string) $in[$p][$f];
-                }
-            }
-        }
-        SiteSetting::updateOrCreate(['key' => 'content_providers'], ['value' => $cur, 'updated_by' => $by?->id]);
-
-        return $this->masked();
-    }
-
-    public function masked(): array
-    {
-        $c = $this->config();
-        foreach ($c as $k => $v) {
-            $c[$k]['api_key'] = $v['api_key'] !== '' ? '••••••••' : '';
-        }
-
-        return $c;
-    }
-
-    /** @return list<array<string, mixed>> the provider's courses: id, title, url, hours */
-    private function fetchCatalogue(string $provider, array $c): array
-    {
-        if ($c['driver'] === 'fake') {
-            return [['id' => $provider.'-101', 'title' => ucfirst($provider).' course 101', 'url' => "https://{$provider}.example/c/101", 'hours' => 6], ['id' => $provider.'-102', 'title' => ucfirst($provider).' course 102', 'url' => "https://{$provider}.example/c/102", 'hours' => 10]];
-        }
-
-        return Http::timeout(15)->acceptJson()->withToken($c['api_key'])->get(rtrim($c['base_url'], '/').$c['catalogue_path'])->throw()->json('courses') ?? [];
-    }
-
-    /** @return list<array<string, mixed>> completions: course_id, employee_no | email, completed_at, hours? */
-    private function fetchCompletions(string $provider, array $c): array
-    {
-        if ($c['driver'] === 'fake') {
-            return $c['fake_completions'] ?? [];
-        }
-
-        return Http::timeout(15)->acceptJson()->withToken($c['api_key'])->get(rtrim($c['base_url'], '/').$c['completions_path'], ['since' => now()->subDays(7)->toDateString()])->throw()->json('completions') ?? [];
-    }
-
-    /** Nightly: refresh the catalogue and read completions. @return array{courses: int, completed: int, errors: list<string>} */
-    public function sync(): array
-    {
-        $courses = $completed = 0;
-        $errors = [];
-        foreach ($this->config() as $provider => $c) {
-            if (! $c['enabled']) {
+        $settings = app(IntegrationManager::class)->settings($provider);
+        $missing = [];
+        foreach ((array) (IntegrationRegistry::all()[$provider]['fields'] ?? []) as $field) {
+            if (empty($field['required']) || filled($settings[$field['k']] ?? null)) {
                 continue;
             }
-            try {
-                foreach ($this->fetchCatalogue($provider, $c) as $row) {
-                    ExternalCourse::updateOrCreate(['provider' => $provider, 'external_id' => (string) $row['id']], ['title' => (string) $row['title'], 'url' => (string) $row['url'], 'hours' => (int) ($row['hours'] ?? 0), 'meta' => $row, 'synced_at' => now()]);
-                    $courses++;
-                }
-                foreach ($this->fetchCompletions($provider, $c) as $done) {
-                    $completed += (int) $this->completeFromProvider($provider, $done);
-                }
-            } catch (\Throwable $e) {
-                $errors[] = "{$provider}: ".Str::limit($e->getMessage(), 160, '');
+            if (isset($field['unless']) && filled($settings[$field['unless']] ?? null)) {
+                continue;   // an address set by hand stands in for the name it would be made from
             }
+            $missing[] = $field['k'];
         }
 
-        return compact('courses', 'completed', 'errors');
+        return $missing;
     }
 
     /** Creates a program from an external course (type external platform) so trainees can register in TEDC and be sent to the provider. */
@@ -133,19 +97,57 @@ class ExternalLearningService
     /** A provider reports a completion: the registration completes and the hours count. */
     public function completeFromProvider(string $provider, array $done): bool
     {
-        $course = ExternalCourse::where('provider', $provider)->where('external_id', (string) ($done['course_id'] ?? ''))->first();
-        if (! $course?->program_id) {
-            return false;
+        return $this->applyCompletion($provider, $done) === self::COMPLETED;
+    }
+
+    /**
+     * What a completion a provider reported does in TEDC: the person is found by employee number, else by e-mail; the registration in the
+     * programme made from that course completes and its certificate counts the hours. Says what happened (a constant of this class, or
+     * unknown_employee / not_registered when the person or the registration is missing).
+     *
+     * @param  array<string, mixed>  $row  a completion in TEDC's field names (course_id, employee_no, email, completed, completed_at)
+     */
+    public function applyCompletion(string $provider, array $row): string
+    {
+        $done = ProviderNormaliser::completion($row);
+        if (! $done['completed']) {
+            return self::NOT_COMPLETED;
         }
-        $employee = Employee::when(! empty($done['employee_no']), fn ($q) => $q->where('employee_no', $done['employee_no']), fn ($q) => $q->whereHas('user', fn ($u) => $u->where('email', $done['email'] ?? '-')))->first();
-        $r = $employee ? Registration::where('program_id', $course->program_id)->where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->first() : null;
-        if (! $r || $r->certificates()->exists()) {
-            return false;
+        $course = $done['course_id'] === '' ? null : ExternalCourse::where('provider', $provider)->where('external_id', $done['course_id'])->first();
+        if (! $course) {
+            return self::UNKNOWN_COURSE;
+        }
+        if (! $course->program_id) {
+            return self::NO_PROGRAMME;
+        }
+        $employee = $this->findEmployee($done['employee_no'], $done['email']);
+        if (! $employee) {
+            return ExternalCompletionIssue::UNKNOWN_EMPLOYEE;
+        }
+        $r = Registration::where('program_id', $course->program_id)->where('employee_id', $employee->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])->first();
+        if (! $r) {
+            return ExternalCompletionIssue::NOT_REGISTERED;
+        }
+        if ($r->certificates()->exists()) {
+            return self::ALREADY_COMPLETED;
         }
         ExternalCompletion::updateOrCreate(['registration_id' => $r->id], ['source' => 'provider', 'status' => 'approved', 'decided_at' => now(), 'note' => 'Reported by '.$provider]);
         $this->certificates->issueExternal($r, null);
 
-        return true;
+        return self::COMPLETED;
+    }
+
+    /** By employee number, else by e-mail address (a provider may know a person by either, or by an external id that is one of them). */
+    private function findEmployee(?string $employeeNo, ?string $email): ?Employee
+    {
+        if ($employeeNo !== null) {
+            $found = Employee::where('employee_no', $employeeNo)->first() ?? Employee::whereHas('user', fn ($u) => $u->whereRaw('lower(email) = ?', [mb_strtolower($employeeNo)]))->first();
+            if ($found) {
+                return $found;
+            }
+        }
+
+        return $email === null ? null : Employee::whereHas('user', fn ($u) => $u->whereRaw('lower(email) = ?', [mb_strtolower($email)]))->first();
     }
 
     /** The trainee's evidence of completing a course on another platform. @param  list<\Illuminate\Http\UploadedFile|string>  $evidence */

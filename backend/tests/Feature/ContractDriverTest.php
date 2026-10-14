@@ -84,6 +84,24 @@ class ContractDriverTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_a_setting_the_path_needs_that_is_empty_is_said_plainly_before_anything_is_sent(): void
+    {
+        Http::fake();
+        $d = $this->driver(['list' => ['method' => 'GET', 'path' => '/api/orgs/{{ settings.org_id }}/contents', 'response' => ['records' => '$.data']]]);
+        try {
+            $d->call('list');
+            $this->fail('a path with an empty part is not sent');
+        } catch (ContractException $e) {
+            $this->assertSame('not_configured', $e->errorCode);
+            $this->assertStringContainsString('incomplete', $e->getMessage());
+        }
+        Http::assertNothingSent();
+
+        Http::fake(['sys.test/*' => Http::response(['data' => []])]);
+        $this->driver(['list' => ['method' => 'GET', 'path' => '/api/orgs/{{ settings.org_id }}/contents', 'response' => ['records' => '$.data']]], settings: ['org_id' => 'DjYC kB/Q'])->call('list');
+        $this->assertSame('https://sys.test/api/api/orgs/DjYC%20kB%2FQ/contents', collect(Http::recorded())->last()[0]->url(), 'a value that is set is encoded as one part of the path');
+    }
+
     public function test_the_header_an_api_key_travels_in_is_a_plain_name_and_must_be_set(): void
     {
         $auth = ['type' => 'api_key', 'in' => 'header', 'name' => 'X-Api-Key', 'name_setting' => 'auth_header', 'setting' => 'api_key'];
@@ -240,6 +258,127 @@ class ContractDriverTest extends TestCase
         $tokenRequest = $reqs->first(fn ($r) => str_contains($r->url(), 'auth.test'));
         $this->assertSame(['client_credentials', 'tedc', 'sec', 'read'], [$tokenRequest['grant_type'], $tokenRequest['client_id'], $tokenRequest['client_secret'], $tokenRequest['scope']]);
         $this->assertTrue($reqs->last()->hasHeader('Authorization', 'Bearer TOK-1'));
+    }
+
+    /** @return array<string, mixed> */
+    private function tokenAuth(array $patch = []): array
+    {
+        return $patch + ['type' => 'oauth2', 'token_url_setting' => 'token_url', 'client_id_setting' => 'client_id', 'client_secret_setting' => 'client_secret'];
+    }
+
+    private function tokenRequests(): int
+    {
+        return collect(Http::recorded())->filter(fn ($p) => str_contains((string) $p[0]->url(), 'auth.test'))->count();
+    }
+
+    public function test_oauth2_can_send_the_client_by_basic_authentication_ask_for_extra_fields_and_name_its_own_scheme(): void
+    {
+        Http::fake(['sys.test/oauth2/*' => Http::response(['access_token' => 'JWT-1', 'token_type' => 'JWT', 'expires_in' => 3600]), 'sys.test/*' => Http::response(['data' => []])]);
+        $auth = $this->tokenAuth(['token_url_setting' => null, 'token_path' => '/oauth2/access_token', 'client_auth' => 'basic', 'token_params' => ['token_type' => 'jwt'], 'header_scheme' => 'JWT']);
+        $this->driver(auth: array_filter($auth), settings: ['base_url' => 'https://sys.test', 'client_id' => 'edx-id', 'client_secret' => 'edx-secret'])->call('list');
+
+        $reqs = collect(Http::recorded())->map(fn ($p) => $p[0])->values();
+        $token = $reqs->first(fn ($r) => str_contains($r->url(), '/oauth2/access_token'));
+        $this->assertSame('https://sys.test/oauth2/access_token', $token->url(), 'a token path is on the system\'s own address');
+        $this->assertTrue($token->hasHeader('Authorization', 'Basic '.base64_encode('edx-id:edx-secret')));
+        $this->assertSame(['client_credentials', 'jwt'], [$token['grant_type'], $token['token_type']]);
+        $this->assertArrayNotHasKey('client_secret', $token->data(), 'with basic authentication the secret travels in the header, not the form');
+        $this->assertArrayNotHasKey('client_id', $token->data());
+        $this->assertTrue($reqs->last()->hasHeader('Authorization', 'JWT JWT-1'), 'the scheme the system names');
+    }
+
+    public function test_a_token_address_fixed_in_the_contract_needs_no_setting_and_a_setting_still_overrides_it(): void
+    {
+        Http::fake(['auth.test/*' => Http::response(['access_token' => 'TOK-2', 'expires_in' => 1800]), 'other.test/*' => Http::response(['access_token' => 'TOK-3', 'expires_in' => 1800]), 'sys.test/*' => Http::response(['data' => []])]);
+        $auth = $this->tokenAuth(['token_url_setting' => 'token_url', 'token_url' => 'https://auth.test/oauth2/client_credentials/token', 'client_auth' => 'basic']);
+        $this->driver(auth: $auth, settings: ['client_id' => 'k', 'client_secret' => 's'])->call('list');
+        $token = collect(Http::recorded())->map(fn ($p) => $p[0])->first(fn ($r) => str_contains($r->url(), 'auth.test'));
+        $this->assertSame('https://auth.test/oauth2/client_credentials/token', $token->url());
+        $this->assertTrue(collect(Http::recorded())->last()[0]->hasHeader('Authorization', 'Bearer TOK-2'));
+
+        Cache::flush();
+        $this->driver(auth: $auth, settings: ['client_id' => 'k', 'client_secret' => 's', 'token_url' => 'https://other.test/token'])->call('list');
+        $this->assertTrue(collect(Http::recorded())->last()[0]->hasHeader('Authorization', 'Bearer TOK-3'), 'a mock or a proxy can stand in for the token service');
+    }
+
+    public function test_the_token_is_kept_only_as_long_as_the_system_says(): void
+    {
+        Carbon::setTestNow('2026-10-14 10:00:00');
+        Http::fake(['auth.test/*' => Http::sequence()->push(['access_token' => 'SHORT-1', 'expires_in' => 1800])->push(['access_token' => 'SHORT-2', 'expires_in' => 1800]), 'sys.test/*' => Http::response(['data' => []])]);
+        $settings = ['token_url' => 'https://auth.test/token', 'client_id' => 'k', 'client_secret' => 's'];
+        $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');
+        Carbon::setTestNow('2026-10-14 10:20:00');
+        $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');
+        $this->assertSame(1, $this->tokenRequests(), 'twenty minutes into a thirty-minute token it is reused');
+        Carbon::setTestNow('2026-10-14 10:29:30');
+        $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');
+        $this->assertSame(2, $this->tokenRequests(), 'a new one is asked for a minute before the old one expires');
+        $this->assertTrue(collect(Http::recorded())->last()[0]->hasHeader('Authorization', 'Bearer SHORT-2'));
+        Carbon::setTestNow();
+    }
+
+    public function test_a_token_the_system_refuses_is_replaced_once_and_the_call_is_tried_again(): void
+    {
+        Http::fake(['auth.test/*' => Http::sequence()->push(['access_token' => 'OLD', 'expires_in' => 3600])->push(['access_token' => 'NEW', 'expires_in' => 3600]),
+            'sys.test/*' => Http::sequence()->push(['data' => []])->push(['message' => 'Access Token expired'], 401)->push(['data' => [['n' => 1]]])]);
+        $settings = ['token_url' => 'https://auth.test/token', 'client_id' => 'k', 'client_secret' => 's'];
+        $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');   // keeps OLD
+        $response = $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');   // OLD is refused
+
+        $this->assertSame(200, $response->status);
+        $this->assertSame(2, $this->tokenRequests());
+        $sent = collect(Http::recorded())->map(fn ($p) => $p[0])->filter(fn ($r) => str_contains($r->url(), 'sys.test'))->map(fn ($r) => $r->header('Authorization')[0])->values()->all();
+        $this->assertSame(['Bearer OLD', 'Bearer OLD', 'Bearer NEW'], $sent);
+    }
+
+    public function test_a_token_that_is_refused_again_is_an_error_and_not_a_loop(): void
+    {
+        Http::fake(['auth.test/*' => Http::response(['access_token' => 'T', 'expires_in' => 3600]), 'sys.test/*' => Http::sequence()->push(['data' => []])->push(['message' => 'no'], 401)->push(['message' => 'no'], 401)]);
+        $settings = ['token_url' => 'https://auth.test/token', 'client_id' => 'k', 'client_secret' => 's'];
+        $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');
+        try {
+            $this->driver(auth: $this->tokenAuth(), settings: $settings)->call('list');
+            $this->fail('the second refusal is an error');
+        } catch (ContractException $e) {
+            $this->assertSame('unauthorised', $e->errorCode);
+        }
+        $this->assertSame(2, $this->tokenRequests(), 'one new token, no more');
+        $this->assertCount(3, collect(Http::recorded())->filter(fn ($p) => str_contains((string) $p[0]->url(), 'sys.test')), 'the call was tried twice, not forever');
+    }
+
+    public function test_a_token_that_was_just_issued_and_is_refused_is_not_asked_for_again(): void
+    {
+        Http::fake(['auth.test/*' => Http::response(['access_token' => 'T', 'expires_in' => 3600]), 'sys.test/*' => Http::response(['message' => 'no'], 401)]);
+        $this->expectException(ContractException::class);
+        try {
+            $this->driver(auth: $this->tokenAuth(), settings: ['token_url' => 'https://auth.test/token', 'client_id' => 'k', 'client_secret' => 's'])->call('list');
+        } finally {
+            $this->assertSame(1, $this->tokenRequests());
+            $this->assertCount(1, collect(Http::recorded())->filter(fn ($p) => str_contains((string) $p[0]->url(), 'sys.test')));
+        }
+    }
+
+    public function test_the_address_can_be_made_from_a_name_that_the_contract_checks(): void
+    {
+        Http::fake(['acme.udemy.com/*' => Http::response(['data' => []]), 'proxy.test/*' => Http::response(['data' => []])]);
+        $contract = new Contract('udemy', ['system' => 'udemy', 'auth' => ['type' => 'none'], 'base_url' => ['pattern' => 'https://{subdomain}.udemy.com', 'variables' => ['subdomain' => '^[a-z0-9][a-z0-9-]{0,62}$']],
+            'operations' => ['list' => ['method' => 'GET', 'path' => '/api-2.0/organizations/{{ settings.organization_id }}/courses/list/', 'response' => ['records' => '$.data']]]]);
+        $at = fn (array $settings) => new ContractDriver($contract, $settings, [], 'udemy');
+
+        $at(['subdomain' => 'acme', 'organization_id' => '8888'])->call('list');
+        $this->assertSame('https://acme.udemy.com/api-2.0/organizations/8888/courses/list/', collect(Http::recorded())->last()[0]->url());
+        $this->assertSame('https://acme.udemy.com/api-2.0/organizations/8888/courses/list/', $at(['subdomain' => 'acme', 'organization_id' => '8888'])->request('list', [], ['preview' => true])->url, 'a preview shows the same address');
+
+        foreach (['evil.com/x', 'a.b', '-x', 'ACME', '', 'acme.evil.com#', 'acme/../x', 'acme udemy', 'acme@evil', "acme\n"] as $bad) {
+            try {
+                $at(['subdomain' => $bad, 'organization_id' => '8888'])->call('list');
+                $this->fail('"'.$bad.'" must not make an address');
+            } catch (ContractException $e) {
+                $this->assertSame('not_configured', $e->errorCode, $bad);
+            }
+        }
+        $at(['organization_id' => '8888', 'base_url' => 'https://proxy.test/udemy'])->call('list');
+        $this->assertSame('https://proxy.test/udemy/api-2.0/organizations/8888/courses/list/', collect(Http::recorded())->last()[0]->url(), 'an address the administrator sets wins');
     }
 
     public function test_a_client_certificate_is_offered_for_mutual_tls_and_not_left_on_disk(): void

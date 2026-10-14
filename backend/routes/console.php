@@ -45,4 +45,8 @@ Schedule::command('tedc:integrations-health')->everyFifteenMinutes()->withoutOve
 Schedule::command('tedc:teams-sync')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('tedc:tickets-sync')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('tedc:ministry-sync')->hourly()->withoutOverlapping();
+// Learning providers: the catalogue and the completions each night, the completions again every six hours (a provider's reports arrive late), and the tidying of what they keep.
+Schedule::command('tedc:learning-providers-sync')->dailyAt('01:45')->withoutOverlapping();
+Schedule::command('tedc:learning-providers-sync --completions')->cron('15 */6 * * *')->withoutOverlapping();
+Schedule::command('tedc:learning-providers-sync --prune')->dailyAt('04:05')->withoutOverlapping();
 Schedule::command('tedc:migration-purge')->dailyAt('03:15')->withoutOverlapping();

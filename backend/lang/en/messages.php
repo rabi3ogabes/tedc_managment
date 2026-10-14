@@ -125,6 +125,7 @@ return [
     'lesson' => ['no_changes' => 'The lesson has not changed since the last version.'],
     'sharing' => ['not_allowed' => 'The sharing policy does not allow this.', 'no_reshare' => 'The sharing policy does not allow re-sharing.', 'not_member' => 'Only members of a job group can share with it.'],
     'library' => ['download_not_allowed' => 'The rights of this item do not allow downloading; you can read it on the platform.'],
+    'providers' => ['off' => 'This provider is switched off. Switch it on first.', 'not_set_up' => 'Fill in the connection settings first: :missing.'],
     'external' => ['already_completed' => 'This program is already counted as completed.', 'evidence_required' => 'Attach evidence of completion or write a note.'],
     'kit' => ['not_approved' => 'A kit is assigned to programs once it is approved.'],
     'certificate' => [

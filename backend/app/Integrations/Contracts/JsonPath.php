@@ -3,12 +3,13 @@
 namespace App\Integrations\Contracts;
 
 /**
- * The small, safe subset of JSONPath contracts use to pick values out of a response: `$`, `.name`, `[0]`, `['quoted key']` and `[*]`.
- * No recursion, filters, slices, unions or scripts: a path is a fixed route through the data and never runs anything.
+ * The small, safe subset of JSONPath contracts use to pick values out of a response: `$`, `.name`, `[0]`, `['quoted key']`, `[*]` and one
+ * equality test, `[?(@.key=='text')]`, that keeps the elements of a list whose key holds that text (the activity of one kind in a list of
+ * activities). No recursion, other filters, slices, unions or scripts: a path is a fixed route through the data and never runs anything.
  */
 final class JsonPath
 {
-    /** @return list<array{0: string, 1: string|int|null}>|null the steps, or null when the path is not in the subset */
+    /** @return list<array{0: string, 1: string|int|list<string>|null}>|null the steps, or null when the path is not in the subset */
     public static function parse(string $path): ?array
     {
         if ($path === '' || $path[0] !== '$') {
@@ -29,10 +30,12 @@ final class JsonPath
                     $steps[] = ['index', (int) $m[1]];
                 } elseif (preg_match('/\G\[\*\]/', $path, $m, 0, $i)) {
                     $steps[] = ['wild', null];
+                } elseif (preg_match('/\G\[\?\(@\.([A-Za-z_][A-Za-z0-9_]*)==(?:\'([^\'\\\\]*)\'|"([^"\\\\]*)")\)\]/', $path, $m, 0, $i)) {
+                    $steps[] = ['filter', [$m[1], ($m[3] ?? '') !== '' ? $m[3] : $m[2]]];
                 } elseif (preg_match('/\G\[(?:\'([^\'\\\\]*)\'|"([^"\\\\]*)")\]/', $path, $m, 0, $i)) {
                     $steps[] = ['key', $m[2] ?? $m[1]];
                 } else {
-                    return null;   // a filter, a slice, a union, a script, a bare word
+                    return null;   // any other filter, a slice, a union, a script, a bare word
                 }
                 $i += strlen($m[0]);
             } else {
@@ -65,6 +68,12 @@ final class JsonPath
                 if ($kind === 'wild') {
                     foreach ($node as $child) {
                         $next[] = $child;
+                    }
+                } elseif ($kind === 'filter') {
+                    foreach ($node as $child) {
+                        if (is_array($child) && array_key_exists($arg[0], $child) && is_scalar($child[$arg[0]]) && (string) $child[$arg[0]] === $arg[1]) {
+                            $next[] = $child;
+                        }
                     }
                 } elseif (array_key_exists($arg, $node)) {
                     $next[] = $node[$arg];

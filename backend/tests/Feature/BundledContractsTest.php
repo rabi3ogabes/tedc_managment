@@ -19,7 +19,7 @@ class BundledContractsTest extends TestCase
 
     public function test_every_system_with_a_contract_is_known_and_has_the_expected_documents(): void
     {
-        $this->assertEqualsCanonicalizing(['hr', 'hudhud', 'licences', 'ministry_site', 'moe_epay', 'nsis', 'qneds', 'saaed', 'sijil'], $this->systems());
+        $this->assertEqualsCanonicalizing(['hr', 'hudhud', 'licences', 'ministry_site', 'moe_epay', 'nsis', 'qneds', 'saaed', 'sijil', 'coursera', 'udemy', 'linkedin_learning', 'edx'], $this->systems());
         foreach ($this->systems() as $system) {
             $this->assertArrayHasKey($system, IntegrationRegistry::all(), $system);
             $this->assertFileExists(resource_path("contracts/{$system}/mapping.json"));

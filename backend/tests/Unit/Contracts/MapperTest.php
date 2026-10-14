@@ -79,6 +79,38 @@ class MapperTest extends TestCase
         $this->assertNotSame([], Mapper::problems(['fields' => ['a' => ['path' => '$.a', 'transform' => ['minor']]]]));
     }
 
+    public function test_times_durations_and_markup_from_other_systems_become_ours(): void
+    {
+        $e = ['fields' => [
+            'completed_at' => ['path' => '$.completedAt', 'transform' => ['epoch_ms']],
+            'seen_at' => ['path' => '$.seen', 'transform' => ['epoch_s']],
+            'hours' => ['path' => '$.minutes', 'transform' => ['hours:minutes']],
+            'hours_from_seconds' => ['path' => '$.secs', 'transform' => ['hours:seconds']],
+            'whole_hours' => ['path' => '$.h', 'transform' => ['hours:hours']],
+            'about' => ['path' => '$.html', 'transform' => ['strip_tags']],
+        ]];
+        $out = Mapper::apply($e, ['completedAt' => 1791797400000, 'seen' => '1791797400', 'minutes' => 42, 'secs' => 5400, 'h' => '3', 'html' => "<p>Course on <b>Data</b>&nbsp;Engineering &amp; more</p>\n<ul><li>one</li></ul>"]);
+        $this->assertSame('2026-10-12T09:30:00+00:00', $out['completed_at'], 'milliseconds since 1970, in UTC');
+        $this->assertSame('2026-10-12T09:30:00+00:00', $out['seen_at']);
+        $this->assertSame([0.7, 1.5, 3.0], [$out['hours'], $out['hours_from_seconds'], $out['whole_hours']]);
+        $this->assertSame('Course on Data Engineering & more one', $out['about'], 'tags go, entities are read, white space is one space');
+        $this->assertSame([], Mapper::apply($e, ['completedAt' => 'soon', 'minutes' => 'a while', 'html' => '']), 'what is not a number or a time stays out');
+        $this->assertSame([], Mapper::problems($e));
+        $this->assertNotSame([], Mapper::problems(['fields' => ['a' => ['path' => '$.a', 'transform' => ['hours:days']]]]));
+        $this->assertNotSame([], Mapper::problems(['fields' => ['a' => ['path' => '$.a', 'transform' => ['hours']]]]));
+    }
+
+    public function test_a_count_becomes_a_yes_or_a_no(): void
+    {
+        $e = ['fields' => ['completed' => ['path' => '$.completions', 'transform' => ['positive']]]];
+        $this->assertSame(['completed' => true], Mapper::apply($e, ['completions' => 1]));
+        $this->assertSame(['completed' => true], Mapper::apply($e, ['completions' => '3']));
+        $this->assertSame(['completed' => false], Mapper::apply($e, ['completions' => 0]), 'none is a no, and a no is kept');
+        $this->assertSame([], Mapper::apply($e, []), 'nothing said is nothing said');
+        $this->assertSame([], Mapper::apply($e, ['completions' => 'many']));
+        $this->assertSame([], Mapper::problems($e));
+    }
+
     public function test_a_mapping_is_checked_before_it_is_saved(): void
     {
         $this->assertSame([], Mapper::problems($this->entity()));

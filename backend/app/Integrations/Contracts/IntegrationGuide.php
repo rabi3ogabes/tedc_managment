@@ -6,8 +6,8 @@ use App\Integrations\IntegrationRegistry;
 
 /**
  * The go-live guide of a system (docs/integrations/<system>.md), written from what the system's shipped contract already says: what the
- * Ministry provides, what to fill in TEDC, the test cases to run together with the expected results, and the way back. One source, so the
- * guide cannot drift from the contract. Arabic first, then English.
+ * Ministry (or the provider) provides, what to fill in TEDC, the test cases to run together with the expected results, the sources the
+ * contract was written from, and the way back. One source, so the guide cannot drift from the contract. Arabic first, then English.
  */
 final class IntegrationGuide
 {
@@ -15,6 +15,7 @@ final class IntegrationGuide
     public const GUIDES = [
         'hr' => 'hr', 'licences' => 'licences', 'nsis' => 'nsis', 'qneds' => 'qneds', 'saaed' => 'saaed', 'sijil' => 'sijil',
         'ministry-site' => 'ministry_site', 'sms-gateway' => 'hudhud', 'moe-epay' => 'moe_epay',
+        'coursera' => 'coursera', 'udemy' => 'udemy', 'linkedin-learning' => 'linkedin_learning', 'open-edx' => 'edx',
     ];
 
     /** What the settings that live outside the integration card mean, for systems whose card does not list them. */
@@ -76,6 +77,18 @@ final class IntegrationGuide
 
     public function __construct(private readonly ContractStore $store) {}
 
+    /** The headings of the four groups; a contract can name its own (a learning provider is not the Ministry). @return array<string, array{ar: string, en: string}> */
+    public static function headings(Contract $contract): array
+    {
+        return array_merge(self::GROUPS, array_intersect_key((array) ($contract->document()['headings'] ?? []), self::GROUPS));
+    }
+
+    /** Who the other side is, in a sentence: the Ministry unless the contract says otherwise. */
+    private function party(Contract $contract, string $lang): string
+    {
+        return (string) (((array) ($contract->document()['party'] ?? []))[$lang] ?? ($lang === 'ar' ? 'الوزارة' : 'the Ministry'));
+    }
+
     /** The whole guide of a system. */
     public function render(string $key): string
     {
@@ -97,9 +110,11 @@ final class IntegrationGuide
         $items = collect($contract->checklist())->groupBy('group');
         $list = fn (string $group) => $items->get($group, collect())->map(fn ($i) => '- [ ] '.$i[$lang])->implode("\n");
 
-        $out .= '### '.self::GROUPS['ministry_provides'][$lang]."\n\n".$list('ministry_provides')."\n\n";
-        $out .= '### '.self::GROUPS['tedc_settings'][$lang]."\n\n";
-        $out .= ($ar ? "افتح البطاقة ثم املأ الإعدادات التالية، واضغط «فحص الاتصال». بعدها قارن العقد والمطابقة المرفقين بوثيقة الوزارة في تبويب «العقد» وعدّل ما يختلف (النسخ محفوظة ويمكن الرجوع إليها).\n\n" : "Open the card and fill in the settings below, then press “Check connection”. Then compare the shipped contract and mapping with the Ministry's document in the Contract tab and edit what differs (every save is a version you can go back to).\n\n");
+        $groups = self::headings($contract);
+        $party = $this->party($contract, $lang);
+        $out .= '### '.$groups['ministry_provides'][$lang]."\n\n".$list('ministry_provides')."\n\n";
+        $out .= '### '.$groups['tedc_settings'][$lang]."\n\n";
+        $out .= ($ar ? "افتح البطاقة ثم املأ الإعدادات التالية، واضغط «فحص الاتصال». بعدها قارن العقد والمطابقة المرفقين بوثيقة {$party} في تبويب «العقد» وعدّل ما يختلف (النسخ محفوظة ويمكن الرجوع إليها).\n\n" : "Open the card and fill in the settings below, then press “Check connection”. Then compare the shipped contract and mapping with {$party}'s document in the Contract tab and edit what differs (every save is a version you can go back to).\n\n");
         $out .= $this->settings($key, $contract, $lang)."\n";
         $out .= $ar ? '**المصادقة في العقد الحالي:** ' : '**Authentication in the shipped contract:** ';
         $out .= $this->auth((array) $contract->auth(), $ar)."\n\n";
@@ -107,14 +122,15 @@ final class IntegrationGuide
         if ($contract->inbound() !== []) {
             $out .= $this->inbound($contract, $ar)."\n";
         }
+        $out .= $this->sources($contract, $lang);
 
-        $out .= '### '.self::GROUPS['joint_tests'][$lang]."\n\n";
-        $out .= ($ar ? "شغّل هذه الحالات من تبويب «حالات الاختبار» أولًا على الإجابات المسجّلة، ثم على النظام الفعلي (القراءة فقط) بحضور الوزارة:\n\n" : "Run these cases from the Test cases tab first on the recorded answers, then (read-only operations) on the real system with the Ministry present:\n\n");
+        $out .= '### '.$groups['joint_tests'][$lang]."\n\n";
+        $out .= ($ar ? "شغّل هذه الحالات من تبويب «حالات الاختبار» أولًا على الإجابات المسجّلة، ثم على النظام الفعلي (القراءة فقط) بحضور {$party}:\n\n" : "Run these cases from the Test cases tab first on the recorded answers, then (read-only operations) on the real system with {$party} present:\n\n");
         $out .= $this->tests($contract, $ar)."\n";
         $steps = $list('joint_tests');
-        $out .= $steps !== '' ? ($ar ? "**ما يُتحقق منه مع الوزارة:**\n\n" : "**To confirm with the Ministry:**\n\n").$steps."\n\n" : '';
+        $out .= $steps !== '' ? ($ar ? "**ما يُتحقق منه مع {$party}:**\n\n" : "**To confirm with {$party}:**\n\n").$steps."\n\n" : '';
 
-        $out .= '### '.self::GROUPS['rollback'][$lang]."\n\n";
+        $out .= '### '.$groups['rollback'][$lang]."\n\n";
         $out .= $ar
             ? "- إيقاف التكامل من البطاقة (مفتاح التشغيل) يوقف كل الاستدعاءات فورًا ولا يحذف أي بيانات في TEDC.\n- العودة إلى نسخة العقد أو المطابقة السابقة من «العقد ← النسخ» (إنشاء نسخة جديدة مطابقة للقديمة)، أو «إعادة إلى المرفق» للعودة إلى ما يأتي مع TEDC.\n- التبديل إلى وضع التدريب (driver: fake) يعيد النظام إلى بيانات تجريبية دون أي اتصال خارجي.\n"
             : "- Switching the integration off on the card stops every call at once and deletes nothing in TEDC.\n- Go back to a previous version of the contract or mapping from Contract → Versions (it adds a new version equal to the old one), or “Reset to shipped” for what comes with TEDC.\n- Switching to the training mode (driver: fake) returns the system to sample data with no outside connection.\n";
@@ -141,7 +157,7 @@ final class IntegrationGuide
                     continue;   // the training mode's sample data is not part of go-live
                 }
                 $default = $field['default'] ?? '';
-                $note = (self::DESCRIBED[$field['k']][$lang] ?? null) ?: (string) ($field['hint'] ?? '');
+                $note = ($field['doc'][$lang] ?? null) ?: (self::DESCRIBED[$field['k']][$lang] ?? null) ?: (string) ($field['hint'] ?? '');
                 if (! empty($field['for_auth'])) {
                     $note .= ($note !== '' ? ' ' : '').($lang === 'ar' ? '(يُستخدم عندما تكون مصادقة العقد: ' : '(Used when the contract signs in with: ').implode(', ', (array) $field['for_auth']).')';
                 }
@@ -167,6 +183,12 @@ final class IntegrationGuide
             'oauth2' => ['OAuth2 client credentials'], 'hmac' => [$ar ? 'توقيع HMAC/RSA لكل طلب' : 'an HMAC/RSA signature on every request'], 'mtls' => [$ar ? 'شهادة عميل (mTLS)' : 'a client certificate (mTLS)'],
         ];
         $text = $names[$type][0] ?? $type;
+        if ($type === 'oauth2') {
+            $where = ! empty($auth['token_url']) ? $auth['token_url'] : (! empty($auth['token_path']) ? ($ar ? 'المسار ' : 'the path ').$auth['token_path'] : ($ar ? 'العنوان في الإعدادات' : 'the address in the settings'));
+            $text .= $ar
+                ? ' — الرمز من `'.$where.'`، ويُرسل العميل في '.(($auth['client_auth'] ?? 'body') === 'basic' ? 'ترويسة Authorization (Basic)' : 'نموذج الطلب').'، ويُقدَّم الرمز بصيغة `'.($auth['header_scheme'] ?? 'Bearer').' <token>`'
+                : ' — the token comes from `'.$where.'`, the client signs in with '.(($auth['client_auth'] ?? 'body') === 'basic' ? 'the Authorization header (Basic)' : 'the request form').', and the token is presented as `'.($auth['header_scheme'] ?? 'Bearer').' <token>`';
+        }
         if (isset($auth['fallback'])) {
             $text .= $ar ? '، وإن لم يوجد الرمز فاسم المستخدم وكلمة المرور' : ', and a user name and password when there is no token';
         }
@@ -175,6 +197,25 @@ final class IntegrationGuide
         }
 
         return $text.'.';
+    }
+
+    /** The documents the contract was written from, and what to keep in mind about them. */
+    private function sources(Contract $contract, string $lang): string
+    {
+        $sources = (array) ($contract->document()['sources'] ?? []);
+        if ($sources === []) {
+            return '';
+        }
+        $ar = $lang === 'ar';
+        $out = '**'.($ar ? 'المصادر التي كُتب منها العقد' : 'Sources the contract was written from').":**\n\n";
+        foreach ($sources as $source) {
+            $source = (array) $source;
+            $link = str_contains((string) ($source['url'] ?? ''), '{') ? '`'.$source['url'].'`' : '<'.($source['url'] ?? '').'>';
+            $out .= '- '.($source['title'] ?? '').' — '.$link.' ('.($ar ? 'روجع في ' : 'checked ').($source['checked'] ?? '').")\n";
+        }
+        $notes = (array) ($contract->document()['notes'] ?? []);
+
+        return $out."\n".(isset($notes[$lang]) ? '> '.$notes[$lang]."\n\n" : '');
     }
 
     private function operations(Contract $contract, bool $ar): string

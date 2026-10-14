@@ -1,0 +1,476 @@
+{
+  "system": "udemy",
+  "version": "1.0",
+  "title": {
+    "ar": "يوديمي للأعمال",
+    "en": "Udemy Business"
+  },
+  "description": {
+    "ar": "كتالوج دورات يوديمي للأعمال الخاص بالمركز، وتقرير نشاط المتعلمين في كل دورة لمعرفة من أتمّ الدورة واحتساب ساعاتها في السجل.",
+    "en": "The centre's Udemy Business course catalogue, and the learners' activity per course, to see who completed a course and count its hours in the record."
+  },
+  "party": {
+    "ar": "المزوّد",
+    "en": "the provider"
+  },
+  "headings": {
+    "ministry_provides": {
+      "ar": "ما يقدّمه المزوّد",
+      "en": "What the provider gives you"
+    },
+    "joint_tests": {
+      "ar": "اختبارات الإطلاق مع المزوّد",
+      "en": "Tests to run with the provider"
+    }
+  },
+  "sources": [
+    {
+      "title": "Udemy for Business API Reference for Developers, v2.0 (Udemy's own PDF)",
+      "url": "https://s3.amazonaws.com/udemy-images/support/Udemy_for_Business_API_Reference_v2.0.pdf",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Udemy Business Web APIs: use cases and best practices",
+      "url": "https://business-support.udemy.com/hc/en-us/articles/360005792753-Udemy-Business-API-Reference",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Udemy Business API reference of your own site (needs an administrator sign-in)",
+      "url": "https://{subdomain}.udemy.com/developers/organization/",
+      "checked": "2026-10-14"
+    }
+  ],
+  "notes": {
+    "ar": "التوثيق العام الكامل (v2.0 بصيغة PDF) أقدم من صفحة المطوّرين داخل موقعكم؛ قارنوا العقد بصفحة «API documentation» في إعدادات Udemy Business وعدّلوا ما يختلف.",
+    "en": "The full public reference (v2.0, a PDF) is older than the developer pages inside your own site; compare the contract with the API documentation page in the Udemy Business settings and edit what differs."
+  },
+  "base_url": {
+    "pattern": "https://{subdomain}.udemy.com",
+    "variables": {
+      "subdomain": "^[a-z0-9][a-z0-9-]{0,62}$"
+    }
+  },
+  "auth": {
+    "type": "basic",
+    "user_setting": "client_id",
+    "password_setting": "client_secret"
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض المزوّد الطلب لأن بياناته غير صحيحة",
+        "en": "The provider rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض المزوّد بيانات الاعتماد أو انتهت صلاحية الرمز",
+        "en": "The provider refused the credentials, or the token has expired"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية لدى المزوّد",
+        "en": "The account is not allowed to do this at the provider"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا العنصر لدى المزوّد",
+        "en": "The provider has no such item"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب المزوّد التمهّل في الطلبات",
+        "en": "The provider asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ لدى المزوّد",
+        "en": "The provider had an error"
+      }
+    }
+  },
+  "operations": {
+    "list_courses": {
+      "title": {
+        "ar": "كتالوج الدورات",
+        "en": "Course catalogue"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "course",
+      "path": "/api-2.0/organizations/{{ settings.organization_id }}/courses/list/",
+      "query": {
+        "fields[course]": "@all"
+      },
+      "pagination": {
+        "type": "page",
+        "param": "page",
+        "start": 1,
+        "size_param": "page_size",
+        "size": 100,
+        "max_pages": 300
+      },
+      "response": {
+        "records": "$.results",
+        "next_page": "$.next",
+        "total": "$.count",
+        "error": [
+          "$.detail",
+          "$.message",
+          "$.error",
+          "$.error_description"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "title"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "list_completions": {
+      "title": {
+        "ar": "نشاط المتعلمين في الدورات",
+        "en": "Learners' activity per course"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "completion",
+      "path": "/api-2.0/organizations/{{ settings.organization_id }}/analytics/user-course-activity/",
+      "query": {
+        "from_date?": "{{ window_from }}",
+        "to_date?": "{{ window_to }}"
+      },
+      "windows": {
+        "max_days": 30
+      },
+      "pagination": {
+        "type": "page",
+        "param": "page",
+        "start": 1,
+        "size_param": "page_size",
+        "size": 100,
+        "max_pages": 500
+      },
+      "response": {
+        "records": "$.results",
+        "next_page": "$.next",
+        "total": "$.count",
+        "error": [
+          "$.detail",
+          "$.message",
+          "$.error",
+          "$.error_description"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "course_id",
+                "user_email"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "/api-2.0/organizations/{{ settings.organization_id }}/courses/list/",
+      "query": {
+        "page": "1",
+        "page_size": "1",
+        "fields[course]": "title"
+      },
+      "response": {
+        "records": "$.results",
+        "error": [
+          "$.detail",
+          "$.message",
+          "$.error",
+          "$.error_description"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Catalogue: three courses",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api-2.0/organizations/8888/courses/list/",
+          "query": {
+            "fields[course]": "@all"
+          }
+        },
+        "records": 3,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "id": 12345678,
+            "title": "Data Engineering Foundations",
+            "hours": 0.7,
+            "url": "https://learning.udemy.example.test/data-engineering-foundations/"
+          },
+          "2": {
+            "title": "Arabic Business Writing"
+          }
+        }
+      }
+    },
+    {
+      "name": "Catalogue: the credentials are refused",
+      "operation": "list_courses",
+      "fixture": "list_courses.unauthorised",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Catalogue: Udemy is down",
+      "operation": "list_courses",
+      "fixture": "list_courses.server_error",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Activity: a month of learners' activity, two completed",
+      "operation": "list_completions",
+      "fixture": "list_completions.ok",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "params": {
+        "window_from": "2026-09-15",
+        "window_to": "2026-10-14"
+      },
+      "expect": {
+        "request": {
+          "path": "/api-2.0/organizations/8888/analytics/user-course-activity/",
+          "query": {
+            "from_date": "2026-09-15",
+            "to_date": "2026-10-14"
+          }
+        },
+        "records": 4,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "course_id": 12345678,
+            "employee_no": "E-1001",
+            "email": "sara.kuwari@example.test",
+            "completed_at": "2026-10-12T09:30:00Z",
+            "progress": 100
+          },
+          "2": {
+            "progress": 35
+          }
+        }
+      }
+    },
+    {
+      "name": "Activity: the account may not read the reports",
+      "operation": "list_completions",
+      "fixture": "list_completions.forbidden",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Connection check: the catalogue answers",
+      "operation": "health",
+      "fixture": "health.ok",
+      "settings": {
+        "subdomain": "acme",
+        "organization_id": "8888"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api-2.0/organizations/8888/courses/list/",
+          "query": {
+            "page_size": "1"
+          }
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "اشتراك Udemy Business من فئة Enterprise يتيح واجهات REST، وحساب مسؤول للموقع",
+      "en": "A Udemy Business Enterprise subscription that includes the REST APIs, and an administrator account of the site"
+    },
+    {
+      "id": "subdomain",
+      "group": "ministry_provides",
+      "ar": "اسم موقعكم (الجزء الأول من العنوان: مثلًا acme في https://acme.udemy.com)",
+      "en": "The name of your site (the first part of its address: acme in https://acme.udemy.com)"
+    },
+    {
+      "id": "organization_id",
+      "group": "ministry_provides",
+      "ar": "المعرّف الرقمي للحساب (Account ID) كما يظهر في إعدادات الواجهة البرمجية ← «API documentation»",
+      "en": "The numeric Account ID, shown in the API settings under “API documentation”"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "Client ID وClient Secret من «إدارة ← الإعدادات ← الواجهات البرمجية والتكامل» (يظهر السرّ مرة واحدة)",
+      "en": "The Client ID and Client Secret from Manage → Settings → APIs & Integrations (the secret is shown once)"
+    },
+    {
+      "id": "reporting",
+      "group": "ministry_provides",
+      "ar": "تفعيل واجهة التقارير لتشمل user-course-activity (تتأخر بيانات الإتمام حتى 24 ساعة)",
+      "en": "The reporting API enabled with user-course-activity (completion data can lag by up to 24 hours)"
+    },
+    {
+      "id": "external_ids",
+      "group": "ministry_provides",
+      "ar": "حسابات المتعلمين تحمل البريد الإلكتروني نفسه المسجّل في TEDC (أو رقمًا خارجيًا هو الرقم الوظيفي)",
+      "en": "Learners' accounts carry the same e-mail address TEDC has (or an external id that is the employee number)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة بالوصول إلى موقعكم على udemy.com عبر المنفذ 443",
+      "en": "TEDC's outbound addresses allowed to reach your site on udemy.com, port 443"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة subdomain وorganization_id وclient_id وclient_secret في بطاقة التكامل",
+      "en": "subdomain, organization_id, client_id and client_secret filled in the integration card"
+    },
+    {
+      "id": "health",
+      "group": "tedc_settings",
+      "ar": "الضغط على «فحص الاتصال» والحصول على «سليم»",
+      "en": "Press “Check connection” and get “ok”"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مقارنة العقد بصفحة «API documentation» في موقعكم (الوثيقة العامة v2.0 أقدم) وتعديل ما يختلف",
+      "en": "Compare the contract with the API documentation page of your own site (the public v2.0 reference is older) and edit what differs"
+    },
+    {
+      "id": "duration_unit",
+      "group": "tedc_settings",
+      "ar": "التأكد من وحدة «estimated_content_length» (الدقائق في العقد) ومن عدد الساعات لدورة معروفة",
+      "en": "Check the unit of estimated_content_length (minutes in the contract) against the hours of a course you know"
+    },
+    {
+      "id": "first_sync",
+      "group": "tedc_settings",
+      "ar": "تشغيل مزامنة الكتالوج وفحص قائمة الدورات في شاشة مزوّدي التعلم",
+      "en": "Run the catalogue sync and check the course list in the Learning providers screen"
+    },
+    {
+      "id": "catalogue",
+      "group": "joint_tests",
+      "ar": "يظهر كتالوج المركز كاملًا (عدد الدورات يطابق عدد count عند يوديمي)",
+      "en": "The centre's whole catalogue appears (the number of courses matches Udemy's count)"
+    },
+    {
+      "id": "programme",
+      "group": "joint_tests",
+      "ar": "إنشاء برنامج من دورة وتسجيل موظف تجريبي فيه",
+      "en": "Make a programme from one course and register a test employee"
+    },
+    {
+      "id": "completion",
+      "group": "joint_tests",
+      "ar": "إتمام دورة قصيرة بمتعلم تجريبي ثم التأكد من وصول الإتمام بعد تحديث تقارير يوديمي وصدور الشهادة",
+      "en": "Complete a short course with a test learner, then check the completion arrives after Udemy updates its reports and the certificate is issued"
+    },
+    {
+      "id": "unknown_learner",
+      "group": "joint_tests",
+      "ar": "إتمام يعود لبريد لا يعرفه TEDC يظهر في «أخطاء مزامنة الإتمام» بسببه",
+      "en": "A completion by an address TEDC does not know shows in “Completion sync errors” with its reason"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "إيقاف البطاقة يوقف كل الاستدعاءات؛ البرامج المنشأة تبقى وتعمل بمسار «إثبات الإتمام» اليدوي",
+      "en": "Switching the card off stops every call; the programmes already made stay and work with the manual “evidence of completion” route"
+    },
+    {
+      "id": "training_mode",
+      "group": "rollback",
+      "ar": "العودة إلى وضع التدريب (driver: fake) للعمل ببيانات تجريبية دون اتصال",
+      "en": "Go back to the training mode (driver: fake) to work with sample data and no connection"
+    }
+  ]
+}

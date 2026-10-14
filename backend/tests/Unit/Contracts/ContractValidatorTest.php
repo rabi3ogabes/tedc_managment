@@ -128,6 +128,58 @@ class ContractValidatorTest extends TestCase
         $this->assertNotSame([], $bad(['auth' => ['type' => 'bearer', 'setting' => 'Bad Name!']]));
     }
 
+    public function test_oauth2_may_name_its_token_address_its_client_authentication_extra_fields_and_scheme(): void
+    {
+        $problems = fn (array $auth) => ContractValidator::problems('hr', 'contract', $this->contract(['auth' => ['type' => 'oauth2', 'client_id_setting' => 'client_id', 'client_secret_setting' => 'client_secret'] + $auth]), self::SECRETS);
+        $this->assertSame([], $problems(['token_url' => 'https://auth.example.com/oauth2/token']));
+        $this->assertSame([], $problems(['token_path' => '/oauth2/access_token', 'client_auth' => 'basic', 'token_params' => ['token_type' => 'jwt'], 'header_scheme' => 'JWT']));
+        $this->assertSame([], $problems(['token_url_setting' => 'token_url']), 'the address in a setting, as before');
+        $this->assertSame([], $problems(['token_url' => 'https://auth.example.com/t', 'token_url_setting' => 'token_url']), 'a fixed address a setting may override');
+        $this->assertNotSame([], $problems([]), 'a token address is needed');
+        foreach ([['token_url' => 'http://auth.example.com/t'], ['token_url' => 'https://user:pw@auth.example.com/t'], ['token_url' => 'https://auth.example.com/t#x'], ['token_url' => '//auth.example.com/t'],
+            ['token_url' => 'https://auth.example.com/t?a=1'], ['token_path' => 'oauth2/token'], ['token_path' => 'https://x.example.com/y'], ['token_path' => '/a/../b'],
+            ['token_url' => 'https://a.example.com/t', 'token_path' => '/x'], ['token_url' => 'https://a.example.com/t', 'client_auth' => 'header'],
+            ['token_url' => 'https://a.example.com/t', 'token_params' => ['a' => ['nested']]], ['token_url' => 'https://a.example.com/t', 'token_params' => ['client_secret' => 'x']],
+            ['token_url' => 'https://a.example.com/t', 'token_params' => ['grant_type' => 'password']], ['token_url' => 'https://a.example.com/t', 'token_params' => ['Bad Name' => 'x']],
+            ['token_url' => 'https://a.example.com/t', 'header_scheme' => 'Bearer token'], ['token_url' => 'https://a.example.com/t', 'header_scheme' => "x\r\nInjected: 1"]] as $bad) {
+            $this->assertNotSame([], $problems($bad), json_encode($bad));
+        }
+    }
+
+    public function test_the_address_may_be_made_from_a_name_but_only_under_a_domain_the_contract_fixes(): void
+    {
+        $problems = fn ($base) => ContractValidator::problems('hr', 'contract', $this->contract(['base_url' => $base]), self::SECRETS);
+        $this->assertSame([], $problems(['pattern' => 'https://{subdomain}.udemy.com', 'variables' => ['subdomain' => '^[a-z0-9][a-z0-9-]{0,62}$']]));
+        $this->assertSame([], $problems(['pattern' => 'https://{tenant}.example.org/api', 'variables' => ['tenant' => '^[a-z]+$']]));
+        foreach ([['pattern' => 'http://{s}.udemy.com', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://{s}', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://{s}.{t}', 'variables' => ['s' => '^[a-z]+$', 't' => '^[a-z]+$']],
+            ['pattern' => 'https://{s}.com', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://udemy.com@{s}.evil.example', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://{s}.udemy.com:8443', 'variables' => ['s' => '^[a-z]+$']],
+            ['pattern' => 'https://{s}.udemy.com/{s}', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://{s}.udemy.com?x=1', 'variables' => ['s' => '^[a-z]+$']], ['pattern' => 'https://{s}.udemy.com', 'variables' => []],
+            ['pattern' => 'https://{s}.udemy.com', 'variables' => ['s' => '[a-z']], ['pattern' => 'https://{s}.udemy.com', 'variables' => ['s' => '^[a-z]+$', 'extra' => '^x$']], ['pattern' => 'https://{s}.udemy.com'], 'https://x.example.org'] as $bad) {
+            $this->assertNotSame([], $problems($bad), json_encode($bad));
+        }
+    }
+
+    public function test_a_test_case_may_carry_plain_settings_but_never_a_secret(): void
+    {
+        $case = fn ($settings) => ContractValidator::problems('hr', 'contract', $this->contract(['tests' => [['name' => 'a case', 'operation' => 'fetch_employees', 'settings' => $settings]]]), self::SECRETS);
+        $this->assertSame([], $case(['org_id' => 'ORG-1', 'username' => 'service']));
+        $this->assertNotSame([], $case('text'));
+        $this->assertNotSame([], $case(['api_key' => 'X']), 'a secret does not belong in a document');
+        $this->assertNotSame([], $case(['org_id' => ['nested']]));
+        $this->assertNotSame([], $case(['Bad Name' => 'x']));
+        $this->assertNotSame([], $case(['org_id' => str_repeat('x', 300)]));
+    }
+
+    public function test_an_operation_may_say_how_long_a_stretch_of_time_one_call_can_ask_for(): void
+    {
+        $windows = fn ($w) => ContractValidator::problems('hr', 'contract', $this->contract(['operations' => ['fetch_employees' => ['windows' => $w]]]), self::SECRETS);
+        $this->assertSame([], $windows(['max_days' => 14]));
+        $this->assertSame([], $windows(['max_days' => 366]));
+        foreach ([['max_days' => 0], ['max_days' => 400], ['max_days' => '14'], ['max_days' => 1.5], [], 'text', [14]] as $bad) {
+            $this->assertNotSame([], $windows($bad), json_encode($bad));
+        }
+    }
+
     public function test_templates_cannot_read_secrets_or_use_unknown_filters(): void
     {
         $doc = $this->contract();

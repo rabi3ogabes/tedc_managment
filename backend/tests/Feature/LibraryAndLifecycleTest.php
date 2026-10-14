@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Integrations\IntegrationManager;
 use App\Models\CourseLesson;
 use App\Models\CourseModule;
 use App\Models\ExternalCompletion;
@@ -13,7 +14,6 @@ use App\Models\Material;
 use App\Models\Registration;
 use App\Models\ResourceShare;
 use App\Models\Role;
-use App\Models\SiteSetting;
 use App\Models\TrainingKit;
 use App\Services\AnnualHoursService;
 use App\Services\Content\StandardsSettings;
@@ -185,7 +185,7 @@ class LibraryAndLifecycleTest extends TestCase
         Storage::fake('local');
         $head = $this->makeUser(Role::TRAINING_HEAD);
         $employee = $this->makeEmployee();
-        $this->asUser($head)->putJson('/api/v1/admin/settings/content-providers', ['coursera' => ['enabled' => true, 'driver' => 'fake']])->assertOk();
+        $this->asUser($head)->putJson('/api/v1/admin/learning-providers/coursera', ['enabled' => true, 'driver' => 'fake'])->assertOk()->assertJsonPath('data.connection', 'training');
         $this->asUser($head)->postJson('/api/v1/admin/content-providers/sync')->assertOk()->assertJsonPath('data.courses', 2);
         $course = ExternalCourse::where('external_id', 'coursera-101')->first();
         $program = $this->asUser($head)->postJson("/api/v1/admin/external-courses/{$course->id}/program")->assertCreated()->json('data');
@@ -193,10 +193,7 @@ class LibraryAndLifecycleTest extends TestCase
         $r = Registration::create(['program_id' => $program['id'], 'employee_id' => $employee->id, 'source' => 'center_nomination', 'status' => Registration::STATUS_APPROVED]);
 
         $this->asUser($employee->user)->postJson("/api/v1/me/registrations/{$r->id}/external-launch")->assertOk()->assertJsonPath('data.platform', 'Coursera');
-        $cfg = SiteSetting::find('content_providers');
-        $v = $cfg->value;
-        $v['coursera']['fake_completions'] = [['course_id' => 'coursera-101', 'employee_no' => $employee->employee_no, 'completed_at' => now()->toDateString()]];
-        $cfg->update(['value' => $v]);
+        app(IntegrationManager::class)->update('coursera', ['settings' => ['fake_completions' => [['course_id' => 'coursera-101', 'employee_no' => $employee->employee_no, 'completed_at' => now()->toDateString()]]]]);
         $this->assertSame(1, app(ExternalLearningService::class)->sync()['completed']);
         $this->assertSame(0, app(ExternalLearningService::class)->sync()['completed'], 'a completion counts once');
         $this->assertSame('completed', $r->fresh()->status);

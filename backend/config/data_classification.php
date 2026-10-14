@@ -21,6 +21,8 @@ return [
         'orders' => 'confidential', 'payments' => 'confidential', 'refunds' => 'confidential', 'entity_accounts' => 'confidential', 'seat_vouchers' => 'confidential', 'data_subject_requests' => 'confidential', 'notifications' => 'confidential',
         'registrations' => 'confidential', 'attendance' => 'confidential', 'certificates' => 'confidential', 'evaluations' => 'confidential', 'assessment_attempts' => 'confidential', 'pd_activities' => 'confidential', 'trainers' => 'confidential',
         'user_identities' => 'confidential', 'auth_sessions' => 'confidential', 'remedial_assignments' => 'confidential', 'lti_tool_launches' => 'confidential',
+        // A provider's completion that could not be matched names the person it reported (an employee number or an e-mail address).
+        'external_completion_issues' => 'confidential',
     ],
 
     /** Columns that exist only on some databases (embeddings.vec: PostgreSQL with pgvector); listed in the register everywhere. */

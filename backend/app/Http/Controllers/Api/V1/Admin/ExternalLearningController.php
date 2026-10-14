@@ -10,33 +10,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-/** Content providers (Coursera, edX, Udemy Business, LinkedIn Learning), their catalogue, and the review of completions on other platforms. */
+/** The catalogue of the content providers (Coursera, Open edX, Udemy Business, LinkedIn Learning) turned into programmes, and the review of completions on other platforms. */
 class ExternalLearningController extends Controller
 {
     public function __construct(private readonly ExternalLearningService $svc) {}
 
-    public function settings(Request $request): JsonResponse
-    {
-        if ($request->isMethod('PUT')) {
-            $rules = [];
-            foreach (ExternalLearningService::PROVIDERS as $p) {
-                $rules += [$p => ['sometimes', 'array'], "$p.enabled" => ['boolean'], "$p.driver" => [Rule::in(['rest', 'fake'])], "$p.base_url" => ['nullable', 'url', 'max:500'], "$p.api_key" => ['nullable', 'string', 'max:300'], "$p.catalogue_path" => ['nullable', 'string', 'max:200'], "$p.completions_path" => ['nullable', 'string', 'max:200']];
-            }
-
-            return response()->json(['data' => $this->svc->update($request->validate($rules), $this->user())]);
-        }
-
-        return response()->json(['data' => $this->svc->masked()]);
-    }
-
     public function sync(): JsonResponse
     {
-        return response()->json(['data' => $this->svc->sync()]);
-    }
-
-    public function catalogue(Request $request): JsonResponse
-    {
-        return response()->json(['data' => ExternalCourse::when($request->query('provider'), fn ($q, $p) => $q->where('provider', $p))->orderBy('title')->limit(500)->get()->all()]);
+        return response()->json(['data' => $this->svc->sync(trigger: 'manual', by: $this->user())]);
     }
 
     public function createProgram(ExternalCourse $course): JsonResponse

@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 729 columns
-- Internal: 2036 columns
-- Confidential: 508 columns
+- Public: 732 columns
+- Internal: 2057 columns
+- Confidential: 522 columns
 - Restricted: 23 columns
 
 ## Application-level encryption
@@ -1325,6 +1325,25 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Confidential | masked in exports |
 | `updated_at` | Confidential | masked in exports |
 
+### `external_completion_issues`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Confidential | masked in exports |
+| `provider` | Confidential | masked in exports |
+| `external_course_id` | Confidential | masked in exports |
+| `course_title` | Confidential | masked in exports |
+| `learner_ref` | Confidential | masked in exports |
+| `reason` | Confidential | masked in exports |
+| `occurrences` | Confidential | masked in exports |
+| `first_seen_at` | Confidential | masked in exports |
+| `last_seen_at` | Confidential | masked in exports |
+| `resolved_at` | Confidential | masked in exports |
+| `resolution` | Confidential | masked in exports |
+| `resolved_by` | Confidential | masked in exports |
+| `created_at` | Confidential | masked in exports |
+| `updated_at` | Confidential | masked in exports |
+
 ### `external_completions`
 
 | Column | Class | Control |
@@ -1354,6 +1373,35 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `meta` | Internal | — |
 | `program_id` | Internal | — |
 | `synced_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+| `description` | Internal | — |
+| `level` | Internal | — |
+| `language` | Internal | — |
+| `image_url` | Internal | — |
+| `status` | Internal | — |
+| `last_seen_at` | Internal | — |
+
+### `external_sync_runs`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `provider` | Internal | — |
+| `status` | Internal | — |
+| `trigger` | Internal | — |
+| `triggered_by` | Internal | — |
+| `started_at` | Internal | — |
+| `finished_at` | Internal | — |
+| `catalogue_at` | Internal | — |
+| `catalogue_full` | Internal | — |
+| `completions_at` | Internal | — |
+| `courses_seen` | Internal | — |
+| `courses_added` | Internal | — |
+| `completions_seen` | Internal | — |
+| `completions_applied` | Internal | — |
+| `issues_found` | Internal | — |
+| `error` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 

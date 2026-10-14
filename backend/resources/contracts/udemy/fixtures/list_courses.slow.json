@@ -1,0 +1,72 @@
+{
+  "status": 200,
+  "delay_ms": 3000,
+  "body": {
+    "count": 3,
+    "next": null,
+    "previous": null,
+    "results": [
+      {
+        "_class": "course",
+        "id": 12345678,
+        "title": "Data Engineering Foundations",
+        "description": "<p>Build <b>reliable</b> data pipelines.</p>",
+        "url": "https://learning.udemy.example.test/data-engineering-foundations/",
+        "estimated_content_length": 42,
+        "categories": [
+          "Engineering Team"
+        ],
+        "num_lectures": 12,
+        "num_videos": 10,
+        "instructors": [
+          "Nancy E.",
+          "Joan S."
+        ],
+        "images": {
+          "size_240x135": "https://img.example.test/240.png",
+          "size_480x270": "https://img.example.test/data-engineering-foundations.png"
+        }
+      },
+      {
+        "_class": "course",
+        "id": 12345679,
+        "title": "Leading Remote Teams",
+        "description": "<p>Lead teams that work apart.</p>",
+        "url": "https://learning.udemy.example.test/leading-remote-teams/",
+        "estimated_content_length": 180,
+        "categories": [
+          "Leadership"
+        ],
+        "num_lectures": 12,
+        "num_videos": 10,
+        "instructors": [
+          "Omar H."
+        ],
+        "images": {
+          "size_240x135": "https://img.example.test/240.png",
+          "size_480x270": "https://img.example.test/leading-remote-teams.png"
+        }
+      },
+      {
+        "_class": "course",
+        "id": 12345680,
+        "title": "Arabic Business Writing",
+        "description": "<p>Write clear letters and reports.</p>",
+        "url": "https://learning.udemy.example.test/arabic-business-writing/",
+        "estimated_content_length": 95,
+        "categories": [
+          "Communication"
+        ],
+        "num_lectures": 12,
+        "num_videos": 10,
+        "instructors": [
+          "Huda R."
+        ],
+        "images": {
+          "size_240x135": "https://img.example.test/240.png",
+          "size_480x270": "https://img.example.test/arabic-business-writing.png"
+        }
+      }
+    ]
+  }
+}

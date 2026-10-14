@@ -60,7 +60,7 @@ final class MockMinistry
     {
         $routes = [];
         foreach ($this->contract->operations() as $name => $op) {
-            $display = (string) preg_replace_callback('/\{\{\s*([^{}]*?)\s*\}\}/', fn ($m) => $this->isSetting($m[1]) ? Template::render($m[0], ['settings' => $this->settings]) : '{'.trim(explode('|', $m[1])[0]).'}', (string) $op['path']);
+            $display = (string) preg_replace_callback('/\{\{\s*([^{}]*?)\s*\}\}/', fn ($m) => $this->isSetting($m[1]) && Template::render($m[0], ['settings' => $this->settings]) !== '' ? Template::render($m[0], ['settings' => $this->settings]) : '{'.preg_replace('/^settings\./', '', trim(explode('|', $m[1])[0])).'}', (string) $op['path']);
             $routes[] = ['method' => (string) $op['method'], 'path' => $display, 'operation' => (string) $name];
         }
 
@@ -76,6 +76,9 @@ final class MockMinistry
     {
         $method = strtoupper($method);
         $path = '/'.ltrim($path, '/');
+        if ($method === 'POST' && $this->tokenPath() !== null && rtrim($path, '/') === rtrim((string) $this->tokenPath(), '/')) {
+            return $this->token($headers, $body);
+        }
         $matched = [];
         foreach ($this->contract->operations() as $name => $op) {
             if (preg_match($this->pattern((string) $op['path']), $path)) {
@@ -113,7 +116,63 @@ final class MockMinistry
         return $this->fixture($name, $scenario) ?? $this->json(501, ['message' => 'The mock has no recorded answer for "'.$name.'.'.$scenario.'".']);
     }
 
+    /** Where the token service of a system that signs in with OAuth2 answers, given the system's own address (null for any other system). */
+    public function tokenUrl(string $baseUrl): ?string
+    {
+        $auth = $this->contract->auth();
+        if (($auth['type'] ?? '') !== 'oauth2') {
+            return null;
+        }
+        if (! empty($auth['token_url'])) {
+            return (string) $auth['token_url'];
+        }
+
+        return ! empty($auth['token_path']) ? rtrim($baseUrl, '/').$auth['token_path'] : null;
+    }
+
     // ---- internals ------------------------------------------------------------------------------------
+
+    /** The path the mock answers token requests at: the contract's token path, or the path of its token address. */
+    private function tokenPath(): ?string
+    {
+        $auth = $this->contract->auth();
+        if (($auth['type'] ?? '') !== 'oauth2') {
+            return null;
+        }
+
+        return ! empty($auth['token_path']) ? (string) $auth['token_path'] : (! empty($auth['token_url']) ? (string) parse_url((string) $auth['token_url'], PHP_URL_PATH) : null);
+    }
+
+    /**
+     * A token for the client credentials the contract asks for: the client in the Authorization header or in the form, as the contract
+     * says, with the extra fields it names. The mock does not know the real credentials, so any non-empty client is accepted.
+     *
+     * @param  array<string, string>  $headers
+     * @return array{status: int, headers: array<string, string>, body: string, delay_ms: int}
+     */
+    private function token(array $headers, string $body): array
+    {
+        $auth = $this->contract->auth();
+        parse_str($body, $form);
+        if (($auth['client_auth'] ?? 'body') === 'basic') {
+            $given = str_starts_with((string) ($headers['authorization'] ?? ''), 'Basic ') && str_contains((string) base64_decode(substr((string) $headers['authorization'], 6), true), ':');
+        } else {
+            $given = filled($form['client_id'] ?? null) && filled($form['client_secret'] ?? null);
+        }
+        if (! $given) {
+            return $this->json(401, ['error' => 'invalid_client', 'error_description' => 'The client credentials are missing'.(($auth['client_auth'] ?? 'body') === 'basic' ? ' (this contract wants them in the Authorization header)' : ' (this contract wants client_id and client_secret in the form)').'.']);
+        }
+        if (($form['grant_type'] ?? '') !== 'client_credentials') {
+            return $this->json(400, ['error' => 'unsupported_grant_type', 'error_description' => 'Only client_credentials is served.']);
+        }
+        foreach ((array) ($auth['token_params'] ?? []) as $name => $value) {
+            if (($form[$name] ?? null) !== (string) $value) {
+                return $this->json(400, ['error' => 'invalid_request', 'error_description' => 'The field "'.$name.'" must be "'.$value.'".']);
+            }
+        }
+
+        return $this->json(200, ['access_token' => 'mock-token-'.bin2hex(random_bytes(6)), 'token_type' => (string) ($auth['header_scheme'] ?? 'Bearer'), 'expires_in' => 1799]);
+    }
 
     private function chosenScenario(string $operation, array $query, array $headers): string
     {
@@ -152,7 +211,8 @@ final class MockMinistry
     {
         $auth = $this->contract->auth();
         $given = match ($auth['type'] ?? 'none') {
-            'bearer', 'oauth2' => str_starts_with((string) ($headers['authorization'] ?? ''), 'Bearer ') ? trim(substr((string) $headers['authorization'], 7)) : '',
+            'bearer' => str_starts_with((string) ($headers['authorization'] ?? ''), 'Bearer ') ? trim(substr((string) $headers['authorization'], 7)) : '',
+            'oauth2' => str_starts_with((string) ($headers['authorization'] ?? ''), ($scheme = (string) ($auth['header_scheme'] ?? 'Bearer')).' ') ? trim(substr((string) $headers['authorization'], strlen($scheme) + 1)) : '',
             'basic' => str_starts_with((string) ($headers['authorization'] ?? ''), 'Basic ') ? trim(substr((string) $headers['authorization'], 6)) : '',
             'api_key' => ($auth['in'] ?? 'header') === 'query' ? (string) ($query[$this->keyName($auth)] ?? '') : (string) ($headers[strtolower($this->keyName($auth))] ?? ''),
             'hmac' => (string) ($headers[strtolower((string) ($auth['signature_header'] ?? ''))] ?? ''),
@@ -190,7 +250,8 @@ final class MockMinistry
         foreach ($found as $hit) {
             [$whole, $position] = $hit[0];
             $regex .= preg_quote(substr($template, $offset, $position - $offset), '#');
-            $regex .= $this->isSetting($hit[1][0]) ? preg_quote(Template::render($whole, ['settings' => $this->settings]), '#') : '([^/]+)';
+            $given = $this->isSetting($hit[1][0]) ? Template::render($whole, ['settings' => $this->settings]) : '';
+            $regex .= $given !== '' ? preg_quote($given, '#') : '([^/]+)';   // a setting that is not given (an organisation id) stands for any value
             $offset = $position + strlen($whole);
         }
 

@@ -41,7 +41,22 @@ final class ContractFixtures
         $host = ($parts['host'] ?? '').(isset($parts['port']) ? ':'.$parts['port'] : '');
         $basePath = rtrim((string) ($parts['path'] ?? ''), '/');
 
-        Http::fake([$host.'/*' => function (Request $request) use ($mock, $basePath) {
+        $stand = [];
+        $tokenUrl = $mock->tokenUrl($baseUrl);
+        if ($tokenUrl !== null) {   // the token service answers beside the system, on its own address when the contract has one
+            $token = parse_url($tokenUrl);
+            $stand[($token['host'] ?? '').(isset($token['port']) ? ':'.$token['port'] : '').($token['path'] ?? '/')] = function (Request $request) use ($mock, $token) {
+                $headers = [];
+                foreach ($request->headers() as $name => $values) {
+                    $headers[strtolower((string) $name)] = implode(', ', (array) $values);
+                }
+                $answer = $mock->respond($request->method(), (string) ($token['path'] ?? '/'), [], $headers, $request->body());
+
+                return Http::response($answer['body'], $answer['status'], $answer['headers']);
+            };
+        }
+
+        Http::fake($stand + [$host.'/*' => function (Request $request) use ($mock, $basePath) {
             $url = parse_url($request->url());
             $path = substr((string) ($url['path'] ?? '/'), strlen($basePath)) ?: '/';
             parse_str((string) ($url['query'] ?? ''), $query);

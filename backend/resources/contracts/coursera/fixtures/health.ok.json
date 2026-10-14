@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "body": {
+    "elements": [
+      {
+        "name": "Ministry Training Centre",
+        "id": "ORG123",
+        "slug": "ministry-training-centre"
+      }
+    ],
+    "paging": {
+      "total": 1
+    },
+    "linked": {}
+  }
+}

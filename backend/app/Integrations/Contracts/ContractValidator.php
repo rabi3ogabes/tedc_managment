@@ -44,6 +44,9 @@ final class ContractValidator
             $p[] = '"system" must be "'.$system.'"';
         }
         $p = array_merge($p, self::auth((array) ($doc['auth'] ?? ['type' => 'none']), $known));
+        if (isset($doc['base_url'])) {
+            $p = array_merge($p, self::baseUrl($doc['base_url'], $known));
+        }
         $ops = $doc['operations'] ?? null;
         if (! is_array($ops) || $ops === []) {
             return array_merge($p, ['"operations" must list at least one operation']);
@@ -72,6 +75,9 @@ final class ContractValidator
             }
             if (isset($t['response']) && (! is_array($t['response']) || ! is_int($t['response']['status'] ?? null) || $t['response']['status'] < 100 || $t['response']['status'] > 599)) {
                 $p[] = 'test case #'.($i + 1).': "response" is an answer with a "status" (100 to 599) and a "body"';
+            }
+            if (isset($t['settings'])) {
+                $p = array_merge($p, array_map(fn ($x) => 'test case #'.($i + 1).': '.$x, self::caseSettings($t['settings'], $secrets)));
             }
         }
 
@@ -180,11 +186,14 @@ final class ContractValidator
         if (isset($a['optional']) && ! is_bool($a['optional'])) {
             $p[] = 'auth.optional must be true or false';
         }
-        $need = ['bearer' => ['setting'], 'api_key' => ['setting'], 'basic' => ['user_setting', 'password_setting'], 'oauth2' => ['token_url_setting', 'client_id_setting', 'client_secret_setting'], 'hmac' => ['secret_setting', 'signature_header'], 'mtls' => ['cert_setting', 'key_setting']][$type] ?? [];
+        $need = ['bearer' => ['setting'], 'api_key' => ['setting'], 'basic' => ['user_setting', 'password_setting'], 'oauth2' => ['client_id_setting', 'client_secret_setting'], 'hmac' => ['secret_setting', 'signature_header'], 'mtls' => ['cert_setting', 'key_setting']][$type] ?? [];
         foreach ($need as $k) {
             if (empty($a[$k])) {
                 $p[] = 'auth type "'.$type.'" needs "'.$k.'"';
             }
+        }
+        if ($type === 'oauth2') {
+            $p = array_merge($p, self::oauth2($a));
         }
         if (isset($a['fallback'])) {
             $fb = $a['fallback'];
@@ -224,6 +233,117 @@ final class ContractValidator
         return $p;
     }
 
+    /** Where an OAuth2 client-credentials token comes from, how the client signs in, and how the token is presented. @return list<string> */
+    private static function oauth2(array $a): array
+    {
+        $p = [];
+        if (empty($a['token_url_setting']) && empty($a['token_url']) && empty($a['token_path'])) {
+            $p[] = 'auth type "oauth2" needs the token address: "token_url", "token_path" or "token_url_setting"';
+        }
+        if (isset($a['token_url'])) {
+            $parts = is_string($a['token_url']) ? parse_url($a['token_url']) : false;
+            if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'https' || empty($parts['host']) || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || isset($parts['query']) || ! preg_match('#^https://[A-Za-z0-9.-]+(:\d{1,5})?(/[A-Za-z0-9_\-./~%]*)?$#', (string) $a['token_url'])) {
+                $p[] = 'auth.token_url must be a plain https address (no user name, query or fragment)';
+            }
+        }
+        if (isset($a['token_path'])) {
+            if (! is_string($a['token_path']) || ! self::plainPath($a['token_path'])) {
+                $p[] = 'auth.token_path must be a path on the system\'s own address, such as /oauth2/access_token';
+            }
+            if (isset($a['token_url'])) {
+                $p[] = 'auth: give "token_url" or "token_path", not both';
+            }
+        }
+        if (isset($a['client_auth']) && ! in_array($a['client_auth'], ['body', 'basic'], true)) {
+            $p[] = 'auth.client_auth must be body (the client in the form) or basic (the client in the Authorization header)';
+        }
+        if (isset($a['header_scheme']) && (! is_string($a['header_scheme']) || ! preg_match('/^[A-Za-z][A-Za-z0-9\-]{0,19}$/', $a['header_scheme']))) {
+            $p[] = 'auth.header_scheme is the word before the token in the Authorization header, such as Bearer or JWT';
+        }
+        if (isset($a['token_params'])) {
+            if (! is_array($a['token_params']) || array_is_list($a['token_params']) && $a['token_params'] !== []) {
+                $p[] = 'auth.token_params must be an object of plain form fields';
+            } else {
+                foreach ($a['token_params'] as $name => $value) {
+                    if (! preg_match('/^[A-Za-z][A-Za-z0-9_]{0,40}$/', (string) $name) || in_array(strtolower((string) $name), ['grant_type', 'client_id', 'client_secret'], true)) {
+                        $p[] = 'auth.token_params: "'.mb_substr((string) $name, 0, 30).'" is not a plain field name TEDC leaves to the contract';
+                    } elseif (! is_scalar($value) || mb_strlen((string) $value) > 100) {
+                        $p[] = 'auth.token_params: "'.$name.'" must be a short plain value';
+                    }
+                }
+            }
+        }
+
+        return $p;
+    }
+
+    /**
+     * The system's address made from a name the administrator enters (a tenant's subdomain): the scheme and the registrable domain are the
+     * contract's, the name is one DNS label that has to match the contract's pattern, and nothing else can be put in.
+     *
+     * @return list<string>
+     */
+    private static function baseUrl(mixed $base, ?array $known): array
+    {
+        if (! is_array($base) || ! is_string($base['pattern'] ?? null)) {
+            return ['base_url must be an object with a "pattern", such as https://{subdomain}.example.com'];
+        }
+        $label = '(?:[a-z0-9-]+|\{[a-z][a-z0-9_]{0,30}\})';
+        if (! preg_match('#^https://('.$label.'(?:\.'.$label.')+)(/[A-Za-z0-9_\-./]*)?$#', $base['pattern'], $m) || str_contains($base['pattern'], '..')) {
+            return ['base_url.pattern must be an https address of plain names, with the name to fill in as {name} (no port, user name, query or fragment)'];
+        }
+        $p = [];
+        $labels = explode('.', $m[1]);
+        if (count($labels) < 3 || str_contains((string) end($labels), '{') || str_contains((string) $labels[count($labels) - 2], '{')) {
+            $p[] = 'base_url.pattern must fix the domain: the last two parts of the host are written out (https://{subdomain}.example.com)';
+        }
+        if (str_contains($m[2] ?? '', '{')) {
+            $p[] = 'base_url.pattern: only the host can hold a {name}';
+        }
+        preg_match_all('/\{([a-z][a-z0-9_]{0,30})\}/', $base['pattern'], $used);
+        $variables = $base['variables'] ?? null;
+        if (! is_array($variables) || $variables === [] || array_is_list($variables)) {
+            return array_merge($p, ['base_url.variables must say, for each {name}, the pattern its value has to match']);
+        }
+        foreach (array_unique($used[1]) as $name) {
+            if (! isset($variables[$name])) {
+                $p[] = 'base_url.variables has no pattern for {'.$name.'}';
+            }
+        }
+        foreach ($variables as $name => $regex) {
+            if (! in_array($name, $used[1], true)) {
+                $p[] = 'base_url.variables: "'.mb_substr((string) $name, 0, 30).'" is not used in the pattern';
+            } elseif (! is_string($regex) || strlen($regex) > 100 || @preg_match('/'.str_replace('/', '\\/', $regex).'/', '') === false) {
+                $p[] = 'base_url.variables: the pattern of {'.$name.'} is not a valid regular expression (100 characters at most)';
+            }
+            if ($known !== null && ! in_array($name, $known, true)) {
+                $p[] = 'base_url: this system has no setting "'.mb_substr((string) $name, 0, 30).'"';
+            }
+        }
+
+        return $p;
+    }
+
+    /** The plain settings a test case is written for (a tenant, an organisation), never a secret. @return list<string> */
+    private static function caseSettings(mixed $settings, array $secrets): array
+    {
+        if (! is_array($settings) || ($settings !== [] && array_is_list($settings))) {
+            return ['"settings" is an object of plain values'];
+        }
+        $p = [];
+        foreach ($settings as $name => $value) {
+            if (! preg_match('/^[a-z][a-z0-9_]{0,40}$/', (string) $name)) {
+                $p[] = 'settings: "'.mb_substr((string) $name, 0, 30).'" is not a setting name (lower-case letters, digits, underscores)';
+            } elseif (in_array($name, $secrets, true)) {
+                $p[] = 'settings: "'.$name.'" is a secret and does not belong in a document';
+            } elseif (! is_scalar($value) || mb_strlen((string) $value) > 200) {
+                $p[] = 'settings: "'.$name.'" must be a short plain value';
+            }
+        }
+
+        return $p;
+    }
+
     /** @return list<string> */
     private static function operation(array $op, array $secrets, ?array $known): array
     {
@@ -257,9 +377,15 @@ final class ContractValidator
             }
             $p = array_merge($p, array_map(fn ($x) => 'body: '.$x, Template::problemsIn($op['body']['template'] ?? null, $secrets, $known)));
         }
-        foreach (['records', 'next_page', 'next_cursor', 'total', 'error'] as $k) {
+        foreach (['records', 'next_page', 'next_cursor', 'total'] as $k) {
             if (isset($op['response'][$k]) && (! is_string($op['response'][$k]) || ! JsonPath::valid($op['response'][$k]))) {
-                $p[] = 'response.'.$k.' is not a supported path (only $, .name, [0], [\'key\'], [*])';
+                $p[] = 'response.'.$k.' is not a supported path (only $, .name, [0], [\'key\'], [*], [?(@.key==\'text\')])';
+            }
+        }
+        if (isset($op['response']['error'])) {
+            $list = is_array($op['response']['error']) ? $op['response']['error'] : [$op['response']['error']];   // one path, or a few to try in order
+            if ($list === [] || count($list) > 5 || array_filter($list, fn ($path) => ! is_string($path) || ! JsonPath::valid($path))) {
+                $p[] = 'response.error is not a supported path (or a list of up to five)';
             }
         }
         foreach ((array) ($op['response']['values'] ?? []) as $name => $paths) {
@@ -281,6 +407,9 @@ final class ContractValidator
                     $p[] = 'pagination.'.$k.' is not a plain parameter name';
                 }
             }
+        }
+        if (isset($op['windows']) && (! is_array($op['windows']) || ! is_int($op['windows']['max_days'] ?? null) || $op['windows']['max_days'] < 1 || $op['windows']['max_days'] > 366)) {
+            $p[] = 'windows needs "max_days": the longest stretch of time (1 to 366 days) one call can ask for';
         }
         if (isset($op['success_when'])) {
             $p = array_merge($p, self::successRules($op['success_when']));

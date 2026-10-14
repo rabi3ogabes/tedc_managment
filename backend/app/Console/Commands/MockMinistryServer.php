@@ -12,12 +12,12 @@ use Symfony\Component\Process\Process;
 class MockMinistryServer extends Command
 {
     protected $signature = 'tedc:mock-ministry
-        {system : hr, mawared, licences, nsis, qneds, saaed, sijil or ministry_site}
+        {system : hr, mawared, licences, nsis, qneds, saaed, sijil, ministry_site, hudhud, moe_epay, or a learning provider (coursera, udemy, linkedin_learning, edx)}
         {--port=8099 : The port to listen on}
         {--host=127.0.0.1 : The address to listen on}
         {--scenario=ok : What it answers by default: ok, unauthorised, server_error, slow… (a request can choose with X-Mock-Scenario)}
         {--key= : Only this key is accepted (any key is accepted when it is not given)}
-        {--setting=* : A setting that decides an address, such as publish_path=/ingest}
+        {--setting=* : A setting that decides an address, such as publish_path=/ingest or org_id=ORG-1}
         {--routes : Only list what the mock answers}';
 
     protected $description = 'Starts a local mock of a Ministry system that answers its contract from the recorded fixtures (for UAT and demos; never in production)';
@@ -59,6 +59,11 @@ class MockMinistryServer extends Command
         }
         $this->info("The mock of \"{$system}\" listens on http://{$host}:{$port}");
         $this->line('Point the integration card at it: driver http, address http://'.$host.':'.$port.', any key'.($this->option('key') ? ' (the one you gave)' : '').'.');
+        $auth = $mock->tokenUrl("http://{$host}:{$port}");
+        if ($auth !== null) {
+            $path = (string) parse_url($auth, PHP_URL_PATH);
+            $this->line('This system signs in with a token: the mock issues one at http://'.$host.':'.$port.$path.' — put that address in the integration\'s "token_url" setting (any client id and secret).');
+        }
         $this->line('Ask for a failure with the header X-Mock-Scenario: unauthorised | server_error | slow (or start it with --scenario). Stop with Ctrl+C.');
 
         $server = new Process([PHP_BINARY, '-S', "{$host}:{$port}", base_path('scripts/mock-ministry-router.php')], base_path(), [

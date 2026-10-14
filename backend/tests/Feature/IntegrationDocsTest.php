@@ -2,12 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Integrations\Contracts\ContractStore;
 use App\Integrations\Contracts\IntegrationGuide;
 use Tests\TestCase;
 
 /** The go-live guide of each Ministry system is written from its shipped contract, so it cannot say anything the contract does not. */
 class IntegrationDocsTest extends TestCase
 {
+    private function store(): ContractStore
+    {
+        return app(ContractStore::class);
+    }
+
     public function test_the_committed_guides_are_current(): void
     {
         $this->artisan('tedc:integration-docs', ['--check' => true])->assertSuccessful();
@@ -20,10 +26,24 @@ class IntegrationDocsTest extends TestCase
             $text = $guide->render($key);
             $this->assertStringContainsString('## العربية', $text, $file);
             $this->assertStringContainsString('## English', $text, $file);
-            foreach (['ما تقدّمه الوزارة', 'What the Ministry provides', 'اختبارات الإطلاق مع الوزارة', 'Tests to run with the Ministry', 'خطة التراجع', 'Rollback plan'] as $heading) {
+            $headings = IntegrationGuide::headings($this->store()->bundled($key));
+            foreach ([$headings['ministry_provides']['ar'], $headings['ministry_provides']['en'], $headings['joint_tests']['ar'], $headings['joint_tests']['en'], 'خطة التراجع', 'Rollback plan'] as $heading) {
                 $this->assertStringContainsString($heading, $text, "{$file}: {$heading}");
             }
             $this->assertGreaterThanOrEqual(8, substr_count($text, '- [ ] '), "{$file} lists what to ask for and what to confirm");
+        }
+    }
+
+    public function test_a_learning_provider_s_guide_speaks_of_the_provider_and_names_where_the_contract_comes_from(): void
+    {
+        foreach (['coursera', 'udemy', 'linkedin_learning', 'edx'] as $key) {
+            $text = app(IntegrationGuide::class)->render($key);
+            foreach (['What the provider gives you', 'ما يقدّمه المزوّد', 'Tests to run with the provider', 'Sources the contract was written from', 'المصادر التي كُتب منها العقد'] as $heading) {
+                $this->assertStringContainsString($heading, $text, "{$key}: {$heading}");
+            }
+            $this->assertStringNotContainsString('the Ministry', $text, $key);
+            $this->assertStringNotContainsString('الوزارة', $text, $key);
+            $this->assertGreaterThanOrEqual(2, substr_count($text, 'https://'), "{$key} lists its sources");
         }
     }
 

@@ -48,6 +48,20 @@ class ContractTestRunnerTest extends TestCase
         $this->assertStringContainsString('employee_no', collect($result['checks'])->firstWhere('check', 'response.mapped')['detail']);
     }
 
+    public function test_a_case_can_carry_the_plain_settings_its_request_needs(): void
+    {
+        $contract = new Contract('hr', ['system' => 'hr', 'auth' => ['type' => 'none'], 'operations' => ['list' => ['method' => 'GET', 'path' => '/orgs/{{ settings.org_id }}/items', 'safe' => true, 'response' => ['records' => '$.data']]]]);
+        $case = ['name' => 'items of one organisation', 'operation' => 'list', 'settings' => ['org_id' => 'ORG-1'], 'response' => ['status' => 200, 'body' => ['data' => [['id' => 1], ['id' => 2]]]], 'expect' => ['request' => ['path' => '/orgs/ORG-1/items'], 'records' => 2]];
+        $settings = ['base_url' => 'https://sys.test/api', 'org_id' => 'REAL'];
+
+        $this->assertTrue($this->runner('hr', $contract)->run($case, 'contract', $settings)['ok'], 'a dry run is the case as it was written, whatever is set on this installation');
+        $this->assertFalse($this->runner('hr', $contract)->run(['settings' => ['org_id' => 'ORG-2']] + $case, 'contract', $settings)['ok'], 'the path no longer matches what the case expects');
+
+        Http::fake(['sys.test/*' => Http::response(['data' => [['id' => 1]]])]);
+        $this->runner('hr', $contract)->run($case, 'live', $settings);
+        $this->assertSame('https://sys.test/api/orgs/REAL/items', collect(Http::recorded())->last()[0]->url(), 'a live run asks about the real organisation, never the case\'s example');
+    }
+
     public function test_a_request_that_is_not_what_the_case_expects_fails(): void
     {
         $store = app(ContractStore::class);

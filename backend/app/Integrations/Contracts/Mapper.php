@@ -12,7 +12,10 @@ use Throwable;
  */
 final class Mapper
 {
-    private const TRANSFORMS = ['trim', 'upper', 'lower', 'int', 'float', 'bool', 'minor', 'date', 'table', 'split', 'join', 'first', 'name_part'];
+    private const TRANSFORMS = ['trim', 'upper', 'lower', 'int', 'float', 'bool', 'minor', 'date', 'table', 'split', 'join', 'first', 'name_part', 'epoch_ms', 'epoch_s', 'hours', 'strip_tags', 'positive'];
+
+    /** What one of a unit is, in hours (the units a learning provider states a duration in). */
+    private const HOURS_PER = ['seconds' => 1 / 3600, 'minutes' => 1 / 60, 'hours' => 1];
 
     /**
      * @param  array{fields: array<string, mixed>, tables?: array<string, array<string, mixed>>}  $entity
@@ -117,6 +120,9 @@ final class Mapper
         if ($name === 'minor' && ! preg_match('/^[0-6]$/', (string) $arg)) {
             return ['transform "minor" needs the number of decimals, such as minor:2 (1000 → 10.00)'];
         }
+        if ($name === 'hours' && ! isset(self::HOURS_PER[(string) $arg])) {
+            return ['transform "hours" needs the unit the value is in: hours:seconds, hours:minutes or hours:hours'];
+        }
 
         return [];
     }
@@ -135,6 +141,11 @@ final class Mapper
             'bool' => filter_var($v, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
             'minor' => is_numeric($v) ? round((float) $v / (10 ** max(0, min(6, (int) $arg))), max(0, min(6, (int) $arg))) : null,   // 1999 in fils → 19.99
             'date' => self::date($text, (string) $arg),
+            'epoch_ms' => is_numeric($v) ? Carbon::createFromTimestampMsUTC((int) $v)->format('Y-m-d\TH:i:sP') : null,   // 1791797400000 → 2026-10-12T09:30:00+00:00
+            'epoch_s' => is_numeric($v) ? Carbon::createFromTimestampUTC((int) $v)->format('Y-m-d\TH:i:sP') : null,
+            'hours' => is_numeric($v) ? round((float) $v * self::HOURS_PER[(string) $arg], 2) : null,   // 42 minutes → 0.7
+            'positive' => is_numeric($v) ? (float) $v > 0 : null,   // a count of completions: any is "yes", none is "no"
+            'strip_tags' => trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) preg_replace('/<(?:br|\/p|\/li|\/div|\/h[1-6])\b[^>]*>/i', ' ', $text)), ENT_QUOTES | ENT_HTML5, 'UTF-8'))),
             'table' => (array_key_exists($text, (array) ($tables[(string) $arg] ?? [])) ? $tables[(string) $arg][$text] : $v),
             'split' => array_values(array_filter(array_map('trim', explode((string) $arg, $text)), fn ($x) => $x !== '')),
             'join' => is_array($v) ? implode((string) $arg, $v) : $v,

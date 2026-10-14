@@ -50,6 +50,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\KpiController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
+use App\Http\Controllers\Api\V1\Admin\LearningProvidersController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\LtiPlatformController;
 use App\Http\Controllers\Api\V1\Admin\LtiToolController;
@@ -1595,9 +1596,15 @@ Route::prefix('v1')->group(function () {
                 Route::match(['GET', 'PUT'], 'settings/external-libraries', [LibraryController::class, 'externalSettings']);
             });
             Route::middleware('permission:providers.manage')->group(function () {
-                Route::match(['GET', 'PUT'], 'settings/content-providers', [ExternalLearningController::class, 'settings']);
-                Route::post('content-providers/sync', [ExternalLearningController::class, 'sync']);
-                Route::get('external-courses', [ExternalLearningController::class, 'catalogue']);
+                Route::post('content-providers/sync', [ExternalLearningController::class, 'sync'])->middleware('throttle:6,1');
+                Route::get('learning-providers', [LearningProvidersController::class, 'index']);
+                Route::put('learning-providers/{provider}', [LearningProvidersController::class, 'update'])->middleware('step_up');   // credentials: as confirming as on the integration card
+                Route::post('learning-providers/{provider}/check', [LearningProvidersController::class, 'check'])->middleware('throttle:20,1');
+                Route::post('learning-providers/{provider}/sync', [LearningProvidersController::class, 'sync'])->middleware('throttle:6,1');
+                Route::get('learning-providers-courses', [LearningProvidersController::class, 'courses']);
+                Route::get('learning-providers-runs', [LearningProvidersController::class, 'runs']);
+                Route::get('learning-providers-issues', [LearningProvidersController::class, 'issues']);
+                Route::post('learning-providers-issues/{issue}/dismiss', [LearningProvidersController::class, 'dismiss']);
                 Route::post('external-courses/{course}/program', [ExternalLearningController::class, 'createProgram']);
             });
             Route::middleware('permission:providers.manage|programs.manage')->group(function () {

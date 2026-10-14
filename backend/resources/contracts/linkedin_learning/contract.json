@@ -1,0 +1,506 @@
+{
+  "system": "linkedin_learning",
+  "version": "1.0",
+  "title": {
+    "ar": "لينكدإن ليرنينغ",
+    "en": "LinkedIn Learning"
+  },
+  "description": {
+    "ar": "كتالوج دورات لينكدإن ليرنينغ المرخّصة للمركز، وتقارير نشاط المتعلمين لمعرفة من أتمّ الدورة واحتساب ساعاتها في السجل.",
+    "en": "The LinkedIn Learning courses the centre is licensed for, and the learners' activity reports, to see who completed a course and count its hours in the record."
+  },
+  "party": {
+    "ar": "المزوّد",
+    "en": "the provider"
+  },
+  "headings": {
+    "ministry_provides": {
+      "ar": "ما يقدّمه المزوّد",
+      "en": "What the provider gives you"
+    },
+    "joint_tests": {
+      "ar": "اختبارات الإطلاق مع المزوّد",
+      "en": "Tests to run with the provider"
+    }
+  },
+  "sources": [
+    {
+      "title": "LinkedIn Learning API: learningAssets",
+      "url": "https://learn.microsoft.com/en-us/linkedin/learning/reference/learningassets",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "LinkedIn Learning API: learningActivityReports",
+      "url": "https://learn.microsoft.com/en-us/linkedin/learning/reference/learning-activity-reports-reference",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "LinkedIn Learning API: retrieve learning activity reports",
+      "url": "https://learn.microsoft.com/en-us/linkedin/learning/integrations/learning-activity-reports",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Client credential flow (2-legged OAuth)",
+      "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/client-credentials-flow",
+      "checked": "2026-10-14"
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "token_url": "https://www.linkedin.com/oauth/v2/accessToken",
+    "token_url_setting": "token_url",
+    "client_id_setting": "client_id",
+    "client_secret_setting": "client_secret"
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض المزوّد الطلب لأن بياناته غير صحيحة",
+        "en": "The provider rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض المزوّد بيانات الاعتماد أو انتهت صلاحية الرمز",
+        "en": "The provider refused the credentials, or the token has expired"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية لدى المزوّد",
+        "en": "The account is not allowed to do this at the provider"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا العنصر لدى المزوّد",
+        "en": "The provider has no such item"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب المزوّد التمهّل في الطلبات",
+        "en": "The provider asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ لدى المزوّد",
+        "en": "The provider had an error"
+      }
+    }
+  },
+  "operations": {
+    "list_courses": {
+      "title": {
+        "ar": "كتالوج الدورات المرخّصة",
+        "en": "Licensed course catalogue"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "course",
+      "path": "/learningAssets",
+      "query": {
+        "q": "criteria",
+        "assetFilteringCriteria.assetTypes[0]": "COURSE",
+        "assetFilteringCriteria.licensedOnly": "true",
+        "assetFilteringCriteria.keyword?": "{{ q }}",
+        "assetFilteringCriteria.lastModifiedAfter?": "{{ since_ms }}",
+        "assetFilteringCriteria.locales[0].language?": "{{ settings.locale_language }}",
+        "assetFilteringCriteria.locales[0].country?": "{{ settings.locale_country }}",
+        "assetRetrievalCriteria.expandDepth": "1",
+        "fields": "urn,title,type,details:(shortDescription,timeToComplete,urls,images,level,availability,lastUpdatedAt)"
+      },
+      "pagination": {
+        "type": "offset",
+        "param": "start",
+        "size_param": "count",
+        "size": 100,
+        "max_pages": 200
+      },
+      "response": {
+        "records": "$.elements",
+        "total": "$.paging.total",
+        "error": [
+          "$.message",
+          "$.serviceErrorCode"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "elements"
+        ],
+        "properties": {
+          "elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "urn"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "list_completions": {
+      "title": {
+        "ar": "نشاط المتعلمين وإتمامهم للدورات",
+        "en": "Learners' activity and course completions"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "completion",
+      "path": "/learningActivityReports",
+      "query": {
+        "q": "criteria",
+        "aggregationCriteria.primary": "INDIVIDUAL",
+        "aggregationCriteria.secondary": "CONTENT",
+        "assetType": "COURSE",
+        "contentSource": "ALL_SOURCES",
+        "startedAt": "{{ window_from_ms }}",
+        "timeOffset.unit": "DAY",
+        "timeOffset.duration": "{{ window_days }}"
+      },
+      "windows": {
+        "max_days": 14
+      },
+      "pagination": {
+        "type": "offset",
+        "param": "start",
+        "size_param": "count",
+        "size": 100,
+        "max_pages": 500
+      },
+      "response": {
+        "records": "$.elements",
+        "total": "$.paging.total",
+        "error": [
+          "$.message",
+          "$.serviceErrorCode"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "elements"
+        ],
+        "properties": {
+          "elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "activities"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "/learningAssets",
+      "query": {
+        "q": "criteria",
+        "assetFilteringCriteria.assetTypes[0]": "COURSE",
+        "assetFilteringCriteria.licensedOnly": "true",
+        "count": "1",
+        "fields": "urn"
+      },
+      "response": {
+        "records": "$.elements",
+        "error": [
+          "$.message",
+          "$.serviceErrorCode"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Catalogue: three licensed courses",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/learningAssets",
+          "query": {
+            "q": "criteria",
+            "assetFilteringCriteria.assetTypes[0]": "COURSE",
+            "assetFilteringCriteria.licensedOnly": "true"
+          }
+        },
+        "records": 3,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "id": "urn:li:lyndaCourse:187499",
+            "title": "Collaborative Design: Process and Efficiency",
+            "level": "beginner",
+            "language": "en",
+            "status": "available",
+            "duration": 95,
+            "duration_unit": "MINUTE",
+            "url": "https://www.linkedin.example.test/learning-login/share/collaborative-design-process-and-efficiency"
+          },
+          "1": {
+            "url": "https://www.linkedin.example.test/learning/collaborative-design-vision-and-strategy",
+            "duration": 2,
+            "duration_unit": "HOUR"
+          },
+          "2": {
+            "status": "retired",
+            "duration_unit": "HOUR"
+          }
+        }
+      }
+    },
+    {
+      "name": "Catalogue: only what changed since a date",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "params": {
+        "since_ms": 1791183600000
+      },
+      "expect": {
+        "request": {
+          "query": {
+            "assetFilteringCriteria.lastModifiedAfter": "1791183600000"
+          }
+        },
+        "records": 3
+      }
+    },
+    {
+      "name": "Catalogue: a search by keyword",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "params": {
+        "q": "leadership"
+      },
+      "expect": {
+        "request": {
+          "query": {
+            "assetFilteringCriteria.keyword": "leadership"
+          }
+        },
+        "records": 3
+      }
+    },
+    {
+      "name": "Catalogue: the client credentials are refused",
+      "operation": "list_courses",
+      "fixture": "list_courses.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Catalogue: LinkedIn is down",
+      "operation": "list_courses",
+      "fixture": "list_courses.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Activity: a two-week window, learner by course",
+      "operation": "list_completions",
+      "fixture": "list_completions.ok",
+      "params": {
+        "window_from_ms": 1791183600000,
+        "window_days": 14
+      },
+      "expect": {
+        "request": {
+          "path": "/learningActivityReports",
+          "query": {
+            "aggregationCriteria.primary": "INDIVIDUAL",
+            "aggregationCriteria.secondary": "CONTENT",
+            "startedAt": "1791183600000",
+            "timeOffset.duration": "14",
+            "timeOffset.unit": "DAY"
+          }
+        },
+        "records": 3,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "course_id": "urn:li:lyndaCourse:187499",
+            "employee_no": "E-1001",
+            "email": "sara.kuwari@example.test",
+            "completed": true,
+            "completed_at": "2026-10-12T09:30:00+00:00",
+            "progress": 100
+          },
+          "1": {
+            "completed": false,
+            "progress": 35
+          }
+        }
+      }
+    },
+    {
+      "name": "Activity: the application may not read the reports",
+      "operation": "list_completions",
+      "fixture": "list_completions.forbidden",
+      "params": {
+        "window_from_ms": 1791183600000,
+        "window_days": 14
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Connection check: the catalogue answers",
+      "operation": "health",
+      "fixture": "health.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/learningAssets",
+          "query": {
+            "count": "1"
+          }
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عقد لينكدإن ليرنينغ بتراخيص مؤسسية (Site Licenses)، وحساب مسؤول للمنظمة في إعدادات المسؤول",
+      "en": "A LinkedIn Learning contract with enterprise (site) licences, and an administrator account in the Admin Settings"
+    },
+    {
+      "id": "api_access",
+      "group": "ministry_provides",
+      "ar": "تفعيل الوصول إلى واجهة Learning API للتطبيق (يتطلب موافقة LinkedIn؛ إن لم تُفعَّل يظهر access_denied عند طلب الرمز)",
+      "en": "The Learning API enabled for the application (LinkedIn must allow it; without it the token request answers access_denied)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "Client ID وClient Secret للتطبيق من إعدادات المسؤول (بوابة LinkedIn Developers)",
+      "en": "The application's Client ID and Client Secret from the Admin Settings (LinkedIn Developers portal)"
+    },
+    {
+      "id": "reporting",
+      "group": "ministry_provides",
+      "ar": "تفعيل واجهة التقارير (learningActivityReports) لمفاتيح التطبيق",
+      "en": "The reporting API (learningActivityReports) enabled for the application's keys"
+    },
+    {
+      "id": "unique_user_id",
+      "group": "ministry_provides",
+      "ar": "حسابات المتعلمين محمّلة بـ uniqueUserId هو الرقم الوظيفي (أو البريد الإلكتروني نفسه المسجّل في TEDC)",
+      "en": "Learners provisioned with a uniqueUserId that is the employee number (or the same e-mail address TEDC has)"
+    },
+    {
+      "id": "sso_launch",
+      "group": "ministry_provides",
+      "ar": "إعداد الدخول الموحد ليُعاد رابط ssoLaunch، فيفتح المتعلم الدورة دون تسجيل دخول ثانٍ",
+      "en": "Single sign-on configured so ssoLaunch links are returned and the learner opens a course without a second sign-in"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة بالوصول إلى api.linkedin.com وwww.linkedin.com عبر المنفذ 443",
+      "en": "TEDC's outbound addresses allowed to reach api.linkedin.com and www.linkedin.com on port 443"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة client_id وclient_secret في بطاقة التكامل (العناوين الافتراضية صحيحة)",
+      "en": "client_id and client_secret filled in the integration card (the default addresses are right)"
+    },
+    {
+      "id": "health",
+      "group": "tedc_settings",
+      "ar": "الضغط على «فحص الاتصال» والحصول على «سليم»",
+      "en": "Press “Check connection” and get “ok”"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مقارنة العقد بمرجع Learning API الحالي (تتغير واجهة التقارير باستمرار) وتعديل ما يختلف",
+      "en": "Compare the contract with the current Learning API reference (the reporting API keeps changing) and edit what differs"
+    },
+    {
+      "id": "locale",
+      "group": "tedc_settings",
+      "ar": "اختيار لغة الكتالوج إن لزم (لا توجد دورات بالعربية؛ اللغات المدعومة هي de en es fr in it ja ko pl pt tr zh)",
+      "en": "Choose the catalogue language if needed (there are no Arabic courses; the supported languages are de en es fr in it ja ko pl pt tr zh)"
+    },
+    {
+      "id": "first_sync",
+      "group": "tedc_settings",
+      "ar": "تشغيل مزامنة الكتالوج وفحص عدد الدورات في شاشة مزوّدي التعلم",
+      "en": "Run the catalogue sync and check the number of courses in the Learning providers screen"
+    },
+    {
+      "id": "catalogue",
+      "group": "joint_tests",
+      "ar": "عدد الدورات في TEDC يطابق عدد الدورات المرخّصة لدى لينكدإن (paging.total)، وتُؤخذ المدة من timeToComplete",
+      "en": "The number of courses in TEDC matches the licensed courses at LinkedIn (paging.total), and the duration comes from timeToComplete"
+    },
+    {
+      "id": "programme",
+      "group": "joint_tests",
+      "ar": "إنشاء برنامج من دورة وتسجيل موظف تجريبي فيه",
+      "en": "Make a programme from one course and register a test employee"
+    },
+    {
+      "id": "completion",
+      "group": "joint_tests",
+      "ar": "إتمام دورة قصيرة بمتعلم تجريبي ثم التأكد من وصول الإتمام في المزامنة التالية وصدور الشهادة (تتأخر تقارير لينكدإن قليلًا)",
+      "en": "Complete a short course with a test learner, then check the completion arrives in the next sync and the certificate is issued (LinkedIn's reports lag a little)"
+    },
+    {
+      "id": "unknown_learner",
+      "group": "joint_tests",
+      "ar": "إتمام يعود لشخص لا يعرفه TEDC يظهر في «أخطاء مزامنة الإتمام» بسببه",
+      "en": "A completion by someone TEDC does not know shows in “Completion sync errors” with its reason"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "إيقاف البطاقة يوقف كل الاستدعاءات؛ البرامج المنشأة تبقى وتعمل بمسار «إثبات الإتمام» اليدوي",
+      "en": "Switching the card off stops every call; the programmes already made stay and work with the manual “evidence of completion” route"
+    },
+    {
+      "id": "training_mode",
+      "group": "rollback",
+      "ar": "العودة إلى وضع التدريب (driver: fake) للعمل ببيانات تجريبية دون اتصال",
+      "en": "Go back to the training mode (driver: fake) to work with sample data and no connection"
+    }
+  ]
+}

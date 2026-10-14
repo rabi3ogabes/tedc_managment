@@ -57,6 +57,9 @@ final class ContractTestRunner
         $params = (array) ($case['params'] ?? []);
         $live = $mode === 'live';
         $used = $live ? $settings : $this->drySettings($settings);
+        if (! $live && is_array($case['settings'] ?? null)) {
+            $used = array_replace($used, array_diff_key((array) $case['settings'], array_flip($this->secretSettings)));   // what the case was written for; a live run asks about the real system
+        }
         $driver = new ContractDriver($this->contract, $used, $this->secretSettings, $this->system);
 
         try {
@@ -235,7 +238,16 @@ final class ContractTestRunner
         $dry = array_diff_key($settings, array_flip($this->secretSettings));
         $base = trim((string) ($settings['base_url'] ?? ''));
         $parts = parse_url($base);
-        $dry['base_url'] = in_array($parts['scheme'] ?? '', ['http', 'https'], true) && ! empty($parts['host']) ? $base : 'https://system.example';
+        $pattern = $this->contract->document()['base_url'] ?? null;
+        if (is_array($pattern) && $base === '') {
+            // The contract makes the address from a name (a tenant's subdomain): a name that is not set yet is shown as "example".
+            $dry['base_url'] = '';
+            foreach (array_keys((array) ($pattern['variables'] ?? [])) as $name) {
+                $dry[$name] = filled($dry[$name] ?? null) ? $dry[$name] : 'example';
+            }
+        } else {
+            $dry['base_url'] = in_array($parts['scheme'] ?? '', ['http', 'https'], true) && ! empty($parts['host']) ? $base : 'https://system.example';
+        }
         foreach ($this->contract->auth() as $key => $name) {
             if (is_string($name) && ($key === 'setting' || str_ends_with((string) $key, '_setting')) && $key !== 'name_setting' && ! filled($dry[$name] ?? null)) {
                 $dry[$name] = self::PREVIEW_VALUE;
