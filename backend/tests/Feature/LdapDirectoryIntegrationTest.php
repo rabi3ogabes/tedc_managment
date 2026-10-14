@@ -93,7 +93,7 @@ class LdapDirectoryIntegrationTest extends TestCase
 
     public function test_a_certificate_for_another_name_is_refused(): void
     {
-        // The server's certificate names "localhost" only.
+        // The server's certificate names ldap.tedc.test only.
         $this->expectException(RuntimeException::class);
         (new LdapDirectory)->authenticate('sara', $this->password(), $this->settings(['host' => '127.0.0.1']));
     }

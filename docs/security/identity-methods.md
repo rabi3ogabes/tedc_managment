@@ -85,7 +85,8 @@ on the TEDC app) or the ADFS access-control policy of the TEDC relying party.
 
 - **Connection.** Use LDAPS (port 636, or 3269 for the global catalog) or STARTTLS on another port. Plain LDAP is refused. The
   server certificate is always verified: if the Ministry's CA is not in the server's trust store, paste it into
-  "ca_certificate".
+  "ca_certificate". Give the host as a DNS name the certificate names (not an IP address, and not "localhost": the LDAP library
+  compares "localhost" with the machine's own name).
 - **Service account.** Read-only, used to find the person; the person's own password is then checked by binding as them.
 - **Filters.**
   - User filter: `(sAMAccountName={username})` by default. The value is escaped against filter injection.
@@ -259,7 +260,8 @@ ID أو ADFS، فيصل إلى المنصة دخول عادي عبر OpenID Conn
 ### ‏LDAP / الدليل النشط
 
 - **الاتصال.** استخدم LDAPS (المنفذ 636، أو 3269 للفهرس العام) أو STARTTLS على منفذ آخر. يُرفض LDAP غير المشفّر. ويُتحقق من
-  شهادة الخادم دائمًا؛ فإن لم تكن جهة إصدار الوزارة موثوقة على الخادم فالصقها في «ca_certificate».
+  شهادة الخادم دائمًا؛ فإن لم تكن جهة إصدار الوزارة موثوقة على الخادم فالصقها في «ca_certificate». أدخل اسم المضيف كاسم DNS تذكره
+  الشهادة (لا عنوان IP ولا «localhost»: تقارن مكتبة LDAP «localhost» باسم الجهاز نفسه).
 - **حساب الخدمة.** للقراءة فقط، ويُستخدم للعثور على الشخص، ثم يُتحقق من كلمة مروره بالربط باسمه.
 - **المرشّحات.**
   - مرشّح المستخدم: `(sAMAccountName={username})` افتراضيًا، والقيمة محمية من حقن المرشّحات.

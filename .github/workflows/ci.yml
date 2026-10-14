@@ -91,14 +91,16 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - name: Certificate authority and server certificate for localhost
+      - name: Certificate authority and server certificate for ldap.tedc.test
         working-directory: ${{ runner.temp }}
         run: |
+          # A real name, not "localhost": libldap compares "localhost" with the machine's own host name, whatever the certificate says.
+          echo "127.0.0.1 ldap.tedc.test" | sudo tee -a /etc/hosts
           mkdir ldap-certs && cd ldap-certs
           openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=TEDC CI directory CA" -keyout ca.key -out ca.crt \
             -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign,cRLSign
-          openssl req -newkey rsa:2048 -nodes -subj "/CN=localhost" -keyout server.key -out server.csr
-          printf 'subjectAltName=DNS:localhost\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n' > server.ext
+          openssl req -newkey rsa:2048 -nodes -subj "/CN=ldap.tedc.test" -keyout server.key -out server.csr
+          printf 'subjectAltName=DNS:ldap.tedc.test\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n' > server.ext
           openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 2 -extfile server.ext -out server.crt
           # The RFC 7919 ffdhe2048 group, written as PKCS#3 ("-dsaparam" would write X9.42, which GnuTLS in the image cannot read).
           openssl genpkey -genparam -algorithm DH -pkeyopt group:ffdhe2048 -out dhparam.pem || openssl dhparam -out dhparam.pem 2048
@@ -126,7 +128,7 @@ jobs:
             ldappasswd -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -T user.pw "uid=$u,ou=people,dc=tedc,dc=test"
           done
           {
-            echo "LDAP_TEST_HOST=localhost"
+            echo "LDAP_TEST_HOST=ldap.tedc.test"
             echo "LDAP_TEST_ADMIN_PASSWORD=$admin"
             echo "LDAP_TEST_USER_PASSWORD=$user"
             echo "LDAP_TEST_CA_FILE=$PWD/ldap-certs/ca.crt"
@@ -135,9 +137,9 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           export LDAPTLS_CACERT="$PWD/ldap-certs/ca.crt"
-          openssl s_client -connect localhost:636 -servername localhost -CAfile "$LDAPTLS_CACERT" -verify_hostname localhost -brief </dev/null 2>&1 | head -12 || true
-          ldapwhoami -x -H ldaps://localhost:636 -D cn=admin,dc=tedc,dc=test -y admin.pw
-          ldapwhoami -x -ZZ -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw
+          openssl s_client -connect ldap.tedc.test:636 -servername ldap.tedc.test -CAfile "$LDAPTLS_CACERT" -verify_hostname ldap.tedc.test -brief </dev/null 2>&1 | head -12 || true
+          ldapwhoami -x -H ldaps://ldap.tedc.test:636 -D cn=admin,dc=tedc,dc=test -y admin.pw
+          ldapwhoami -x -ZZ -H ldap://ldap.tedc.test:389 -D cn=admin,dc=tedc,dc=test -y admin.pw
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
