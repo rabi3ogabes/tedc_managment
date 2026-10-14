@@ -94,6 +94,7 @@ use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
 use App\Http\Controllers\Api\V1\Admin\SecurityPolicyController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
+use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
@@ -157,6 +158,7 @@ use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
+use App\Http\Controllers\Api\V1\SamlController;
 use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\Social\CourseSocialController;
 use App\Http\Controllers\Api\V1\Social\GamificationAdminController;
@@ -330,6 +332,11 @@ Route::prefix('v1')->group(function () {
             Route::post('sso/exchange', 'ssoExchange')->middleware('throttle:login');
             Route::post('ldap/login', 'ldapLogin')->middleware('throttle:login');
         });
+        // SAML 2.0 service provider (NFR-07): metadata for the IdP, the assertion consumer service and single logout.
+        Route::get('saml/metadata', [SamlController::class, 'metadata'])->middleware('throttle:public');
+        Route::get('saml/login', [SamlController::class, 'login'])->middleware('throttle:login');
+        Route::post('saml/acs', [SamlController::class, 'acs'])->middleware('throttle:login');
+        Route::match(['get', 'post'], 'saml/slo', [SamlController::class, 'slo'])->middleware('throttle:login');
         Route::middleware(['auth:api', 'active.role'])->group(function () {
             Route::post('logout', [AuthSecurityController::class, 'logout']);
             Route::post('step-up', [AuthSecurityController::class, 'stepUp'])->middleware('throttle:10,1');
@@ -1089,6 +1096,14 @@ Route::prefix('v1')->group(function () {
                 Route::get('integrations/{key}/logs', [IntegrationsController::class, 'logs'])->where('key', '[a-z_]+');
             });
             Route::put('integrations/{key}', [IntegrationsController::class, 'update'])->where('key', '[a-z_]+')->middleware(['permission:integrations.manage|sso.manage', 'step_up']);
+            // Settings → Single sign-on (SAML): keys and the IdP's metadata.
+            Route::middleware(['permission:integrations.manage|sso.manage'])->group(function () {
+                Route::get('sso/saml', [SsoAdminController::class, 'show']);
+                Route::post('sso/saml/keys', [SsoAdminController::class, 'keys'])->middleware(['step_up', 'throttle:10,1']);
+                Route::post('sso/saml/metadata', [SsoAdminController::class, 'metadata'])->middleware(['step_up', 'throttle:20,1']);
+                Route::post('sso/test', [SsoAdminController::class, 'test'])->middleware(['step_up', 'throttle:20,1']);
+                Route::get('sso/test/{id}', [SsoAdminController::class, 'testResult'])->where('id', '[A-Za-z0-9]{40}');
+            });
             Route::middleware('permission:integrations.manage')->group(function () {
                 Route::post('integrations/{key}/check', [IntegrationsController::class, 'check'])->where('key', '[a-z_]+')->middleware('throttle:20,1');
                 Route::post('integrations/{key}/sync', [IntegrationsController::class, 'sync'])->where('key', '[a-z_]+')->middleware('throttle:6,1');

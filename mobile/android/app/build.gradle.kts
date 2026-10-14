@@ -35,6 +35,9 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Single sign-on in the app (AppAuth, system browser): the sign-in comes back to qa.edu.tedc.app://sso.
+        // MainActivity has no taskAffinity="" so the browser can hand the result back to the app's task.
+        manifestPlaceholders.putAll(mapOf("appAuthRedirectScheme" to "qa.edu.tedc.app"))
     }
 
     signingConfigs {

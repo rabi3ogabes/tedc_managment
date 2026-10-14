@@ -50,5 +50,6 @@ return [
     ],
 
     /** Columns known to be encrypted at application level (Laravel `encrypted` casts). Restricted columns not listed here are hashes, secrets held in Key Vault, or tokens that expire. */
-    'app_encrypted' => ['lti_platforms.consumer_secret', 'offline_devices.content_key', 'employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config'],
+    // auth_sessions.sso_meta: the identity provider's name ID and session index, kept for single logout.
+    'app_encrypted' => ['lti_platforms.consumer_secret', 'offline_devices.content_key', 'employees.national_id', 'attendance_devices.api_config', 'users.mfa_secret', 'lti_tools.consumer_secret', 'webhook_subscriptions.secret', 'integrations.config', 'auth_sessions.sso_meta'],
 ];

@@ -15,7 +15,7 @@
 | Content providers (SCORM/H5P/LTI tools) | learning content | launch context, learner id | per provider | per provider | Medium | LTI privacy settings per tool | tool `is_active` |
 | Google MediaPipe Tasks Vision `@mediapipe/tasks-vision` 1.0.1 and the BlazeFace short-range model (`blaze_face_short_range.tflite`, SHA-256 `b4578f35940bf5a1a655214a1cce5cab13eba73c1297cd78e1a04c2380b0152f`) — Apache-2.0 | the camera presence check in remote exams (EXM-10) | **none**: the library and the model are served from TEDC's own origin (`/vendor/mediapipe/`) and run in the learner's browser; no frame or face data reaches Google or TEDC | in the learner's browser | Apache-2.0 open-source licence (no service contract) | Low | pinned versions, no CDN at run time, worker isolation, debounced events only | per assessment `proctoring.face_check`; feature `proctoring` |
 
-## Open-source components bundled for offline and exam features
+## Open-source components bundled for offline, exam and sign-in features
 
 | Component | Version | Licence | Used for |
 |---|---|---|---|
@@ -25,3 +25,6 @@
 | `pdfx` (Flutter) | 2.11.0 | MIT | PDF slides in the app |
 | `connectivity_plus` (Flutter) | 7.3.1 | BSD-3-Clause | Wi-Fi only downloads and sync on reconnect |
 | `@playwright/test` (development only) | 1.63.0 | Apache-2.0 | browser smoke tests (never shipped) |
+| `onelogin/php-saml` | 4.3.2 | MIT | SAML 2.0 service provider (strict mode): sign-in, single logout, metadata |
+| `robrichards/xmlseclibs` (brought by php-saml) | 3.1.5 | BSD-3-Clause | XML signatures and encryption for SAML |
+| `flutter_appauth` (Flutter, with AppAuth-Android and AppAuth-iOS) | 12.1.0 | BSD-3-Clause (AppAuth: Apache-2.0) | single sign-on in the app through the system browser with PKCE |

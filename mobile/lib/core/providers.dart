@@ -7,6 +7,7 @@ import 'api/api_client.dart';
 import 'biometric.dart';
 import 'api/response_cache.dart';
 import 'auth/session_store.dart';
+import 'auth/sso_sign_in.dart';
 import 'models.dart';
 import 'offline/offline_providers.dart';
 import 'push/push_service.dart';
@@ -141,6 +142,14 @@ class AuthController extends AsyncNotifier<Me?> {
       throw MfaRequired(data['mfa_token'].toString(), List<String>.from((data['methods'] as List?) ?? const []), data['enrolled'] == true);
     }
     await completeLogin(data);
+  }
+
+  /// "Sign in with your Ministry account" through the system browser; false when the person closed it.
+  Future<bool> loginWithSso() async {
+    final data = await SsoSignIn(ref.read(apiProvider)).signIn();
+    if (data == null) return false;
+    await completeLogin(data);
+    return true;
   }
 
   /// Finishes a sign-in from the session the server returned (also after the second factor).

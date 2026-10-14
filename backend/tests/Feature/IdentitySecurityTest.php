@@ -379,7 +379,7 @@ class IdentitySecurityTest extends TestCase
 
     public function test_domains_jit_and_the_break_glass_rule_for_local_passwords(): void
     {
-        $idp = $this->idp(['allowed_domains' => 'moe.gov.qa', 'jit' => false, 'break_glass' => false]);
+        $idp = $this->idp(['allowed_domains' => 'moe.gov.qa', 'jit' => false, 'sso_mandatory' => true]);
         $known = $this->makeUser(Role::EMPLOYEE, ['email' => 'known@moe.gov.qa']);
 
         // Not provisioned and JIT is off; a foreign domain is not allowed.
@@ -387,19 +387,59 @@ class IdentitySecurityTest extends TestCase
         $this->assertStringContainsString('sso_error=1', $this->ssoRound($idp['state'], ['sub' => 'o', 'oid' => 'o1', 'preferred_username' => 'someone@gmail.com']));
         $this->assertStringContainsString('code=', $this->ssoRound($idp['state'], ['sub' => 'k', 'oid' => 'k1', 'preferred_username' => 'known@moe.gov.qa']));      // an existing account links by e-mail
 
-        // With break-glass off, ministry accounts cannot use a local password; the super administrator and outside accounts can.
+        // With single sign-on mandatory, ministry accounts cannot use a local password; the super administrator (break-glass)
+        // and outside accounts can. The sign-in pages are told, so they lead with single sign-on.
+        $this->assertTrue($this->withHeader('Authorization', '')->getJson('/api/v1/auth/options')->json('data.sso_mandatory'));
+        $this->assertTrue($this->getJson('/api/v1/public/mobile-config')->json('data.sso_mandatory'));
         $this->login($known)->assertStatus(403);
         $this->assertSame(0, AuthSession::where('user_id', $known->id)->whereNull('revoked_at')->count());
         $this->login($this->makeUser(Role::SUPER_ADMIN, ['email' => 'root@moe.gov.qa']))->assertOk();
         $this->login($this->makeUser(Role::EMPLOYEE, ['email' => 'partner@company.example']))->assertOk();
-        app(IntegrationManager::class)->update('entra', ['settings' => ['break_glass' => true]]);
+        app(IntegrationManager::class)->update('entra', ['settings' => ['sso_mandatory' => false]]);
+        $this->assertFalse($this->withHeader('Authorization', '')->getJson('/api/v1/auth/options')->json('data.sso_mandatory'));
         $this->login($known)->assertOk();
+        // A setting saved before the switch had its name (break_glass off) still means the same.
+        $entra = app(IntegrationManager::class)->get('entra');
+        $entra->putSettings(array_diff_key($entra->settings(), ['sso_mandatory' => 1]) + ['break_glass' => false]);
+        $entra->save();
+        $this->login($known)->assertStatus(403);
 
-        // The redirect after sign-in may only be the web app or the mobile app's scheme.
+        // The redirect after sign-in may only be the web app. The app never receives a code this way: it uses its own
+        // PKCE-bound request (MobileSsoExchangeTest), so another app registering a look-alike scheme gains nothing.
         $start = $this->withHeader('Authorization', '')->getJson('/api/v1/auth/sso/start?redirect='.urlencode('https://evil.example/steal'))->assertOk();
         $this->assertNull(SsoState::where('state', $start->json('data.state'))->value('redirect_after'));
         $start = $this->withHeader('Authorization', '')->getJson('/api/v1/auth/sso/start?redirect='.urlencode('tedc://sso'))->assertOk();
-        $this->assertSame('tedc://sso', SsoState::where('state', $start->json('data.state'))->value('redirect_after'));
+        $this->assertNull(SsoState::where('state', $start->json('data.state'))->value('redirect_after'));
+        $start = $this->withHeader('Authorization', '')->getJson('/api/v1/auth/sso/start?redirect='.urlencode(rtrim((string) config('tedc.web_url'), '/').'/portal'))->assertOk();
+        $this->assertSame(rtrim((string) config('tedc.web_url'), '/').'/portal', SsoState::where('state', $start->json('data.state'))->value('redirect_after'));
+    }
+
+    public function test_an_existing_account_is_linked_by_a_verified_email_or_for_the_providers_own_domains_only(): void
+    {
+        $idp = $this->idp();
+        $known = $this->makeUser(Role::EMPLOYEE, ['email' => 'mona@moe.gov.qa']);
+        $this->assertStringContainsString('sso_error=1', $this->ssoRound($idp['state'], ['sub' => 'm', 'oid' => 'm1', 'preferred_username' => 'mona@moe.gov.qa']));
+        $this->assertSame(0, UserIdentity::where('user_id', $known->id)->count());
+        $this->assertStringContainsString('code=', $this->ssoRound($idp['state'], ['sub' => 'm', 'oid' => 'm1', 'preferred_username' => 'mona@moe.gov.qa', 'email' => 'mona@moe.gov.qa', 'email_verified' => true]));
+        $this->assertSame('m1', UserIdentity::where('user_id', $known->id)->value('subject'));
+    }
+
+    public function test_an_administrator_tests_entra_sign_in_without_signing_anyone_in(): void
+    {
+        $idp = $this->idp(['group_map' => json_encode([['group' => 'G-TR', 'role' => 'trainer']])]);
+        app(IntegrationManager::class)->update('entra', ['enabled' => false]);   // before go-live
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $url = $this->asUser($admin)->postJson('/api/v1/admin/sso/test', ['protocol' => 'oidc'])->assertOk()->json('data.url');
+        parse_str(parse_url($url, PHP_URL_QUERY), $q);
+        $idp['state']->claims = ['sub' => 't', 'oid' => 'oid-t', 'preferred_username' => 'tester@moe.gov.qa', 'name' => 'Tester', 'groups' => ['G-TR']];
+        $idp['state']->nonce = $q['nonce'];
+        $loc = (string) $this->withHeader('Authorization', '')->get('/api/v1/auth/sso/callback?code=abc&state='.$q['state'])->assertRedirect()->headers->get('Location');
+        $this->assertStringContainsString('/admin/integrations?sso_test=', $loc);
+        $this->assertSame(0, User::where('email', 'tester@moe.gov.qa')->count());
+        parse_str(parse_url($loc, PHP_URL_QUERY), $r);
+        $res = $this->asUser($admin)->getJson('/api/v1/admin/sso/test/'.$r['sso_test'])->assertOk()
+            ->assertJsonPath('data.ok', true)->assertJsonPath('data.protocol', 'oidc')->assertJsonPath('data.account.outcome', 'create')->assertJsonPath('data.claims.groups', ['G-TR']);
+        $this->assertEqualsCanonicalizing([Role::EMPLOYEE, Role::TRAINER], array_column($res->json('data.account.roles'), 'role'));
     }
 
     public function test_directory_sign_in_checks_the_password_creates_the_account_and_maps_groups(): void
@@ -409,7 +449,8 @@ class IdentitySecurityTest extends TestCase
         $hub->update('ldap', ['driver' => 'fake', 'enabled' => true, 'settings' => ['group_map' => json_encode([['group' => 'CN=Trainers', 'role' => 'trainer']])]]);
         $hub->get('ldap')->forceFill(['config' => null])->save();
         $i = $hub->get('ldap');
-        $i->putSettings(['fake_users' => [['username' => 'hamad', 'password' => 'Dir#Pass1', 'email' => 'hamad@moe.gov.qa', 'name' => 'Hamad', 'employee_no' => 'E-77', 'groups' => ['CN=Trainers']]], 'group_map' => [['group' => 'CN=Trainers', 'role' => 'trainer']]]);
+        $directory = ['fake_users' => [['username' => 'hamad', 'password' => 'Dir#Pass1', 'email' => 'hamad@moe.gov.qa', 'name' => 'Hamad', 'employee_no' => 'E-77', 'groups' => ['CN=Trainers']]], 'group_map' => [['group' => 'CN=Trainers', 'role' => 'trainer']]];
+        $i->putSettings($directory);
         $i->save();
         $emp = $this->makeEmployee(['employee_no' => 'E-77', 'user_id' => $this->makeUser(Role::EMPLOYEE, ['email' => 'hamad@moe.gov.qa'])->id]);
 
@@ -417,6 +458,11 @@ class IdentitySecurityTest extends TestCase
         $call('hamad', 'wrong')->assertStatus(401);
         $call('hamad', '')->assertStatus(422);                            // an empty password is never an anonymous bind
         $call('nobody', 'Dir#Pass1')->assertStatus(401);
+        // The existing account is claimed only once the directory is set to speak for its domain.
+        $call('hamad', 'Dir#Pass1')->assertStatus(403);
+        $this->assertSame(0, UserIdentity::where('provider', 'ldap')->count());
+        $i->putSettings($directory + ['allowed_domains' => 'moe.gov.qa']);
+        $i->save();
         $ok = $call('hamad', 'Dir#Pass1')->assertOk();
         $this->assertSame($emp->user_id, $ok->json('user.id'));            // linked to the existing account by e-mail
         $this->assertContains(Role::TRAINER, User::find($emp->user_id)->roles()->pluck('slug')->all());

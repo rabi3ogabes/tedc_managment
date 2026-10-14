@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **124**; test methods: **800**.
+- Test files: **128**; test methods: **832**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -81,13 +81,15 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | HelpCentreTest.php | 14 |
 | HomeCheckInTest.php | 2 |
 | HomeLayoutsTest.php | 2 |
-| IdentitySecurityTest.php | 10 |
+| IdentitySecurityTest.php | 12 |
 | ImpersonationTest.php | 2 |
 | IndividualNeedsTest.php | 8 |
 | IntegrationHubTest.php | 5 |
 | InternalWorkshopTest.php | 3 |
 | KitMediaTest.php | 4 |
 | KitStudioTest.php | 9 |
+| LdapDirectoryIntegrationTest.php | 10 |
+| LdapFilterTest.php | 4 |
 | LegacyNeedsMigrationTest.php | 4 |
 | LessonAttentionRulesTest.php | 5 |
 | LibraryAndLifecycleTest.php | 9 |
@@ -97,6 +99,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | MaterialSocialTest.php | 12 |
 | MenuLayoutTest.php | 3 |
 | MinistryIntegrationsTest.php | 8 |
+| MobileSsoExchangeTest.php | 6 |
 | NationalSchoolsTest.php | 3 |
 | NeedsCycleTest.php | 5 |
 | NeedsSurveyTest.php | 3 |
@@ -131,6 +134,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RoomScreenTest.php | 3 |
 | RoomsLogisticsTest.php | 6 |
 | RoutingIntegrityTest.php | 3 |
+| SamlSsoTest.php | 10 |
 | SampleForecastsMondayTest.php | 1 |
 | SecurityHardeningTest.php | 2 |
 | SocialFilesTest.php | 14 |

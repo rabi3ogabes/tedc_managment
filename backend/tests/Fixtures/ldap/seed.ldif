@@ -1,0 +1,44 @@
+# Test directory for the backend-ldap CI job (OpenLDAP, base dc=tedc,dc=test). Passwords are set by the job with
+# random values (ldappasswd); none are kept here. Groups are groupOfUniqueNames so the memberOf overlay fills memberOf.
+dn: ou=people,dc=tedc,dc=test
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=tedc,dc=test
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=sara,ou=people,dc=tedc,dc=test
+objectClass: inetOrgPerson
+uid: sara
+cn: Sara Ali
+sn: Ali
+mail: sara@moe.gov.qa
+employeeNumber: E100
+
+dn: uid=nadia,ou=people,dc=tedc,dc=test
+objectClass: inetOrgPerson
+uid: nadia
+cn: Nadia Saleh
+sn: Saleh
+mail: nadia@moe.gov.qa
+employeeNumber: E200
+
+dn: uid=old,ou=people,dc=tedc,dc=test
+objectClass: inetOrgPerson
+uid: old
+cn: Former Employee
+sn: Employee
+mail: old@moe.gov.qa
+employeeType: disabled
+
+dn: cn=leads,ou=groups,dc=tedc,dc=test
+objectClass: groupOfUniqueNames
+cn: leads
+uniqueMember: uid=nadia,ou=people,dc=tedc,dc=test
+
+dn: cn=trainers,ou=groups,dc=tedc,dc=test
+objectClass: groupOfUniqueNames
+cn: trainers
+uniqueMember: uid=sara,ou=people,dc=tedc,dc=test
+uniqueMember: cn=leads,ou=groups,dc=tedc,dc=test

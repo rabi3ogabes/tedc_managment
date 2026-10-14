@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Security\Sso\SsoService;
 use App\Services\AppHomeLayout;
 use App\Services\AttendanceSettings;
 use App\Services\Push\PushSettings;
@@ -30,6 +31,8 @@ class MobileConfigController extends Controller
             // Never on a live system: the clients no longer carry the password, they learn it here while demo mode is on.
             'demo_password' => $demo ? DemoCredentials::PASSWORD : null,
             'attendance' => ['geofence' => $attendance->all()['geofence_enabled']],
+            // "Sign in with your Ministry account" in the app (system browser, PKCE).
+            'sso' => app(SsoService::class)->enabled(), 'sso_mandatory' => app(SsoService::class)->mandatory(),
             'brand' => [
                 'primary' => $t['colors']['primary'],
                 'accent' => $t['colors']['accent'],

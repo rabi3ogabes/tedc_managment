@@ -81,6 +81,65 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate
       - run: php artisan test --filter=AzureStorageTest
 
+  backend-ldap:
+    # Directory sign-in against a real LDAP server (OpenLDAP over LDAPS and STARTTLS, with its own certificate authority):
+    # bind-and-search, wrong password, a disabled account, nested groups mapped to roles, untrusted or misnamed certificates.
+    # Passwords are random for each run and never stored in the repository.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Certificate authority and server certificate for localhost
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir ldap-certs && cd ldap-certs
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=TEDC CI directory CA" -keyout ca.key -out ca.crt \
+            -addext basicConstraints=critical,CA:TRUE -addext keyUsage=critical,keyCertSign,cRLSign
+          openssl req -newkey rsa:2048 -nodes -subj "/CN=localhost" -keyout server.key -out server.csr
+          printf 'subjectAltName=DNS:localhost\nbasicConstraints=CA:FALSE\nkeyUsage=digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n' > server.ext
+          openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 2 -extfile server.ext -out server.crt
+          openssl dhparam -dsaparam -out dhparam.pem 2048 2>/dev/null
+          chmod 644 ca.crt server.crt server.key dhparam.pem
+      - name: Start OpenLDAP and seed the test directory
+        working-directory: ${{ runner.temp }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ldap-utils > /dev/null
+          admin=$(openssl rand -hex 16); user=$(openssl rand -hex 16)
+          echo "::add-mask::$admin"; echo "::add-mask::$user"
+          printf '%s' "$admin" > admin.pw; printf '%s' "$user" > user.pw
+          docker run -d --name ldap -p 389:389 -p 636:636 \
+            -e LDAP_DOMAIN=tedc.test -e LDAP_ORGANISATION="TEDC CI" -e LDAP_ADMIN_PASSWORD="$admin" \
+            -e LDAP_TLS=true -e LDAP_TLS_CRT_FILENAME=server.crt -e LDAP_TLS_KEY_FILENAME=server.key -e LDAP_TLS_CA_CRT_FILENAME=ca.crt \
+            -e LDAP_TLS_DH_PARAM_FILENAME=dhparam.pem -e LDAP_TLS_VERIFY_CLIENT=never \
+            -v "$PWD/ldap-certs:/container/service/slapd/assets/certs" osixia/openldap:1.5.0 --copy-service
+          for i in $(seq 1 60); do
+            ldapsearch -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -b dc=tedc,dc=test -s base > /dev/null 2>&1 && break
+            sleep 2
+          done
+          ldapadd -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -f "$GITHUB_WORKSPACE/backend/tests/Fixtures/ldap/seed.ldif"
+          for u in sara nadia old; do
+            ldappasswd -x -H ldap://localhost:389 -D cn=admin,dc=tedc,dc=test -y admin.pw -T user.pw "uid=$u,ou=people,dc=tedc,dc=test"
+          done
+          {
+            echo "LDAP_TEST_HOST=localhost"
+            echo "LDAP_TEST_ADMIN_PASSWORD=$admin"
+            echo "LDAP_TEST_USER_PASSWORD=$user"
+            echo "LDAP_TEST_CA_FILE=$PWD/ldap-certs/ca.crt"
+          } >> "$GITHUB_ENV"
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_sqlite, gd, zip, ldap
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan test --group=ldap
+      - name: Directory server log (on failure)
+        if: failure()
+        run: docker logs ldap 2>&1 | tail -80
+
   web:
     runs-on: ubuntu-latest
     defaults:

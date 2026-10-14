@@ -949,6 +949,9 @@ class S {
     'offline.cardTitle': 'التعلّم دون اتصال',
     'assess.faceComputer': 'يتحقق هذا الاختبار من حضورك بالكاميرا، فيُؤدّى من حاسوب فيه كاميرا عبر المتصفح، أو في المركز.',
     'assess.faceComputerFlagged': 'يتحقق هذا الاختبار من حضورك بالكاميرا، فيُؤدّى من حاسوب فيه كاميرا عبر المتصفح.',
+    'auth.sso': 'الدخول بحساب الوزارة',
+    'auth.orPassword': 'أو بالبريد وكلمة المرور',
+    'auth.ssoFailed': 'تعذّر الدخول بحساب الوزارة. حاول مرة أخرى أو استخدم كلمة المرور.',
   };
 
   static const Map<String, String> _en = {
@@ -1852,6 +1855,9 @@ class S {
     'offline.cardTitle': 'Learn without a connection',
     'assess.faceComputer': 'This exam checks your presence with the camera: take it in a browser on a computer with a camera, or in the centre.',
     'assess.faceComputerFlagged': 'This exam checks your presence with the camera: take it in a browser on a computer with a camera.',
+    'auth.sso': 'Sign in with your Ministry account',
+    'auth.orPassword': 'or with e-mail and password',
+    'auth.ssoFailed': 'Signing in with your Ministry account did not work. Try again, or use your password.',
   };
 }
 

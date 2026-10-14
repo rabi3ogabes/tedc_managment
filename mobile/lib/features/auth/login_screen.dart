@@ -48,6 +48,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  /// Single sign-on with the Ministry's identity provider, shown when the server offers it.
+  Future<void> _sso() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await ref.read(authProvider.notifier).loginWithSso();
+    } catch (e) {
+      if (mounted) setState(() => _error = context.s.t('auth.ssoFailed'));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  bool _ssoOffered(WidgetRef ref) {
+    final config = ref.watch(getProvider('/public/mobile-config')).value;
+    return config is Map && config['data'] is Map && (config['data'] as Map)['sso'] == true;
+  }
+
   Future<void> _askSecondFactor(MfaRequired m) async {
     final s = context.s;
     final code = TextEditingController();
@@ -139,6 +159,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(s.t('auth.title'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.navy900)),
                   Text(s.t('auth.subtitle'), style: const TextStyle(color: AppColors.muted)),
                   const SizedBox(height: 20),
+                  if (_ssoOffered(ref)) ...[
+                    FilledButton.icon(
+                      key: const ValueKey('sso'),
+                      onPressed: _loading ? null : _sso,
+                      style: FilledButton.styleFrom(backgroundColor: AppColors.navy900, minimumSize: const Size.fromHeight(52)),
+                      icon: const Icon(Icons.account_balance_outlined),
+                      label: Text(s.t('auth.sso')),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: Row(children: [
+                        Expanded(child: Divider(color: AppColors.navy100)),
+                        Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text(s.t('auth.orPassword'), style: const TextStyle(color: AppColors.muted, fontSize: 12.5))),
+                        Expanded(child: Divider(color: AppColors.navy100)),
+                      ]),
+                    ),
+                  ],
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,

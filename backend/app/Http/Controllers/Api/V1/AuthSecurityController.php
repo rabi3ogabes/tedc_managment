@@ -13,6 +13,7 @@ use App\Security\PendingLogin;
 use App\Security\SecurityPolicy;
 use App\Security\Sso\SsoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -132,7 +133,7 @@ class AuthSecurityController extends AuthController
             $sessions->revoke($s, 'logout');
         }
 
-        return response()->json(['data' => ['signed_out' => true, 'sso_logout_url' => $s?->method === 'sso' ? $sso->logoutUrl() : null]]);
+        return response()->json(['data' => ['signed_out' => true, 'sso_logout_url' => $s?->method === 'sso' ? $sso->logoutUrl($s) : null]]);
     }
 
     public function changePassword(Request $request, PasswordService $passwords, AuthSessions $sessions): JsonResponse
@@ -155,13 +156,20 @@ class AuthSecurityController extends AuthController
     {
         $p = $policy->all()['password'];
 
-        return response()->json(['data' => ['sso' => $sso->enabled(), 'ldap' => $ldap->enabled(), 'password_policy' => ['min_length' => $p['min_length'], 'upper' => $p['upper'], 'lower' => $p['lower'], 'digit' => $p['digit'], 'symbol' => $p['symbol']]]]);
+        return response()->json(['data' => ['sso' => $sso->enabled(), 'sso_protocol' => $sso->protocol(), 'sso_mandatory' => $sso->mandatory(), 'ldap' => $ldap->enabled(), 'password_policy' => ['min_length' => $p['min_length'], 'upper' => $p['upper'], 'lower' => $p['lower'], 'digit' => $p['digit'], 'symbol' => $p['symbol']]]]);
     }
 
     // ---- single sign-on and directory sign-in -------------------------------------------------------
 
-    public function ssoStart(Request $request, SsoService $sso): JsonResponse
+    public function ssoStart(Request $request, SsoService $sso): JsonResponse|RedirectResponse
     {
+        // The app (AppAuth in the system browser) comes here directly: straight on to the identity provider.
+        if ($request->query('client') === 'mobile') {
+            $app = $request->validate(['redirect_uri' => ['required', 'string', 'max:200'], 'state' => ['required', 'string', 'max:200'], 'code_challenge' => ['required', 'string', 'max:128'],
+                'code_challenge_method' => ['required', 'string', 'max:10']]);
+
+            return redirect()->away($sso->start(null, $app)['url']);
+        }
         $d = $request->validate(['redirect' => ['nullable', 'string', 'max:300']]);
 
         return response()->json(['data' => $sso->start($d['redirect'] ?? null)]);
@@ -183,9 +191,9 @@ class AuthSecurityController extends AuthController
 
     public function ssoExchange(Request $request, SsoService $sso): JsonResponse
     {
-        $d = $request->validate(['code' => ['required', 'string', 'max:100']]);
+        $d = $request->validate(['code' => ['required', 'string', 'max:100'], 'code_verifier' => ['nullable', 'string', 'max:128']]);
 
-        return $this->complete($sso->exchange($d['code']));
+        return $this->complete($sso->exchange($d['code'], $d['code_verifier'] ?? null));
     }
 
     public function ldapLogin(Request $request, DirectoryLogin $ldap): JsonResponse

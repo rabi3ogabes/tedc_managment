@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 721 columns
-- Internal: 2009 columns
-- Confidential: 507 columns
+- Public: 724 columns
+- Internal: 2011 columns
+- Confidential: 508 columns
 - Restricted: 23 columns
 
 ## Application-level encryption
@@ -30,6 +30,7 @@
 - `lti_tools.consumer_secret`
 - `webhook_subscriptions.secret`
 - `integrations.config`
+- `auth_sessions.sso_meta`
 
 Other Restricted columns hold password hashes, one-time or expiring tokens, or references to secrets kept in Key Vault; none is stored in clear text.
 
@@ -516,6 +517,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `revoked_reason` | Confidential | masked in exports |
 | `created_at` | Confidential | masked in exports |
 | `updated_at` | Confidential | masked in exports |
+| `sso_meta` | Confidential | masked in exports |
 
 ### `badges`
 
@@ -3937,6 +3939,16 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_by` | Internal | — |
 | `archived_at` | Internal | — |
 | `posts_count` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `sso_replays`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `assertion_id` | Internal | — |
+| `expires_at` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
