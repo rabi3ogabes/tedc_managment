@@ -10,6 +10,7 @@ use App\Models\EvaluationAssignment;
 use App\Models\PassException;
 use App\Models\Registration;
 use App\Models\User;
+use App\Support\PdfFonts;
 use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -279,7 +280,7 @@ class CertificateService
             'logo' => $theme['identity']['logo_ar'] ?? null,
         ])->render();
 
-        $mpdf = new Mpdf([
+        $mpdf = new Mpdf(PdfFonts::apply([
             'mode' => 'utf-8',
             'format' => 'A4-L',
             'margin_left' => 0, 'margin_right' => 0, 'margin_top' => 0, 'margin_bottom' => 0,
@@ -287,7 +288,7 @@ class CertificateService
             'tempDir' => storage_path('app/mpdf'),
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
-        ]);
+        ]));
         $mpdf->SetTitle($title);
         $mpdf->WriteHTML($html);
 

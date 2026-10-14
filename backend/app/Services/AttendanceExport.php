@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\TrainingGroup;
+use App\Support\PdfFonts;
 use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -106,7 +107,7 @@ class AttendanceExport
 
     private function pdf(string $html, string $format): string
     {
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => $format, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => $format, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->WriteHTML($html);
 
         return $mpdf->Output('', 'S');

@@ -6,6 +6,7 @@ use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\Program;
 use App\Models\TrainerCertificate;
+use App\Support\PdfFonts;
 use chillerlan\QRCode\Common\EccLevel;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
@@ -206,7 +207,7 @@ class CertificateTemplateService
         }
         $html .= '</body></html>';
 
-        $mpdf = new Mpdf([
+        $mpdf = new Mpdf(PdfFonts::apply([
             'mode' => 'utf-8',
             'format' => [$w, $h],
             'margin_left' => 0, 'margin_right' => 0, 'margin_top' => 0, 'margin_bottom' => 0,
@@ -214,7 +215,7 @@ class CertificateTemplateService
             'tempDir' => storage_path('app/mpdf'),
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
-        ]);
+        ]));
         $mpdf->SetTitle($title);
         foreach ($images as $key => $bytes) {
             $mpdf->imageVars[$key] = $bytes;

@@ -14,7 +14,9 @@
             <p style="margin:0">You can verify it with this <a href="{{ $verifyUrl }}" style="color:#8A1538">verification link</a>.</p>
         </div>
     </div>
-    <div style="background:#faf8f3;color:#888;font-size:12px;padding:14px 26px;text-align:center">{{ $center['en'] }} · {{ $certificate->certificate_no }}</div>
+    <div style="background:#faf8f3;color:#888;font-size:12px;padding:14px 26px;text-align:center">{{ $center['en'] }} · {{ $certificate->certificate_no }}
+        @include('emails._support', ['locale' => 'both'])
+    </div>
 </div>
 </body>
 </html>

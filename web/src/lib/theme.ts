@@ -1,3 +1,5 @@
+import { safeFamily, stacksFor } from './fontStacks'
+import { lusailOn } from './fonts'
 /**
  * Brand Studio theme engine.
  *
@@ -229,15 +231,9 @@ export function themeVariables(theme: Theme): Record<string, string> {
   }
 }
 
-const safeFamily = (name: string) => name.replace(/[^\p{L}\p{N} -]/gu, '').trim() || 'Qatar Sans'
-
-/** Font stacks for the active language. Brand fonts first, then bundled web fonts. */
+/** Font stacks for the active language. Brand fonts first, then bundled web fonts; Lusail leads once its licensed files are in place. */
 export function fontStacks(theme: Theme, lang: string) {
-  const ar = safeFamily(theme.typography.arabic_family)
-  const en = safeFamily(theme.typography.latin_family)
-  return lang === 'en'
-    ? { sans: `"${en}", "Inter", "${ar}", "Lusail", "Tajawal", ui-sans-serif, system-ui, sans-serif`, display: `"${en}", "Playfair Display", "${ar}", "Lusail", "El Messiri", serif` }
-    : { sans: `"${ar}", "Lusail", "Qatar Sans", "Tajawal", "${en}", "Inter", ui-sans-serif, system-ui, sans-serif`, display: `"${ar}", "Lusail", "Qatar Sans", "El Messiri", "${en}", "Playfair Display", serif` }
+  return stacksFor(theme.typography.arabic_family, theme.typography.latin_family, lang, lusailOn())
 }
 
 /** Registers uploaded font files (Brand Studio) as @font-face rules. */

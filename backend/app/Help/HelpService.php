@@ -9,7 +9,9 @@ use App\Models\User;
 use App\Models\UserTour;
 use App\Services\Cms\HtmlSanitizer;
 use App\Services\FileStorage;
+use App\Services\SupportSettings;
 use App\Services\ThemeService;
+use App\Support\PdfFonts;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -29,10 +31,10 @@ class HelpService
     /** The release shown by the «What's new» tour; changing it shows the tour again to everyone once. */
     public const RELEASE = '2026.1';
 
-    /** Support channels and service expectations shown on the help page (editable later through settings). */
+    /** Support channels and service expectations shown on the help page (Settings → Help & support; the environment only supplies the defaults). */
     public function support(): array
     {
-        $s = (array) config('tedc.support', []);
+        $s = app(SupportSettings::class)->all();
 
         return [
             'channels' => [
@@ -40,12 +42,7 @@ class HelpService
                 ['key' => 'email', 'label_ar' => 'البريد الإلكتروني', 'label_en' => 'Email', 'value' => $s['email'] ?? '', 'hours_ar' => 'على مدار الساعة، يُرد في ساعات العمل', 'hours_en' => 'Always open; answered in working hours'],
                 ['key' => 'saaed', 'label_ar' => 'بوابة سعيد', 'label_en' => 'Saaed portal', 'value' => $s['saaed_url'] ?? '', 'hours_ar' => 'تذاكر مرتبطة بحالتها داخل المنصة', 'hours_en' => 'Tickets whose status shows inside the portal'],
             ],
-            'sla' => [
-                ['priority' => 'P1', 'response_ar' => '15 دقيقة', 'response_en' => '15 minutes', 'resolution_ar' => 'ساعتان', 'resolution_en' => '2 hours'],
-                ['priority' => 'P2', 'response_ar' => '30 دقيقة', 'response_en' => '30 minutes', 'resolution_ar' => '4 ساعات', 'resolution_en' => '4 hours'],
-                ['priority' => 'P3', 'response_ar' => 'ساعتان', 'response_en' => '2 hours', 'resolution_ar' => 'يوم عمل', 'resolution_en' => '1 business day'],
-                ['priority' => 'P4', 'response_ar' => '4 ساعات', 'response_en' => '4 hours', 'resolution_ar' => 'يوما عمل', 'resolution_en' => '2 business days'],
-            ],
+            'sla' => $s['sla'],
         ];
     }
 
@@ -274,7 +271,7 @@ class HelpService
             'lang' => $lang, 'dir' => $lang === 'ar' ? 'rtl' : 'ltr', 'roleName' => $roleName, 'articles' => $articles, 'center' => $theme->centerName(),
             'logo' => $theme->get()['identity']['logo_ar'] ?? null, 'date' => now()->toDateString(), 'release' => self::RELEASE,
         ])->render();
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 16, 'margin_right' => 16, 'margin_top' => 18, 'margin_bottom' => 18, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 16, 'margin_right' => 16, 'margin_top' => 18, 'margin_bottom' => 18, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->SetTitle(($lang === 'ar' ? 'دليل المستخدم — ' : 'User manual — ').$roleName);
         $mpdf->SetHTMLFooter('<div style="text-align:center;direction:ltr;font-size:9pt;color:#5b6573">{PAGENO} / {nbpg}</div>');
         $mpdf->WriteHTML($html);

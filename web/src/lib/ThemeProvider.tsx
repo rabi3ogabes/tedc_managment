@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from './api'
+import { lusailOn, onLusail } from './fonts'
 import { applyTheme, mergeTheme, type Theme } from './theme'
 
 type ThemeState = {
@@ -58,11 +59,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = query.data ?? mergeTheme(null)
   const active = preview ?? theme
   const { i18n } = useTranslation()
+  const [lusail, setLusail] = useState(lusailOn())   // the Ministry's typeface, once its licensed files are found
+  useEffect(() => onLusail(() => setLusail(true)), [])
 
   useEffect(() => {
     applyTheme(active, i18n.language)
     document.title = i18n.language === 'en' ? active.identity.name_en : active.identity.name_ar
-  }, [active, i18n.language])
+  }, [active, i18n.language, lusail])
 
   useEffect(() => {
     if (!query.data) return

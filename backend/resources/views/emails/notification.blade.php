@@ -15,6 +15,7 @@
     </div>
     <div style="background:#faf8f3;color:#8a8576;font-size:12px;padding:14px 28px;text-align:center">
         {{ $locale === 'ar' ? 'رسالة تلقائية من '.$center['ar'] : 'Automatic message from '.$center['en'] }}
+        @include('emails._support', ['locale' => $locale])
     </div>
 </div>
 </body>

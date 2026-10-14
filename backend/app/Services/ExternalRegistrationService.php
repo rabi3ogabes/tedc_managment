@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Services\Channels\EmailSender;
+use App\Support\PdfFonts;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
@@ -209,7 +210,7 @@ class ExternalRegistrationService
             $rows .= '<tr><td style="border:1px solid #bbb;padding:6px;width:35%">'.e($f['label_ar']).' / '.e($f['label_en']).'</td><td style="border:1px solid #bbb;padding:6px">'.e(is_array($v) ? implode(', ', $v) : (string) $v).'</td></tr>';
         }
         $html = '<div dir="rtl" style="font-family:dejavusans"><h2>'.e($form->title_ar).' — '.e($form->title_en).'</h2><p>'.e($r->number).' · '.e($r->email).' · '.now()->toDateTimeString().'</p><table style="width:100%;border-collapse:collapse">'.$rows.'</table></div>';
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => 'A4', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->WriteHTML($html);
 
         return $this->files->put('documents', 'external-requests/'.$r->number.'.pdf', $mpdf->Output('', 'S'), 'application/pdf');

@@ -20,10 +20,24 @@ async function present(): Promise<boolean> {
   }
 }
 
+let on = false
+const listeners = new Set<() => void>()
+
+/** Whether the licensed files are in place and registered (so the font stacks can put Lusail first). */
+export const lusailOn = () => on
+
+/** Calls back once Lusail has been registered, so the theme can rebuild its font stacks. */
+export function onLusail(callback: () => void) {
+  listeners.add(callback)
+  return () => { listeners.delete(callback) }
+}
+
 export async function registerLusail() {
   if (document.getElementById('tedc-lusail') || !(await present())) return
   const style = document.createElement('style')
   style.id = 'tedc-lusail'
   style.textContent = FILES.map(([file, weight]) => `@font-face{font-family:"Lusail";src:url("/fonts/lusail/${file}") format("woff2");font-weight:${weight};font-display:swap;}`).join('\n')
   document.head.appendChild(style)
+  on = true
+  listeners.forEach((callback) => callback())
 }

@@ -83,8 +83,10 @@ class AppTheme {
     final primary = AppColors.navy900;
     final accent = AppColors.gold500;
     final ivory = AppColors.ivory;
-    // The font the administrator chose for this language (downloaded once), else the bundled one.
-    final font = (locale.languageCode == 'ar' ? RemoteFont.arabic : RemoteFont.latin) ?? 'Tajawal';
+    // The font the administrator chose for this language (downloaded once), else the Ministry's Lusail when its licensed files are
+    // bundled (docs/FONTS.md), else the bundled Tajawal: a family that is not bundled simply falls through to the next one.
+    final font = (locale.languageCode == 'ar' ? RemoteFont.arabic : RemoteFont.latin) ?? 'Lusail';
+    const fallback = ['Tajawal'];
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
@@ -95,6 +97,7 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: ivory,
       fontFamily: font,
+      fontFamilyFallback: fallback,
     );
 
     return base.copyWith(
@@ -104,7 +107,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(fontFamily: font, color: primary, fontSize: 20, fontWeight: FontWeight.w800),
+        titleTextStyle: TextStyle(fontFamily: font, fontFamilyFallback: fallback, color: primary, fontSize: 20, fontWeight: FontWeight.w800),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -119,7 +122,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(50),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppStyle.buttonRadius)),
-          textStyle: TextStyle(fontFamily: font, fontWeight: FontWeight.w700, fontSize: 15),
+          textStyle: TextStyle(fontFamily: font, fontFamilyFallback: fallback, fontWeight: FontWeight.w700, fontSize: 15),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -145,6 +148,7 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             fontFamily: font,
+            fontFamilyFallback: fallback,
             fontSize: 11,
             fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
             color: states.contains(WidgetState.selected) ? AppColors.navy900 : AppColors.muted,

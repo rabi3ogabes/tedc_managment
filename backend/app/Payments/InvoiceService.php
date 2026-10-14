@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Refund;
 use App\Services\FileStorage;
 use App\Services\ThemeService;
+use App\Support\PdfFonts;
 use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
 
@@ -69,7 +70,7 @@ class InvoiceService
             'lines' => array_map(fn ($l) => $l + ['title_ar' => '', 'title_en' => '', 'quantity' => 1, 'unit_price' => (float) ($l['refund'] ?? 0), 'discount' => 0, 'vat' => 0, 'total' => (float) ($l['refund'] ?? 0)], $lines),
             'subtotal' => $sub, 'discount' => $disc, 'vat' => $vat, 'total' => $total, 'currency' => $order->currency, 'note' => $note,
         ])->render();
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 14, 'margin_right' => 14, 'margin_top' => 14, 'margin_bottom' => 14, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 14, 'margin_right' => 14, 'margin_top' => 14, 'margin_bottom' => 14, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->SetTitle($number);
         $mpdf->WriteHTML($html);
 

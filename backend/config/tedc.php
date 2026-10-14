@@ -151,6 +151,14 @@ return [
         'timeout' => 120,
     ],
 
+    // Where the Ministry's licensed Lusail typeface goes (UX-03; see docs/FONTS.md). The web reads WOFF2, PDFs and the app read TTF.
+    'fonts' => [
+        'web' => env('TEDC_FONTS_WEB_DIR', base_path('../web/public/fonts/lusail')),
+        'pdf' => env('TEDC_FONTS_PDF_DIR', resource_path('fonts')),
+        'app' => env('TEDC_FONTS_APP_DIR', base_path('../mobile/assets/fonts')),
+        'pubspec' => env('TEDC_FONTS_PUBSPEC', base_path('../mobile/pubspec.yaml')),
+    ],
+
     // The help centre's support channels (Phase 18): the centre's own contact details; empty until supplied.
     'support' => [
         'phone' => env('TEDC_SUPPORT_PHONE', ''),

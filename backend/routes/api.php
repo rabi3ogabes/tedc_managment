@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
 use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
+use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
@@ -688,6 +689,11 @@ Route::prefix('v1')->group(function () {
             // Notification templates, sending to a program's trainees, tracking
             // E-mail / SMS channels: anyone who sends notifications may see what is usable; only settings managers change it.
             Route::get('notification-channels/status', [NotificationChannelsController::class, 'status'])->middleware('permission:announcements.manage|registrations.manage|programs.manage');
+            // Settings → Help & support: the contacts and service levels the help centre, the app and the e-mails show (UTR-03).
+            Route::middleware('permission:settings.manage')->prefix('settings/support')->group(function () {
+                Route::get('/', [SupportSettingsController::class, 'show']);
+                Route::put('/', [SupportSettingsController::class, 'update']);
+            });
             Route::middleware('permission:settings.manage')->prefix('notification-channels')->group(function () {
                 Route::get('/', [NotificationChannelsController::class, 'show']);
                 Route::put('/', [NotificationChannelsController::class, 'update']);

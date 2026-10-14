@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TrainingPlan;
+use App\Support\PdfFonts;
 use App\Support\ProgramTypes;
 use Mpdf\Mpdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -55,7 +56,7 @@ class AnnualPlanExport
             .'<table><tr><th>البند / Item</th><th>النوع</th><th>الأولوية</th><th>المجموعات</th><th>المقاعد</th><th>الساعات</th><th>النافذة</th><th>الحالة</th></tr>'.$rows.'</table>'
             .'<h3>الالتزام بقواعد العام / Compliance with the year\'s rules</h3><table>'.$summary.'</table></div>';
 
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4-L', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => 'A4-L', 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->SetTitle($plan->title_ar);
         $mpdf->WriteHTML($html);
 

@@ -1,4 +1,4 @@
-import { PanelLeft, ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { LifeBuoy, PanelLeft, ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -22,6 +22,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'labels', group: 'identity', permission: ['settings.manage'], icon: Languages, component: lazy(() => import('@/pages/admin/LabelManager')), keywords: ['labels', 'names', 'menu', 'button', 'rename', 'text', 'translation', 'أسماء', 'قائمة', 'زر', 'تسمية', 'نصوص'] },
   { id: 'notifications', group: 'communication', permission: ['settings.manage'], icon: BellRing, component: lazy(() => import('@/pages/admin/PushSettings')), keywords: ['notifications', 'notification', 'push', 'firebase', 'fcm', 'إشعارات'] },
   { id: 'channels', group: 'communication', permission: ['settings.manage'], icon: Mail, component: lazy(() => import('@/pages/admin/ChannelsSettings')), keywords: ['channels', 'email', 'sms', 'mail', 'smtp', 'قنوات', 'بريد', 'رسائل', 'نصية'] },
+  { id: 'support', group: 'communication', permission: ['settings.manage'], icon: LifeBuoy, component: lazy(() => import('@/pages/admin/SupportSettings')), keywords: ['support', 'help', 'phone', 'saaed', 'hours', 'sla', 'contact', 'دعم', 'مساعدة', 'هاتف', 'سعيد', 'ساعات', 'تواصل'] },
   { id: 'screens', group: 'training', permission: ['settings.manage'], icon: MonitorPlay, component: lazy(() => import('@/pages/admin/ScreensSettings')), keywords: ['lobby', 'portrait', 'today', 'programs', 'slides', 'الردهة', 'برامج اليوم', 'شرائح', 'room', 'screen', 'tv', 'display', 'template', 'brand', 'logo', 'شاشة', 'قاعة', 'قالب', 'عرض', 'هوية'] },
   { id: 'roles', group: 'security', permission: ['roles.manage', 'roles.create'], icon: ShieldCheck, component: lazy(() => import('@/pages/admin/RolesPermissions')), keywords: ['roles', 'permissions', 'matrix', 'custom role', 'clone', 'أدوار', 'صلاحيات', 'دور'] },
   { id: 'schoolgroups', group: 'security', permission: ['scopes.manage'], icon: Layers, component: lazy(() => import('@/pages/admin/SchoolGroups')), keywords: ['school groups', 'directorate', 'cluster', 'scope', 'مجموعات المدارس', 'مديرية', 'نطاق', 'عنقود'] },

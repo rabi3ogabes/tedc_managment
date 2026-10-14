@@ -4,6 +4,7 @@ namespace App\Deliverables;
 
 use App\Services\Reports\DocxWriter;
 use App\Services\ThemeService;
+use App\Support\PdfFonts;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
@@ -255,7 +256,7 @@ class DeliverablesBuilder
         $theme = app(ThemeService::class);
         $center = $theme->centerName();
         $doc = '<html><head><meta charset="utf-8"><style>body{font-family:dejavusans;font-size:10pt;color:#1b2433}h1{font-size:20pt;color:#123b5d}h2{font-size:14pt;color:#123b5d;border-bottom:1pt solid #c9a24b}h3{font-size:11.5pt;color:#123b5d}table{border-collapse:collapse;width:100%;margin:6pt 0}td,th{border:.5pt solid #c8d0db;padding:3pt;font-size:8.5pt;vertical-align:top}th{background:#eef2f6}blockquote{border-left:3pt solid #c9a24b;margin:4pt 0;padding-left:6pt;color:#3a4658}code{font-size:8.5pt;background:#f3f5f8}</style></head><body>'.$html.'</body></html>';
-        $mpdf = new Mpdf(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 14, 'margin_right' => 14, 'margin_top' => 16, 'margin_bottom' => 16, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]);
+        $mpdf = new Mpdf(PdfFonts::apply(['mode' => 'utf-8', 'format' => 'A4', 'margin_left' => 14, 'margin_right' => 14, 'margin_top' => 16, 'margin_bottom' => 16, 'default_font' => 'dejavusans', 'tempDir' => storage_path('app/mpdf'), 'autoScriptToLang' => true, 'autoLangToFont' => true]));
         $mpdf->SetTitle($title);
         $mpdf->SetFooter((is_array($center) ? ($center['en'] ?? '') : (string) $center).' · '.$title.' · {PAGENO}/{nbpg}');
         $mpdf->WriteHTML($doc);

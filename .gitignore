@@ -7,3 +7,9 @@
 /vendor
 .vercel
 docs/deliverables/export/
+
+# The Ministry's licensed Lusail typeface must not be committed to a public repository (see docs/FONTS.md).
+# In a private deployment repository, add the files with `git add -f`.
+/web/public/fonts/lusail/*.woff2
+/backend/resources/fonts/*.ttf
+/mobile/assets/fonts/Lusail-*.ttf
