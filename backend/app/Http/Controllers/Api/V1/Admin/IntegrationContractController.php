@@ -14,11 +14,14 @@ use App\Integrations\Contracts\Mapper;
 use App\Integrations\IntegrationAudit;
 use App\Integrations\IntegrationManager;
 use App\Integrations\IntegrationRegistry;
+use App\Integrations\IntegrationUnavailable;
+use App\Integrations\Ministry\HrReconciliation;
 use App\Models\IntegrationChecklistItem;
 use App\Services\Communication\MinistrySiteSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * The Contract, Test cases and Go-live checklist tabs of an integration card: the contract and mapping in force (the shipped ones or the
@@ -142,6 +145,34 @@ class IntegrationContractController extends Controller
         IntegrationAudit::record($key, 'integration.checklist.updated', $request->user()->id, ['item' => $item, 'done' => $done], null, $request->ip());
 
         return response()->json(['data' => $this->checklistFor($key)]);
+    }
+
+    /** "TEDC vs HR differences" (HR and Mawared): where the two disagree, as a report or as a file Excel opens with Arabic intact. */
+    public function reconciliation(Request $request, string $key, HrReconciliation $reconciliation): JsonResponse|StreamedResponse
+    {
+        abort_unless(in_array($key, ['hr', 'mawared'], true), 404);
+        $d = $request->validate(['format' => ['nullable', Rule::in(['json', 'csv'])]]);
+        try {
+            if (($d['format'] ?? 'json') === 'csv') {
+                $lines = iterator_to_array($reconciliation->lines($key), false);   // computed (and HR asked) before anything is sent
+                IntegrationAudit::record($key, 'integration.reconciliation.run', $request->user()->id, ['format' => 'csv', 'lines' => max(0, count($lines) - 1)], null, $request->ip());
+
+                return response()->streamDownload(function () use ($lines) {
+                    $out = fopen('php://output', 'w');
+                    fwrite($out, "\xEF\xBB\xBF");   // the byte-order mark: without it Excel reads Arabic as mojibake
+                    foreach ($lines as $line) {
+                        fputcsv($out, $line);
+                    }
+                    fclose($out);
+                }, "tedc-vs-{$key}-differences.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);
+            }
+            $report = $reconciliation->report($key);
+        } catch (IntegrationUnavailable $e) {
+            return response()->json(['message' => 'Switch the HR system on first: '.$e->getMessage()], 422);
+        }
+        IntegrationAudit::record($key, 'integration.reconciliation.run', $request->user()->id, ['format' => 'json'] + $report['summary'], null, $request->ip());
+
+        return response()->json(['data' => $report]);
     }
 
     // ---- internals ------------------------------------------------------------------------------------

@@ -55,6 +55,9 @@ final class ContractValidator
             }
             $p = array_merge($p, array_map(fn ($x) => "{$name}: {$x}", self::operation(is_array($op) ? $op : [], $secrets, $known)));
         }
+        if (isset($doc['inbound'])) {
+            $p = array_merge($p, self::inbound($doc['inbound'], $secrets, $known));
+        }
         foreach ((array) ($doc['tests'] ?? []) as $i => $t) {
             if (! is_array($t) || ! isset($t['name'], $t['operation']) || ! isset($ops[$t['operation']])) {
                 $p[] = 'test case #'.($i + 1).' must name an operation of this contract';
@@ -66,6 +69,67 @@ final class ContractValidator
             }
             if (isset($t['response']) && (! is_array($t['response']) || ! is_int($t['response']['status'] ?? null) || $t['response']['status'] < 100 || $t['response']['status'] > 599)) {
                 $p[] = 'test case #'.($i + 1).': "response" is an answer with a "status" (100 to 599) and a "body"';
+            }
+        }
+
+        return $p;
+    }
+
+    /** How the system signs and numbers what it sends us. @return list<string> */
+    private static function inbound(mixed $inbound, array $secrets, ?array $known): array
+    {
+        if (! is_array($inbound)) {
+            return ['inbound must be an object'];
+        }
+        $p = [];
+        if (isset($inbound['signature'])) {
+            $s = $inbound['signature'];
+            if (! is_array($s)) {
+                return ['inbound.signature must be an object'];
+            }
+            if (empty($s['header'])) {
+                $p[] = 'inbound.signature needs "header", the header that carries the signature';
+            }
+            foreach (['header', 'timestamp_header'] as $k) {
+                if (isset($s[$k])) {
+                    $p = array_merge($p, self::headerProblems((string) $s[$k], 'inbound.signature.'.$k, true));
+                }
+            }
+            if (! in_array($s['algorithm'] ?? 'hmac-sha256', Signature::ALGORITHMS, true)) {
+                $p[] = 'inbound.signature.algorithm must be one of '.implode(', ', Signature::ALGORITHMS);
+            }
+            if (! in_array($s['encoding'] ?? 'hex', ['hex', 'base64'], true)) {
+                $p[] = 'inbound.signature.encoding must be hex or base64';
+            }
+            if (isset($s['prefix']) && (! is_string($s['prefix']) || ! preg_match('/^[A-Za-z0-9=:_\-]{0,20}$/', $s['prefix']))) {
+                $p[] = 'inbound.signature.prefix is a short plain text such as "sha256="';
+            }
+            $payload = (string) ($s['payload'] ?? '{{ timestamp }}.{{ body }}');
+            $p = array_merge($p, array_map(fn ($x) => 'inbound.signature.payload: '.$x, Template::problems($payload, $secrets, $known)));
+            if (empty($s['timestamp_header']) && in_array('timestamp', Template::placeholders($payload), true)) {
+                $p[] = 'inbound.signature.payload uses the timestamp, but no "timestamp_header" says where it comes from';
+            }
+            if (isset($s['tolerance']) && (! is_int($s['tolerance']) || $s['tolerance'] < 1 || $s['tolerance'] > 86400)) {
+                $p[] = 'inbound.signature.tolerance is the age in seconds a message may have (1 to 86400)';
+            }
+            if (isset($s['secret_setting'])) {
+                if (! is_string($s['secret_setting']) || ! preg_match('/^[a-z][a-z0-9_]{0,40}$/', $s['secret_setting'])) {
+                    $p[] = 'inbound.signature.secret_setting must name a setting (lower-case letters, digits, underscores)';
+                } elseif ($known !== null && ! in_array($s['secret_setting'], $known, true)) {
+                    $p[] = 'inbound.signature.secret_setting: this system has no setting "'.$s['secret_setting'].'"';
+                }
+            }
+        }
+        if (isset($inbound['idempotency'])) {
+            $i = $inbound['idempotency'];
+            if (! is_array($i)) {
+                return array_merge($p, ['inbound.idempotency must be an object']);
+            }
+            if (isset($i['header'])) {
+                $p = array_merge($p, self::headerProblems((string) $i['header'], 'inbound.idempotency.header', true));
+            }
+            if (isset($i['path']) && (! is_string($i['path']) || ! JsonPath::valid($i['path']))) {
+                $p[] = 'inbound.idempotency.path is not a supported path';
             }
         }
 

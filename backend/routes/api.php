@@ -680,6 +680,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('summary', [ProfileRequestController::class, 'summary']);
                 Route::post('{changeRequest}/approve', [ProfileRequestController::class, 'approve']);
                 Route::post('{changeRequest}/reject', [ProfileRequestController::class, 'reject']);
+                Route::post('{changeRequest}/resend', [ProfileRequestController::class, 'resend'])->middleware('throttle:30,1');
             });
 
             // Notification templates, sending to a program's trainees, tracking
@@ -1131,6 +1132,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('integrations/{key}/contract/preview', [IntegrationContractController::class, 'preview'])->middleware('throttle:60,1');
                 Route::post('integrations/{key}/test-case', [IntegrationContractController::class, 'testCase'])->middleware('throttle:30,1');
                 Route::post('integrations/{key}/test-case/live', [IntegrationContractController::class, 'testCaseLive'])->middleware(['step_up', 'throttle:6,1']);
+                Route::get('integrations/{key}/reconciliation', [IntegrationContractController::class, 'reconciliation'])->middleware('throttle:6,1');
                 Route::get('integrations/{key}/checklist', [IntegrationContractController::class, 'checklist']);
                 Route::put('integrations/{key}/checklist/{item}', [IntegrationContractController::class, 'tick'])->middleware('throttle:60,1');
             });

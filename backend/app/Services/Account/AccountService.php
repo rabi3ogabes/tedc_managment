@@ -22,6 +22,7 @@ class AccountService
         $locale = app()->getLocale() === 'en' ? 'en' : 'ar';
         $pending = ProfileChangeRequest::where('user_id', $user->id)->where('status', 'pending')->get()->keyBy('field');
 
+        $mastered = app(HrProfileRouting::class)->masteredFields();   // what HR masters while it wins: read-only here
         $sections = [];
         $missing = 0;
         foreach (AccountFields::GROUPS as $group => $title) {
@@ -36,6 +37,7 @@ class AccountService
                 $missing += $isMissing ? 1 : 0;
                 $fields[] = [
                     'key' => $key, 'label' => $f['label'][$locale], 'type' => $f['type'], 'value' => $v['value'], 'display' => $v['display'], 'missing' => $isMissing,
+                    'hr_mastered' => in_array($key, $mastered, true), 'hr_note' => in_array($key, $mastered, true) ? HrProfileRouting::note($locale) : null,
                     'options' => $f['options'] ? collect($f['options'])->map(fn ($o, $k) => ['value' => $k, 'label' => $o[$locale]])->values() : null,
                     'pending' => ($p = $pending->get($key)) ? ['id' => $p->id, 'requested_value' => $p->requested_value, 'created_at' => $p->created_at->toIso8601String()] : null,
                 ];
@@ -88,6 +90,15 @@ class AccountService
     {
         abort_unless($request->status === 'pending', 422, __('messages.account.already_reviewed'));
         $f = AccountFields::field($request->field);
+        $routing = app(HrProfileRouting::class);
+        if ($routing->masters($request->field)) {
+            // HR masters this field: TEDC writes nothing. The change goes to HR, whose answer decides the outcome.
+            $request->update(['status' => 'approved', 'applied' => false, 'reviewed_by' => $by->id, 'reviewed_at' => now(), 'review_note' => $note]);
+            $routing->route($request->fresh());
+            $this->tell($request, 'profile.request_approved', routed: true);
+
+            return $request->fresh();
+        }
         $applied = false;
         if ($apply && $f && $f['auto'] && $f['column']) {
             $target = $f['source'] === 'user' ? $request->user : $request->user->employee;
@@ -112,7 +123,7 @@ class AccountService
         return $request;
     }
 
-    private function tell(ProfileChangeRequest $r, string $event): void
+    private function tell(ProfileChangeRequest $r, string $event, bool $routed = false): void
     {
         $f = AccountFields::field($r->field);
         $label = $f['label'] ?? ['ar' => $r->field, 'en' => $r->field];
@@ -121,7 +132,7 @@ class AccountService
         $this->notifications->send(
             $r->user_id, $event,
             $ok ? ['ar' => 'تمت الموافقة على طلب تعديل بياناتك', 'en' => 'Your change request was approved'] : ['ar' => 'لم تتم الموافقة على طلب التعديل', 'en' => 'Your change request was not approved'],
-            ['ar' => "طلب تعديل «{$label['ar']}»{$suffix['ar']}", 'en' => "Request to change \"{$label['en']}\"{$suffix['en']}"],
+            ['ar' => "طلب تعديل «{$label['ar']}»".($routed ? ' — أُرسل إلى الموارد البشرية لتأكيده' : '').$suffix['ar'], 'en' => "Request to change \"{$label['en']}\"".($routed ? ' — sent to HR to confirm' : '').$suffix['en']],
             ['route' => '/account'],
         );
     }

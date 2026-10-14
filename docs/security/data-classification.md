@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 729 columns
-- Internal: 2027 columns
+- Internal: 2036 columns
 - Confidential: 508 columns
 - Restricted: 23 columns
 
@@ -2978,6 +2978,15 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `review_note` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `hr_system` | Internal | — |
+| `hr_status` | Internal | — |
+| `hr_reference` | Internal | — |
+| `hr_attempts` | Internal | — |
+| `hr_next_attempt_at` | Internal | — |
+| `hr_sent_at` | Internal | — |
+| `hr_resolved_at` | Internal | — |
+| `hr_reason` | Internal | — |
+| `hr_last_error` | Internal | — |
 
 ### `program_categories`
 

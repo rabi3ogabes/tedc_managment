@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Integrations\Contracts\ContractStore;
+use App\Integrations\Contracts\JsonPath;
+use App\Integrations\Contracts\Signature;
 use App\Integrations\InboundRouter;
 use App\Integrations\IntegrationManager;
 use App\Integrations\IntegrationRegistry;
@@ -21,9 +24,18 @@ class InboundWebhookController extends Controller
     public function __invoke(Request $request, string $key, IntegrationManager $hub, InboundRouter $router): JsonResponse
     {
         abort_unless(isset(IntegrationRegistry::all()[$key]), 404);
-        $secret = (string) ($hub->settings($key)['inbound_secret'] ?? '');
+        $store = app(ContractStore::class);
+        $inbound = $store->has($key) ? $store->active($key)->inbound() : [];   // how this system signs and numbers its messages, from its contract
+        $spec = (array) ($inbound['signature'] ?? []);
+        $settings = $hub->settings($key);
         $body = $request->getContent();
-        if (! WebhookSignature::verify($secret, $request->header('X-TEDC-Timestamp'), $request->header('X-TEDC-Signature'), $body)) {
+        if ($spec !== []) {
+            $stamp = ! empty($spec['timestamp_header']) ? (string) $request->header((string) $spec['timestamp_header']) : '';
+            $verified = Signature::verify($spec, (string) ($settings[$spec['secret_setting'] ?? 'inbound_secret'] ?? ''), $request->header((string) ($spec['header'] ?? '')), $stamp, $body, ! empty($spec['timestamp_header']) ? (int) ($spec['tolerance'] ?? 300) : null);
+        } else {
+            $verified = WebhookSignature::verify((string) ($settings['inbound_secret'] ?? ''), $request->header('X-TEDC-Timestamp'), $request->header('X-TEDC-Signature'), $body);
+        }
+        if (! $verified) {
             $hub->logInbound($key, 'inbound', 'error', [], 'bad_signature');
 
             return response()->json(['message' => 'Invalid signature.'], 401);
@@ -32,7 +44,9 @@ class InboundWebhookController extends Controller
         if (! is_array($payload)) {
             return response()->json(['message' => 'Invalid JSON.'], 422);
         }
-        $idem = (string) ($request->header('Idempotency-Key') ?: ($payload['id'] ?? ''));
+        $numbering = (array) ($inbound['idempotency'] ?? []);
+        $fromPath = JsonPath::get($payload, (string) ($numbering['path'] ?? '$.id'));
+        $idem = (string) ($request->header((string) ($numbering['header'] ?? 'Idempotency-Key')) ?: (is_scalar($fromPath) ? $fromPath : ''));
         if ($idem === '') {
             return response()->json(['message' => 'An idempotency key is required.'], 422);
         }

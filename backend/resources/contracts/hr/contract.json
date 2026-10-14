@@ -141,7 +141,8 @@
           "requested_at": "{{ requested_at }}",
           "approved_at": "{{ approved_at }}",
           "changes": "{{ changes }}",
-          "note": "{{ note }}"
+          "note": "{{ note }}",
+          "approval_note": "{{ approval_note }}"
         }
       },
       "idempotency": {
@@ -414,5 +415,21 @@
       "ar": "إيقاف التكامل لا يحذف أي موظف؛ المنتهون يمكن إعادة تفعيلهم من ملف الموظف",
       "en": "Switching the integration off deletes nobody; leavers can be reactivated from the employee file"
     }
-  ]
+  ],
+  "inbound": {
+    "signature": {
+      "header": "X-TEDC-Signature",
+      "timestamp_header": "X-TEDC-Timestamp",
+      "algorithm": "hmac-sha256",
+      "encoding": "hex",
+      "prefix": "sha256=",
+      "payload": "{{ timestamp }}.{{ body }}",
+      "tolerance": 300,
+      "secret_setting": "inbound_secret"
+    },
+    "idempotency": {
+      "header": "Idempotency-Key",
+      "path": "$.id"
+    }
+  }
 }

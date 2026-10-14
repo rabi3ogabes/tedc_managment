@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Security\AuthSessions;
+use App\Services\Account\HrProfileRouting;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -64,6 +65,9 @@ class HrSync
     /** @param  array<string, mixed>  $payload @return string processed | ignored */
     public function applyInbound(string $key, array $payload): string
     {
+        if (($payload['type'] ?? '') === 'profile_change.result') {
+            return app(HrProfileRouting::class)->applyInbound($key, $payload);   // HR's answer to a change we sent (CAR-05)
+        }
         $row = (array) ($payload['employee'] ?? $payload['data'] ?? []);
         if (! in_array($payload['type'] ?? '', ['employee.updated', 'employee.created', 'employee.left'], true) || empty($row['employee_no'])) {
             return 'ignored';

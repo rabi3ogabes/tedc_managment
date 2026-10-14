@@ -67,6 +67,12 @@ final class Contract
         return (array) ($this->contract['auth'] ?? ['type' => 'none']);
     }
 
+    /** How the system signs and numbers what it sends us (signature, idempotency); empty: TEDC's own scheme. @return array<string, mixed> */
+    public function inbound(): array
+    {
+        return (array) ($this->contract['inbound'] ?? []);
+    }
+
     /** @return array<string, array<string, mixed>> */
     public function operations(): array
     {

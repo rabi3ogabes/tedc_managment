@@ -8,7 +8,9 @@ use App\Http\Resources\RegistrationResource;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Account\HrProfileRouting;
 use App\Services\PassportService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -71,6 +73,11 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee): EmployeeResource
     {
         $data = $this->validated($request, $employee);
+        // What HR masters is read-only here while HR wins: it is changed through HR (a change request from My account), not around it.
+        $locked = app(HrProfileRouting::class)->lockedChanges($employee->loadMissing('user'), $data);
+        if ($locked !== []) {
+            throw new HttpResponseException(response()->json(['message' => __('messages.hr.locked'), 'fields' => $locked], 422));
+        }
 
         DB::transaction(function () use ($employee, $data) {
             $employee->user->update(collect($data)->only(['name', 'name_ar', 'email', 'phone'])->all());

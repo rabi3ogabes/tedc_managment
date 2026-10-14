@@ -339,5 +339,21 @@
       "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
       "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
     }
-  ]
+  ],
+  "inbound": {
+    "signature": {
+      "header": "X-TEDC-Signature",
+      "timestamp_header": "X-TEDC-Timestamp",
+      "algorithm": "hmac-sha256",
+      "encoding": "hex",
+      "prefix": "sha256=",
+      "payload": "{{ timestamp }}.{{ body }}",
+      "tolerance": 300,
+      "secret_setting": "inbound_secret"
+    },
+    "idempotency": {
+      "header": "Idempotency-Key",
+      "path": "$.id"
+    }
+  }
 }

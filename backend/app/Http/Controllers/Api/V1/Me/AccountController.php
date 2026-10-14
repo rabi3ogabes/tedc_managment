@@ -58,6 +58,9 @@ class AccountController extends Controller
             'current_value' => $r->current_value, 'requested_value' => $f && $f['options'] ? ($f['options'][$r->requested_value][$locale] ?? $r->requested_value) : $r->requested_value,
             'note' => $r->note, 'applied' => $r->applied, 'review_note' => $r->review_note,
             'created_at' => $r->created_at->toIso8601String(), 'reviewed_at' => $r->reviewed_at?->toIso8601String(),
+            // Where it stands with HR, when HR masters what it changes: queued / sent → accepted or rejected (with HR's reason).
+            'hr_mastered' => $r->hr_status !== null, 'hr_status' => $r->hr_status, 'hr_reference' => $r->hr_reference, 'hr_reason' => $r->hr_reason,
+            'hr_sent_at' => $r->hr_sent_at?->toIso8601String(), 'hr_resolved_at' => $r->hr_resolved_at?->toIso8601String(),
         ];
     }
 }

@@ -22,6 +22,12 @@ class IntegrationRegistry
             ['k' => 'client_certificate', 'secret' => true, 'type' => 'text', 'for_auth' => ['mtls'], 'hint' => 'PEM'], ['k' => 'client_key', 'secret' => true, 'type' => 'text', 'for_auth' => ['mtls'], 'hint' => 'PEM'],
         ];
 
+        // What an approved profile change does while HR wins: it goes to HR instead of being written in TEDC (CAR-05).
+        $hrRouting = [
+            ['k' => 'route_profile_changes', 'type' => 'bool', 'default' => true, 'hint' => 'An approved change to something HR masters is sent to HR; HR confirms it and TEDC shows it after that'],
+            ['k' => 'hr_mastered_fields', 'type' => 'json', 'default' => ['name_ar', 'name_en', 'job_title', 'grade_level', 'qualification', 'specialization', 'hire_date', 'experience_years'], 'hint' => 'What HR masters while it wins: read-only in TEDC, changed through HR. Keys: name_ar, name_en, job_title, school, department, grade_level, education_stage, qualification, specialization, hire_date, experience_years'],
+        ];
+
         return [
             'entra' => ['group' => 'identity', 'name' => ['ar' => 'مايكروسوفت Entra ID (الدخول الموحد)', 'en' => 'Microsoft Entra ID (single sign-on)'], 'drivers' => ['fake', 'oidc'], 'fields' => [
                 ['k' => 'tenant_id'], ['k' => 'client_id'], ['k' => 'client_secret', 'secret' => true], ['k' => 'redirect_uri', 'type' => 'url'], ['k' => 'scopes', 'default' => 'openid profile email'],
@@ -58,8 +64,8 @@ class IntegrationRegistry
                 ['k' => 'teams_app_id', 'hint' => 'The TEDC Teams app id (made with the app package)'],
                 ['k' => 'fake_attendance', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'], ['k' => 'fake_permissions', 'type' => 'json', 'hint' => 'Training mode only (driver: fake)'],
             ]],
-            'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],
-            'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], $fake('fake_employees')])],
+            'hr' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الموارد البشرية', 'en' => 'HR system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], ...$hrRouting, $fake('fake_employees')])],
+            'mawared' => ['group' => 'ministry', 'name' => ['ar' => 'موارد (الموارد البشرية الحكومية)', 'en' => 'Mawared (government HR)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [['k' => 'conflict_policy', 'default' => 'hr_wins'], ['k' => 'employees_path', 'default' => '/employees'], ...$hrRouting, $fake('fake_employees')])],
             'licences' => ['group' => 'ministry', 'name' => ['ar' => 'نظام الرخص المهنية', 'en' => 'Professional licences system'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [$fake('fake_licences')])],
             'nsis' => ['group' => 'ministry', 'name' => ['ar' => 'النظام الوطني لمعلومات الطلبة (NSIS)', 'en' => 'National Student Information System (NSIS)'], 'drivers' => ['fake', 'http'], 'fields' => array_merge($http, [$fake('fake_teachers')])],
             'qneds' => ['group' => 'ministry', 'name' => ['ar' => 'النظام الوطني للبيانات التعليمية (QNEDS)', 'en' => 'Qatar National Educational Data System (QNEDS)'], 'drivers' => ['fake', 'http'], 'fields' => $http],

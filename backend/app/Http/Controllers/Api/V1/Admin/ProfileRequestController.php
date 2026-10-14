@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProfileChangeRequest;
 use App\Services\Account\AccountFields;
 use App\Services\Account\AccountService;
+use App\Services\Account\HrProfileRouting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -41,6 +42,14 @@ class ProfileRequestController extends Controller
         return response()->json(['data' => $this->row($changeRequest->fresh(['user.employee.school', 'user.employee.jobTitle', 'reviewer']))]);
     }
 
+    /** Sends a request to HR again: after it was given up, or without waiting for the next attempt. */
+    public function resend(ProfileChangeRequest $changeRequest, HrProfileRouting $routing): JsonResponse
+    {
+        $routing->resend($changeRequest);
+
+        return response()->json(['data' => $this->row($changeRequest->fresh(['user.employee.school', 'user.employee.jobTitle', 'reviewer']))]);
+    }
+
     public function reject(Request $request, ProfileChangeRequest $changeRequest): JsonResponse
     {
         $data = $request->validate(['note' => ['nullable', 'string', 'max:500']]);
@@ -59,10 +68,13 @@ class ProfileRequestController extends Controller
         $f = AccountFields::field($r->field);
         $locale = app()->getLocale() === 'en' ? 'en' : 'ar';
         $e = $r->user?->employee;
+        $routes = $r->hr_status !== null || ($r->status === 'pending' && app(HrProfileRouting::class)->masters($r->field));   // approving it sends it to HR
 
         return [
             'id' => $r->id, 'field' => $r->field, 'label' => $f['label'][$locale] ?? $r->field, 'type' => $f['type'] ?? 'text', 'kind' => $r->kind, 'status' => $r->status,
-            'can_apply' => (bool) ($f && $f['auto'] && $f['column']),
+            'can_apply' => (bool) ($f && $f['auto'] && $f['column']) && ! $routes,
+            'routes_to_hr' => $routes, 'hr_status' => $r->hr_status, 'hr_reference' => $r->hr_reference, 'hr_reason' => $r->hr_reason, 'hr_attempts' => $r->hr_attempts, 'hr_last_error' => $r->hr_last_error,
+            'hr_sent_at' => $r->hr_sent_at?->toIso8601String(), 'hr_resolved_at' => $r->hr_resolved_at?->toIso8601String(),
             'current_value' => $r->current_value, 'requested_value' => $f && $f['options'] ? ($f['options'][$r->requested_value][$locale] ?? $r->requested_value) : $r->requested_value,
             'note' => $r->note, 'applied' => $r->applied, 'review_note' => $r->review_note,
             'user' => ['id' => $r->user_id, 'name' => $r->user?->displayName(), 'email' => $r->user?->email, 'employee_id' => $e?->id, 'employee_no' => $e?->employee_no,
