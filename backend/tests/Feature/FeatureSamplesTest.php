@@ -55,6 +55,10 @@ class FeatureSamplesTest extends TestCase
             $this->assertGreaterThan(0, DB::table($table)->count(), "{$table} has no sample");
         }
         $this->assertTrue(Program::where('code', 'EKIT-PORTAL')->exists());
+        // The camera presence check (EXM-10): an exam that uses it, and an attempt whose flag a reviewer cleared with a reason.
+        $face = Assessment::where('title_en', 'Questioning check (camera presence)')->first();
+        $this->assertTrue((bool) ($face?->proctoring['face_check'] ?? false), 'a sample exam with the camera check');
+        $this->assertSame('clear', $face->attempts()->first()?->integrity['reviews']['face_absent']['decision'] ?? null);
         $this->assertTrue(Registration::whereHas('program', fn ($q) => $q->where('code', 'EKIT-PORTAL'))->where('course_completed', true)->exists(), 'one learner finished the e-kit');
 
         $before = [Space::count(), Post::count(), Order::count(), Assessment::count(), DB::table('point_ledger')->count(), DB::table('library_items')->count(), DB::table('announcements')->count()];

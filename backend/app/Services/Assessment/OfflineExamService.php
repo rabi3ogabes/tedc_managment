@@ -26,8 +26,9 @@ class OfflineExamService
     public function issue(Registration $r, Assessment $a, string $deviceId): array
     {
         abort_unless($a->status === 'published' && $a->program_id === $r->program_id, 404);
-        // Adaptive practice needs the server for every next question, so it is never handed out offline.
-        if (! $a->allow_offline || $a->adaptive || $a->delivery === 'in_center') {
+        // Adaptive practice needs the server for every next question, and the camera presence check needs the browser,
+        // so neither is handed out offline.
+        if (! $a->allow_offline || $a->adaptive || $a->delivery === 'in_center' || Proctoring::faceCheck($a)) {
             throw new BusinessRuleException(__('messages.offline.not_allowed'), 'offline_not_allowed');
         }
         $now = now();

@@ -6,14 +6,17 @@ import { Check, Flag, Maximize } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { FaceCentreOnly, FaceConsent, FaceIndicator, type FaceConsentDetails, type FaceProctoring } from '@/components/assessment/FaceCheck'
 import QuestionInput, { type ExamQuestion } from '@/components/assessment/QuestionInput'
 import { Badge, Button, Card, Modal, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { useFaceCheck } from '@/hooks/useFaceCheck'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
-type Attempt = { id: string; status: string; remaining_seconds: number | null; answers: Record<string, any>; questions: ExamQuestion[]; proctoring: { enabled: boolean; fullscreen: boolean; snapshots: boolean }; adaptive?: AdaptiveState | null }
+type Attempt = { id: string; status: string; remaining_seconds: number | null; answers: Record<string, any>; questions: ExamQuestion[]; proctoring: { enabled: boolean; fullscreen: boolean; snapshots: boolean } & FaceProctoring; adaptive?: AdaptiveState | null }
+type StartError = { response?: { data?: { code?: string; details?: FaceConsentDetails } } }
 
 const answered = (v: any) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0) && !(typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0)
 const mmss = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -32,15 +35,31 @@ export default function ExamRunner() {
   const [saving, setSaving] = useState<'saved' | 'saving' | 'offline'>('saved')
   const [warnings, setWarnings] = useState(0)
   const [confirm, setConfirm] = useState(false)
+  const [consent, setConsent] = useState<FaceConsentDetails | null>(null)
+  const [centreOnly, setCentreOnly] = useState(false)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [preview, setPreview] = useState(false)
   const dirty = useRef(false)
   const answersRef = useRef(answers)
   const finished = useRef(false)
 
-  // Start or resume (the server returns the open attempt when there is one).
-  useEffect(() => {
-    // An adaptive practice keeps its own timer and flow (one question at a time).
-    api.post(`/me/assessments/${id}/start`).then(({ data }) => { setAttempt(data.data); setAnswers(data.data.answers ?? {}); answersRef.current = data.data.answers ?? {}; setLeft(data.data.adaptive ? null : data.data.remaining_seconds) }).catch((e) => setError(errorMessage(e)))
+  // Start or resume (the server returns the open attempt when there is one). An exam with the camera presence check
+  // answers "consent first" (with what the consent card needs) or "in the centre only".
+  const begin = useCallback(async (body: Record<string, unknown> = {}, camera: MediaStream | null = null) => {
+    try {
+      const { data } = await api.post(`/me/assessments/${id}/start`, body)
+      setStream(camera); setConsent(null)
+      // An adaptive practice keeps its own timer and flow (one question at a time).
+      setAttempt(data.data); setAnswers(data.data.answers ?? {}); answersRef.current = data.data.answers ?? {}; setLeft(data.data.adaptive ? null : data.data.remaining_seconds)
+    } catch (e) {
+      camera?.getTracks().forEach((x) => x.stop())
+      const r = (e as StartError).response?.data
+      if (r?.code === 'face_consent_required' && r.details) setConsent(r.details)
+      else if (r?.code === 'face_check_in_centre') setCentreOnly(true)
+      else setError(errorMessage(e))
+    }
   }, [id])
+  useEffect(() => { void begin() }, [begin])
 
   const save = useCallback(async () => {
     if (!attempt || !dirty.current || finished.current) return
@@ -63,6 +82,7 @@ export default function ExamRunner() {
   }
 
   // Integrity events: reported only when the assessment turns proctoring on; the server ignores them otherwise.
+  // Each event is its name only — the camera check never sends an image.
   const report = useCallback(async (type: string) => {
     if (!attempt?.proctoring.enabled || finished.current) return
     try { const { data } = await api.post(`/me/attempts/${attempt.id}/events`, { type }); setWarnings(data.data.warnings ?? 0); if (data.data.submitted) { finished.current = true; toast(t('assess.runner.timeUp')); nav(`/portal/attempts/${attempt.id}`, { replace: true }) } } catch { /* the next event will try again */ }
@@ -96,11 +116,18 @@ export default function ExamRunner() {
     return () => { window.clearInterval(timer); stream?.getTracks().forEach((x) => x.stop()) }
   }, [attempt])
 
+  const { videoRef: faceVideo, status: faceStatus, hint: faceHint, on: faceOn } = useFaceCheck(attempt?.id ?? null, attempt?.proctoring, (type) => void report(type), stream)
+  // The camera stream for the presence check; visible only when the learner opens the preview.
+  const camera = faceOn && <video ref={faceVideo} muted playsInline aria-hidden={!preview} className={preview ? 'fixed bottom-4 end-4 z-30 w-44 rounded-2xl shadow-xl ring-2 ring-white' : 'pointer-events-none fixed bottom-0 end-0 size-px opacity-0'} />
+  const hint = faceHint && <div role="status" aria-live="polite" className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-900">{t(faceHint === 'many' ? 'assess.face.many' : 'assess.face.notSeen')}</div>
+
   const change = (qid: string, v: any) => { answersRef.current = { ...answersRef.current, [qid]: v }; setAnswers(answersRef.current); dirty.current = true; setSaving('saving') }
 
   if (error) return <div className="mx-auto max-w-xl py-16"><Card className="space-y-4 text-center"><p className="text-danger">{error}</p><Link to="/portal/assessments" className="font-bold text-link">{t('assess.runner.back')}</Link></Card></div>
+  if (centreOnly) return <div className="min-h-screen bg-ivory"><FaceCentreOnly /></div>
+  if (consent && !attempt) return <div className="min-h-screen bg-ivory"><FaceConsent details={consent} snapshots={false} onStart={(c, s) => begin({ consent: c }, s)} /></div>
   if (!attempt) return <Spinner className="min-h-screen" />
-  if (attempt.adaptive) return <AdaptiveRunner start={attempt as AdaptiveAttempt} />
+  if (attempt.adaptive) return <>{hint}<AdaptiveRunner start={attempt as AdaptiveAttempt} />{camera}</>
   const qs = attempt.questions
   const q = qs[cur]
   const pending = qs.filter((x) => !answered(answers[x.id])).length
@@ -111,10 +138,13 @@ export default function ExamRunner() {
         <span className="font-bold text-navy-900">{t('assess.runner.question', { n: cur + 1, total: qs.length })}</span>
         <span className={clsx('text-xs', saving === 'offline' ? 'text-danger' : 'text-slate-400')} aria-live="polite">{saving === 'saved' ? t('assess.runner.saved') : saving === 'saving' ? t('assess.runner.saving') : t('assess.runner.offline')}</span>
         {warnings > 0 && <Badge color="red">{t('assess.runner.warn', { n: warnings })}</Badge>}
+        <FaceIndicator status={faceStatus} preview={preview} onPreview={() => setPreview(!preview)} />
         {attempt.proctoring.fullscreen && !document.fullscreenElement && <Button size="sm" variant="outline" icon={<Maximize className="size-4" />} onClick={() => void document.documentElement.requestFullscreen?.()}>{t('assess.runner.enterFullscreen')}</Button>}
         <span className="ms-auto text-lg font-extrabold tabular-nums text-navy-900" aria-label={t('assess.runner.timeLeft')}>{left !== null ? mmss(left) : '∞'}</span>
         <Button variant="gold" onClick={() => setConfirm(true)}>{t('assess.runner.submit')}</Button>
       </header>
+      {hint}
+      {camera}
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1fr_16rem]">
         <Card className="space-y-6">
           {q && <QuestionInput key={q.id} q={q} value={answers[q.id]} onChange={(v) => change(q.id, v)} />}

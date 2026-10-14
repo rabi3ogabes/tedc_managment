@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# MediaPipe WebAssembly, copied from node_modules before dev and build (scripts/copy-mediapipe.mjs)
+public/vendor/mediapipe/wasm/
+# Playwright
+/test-results/
+/playwright-report/

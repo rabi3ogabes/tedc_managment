@@ -7,8 +7,11 @@ use App\Models\AssessmentAttempt;
 use App\Models\Registration;
 use App\Services\Assessment\AttemptService;
 use App\Services\Assessment\OfflineExamService;
+use App\Services\Assessment\Proctoring;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /** The trainee's side of assessments: list, start, autosave, integrity events, submit and result. */
 class MyAssessmentController extends MeController
@@ -30,13 +33,16 @@ class MyAssessmentController extends MeController
             return ['id' => $a->id, 'kind' => $a->kind, 'title_ar' => $a->title_ar, 'title_en' => $a->title_en, 'program' => $a->program?->translate('title'), 'delivery' => $a->delivery, 'time_limit_minutes' => $a->time_limit_minutes, 'max_attempts' => $a->max_attempts, 'attempts_used' => $tries->count(),
                 'window_opens_at' => $a->window_opens_at?->toIso8601String(), 'window_closes_at' => $a->window_closes_at?->toIso8601String(), 'open' => (! $a->window_opens_at || $a->window_opens_at->lte($now)) && (! $a->window_closes_at || $a->window_closes_at->gte($now)), 'requires_code' => $a->delivery === 'in_center',
                 'open_attempt_id' => $tries->firstWhere('status', 'in_progress')?->id, 'best_score' => $tries->where('status', 'graded')->max('score_percent'), 'last_attempt_id' => $tries->sortByDesc('started_at')->first()?->id,
-                'allow_offline' => (bool) $a->allow_offline && ! $a->adaptive && $a->delivery !== 'in_center', 'offline_window_hours' => (int) $a->offline_window_hours, 'adaptive' => (bool) $a->adaptive];
+                'allow_offline' => (bool) $a->allow_offline && ! $a->adaptive && $a->delivery !== 'in_center' && ! Proctoring::faceCheck($a), 'offline_window_hours' => (int) $a->offline_window_hours, 'adaptive' => (bool) $a->adaptive,
+                // A camera check (face presence) applies: the app sends the learner to a computer, the web asks for consent first.
+                'face_check' => Proctoring::faceCheck($a), 'face_fallback' => Proctoring::faceCheck($a) ? Proctoring::config($a)['face_fallback'] : null];
         })->values()->all()]);
     }
 
     public function start(Request $request, Assessment $assessment): JsonResponse
     {
-        $d = $request->validate(['access_code' => ['nullable', 'string', 'max:20'], 'room_id' => ['nullable', 'uuid']]);
+        $d = $request->validate(['access_code' => ['nullable', 'string', 'max:20'], 'room_id' => ['nullable', 'uuid'],
+            'consent' => ['nullable', 'array'], 'consent.given' => ['sometimes', 'boolean'], 'consent.camera' => ['sometimes', 'boolean'], 'consent.version' => ['sometimes', 'string', 'max:20']]);
         $registration = Registration::where('program_id', $assessment->program_id)->where('employee_id', $this->employee()->id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])
             ->when($assessment->group_id, fn ($q) => $q->where('training_group_id', $assessment->group_id))->firstOrFail();
         $attempt = $this->attempts->start($registration, $assessment, $d + ['ip' => $request->ip(), 'device' => $request->userAgent()]);
@@ -89,7 +95,14 @@ class MyAssessmentController extends MeController
     {
         $this->own($attempt);
 
-        return response()->json(['data' => $this->attempts->event($attempt->load('assessment'), $request->validate(['type' => ['required', 'string', 'max:30']])['type'])]);
+        // An event is its type and nothing else: the face check never sends an image or anything about the face.
+        $extra = array_diff(array_keys($request->all()), ['type']);
+        if ($extra !== []) {
+            throw ValidationException::withMessages(['type' => __('validation.prohibited', ['attribute' => implode(', ', $extra)])]);
+        }
+        $type = $request->validate(['type' => ['required', 'string', Rule::in(AttemptService::EVENTS)]])['type'];
+
+        return response()->json(['data' => $this->attempts->event($attempt->load('assessment'), $type)]);
     }
 
     public function snapshot(Request $request, AssessmentAttempt $attempt): JsonResponse

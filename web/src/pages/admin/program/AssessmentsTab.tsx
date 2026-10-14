@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AiDraftBox from '@/components/ai/AiDraftBox'
 import AttemptReview from '@/components/assessment/AttemptReview'
-import { Plus, ShieldAlert, Trash2 } from 'lucide-react'
+import { Camera, Plus, ShieldAlert, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, Spinner, Tabs, Table, Td } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { useFeature } from '@/hooks/useFeature'
 import { useAuth } from '@/lib/auth'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
@@ -28,6 +29,10 @@ function Editor({ program, a, onDone }: { program: Program; a: any | null; onDon
   const [busy, setBusy] = useState(false)
   const p = f.proctoring
   const tx = (k: string): string => String(t(`assess.builder.${k}`))
+  const proctoringFeature = useFeature('proctoring')
+  const num = (key: string, label: string, min: number, max: number, step = 1, fallback?: number) => (
+    <Field label={label}><input className={input} type="number" min={min} max={max} step={step} value={p[key] ?? fallback ?? ''} onChange={(e) => setF({ ...f, proctoring: { ...p, [key]: e.target.value === '' ? undefined : Number(e.target.value) } })} /></Field>
+  )
   const save = async () => {
     setBusy(true)
     try {
@@ -83,7 +88,22 @@ function Editor({ program, a, onDone }: { program: Program; a: any | null; onDon
           <Field label={tx('tabLimit')}><input className={input} type="number" min="0" value={p.tab_switch_limit ?? ''} onChange={(e) => setF({ ...f, proctoring: { ...p, tab_switch_limit: e.target.value === '' ? null : Number(e.target.value) } })} /></Field>
           <Field label={tx('fsLimit')}><input className={input} type="number" min="0" value={p.fullscreen_exit_limit ?? ''} onChange={(e) => setF({ ...f, proctoring: { ...p, fullscreen_exit_limit: e.target.value === '' ? null : Number(e.target.value) } })} /></Field>
           <Field label={tx('action')}><select className={input} value={p.action} onChange={(e) => setF({ ...f, proctoring: { ...p, action: e.target.value } })}>{['flag', 'auto_submit'].map((k) => <option key={k} value={k}>{t(`assess.builder.actions.${k}`)}</option>)}</select></Field>
-          <div className="space-y-2">{chk('fullscreen', tx('fullscreen'), 'p')}{chk('snapshots', tx('snapshots'), 'p')}</div></div>}
+          <div className="space-y-2">{chk('fullscreen', tx('fullscreen'), 'p')}{chk('snapshots', tx('snapshots'), 'p')}</div>
+          {/* Face presence (EXM-10): counts faces in the browser; never identifies anyone, never sends an image. */}
+          <div className="space-y-3 rounded-xl bg-navy-50/60 p-3 sm:col-span-2">
+            <div className="flex items-start gap-2"><Camera className="mt-0.5 size-4 shrink-0 text-navy-800" />
+              <div className="space-y-1">{proctoringFeature ? chk('face_check', tx('faceCheck'), 'p') : <p className="text-sm font-bold text-navy-900">{tx('faceCheck')}</p>}
+                <p className="text-xs leading-relaxed text-slate-600">{tx('faceCheckHint')} <a href="/portal/help?article=exam-camera-check" target="_blank" rel="noreferrer" className="font-bold text-link">{tx('facePrivacy')}</a></p>
+                {!proctoringFeature && <p className="text-xs font-semibold text-amber-800">{tx('faceFeatureOff')}</p>}</div></div>
+            {proctoringFeature && p.face_check && <div className="grid gap-3 sm:grid-cols-3">
+              {num('face_absent_seconds', tx('faceAbsentSeconds'), 3, 120, 1, 10)}
+              {num('face_absent_limit', tx('faceAbsentLimit'), 0, 50, 1, 3)}
+              {num('multiple_faces_limit', tx('multipleFacesLimit'), 0, 50, 1, 1)}
+              {num('looking_away_limit', tx('lookingAwayLimit'), 0, 100, 1, 5)}
+              {num('face_check_interval_ms', tx('faceInterval'), 500, 3000, 250, 1000)}
+              <Field label={tx('faceFallback')}><select className={input} value={p.face_fallback ?? 'centre'} onChange={(e) => setF({ ...f, proctoring: { ...p, face_fallback: e.target.value } })}>{['centre', 'flagged'].map((k) => <option key={k} value={k}>{t(`assess.builder.faceFallbacks.${k}`)}</option>)}</select></Field>
+            </div>}
+          </div></div>}
       </fieldset>
       <div className="space-y-3"><div className="flex items-center justify-between"><h3 className="font-bold text-navy-900">{tx('sections')}</h3><Button size="sm" variant="outline" icon={<Plus className="size-4" />} onClick={() => setSections([...sections, { selection: 'random', count: 5, difficulty_mix: {} }])}>{tx('addSection')}</Button></div>
         {sections.map((s, i) => (
@@ -138,7 +158,11 @@ function Manage({ a, onChanged }: { a: any; onChanged: () => void }) {
         {live.data.data.rotating_code && <div className="rounded-xl bg-navy-900 p-3 text-center text-white">{tx('rotating')}: <b className="text-2xl tabular-nums" dir="ltr">{live.data.data.rotating_code.code ?? live.data.data.rotating_code}</b></div>}
         {!live.data.data.attempts.length ? <Empty text={tx('noAttempts')} /> : <Table head={['', tx('answered'), tx('flags'), '']}>{live.data.data.attempts.map((r: any) => (
           <tr key={r.id}><Td>{r.employee}<div className="flex flex-wrap items-center gap-1 text-xs text-slate-400">{r.status}{r.remaining_seconds !== null && ` · ${Math.floor(r.remaining_seconds / 60)}′`}{r.delivery === 'offline' && <Badge color="blue">{t('assess.deliveries.offline')}</Badge>}{r.adaptive && <Badge color="gold">{t('assess.adaptive.title')}</Badge>}</div></Td><Td>{r.answered}/{r.total}</Td>
-            <Td>{(r.flags ?? []).length ? <div className="flex flex-wrap gap-1">{(r.flags ?? []).map((f: string) => <Badge key={f} color="red">{flag(f)}</Badge>)}</div> : '—'}</Td>
+            <Td>{(r.flags ?? []).length ? <div className="flex flex-wrap gap-1">{(r.flags ?? []).map((f: string) => {
+              // A reviewed flag shows the reviewer's decision; an open one stays red until someone looks at it.
+              const d = r.reviews?.[f]?.decision
+              return <Badge key={f} color={d === 'clear' ? 'gray' : d === 'uphold' ? 'amber' : 'red'}>{flag(f)}{d && ` · ${t(d === 'clear' ? 'assess.integrity.cleared' : 'assess.integrity.upheld')}`}</Badge>
+            })}</div> : '—'}</Td>
             <Td><div className="flex gap-1"><Button size="sm" variant="outline" onClick={() => setReview(r.id)}>{t('assess.review.open')}</Button>{r.status === 'in_progress' && r.delivery !== 'offline' && <><Button size="sm" variant="outline" onClick={() => void act(() => api.post(`/admin/attempts/${r.id}/extend`, { minutes: 10 }), tx('extend'))}>+10</Button><Button size="sm" variant="outline" onClick={async () => { const reason = await dialogs.prompt(tx('voidReason')); if (reason) void act(() => api.post(`/admin/attempts/${r.id}/void`, { reason }), tx('void')) }}>{tx('void')}</Button></>}</div></Td></tr>))}</Table>}</div>)}
       {tab === 'grading' && (!grading.data ? <Spinner /> : !grading.data.data.length ? <Empty text={tx('noAttempts')} /> : grading.data.data.map((g: any) => (
         <Card key={g.attempt_id} className="space-y-3"><div className="font-bold">{g.employee}</div><AiDraftBox attemptId={g.attempt_id} onGraded={() => void grading.refetch()} />

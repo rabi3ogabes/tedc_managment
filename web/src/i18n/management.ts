@@ -74,6 +74,7 @@ export const mgmtAr = {
     enable: 'قفل الجلسة عند عدم النشاط', enableHint: 'عند التفعيل يُطلب من فريق الإدارة إدخال كلمة المرور بعد المدة المحددة دون أي استخدام. يُطبَّق القفل في الخادم أيضاً، فلا يمكن لمتصفح متروك أو رمز منسوخ متابعة العمل.',
     after: 'القفل بعد', minutes: '{{count}} دقيقة', custom: 'مدة أخرى (دقائق)', appliesTo: 'يشمل فريق الإدارة (كل من يستخدم لوحة التحكم). لا يتأثر مستخدمو التطبيق. تظهر رسالة تنبيه قبل القفل بدقيقة.',
     preview: 'معاينة شاشة القفل', saved: 'تم حفظ إعدادات الأمان',
+    integrityTitle: 'بيانات نزاهة الاختبارات', integrityHint: 'لقطات الكاميرا وسجل الأحداث والخط الزمني للمحاولات تُحذف بعد هذه المدة كل ليلة. تبقى على المحاولة الملاحظات النهائية وقرارات المراجعة والموافقة فقط.', integrityDays: 'الحذف بعد', days: '{{count}} يوماً', integritySaved: 'تم حفظ مدة الحفظ',
   },
   lock: {
     title: 'الجلسة مقفلة', subtitle: 'تم القفل بعد {{minutes}} دقيقة من عدم النشاط حمايةً لحسابك.', password: 'كلمة المرور', unlock: 'فتح القفل', signOut: 'تسجيل الخروج', show: 'إظهار', hide: 'إخفاء',
@@ -320,6 +321,7 @@ export const mgmtEn: MgmtStrings = {
     enable: 'Lock the session when idle', enableHint: 'When on, the administration team is asked for their password after the chosen time without any use. The lock is enforced on the server too, so a forgotten browser or a copied token cannot keep working.',
     after: 'Lock after', minutes: '{{count}} min', custom: 'Other (minutes)', appliesTo: 'Applies to the administration team (everyone who uses the dashboard). App users are not affected. A warning appears one minute before locking.',
     preview: 'Lock screen preview', saved: 'Security settings saved',
+    integrityTitle: 'Exam integrity data', integrityHint: 'Camera snapshots, event logs and attempt timelines are deleted after this period, every night. Attempts keep only their final flags, review decisions and consent.', integrityDays: 'Delete after', days: '{{count}} days', integritySaved: 'Retention saved',
   },
   lock: {
     title: 'Session locked', subtitle: 'Locked after {{minutes}} minutes of inactivity to protect your account.', password: 'Password', unlock: 'Unlock', signOut: 'Sign out', show: 'Show', hide: 'Hide',

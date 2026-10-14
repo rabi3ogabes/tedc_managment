@@ -1,11 +1,11 @@
 {
     "totals": {
         "total": 278,
-        "available": 239,
-        "partial": 39,
+        "available": 240,
+        "partial": 38,
         "missing": 0,
         "mandatory": 108,
-        "open": 39
+        "open": 38
     },
     "phases": [
         {
@@ -54,7 +54,7 @@
             "phase": 6,
             "title": "Assessment Engine & Interactive Learning",
             "open": 16,
-            "items": 1,
+            "items": 0,
             "done": 0
         },
         {
@@ -1488,9 +1488,9 @@
                     "id": "EXM-10",
                     "mandatory": true,
                     "requirement": "Anti-cheating: activity tracking, face recognition",
-                    "status": "partial",
-                    "evidence": "Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people.",
-                    "phase": 6
+                    "status": "available",
+                    "evidence": "Activity tracking (page switches, focus, full screen, copy/paste, tabs, devtools) with flag or auto-submit, live invigilation, optional snapshots with consent, and since Phase 22 **face presence detection** (never identification): counting faces and noticing looking away in the browser's Web Worker (MediaPipe BlazeFace, served by TEDC), explicit consent with an in-centre or flagged alternative, debounced events and flags reviewed by people with a reason (audited), a minute-by-minute timeline, retention (90 days) and a DPIA note. `FacePresenceTest`, web unit tests, browser smoke test with a fake camera.",
+                    "phase": null
                 },
                 {
                     "id": "EXM-11",
@@ -2759,8 +2759,8 @@
         {
             "no": 27,
             "requirement": "Exam variety, categorised banks, anti-cheating",
-            "status": "partial",
-            "notes": "Open: EXM-10 (partial); EXM-01, EXM-03, EXM-04, EXM-05 available."
+            "status": "available",
+            "notes": "EXM-01, EXM-03, EXM-04, EXM-05, EXM-10 — all available."
         },
         {
             "no": 28,
@@ -2787,5 +2787,5 @@
             "notes": "Open: AI-05 (partial); AI-01, AI-02, AI-03, AI-04 available."
         }
     ],
-    "generated_at": "2026-10-13T22:55:12+03:00"
+    "generated_at": "2026-10-13T23:53:05+03:00"
 }

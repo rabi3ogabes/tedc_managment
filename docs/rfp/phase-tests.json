@@ -110,10 +110,12 @@
   "AdaptivePracticeTest.php",
   "AssistantRetrievalTest.php",
   "FeatureSamplesTest.php",
+  "GeofenceAttendanceTest.php",
   "LibraryAndLifecycleTest.php",
   "LtiToolTest.php",
   "OfflineExamTest.php",
   "OfflineLearningTest.php",
+  "RoomScreenTest.php",
   "ThrottlePerRouteTest.php"
  ]
 }

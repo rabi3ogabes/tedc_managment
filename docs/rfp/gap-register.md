@@ -6,7 +6,7 @@ and update the **Status** column as phases are delivered.
 
 | Total | Available | Partial | Missing | Open gaps |
 |---:|---:|---:|---:|---:|
-| 278 | 239 | 39 | 0 | 39 |
+| 278 | 240 | 38 | 0 | 38 |
 
 Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knock-out) · **Ph** = implementation phase.
 
@@ -170,8 +170,8 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
   _Now:_ ✅ Available — Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results.
 - [x] **EXM-09** — Access codes and submission timestamps  
   _Now:_ ✅ Available — Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time).
-- [ ] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
-  _Now:_ 🟡 Partial — Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people.
+- [x] **EXM-10** ★ — Anti-cheating: activity tracking, face recognition  
+  _Now:_ ✅ Available — Activity tracking (page switches, focus, full screen, copy/paste, tabs, devtools) with flag or auto-submit, live invigilation, optional snapshots with consent, and since Phase 22 **face presence detection** (never identification): counting faces and noticing looking away in the browser's Web Worker (MediaPipe BlazeFace, served by TEDC), explicit consent with an in-centre or flagged alternative, debounced events and flags reviewed by people with a reason (audited), a minute-by-minute timeline, retention (90 days) and a DPIA note. `FacePresenceTest`, web unit tests, browser smoke test with a fake camera.
 - [x] **EXM-11** — Result analytics per trainee, group and program  
   _Now:_ ✅ Available — Item analysis, difficulty and discrimination, distractors, by group
 
@@ -722,7 +722,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | ✅ Available | Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results. | — |
 | EXM-08 | Attempts, time limit, show / hide results | ✅ Available | Supported. | — |
 | EXM-09 | Access codes and submission timestamps | ✅ Available | Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time). | — |
-| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | 🟡 Partial | Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people. | 6 |
+| EXM-10 ★ | Anti-cheating: activity tracking, face recognition | ✅ Available | Activity tracking (page switches, focus, full screen, copy/paste, tabs, devtools) with flag or auto-submit, live invigilation, optional snapshots with consent, and since Phase 22 **face presence detection** (never identification): counting faces and noticing looking away in the browser's Web Worker (MediaPipe BlazeFace, served by TEDC), explicit consent with an in-centre or flagged alternative, debounced events and flags reviewed by people with a reason (audited), a minute-by-minute timeline, retention (90 days) and a DPIA note. `FacePresenceTest`, web unit tests, browser smoke test with a fake camera. | — |
 | EXM-11 | Result analytics per trainee, group and program | ✅ Available | Item analysis, difficulty and discrimination, distractors, by group | — |
 
 ### NTF · Notifications & Announcements — إدارة الإشعارات
@@ -958,7 +958,7 @@ Legend: ✅ Available · 🟡 Partial · 🔴 Missing · ★ RFP mandatory (knoc
 | 24 | Kit archiving with versions linked to courses | ✅ Available | KIT-01 — all available. |
 | 25 | Professional learning communities | ✅ Available | PLC-01, PLC-02, PLC-03, PLC-04, PLC-05 — all available. |
 | 26 | Impact measurement with trainee & manager forms, pre/post comparison | ✅ Available | EVL-01, EVL-02, EVL-06 — all available. |
-| 27 | Exam variety, categorised banks, anti-cheating | 🟡 Partial | Open: EXM-10 (partial); EXM-01, EXM-03, EXM-04, EXM-05 available. |
+| 27 | Exam variety, categorised banks, anti-cheating | ✅ Available | EXM-01, EXM-03, EXM-04, EXM-05, EXM-10 — all available. |
 | 28 | Integrated notifications + multimedia scheduled announcements | 🟡 Partial | Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available. |
 | 29 | Comprehensive PD records outside the Ministry | ✅ Available | CPD-01, CPD-02, CPD-03, CPD-04, CPD-05, CPD-06 — all available. |
 | 30 | Permissions at Ministry / school-group / school level | ✅ Available | RBA-13 — all available. |

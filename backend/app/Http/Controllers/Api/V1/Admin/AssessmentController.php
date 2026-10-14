@@ -7,12 +7,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\AttemptAnswerGrade;
+use App\Models\AuditLog;
 use App\Models\Program;
 use App\Services\Assessment\AssessmentAnalytics;
 use App\Services\Assessment\AssessmentService;
 use App\Services\Assessment\AttemptService;
 use App\Services\Assessment\KnowledgeService;
+use App\Services\Assessment\Proctoring;
 use App\Services\Assessment\QuestionTypes;
+use App\Services\FileStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -40,7 +43,11 @@ class AssessmentController extends Controller
 
     public function show(Assessment $assessment): JsonResponse
     {
-        return response()->json(['data' => $assessment->load('sections'), 'validation' => $this->builder->validate($assessment)]);
+        $data = $assessment->load('sections')->toArray();
+        // The proctoring rules with their defaults, so the builder shows what applies (face check off unless switched on).
+        $data['proctoring'] = Proctoring::config($assessment);
+
+        return response()->json(['data' => $data, 'validation' => $this->builder->validate($assessment)]);
     }
 
     public function update(Request $request, Assessment $assessment): JsonResponse
@@ -95,7 +102,7 @@ class AssessmentController extends Controller
 
         return response()->json(['data' => [
             'rotating_code' => $this->attempts->rotatingCode($assessment),
-            'attempts' => $rows->map(fn ($a) => ['id' => $a->id, 'employee' => $a->registration->employee->user?->displayName(), 'status' => $a->status, 'started_at' => $a->started_at->toIso8601String(), 'remaining_seconds' => $this->attempts->remaining($a), 'delivery' => $a->delivery, 'flags' => $a->integrity['flags'] ?? [], 'events' => $a->integrity['events'] ?? [], 'answered' => count($a->answers ?? []), 'total' => (int) ($a->adaptive_log['total'] ?? count($a->questions)), 'adaptive' => $a->adaptive_log !== null])->all(),
+            'attempts' => $rows->map(fn ($a) => ['id' => $a->id, 'employee' => $a->registration->employee->user?->displayName(), 'status' => $a->status, 'started_at' => $a->started_at->toIso8601String(), 'remaining_seconds' => $this->attempts->remaining($a), 'delivery' => $a->delivery, 'flags' => $a->integrity['flags'] ?? [], 'events' => $a->integrity['events'] ?? [], 'reviews' => (object) ($a->integrity['reviews'] ?? []), 'camera' => $a->integrity['consent']['camera'] ?? null, 'answered' => count($a->answers ?? []), 'total' => (int) ($a->adaptive_log['total'] ?? count($a->questions)), 'adaptive' => $a->adaptive_log !== null])->all(),
         ]]);
     }
 
@@ -150,7 +157,40 @@ class AssessmentController extends Controller
                     'options' => array_map(fn ($o) => ['id' => $o['id'] ?? null, 'text_ar' => $o['text_ar'] ?? null, 'text_en' => $o['text_en'] ?? null], (array) ($q['public']['options'] ?? []))];
             }, $attempt->questions),
             'adaptive' => $adaptive->trail($attempt),
+            'integrity' => $this->integrity($attempt),
         ]]);
+    }
+
+    /** The integrity record for reviewers: flags with their review, counts, consent, the minute-by-minute timeline and snapshots. @return array<string, mixed> */
+    private function integrity(AssessmentAttempt $attempt): array
+    {
+        $i = $attempt->integrity ?? [];
+        $timeline = [];
+        foreach ((array) ($i['timeline'] ?? []) as $minute => $counts) {
+            $timeline[] = ['minute' => (int) $minute] + (array) $counts;
+        }
+        usort($timeline, fn ($x, $y) => $x['minute'] <=> $y['minute']);
+
+        return ['flags' => $i['flags'] ?? [], 'reviews' => (object) ($i['reviews'] ?? []), 'events' => (object) ($i['events'] ?? []), 'consent' => $i['consent'] ?? null, 'timeline' => $timeline,
+            'log' => $i['log'] ?? [], 'snapshots' => array_values(app(FileStorage::class)->temporaryUrls('submissions', (array) ($i['snapshots'] ?? []), 600)), 'purged_at' => $i['purged_at'] ?? null];
+    }
+
+    /** A reviewer clears or upholds an integrity flag, with a note (audited). */
+    public function reviewFlag(Request $request, AssessmentAttempt $attempt, string $flag): JsonResponse
+    {
+        $attempt->load('registration.employee');
+        abort_unless($attempt->registration?->employee && $this->scope()->allowsEmployee($attempt->registration->employee), 404);
+        $d = $request->validate(['decision' => ['required', Rule::in(['clear', 'uphold'])], 'note' => ['required', 'string', 'max:500']]);
+        $i = $attempt->integrity ?? [];
+        if (! in_array($flag, $i['flags'] ?? [], true)) {
+            throw ValidationException::withMessages(['flag' => __('validation.in', ['attribute' => 'flag'])]);
+        }
+        $i['reviews'][$flag] = ['decision' => $d['decision'], 'note' => $d['note'], 'by' => $this->user()->id, 'by_name' => $this->user()->displayName(), 'at' => now()->toIso8601String()];
+        $attempt->update(['integrity' => $i]);
+        AuditLog::create(['user_id' => $this->user()->id, 'action' => 'integrity_flag_reviewed', 'auditable_type' => AssessmentAttempt::class, 'auditable_id' => $attempt->id,
+            'new_values' => ['flag' => $flag, 'decision' => $d['decision'], 'note' => $d['note']], 'ip_address' => $request->ip()]);
+
+        return response()->json(['data' => ['flag' => $flag] + $i['reviews'][$flag]]);
     }
 
     public function grade(Request $request, AssessmentAttempt $attempt): JsonResponse
@@ -218,6 +258,9 @@ class AssessmentController extends Controller
             'feedback_mode' => ['sometimes', Rule::in(['immediate', 'after_submit', 'after_close', 'never'])], 'show_score' => ['sometimes', 'boolean'], 'show_correct_answers' => ['sometimes', 'boolean'], 'require_restudy_on_fail' => ['sometimes', 'boolean'],
             'proctoring' => ['nullable', 'array'], 'proctoring.enabled' => ['sometimes', 'boolean'], 'proctoring.fullscreen' => ['sometimes', 'boolean'], 'proctoring.tab_switch_limit' => ['nullable', 'integer', 'min:0', 'max:100'], 'proctoring.fullscreen_exit_limit' => ['nullable', 'integer', 'min:0', 'max:100'],
             'proctoring.paste_limit' => ['nullable', 'integer', 'min:0', 'max:100'], 'proctoring.action' => ['sometimes', Rule::in(['flag', 'auto_submit'])], 'proctoring.snapshots' => ['sometimes', 'boolean'], 'proctoring.face_check' => ['sometimes', 'boolean'],
+            'proctoring.face_absent_seconds' => ['sometimes', 'integer', 'min:3', 'max:120'], 'proctoring.face_absent_limit' => ['sometimes', 'integer', 'min:0', 'max:50'],
+            'proctoring.multiple_faces_limit' => ['sometimes', 'integer', 'min:0', 'max:50'], 'proctoring.looking_away_limit' => ['sometimes', 'integer', 'min:0', 'max:100'],
+            'proctoring.face_check_interval_ms' => ['sometimes', 'integer', 'min:500', 'max:3000'], 'proctoring.face_fallback' => ['sometimes', Rule::in(['centre', 'flagged'])],
             'allow_offline' => ['sometimes', 'boolean'], 'offline_window_hours' => ['sometimes', 'integer', 'min:1', 'max:720'], 'adaptive' => ['sometimes', 'boolean'],
         ];
     }

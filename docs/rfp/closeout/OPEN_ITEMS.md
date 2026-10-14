@@ -6,6 +6,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 **Progress:** Phase 19 done on 11 October 2026 — NTF-09, PLC-03 ★, COL-02, COL-03 and COL-04 are now Available (register: 233 available, 45 partial, 0 missing; mandatory item 25 available).
 **Progress:** Phase 20 done on 13 October 2026 — NDS-08, RPT-03 and RPT-11 are now Available (register: 236 available, 42 partial, 0 missing).
 **Progress:** Phase 21 done on 13 October 2026 — TYP-12, AI-03 ★ and TEC-08 ★ are now Available; AI-05 ★ is Ready, waiting for the in-country model endpoint and a golden-set run against it (register: 239 available, 39 partial, 0 missing).
+**Progress:** Phase 22 done on 13 October 2026 — EXM-10 ★ is now Available as face presence detection (never recognition); mandatory item 27 is available (register: 240 available, 38 partial, 0 missing).
 
 **Who unblocks:** *We build it* = software only · *Your decision* = needs your yes/no · *Ministry input* = credentials, specifications or files from the Ministry · *Azure / real run* = needs the Azure subscription or a real test run · *Centre workshops & sign-off* = needs the training centre.
 
@@ -16,7 +17,7 @@ This list is the checklist for the close-out prompt pack in this folder. Each it
 | 19 ✅ | [19_COLLABORATION_COMPLETION.md](19_COLLABORATION_COMPLETION.md) | NTF-09, PLC-03 ★, COL-02, COL-03, COL-04 — done 11 Oct | 1 |
 | 20 ✅ | [20_PLANNING_REPORTS_FORECASTS.md](20_PLANNING_REPORTS_FORECASTS.md) | NDS-08, RPT-03, RPT-11 — done 13 Oct | 0 |
 | 21 ✅ | [21_LEARNING_ENGINE_COMPLETION.md](21_LEARNING_ENGINE_COMPLETION.md) | TYP-12, AI-03 ★, AI-05 ★ (Ready), TEC-08 ★ — done 13 Oct | 3 |
-| 22 | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ | 1 |
+| 22 ✅ | [22_EXAM_INTEGRITY_FACE_PRESENCE.md](22_EXAM_INTEGRITY_FACE_PRESENCE.md) | EXM-10 ★ — done 13 Oct | 1 |
 | 23 | [23_IDENTITY_AND_MICROSOFT_365.md](23_IDENTITY_AND_MICROSOFT_365.md) | NFR-07 ★, NFR-08 ★, TEC-12 ★ | 3 |
 | 24 | [24_MINISTRY_SYSTEMS_AND_PROVIDERS.md](24_MINISTRY_SYSTEMS_AND_PROVIDERS.md) | UX-03, TYP-14, CAR-05, ATT-05, CNT-05, NTF-03 ★, UTR-03, PAY-02, TEC-07 ★, TEC-13 ★ | 3 |
 | 25 | [25_SECURITY_ENGINEERING_AND_PERFORMANCE.md](25_SECURITY_ENGINEERING_AND_PERFORMANCE.md) | NFR-15 ★, NFR-16 ★, NFR-17 ★, NFR-18 ★, TEC-02 ★, TEC-03 ★ | 6 |
@@ -96,6 +97,7 @@ None. Every one of the 278 requirements has at least a partial implementation in
 ### EXM · Exams & Question Banks — إدارة الاختبارات
 
 #### EXM-10 ★ — Anti-cheating: activity tracking, face recognition
+- **Status:** ✅ Available since Phase 22 (13 Oct 2026) as face presence detection, not identification — see `docs/rfp/phase-22-exam-integrity.md`.
 - **Built today:** Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation (flag, extend, void) and optional camera snapshots with the trainee's consent. **Automatic face recognition is not built** — the `face_check` setting is accepted but nothing detects faces; snapshots are reviewed by people.
 - **Missing:** Integrity tracking exists, but nothing detects faces; the face_check setting is unused.
 - **Who unblocks:** Your decision

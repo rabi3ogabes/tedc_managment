@@ -25,7 +25,7 @@
 | RBA-03 | PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops | ✅ Available | `/admin/pd-activities` | `CareerAndPdTest.php`, `ProgramGrantsTest.php` |
 | RBA-04 | Head of Training Department | ✅ Available | Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `Roles | `ProgramGrantsTest.php`, `RolesManagementTest.php` |
 | RBA-05 | Training Supervisor | ✅ Available | Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, ` | `ProgramGrantsTest.php` |
-| RBA-06 | Centre Leadership & Policy Makers | ✅ Available | `/admin/group-trainers/{id}/decision` | `AbsenceAndLeaveTest.php`, `CareerAndPdTest.php`, `EnrollmentEngineTest.php`, `IndividualNeedsTest.php` |
+| RBA-06 | Centre Leadership & Policy Makers | ✅ Available | `/admin/group-trainers/{id}/decision` | `AbsenceAndLeaveTest.php`, `CareerAndPdTest.php`, `EnrollmentEngineTest.php`, `FacePresenceTest.php` |
 | RBA-07 | Trainer | ✅ Available | Attendance, materials, task review. | — |
 | RBA-08 | System Administrator | ✅ Available | Super Admin / Centre Admin with full permissions. | — |
 | RBA-09 | Kit Developer and Quality Assurance | ✅ Available | Dedicated roles with the full kit review workflow. | — |
@@ -159,7 +159,7 @@
 | EXM-07 | Auto + manual grading, immediate / deferred feedback, question weights | ✅ Available | Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of re | `AssessmentEngineTest.php`, `AssessmentExtrasTest.php`, `QuestionBankTest.php`, `QuestionTypesTest.php` |
 | EXM-08 | Attempts, time limit, show / hide results | ✅ Available | Supported. | — |
 | EXM-09 | Access codes and submission timestamps | ✅ Available | Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time). | `AssessmentEngineTest.php`, `AssessmentExtrasTest.php`, `QuestionBankTest.php`, `QuestionTypesTest.php` |
-| EXM-10 | Anti-cheating: activity tracking, face recognition | 🟡 Partial | Integrity tracking (tab switch, focus loss, full-screen exit, copy/paste, multiple tabs, devtools) with thresholds that flag or auto-submit, live invigilation ( | `AssessmentEngineTest.php`, `AssessmentExtrasTest.php`, `QuestionBankTest.php`, `QuestionTypesTest.php` |
+| EXM-10 | Anti-cheating: activity tracking, face recognition | ✅ Available | Activity tracking (page switches, focus, full screen, copy/paste, tabs, devtools) with flag or auto-submit, live invigilation, optional snapshots with consent, | `FacePresenceTest.php`, `AssessmentEngineTest.php`, `AssessmentExtrasTest.php`, `QuestionBankTest.php` |
 | EXM-11 | Result analytics per trainee, group and program | ✅ Available | Item analysis, difficulty and discrimination, distractors, by group | `AssessmentEngineTest.php`, `AssessmentExtrasTest.php`, `QuestionBankTest.php`, `QuestionTypesTest.php` |
 | NTF-01 | In-app inbox and pop-up notifications | ✅ Available | Notification centre, Supabase realtime, Firebase push. | — |
 | NTF-02 | Email notifications | ✅ Available | SMTP channel. | — |

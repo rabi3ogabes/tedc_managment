@@ -62,7 +62,10 @@ class AssessmentsScreen extends ConsumerWidget {
                           ]),
                         ),
                         const SizedBox(width: 8),
-                        a.flag('open')
+                        a.flag('open') && a.flag('face_check')
+                            // The camera presence check runs in a browser: the app sends the learner to a computer.
+                            ? Padding(padding: const EdgeInsets.only(top: 12), child: Icon(Icons.desktop_windows_outlined, color: AppColors.gold700))
+                            : a.flag('open')
                             ? FilledButton(
                                 style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
                                 onPressed: () => context.push('/assessments/${a.str('id')}/take', extra: a.flag('requires_code')),
@@ -70,6 +73,15 @@ class AssessmentsScreen extends ConsumerWidget {
                               )
                             : Padding(padding: const EdgeInsets.only(top: 12), child: Text(s.t('assess.closed'))),
                       ]),
+                      if (a.flag('open') && a.flag('face_check'))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(color: AppColors.navy100.withValues(alpha: .5), borderRadius: BorderRadius.circular(14)),
+                            child: Text(s.t(a.str('face_fallback') == 'flagged' ? 'assess.faceComputerFlagged' : 'assess.faceComputer'), style: const TextStyle(fontSize: 12.5, height: 1.5)),
+                          ),
+                        ),
                       if (a.flag('adaptive'))
                         Padding(
                           padding: const EdgeInsets.only(top: 8),

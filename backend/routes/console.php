@@ -10,6 +10,8 @@ Schedule::command('tedc:group-lifecycle')->hourly()->withoutOverlapping();
 Schedule::command('tedc:operations-hourly')->hourly()->withoutOverlapping();
 Schedule::command('tedc:caliper-flush')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('tedc:evaluations-hourly')->hourly()->withoutOverlapping();
+// Exam integrity: snapshots, event logs and timelines leave after the retention period (Settings → Security).
+Schedule::command('tedc:proctoring-retention')->dailyAt('02:40')->withoutOverlapping();
 Schedule::command('tedc:seats-release')->hourly()->withoutOverlapping();
 Schedule::command('tedc:career-daily')->dailyAt('01:00')->withoutOverlapping();
 Schedule::command('tedc:needs-daily')->dailyAt('02:00')->withoutOverlapping();

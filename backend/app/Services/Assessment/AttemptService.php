@@ -27,7 +27,10 @@ use Illuminate\Support\Str;
 /** The life of an attempt: start (window, attempts, cooldown, access code), autosave, integrity events, submit, grading and results. */
 class AttemptService
 {
-    private const EVENTS = ['visibility_hidden', 'blur', 'multi_tab', 'fullscreen_exit', 'paste', 'copy', 'contextmenu', 'devtools', 'face_absent'];
+    public const EVENTS = ['visibility_hidden', 'blur', 'multi_tab', 'fullscreen_exit', 'paste', 'copy', 'contextmenu', 'devtools', 'face_absent', 'multiple_faces', 'looking_away', 'face_check_degraded', 'camera_off'];
+
+    /** The longest attempt the integrity timeline follows, in minutes. */
+    private const TIMELINE_MINUTES = 600;
 
     public function __construct(private readonly AssessmentService $builder, private readonly KnowledgeService $knowledge, private readonly NotificationService $notifications, private readonly FileStorage $files, private readonly AdaptivePractice $adaptive) {}
 
@@ -61,6 +64,8 @@ class AttemptService
             $delivery = 'in_center';
         }
 
+        $integrity = $delivery === 'in_center' ? null : $this->faceConsent($a, $opts['consent'] ?? null);
+
         // An adaptive assessment asks one question at a time, each chosen from the answers before it (AI-03).
         [$items, $trail] = $a->adaptive ? $this->adaptive->begin($a, $registration) : [$this->freeze($a), null];
         if ($items === []) {
@@ -74,8 +79,35 @@ class AttemptService
         return AssessmentAttempt::create([
             'assessment_id' => $a->id, 'registration_id' => $registration->id, 'attempt_no' => $taken->count() + 1, 'started_at' => $now, 'expires_at' => $expires, 'ip' => $opts['ip'] ?? null,
             'device' => isset($opts['device']) ? substr((string) $opts['device'], 0, 255) : null, 'delivery' => $delivery, 'questions' => $items, 'answers' => [], 'max_score' => array_sum(array_column($items, 'points')), 'status' => 'in_progress',
-            'adaptive_log' => $trail,
+            'adaptive_log' => $trail, 'integrity' => $integrity,
         ]);
+    }
+
+    /**
+     * With the face check on, a remote attempt starts only with the learner's consent. Without a camera (or with the
+     * camera refused), the assessment's fallback decides: sit it in the centre, or go ahead with the attempt flagged.
+     *
+     * @param  array{given?: bool, camera?: bool, version?: string}|null  $consent
+     * @return array<string, mixed>|null the attempt's first integrity record
+     */
+    private function faceConsent(Assessment $a, ?array $consent): ?array
+    {
+        if (! Proctoring::faceCheck($a)) {
+            return null;
+        }
+        $cfg = Proctoring::config($a);
+        if (! ($consent['given'] ?? false)) {
+            $settings = app(ProctoringSettings::class)->all();
+            throw new BusinessRuleException(__('messages.proctoring.consent_required'), 'face_consent_required',
+                ['fallback' => $cfg['face_fallback'], 'retention_days' => (int) $settings['integrity_retention_days'], 'consent_version' => $settings['consent_version']]);
+        }
+        $camera = (bool) ($consent['camera'] ?? false);
+        if (! $camera && $cfg['face_fallback'] !== 'flagged') {
+            throw new BusinessRuleException(__('messages.proctoring.in_centre'), 'face_check_in_centre', ['fallback' => 'centre']);
+        }
+
+        return ['events' => [], 'flags' => $camera ? [] : ['no_camera'], 'log' => [],
+            'consent' => ['given_at' => now()->toIso8601String(), 'version' => mb_substr((string) ($consent['version'] ?? ''), 0, 20), 'camera' => $camera]];
     }
 
     /**
@@ -261,16 +293,29 @@ class AttemptService
     /** @return array{ignored: bool, warnings: int, submitted: bool, flags: list<string>} */
     public function event(AssessmentAttempt $at, string $type): array
     {
-        $cfg = $at->assessment->proctoring ?? [];
-        if (empty($cfg['enabled']) || ! in_array($type, self::EVENTS, true) || $at->status !== 'in_progress') {
+        $a = $at->assessment;
+        $cfg = $a->proctoring ?? [];
+        $face = Proctoring::faceCheck($a);
+        // Face events count only while the face check is on (assessment switch and feature).
+        if (empty($cfg['enabled']) || ! in_array($type, self::EVENTS, true) || $at->status !== 'in_progress' || (in_array($type, Proctoring::FACE_EVENTS, true) && ! $face)) {
             return ['ignored' => true, 'warnings' => 0, 'submitted' => $at->status !== 'in_progress', 'flags' => []];
         }
         $i = $at->integrity ?? ['events' => [], 'flags' => [], 'log' => []];
         $i['events'][$type] = ($i['events'][$type] ?? 0) + 1;
         $i['log'][] = ['type' => $type, 'at' => now()->toIso8601String()];
         $i['log'] = array_slice($i['log'], -60);
+        // Minute by minute since the start, for the reviewers' timeline.
+        $minute = (int) min(self::TIMELINE_MINUTES, floor(max(0, $at->started_at->diffInSeconds(now())) / 60));
+        $timeline = $i['timeline'] ?? [];
+        $timeline[$minute][$type] = ($timeline[$minute][$type] ?? 0) + 1;
+        $i['timeline'] = $timeline;
         $tabSwitches = ($i['events']['visibility_hidden'] ?? 0) + ($i['events']['blur'] ?? 0) + ($i['events']['multi_tab'] ?? 0);
         $limits = ['tab_switches' => [$tabSwitches, $cfg['tab_switch_limit'] ?? null], 'fullscreen_exits' => [$i['events']['fullscreen_exit'] ?? 0, $cfg['fullscreen_exit_limit'] ?? null], 'paste_attempts' => [($i['events']['paste'] ?? 0) + ($i['events']['copy'] ?? 0), $cfg['paste_limit'] ?? null]];
+        if ($face) {
+            $f = Proctoring::config($a);
+            $limits += ['face_absent' => [$i['events']['face_absent'] ?? 0, (int) $f['face_absent_limit']], 'multiple_faces' => [$i['events']['multiple_faces'] ?? 0, (int) $f['multiple_faces_limit']],
+                'looking_away' => [$i['events']['looking_away'] ?? 0, (int) $f['looking_away_limit']], 'no_camera' => [$i['events']['camera_off'] ?? 0, 0]];
+        }
         $newFlag = false;
         foreach ($limits as $flag => [$count, $limit]) {
             if ($limit !== null && $count > $limit && ! in_array($flag, $i['flags'], true)) {
@@ -467,8 +512,18 @@ class AttemptService
     {
         return ['id' => $at->id, 'assessment_id' => $at->assessment_id, 'status' => $at->status, 'attempt_no' => $at->attempt_no, 'delivery' => $at->delivery, 'expires_at' => $at->expires_at?->copy()->addMinutes($at->extra_minutes)->toIso8601String(), 'remaining_seconds' => $this->remaining($at), 'answers' => $at->answers ?? [],
             'questions' => array_map(fn ($q) => AssessmentService::publicItem($q), $at->questions),
-            'proctoring' => ['enabled' => (bool) ($at->assessment->proctoring['enabled'] ?? false), 'fullscreen' => (bool) ($at->assessment->proctoring['fullscreen'] ?? false), 'snapshots' => (bool) ($at->assessment->proctoring['snapshots'] ?? false)],
+            'proctoring' => ['enabled' => (bool) ($at->assessment->proctoring['enabled'] ?? false), 'fullscreen' => (bool) ($at->assessment->proctoring['fullscreen'] ?? false), 'snapshots' => (bool) ($at->assessment->proctoring['snapshots'] ?? false)]
+                + $this->facePublic($at->assessment),
             'adaptive' => $this->adaptive->view($at)];
+    }
+
+    /** What the exam page needs to run the face check (never anything about the person). @return array<string, mixed> */
+    public function facePublic(Assessment $a): array
+    {
+        $on = Proctoring::faceCheck($a);
+        $f = Proctoring::config($a);
+
+        return ['face_check' => $on] + ($on ? ['face_absent_seconds' => (int) $f['face_absent_seconds'], 'face_check_interval_ms' => (int) $f['face_check_interval_ms'], 'face_fallback' => $f['face_fallback']] : []);
     }
 
     /** The result as the feedback rules allow the trainee to see it. */

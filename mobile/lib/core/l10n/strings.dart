@@ -947,6 +947,8 @@ class S {
     'count.minutes.many': '{n} دقيقة',
     'count.minutes.other': '{n} دقيقة',
     'offline.cardTitle': 'التعلّم دون اتصال',
+    'assess.faceComputer': 'يتحقق هذا الاختبار من حضورك بالكاميرا، فيُؤدّى من حاسوب فيه كاميرا عبر المتصفح، أو في المركز.',
+    'assess.faceComputerFlagged': 'يتحقق هذا الاختبار من حضورك بالكاميرا، فيُؤدّى من حاسوب فيه كاميرا عبر المتصفح.',
   };
 
   static const Map<String, String> _en = {
@@ -1848,6 +1850,8 @@ class S {
     'count.minutes.one': '1 minute',
     'count.minutes.other': '{n} minutes',
     'offline.cardTitle': 'Learn without a connection',
+    'assess.faceComputer': 'This exam checks your presence with the camera: take it in a browser on a computer with a camera, or in the centre.',
+    'assess.faceComputerFlagged': 'This exam checks your presence with the camera: take it in a browser on a computer with a camera.',
   };
 }
 

@@ -39,6 +39,7 @@ build, pass `--dart-define=SHOW_DEMO_ACCOUNTS=false` to hide them.
 | PDF slides in the app: each slide counts after the lesson's minimum time; no "confirm" for PDFs | A presentation lesson |
 | Full-screen lessons: the video plays only in the landscape player | A video lesson with "must be watched full screen" |
 | Adaptive practice: one question at a time with the level, the competency and "why this question" | My assessments → an adaptive practice |
+| An exam with the camera presence check says to take it in a browser on a computer with a camera (or in the centre) instead of starting | My assessments |
 
 ### Offline learning, in short
 * Downloads resume where they stopped, are checked against the server's SHA-256 and kept **encrypted** (AES-256-GCM, a key for this phone only, held in the Keychain / Android Keystore). A video is opened into a private temporary file only while it plays.

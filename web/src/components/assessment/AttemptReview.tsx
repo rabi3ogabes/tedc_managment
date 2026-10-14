@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { CheckCircle2, CircleDashed, Clock, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Modal, Spinner } from '@/components/ui'
+import IntegrityPanel, { type Integrity } from '@/components/assessment/IntegrityPanel'
 import { useGet } from '@/hooks/useApi'
 import { fmt } from '@/lib/format'
 
@@ -13,6 +14,7 @@ type Review = {
   assessment: { title_ar: string; title_en: string; kind: string; adaptive: boolean }
   items: { id: string; type: string; stem_ar: string; stem_en: string | null; points: number; answer: any; correct: boolean | null; points_awarded: number | null; correct_answer: any; options: { id: string; text_ar: string | null; text_en: string | null }[] }[]
   adaptive: null | { total: number; answered: number; competencies: { skill: Text | null; start_mastery: number | null; start_level: string; level: string; asked: number }[]; steps: Step[] }
+  integrity?: Integrity
 }
 
 const Y = { easy: 74, medium: 46, hard: 18 } as const
@@ -54,7 +56,7 @@ export default function AttemptReview({ attemptId, onClose }: { attemptId: strin
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
   const tx = (v: Text | null | undefined) => (v ? (ar ? v.ar : v.en) || v.ar || v.en : '')
-  const { data } = useGet<{ data: Review }>(`/admin/attempts/${attemptId}/review`, undefined, { enabled: !!attemptId, staleTime: 0 })
+  const { data, refetch } = useGet<{ data: Review }>(`/admin/attempts/${attemptId}/review`, undefined, { enabled: !!attemptId, staleTime: 0 })
   const r = data?.data
   const show = (item: Review['items'][number], v: any) => {
     if (v === null || v === undefined || v === '') return '—'
@@ -100,6 +102,8 @@ export default function AttemptReview({ attemptId, onClose }: { attemptId: strin
               </ol>
             </section>
           )}
+
+          {r.integrity && <IntegrityPanel attemptId={r.id} integrity={r.integrity} onChanged={() => void refetch()} />}
 
           <section className="space-y-3">
             <h3 className="font-bold text-navy-900">{t('assess.review.items')}</h3>

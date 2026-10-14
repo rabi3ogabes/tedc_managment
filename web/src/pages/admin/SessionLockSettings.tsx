@@ -1,13 +1,61 @@
 import clsx from 'clsx'
-import { CheckCircle2, Clock, Eye, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, Clock, Eye, LockKeyhole, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card, PageHeader, Spinner, SaveDock } from '@/components/ui'
+import { Button, Card, PageHeader, Spinner, SaveDock } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 
 type Settings = { idle_lock_enabled: boolean; idle_lock_minutes: number }
 const PRESETS = [5, 10, 15, 30, 60]
+const RETENTION = [30, 60, 90, 180, 365]
+
+/** How long exam-integrity data (snapshots, event logs, timelines) is kept before the nightly clean-up. */
+function IntegrityRetention() {
+  const { t } = useTranslation()
+  const { data, refetch } = useGet<{ data: { integrity_retention_days: number } }>('/admin/settings/proctoring')
+  const [days, setDays] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null)
+  if (!data) return null
+  const value = days ?? data.data.integrity_retention_days
+  const save = async () => {
+    setSaving(true)
+    setNotice(null)
+    try {
+      await api.put('/admin/settings/proctoring', { integrity_retention_days: value })
+      setDays(null)
+      await refetch()
+      setNotice({ ok: true, text: t('mgmt.security.integritySaved') })
+    } catch (e) {
+      setNotice({ ok: false, text: errorMessage(e) })
+    } finally {
+      setSaving(false)
+    }
+  }
+  return (
+    <Card>
+      <div className="flex items-center gap-2 text-lg font-bold text-navy-900"><Trash2 className="size-5 text-gold-600" />{t('mgmt.security.integrityTitle')}</div>
+      <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">{t('mgmt.security.integrityHint')}</p>
+      <div className="mt-4 mb-2 text-sm font-bold text-navy-900">{t('mgmt.security.integrityDays')}</div>
+      <div className="flex flex-wrap items-center gap-2">
+        {RETENTION.map((d) => (
+          <button key={d} type="button" aria-pressed={value === d} onClick={() => setDays(d)}
+            className={clsx('rounded-xl px-4 py-2 text-sm font-bold ring-1 ring-inset transition', value === d ? 'bg-navy-900 text-white ring-navy-900' : 'bg-white text-slate-600 ring-navy-100 hover:ring-gold-400')}>
+            {t('mgmt.security.days', { count: d })}
+          </button>
+        ))}
+        <span className="flex items-center gap-2 text-sm text-slate-500">{t('mgmt.security.custom').replace(/\(.*\)/, '').trim()}
+          <input type="number" min={7} max={3650} className="input !w-24" value={value} onChange={(e) => setDays(Math.max(7, Math.min(3650, Number(e.target.value) || 7)))} />
+        </span>
+      </div>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Button variant="gold" loading={saving} disabled={days === null || days === data.data.integrity_retention_days} onClick={() => void save()}>{t('kits.common.save')}</Button>
+        {notice && <span className={clsx('text-sm font-semibold', notice.ok ? 'text-emerald-700' : 'text-danger')}>{notice.ok && <CheckCircle2 className="me-1 inline size-4" />}{notice.text}</span>}
+      </div>
+    </Card>
+  )
+}
 
 /** Settings → Security: lock the administration team's dashboard after a period without activity. */
 export default function SessionLockSettings() {
@@ -91,6 +139,7 @@ export default function SessionLockSettings() {
           </div>
         </Card>
       </div>
+      <IntegrityRetention />
     </div>
   )
 }

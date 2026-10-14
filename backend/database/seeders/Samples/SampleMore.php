@@ -45,6 +45,7 @@ class SampleMore
         $this->step('assessment', fn () => $this->assessment());
         $this->step('offline', fn () => $this->offline());
         $this->step('adaptive', fn () => $this->adaptive());
+        $this->step('face check', fn () => $this->faceCheck());
         $this->step('content', fn () => $this->content());
         $this->step('access', fn () => $this->access());
         $this->step('delivery', fn () => $this->delivery());
@@ -150,6 +151,44 @@ class SampleMore
         CourseLesson::create(['program_id' => $program->id, 'module_id' => $module->id, 'type' => 'article', 'title_ar' => 'مراجعة: '.$skill->name_ar, 'title_en' => 'Review: '.$skill->name_en,
             'body_ar' => '<p>عودة سريعة إلى أساسيات هذه الكفاية بأمثلة من الصف، ثم ثلاثة أسئلة قصيرة للتأكد.</p>', 'body_en' => '<p>A short return to the basics of this competency with classroom examples, then three quick checks.</p>',
             'sort_order' => 900, 'is_required' => false, 'status' => 'published', 'settings' => ['remedial' => true, 'skill_id' => $skill->id]]);
+    }
+
+    /** An exam with the camera presence check (EXM-10), and one finished attempt whose flag a reviewer cleared with a reason. */
+    private function faceCheck(): void
+    {
+        $program = $this->c->program('EKIT-QUESTIONING');
+        $bank = QuestionBank::where('title_en', 'Adaptive practice bank: questioning')->first();
+        $t = $this->c->trainees();
+        if (! $program || ! $bank || ! $t || Assessment::where('program_id', $program->id)->where('title_en', 'Questioning check (camera presence)')->exists()) {
+            return;
+        }
+        $exam = Assessment::create(['program_id' => $program->id, 'kind' => 'quiz', 'title_ar' => 'اختبار طرح الأسئلة (تحقق بالكاميرا)', 'title_en' => 'Questioning check (camera presence)',
+            'time_limit_minutes' => 20, 'max_attempts' => 3, 'pass_percent' => 60, 'feedback_mode' => 'after_submit', 'show_score' => true, 'status' => 'published',
+            'proctoring' => ['enabled' => true, 'fullscreen' => false, 'tab_switch_limit' => 3, 'action' => 'flag', 'face_check' => true, 'face_absent_seconds' => 10, 'face_absent_limit' => 1,
+                'multiple_faces_limit' => 1, 'looking_away_limit' => 3, 'face_check_interval_ms' => 1000, 'face_fallback' => 'flagged']]);
+        $exam->sections()->create(['selection' => 'random', 'bank_id' => $bank->id, 'count' => 4, 'points_per_question' => 1, 'sort_order' => 0]);
+
+        $reg = $this->c->registration($t[0], $program);
+        if (! $reg) {
+            return;
+        }
+        $at = $this->attempts->start($reg, $exam);
+        $answers = [];
+        foreach ($at->questions as $q) {
+            $answers[$q['id']] = collect($q['payload']['options'] ?? [])->firstWhere('correct', true)['id'] ?? 'a';
+        }
+        $at->update(['answers' => $answers]);
+        $at = $this->attempts->submit($at->fresh());
+        $started = $at->started_at;
+        $reviewer = $this->c->admin();
+        $at->update(['integrity' => [
+            'events' => ['face_absent' => 2, 'looking_away' => 1, 'visibility_hidden' => 1], 'flags' => ['face_absent'],
+            'log' => [['type' => 'face_absent', 'at' => $started->copy()->addMinutes(3)->toIso8601String()], ['type' => 'visibility_hidden', 'at' => $started->copy()->addMinutes(7)->toIso8601String()],
+                ['type' => 'looking_away', 'at' => $started->copy()->addMinutes(7)->addSeconds(40)->toIso8601String()], ['type' => 'face_absent', 'at' => $started->copy()->addMinutes(12)->toIso8601String()]],
+            'timeline' => [3 => ['face_absent' => 1], 7 => ['visibility_hidden' => 1, 'looking_away' => 1], 12 => ['face_absent' => 1]],
+            'consent' => ['given_at' => $started->toIso8601String(), 'version' => '2026-10', 'camera' => true],
+            'reviews' => $reviewer ? ['face_absent' => ['decision' => 'clear', 'note' => 'إضاءة خافتة خلف المتدرب؛ بقي أمام الجهاز طوال الوقت.', 'by' => $reviewer->id, 'by_name' => $reviewer->displayName(), 'at' => now()->toIso8601String()]] : [],
+        ]]);
     }
 
     private function assessment(): void

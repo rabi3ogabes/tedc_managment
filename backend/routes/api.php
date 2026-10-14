@@ -70,6 +70,7 @@ use App\Http\Controllers\Api\V1\Admin\PassingController;
 use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
+use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
@@ -1325,6 +1326,8 @@ Route::prefix('v1')->group(function () {
                 Route::put('settings/labels', [LabelController::class, 'update']);
                 Route::get('settings/security', [SecuritySettingsController::class, 'show']);
                 Route::put('settings/security', [SecuritySettingsController::class, 'update']);
+                Route::get('settings/proctoring', [ProctoringSettingsController::class, 'show']);
+                Route::put('settings/proctoring', [ProctoringSettingsController::class, 'update']);
                 // Attendance rules (location check)
                 Route::get('rfp-status', RfpStatusController::class);
                 Route::get('features', [FeaturesController::class, 'index']);
@@ -1704,6 +1707,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('attempts/{attempt}/void', [AssessmentController::class, 'void']);
             });
             Route::get('attempts/{attempt}/review', [AssessmentController::class, 'review'])->middleware('permission:assessments.grade|assessments.manage|assessments.invigilate');
+            Route::post('attempts/{attempt}/flags/{flag}/review', [AssessmentController::class, 'reviewFlag'])->where('flag', '[a-z_]+')->middleware(['permission:assessments.grade|assessments.manage|assessments.invigilate', 'throttle:60,1']);
             Route::middleware('permission:assessments.grade|assessments.manage')->group(function () {
                 Route::get('assessments/{assessment}/grading', [AssessmentController::class, 'grading']);
                 Route::post('attempts/{attempt}/grade', [AssessmentController::class, 'grade']);
