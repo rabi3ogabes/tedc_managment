@@ -213,6 +213,7 @@ class WorkshopService
                 'submit' => $this->workflow->canTransition($w, 'submitted') && ($user->hasPermission('plc.manage') || $user->hasPermission('plc.internal.submit')),
                 'review' => $w->workflow_state === 'submitted' && $pending && $user->hasPermission($pending['permission']),
                 'cancel' => $this->workflow->canTransition($w, 'cancelled') && ($user->hasPermission('plc.manage') || ($p->created_by === $user->id)),
+                'evaluations' => in_array($w->workflow_state, ['in_progress', 'completed', 'awaiting_evaluation', 'closed', 'archived'], true) && ($user->hasPermission('plc.evaluations.manage') || $user->hasPermission('plc.manage') || $user->hasPermission('plc.reports')),
             ],
             'transitions' => WorkshopWorkflow::TRANSITIONS[$w->workflow_state] ?? [],
             'sessions' => ['count' => $p->sessions()->where('status', '!=', 'cancelled')->count(), 'next' => $p->sessions()->where('status', '!=', 'cancelled')->where('ends_at', '>=', now())->orderBy('starts_at')->value('starts_at')],

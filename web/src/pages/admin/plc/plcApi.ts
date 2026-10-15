@@ -15,7 +15,7 @@ export type WorkshopDetail = WorkshopSummary & {
   organiser?: string | null; expected_participants?: number | null; prerequisites?: string | null; outcomes?: string | null; target_audience?: string | null; domain?: string | null
   need?: { id: string; title: string; reference_no?: string | null; source: PlcSource } | null; coordinator_user?: { id: string; name: string } | null
   schools: SchoolRef[]; approval_path?: Step[] | null; pending_step?: { key: string; permission: string; mine: boolean } | null
-  can: { edit: boolean; submit: boolean; review: boolean; cancel: boolean }; transitions: PlcState[]
+  can: { edit: boolean; submit: boolean; review: boolean; cancel: boolean; evaluations?: boolean }; transitions: PlcState[]
   decisions: { kind: string; decision: string; reason?: string | null; data?: Record<string, unknown> | null; by?: string | null; at: string }[]
   decision_note?: string | null; created_by?: string | null
   sessions?: { count: number; next?: string | null }

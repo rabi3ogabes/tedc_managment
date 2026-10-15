@@ -87,17 +87,25 @@ class EvaluationService
 
     // ───────────────────────────── assignments
 
-    public function assign(EvaluationForm $form, Program $program, ?TrainingGroup $group, User $respondent, string $type, ?Registration $subject = null, ?Carbon $due = null, ?User $by = null): ?EvaluationAssignment
+    /**
+     * One assignment per form, respondent and target; `$target` may carry `program_session_id`, `trainer_id` (what is
+     * being evaluated, PLC Phase 6), `rule_key` (why it was assigned) and `detail` (ar/en, appended to the message).
+     */
+    public function assign(EvaluationForm $form, Program $program, ?TrainingGroup $group, User $respondent, string $type, ?Registration $subject = null, ?Carbon $due = null, ?User $by = null, array $target = []): ?EvaluationAssignment
     {
-        $existing = EvaluationAssignment::where(['form_id' => $form->id, 'group_id' => $group?->id, 'respondent_user_id' => $respondent->id, 'subject_registration_id' => $subject?->id])->first();
+        $sessionId = $target['program_session_id'] ?? null;
+        $trainerId = $target['trainer_id'] ?? null;
+        $existing = EvaluationAssignment::where(['form_id' => $form->id, 'group_id' => $group?->id, 'respondent_user_id' => $respondent->id, 'subject_registration_id' => $subject?->id, 'program_session_id' => $sessionId, 'trainer_id' => $trainerId])->first();
         if ($existing) {
             return null;
         }
         $a = EvaluationAssignment::create(['form_id' => $form->id, 'program_id' => $program->id, 'group_id' => $group?->id, 'respondent_type' => $type, 'respondent_user_id' => $respondent->id, 'subject_registration_id' => $subject?->id,
+            'program_session_id' => $sessionId, 'trainer_id' => $trainerId, 'rule_key' => $target['rule_key'] ?? null,
             'due_at' => $due ?? now()->addDays((int) $this->settings->get('impact.expiry_days', 30)), 'sent_at' => now(), 'assigned_by' => $by?->id, 'survey_id' => $form->survey_id]);
 
+        $detail = $target['detail'] ?? [];
         $this->notifications->send($respondent->id, $type === 'manager' ? 'impact.manager_due' : 'evaluation.assigned', ['ar' => 'نموذج تقييم بانتظارك', 'en' => 'An evaluation form is waiting for you'],
-            ['ar' => "مطلوب منك تعبئة «{$form->title_ar}» لبرنامج «{$program->title_ar}».", 'en' => "Please fill in \"{$form->title_en}\" for \"{$program->title_en}\"."], ['assignment_id' => $a->id, 'program_id' => $program->id]);
+            ['ar' => "مطلوب منك تعبئة «{$form->title_ar}» لبرنامج «{$program->title_ar}».".(! empty($detail['ar']) ? ' '.$detail['ar'] : ''), 'en' => "Please fill in \"{$form->title_en}\" for \"{$program->title_en}\".".(! empty($detail['en']) ? ' '.$detail['en'] : '')], ['assignment_id' => $a->id, 'program_id' => $program->id]);
 
         return $a;
     }

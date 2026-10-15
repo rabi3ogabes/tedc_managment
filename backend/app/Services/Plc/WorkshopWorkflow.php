@@ -142,6 +142,9 @@ class WorkshopWorkflow
                 // Approved nominations become registrations on the programme engine (seats, attendance, certificates).
                 app(WorkshopPeople::class)->materialise($w->refresh(), $by);
             }
+            if ($to === 'cancelled') {
+                app(WorkshopEvaluation::class)->onCancelled($w);
+            }
 
             return $w->refresh();
         });

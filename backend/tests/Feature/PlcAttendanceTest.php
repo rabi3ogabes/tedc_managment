@@ -110,7 +110,8 @@ class PlcAttendanceTest extends TestCase
         $this->travelTo($d2->copy()->addHours(3));
         $this->artisan('tedc:plc-tick')->assertSuccessful();
         $w = PlcWorkshop::find($id);
-        $this->assertSame('completed', $w->workflow_state);
+        $this->assertSame('awaiting_evaluation', $w->workflow_state); // completed by the clock, then straight into the evaluation state (Phase 6)
+        $this->assertTrue(PlcDecision::where('subject_id', $id)->where('kind', 'transition')->where('decision', 'completed')->exists());
         $this->assertNotNull(ProgramSession::find($s2)->attendance_locked_at);
         $this->assertSame('absent', Attendance::where('program_session_id', $s2)->where('employee_id', $c->id)->value('status'));
         $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/sessions/$s2/attendance/correct", ['registration_id' => $cReg, 'status' => 'present', 'reason' => 'كان حاضراً'])->assertOk(); // the centre may still correct after the lock

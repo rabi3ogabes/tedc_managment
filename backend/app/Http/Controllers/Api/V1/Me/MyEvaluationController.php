@@ -21,7 +21,7 @@ class MyEvaluationController extends MeController
 
     public function index(): JsonResponse
     {
-        $rows = EvaluationAssignment::with('form:id,kind,title_ar,title_en,settings,survey_id', 'program:id,code,title_ar,title_en', 'respondent:id')->where('respondent_user_id', $this->user()->id)->whereIn('status', ['pending', 'submitted'])->orderByRaw("case status when 'pending' then 0 else 1 end")->latest()->limit(100)->get();
+        $rows = EvaluationAssignment::with('form:id,kind,title_ar,title_en,settings,survey_id', 'program:id,code,title_ar,title_en', 'respondent:id', 'trainer:id,name_ar,name_en', 'session:id,sequence,title_ar,title_en,starts_at')->where('respondent_user_id', $this->user()->id)->whereIn('status', ['pending', 'submitted'])->orderByRaw("case status when 'pending' then 0 else 1 end")->latest()->limit(100)->get();
 
         return response()->json(['data' => $rows->map(fn ($a) => $this->summary($a))->values()]);
     }
@@ -29,7 +29,7 @@ class MyEvaluationController extends MeController
     public function show(EvaluationAssignment $assignment): JsonResponse
     {
         $this->own($assignment);
-        $assignment->load('form', 'program:id,code,title_ar,title_en', 'response', 'survey.currentVersion');
+        $assignment->load('form', 'program:id,code,title_ar,title_en', 'response', 'survey.currentVersion', 'trainer:id,name_ar,name_en', 'session:id,sequence,title_ar,title_en,starts_at');
         $survey = $assignment->survey;
         if (! $survey || ! $survey->currentVersion) {
             return response()->json(['data' => $this->summary($assignment) + ['questions' => $assignment->form->questions, 'answers' => $assignment->response?->answers, 'evidence_allowed' => (bool) ($assignment->form->settings['evidence'] ?? false), 'max_files' => (int) ($assignment->form->settings['max_files'] ?? 3)]]);
@@ -101,6 +101,10 @@ class MyEvaluationController extends MeController
 
     private function summary(EvaluationAssignment $a): array
     {
-        return ['id' => $a->id, 'kind' => $a->form->kind, 'title_ar' => $a->form->title_ar, 'title_en' => $a->form->title_en, 'program' => $a->program?->translate('title'), 'respondent_type' => $a->respondent_type, 'status' => $a->status, 'due_at' => $a->due_at?->toIso8601String(), 'engine_backed' => (bool) $a->survey_id];
+        $target = $a->trainer ? ['kind' => 'trainer', 'name_ar' => $a->trainer->name_ar, 'name_en' => $a->trainer->name_en ?: $a->trainer->name_ar]
+            : ($a->session ? ['kind' => 'session', 'name_ar' => $a->session->title_ar ?: 'الجلسة '.$a->session->sequence, 'name_en' => $a->session->title_en ?: 'Session '.$a->session->sequence, 'at' => $a->session->starts_at?->toIso8601String()] : null);
+
+        return ['id' => $a->id, 'kind' => $a->form->kind, 'title_ar' => $a->form->title_ar, 'title_en' => $a->form->title_en, 'program' => $a->program?->translate('title'), 'respondent_type' => $a->respondent_type, 'status' => $a->status, 'due_at' => $a->due_at?->toIso8601String(), 'engine_backed' => (bool) $a->survey_id,
+            'target' => $target, 'rule_key' => $a->rule_key];
     }
 }

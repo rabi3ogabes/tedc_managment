@@ -18,13 +18,13 @@ class WorkshopLifecycle
 {
     public const READY_HOURS_BEFORE = 24;
 
-    public function __construct(private readonly WorkshopWorkflow $workflow, private readonly WorkshopAttendance $attendance) {}
+    public function __construct(private readonly WorkshopWorkflow $workflow, private readonly WorkshopAttendance $attendance, private readonly WorkshopEvaluation $evaluation) {}
 
-    /** @return array{ready: int, in_progress: int, completed: int} */
+    /** @return array{ready: int, in_progress: int, completed: int, closed: int} */
     public function tick(): array
     {
-        $r = ['ready' => 0, 'in_progress' => 0, 'completed' => 0];
-        foreach (PlcWorkshop::with('program', 'coordinator')->whereIn('workflow_state', ['scheduled', 'ready', 'in_progress'])->get() as $w) {
+        $r = ['ready' => 0, 'in_progress' => 0, 'completed' => 0, 'closed' => 0];
+        foreach (PlcWorkshop::with('program', 'coordinator')->whereIn('workflow_state', ['scheduled', 'ready', 'in_progress', 'completed', 'awaiting_evaluation'])->get() as $w) {
             $live = ProgramSession::where('program_id', $w->program_id)->where('status', '!=', 'cancelled');
             $first = (clone $live)->min('starts_at');
             $last = (clone $live)->max('ends_at');
@@ -53,6 +53,13 @@ class WorkshopLifecycle
                 }
                 $this->workflow->move($w, 'completed', $actor, null, ['auto' => 'clock']);
                 $r['completed']++;
+                $this->evaluation->onCompleted($w->refresh(), $actor);
+            } elseif (in_array($w->workflow_state, WorkshopEvaluation::SENDABLE, true)) {
+                // Session and trainer forms go out as their sessions end; a completed workshop settles into its evaluation state.
+                $this->evaluation->tick($w, $actor);
+            }
+            if ($w->refresh()->workflow_state === 'closed') {
+                $r['closed']++;
             }
         }
 

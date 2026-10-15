@@ -10,12 +10,12 @@ class PlcTick extends Command
 {
     protected $signature = 'tedc:plc-tick';
 
-    protected $description = 'Advance PLC workshops by the clock: ready, in progress, completed (with attendance locked).';
+    protected $description = 'Advance PLC workshops by the clock: ready, in progress, completed (with attendance locked), evaluations sent and the close.';
 
     public function handle(WorkshopLifecycle $lifecycle): int
     {
         $r = $lifecycle->tick();
-        $this->info("ready {$r['ready']}, in progress {$r['in_progress']}, completed {$r['completed']}.");
+        $this->info("ready {$r['ready']}, in progress {$r['in_progress']}, completed {$r['completed']}, closed {$r['closed']}.");
 
         return self::SUCCESS;
     }

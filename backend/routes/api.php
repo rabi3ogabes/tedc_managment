@@ -75,6 +75,7 @@ use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAttendanceController as PlcWorkshopAttendanceController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopEvaluationController as PlcWorkshopEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopPeopleController as PlcWorkshopPeopleController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopScheduleController as PlcWorkshopScheduleController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopSchoolController as PlcWorkshopSchoolController;
@@ -1145,6 +1146,15 @@ Route::prefix('v1')->group(function () {
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/correct', [PlcWorkshopAttendanceController::class, 'correct'])->whereUuid('plcSession');
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/lock', [PlcWorkshopAttendanceController::class, 'lock'])->whereUuid('plcSession');
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/unlock', [PlcWorkshopAttendanceController::class, 'unlock'])->whereUuid('plcSession');
+                });
+                Route::middleware('permission:plc.evaluations.manage|plc.manage|plc.reports')->group(function () {
+                    Route::get('workshops/{plcWorkshop}/evaluation', [PlcWorkshopEvaluationController::class, 'show']);
+                    Route::get('workshops/{plcWorkshop}/evaluation/export', [PlcWorkshopEvaluationController::class, 'export']);
+                });
+                Route::middleware('permission:plc.evaluations.manage|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/evaluation/send', [PlcWorkshopEvaluationController::class, 'send']);
+                    Route::post('workshops/{plcWorkshop}/evaluation/remind', [PlcWorkshopEvaluationController::class, 'remind']);
+                    Route::post('workshops/{plcWorkshop}/evaluation/close', [PlcWorkshopEvaluationController::class, 'close']);
                 });
                 Route::middleware('permission:plc.community.manage')->group(function () {
                     Route::post('communities', [PlcCommunityController::class, 'store']);

@@ -13,7 +13,7 @@ import { isVisible, missingRequired, type Answers, type Question } from '@/lib/s
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
-type Row = { id: string; kind: string; title_ar: string; title_en: string; program: string | null; status: string; due_at: string | null; engine_backed?: boolean }
+type Row = { id: string; kind: string; title_ar: string; title_en: string; program: string | null; status: string; due_at: string | null; engine_backed?: boolean; target?: { kind: 'trainer' | 'session'; name_ar: string; name_en: string; at?: string | null } | null }
 type Engine = { survey_id: string; version: number; questions: any[]; settings: any; privacy_mode: 'identified' | 'confidential' | 'anonymous'; is_open: boolean; draft: { answers: any; page: number } | null; submission: { answers: any } | null }
 
 /** The evaluation forms waiting for the signed-in person: trainer reflection, planning evaluation, supervisor and specialist feedback. */
@@ -27,7 +27,7 @@ export default function MyEvaluations() {
       {list.isLoading ? <Spinner /> : !list.data?.data.length ? <Card><Empty text={t('evalc.my.empty')} icon={<ClipboardList className="size-6" />} /></Card> : (
         <div className="grid gap-4 lg:grid-cols-2">{list.data.data.map((r) => (
           <Card key={r.id} className="flex items-center gap-4">
-            <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{ar ? r.title_ar : r.title_en}</div><div className="truncate text-xs text-slate-500">{r.program}</div>{r.due_at && r.status === 'pending' && <div className="text-xs text-amber-700">{t('evalc.due')}: {fmt.date(r.due_at)}</div>}</div>
+            <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{ar ? r.title_ar : r.title_en}</div><div className="truncate text-xs text-slate-500">{r.program}{r.target ? ` · ${ar ? r.target.name_ar : r.target.name_en}` : ''}</div>{r.due_at && r.status === 'pending' && <div className="text-xs text-amber-700">{t('evalc.due')}: {fmt.date(r.due_at)}</div>}</div>
             {r.status === 'pending' ? <Link to={`/portal/evaluations/${r.id}`} className="rounded-xl bg-gold-500 px-4 py-2 text-sm font-bold text-navy-950">{t('evalc.my.fill')}</Link> : <Badge color="green"><CheckCircle2 className="me-1 inline size-4" />{t('evalc.my.done')}</Badge>}
           </Card>))}</div>
       )}
@@ -60,7 +60,7 @@ export function MyEvaluationForm() {
   }
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <PageHeader title={ar ? f.title_ar : f.title_en} subtitle={f.program ?? undefined} />
+      <PageHeader title={ar ? f.title_ar : f.title_en} subtitle={f.target ? `${f.program ?? ''} · ${ar ? f.target.name_ar : f.target.name_en}` : f.program ?? undefined} />
       {qs.filter((q) => isVisible(q, answers)).map((q) => q.type === 'section' ? <h3 key={q.id} className="pt-2 text-lg font-bold text-navy-900">{q.title}</h3> : (
         <Card key={q.id} className="space-y-3">
           <div className="font-semibold text-navy-900">{q.title}{q.required && <span className="text-danger"> *</span>}</div>

@@ -95,6 +95,7 @@ const PlcTraineesStep = lazy(() => import('@/pages/admin/plc/TraineesStep'))
 const PlcSessionAttendance = lazy(() => import('@/pages/admin/plc/Attendance').then((m) => ({ default: m.PlcSessionAttendance })))
 const PlcAttendanceReport = lazy(() => import('@/pages/admin/plc/Attendance').then((m) => ({ default: m.PlcAttendanceReport })))
 const PlcScheduleStep = lazy(() => import('@/pages/admin/plc/ScheduleStep'))
+const PlcEvaluation = lazy(() => import('@/pages/admin/plc/Evaluation'))
 const PlcTrainersStep = lazy(() => import('@/pages/admin/plc/TrainersStep'))
 const SurveysList = lazy(() => import('@/pages/admin/surveys/SurveysList'))
 const SurveyStudioV2 = lazy(() => import('@/pages/admin/surveys/Studio'))
@@ -276,6 +277,7 @@ export default function App() {
           <Route path="communities/workshops/:id/trainees" element={<RequireAuth permission="plc.view"><PlcTraineesStep /></RequireAuth>} />
           <Route path="communities/workshops/:id/trainers" element={<RequireAuth permission="plc.view"><PlcTrainersStep /></RequireAuth>} />
           <Route path="communities/workshops/:id/schedule" element={<RequireAuth permission="plc.view"><PlcScheduleStep /></RequireAuth>} />
+          <Route path="communities/workshops/:id/evaluation" element={<RequireAuth permission="plc.evaluations.manage|plc.manage|plc.reports"><PlcEvaluation /></RequireAuth>} />
           <Route path="communities/workshops/:id/attendance" element={<RequireAuth permission="plc.attendance.manage|plc.manage|attendance.manage|attendance.mark"><PlcAttendanceReport /></RequireAuth>} />
           <Route path="communities/workshops/:id/sessions/:sid/attendance" element={<RequireAuth permission="plc.attendance.manage|plc.manage|attendance.manage|attendance.mark"><PlcSessionAttendance /></RequireAuth>} />
           <Route path="communities/workshops/:id" element={<RequireAuth permission="plc.view"><PlcWorkshopDetail /></RequireAuth>} />
