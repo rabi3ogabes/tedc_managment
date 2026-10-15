@@ -16,8 +16,8 @@
 ## Totals
 
 - Public: 787 columns
-- Internal: 2262 columns
-- Confidential: 530 columns
+- Internal: 2264 columns
+- Confidential: 534 columns
 - Restricted: 27 columns
 
 ## Application-level encryption
@@ -435,6 +435,10 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `left_early_at` | Confidential | masked in exports |
 | `notes` | Confidential | masked in exports |
 | `participated` | Confidential | masked in exports |
+| `channel` | Confidential | masked in exports |
+| `correction_reason` | Confidential | masked in exports |
+| `corrected_by` | Confidential | masked in exports |
+| `corrected_at` | Confidential | masked in exports |
 
 ### `attendance_attempts`
 
@@ -3314,6 +3318,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `training_group_id` | Internal | — |
 | `checkin_window_minutes` | Internal | — |
 | `checkout_window_minutes` | Internal | — |
+| `attendance_locked_at` | Internal | — |
+| `attendance_locked_by` | Internal | — |
 
 ### `program_skill`
 

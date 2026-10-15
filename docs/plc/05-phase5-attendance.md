@@ -51,3 +51,6 @@ New / changed (web)
 ## 6. Exact next step
 
 Phase 6 — evaluation: suggestion rules per source and mode, timing, session and trainer targets, deduplication, tracking and impact follow-ups on the Survey Studio engine. Report in `docs/plc/06-phase6-evaluation.md`.
+
+---
+Full suite after Phase 5 (`php artisan test --compact`, Windows): 1170 tests, 1099 passed, 15743 assertions. Besides the known Windows-only failures (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors), the run caught one real regression: the data-classification register did not yet list Phase 5's new columns (`attendance.channel`, `correction_reason`, `corrected_by`, `corrected_at`; `program_sessions.attendance_locked_at`, `attendance_locked_by`); the register was regenerated and the test passes.
