@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['training_group_id', 'program_session_id', 'registration_id', 'employee_id', 'check_in_at', 'check_out_at', 'method', 'status', 'minutes_attended', 'device_info', 'ip_address', 'recorded_by', 'latitude', 'longitude', 'accuracy_m', 'distance_m', 'location_status', 'join_count', 'last_join_at', 'biometric_verified', 'signature_path', 'device_id', 'excuse_id', 'leave_minutes', 'left_early_at', 'notes', 'participated'])]
+#[Fillable(['training_group_id', 'program_session_id', 'registration_id', 'employee_id', 'check_in_at', 'check_out_at', 'method', 'status', 'minutes_attended', 'device_info', 'ip_address', 'recorded_by', 'latitude', 'longitude', 'accuracy_m', 'distance_m', 'location_status', 'join_count', 'last_join_at', 'biometric_verified', 'signature_path', 'device_id', 'excuse_id', 'leave_minutes', 'left_early_at', 'notes', 'participated', 'channel', 'correction_reason', 'corrected_by', 'corrected_at'])]
 class Attendance extends Model
 {
     use HasUuids;

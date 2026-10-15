@@ -20,6 +20,7 @@ return [
     'attendance' => [
         'not_your_session' => 'This session is not assigned to you.',
         'bad_signature' => 'The signature image is not valid.',
+        'channel_taken' => 'Your attendance in this session is already recorded through another channel.',
         'checkin_window_closed' => 'Check-in closed :minutes minutes after the start.',
         'checkout_window_closed' => 'Check-out opens :minutes minutes before the end.',
         'manual_window_closed' => 'Manual entry is only allowed in the first :minutes minutes of the session.',
@@ -73,6 +74,7 @@ return [
     'plans' => ['exists' => 'A plan for :year already exists. Open it, or create a new version.', 'reason_required' => 'After approval every change needs a reason.', 'empty' => 'Add at least one item before submitting.', 'locked' => 'The plan cannot be edited in its current state.', 'invalid_state' => 'This step is not available while the plan is “:status”.', 'rules_broken' => 'The plan breaks this year’s rules: :list. Fix them, or (head of planning) go ahead with a documented exception.', 'exception_required' => 'The plan breaks this year’s rules: :list. Approving it needs the reason for the exception.'],
     'workshops' => ['school_required' => 'Your account is not linked to a school, so a workshop cannot be submitted.', 'not_pending' => 'This workshop has already been decided.', 'not_approved' => 'The centre has not approved this workshop yet.'],
     'plc' => [
+        'code_mode' => 'Attendance codes apply to in-person and hybrid sessions only.', 'correction_status' => 'Unknown attendance status.', 'correction_reason' => 'Give the reason for the correction.', 'attendance_locked' => 'This session\'s attendance is locked; only the centre may change it now.',
         'schedule_reason' => 'After the invitations went out, every schedule change needs a reason.', 'session_span' => 'A session must end after it starts, on the same day (12 hours at most).', 'session_overlap' => 'Overlaps session :n of this workshop.', 'force_reason' => 'Give a reason for overriding the conflict.', 'trainer_not_assigned' => 'This trainer is not one of the workshop\'s confirmed trainers.', 'not_plannable' => 'Sessions cannot be changed in the workshop\'s current state.', 'not_approved_for_schedule' => 'A workshop is scheduled after it is approved.', 'schedule_incomplete' => 'Every session needs a time, a venue or a link, and a trainer before the invitations go out.', 'calendar_span' => 'The calendar spans two months at most.',
         'incomplete' => 'The workshop needs a source, a host school and a start date before it is submitted.', 'bad_transition' => 'This action is not possible while the workshop is :state.',
         'reason_required' => 'A reason is required.', 'not_your_step' => 'The current review step (:step) is not yours to take.', 'outside_scope' => 'This record belongs to a school outside your scope.',

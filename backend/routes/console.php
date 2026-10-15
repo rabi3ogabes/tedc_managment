@@ -17,6 +17,7 @@ Schedule::command('tedc:sso-metadata-refresh')->dailyAt('04:20')->withoutOverlap
 Schedule::command('tedc:seats-release')->hourly()->withoutOverlapping();
 Schedule::command('tedc:career-daily')->dailyAt('01:00')->withoutOverlapping();
 Schedule::command('tedc:needs-daily')->dailyAt('02:00')->withoutOverlapping();
+Schedule::command('tedc:plc-tick')->hourly()->withoutOverlapping();
 Schedule::command('tedc:needs-cycles')->dailyAt('06:30')->withoutOverlapping();
 Schedule::command('tedc:plan-deviations')->dailyAt('07:00')->withoutOverlapping();
 Schedule::command('tedc:session-reminders')->everyThirtyMinutes()->withoutOverlapping();

@@ -130,4 +130,10 @@ class Registration extends Model
     {
         return $this->hasMany(Certificate::class);
     }
+
+    /** The attendance record of one session, from the loaded relation when it is there. */
+    public function attendanceFor(string $sessionId): ?Attendance
+    {
+        return $this->relationLoaded('attendance') ? $this->attendance->firstWhere('program_session_id', $sessionId) : $this->attendance()->where('program_session_id', $sessionId)->first();
+    }
 }

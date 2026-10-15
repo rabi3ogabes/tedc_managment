@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarPlus, CheckCircle2, Clock, Link2, MapPin, Pencil, Send, Trash2, Users, Video, Wand2 } from 'lucide-react'
+import { AlertTriangle, CalendarPlus, CheckCircle2, Clock, Link2, MapPin, Pencil, QrCode, Send, Trash2, Users, Video, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
@@ -101,7 +101,7 @@ export default function ScheduleStep() {
                     {!!s.missing.length && <div className="mt-2 flex flex-wrap gap-1">{s.missing.map((m) => <Badge key={m} color="amber">{t(`plc.schedule.missing.${m}`)}</Badge>)}</div>}
                     {c && <div className="mt-2 space-y-0.5 text-xs text-red-700">{c.issues.map((i, k) => <div key={k} className="flex items-center gap-1"><AlertTriangle className="size-3.5" />{t(`plc.schedule.conflict.${i.kind}`, { n: i.count, trainer: i.trainer })}{i.with?.length ? `: ${i.with.join('، ')}` : ''}</div>)}</div>}
                   </div>
-                  {o.can.plan && s.status !== 'cancelled' && <div className="flex gap-1"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => open(s)}>{t('common.edit')}</Button><Button size="sm" variant="ghost" icon={<Trash2 className="size-3.5" />} onClick={() => { setRemove(s); setReason('') }}>{t('common.remove', { defaultValue: 'إزالة' })}</Button></div>}
+                  {o.can.plan && s.status !== 'cancelled' && <div className="flex gap-1">{o.invited && <Button size="sm" variant="gold" icon={<QrCode className="size-3.5" />} to={`/admin/communities/workshops/${id}/sessions/${s.id}/attendance`}>{t('plc.attendance.open')}</Button>}<Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => open(s)}>{t('common.edit')}</Button><Button size="sm" variant="ghost" icon={<Trash2 className="size-3.5" />} onClick={() => { setRemove(s); setReason('') }}>{t('common.remove', { defaultValue: 'إزالة' })}</Button></div>}
                 </div>
               </Card>
             )
@@ -120,6 +120,7 @@ export default function ScheduleStep() {
             <CardTitle>{t('plc.schedule.conflicts')}</CardTitle>
             {!o.conflicts.length ? <p className="text-sm text-emerald-700">{t('plc.schedule.noConflicts')}</p> : <ul className="space-y-1 text-xs">{o.conflicts.map((c) => <li key={c.session_id}><b>{t('plc.schedule.sessionN', { n: c.sequence })}</b> · {c.issues.map((i) => t(`plc.schedule.conflict.${i.kind}`, { n: i.count, trainer: i.trainer })).join(' · ')}</li>)}</ul>}
           </Card>
+          {o.invited && <Card><CardTitle subtitle={t('plc.attendance.reportHint')}>{t('plc.attendance.report')}</CardTitle><Button variant="outline" size="sm" to={`/admin/communities/workshops/${id}/attendance`}>{t('plc.attendance.openReport')}</Button></Card>}
           <Card><CardTitle>{t('plc.schedule.program')}</CardTitle><dl className="text-sm"><dt className="text-xs text-slate-500">{t('plc.mode.' + o.program.delivery_mode)}</dt><dd className="font-semibold text-navy-900">{o.program.start_date ? `${fmt.date(o.program.start_date)} → ${fmt.date(o.program.end_date ?? o.program.start_date)}` : '—'}</dd></dl><p className="mt-1 text-xs text-slate-500">{t('plc.schedule.datesNote')}</p></Card>
         </div>
       </div>

@@ -12,13 +12,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
-#[Fillable(['program_id', 'training_group_id', 'trainer_id', 'training_room_id', 'sequence', 'title_en', 'title_ar', 'description', 'starts_at', 'ends_at', 'location_text', 'online_url', 'activities', 'status', 'mode', 'online_platform', 'online_passcode', 'recording_url', 'checkin_window_minutes', 'checkout_window_minutes'])]
+#[Fillable(['program_id', 'training_group_id', 'trainer_id', 'training_room_id', 'sequence', 'title_en', 'title_ar', 'description', 'starts_at', 'ends_at', 'location_text', 'online_url', 'activities', 'status', 'mode', 'online_platform', 'online_passcode', 'recording_url', 'checkin_window_minutes', 'checkout_window_minutes', 'attendance_locked_at', 'attendance_locked_by'])]
 #[Hidden(['qr_secret'])]
 class ProgramSession extends Model
 {
     use HasTranslations, HasUuids;
 
-    protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'activities' => 'array'];
+    protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime',
+        'attendance_locked_at' => 'datetime', 'activities' => 'array'];
 
     protected static function booted(): void
     {
@@ -72,5 +73,10 @@ class ProgramSession extends Model
     public function plcTrainers(): HasMany
     {
         return $this->hasMany(PlcSessionTrainer::class, 'program_session_id');
+    }
+
+    public function attendanceLocker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'attendance_locked_by');
     }
 }

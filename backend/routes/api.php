@@ -73,6 +73,7 @@ use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityController;
 use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAttendanceController as PlcWorkshopAttendanceController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopPeopleController as PlcWorkshopPeopleController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopScheduleController as PlcWorkshopScheduleController;
@@ -1134,6 +1135,16 @@ Route::prefix('v1')->group(function () {
                     Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/confirm', [PlcWorkshopPeopleController::class, 'confirm'])->whereUuid('plcAssignment');
                     Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/replace', [PlcWorkshopPeopleController::class, 'replace'])->whereUuid('plcAssignment');
                     Route::delete('workshops/{plcWorkshop}/trainers/{plcAssignment}', [PlcWorkshopPeopleController::class, 'withdraw'])->whereUuid('plcAssignment');
+                });
+                Route::middleware('permission:plc.attendance.manage|plc.manage|attendance.manage|attendance.mark')->group(function () {
+                    Route::get('workshops/{plcWorkshop}/attendance', [PlcWorkshopAttendanceController::class, 'report']);
+                    Route::get('workshops/{plcWorkshop}/attendance/export', [PlcWorkshopAttendanceController::class, 'export']);
+                    Route::get('workshops/{plcWorkshop}/sessions/{plcSession}/attendance', [PlcWorkshopAttendanceController::class, 'roster'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/code', [PlcWorkshopAttendanceController::class, 'code'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/revoke', [PlcWorkshopAttendanceController::class, 'revoke'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/correct', [PlcWorkshopAttendanceController::class, 'correct'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/lock', [PlcWorkshopAttendanceController::class, 'lock'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/unlock', [PlcWorkshopAttendanceController::class, 'unlock'])->whereUuid('plcSession');
                 });
                 Route::middleware('permission:plc.community.manage')->group(function () {
                     Route::post('communities', [PlcCommunityController::class, 'store']);

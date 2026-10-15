@@ -10,6 +10,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Plc\PlcSettings;
 use Illuminate\Support\Carbon;
 
 /**
@@ -144,6 +145,10 @@ class AttendanceService
             throw new BusinessRuleException(__('messages.attendance.not_checked_in'), 'not_checked_in');
         }
 
+        // Hybrid sessions: one person attends through one channel only.
+        if ($attendance->exists && $attendance->check_in_at && $attendance->channel === 'remote') {
+            throw new BusinessRuleException(__('messages.attendance.channel_taken'), 'channel_taken');
+        }
         $place = $this->geofence->verify($session, $location);
         $settings = app(AttendanceSettings::class)->all();
 
@@ -152,11 +157,12 @@ class AttendanceService
             if ($window !== null && $now->gt($session->starts_at->copy()->addMinutes($window))) {
                 throw new BusinessRuleException(__('messages.attendance.checkin_window_closed', ['minutes' => $window]), 'checkin_window_closed');
             }
-            $late = $now->gt($session->starts_at->copy()->addMinutes(config('tedc.attendance.late_after_minutes')));
+            $late = $now->gt($session->starts_at->copy()->addMinutes($this->lateAfter($session)));
             $attendance->fill([
                 'employee_id' => $employee->id,
                 'check_in_at' => $now,
                 'method' => 'qr',
+                'channel' => 'in_person',
                 'biometric_verified' => $biometric,
                 'status' => $late ? 'late' : 'present',
                 'device_info' => $device ? substr($device, 0, 255) : null,
@@ -175,6 +181,7 @@ class AttendanceService
             }
             $attendance->check_out_at = $now;
             $attendance->minutes_attended = $this->overlapMinutes($session, $attendance->check_in_at, $now);
+            $this->applyEarlyLeave($session, $attendance, $now);
             $attendance->save();
             $action = 'check_out';
         } else {
@@ -209,7 +216,7 @@ class AttendanceService
     public function remoteJoin(Employee $employee, ProgramSession $session, ?string $device = null, ?string $ip = null): array
     {
         $session->loadMissing('program');
-        if ($session->mode !== 'online' || $session->status === 'cancelled') {
+        if (! in_array($session->mode, ['online', 'hybrid'], true) || $session->status === 'cancelled') {
             throw new BusinessRuleException(__('messages.attendance.not_online'), 'not_online');
         }
         $now = now();
@@ -227,10 +234,13 @@ class AttendanceService
         }
 
         $attendance = Attendance::firstOrNew(['program_session_id' => $session->id, 'registration_id' => $registration->id]);
+        if ($attendance->exists && $attendance->check_in_at && $attendance->channel === 'in_person') {
+            throw new BusinessRuleException(__('messages.attendance.channel_taken'), 'channel_taken');
+        }
         if (! $attendance->exists || ! $attendance->check_in_at) {
-            $late = $now->gt($session->starts_at->copy()->addMinutes(config('tedc.attendance.late_after_minutes')));
+            $late = $now->gt($session->starts_at->copy()->addMinutes($this->lateAfter($session)));
             $attendance->fill([
-                'employee_id' => $employee->id, 'check_in_at' => $now, 'method' => 'remote', 'status' => $late ? 'late' : 'present',
+                'employee_id' => $employee->id, 'check_in_at' => $now, 'method' => 'remote', 'channel' => 'remote', 'status' => $late ? 'late' : 'present',
                 'device_info' => $device ? substr($device, 0, 255) : null, 'ip_address' => $ip, 'location_status' => 'remote',
             ]);
         }
@@ -252,7 +262,9 @@ class AttendanceService
         if (! $attendance) {
             throw new BusinessRuleException(__('messages.attendance.not_registered'), 'not_joined');
         }
-        $attendance->update(['check_out_at' => now(), 'minutes_attended' => $this->overlapMinutes($session, $attendance->check_in_at, now())]);
+        $attendance->fill(['check_out_at' => now(), 'minutes_attended' => $this->overlapMinutes($session, $attendance->check_in_at, now())]);
+        $this->applyEarlyLeave($session, $attendance, now());
+        $attendance->save();
         $this->recalculate($attendance->registration);
 
         return $attendance->fresh();
@@ -381,6 +393,32 @@ class AttendanceService
             'absent' => $rows->where('status', 'absent')->count(),
             'rows' => $rows,
         ];
+    }
+
+    /** PLC workshops follow their own late and early-leave policy; everything else keeps the platform's defaults. */
+    private function plcPolicy(ProgramSession $session): ?array
+    {
+        if (! $session->program?->plcWorkshop()->exists()) {
+            return null;
+        }
+        $s = app(PlcSettings::class)->all();
+
+        return ['late' => (int) ($s['late_minutes'] ?? 15), 'early' => (int) ($s['early_leave_minutes'] ?? 15)];
+    }
+
+    private function lateAfter(ProgramSession $session): int
+    {
+        return $this->plcPolicy($session)['late'] ?? (int) config('tedc.attendance.late_after_minutes');
+    }
+
+    /** Leaving before the policy's margin at the end counts as left early (PLC workshops). */
+    private function applyEarlyLeave(ProgramSession $session, Attendance $attendance, Carbon $at): void
+    {
+        $p = $this->plcPolicy($session);
+        if ($p && $at->lt($session->ends_at->copy()->subMinutes($p['early'])) && in_array($attendance->status, ['present', 'late'], true)) {
+            $attendance->status = 'left_early';
+            $attendance->left_early_at = $at;
+        }
     }
 
     private function overlapMinutes(ProgramSession $session, Carbon $in, Carbon $out): int
