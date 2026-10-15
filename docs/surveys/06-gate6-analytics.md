@@ -51,3 +51,6 @@ New / changed (web)
 ## 6. Exact next step
 
 Gate 7 — privacy and operations: retention and deletion of answers after the retention period, deletion of pseudonym keys after close plus grace, data-subject requests on identified surveys, the scheduled jobs on the live host, and the operations runbook. Report in `docs/surveys/07-gate7-privacy-ops.md`.
+
+---
+Full suite after Gate 6 (`php artisan test --compact`, Windows): 1164 tests, 1094 passed, 15469 assertions. The 4 failures and 54 errors are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, openssl in SamlSso / Lti / PushNotifications / SupabaseConnection / IdentitySecurity).
