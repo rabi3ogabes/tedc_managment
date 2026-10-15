@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable(['kind', 'title_ar', 'title_en', 'description_ar', 'description_en', 'status', 'privacy_mode', 'owner_id', 'program_id', 'current_version_id',
     'questions', 'audience', 'settings', 'approved_checksum', 'review_note', 'reviewed_by', 'reviewed_at', 'opens_at', 'closes_at', 'timezone', 'retention_days',
-    'pseudonym_key', 'published_at', 'closed_at', 'archived_at', 'legacy_type', 'legacy_id'])]
+    'pseudonym_key', 'published_at', 'closed_at', 'archived_at', 'legacy_type', 'legacy_id', 'legal_hold', 'aggregates', 'answers_purged_at', 'key_deleted_at'])]
 class Survey extends Model
 {
     use HasUuids, SoftDeletes;
@@ -44,6 +44,10 @@ class Survey extends Model
             'closed_at' => 'datetime',
             'archived_at' => 'datetime',
             'retention_days' => 'integer',
+            'legal_hold' => 'boolean',
+            'aggregates' => 'array',
+            'answers_purged_at' => 'datetime',
+            'key_deleted_at' => 'datetime',
         ];
     }
 
@@ -85,6 +89,11 @@ class Survey extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(SurveySession::class);
+    }
+
+    public function distributions(): HasMany
+    {
+        return $this->hasMany(SurveyDistribution::class);
     }
 
     public function events(): HasMany

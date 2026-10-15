@@ -18,6 +18,7 @@ type Results = {
   questions: Stat[]
   segments: Record<string, { value: string; label: string; count: number }[]>
   needs: Need[]
+  purged_at?: string | null
 }
 type AnswerRow = { id: string; submitted_at: string; edited_at?: string | null; edit_count: number; source: string; version: number | null; duration_seconds?: number | null; respondent: { id: string; name: string; school?: string | null } | null; segment: Record<string, string> | null; answers: Record<string, unknown>; files: { id: string; question_id: string; name: string }[] }
 type Answers = { total: number; page: number; per_page: number; identified: boolean; segments_shown: boolean; rows: AnswerRow[] }
@@ -39,6 +40,7 @@ export default function ResultsTab({ id, kind, questions, status }: { id: string
   if (!r) return res.error ? <Card><p className="text-sm text-red-700">{errorMessage(res.error)}</p></Card> : <Spinner />
   const s = r.summary
   const filtered = Object.values(filters).some(Boolean)
+  if (r.purged_at) return <div className="space-y-5"><Card><div className="flex items-start gap-3 text-sm text-slate-700"><Lock className="mt-0.5 size-5 shrink-0 text-gold-600" /><div><div className="font-bold text-navy-900">{t('ss.results.purgedTitle')}</div><p className="mt-1 leading-7">{t('ss.results.purgedText', { d: fmt.date(r.purged_at) })}</p></div></div></Card><div className="grid gap-3 sm:grid-cols-3"><StatCard label={t('ss.results.participants')} value={fmt.number(s.participants)} /><StatCard label={t('ss.results.rate')} value={s.response_rate != null ? `${s.response_rate}%` : '—'} /><StatCard label={t('ss.results.submissions')} value={fmt.number(s.submissions)} accent /></div><div className="grid gap-4 xl:grid-cols-2">{r.questions.map((q, i) => <QuestionCard key={q.id} q={q} n={i + 1} def={byId[q.id]} />)}</div></div>
 
   return (
     <div className="space-y-5">

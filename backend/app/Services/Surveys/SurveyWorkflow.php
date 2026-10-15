@@ -54,7 +54,7 @@ class SurveyWorkflow
             throw new BusinessRuleException(__('messages.surveys.archived'), 'survey_archived');
         }
         $changes = [];
-        foreach (['title_ar', 'title_en', 'description_ar', 'description_en', 'program_id', 'opens_at', 'closes_at', 'timezone', 'retention_days'] as $field) {
+        foreach (['title_ar', 'title_en', 'description_ar', 'description_en', 'program_id', 'opens_at', 'closes_at', 'timezone', 'retention_days', 'legal_hold'] as $field) {
             if (array_key_exists($field, $data)) {
                 $changes[$field] = in_array($field, ['title_en', 'description_ar', 'description_en'], true) ? SurveyDefinition::text($data[$field], $field === 'title_en' ? 200 : 2000) : $data[$field];
             }

@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\V1\Admin\SurveyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\SurveyMigrationController;
+use App\Http\Controllers\Api\V1\Admin\SurveyPrivacyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyResultsController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
@@ -1164,6 +1165,8 @@ Route::prefix('v1')->group(function () {
             Route::middleware('feature:survey_studio_v2')->prefix('surveys')->controller(SurveyController::class)->group(function () {
                 // Fixed paths first, so the survey id parameter never swallows them (Gate 5 migration panel).
                 Route::get('compare', [SurveyResultsController::class, 'compare'])->middleware('permission:surveys.results');
+                Route::get('retention', [SurveyPrivacyController::class, 'retention'])->middleware('permission:surveys.manage|privacy.manage');
+                Route::post('retention', [SurveyPrivacyController::class, 'runRetention'])->middleware('permission:surveys.manage|privacy.manage');
                 Route::middleware('permission:surveys.manage')->prefix('migration')->controller(SurveyMigrationController::class)->group(function () {
                     Route::get('/', 'index');
                     Route::post('/', 'run');
@@ -1429,6 +1432,8 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:privacy.manage')->group(function () {
                 Route::get('privacy/requests', [PrivacyController::class, 'index']);
                 Route::put('privacy/requests/{dsr}', [PrivacyController::class, 'decide']);
+                Route::get('privacy/subjects/{user}/surveys', [SurveyPrivacyController::class, 'subject']);
+                Route::post('privacy/subjects/{user}/surveys/erase', [SurveyPrivacyController::class, 'erase']);
             });
 
             // Payments: prices, orders, refunds, discount codes, entities, finance (Phase 16)

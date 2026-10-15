@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-15 — Survey Studio v2, Gate 7: privacy and operations
+A daily retention run (`tedc:surveys-retention`, also in the Vercel cron): expired drafts and unbound files after 30 days, invitations 90 days after close, the pseudonym key of confidential surveys 30 days after close, and the answers after each survey's retention period (36 months by default) with the summary, per-question statistics and needs ranking frozen on the survey; a legal hold per survey; a panel الخصوصية والحفظ with the policy, what is pending, due and upcoming surveys, a dry run and a run by hand. The person's rights: the "my data" download includes survey participations and identified answers; privacy handlers see a requester's survey data and can detach them from identified answers (answers stay anonymous; files, drafts and participations deleted). Every respondent form states how long answers are kept. DPIA note `docs/security/dpia-survey-studio.md`; runbook section in the operations handbook. Report: `docs/surveys/07-gate7-privacy-ops.md`.
+
 ### 2026-10-15 — Survey Studio v2, Gate 6: analytics and exports on the engine
 A النتائج tab in the studio: the summary (participants, answered, rate, answers, time, timeline, sources, versions), segment filters offered only when a segment is large enough and results hidden under the survey's threshold, statistics for every question type, the needs ranking of needs surveys with generation of approved training needs (overall or per school), individual answers naming people only on identified surveys for holders of the identified permission, comparison of up to six surveys on the questions they share, and audited exports in Excel, PDF, Word and CSV in Arabic or English. An overview strip on the surveys list. Report: `docs/surveys/06-gate6-analytics.md`.
 

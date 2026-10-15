@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 785 columns
-- Internal: 2249 columns
+- Internal: 2253 columns
 - Confidential: 530 columns
 - Restricted: 27 columns
 
@@ -4469,6 +4469,10 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 | `deleted_at` | Public | — |
+| `legal_hold` | Internal | — |
+| `aggregates` | Internal | — |
+| `answers_purged_at` | Internal | — |
+| `key_deleted_at` | Internal | — |
 
 ### `target_groups`
 

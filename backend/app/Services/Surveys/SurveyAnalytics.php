@@ -63,6 +63,12 @@ class SurveyAnalytics
 
     public function results(Survey $survey, array $filters = [], ?int $version = null, bool $canIdentify = false, string $locale = 'ar'): array
     {
+        if ($survey->answers_purged_at) {
+            // The answers are gone (retention): only the aggregates frozen at that moment remain.
+            $a = $survey->aggregates ?? [];
+
+            return ['summary' => ($a['summary'] ?? []) + ['hidden' => false, 'filtered' => 0], 'questions' => $a['questions'] ?? [], 'segments' => [], 'needs' => $a['needs'] ?? [], 'purged_at' => $survey->answers_purged_at];
+        }
         $survey->loadMissing('currentVersion');
         $ver = $version ? $survey->versions()->where('number', $version)->first() : $survey->currentVersion;
         $questions = $ver?->questions ?? $survey->questions ?? [];

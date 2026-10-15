@@ -1,4 +1,4 @@
-import { ClipboardList, DatabaseZap, Plus, Search } from 'lucide-react'
+import { ClipboardList, DatabaseZap, Plus, Search, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth'
 import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import MigrationPanel from './MigrationPanel'
+import RetentionPanel from './RetentionPanel'
 
 type Row = { id: string; kind: string; title_ar: string; title_en?: string | null; status: string; privacy_mode: string; owner?: string | null; participants: number; submissions: number; is_open: boolean; closes_at?: string | null; updated_at?: string; legacy_type?: 'needs_survey' | 'evaluation_form' | null }
 type Catalog = { kinds: string[]; privacy_modes: string[] }
@@ -25,12 +26,13 @@ export default function SurveysList() {
   const [mine, setMine] = useState(false)
   const [open, setOpen] = useState(false)
   const [migrate, setMigrate] = useState(false)
+  const [retention, setRetention] = useState(false)
   const res = useGet<{ data: Row[]; meta: { total: number } }>('/admin/surveys', { q: q || undefined, status: status || undefined, mine: mine ? 1 : undefined, per_page: 60 }, { staleTime: 0 })
   const catalog = useGet<{ data: Catalog }>('/admin/surveys/catalog')
   const overview = useGet<{ data: Overview }>('/admin/surveys/overview', undefined, { staleTime: 60_000 })
   return (
     <>
-      <PageHeader title={t('ss.list.title')} subtitle={t('ss.list.subtitle')} actions={can('surveys.manage') && <div className="flex gap-2"><Button variant="outline" icon={<DatabaseZap className="size-4" />} onClick={() => setMigrate(true)}>{t('ss.migration.title')}</Button><Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('ss.list.create')}</Button></div>} />
+      <PageHeader title={t('ss.list.title')} subtitle={t('ss.list.subtitle')} actions={can('surveys.manage') && <div className="flex flex-wrap gap-2"><Button variant="outline" icon={<ShieldCheck className="size-4" />} onClick={() => setRetention(true)}>{t('ss.retention.title')}</Button><Button variant="outline" icon={<DatabaseZap className="size-4" />} onClick={() => setMigrate(true)}>{t('ss.migration.title')}</Button><Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('ss.list.create')}</Button></div>} />
       {overview.data && <OverviewStrip o={overview.data.data} />}
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-52 flex-1"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input className="input ps-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder={String(t('ss.list.search'))} /></div>
@@ -49,6 +51,7 @@ export default function SurveysList() {
           ))}
         </div>
       )}
+      <RetentionPanel open={retention} onClose={() => { setRetention(false); void res.refetch() }} />
       <MigrationPanel open={migrate} onClose={() => { setMigrate(false); void res.refetch() }} />
       <CreateDialog open={open} onClose={() => setOpen(false)} catalog={catalog.data?.data} onCreated={(id) => navigate(`/admin/surveys/${id}`)} />
     </>

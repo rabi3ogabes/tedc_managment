@@ -5,6 +5,7 @@ export const prvAr = { prv: {
   newReq: 'طلب جديد', type: 'النوع', details: 'التفاصيل (اختياري)', send: 'إرسال الطلب', sent: 'استلمنا طلبك وسنرد خلال 30 يومًا.',
   types: { access: 'الاطلاع على بياناتي', correction: 'تصحيح بياناتي', erasure: 'حذف بياناتي', objection: 'الاعتراض على المعالجة', restriction: 'تقييد المعالجة' },
   status: { received: 'مستلم', in_progress: 'قيد المعالجة', completed: 'تم', rejected: 'مرفوض' }, due: 'الموعد النهائي', overdue: 'متأخر', answer: 'الرد', none: 'لا طلبات سابقة.',
+  surveys: { title: 'بيانات الاستبانات', answers: '{{n}} إجابة معرّفة', files: '{{n}} ملف', participations: '{{n}} مشاركة', note: 'إجابات الاستبانات السرية والمجهولة لا تحمل هوية.', erase: 'تجريد إجابات الاستبانات من الهوية', confirm: 'تُفصل هوية الشخص عن كل إجابة معرّفة (تبقى الإجابة مجهولة)، وتُحذف ملفاته ومسوداته ومشاركاته. متابعة؟', erased: 'تم التجريد.' },
   person: 'صاحب الطلب', resolution: 'الرد على الشخص', take: 'بدء المعالجة', complete: 'إنجاز', reject: 'رفض', needAnswer: 'اكتب الرد الذي سيصل إلى الشخص.', saved: 'تم الحفظ.',
 } }
 export const prvEn = { prv: {
@@ -13,5 +14,6 @@ export const prvEn = { prv: {
   newReq: 'New request', type: 'Type', details: 'Details (optional)', send: 'Send request', sent: 'We received your request and will answer within 30 days.',
   types: { access: 'See my data', correction: 'Correct my data', erasure: 'Erase my data', objection: 'Object to processing', restriction: 'Restrict processing' },
   status: { received: 'Received', in_progress: 'In progress', completed: 'Done', rejected: 'Declined' }, due: 'Due', overdue: 'Overdue', answer: 'Answer', none: 'No earlier requests.',
+  surveys: { title: 'Survey data', answers: '{{n}} identified answers', files: '{{n}} files', participations: '{{n}} participations', note: 'Confidential and anonymous answers carry no identity.', erase: 'Detach the person from their survey answers', confirm: 'The person is detached from every identified answer (the answer stays, anonymous); their files, drafts and participations are deleted. Continue?', erased: 'Done.' },
   person: 'Requester', resolution: 'Answer to the person', take: 'Start', complete: 'Complete', reject: 'Decline', needAnswer: 'Write the answer the person will receive.', saved: 'Saved.',
 } }

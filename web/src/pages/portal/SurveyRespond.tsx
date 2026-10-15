@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 import type { Answers, Question, Settings } from '@/lib/surveyEngine'
 
 type Detail = {
-  id: string; title: string; description_ar?: string | null; description_en?: string | null; privacy_mode: 'identified' | 'confidential' | 'anonymous'; is_open: boolean; version: number
+  id: string; title: string; description_ar?: string | null; description_en?: string | null; privacy_mode: 'identified' | 'confidential' | 'anonymous'; is_open: boolean; version: number; retention_days?: number | null
   questions: Question[]; settings: Settings | null; answered: boolean; can_edit: boolean; submission: { answers: Answers } | null; draft: { answers: Answers; page: number } | null
 }
 
@@ -27,7 +27,7 @@ export default function SurveyRespond() {
     <Card padded={false} className="overflow-hidden">
       <div className="flex min-h-[80vh] flex-col">
         <EngineForm
-          survey={{ title: d.title, description: en ? d.description_en || d.description_ar : d.description_ar, questions: d.questions, settings: d.settings, privacy_mode: d.privacy_mode, version: d.version }}
+          survey={{ title: d.title, description: en ? d.description_en || d.description_ar : d.description_ar, questions: d.questions, settings: d.settings, privacy_mode: d.privacy_mode, version: d.version, retention_days: d.retention_days }}
           initialAnswers={d.submission?.answers ?? (d.answered && d.privacy_mode === 'anonymous' ? {} : null)}
           draft={d.draft}
           closed={!d.is_open}

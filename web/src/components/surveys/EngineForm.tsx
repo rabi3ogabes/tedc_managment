@@ -1,10 +1,10 @@
 import clsx from 'clsx'
-import { AlertCircle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCircle2, Clock, EyeOff, ListChecks, Loader2, Paperclip, Save, ShieldCheck, Sparkles, Star, UserCheck, X } from 'lucide-react'
+import { AlertCircle, Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Check, CheckCircle2, Clock, EyeOff, ListChecks, Loader2, Paperclip, Save, ShieldCheck, Sparkles, Star, UserCheck, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NO_ANSWER, descOf, evaluate, filled, labelOf, pageProblems, titleOf, type Answer, type Answers, type Question, type Settings } from '@/lib/surveyEngine'
 
-export type EngineSurvey = { title: string; description?: string | null; questions: Question[]; settings?: Settings | null; privacy_mode?: 'identified' | 'confidential' | 'anonymous'; version?: number }
+export type EngineSurvey = { title: string; description?: string | null; questions: Question[]; settings?: Settings | null; privacy_mode?: 'identified' | 'confidential' | 'anonymous'; retention_days?: number | null; version?: number }
 
 const DEFAULT_ACCENT = '#8A1538'
 
@@ -122,6 +122,7 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
                 <Fact icon={<ListChecks className="size-5" />} text={t('ss.form.questions', { n: total })} />
                 <Fact icon={<Clock className="size-5" />} text={t('ss.form.minutes', { n: Math.max(1, Math.ceil(total * 0.4)) })} />
                 <Fact icon={privacyFact.icon} text={privacyFact.text} />
+                {!!survey.retention_days && <Fact icon={<Archive className="size-5" />} text={t('ss.form.retention', { m: Math.max(1, Math.round(survey.retention_days / 30.44)) })} />}
               </div>
               {draft && <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold text-gold-800"><Save className="size-3.5" />{t('ss.form.resumed')}</p>}
               {closed ? <p className="mt-8 rounded-2xl bg-slate-100 p-4 font-semibold text-slate-600">{t('ss.form.closed')}</p> : (

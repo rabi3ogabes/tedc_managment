@@ -41,7 +41,7 @@ class PrivacyController extends Controller
     {
         $rows = DataSubjectRequest::with('user:id,name,name_ar,email')->when($request->query('status'), fn ($q, $s) => $q->where('status', $s))->orderBy('due_at')->limit(300)->get();
 
-        return response()->json(['data' => $rows->map(fn ($r) => $this->present($r) + ['person' => $r->user?->displayName(), 'email' => $r->user?->email])->values()]);
+        return response()->json(['data' => $rows->map(fn ($r) => $this->present($r) + ['user_id' => $r->user_id, 'person' => $r->user?->displayName(), 'email' => $r->user?->email])->values()]);
     }
 
     public function decide(Request $request, string $dsr): JsonResponse

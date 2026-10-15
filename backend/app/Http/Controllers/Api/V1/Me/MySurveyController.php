@@ -46,7 +46,7 @@ class MySurveyController extends Controller
         return response()->json(['data' => [
             'id' => $studioSurvey->id, 'kind' => $studioSurvey->kind, 'title' => $studioSurvey->title(), 'title_ar' => $studioSurvey->title_ar, 'title_en' => $studioSurvey->title_en,
             'description_ar' => $studioSurvey->description_ar, 'description_en' => $studioSurvey->description_en,
-            'privacy_mode' => $studioSurvey->privacy_mode, 'is_open' => $studioSurvey->isOpen(), 'closes_at' => $studioSurvey->closes_at,
+            'privacy_mode' => $studioSurvey->privacy_mode, 'is_open' => $studioSurvey->isOpen(), 'closes_at' => $studioSurvey->closes_at, 'retention_days' => $studioSurvey->retention_days,
             'version' => $version->number, 'questions' => $version->questions, 'settings' => $version->settings,
             'answered' => (bool) $participant->responded_at,
             'can_edit' => $studioSurvey->isOpen() && (bool) $participant->responded_at && ! $studioSurvey->isAnonymous() && $studioSurvey->editPolicy() === 'until_close',

@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Models\User;
 use App\Security\SecurityEvents;
 use App\Services\NotificationService;
+use App\Services\Surveys\SurveyDataSubject;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -110,6 +111,7 @@ class DataSubjectService
         AuditLog::create(['user_id' => $user->id, 'action' => 'personal_data_exported', 'auditable_type' => User::class, 'auditable_id' => $user->id, 'new_values' => ['sections' => array_keys($sections)]]);
         SecurityEvents::record('personal_data_export', $user, 'ok', ['sections' => count($sections)]);
 
-        return ['generated_at' => now()->toIso8601String(), 'law' => 'Qatar Law No. 13 of 2016 — right of access', 'account' => $account, 'employee' => $profile, 'sections' => $sections];
+        return ['generated_at' => now()->toIso8601String(), 'law' => 'Qatar Law No. 13 of 2016 — right of access', 'account' => $account, 'employee' => $profile, 'sections' => $sections,
+            'surveys' => app(SurveyDataSubject::class)->export($user)];
     }
 }

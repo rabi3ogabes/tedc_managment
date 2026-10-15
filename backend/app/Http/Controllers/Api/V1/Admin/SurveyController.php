@@ -185,6 +185,7 @@ class SurveyController extends Controller
             'opens_at' => ['nullable', 'date'], 'closes_at' => ['nullable', 'date'],
             'timezone' => ['nullable', 'timezone:all'],
             'retention_days' => ['nullable', 'integer', 'min:30', 'max:3650'],
+            'legal_hold' => ['sometimes', 'boolean'],
         ]);
     }
 
@@ -193,6 +194,7 @@ class SurveyController extends Controller
         return [
             'id' => $s->id, 'kind' => $s->kind, 'title_ar' => $s->title_ar, 'title_en' => $s->title_en, 'status' => $s->status, 'privacy_mode' => $s->privacy_mode,
             'legacy_type' => $s->legacy_type, 'legacy_id' => $s->legacy_id, 'program_id' => $s->program_id,
+            'legal_hold' => (bool) $s->legal_hold, 'answers_purged_at' => $s->answers_purged_at, 'key_deleted_at' => $s->key_deleted_at, 'retire_at' => app(\App\Services\Surveys\SurveyRetention::class)->retireAt($s),
             'owner' => $s->owner?->displayName(), 'opens_at' => $s->opens_at, 'closes_at' => $s->closes_at, 'published_at' => $s->published_at, 'closed_at' => $s->closed_at,
             'participants' => $s->participants_count ?? $s->participants()->count(), 'submissions' => $s->submissions_count ?? $s->submissions()->count(),
             'is_open' => $s->isOpen(), 'updated_at' => $s->updated_at,

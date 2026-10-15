@@ -14,7 +14,7 @@ import { CHOICE_TYPES, JUMP_TYPES, NO_ANSWER, OPERATORS, SCALED_TYPES, blank, ui
 import { toast } from '@/lib/toast'
 
 type Detail = {
-  id: string; kind: string; title_ar: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; status: string; privacy_mode: 'identified' | 'confidential' | 'anonymous'; legacy_type?: 'needs_survey' | 'evaluation_form' | null; legacy_id?: string | null
+  id: string; kind: string; title_ar: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; status: string; privacy_mode: 'identified' | 'confidential' | 'anonymous'; legacy_type?: 'needs_survey' | 'evaluation_form' | null; legacy_id?: string | null; legal_hold?: boolean; answers_purged_at?: string | null; key_deleted_at?: string | null; retire_at?: string | null
   questions: Question[]; audience: Record<string, unknown> | null; settings: Settings; opens_at?: string | null; closes_at?: string | null; retention_days?: number | null
   approval: { approved: boolean; required: boolean; reviewed_by?: string | null; reviewed_at?: string | null; note?: string | null }; version: { number: number; published_at: string } | null
   has_unpublished_changes: boolean; stats: { participants: number; answered: number; response_rate: number | null; submissions: number }; is_open: boolean
@@ -55,7 +55,7 @@ export default function Studio() {
     const d = query.data?.data
     if (!d || loaded.current === d.id + String(d.stats?.submissions) + d.status) return
     loaded.current = d.id + String(d.stats?.submissions) + d.status
-    if (!dirty) { setQuestions(d.questions); setSettings(d.settings ?? {}); setAudience(d.audience ?? {}); setMeta({ title_ar: d.title_ar, title_en: d.title_en ?? '', description_ar: d.description_ar ?? '', description_en: d.description_en ?? '', kind: d.kind, privacy_mode: d.privacy_mode, opens_at: d.opens_at ?? '', closes_at: d.closes_at ?? '', retention_days: d.retention_days ?? '' }) }
+    if (!dirty) { setQuestions(d.questions); setSettings(d.settings ?? {}); setAudience(d.audience ?? {}); setMeta({ title_ar: d.title_ar, title_en: d.title_en ?? '', description_ar: d.description_ar ?? '', description_en: d.description_en ?? '', kind: d.kind, privacy_mode: d.privacy_mode, opens_at: d.opens_at ?? '', closes_at: d.closes_at ?? '', retention_days: d.retention_days ?? '', legal_hold: !!d.legal_hold }) }
   }, [query.data, dirty])
 
   const persist = async () => {
@@ -88,7 +88,7 @@ export default function Studio() {
   return (
     <>
       <PageHeader
-        title={<span className="flex flex-wrap items-center gap-3">{title}<Badge color={TONE[d.status] ?? 'gray'}>{t(`ss.state.${d.status}`)}</Badge>{d.version && <Badge color="gold">{t('ss.list.version')} {d.version.number}</Badge>}<Badge color="gray">{t(`ss.privacy.${d.privacy_mode}`)}</Badge>{d.legacy_type && <Badge color="amber">{t(`ss.legacy.${d.legacy_type}`)}</Badge>}</span>}
+        title={<span className="flex flex-wrap items-center gap-3">{title}<Badge color={TONE[d.status] ?? 'gray'}>{t(`ss.state.${d.status}`)}</Badge>{d.version && <Badge color="gold">{t('ss.list.version')} {d.version.number}</Badge>}<Badge color="gray">{t(`ss.privacy.${d.privacy_mode}`)}</Badge>{d.legacy_type && <Badge color="amber">{t(`ss.legacy.${d.legacy_type}`)}</Badge>}{d.answers_purged_at && <Badge color="red">{t('ss.studio.settings.purged')}</Badge>}{d.legal_hold && <Badge color="navy">{t('ss.studio.settings.legalHold')}</Badge>}</span>}
         subtitle={d.approval.required ? (d.approval.approved ? t('ss.studio.approved') : t('ss.studio.notApproved')) : undefined}
         actions={<div className="flex flex-wrap gap-2">
           <Button variant="outline" to="/admin/surveys">{t('ss.list.title')}</Button>
@@ -347,7 +347,8 @@ function SettingsTab({ d, cat, meta, settings, editable, onMeta, onSettings }: {
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label={t('ss.studio.settings.opensAt')}><input type="datetime-local" className="input" value={String(meta.opens_at ?? '').slice(0, 16)} disabled={!editable} onChange={(e) => m('opens_at', e.target.value)} /></Field>
             <Field label={t('ss.studio.settings.closesAt')}><input type="datetime-local" className="input" value={String(meta.closes_at ?? '').slice(0, 16)} disabled={!editable} onChange={(e) => m('closes_at', e.target.value)} /></Field>
-            <Field label={t('ss.studio.settings.retention')}><input type="number" min={30} max={3650} className="input" value={String(meta.retention_days ?? '')} placeholder={String(cat.defaults.retention_days)} disabled={!editable} onChange={(e) => m('retention_days', e.target.value)} /></Field>
+            <Field label={t('ss.studio.settings.retention')} hint={d.retire_at ? t('ss.studio.settings.retireAt', { d: new Date(d.retire_at).toLocaleDateString() }) : d.key_deleted_at ? t('ss.studio.settings.keyDeleted') : undefined}><input type="number" min={30} max={3650} className="input" value={String(meta.retention_days ?? '')} placeholder={String(cat.defaults.retention_days)} disabled={!editable} onChange={(e) => m('retention_days', e.target.value)} /></Field>
+            <Field label={t('ss.studio.settings.legalHold')} hint={t('ss.studio.settings.legalHoldHint')}><label className="flex h-10 items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={!!meta.legal_hold} disabled={!editable} onChange={(e) => m('legal_hold', e.target.checked)} />{t('ss.studio.settings.legalHoldOn')}</label></Field>
           </div>
         </div>
       </Card>

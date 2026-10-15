@@ -177,7 +177,7 @@ class PublicSurveyController extends Controller
 
         return [
             'id' => $survey->id, 'title' => $survey->title(), 'title_ar' => $survey->title_ar, 'title_en' => $survey->title_en, 'description_ar' => $survey->description_ar, 'description_en' => $survey->description_en,
-            'privacy_mode' => 'anonymous', 'is_open' => $survey->isOpen(), 'closes_at' => $survey->closes_at, 'version' => $v?->number, 'questions' => $v?->questions ?? [], 'settings' => $v?->settings ?? [],
+            'privacy_mode' => 'anonymous', 'is_open' => $survey->isOpen(), 'closes_at' => $survey->closes_at, 'retention_days' => $survey->retention_days, 'version' => $v?->number, 'questions' => $v?->questions ?? [], 'settings' => $v?->settings ?? [],
         ];
     }
 

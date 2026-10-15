@@ -7,7 +7,7 @@ import { Button, Card, Field, Spinner } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import type { Answers, Question, Settings } from '@/lib/surveyEngine'
 
-type Def = { id: string; title: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; questions: Question[]; settings: Settings; rule: 'open' | 'device' | 'email_code' | 'invitation'; requires_code: boolean; name?: string | null
+type Def = { id: string; title: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; questions: Question[]; settings: Settings; rule: 'open' | 'device' | 'email_code' | 'invitation'; requires_code: boolean; name?: string | null; retention_days?: number | null
   answered?: boolean; draft?: { answers: Answers; page: number } | null; submission?: { answers: Answers } | null; can_edit?: boolean }
 
 /** A client id kept in this browser so the device rule can tell one device from another without knowing anyone. */
@@ -71,7 +71,7 @@ export default function PublicSurvey() {
       ) : !ready ? <Spinner /> : (
         <div className="flex min-h-[80vh] flex-col">
           <EngineForm
-            survey={{ title: en && def.title_en ? def.title_en : def.title, description: en ? def.description_en || def.description_ar : def.description_ar, questions: def.questions, settings: def.settings, privacy_mode: 'anonymous' }}
+            survey={{ title: en && def.title_en ? def.title_en : def.title, description: en ? def.description_en || def.description_ar : def.description_ar, questions: def.questions, settings: def.settings, privacy_mode: 'anonymous', retention_days: def.retention_days }}
             initialAnswers={state?.submission?.answers ?? (def.answered ? {} : null)}
             draft={state?.draft ?? null}
             canEdit={!!state?.can_edit}
