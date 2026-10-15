@@ -51,3 +51,6 @@ New / changed (web)
 ## 6. Exact next step
 
 Phase 8 — smart assistants: explanations for school and trainee suggestions, the planning checklist, the completion tracker, decision-log views, feedback themes (AI opt-in only) and impact linking. Report in `docs/plc/08-phase8-assistants.md`.
+
+---
+Full suite after Phase 7 (`php artisan test --compact`, Windows): 1173 tests, 1103 passed, 15918 assertions. The only failures are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors in SamlSso/LtiTool/PushNotifications/Lti/SupabaseConnection/IdentitySecurity); every PLC, attendance, evaluation, cron and classification test passes.
