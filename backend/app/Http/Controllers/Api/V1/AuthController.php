@@ -15,6 +15,8 @@ use App\Security\PasswordService;
 use App\Security\PendingLogin;
 use App\Security\SecurityPolicy;
 use App\Security\Sso\SsoService;
+use App\Services\Channels\ChannelSettings;
+use App\Services\Channels\EmailSender;
 use App\Support\ActiveRole;
 use App\Support\ScopeLabel;
 use Illuminate\Http\JsonResponse;
@@ -68,22 +70,74 @@ class AuthController extends Controller
         return $this->session($session);
     }
 
-    /** Locks the dashboard immediately (idle timeout reached in the browser). */
     /** Sets the first password from the activation link e-mailed after an external registration was approved. */
     public function activate(Request $request): JsonResponse
     {
-        $d = $request->validate(['email' => ['required', 'email'], 'token' => ['required', 'string'], 'password' => ['required', 'string', 'confirmed']]);
-        app(PasswordService::class)->assert($d['password'], User::where('email', strtolower($d['email']))->first());
-        $status = Password::reset($d, function ($user, string $password) {
-            app(PasswordService::class)->set($user, $password);
-        });
-        if ($status !== Password::PASSWORD_RESET) {
-            return response()->json(['message' => __('messages.external.activation_invalid'), 'code' => 'activation_invalid'], 422);
-        }
-
-        return response()->json(['data' => ['activated' => true]]);
+        return $this->applyToken($request, 'activation_invalid', __('messages.external.activation_invalid'), 'activated');
     }
 
+    /**
+     * Sends a password-reset link. The answer is the same whether or not the e-mail belongs to an account, so nothing can be
+     * learnt about who has one. Accounts that must sign in through the Ministry's single sign-on get no link.
+     */
+    public function forgot(Request $request, EmailSender $mail, ChannelSettings $channels, SsoService $sso): JsonResponse
+    {
+        $d = $request->validate(['email' => ['required', 'email', 'max:255']]);
+        if (! $channels->ready('email')) {
+            return response()->json(['message' => __('auth.reset_mail_off'), 'code' => 'mail_not_configured'], 503);
+        }
+        $user = User::with('roles')->where('email', strtolower($d['email']))->where('status', 'active')->first();
+        if ($user && $sso->localLoginAllowed($user)) {
+            $locale = $request->header('X-Locale') === 'en' ? 'en' : 'ar';
+            $name = $locale === 'en' ? $user->name : ($user->name_ar ?: $user->name);
+            $token = Password::broker()->createToken($user);
+            $link = rtrim((string) config('tedc.web_url'), '/').'/reset?email='.urlencode($user->email).'&token='.$token;
+            $minutes = (int) config('auth.passwords.users.expire', 60);
+            $mail->send($user->email, 'إعادة تعيين كلمة المرور · Reset your password',
+                "مرحباً {$name}،\nطُلبت إعادة تعيين كلمة مرور حسابك في بوابة التدريب. الرابط صالح لمدة {$minutes} دقيقة:\n{$link}\n\nإن لم تطلب ذلك فتجاهل هذه الرسالة؛ كلمة مرورك لم تتغير.\n\n"
+                ."Hello {$name},\nA password reset was requested for your training-portal account. The link is valid for {$minutes} minutes:\n{$link}\n\nIf you did not ask for this, ignore this message; your password has not changed.", $locale);
+            AuditLog::create([
+                'user_id' => $user->id, 'action' => 'password_reset_requested', 'auditable_type' => User::class, 'auditable_id' => $user->id,
+                'old_values' => null, 'new_values' => ['email' => $user->email],
+                'ip_address' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255), 'url' => $request->fullUrl(),
+            ]);
+        }
+
+        return response()->json(['data' => ['sent' => true]]);
+    }
+
+    /** Sets a new password from the reset link; every other session of the account is ended. */
+    public function reset(Request $request): JsonResponse
+    {
+        return $this->applyToken($request, 'reset_invalid', __('auth.reset_invalid'), 'reset');
+    }
+
+    /** Activation and reset share one mechanism: the password broker's token, the password policy, and a fresh start for the account. */
+    private function applyToken(Request $request, string $code, string $message, string $flag): JsonResponse
+    {
+        $d = $request->validate(['email' => ['required', 'email'], 'token' => ['required', 'string'], 'password' => ['required', 'string', 'confirmed']]);
+        $d['email'] = strtolower($d['email']);
+        app(PasswordService::class)->assert($d['password'], User::where('email', $d['email'])->first());
+        $status = Password::reset($d, function (User $user, string $password) use ($request, $flag) {
+            app(PasswordService::class)->set($user, $password);
+            $user->forceFill(['failed_attempts' => 0, 'locked_until' => null, 'locked_at' => null])->saveQuietly();
+            if ($flag === 'reset') {
+                app(AuthSessions::class)->revokeAll($user, 'password_reset');
+            }
+            AuditLog::create([
+                'user_id' => $user->id, 'action' => $flag === 'reset' ? 'password_reset' : 'account_activated', 'auditable_type' => User::class, 'auditable_id' => $user->id,
+                'old_values' => null, 'new_values' => ['email' => $user->email],
+                'ip_address' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255), 'url' => $request->fullUrl(),
+            ]);
+        });
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => $message, 'code' => $code], 422);
+        }
+
+        return response()->json(['data' => [$flag => true]]);
+    }
+
+    /** Locks the dashboard immediately (idle timeout reached in the browser). */
     public function lock(Request $request): JsonResponse
     {
         $request->user()->forceFill(['locked_at' => now()])->saveQuietly();

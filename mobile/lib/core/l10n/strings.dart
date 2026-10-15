@@ -954,6 +954,7 @@ class S {
     'auth.sso': 'الدخول بحساب الوزارة',
     'auth.orPassword': 'أو بالبريد وكلمة المرور',
     'auth.usePassword': 'مسؤول أو حساب من خارج الوزارة؟ ادخل بالبريد وكلمة المرور',
+    'auth.forgot': 'نسيت كلمة المرور؟',
     'auth.ssoFailed': 'تعذّر الدخول بحساب الوزارة. حاول مرة أخرى أو استخدم كلمة المرور.',
   };
 
@@ -1863,6 +1864,7 @@ class S {
     'auth.sso': 'Sign in with your Ministry account',
     'auth.orPassword': 'or with e-mail and password',
     'auth.usePassword': 'Administrator or outside account? Use e-mail and password',
+    'auth.forgot': 'Forgot your password?',
     'auth.ssoFailed': 'Signing in with your Ministry account did not work. Try again, or use your password.',
   };
 }

@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 732 columns
-- Internal: 2057 columns
+- Internal: 2059 columns
 - Confidential: 522 columns
 - Restricted: 23 columns
 
@@ -1233,6 +1233,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `last_fix_at` | Internal | — |
 | `created_at` | Internal | — |
 | `updated_at` | Internal | — |
+| `ai_diagnosis` | Internal | — |
+| `ai_diagnosed_at` | Internal | — |
 
 ### `evaluation_assignments`
 

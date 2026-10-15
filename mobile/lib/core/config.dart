@@ -25,6 +25,9 @@ class AppConfig {
   static String? _override;
 
   static String get apiUrl => _override ?? defaultApiUrl;
+
+  /// The web portal that serves this API (the API lives under /api/v1 of the same site): used for pages the app hands over to the browser.
+  static String get webUrl => apiUrl.replaceFirst(RegExp(r'/api/v\d+/?$'), '');
   static bool get isCustomServer => _override != null;
 
   static Future<void> load() async {

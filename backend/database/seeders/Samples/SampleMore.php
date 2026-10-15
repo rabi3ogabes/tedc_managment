@@ -264,7 +264,7 @@ class SampleMore
             \DB::table('entity_account_users')->insert(['entity_account_id' => $e->id, 'user_id' => $u->id, 'role' => 'buyer']);
         }
         if (! RegistrationPriorityRule::query()->exists()) {
-            RegistrationPriorityRule::create(['scope' => 'global', 'criteria' => [['key' => 'years_since_last_training', 'weight' => 40], ['key' => 'gap_priority', 'weight' => 60]], 'weights' => [], 'is_active' => true]);
+            RegistrationPriorityRule::create(['scope' => 'global', 'criteria' => ['no_training_in_months', 'approved_individual_need', 'plan_targeted', 'registration_date'], 'weights' => ['no_training_in_months' => 40, 'approved_individual_need' => 30, 'plan_targeted' => 20, 'registration_date' => 10], 'is_active' => true]);
         }
     }
 

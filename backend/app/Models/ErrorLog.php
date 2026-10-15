@@ -14,5 +14,6 @@ class ErrorLog extends Model
     protected $casts = [
         'device' => 'array', 'context' => 'array', 'first_seen_at' => 'datetime', 'last_seen_at' => 'datetime', 'resolved_at' => 'datetime',
         'last_fix_at' => 'datetime', 'auto_fixed' => 'boolean', 'occurrences' => 'integer',
+        'ai_diagnosis' => 'array', 'ai_diagnosed_at' => 'datetime',
     ];
 }

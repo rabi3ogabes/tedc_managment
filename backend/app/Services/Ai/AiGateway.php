@@ -165,7 +165,9 @@ class AiGateway
         if (! $c || $c['driver'] === 'azure' || $c['driver'] === 'anthropic' && ! $key) {
             return [];   // Azure deployments are not listed with a key: the deployment name is typed in
         }
-        $response = $this->http($c, (string) $key, 20)->get($c['base_url_resolved'].'/models')->throw()->json('data') ?? [];
+        // OpenAI-compatible hosts list models under the versioned base; Anthropic's base has no version in it.
+        $path = $c['driver'] === 'anthropic' ? '/v1/models' : '/models';
+        $response = $this->http($c, (string) $key, 20)->get($c['base_url_resolved'].$path)->throw()->json('data') ?? [];
 
         return collect($response)->map(function ($m) {
             $out = (array) ($m['architecture']['output_modalities'] ?? []);
@@ -179,7 +181,7 @@ class AiGateway
                 preg_match('/embed/i', $id) ? 'embeddings' : null,
             ]));
 
-            return ['id' => $id, 'name' => (string) ($m['name'] ?? $id), 'tasks' => $tasks ?: ['text'], 'context' => $m['context_length'] ?? null, 'free' => (float) ($m['pricing']['prompt'] ?? 1) === 0.0 && (float) ($m['pricing']['completion'] ?? 1) === 0.0, 'vision' => in_array('image', $in, true)];
+            return ['id' => $id, 'name' => (string) ($m['name'] ?? $m['display_name'] ?? $id), 'tasks' => $tasks ?: ['text'], 'context' => $m['context_length'] ?? null, 'free' => (float) ($m['pricing']['prompt'] ?? 1) === 0.0 && (float) ($m['pricing']['completion'] ?? 1) === 0.0, 'vision' => in_array('image', $in, true)];
         })->filter(fn ($m) => $m['id'] !== '')->values()->all();
     }
 

@@ -8,7 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 
-const TYPES = ['book', 'journal', 'periodical', 'audio', 'video', 'elearning', 'kit', 'link']
+const TYPES = ['book', 'journal', 'periodical', 'article', 'audio', 'video', 'elearning', 'kit', 'link']
 type Tab = 'catalogue' | 'shelf' | 'shared'
 
 /** The digital library: search with Arabic folding, shelves, a reader that respects rights (watermark, no download), shelf and ratings. */
@@ -62,7 +62,7 @@ function ItemModal({ id, onClose }: { id: string; onClose: () => void }) {
   const res = useGet<{ data: any }>(`/me/library/${id}`, undefined, { staleTime: 0 })
   const [reader, setReader] = useState<any | null>(null)
   const d = res.data?.data
-  const read = async () => { try { const { data } = await api.get(`/me/library/${id}/read`); data.data.external ? window.open(data.data.url, '_blank', 'noopener') : setReader(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
+  const read = async () => { try { const { data } = await api.get(`/me/library/${id}/read`); if (data.data.external) window.open(data.data.url, '_blank', 'noopener'); else setReader(data.data) } catch (e) { toast(errorMessage(e), 'error') } }
   const dl = async () => { try { const { data } = await api.get(`/me/library/${id}/download`); window.open(data.data.url, '_blank', 'noopener') } catch (e) { toast(errorMessage(e), 'error') } }
   const shelf = async () => { try { await api.put(`/me/library/${id}/shelf`, { on: !d.on_shelf }); void res.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   return (

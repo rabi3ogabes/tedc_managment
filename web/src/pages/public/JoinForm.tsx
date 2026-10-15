@@ -91,7 +91,7 @@ export function Activate() {
     try { await api.post('/auth/activate', { email: q.get('email'), token: q.get('token'), password, password_confirmation: confirm }); setDone(true) } catch (e) { setError(errorMessage(e)) }
   }
   return (
-    <div className="mx-auto max-w-md px-4 py-14">
+    <div className="mx-auto max-w-md px-4 pb-16 pt-28">
       <Card className="space-y-4">
         <h1 className="font-display text-2xl font-extrabold text-navy-900">{t('admission.join.activateTitle')}</h1>
         {done ? <><p className="text-slate-600">{t('admission.join.activated')}</p><Link to="/login" className="font-bold text-link">{t('admission.join.login')}</Link></> : (

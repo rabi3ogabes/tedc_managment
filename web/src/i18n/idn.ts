@@ -7,6 +7,12 @@ export const idnAr = {
       mfaTitle: 'التحقق بخطوتين', mfaHint: 'أدخل الرمز لإكمال الدخول.', methods: { totp: 'تطبيق المصادقة', email: 'بريد إلكتروني', sms: 'رسالة نصية', recovery: 'رمز استرداد' }, send: 'إرسال الرمز', sent: 'أُرسل الرمز.', code: 'الرمز', verify: 'تحقق', remember: 'تذكّر هذا الجهاز', back: 'رجوع',
       setup: 'إعداد تطبيق المصادقة', setupHint: 'امسح الرمز أو أدخل المفتاح في تطبيق المصادقة ثم اكتب الرمز الذي يظهر.', secret: 'المفتاح', openApp: 'فتح التطبيق', confirm: 'تأكيد', recoveryTitle: 'احتفظ برموز الاسترداد', recoveryHint: 'يعمل كل رمز مرة واحدة إذا فقدت هاتفك. لن تُعرض مرة أخرى.', continue: 'متابعة',
     },
+    pw: {
+      forgotLink: 'نسيت كلمة المرور؟', forgotTitle: 'استعادة كلمة المرور', forgotHint: 'اكتب بريدك الإلكتروني المسجّل وسنرسل لك رابطاً لتعيين كلمة مرور جديدة.', send: 'إرسال الرابط',
+      sentTitle: 'تحقق من بريدك', sentBody: 'إن كان {{email}} مرتبطاً بحساب، فستصلك رسالة برابط إعادة التعيين خلال دقائق. الرابط صالح لمدة ساعة.', sentHint: 'لم تصلك الرسالة؟ تحقق من مجلد الرسائل غير المرغوبة أو اطلب رابطاً جديداً.', backToLogin: 'العودة إلى تسجيل الدخول',
+      resetTitle: 'كلمة مرور جديدة', resetHint: 'اختر كلمة مرور قوية. ستُنهى جلساتك الأخرى بعد الحفظ.', policyHint: 'ثماني خانات على الأقل، بحرف كبير وصغير ورقم ورمز.', mismatch: 'كلمتا المرور غير متطابقتين.', save: 'حفظ كلمة المرور',
+      doneTitle: 'تم تغيير كلمة المرور.', doneHint: 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.', signInNow: 'تسجيل الدخول الآن', linkInvalid: 'هذا الرابط غير مكتمل أو منتهٍ.', requestAgain: 'طلب رابط جديد',
+    },
     acct: {
       title: 'أمان الحساب', password: 'كلمة المرور', current: 'كلمة المرور الحالية', next: 'كلمة المرور الجديدة', confirm: 'تأكيد كلمة المرور', change: 'تغيير كلمة المرور', changed: 'تم تغيير كلمة المرور وإنهاء الجلسات الأخرى.', expired: 'انتهت صلاحية كلمة المرور؛ اخترْ كلمة جديدة للمتابعة.',
       policy: 'الشروط: {{min}} خانات على الأقل', upper: 'حرف كبير', lower: 'حرف صغير', digit: 'رقم', symbol: 'رمز',
@@ -51,6 +57,12 @@ export const idnEn = {
       sso: 'Sign in with Ministry account', or: 'or', local: 'Sign in with a password', directory: 'Directory account (AD)', username: 'Username', ssoError: 'Single sign-on failed. Try again or contact the training centre.', completing: 'Completing sign-in…',
       mfaTitle: 'Two-step verification', mfaHint: 'Enter the code to finish signing in.', methods: { totp: 'Authenticator app', email: 'E-mail', sms: 'SMS', recovery: 'Recovery code' }, send: 'Send code', sent: 'Code sent.', code: 'Code', verify: 'Verify', remember: 'Remember this device', back: 'Back',
       setup: 'Set up an authenticator app', setupHint: 'Scan the code or enter the key in your authenticator app, then type the code it shows.', secret: 'Key', openApp: 'Open app', confirm: 'Confirm', recoveryTitle: 'Keep your recovery codes', recoveryHint: 'Each code works once if you lose your phone. They are not shown again.', continue: 'Continue',
+    },
+    pw: {
+      forgotLink: 'Forgot your password?', forgotTitle: 'Recover your password', forgotHint: 'Enter the e-mail address of your account and we will send a link to set a new password.', send: 'Send the link',
+      sentTitle: 'Check your inbox', sentBody: 'If {{email}} belongs to an account, a message with the reset link arrives within minutes. The link is valid for one hour.', sentHint: 'No message? Look in the spam folder or request a new link.', backToLogin: 'Back to sign-in',
+      resetTitle: 'New password', resetHint: 'Choose a strong password. Your other sessions end once it is saved.', policyHint: 'At least eight characters, with an uppercase and a lowercase letter, a digit and a symbol.', mismatch: 'The passwords do not match.', save: 'Save password',
+      doneTitle: 'Your password was changed.', doneHint: 'You can sign in with the new password now.', signInNow: 'Sign in now', linkInvalid: 'This link is incomplete or has expired.', requestAgain: 'Request a new link',
     },
     acct: {
       title: 'Account security', password: 'Password', current: 'Current password', next: 'New password', confirm: 'Confirm password', change: 'Change password', changed: 'Password changed; other sessions were ended.', expired: 'Your password has expired; choose a new one to continue.',

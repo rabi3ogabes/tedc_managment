@@ -329,6 +329,9 @@ Route::prefix('v1')->group(function () {
         Route::post('login', 'login')->middleware('throttle:login');
         Route::post('refresh', 'refresh')->middleware('throttle:login');
         Route::post('activate', 'activate')->middleware('throttle:10,1');
+        // Self-service password reset: a link by e-mail, then a new password (the account's other sessions end).
+        Route::post('forgot', 'forgot')->middleware('throttle:5,1');
+        Route::post('reset', 'reset')->middleware('throttle:10,1');
         // Second factor, single sign-on and directory sign-in (before there is a session).
         Route::controller(AuthSecurityController::class)->group(function () {
             Route::get('options', 'options')->middleware('throttle:public');
@@ -1432,6 +1435,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('{log}', 'show');
                 Route::put('{log}', 'update');
                 Route::post('{log}/fix', 'fix');
+                Route::post('{log}/diagnose', 'diagnose')->middleware('throttle:ai');
                 Route::delete('{log}', 'destroy');
             });
 

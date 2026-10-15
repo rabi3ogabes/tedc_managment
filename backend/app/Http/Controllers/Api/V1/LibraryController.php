@@ -210,7 +210,7 @@ class LibraryController extends Controller
     {
         $r = $partial ? 'sometimes' : 'required';
 
-        return $request->validate(['type' => [$r, Rule::in(['book', 'journal', 'periodical', 'audio', 'video', 'elearning', 'kit', 'link'])], 'title_ar' => [$r, 'string', 'max:300'], 'title_en' => ['nullable', 'string', 'max:300'], 'description_ar' => ['nullable', 'string', 'max:5000'], 'description_en' => ['nullable', 'string', 'max:5000'],
+        return $request->validate(['type' => [$r, Rule::in(['book', 'journal', 'periodical', 'article', 'audio', 'video', 'elearning', 'kit', 'link'])], 'title_ar' => [$r, 'string', 'max:300'], 'title_en' => ['nullable', 'string', 'max:300'], 'description_ar' => ['nullable', 'string', 'max:5000'], 'description_en' => ['nullable', 'string', 'max:5000'],
             'authors' => ['nullable', 'array', 'max:20'], 'authors.*' => ['string', 'max:200'], 'publisher' => ['nullable', 'string', 'max:200'], 'isbn' => ['nullable', 'string', 'max:30'], 'year' => ['nullable', 'integer', 'between:1800,2100'], 'language' => ['sometimes', Rule::in(['ar', 'en'])],
             'subjects' => ['nullable', 'array', 'max:30'], 'subjects.*' => ['string', 'max:100'], 'skill_ids' => ['nullable', 'array'], 'url' => ['nullable', 'url', 'max:500'], 'status' => ['sometimes', Rule::in(['draft', 'published', 'archived'])],
             'rights' => ['nullable', 'array'], 'rights.owner' => ['nullable', 'string', 'max:200'], 'rights.licence' => ['nullable', 'string', 'max:200'], 'rights.download' => ['boolean'], 'rights.print' => ['boolean'], 'rights.watermark' => ['boolean'], 'rights.embargo_from' => ['nullable', 'date'], 'rights.embargo_until' => ['nullable', 'date'],

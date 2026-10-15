@@ -1,7 +1,8 @@
 import clsx from 'clsx'
-import { AlertOctagon, BadgeCheck, Bug, CheckCircle2, Copy, EyeOff, Globe, RotateCcw, Search, Server, Settings2, Smartphone, Sparkles, Trash2, Users, Wand2, X } from 'lucide-react'
+import { AlertOctagon, BadgeCheck, Bot, Bug, CheckCircle2, Copy, EyeOff, Globe, RotateCcw, Search, Server, Settings2, Smartphone, Sparkles, Trash2, Users, Wand2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -13,7 +14,9 @@ type Entry = {
   occurrences: number; users_count: number; user_email: string | null; app_version: string | null; status: 'open' | 'fixed' | 'ignored'; auto_fixed: boolean; note: string | null
   first_seen_at: string; last_seen_at: string; resolved_at: string | null; fixable: boolean; fix_label: string | null; fix_attempts: number
   stack?: string | null; device?: Record<string, unknown> | null; context?: Record<string, unknown> | null; user_agent?: string | null; ip?: string | null
+  ai_diagnosis?: Diagnosis | null; ai_diagnosed_at?: string | null
 }
+type Diagnosis = { cause: string; steps: string[]; files: string[]; verification: string; outside_code: string; confidence: 'high' | 'medium' | 'low' }
 type List = { data: Entry[]; total: number; last_page: number; current_page: number; stats: { open: number; critical: number; today: number; auto_fixed: number; fixed: number; total: number; by_source: Record<string, number>; trend: { date: string; count: number }[] } }
 type Settings = { enabled: boolean; auto_fix: boolean; capture_clients: boolean; retention_days: number }
 
@@ -82,12 +85,46 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+function AiLabel({ k }: { k: string }) {
+  const { t } = useTranslation()
+  return <p className="mb-1 mt-3 text-xs font-bold uppercase tracking-wide text-slate-500">{t(k)}</p>
+}
+
+/** What the assigned AI model made of the error: cause, steps, files, verification. Kept on the entry, copyable for the ticket or the fix request. */
+function DiagnosisCard({ d, at }: { d: Diagnosis; at: string | null }) {
+  const { t, i18n } = useTranslation()
+  const [copied, setCopied] = useState(false)
+  const lines = [`${t('logs.ai.cause')}: ${d.cause}`]
+  if (d.steps.length) lines.push(`${t('logs.ai.steps')}:\n${d.steps.map((x, i) => `${i + 1}. ${x}`).join('\n')}`)
+  if (d.files.length) lines.push(`${t('logs.ai.files')}: ${d.files.join(', ')}`)
+  if (d.verification) lines.push(`${t('logs.ai.verify')}: ${d.verification}`)
+  if (d.outside_code) lines.push(`${t('logs.ai.outside')}: ${d.outside_code}`)
+  const tone = { high: 'bg-emerald-50 text-emerald-700', medium: 'bg-amber-50 text-amber-700', low: 'bg-slate-100 text-slate-600' }[d.confidence]
+  return (
+    <section className="rounded-2xl border border-gold-300/60 bg-gold-100/30 p-4" aria-label={t('logs.ai.title')}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Bot className="size-5 text-navy-900" /><h3 className="font-bold text-navy-900">{t('logs.ai.title')}</h3>
+        <span className={clsx('rounded-full px-2 py-0.5 text-xs font-bold', tone)}>{t(`logs.ai.confidence.${d.confidence}`)}</span>
+        {at && <span className="text-xs text-slate-500">{t('logs.ai.at', { when: ago(at, i18n.language) })}</span>}
+        <button type="button" className="ms-auto inline-flex items-center gap-1 text-xs font-semibold text-link" onClick={() => { void copyText(lines.join('\n\n')); setCopied(true); window.setTimeout(() => setCopied(false), 2000) }}><Copy className="size-3.5" />{copied ? t('logs.ai.copied') : t('logs.ai.copy')}</button>
+      </div>
+      <p className="mt-2 text-xs text-slate-500">{t('logs.ai.hint')}</p>
+      <AiLabel k="logs.ai.cause" /><p className="text-sm leading-relaxed text-navy-900" dir="auto">{d.cause}</p>
+      {d.steps.length > 0 && <><AiLabel k="logs.ai.steps" /><ol className="list-decimal space-y-1 ps-5 text-sm text-navy-900" dir="auto">{d.steps.map((x, i) => <li key={i}>{x}</li>)}</ol></>}
+      {d.files.length > 0 && <><AiLabel k="logs.ai.files" /><div className="flex flex-wrap gap-1.5">{d.files.map((f) => <code key={f} className="rounded-lg bg-white px-2 py-0.5 text-xs text-navy-900" dir="ltr">{f}</code>)}</div></>}
+      {d.verification && <><AiLabel k="logs.ai.verify" /><p className="text-sm text-navy-900" dir="auto">{d.verification}</p></>}
+      {d.outside_code && <><AiLabel k="logs.ai.outside" /><p className="text-sm text-navy-900" dir="auto">{d.outside_code}</p></>}
+    </section>
+  )
+}
+
 function Detail({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: () => void }) {
   const { t, i18n } = useTranslation()
   const { data, refetch } = useGet<{ data: Entry }>(`/admin/error-logs/${id}`, undefined, { staleTime: 0 })
   const [note, setNote] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [aiCode, setAiCode] = useState<string | null>(null)
   const claude = useCopyForClaude()
   const e = data?.data
   if (!e) return <Modal open onClose={onClose} title="…" wide><Spinner /></Modal>
@@ -105,12 +142,15 @@ function Detail({ id, onClose, onChanged }: { id: string; onClose: () => void; o
         <div className="flex flex-wrap items-center gap-2">
           {e.status === 'open' && e.fixable && <Button variant="gold" size="sm" loading={busy === 'fix'} icon={<Wand2 className="size-4" />} onClick={() => act('fix', async () => { const r = await api.post<{ result: { fixed: boolean; note: string } }>(`/admin/error-logs/${id}/fix`); setMessage({ ok: r.data.result.fixed, text: r.data.result.note }) })}>{t('logs.tryFix')}{e.fix_label && <span className="opacity-70"> · {e.fix_label}</span>}</Button>}
           <Button variant="gold" size="sm" loading={claude.busy} icon={claude.note?.ok ? <CheckCircle2 className="size-4" /> : <Sparkles className="size-4" />} onClick={() => void claude.copy({ ids: id })}>{claude.note?.ok ? t('logs.claude.done') : t('logs.claude.one')}</Button>
+          <Button variant="outline" size="sm" loading={busy === 'diagnose'} icon={<Bot className="size-4" />} onClick={() => act('diagnose', async () => { setAiCode(null); try { await api.post(`/admin/error-logs/${id}/diagnose`) } catch (x) { setAiCode((x as { response?: { data?: { code?: string } } }).response?.data?.code ?? null); throw x } })}>{e.ai_diagnosis ? t('logs.ai.again') : t('logs.ai.ask')}</Button>
           {e.status !== 'fixed' && <Button variant="primary" size="sm" loading={busy === 'fixed'} icon={<CheckCircle2 className="size-4" />} onClick={() => set('fixed')}>{t('logs.markFixed')}</Button>}
           {e.status !== 'ignored' && <Button variant="outline" size="sm" loading={busy === 'ignored'} icon={<EyeOff className="size-4" />} onClick={() => set('ignored')}>{t('logs.ignore')}</Button>}
           {e.status !== 'open' && <Button variant="outline" size="sm" loading={busy === 'open'} icon={<RotateCcw className="size-4" />} onClick={() => set('open')}>{t('logs.reopen')}</Button>}
           <Button variant="ghost" size="sm" className="ms-auto" icon={<Trash2 className="size-4 text-danger" />} onClick={async () => await dialogs.confirm(t('logs.confirmDelete')) && act('del', async () => { await api.delete(`/admin/error-logs/${id}`); onChanged(); onClose() })}>{t('common.delete')}</Button>
         </div>
         {e.auto_fixed && <p className="flex items-center gap-2 text-sm text-emerald-700"><Sparkles className="size-4" />{t('logs.autoFixed')}</p>}
+        {aiCode === 'ai_unassigned' && <Link to="/admin/settings?tab=aimodels" className="inline-flex items-center gap-1 text-sm font-semibold text-link"><Settings2 className="size-4" />{t('logs.ai.openSettings')}</Link>}
+        {e.ai_diagnosis && <DiagnosisCard d={e.ai_diagnosis} at={e.ai_diagnosed_at ?? null} />}
 
         <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
           {([

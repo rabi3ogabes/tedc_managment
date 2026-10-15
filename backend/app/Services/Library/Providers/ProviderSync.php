@@ -109,7 +109,8 @@ final class ProviderSync
         }
         $added = 0;
         foreach (array_chunk($rows, 200, true) as $chunk) {
-            $known = ExternalCourse::where('provider', $provider)->whereIn('external_id', array_keys($chunk))->pluck('external_id')->all();
+            // PHP turns numeric array keys into integers; the column is text, and PostgreSQL refuses to compare the two.
+            $known = ExternalCourse::where('provider', $provider)->whereIn('external_id', array_map('strval', array_keys($chunk)))->pluck('external_id')->all();
             $added += count($chunk) - count($known);
             ExternalCourse::upsert(array_map(fn (array $c) => [
                 'id' => (string) Str::uuid(), 'provider' => $provider, 'external_id' => $c['external_id'], 'title' => $c['title'], 'url' => $c['url'], 'hours' => $c['hours'], 'meta' => json_encode($c['meta'], JSON_UNESCAPED_UNICODE),

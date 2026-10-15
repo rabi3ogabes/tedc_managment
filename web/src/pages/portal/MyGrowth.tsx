@@ -137,7 +137,7 @@ function TransferForm({ kt, onClose }: { kt: any; onClose: (changed?: boolean) =
   const found = useGet<{ data: any[] }>('/me/colleagues', { q }, { enabled: q.length >= 2 })
   const send = async () => {
     const fd = toForm(ev, [['delivered_on', f.delivered_on], ['hours', String(f.hours)], ['method', f.method]])
-    people.forEach((p, i) => { p.employee_id ? fd.append(`beneficiaries[${i}][employee_id]`, p.employee_id) : fd.append(`beneficiaries[${i}][name]`, p.name ?? ''); if (p.employee_id && p.name) fd.append(`beneficiaries[${i}][name]`, p.name) })
+    people.forEach((p, i) => { if (p.employee_id) fd.append(`beneficiaries[${i}][employee_id]`, p.employee_id); else fd.append(`beneficiaries[${i}][name]`, p.name ?? ''); if (p.employee_id && p.name) fd.append(`beneficiaries[${i}][name]`, p.name) })
     try { await api.post(`/me/knowledge-transfers/${kt.id}`, fd); toast(t('career.kt.sent')); onClose(true) } catch (e) { toast(errorMessage(e), 'error') }
   }
   return (

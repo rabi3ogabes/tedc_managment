@@ -10,7 +10,7 @@ import ShareDialog from './ShareDialog'
 import { dialogs } from '@/lib/dialogs'
 
 const input = 'w-full rounded-xl border border-navy-100 px-3 py-2 text-sm'
-const TYPES = ['book', 'journal', 'periodical', 'audio', 'video', 'elearning', 'kit', 'link']
+const TYPES = ['book', 'journal', 'periodical', 'article', 'audio', 'video', 'elearning', 'kit', 'link']
 const FIELDS = ['job_title', 'job_category', 'school_type', 'school_stage', 'region', 'experience_years', 'qualification', 'subject', 'grade_taught', 'licence_level', 'has_licence']
 const OPS = ['eq', 'neq', 'in', 'gte', 'lte', 'includes']
 type Tab = 'items' | 'shelves'
@@ -43,7 +43,7 @@ function Items() {
   return (
     <div className="space-y-3">
       <div className="flex justify-end"><Button size="sm" icon={<Plus className="size-4" />} onClick={() => setCur(blank)}>{t('content.admin.newItem')}</Button></div>
-      {res.isLoading ? <Spinner /> : !res.data?.data.length ? <Card><Empty /></Card> : res.data.data.map((i) => <Card key={i.id} className="flex flex-wrap items-center gap-3"><Badge>{t(`content.library.types.${i.type}`)}</Badge><span className="min-w-0 flex-1 truncate font-semibold">{ar ? i.title_ar : i.title_en || i.title_ar}</span><Badge color={i.status === 'published' ? 'green' : 'gray'}>{t(`content.admin.status.${i.status}`)}</Badge><span className="text-xs text-slate-400">{i.views} 👁 · {i.downloads} ⬇</span>
+      {res.isLoading ? <Spinner /> : !res.data?.data.length ? <Card><Empty /></Card> : res.data.data.map((i) => <Card key={i.id} className="flex flex-wrap items-center gap-3"><Badge>{t(`content.library.types.${i.type}`, { defaultValue: i.type })}</Badge><span className="min-w-0 flex-1 truncate font-semibold">{ar ? i.title_ar : i.title_en || i.title_ar}</span><Badge color={i.status === 'published' ? 'green' : 'gray'}>{t(`content.admin.status.${i.status}`)}</Badge><span className="text-xs text-slate-400">{i.views} 👁 · {i.downloads} ⬇</span>
         <Button size="sm" variant="ghost" icon={<Share2 className="size-4" />} onClick={() => setShare(i.id)}>{t('content.sharing.share')}</Button><Button size="sm" variant="outline" onClick={() => edit(i)}>{t('common.edit')}</Button><button type="button" aria-label="delete" className="text-danger" onClick={() => void del(i.id)}><Trash2 className="size-4" /></button></Card>)}
       {share && <ShareDialog resourceType="library_item" resourceId={share} onClose={() => setShare(null)} />}
       <Modal wide open={!!cur} onClose={() => setCur(null)} title={t('content.admin.newItem')}>

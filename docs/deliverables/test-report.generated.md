@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **130**; test methods: **848**.
+- Test files: **159**; test methods: **1084**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -33,7 +33,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AdaptivePracticeTest.php | 13 |
 | AdmissionToolsTest.php | 3 |
 | AiCompletionTest.php | 23 |
-| AiModelsTest.php | 8 |
+| AiModelsTest.php | 9 |
 | AnnouncementsCmsPhase11Test.php | 10 |
 | AnnualPlanTest.php | 5 |
 | AppHomeLayoutTest.php | 4 |
@@ -47,6 +47,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | AuditFixesTest.php | 7 |
 | AuthAndRbacTest.php | 9 |
 | AzureStorageTest.php | 6 |
+| BundledContractsTest.php | 5 |
 | CalendarTest.php | 6 |
 | CareerAndPdTest.php | 9 |
 | CertificateAccessTest.php | 2 |
@@ -55,6 +56,9 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | CollaborationTest.php | 16 |
 | CompetencyGapTest.php | 6 |
 | ContentPackagesTest.php | 10 |
+| ContractDriverTest.php | 34 |
+| ContractStoreTest.php | 10 |
+| ContractTestRunnerTest.php | 13 |
 | DashboardsKpiPhase12Test.php | 5 |
 | DataMigrationTest.php | 8 |
 | DeliverablesTest.php | 6 |
@@ -65,14 +69,17 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | EligibilityEngineTest.php | 4 |
 | EligibilityFieldsTest.php | 4 |
 | EnrollmentEngineTest.php | 9 |
+| ErrorDiagnosisTest.php | 2 |
 | ErrorLogTest.php | 4 |
 | ErrorPromptTest.php | 2 |
 | EvaluationSuiteTest.php | 14 |
+| ExternalLibraryDriverTest.php | 11 |
 | ExternalRegistrationTest.php | 8 |
 | FacePresenceTest.php | 10 |
 | FeatureFlagsTest.php | 7 |
 | FeatureSamplesTest.php | 3 |
 | FingerprintTest.php | 4 |
+| FontsCheckTest.php | 5 |
 | ForecastExportTest.php | 4 |
 | GamificationTest.php | 12 |
 | GeofenceAttendanceTest.php | 10 |
@@ -81,36 +88,51 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | HelpCentreTest.php | 14 |
 | HomeCheckInTest.php | 2 |
 | HomeLayoutsTest.php | 2 |
+| HrContractTest.php | 8 |
+| HrProfileChangeRoutingTest.php | 12 |
 | IdentitySecurityTest.php | 12 |
 | ImpersonationTest.php | 2 |
+| InboundWebhookContractTest.php | 6 |
 | IndividualNeedsTest.php | 8 |
+| IntegrationContractApiTest.php | 9 |
+| IntegrationDocsTest.php | 4 |
 | IntegrationHubTest.php | 5 |
 | InternalWorkshopTest.php | 3 |
 | KitMediaTest.php | 4 |
 | KitStudioTest.php | 9 |
 | LdapDirectoryIntegrationTest.php | 10 |
 | LdapFilterTest.php | 4 |
+| LearningProvidersApiTest.php | 9 |
+| LearningProvidersSyncCommandTest.php | 5 |
 | LegacyNeedsMigrationTest.php | 4 |
 | LessonAttentionRulesTest.php | 5 |
 | LibraryAndLifecycleTest.php | 9 |
+| LicencesContractTest.php | 4 |
 | LobbyScreenTest.php | 4 |
 | LtiTest.php | 8 |
 | LtiToolTest.php | 9 |
 | MaterialSocialTest.php | 12 |
 | MenuLayoutTest.php | 3 |
 | MinistryIntegrationsTest.php | 8 |
+| MinistrySiteContractTest.php | 5 |
 | MobileSsoExchangeTest.php | 6 |
+| MockMinistryCommandTest.php | 5 |
+| MockMinistryTest.php | 12 |
+| MoeEpayCertificationTest.php | 8 |
+| MoeEpayContractTest.php | 9 |
 | NationalSchoolsTest.php | 3 |
 | NeedsCycleTest.php | 5 |
 | NeedsSurveyTest.php | 3 |
 | NotificationChannelsTest.php | 7 |
 | NotificationTemplatesAndSurveyTest.php | 4 |
 | NotificationsPhase11Test.php | 10 |
+| NsisContractTest.php | 4 |
 | OfflineExamTest.php | 8 |
 | OfflineLearningTest.php | 7 |
 | OnlineCourseTest.php | 3 |
 | OpsSecurityTest.php | 16 |
 | PassingRulesTest.php | 12 |
+| PasswordResetTest.php | 3 |
 | PaymentsTest.php | 25 |
 | PlanRulesEnforcementTest.php | 12 |
 | PresenceAndLockTest.php | 8 |
@@ -119,8 +141,10 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | ProgramBuilderTest.php | 5 |
 | ProgramGrantsTest.php | 6 |
 | ProgramsForMeTest.php | 3 |
+| ProvidersDriverTest.php | 13 |
 | PublicAndAnalyticsTest.php | 7 |
 | PushNotificationsTest.php | 9 |
+| QnedsContractTest.php | 4 |
 | QtiAndCartridgeTest.php | 4 |
 | QuestionBankTest.php | 4 |
 | QuestionTypesTest.php | 8 |
@@ -134,17 +158,22 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RoomScreenTest.php | 3 |
 | RoomsLogisticsTest.php | 6 |
 | RoutingIntegrityTest.php | 3 |
+| SaeedContractTest.php | 5 |
 | SamlSsoTest.php | 11 |
 | SampleForecastsMondayTest.php | 1 |
 | SecurityHardeningTest.php | 2 |
+| SijilContractTest.php | 5 |
+| SmsSandboxTest.php | 8 |
 | SocialFilesTest.php | 14 |
 | SpaFallbackTest.php | 2 |
 | SupabaseConnectionTest.php | 8 |
 | SupabaseSyncTest.php | 1 |
+| SupportSettingsTest.php | 7 |
 | SystemEndpointsTest.php | 8 |
 | TeamsActivityFeedTest.php | 7 |
 | TeamsIntegrationTest.php | 7 |
 | TeamsTownhallTest.php | 7 |
+| TemplateSmsDriverTest.php | 10 |
 | TestAccountsTest.php | 1 |
 | ThemeOccasionsTest.php | 7 |
 | ThemeTest.php | 10 |

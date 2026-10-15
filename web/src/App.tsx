@@ -52,6 +52,8 @@ const ApprovalsInbox = lazy(() => import('@/pages/admin/ApprovalsInbox'))
 const AdmissionSettings = lazy(() => import('@/pages/admin/AdmissionSettings'))
 const JoinForm = lazy(() => import('@/pages/public/JoinForm'))
 const Activate = lazy(() => import('@/pages/public/JoinForm').then((m) => ({ default: m.Activate })))
+const ForgotPassword = lazy(() => import('@/pages/public/PasswordReset').then((m) => ({ default: m.ForgotPassword })))
+const ResetPassword = lazy(() => import('@/pages/public/PasswordReset').then((m) => ({ default: m.ResetPassword })))
 const Kiosk = lazy(() => import('@/pages/admin/Kiosk'))
 const AttendanceOps = lazy(() => import('@/pages/admin/AttendanceOps'))
 const RoomsOps = lazy(() => import('@/pages/admin/RoomsOps'))
@@ -164,6 +166,8 @@ export default function App() {
           <Route path="trainers" element={<Trainers />} />
           <Route path="join/:slug" element={<JoinForm />} />
           <Route path="activate" element={<Activate />} />
+          <Route path="forgot" element={<ForgotPassword />} />
+          <Route path="reset" element={<ResetPassword />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="verify" element={<Verify />} />
           <Route path="verify/:code" element={<Verify />} />

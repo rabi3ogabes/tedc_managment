@@ -43,7 +43,8 @@ function PriorityRules() {
   const [preview, setPreview] = useState<{ employee: string; score: number }[] | null>(null)
   if (rules.isLoading || !rules.data) return <Spinner />
   const global = rules.data.data.find((r) => r.scope === 'global')
-  const crit = order ?? global?.criteria ?? rules.data.defaults.criteria
+  // Criteria are names; an older rule may still hold {key, weight} objects, which are read as their names.
+  const crit = order ?? (global?.criteria as (string | { key: string })[] | undefined)?.map((c) => (typeof c === 'string' ? c : c.key)) ?? rules.data.defaults.criteria
   const w = weights ?? { ...rules.data.defaults.weights, ...(global?.weights ?? {}) }
   const move = (i: number, d: number) => { const n = [...crit]; const j = i + d; if (j < 0 || j >= n.length) return; [n[i], n[j]] = [n[j], n[i]]; setOrder(n) }
   const toggle = (c: string) => setOrder(crit.includes(c) ? crit.filter((x) => x !== c) : [...crit, c])

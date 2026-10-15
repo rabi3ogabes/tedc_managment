@@ -33,6 +33,8 @@ return [
     'sso_failed' => 'Single sign-on failed. Try again or contact the training center.',
     'sso_off' => 'Single sign-on is not set up.',
     'sso_domain' => 'This account is not allowed to sign in here.',
+    'reset_invalid' => 'The reset link is invalid or has expired. Request a new one.',
+    'reset_mail_off' => 'E-mail is not set up yet, so a reset link cannot be sent. Contact the training centre.',
     'sso_redirect' => 'This address may not receive a sign-in.',
     'sso_pkce' => 'The app must sign in with PKCE (S256).',
     'saml_no_next_key' => 'There is no next key to switch to. Publish one first.',

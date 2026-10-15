@@ -3,6 +3,19 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-15 — Hardening pass: every screen opened as every role, fixes and two features
+A Playwright sweep opened all 140 routes as the public visitor and nine demo roles and recorded console errors, failed requests, error boundaries and untranslated keys; the findings below were fixed, with tests.
+- **Self-service password reset** (`POST /auth/forgot`, `POST /auth/reset`, pages `/forgot` and `/reset`, a link on the login page and in the app). The answer never reveals whether an account exists, accounts that must use single sign-on get no link, the link follows the password policy shown on the page, and a reset ends the account's other sessions. Both actions are audited.
+- **AI diagnosis of an error** (`POST /admin/error-logs/{id}/diagnose`): the model assigned to content work in Settings → AI models (a Claude key, for one) reads the scrubbed entry and answers with the likely cause, fix steps, files, how to verify and a confidence; the answer stays on the entry with a copy button. Without an assigned model the screen points to the settings.
+- **Claude connection**: the Anthropic model catalogue was requested from the wrong path, so no model could be picked after adding a key; it now lists the models from `/v1/models` with their display names.
+- **PostgreSQL only** (the red CI job): the learning-provider sync compared a text column with integer course ids (PHP turns numeric array keys into integers).
+- **Admission rules**: the sample seeder saved priority criteria as `{key, weight}` objects with unknown names, which broke the page (duplicate React keys, raw labels) and silently disabled prioritisation; the seeder, the service (unknown shapes fall back to the RFP defaults) and the page were corrected.
+- **Library**: items of type `article` showed a raw translation key; the type is now accepted, translated and unknown types show their name.
+- **Integrations hub**: a system never checked showed `idn.hub.health.null` instead of "unknown".
+- **Account pages** (`/activate`, `/forgot`, `/reset`) sat under the sticky public header.
+- Lint: the exam runner's auto-submit effect, the library reader and the knowledge-transfer form no longer trigger React warnings.
+- Data-classification register regenerated for the new columns.
+
 ### Added — by RFP phase
 - 00 Foundation: feature flags, production safety, RFP traceability pack.
 - 01 Roles with scopes, role switching, global search. 02 Programme structure, groups, annual plan, internal workshops.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
@@ -220,6 +221,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   FilledButton(
                     onPressed: _loading ? null : _submit,
                     child: _loading ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text(s.t('auth.signIn')),
+                  ),
+                  // The reset itself lives on the web portal (the link arrives by e-mail), so the app opens that page.
+                  TextButton(
+                    key: const ValueKey('forgot-password'),
+                    onPressed: () => launchUrl(Uri.parse('${AppConfig.webUrl}/forgot'), mode: LaunchMode.externalApplication),
+                    child: Text(s.t('auth.forgot')),
                   ),
                   ],
                   // A sign-in problem also shows when only the single sign-on button is on screen.

@@ -116,4 +116,26 @@ class AiModelsTest extends TestCase
         $this->assertSame([], $res->json('data.models'));
         $this->assertNull($res->json('data.assignments.text'));
     }
+
+    public function test_a_claude_key_lists_its_models_and_answers_through_the_messages_api(): void
+    {
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $c = $this->asUser($admin)->postJson('/api/v1/admin/settings/ai-models/connections', ['name' => 'Claude', 'driver' => 'anthropic', 'api_key' => 'sk-ant-secret-9876'])->assertCreated();
+        Http::fake([
+            'api.anthropic.com/v1/models' => Http::response(['data' => [['type' => 'model', 'id' => 'claude-sonnet-4-5', 'display_name' => 'Claude Sonnet 4.5'], ['type' => 'model', 'id' => 'claude-opus-4-1', 'display_name' => 'Claude Opus 4.1']]]),
+            'api.anthropic.com/v1/messages' => Http::response(['content' => [['type' => 'text', 'text' => 'مرحباً بمركز التدريب والتطوير.']]]),
+        ]);
+
+        // The catalogue comes from Anthropic's versioned endpoint with its own headers, and every Claude model is for content work.
+        $list = $this->asUser($admin)->getJson("/api/v1/admin/settings/ai-models/connections/{$c->json('id')}/catalog")->assertOk()->json('data');
+        $this->assertSame(['claude-sonnet-4-5', 'claude-opus-4-1'], array_column($list, 'id'));
+        $this->assertSame('Claude Sonnet 4.5', $list[0]['name']);
+        $this->assertSame(['text'], $list[0]['tasks']);
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/v1/models') && $r->hasHeader('x-api-key', 'sk-ant-secret-9876') && $r->hasHeader('anthropic-version'));
+
+        $m = $this->asUser($admin)->postJson('/api/v1/admin/settings/ai-models/models', ['connection_id' => $c->json('id'), 'model' => 'claude-sonnet-4-5', 'label' => 'Claude Sonnet', 'tasks' => ['text']])->assertCreated();
+        $this->asUser($admin)->putJson('/api/v1/admin/settings/ai-models/assignments', ['text' => $m->json('id')])->assertOk();
+        $this->assertSame('مرحباً بمركز التدريب والتطوير.', app(AiGateway::class)->text('sys', 'hello'));
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/v1/messages') && $r['model'] === 'claude-sonnet-4-5' && $r['system'] === 'sys');
+    }
 }

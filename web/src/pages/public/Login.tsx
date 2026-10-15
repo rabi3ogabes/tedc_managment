@@ -1,7 +1,7 @@
 import { Building2, Lock, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import MfaStep from '@/components/auth/MfaStep'
 import Logo from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
@@ -117,7 +117,10 @@ export default function Login() {
             </Field>
             {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</p>}
             <Button variant="primary" size="lg" className="w-full" loading={loading}>{t('auth.signIn')}</Button>
-            {options.data?.data.ldap && <button type="button" className="text-sm text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              {!directory && <Link to="/forgot" className="font-semibold text-link">{t('idn.pw.forgotLink')}</Link>}
+              {options.data?.data.ldap && <button type="button" className="text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
+            </div>
           </form>}</>)}
           {SHOW_DEMO && (
             <div className="mt-8 rounded-2xl border border-dashed border-gold-300 bg-gold-100/40 p-4">

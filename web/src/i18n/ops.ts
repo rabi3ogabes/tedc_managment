@@ -127,6 +127,11 @@ export const opsAr = {
     confirmDelete: 'حذف هذا الخطأ نهائياً؟', confirmDeleteMany: 'حذف الأخطاء المحددة نهائياً؟', prev: 'السابق', next: 'التالي',
     occurrences: 'مرات الحدوث', usersAffected: '{{count}} مستخدم', lastSeen: 'آخر حدوث', firstSeen: 'أول حدوث', location: 'المكان', request: 'الطلب', statusCode: 'رمز الحالة', user: 'المستخدم', version: 'إصدار التطبيق', exception: 'نوع الخطأ', ip: 'العنوان',
     device: 'الجهاز', context: 'السياق', stack: 'تفاصيل الخطأ', copy: 'نسخ', note: 'ملاحظة',
+    ai: {
+      ask: 'تشخيص بالذكاء الاصطناعي', again: 'إعادة التشخيص', title: 'تشخيص الذكاء الاصطناعي', hint: 'يقرأ النموذج المعيّن للمحتوى (مثل Claude) تفاصيل الخطأ بعد إخفاء البيانات الشخصية ويقترح السبب وخطوات الإصلاح.',
+      cause: 'السبب المرجّح', steps: 'خطوات الإصلاح', files: 'الملفات المعنية', verify: 'كيف تتحقق', outside: 'خارج الكود', confidence: { high: 'ثقة عالية', medium: 'ثقة متوسطة', low: 'ثقة منخفضة' }, at: 'شُخّص {{when}}', copy: 'نسخ التشخيص', copied: 'تم نسخ التشخيص',
+      openSettings: 'فتح إعدادات نماذج الذكاء الاصطناعي',
+    },
     settings: { button: 'الإعدادات', title: 'إعدادات سجل الأخطاء', enabled: 'تسجيل الأخطاء', enabledHint: 'إيقافه يوقف حفظ أي خطأ جديد.', autoFix: 'الإصلاح التلقائي', autoFixHint: 'تنفيذ العلاج المعروف للمشكلة (ترحيل قاعدة البيانات، مسح الذاكرة المؤقتة، تنظيف رموز الإشعارات القديمة).', clients: 'أخطاء الموقع والتطبيق', clientsHint: 'استقبال ما يبلّغ به الموقع والتطبيق عن أنفسهما.', retention: 'مدة الاحتفاظ بالمُصلَح (يوم)', retentionHint: 'تُحذف الأخطاء المُصلَحة أو المتجاهَلة الأقدم من ذلك تلقائياً.' },
   },
   impersonation: {
@@ -263,6 +268,11 @@ export const opsEn: typeof opsAr = {
     confirmDelete: 'Delete this error permanently?', confirmDeleteMany: 'Delete the selected errors permanently?', prev: 'Previous', next: 'Next',
     occurrences: 'Occurrences', usersAffected: '{{count}} users', lastSeen: 'Last seen', firstSeen: 'First seen', location: 'Where', request: 'Request', statusCode: 'Status code', user: 'User', version: 'App version', exception: 'Error type', ip: 'Address',
     device: 'Device', context: 'Context', stack: 'Details', copy: 'Copy', note: 'Note',
+    ai: {
+      ask: 'Diagnose with AI', again: 'Diagnose again', title: 'AI diagnosis', hint: 'The model assigned to content work (Claude, for example) reads the scrubbed error and proposes the cause and the fix.',
+      cause: 'Likely cause', steps: 'Fix steps', files: 'Files involved', verify: 'How to verify', outside: 'Outside the code', confidence: { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' }, at: 'Diagnosed {{when}}', copy: 'Copy diagnosis', copied: 'Diagnosis copied',
+      openSettings: 'Open AI model settings',
+    },
     settings: { button: 'Settings', title: 'Error log settings', enabled: 'Record errors', enabledHint: 'Switching it off stops saving any new error.', autoFix: 'Automatic fixing', autoFixHint: 'Apply the known remedy of a problem (database migration, clearing caches, removing stale push tokens).', clients: 'Website and app errors', clientsHint: 'Accept what the website and the app report about themselves.', retention: 'Keep fixed entries for (days)', retentionHint: 'Fixed or ignored errors older than this are deleted automatically.' },
   },
   impersonation: {

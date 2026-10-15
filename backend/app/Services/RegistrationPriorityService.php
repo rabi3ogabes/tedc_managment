@@ -25,8 +25,13 @@ class RegistrationPriorityService
             ->orWhere(fn ($w) => $w->where('scope', 'program')->where('scope_id', $program->id))->orWhere('scope', 'global'))
             ->get()->sortBy(fn ($r) => ['group' => 0, 'program' => 1, 'global' => 2][$r->scope])->first();
 
+        // Stored criteria are names; a rule saved in another shape ({key, weight} objects) or naming unknown criteria is read
+        // for what it can mean, and an empty result falls back to the RFP defaults rather than ranking nobody.
+        $known = array_merge(self::DEFAULT_CRITERIA, ['job_title_in']);
+        $criteria = array_values(array_filter(array_map(fn ($c) => is_array($c) ? ($c['key'] ?? null) : $c, (array) ($rule?->criteria ?? [])), fn ($c) => is_string($c) && in_array($c, $known, true)));
+
         return [
-            'criteria' => $rule->criteria ?? self::DEFAULT_CRITERIA,
+            'criteria' => $criteria ?: self::DEFAULT_CRITERIA,
             'weights' => array_replace(self::DEFAULT_WEIGHTS, $rule?->weights ?? []),
             'job_title_ids' => $rule?->weights['job_title_ids'] ?? [],
         ];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ErrorLog;
 use App\Services\ErrorAutoFixer;
+use App\Services\ErrorDiagnosis;
 use App\Services\ErrorLogService;
 use App\Services\ErrorLogSettings;
 use App\Services\ErrorPromptBuilder;
@@ -79,6 +80,20 @@ class ErrorLogController extends Controller
             $data += ['resolved_at' => $data['status'] === 'open' ? null : now(), 'resolved_by' => $data['status'] === 'open' ? null : $request->user()->id, 'auto_fixed' => false];
         }
         $log->update($data);
+
+        return response()->json(['data' => $this->present($log->refresh(), true)]);
+    }
+
+    /** Asks the assigned AI model for a diagnosis of this error (cause, fix steps, files, verification) and keeps it on the entry. */
+    public function diagnose(ErrorLog $log, ErrorDiagnosis $ai): JsonResponse
+    {
+        if (! $ai->available()) {
+            return response()->json(['message' => __('messages.logs.ai_unassigned'), 'code' => 'ai_unassigned'], 409);
+        }
+        $diagnosis = $ai->diagnose($log);
+        if ($diagnosis === null) {
+            return response()->json(['message' => __('messages.logs.ai_failed'), 'code' => 'ai_failed'], 502);
+        }
 
         return response()->json(['data' => $this->present($log->refresh(), true)]);
     }
@@ -163,6 +178,7 @@ class ErrorLogController extends Controller
             'user_email' => $l->user_email, 'app_version' => $l->app_version, 'status' => $l->status, 'auto_fixed' => $l->auto_fixed, 'note' => $l->note,
             'first_seen_at' => $l->first_seen_at?->toIso8601String(), 'last_seen_at' => $l->last_seen_at?->toIso8601String(), 'resolved_at' => $l->resolved_at?->toIso8601String(),
             'fixable' => $rule !== null && $rule !== 'transient', 'fix_label' => $rule ? $this->fixer->label($rule) : null, 'fix_attempts' => $l->fix_attempts,
+            'ai_diagnosis' => $l->ai_diagnosis, 'ai_diagnosed_at' => $l->ai_diagnosed_at?->toIso8601String(),
         ] + ($full ? ['stack' => $l->stack, 'device' => $l->device, 'context' => $l->context, 'user_agent' => $l->user_agent, 'ip' => $l->ip, 'user_id' => $l->user_id] : []);
     }
 }

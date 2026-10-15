@@ -72,14 +72,16 @@ export default function ExamRunner() {
   }, [attempt, nav, t])
 
   useEffect(() => { const i = window.setInterval(() => void save(), 5000); return () => window.clearInterval(i) }, [save])
-  useEffect(() => { if (left === null || finished.current) return; const i = window.setInterval(() => setLeft((s) => (s === null ? s : Math.max(0, s - 1))), 1000); return () => window.clearInterval(i) }, [left === null])
-  useEffect(() => { if (left === 0 && attempt && !finished.current) void submit() }, [left]) // eslint-disable-line react-hooks/exhaustive-deps
+  const timerRunning = left !== null
+  useEffect(() => { if (!timerRunning || finished.current) return; const i = window.setInterval(() => setLeft((s) => (s === null ? s : Math.max(0, s - 1))), 1000); return () => window.clearInterval(i) }, [timerRunning])
 
-  const submit = async () => {
+  const submit = useCallback(async () => {
     if (!attempt || finished.current) return
     finished.current = true
     try { dirty.current = true; await api.put(`/me/attempts/${attempt.id}/answers`, { answers: answersRef.current }).catch(() => undefined); await api.post(`/me/attempts/${attempt.id}/submit`); nav(`/portal/attempts/${attempt.id}`, { replace: true }) } catch (e) { finished.current = false; toast(errorMessage(e), 'error') }
-  }
+  }, [attempt, nav])
+  // Time is up: the attempt is handed in on the learner's behalf.
+  useEffect(() => { if (left === 0 && attempt && !finished.current) void submit() }, [left, attempt, submit])
 
   // Integrity events: reported only when the assessment turns proctoring on; the server ignores them otherwise.
   // Each event is its name only — the camera check never sends an image.

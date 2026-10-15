@@ -209,4 +209,8 @@ return [
         'bad_link' => 'A link must start with http:// or https://',
         'reason_required' => 'Give the reason for hiding it.',
     ],
+    'logs' => [
+        'ai_unassigned' => 'No AI model is assigned to "content" work. Add a connection (a Claude key, for example) and assign a model under Settings → AI models.',
+        'ai_failed' => 'The model did not answer this time. Try again shortly or check the key in Settings.',
+    ],
 ];
