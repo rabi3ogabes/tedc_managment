@@ -265,7 +265,10 @@ const en: Dictionary = {
       development: 'Employee development', trained: 'Trained', untrained: 'Not yet trained', skillsAcquired: 'Skills acquired', skillTrends: 'Skill trends',
       categoryPerformance: 'Category performance', snapshot: 'Save report snapshot',
     },
-    geo: { title: 'Geographic analytics', subtitle: 'School participation, coverage and gaps by region', coverage: 'Coverage', gap: 'Gap', lowest: 'Lowest coverage schools', openNeeds: 'Open needs' },
+    geo: { title: 'Geographic analytics', subtitle: 'School participation, coverage and gaps by region', coverage: 'Coverage', gap: 'Gap', lowest: 'Lowest coverage schools', openNeeds: 'Open needs',
+      gender: 'Gender', zones: 'Educational zones', zonesHint: 'Press a zone to list its schools, filtered by type and gender.', zoneSchools: 'Schools of {{zone}}', schoolsCount: '{{count}} schools',
+      typeAll: 'All types', typeGovernment: 'Government schools', typePrivate: 'Private schools', typeOther: 'Other', genderAll: 'All', genderBoys: 'Boys schools', genderGirls: 'Girls schools', genderMixed: 'Mixed',
+      search: 'Search by school name or code…', noSchools: 'No schools match the filters.', stage: 'Stage', staff: 'Staff', notSet: 'Not set', showOnMap: 'On the map' },
     ai: {
       title: 'AI training assistant', subtitle: 'Ask about programs to create, gaps and target groups — grounded in live platform data',
       placeholder: 'e.g. What training programs should we create for teachers?', ask: 'Ask', suggestions: 'Suggested programs', insights: 'Key insights',
