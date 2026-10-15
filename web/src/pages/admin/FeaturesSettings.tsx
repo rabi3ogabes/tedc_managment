@@ -20,8 +20,11 @@ export default function FeaturesSettings() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language === 'ar' ? 'ar' : 'en'
   const { data, isLoading, refetch } = useGet<{ data: Row[] }>('/admin/features', undefined, { staleTime: 0 })
-  const env = useFeatures().data?.data.environment
+  const featureMap = useFeatures().data?.data
+  const env = featureMap?.environment
   const production = env === 'production'
+  // Demo accounts and scenarios are governed by the server's demo guard, not by these switches alone.
+  const demoBlocked = production && featureMap?.demo_allowed === false
   const [asking, setAsking] = useState<Row | null>(null)
   const [reason, setReason] = useState('')
   const [open, setOpen] = useState<string | null>(null)
@@ -60,6 +63,7 @@ export default function FeaturesSettings() {
         {r.history.length > 0 && <button type="button" onClick={() => setOpen(open === r.key ? null : r.key)} className="inline-flex items-center gap-1 font-bold text-navy-700"><History className="size-3.5" />{t('features.history')}</button>}
         {busy === r.key && <Spinner className="size-4" />}
       </div>
+      {demoBlocked && (r.key === 'test_accounts' || r.key === 'demo_scenarios') && <p className="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-900" role="note">{t('features.demoBlocked')}</p>}
       {open === r.key && (
         <ul className="space-y-1.5 rounded-xl bg-ivory p-3 text-xs">
           {r.history.map((h, i) => <li key={i} className="flex flex-wrap gap-x-3"><span className={h.enabled ? 'font-bold text-emerald-700' : 'font-bold text-slate-500'}>{h.enabled ? t('features.on') : t('features.off')}</span><span>{h.by ?? '—'}</span><span className="text-slate-400">{fmt.dateTime(h.at)}</span>{h.reason && <span className="basis-full text-slate-600">{h.reason}</span>}</li>)}

@@ -15,7 +15,7 @@ const en: Dictionary = {
     backToTop: 'Back to top', fewSeats: 'Only {{count}} seats left',
     all: 'All', view: 'View', details: 'Details', back: 'Back', submit: 'Submit', close: 'Close', yes: 'Yes', no: 'No', hours: 'hours',
     seats: 'seats', seatsAvailable: 'seats left', required: 'Required', optional: 'Optional', actions: 'Actions', status: 'Status', date: 'Date',
-    noData: 'Nothing to show yet', error: 'Something went wrong', retry: 'Retry', readMore: 'Read more', viewAll: 'View all',
+    noData: 'Nothing to show yet', error: 'Something went wrong', retry: 'Retry', forbiddenTitle: 'This page is outside your permissions', forbiddenHint: 'Your current role may not open it, or the feature is switched off. Ask the system administrator if you need it.', goHome: 'Back to my home page', readMore: 'Read more', viewAll: 'View all',
     download: 'Download', upload: 'Upload', export: 'Export', import: 'Import', next: 'Next', previous: 'Previous', sessions: 'sessions', from: 'From', to: 'To',
     approve: 'Approve', reject: 'Reject', publish: 'Publish', saved: 'Saved successfully', confirm: 'Confirm', name: 'Name', email: 'Email', phone: 'Phone',
   },

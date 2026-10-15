@@ -29,7 +29,7 @@ export default function Templates() {
   const manage = can('certificates.issue')
 
   if (isLoading) return <Spinner />
-  if (error || !data) return <ErrorState onRetry={refetch} />
+  if (error || !data) return <ErrorState error={error} onRetry={refetch} />
   const rows = data.data
 
   const create = async () => {

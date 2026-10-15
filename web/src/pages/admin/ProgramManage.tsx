@@ -39,7 +39,7 @@ export default function ProgramManage() {
   const [notice, setNotice] = useState<string | null>(null)
   const { data, isLoading, error, refetch } = useGet<{ data: Program }>(`/admin/programs/${id}`)
   if (isLoading) return <Spinner />
-  if (error || !data) return <ErrorState onRetry={refetch} />
+  if (error || !data) return <ErrorState error={error} onRetry={refetch} />
   const p = data.data
 
   const issueAll = async () => {

@@ -15,6 +15,9 @@ A Playwright sweep opened all 140 routes as the public visitor and nine demo rol
 - **Account pages** (`/activate`, `/forgot`, `/reset`) sat under the sticky public header.
 - Lint: the exam runner's auto-submit effect, the library reader and the knowledge-transfer form no longer trigger React warnings.
 - Data-classification register regenerated for the new columns.
+- **Demonstration site** (`TEDC_DEMO_SITE=true`): a production deployment can declare itself a demonstration site in its hosting environment; only then do the test-accounts and demo-scenario switches show the demo accounts on the sign-in screens. Settings → Features says so next to those two switches when the server is production and the variable is not set, instead of a switch that looks on and does nothing.
+- **Permission-denied pages**: a page a role may not open (or a switched-off feature) now says so and offers the way back to the person's home page, instead of "unexpected error" with a retry; the trainer, supervisor, kit developer and QA accounts met this on `/admin`.
+- Needs hub: the sample proposal status `approved` has a label.
 
 ### Added — by RFP phase
 - 00 Foundation: feature flags, production safety, RFP traceability pack.

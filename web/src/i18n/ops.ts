@@ -92,6 +92,7 @@ export const opsAr = {
     askTitle: 'تفعيل «{{name}}»', askBody: 'هذه الأداة تُستخدم بحذر على النظام الحي. اكتب سبب التفعيل ليُحفظ في سجل التدقيق.', reason: 'السبب', reasonPlaceholder: 'مثال: عرض للوزارة يوم الأحد', turnOn: 'تفعيل', cancel: 'إلغاء',
     banner: 'أدوات حذرة مفعّلة على النظام الحي: {{tools}}.', review: 'مراجعة',
     names: { impersonation: 'الدخول بحساب مستخدم', test_accounts: 'الحسابات التجريبية', demo_scenarios: 'سيناريو العرض', self_heal: 'الإصلاح التلقائي' },
+    demoBlocked: 'هذا الخادم يعمل بوضع الإنتاج، فالحسابات التجريبية وسيناريو العرض لا يظهران مهما كان هذا المفتاح. لتحويل هذا النشر إلى موقع عرض، أضف المتغير TEDC_DEMO_SITE=true في إعدادات الاستضافة (Vercel ← Environment Variables) ثم أعد النشر؛ أو استخدم نشراً تجريبياً بـ APP_ENV=staging.',
   },
   rfp: {
     title: 'الامتثال لكراسة الشروط', subtitle: 'تغطية المنصة لمتطلبات كراسة الشروط حسب الوحدة والمرحلة، مع الدليل على كل متطلب.', coverage: 'نسبة التغطية (المتوفر كاملاً + نصف الجزئي)',
@@ -233,6 +234,7 @@ export const opsEn: typeof opsAr = {
     askTitle: 'Turn on “{{name}}”', askBody: 'This tool is used with care on a live system. Write why it is needed; it is kept in the audit log.', reason: 'Reason', reasonPlaceholder: 'For example: presentation to the Ministry on Sunday', turnOn: 'Turn on', cancel: 'Cancel',
     banner: 'Careful tools are switched on on the live system: {{tools}}.', review: 'Review',
     names: { impersonation: 'Sign in as a user', test_accounts: 'Test accounts', demo_scenarios: 'Demo scenario', self_heal: 'Automatic fixing' },
+    demoBlocked: 'This server runs in production, so the test accounts and the demo scenario never appear whatever this switch says. To make this deployment a demonstration site, add TEDC_DEMO_SITE=true to the hosting environment (Vercel → Environment Variables) and redeploy, or use a staging deployment with APP_ENV=staging.',
   },
   rfp: {
     title: 'RFP compliance', subtitle: 'How much of the RFP the platform covers, per module and phase, with the evidence for each requirement.', coverage: 'Coverage (fully available + half of partial)',

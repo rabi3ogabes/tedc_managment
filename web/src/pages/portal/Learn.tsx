@@ -75,7 +75,7 @@ export default function Learn() {
   }
 
   if (outline.isLoading) return <Spinner />
-  if (outline.error || !o) return <ErrorState onRetry={() => outline.refetch()} />
+  if (outline.error || !o) return <ErrorState error={outline.error} onRetry={() => outline.refetch()} />
   const s = o.summary
 
   return (

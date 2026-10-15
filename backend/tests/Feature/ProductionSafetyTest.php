@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Services\ErrorLogService;
 use App\Services\FeatureSettings;
 use App\Support\DemoGuard;
@@ -22,6 +23,14 @@ class ProductionSafetyTest extends TestCase
 
         $this->production();
         $this->assertFalse(DemoGuard::allowed());
+
+        // A deployment declared a demonstration site in its hosting environment is the one exception.
+        config(['tedc.demo_site' => true]);
+        $this->assertTrue(DemoGuard::allowed());
+        // ...and the sign-in screens still need the test-accounts switch, which starts off in production.
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false);
+        app(FeatureSettings::class)->set('test_accounts', true, 'demonstration site', $this->makeUser(Role::SUPER_ADMIN));
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
     }
 
     public function test_in_production_the_error_fixer_only_suggests_unless_self_heal_is_on(): void

@@ -35,7 +35,7 @@ export default function KpiDashboard() {
   const { t } = useTranslation()
   const L = useLang()
   const { can } = useAuth()
-  const { data, isLoading, isError, refetch } = useGet<{ data: any[] }>('/admin/kpis', undefined, { refetchInterval: 30_000, staleTime: 0 })
+  const { data, isLoading, isError, refetch, error } = useGet<{ data: any[] }>('/admin/kpis', undefined, { refetchInterval: 30_000, staleTime: 0 })
   const integrity = useGet<{ data: any }>('/admin/kpis/integrity', undefined, { staleTime: 60_000 })
   const [editing, setEditing] = useState(false)
   const [targets, setTargets] = useState<Record<string, string>>({})
@@ -44,7 +44,7 @@ export default function KpiDashboard() {
   const lang = useTranslation().i18n.language
 
   if (isLoading) return <Spinner />
-  if (isError || !data) return <ErrorState onRetry={refetch} />
+  if (isError || !data) return <ErrorState error={error} onRetry={refetch} />
   const rows = data.data
   const breaches = rows.filter((m) => m.status === 'breach')
 

@@ -207,7 +207,7 @@ export default function Designer() {
   }, [dirty])
 
   if (query.isLoading || (query.data && !tpl)) return <Spinner />
-  if (query.error || !tpl || !meta) return <ErrorState onRetry={() => query.refetch()} />
+  if (query.error || !tpl || !meta) return <ErrorState error={query.error} onRetry={() => query.refetch()} />
 
   // Saving, preview, files ----------------------------------------------------------------------------------------
   const save = async () => {

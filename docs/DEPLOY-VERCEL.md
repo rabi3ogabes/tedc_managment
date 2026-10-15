@@ -41,6 +41,10 @@ defaults in `backend/scripts/vercel-env.php`. Only the secrets go into Vercel â†
 Any other variable from `backend/.env.example` can still be set to override a default, for example
 `TEDC_SEED_DEMO=false` for a production launch or `ANTHROPIC_API_KEY` for the AI assistant.
 
+A deployment that exists to demonstrate the platform sets `TEDC_DEMO_SITE=true` here: the production guards stay on, but the
+test-accounts and demo-scenario switches in Settings â†’ Features then really show the demo accounts on the sign-in screens.
+Without it those switches do nothing on a production deployment, and the Features screen says so.
+
 ## 3. Deploy: the database sets itself up
 
 Redeploy after saving the variables. The build (`backend/scripts/vercel-build.php`) then runs the migrations and

@@ -126,8 +126,27 @@ export function Empty({ text, icon }: { text?: string; icon?: ReactNode }) {
   )
 }
 
-export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
+/** The HTTP status behind a failed request, when the error came from the API. */
+function statusOf(error: unknown): number | undefined {
+  return (error as { response?: { status?: number } } | undefined)?.response?.status
+}
+
+/**
+ * A failed load. A 403 is not a fault: the page is outside the person's permissions (or the feature is switched off), so it
+ * says so and offers the way back instead of "unexpected error" and a retry that cannot help.
+ */
+export function ErrorState({ message, onRetry, error, home }: { message?: string; onRetry?: () => void; error?: unknown; home?: string }) {
   const { t } = useTranslation()
+  if (statusOf(error) === 403) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-14 text-center" role="status">
+        <span className="grid size-14 place-items-center rounded-2xl bg-navy-100 text-navy-900"><AlertTriangle className="size-7" /></span>
+        <p className="font-display text-lg font-bold text-navy-900">{t('common.forbiddenTitle')}</p>
+        <p className="max-w-md text-sm text-slate-600">{message ?? t('common.forbiddenHint')}</p>
+        <Link to={home ?? '/'} className="mt-1"><Button variant="primary" size="sm">{t('common.goHome')}</Button></Link>
+      </div>
+    )
+  }
   return (
     <div className="flex flex-col items-center gap-3 py-14 text-center">
       <AlertTriangle className="size-8 text-danger" />

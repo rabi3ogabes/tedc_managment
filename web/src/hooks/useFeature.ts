@@ -1,6 +1,6 @@
 import { useGet } from './useApi'
 
-export type FeatureMap = { flags: Record<string, boolean>; unsafe_active: string[]; environment: string }
+export type FeatureMap = { flags: Record<string, boolean>; unsafe_active: string[]; environment: string; demo_allowed?: boolean }
 
 /** Which features the administrator has switched on (read once, cached for five minutes). */
 export function useFeatures() {

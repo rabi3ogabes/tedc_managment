@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { BarsChart, DonutChart, TrendChart } from '@/components/admin/charts'
 import { Card, CardTitle, ErrorState, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
-import { useAuth } from '@/lib/auth'
+import { useAuth, homeFor } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import RoleDashboard from '@/components/dashboard/RoleDashboard'
 import JourneyTracker from './dashboard/JourneyTracker'
@@ -23,7 +23,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const { data, isLoading, error, refetch } = useGet<{ data: DashboardData }>('/admin/dashboard')
   if (isLoading) return <Spinner />
-  if (error || !data) return <ErrorState onRetry={refetch} />
+  if (error || !data) return <ErrorState error={error} onRetry={refetch} home={user ? homeFor(user) : '/'} />
   const d = data.data
 
   const trend = d.trend.registrations.map((r, i) => ({ label: fmt.month(r.month), registrations: r.total, completions: d.trend.completions[i]?.total ?? 0 }))

@@ -13,7 +13,7 @@ const ar = {
     backToTop: 'العودة للأعلى', fewSeats: 'بقي {{count}} مقاعد فقط',
     all: 'الكل', view: 'عرض', details: 'التفاصيل', back: 'رجوع', submit: 'إرسال', close: 'إغلاق', yes: 'نعم', no: 'لا', hours: 'ساعة',
     seats: 'مقعد', seatsAvailable: 'مقعد متاح', required: 'مطلوب', optional: 'اختياري', actions: 'الإجراءات', status: 'الحالة', date: 'التاريخ',
-    noData: 'لا توجد بيانات لعرضها', error: 'حدث خطأ غير متوقع', retry: 'إعادة المحاولة', readMore: 'اقرأ المزيد', viewAll: 'عرض الكل',
+    noData: 'لا توجد بيانات لعرضها', error: 'حدث خطأ غير متوقع', retry: 'إعادة المحاولة', forbiddenTitle: 'هذه الصفحة خارج صلاحياتك', forbiddenHint: 'دورك الحالي لا يملك صلاحية عرضها، أو أن الميزة غير مفعّلة. إن كنت تحتاجها فاطلبها من مسؤول النظام.', goHome: 'العودة إلى صفحتي الرئيسية', readMore: 'اقرأ المزيد', viewAll: 'عرض الكل',
     download: 'تحميل', upload: 'رفع', export: 'تصدير', import: 'استيراد', next: 'التالي', previous: 'السابق', sessions: 'جلسات', from: 'من', to: 'إلى',
     approve: 'اعتماد', reject: 'رفض', publish: 'نشر', saved: 'تم الحفظ بنجاح', confirm: 'تأكيد', name: 'الاسم', email: 'البريد الإلكتروني', phone: 'الهاتف',
   },

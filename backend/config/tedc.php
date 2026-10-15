@@ -35,6 +35,10 @@ return [
 
     'web_url' => env('TEDC_WEB_URL') ?: env('APP_URL', 'http://localhost:5173'),
 
+    // A production deployment that is a demonstration site (sample data, demo accounts on the sign-in screen). Set once in the
+    // hosting environment, never from a screen; APP_ENV stays production so every other live-system guard still applies.
+    'demo_site' => filter_var(env('TEDC_DEMO_SITE', false), FILTER_VALIDATE_BOOL),
+
     // Single sign-on in the app: the only addresses a finished sign-in may be sent to (comma separated). The app's own scheme works without
     // a domain; with a verified domain add its app-link address (docs/security/identity-methods.md). Nothing else is ever accepted.
     'mobile' => ['sso_redirects' => array_values(array_filter(array_map('trim', explode(',', (string) env('TEDC_MOBILE_SSO_REDIRECTS', 'qa.edu.tedc.app://sso')))))],

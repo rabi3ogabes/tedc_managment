@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\FeatureSettings;
+use App\Support\DemoGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class FeaturesController extends Controller
 
     public function map(): JsonResponse
     {
-        return response()->json(['data' => ['flags' => $this->features->map(), 'unsafe_active' => $this->features->unsafeActive(), 'environment' => app()->environment()]]);
+        return response()->json(['data' => ['flags' => $this->features->map(), 'unsafe_active' => $this->features->unsafeActive(), 'environment' => app()->environment(), 'demo_allowed' => DemoGuard::allowed()]]);
     }
 
     public function index(): JsonResponse

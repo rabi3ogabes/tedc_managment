@@ -77,7 +77,7 @@ export default function SurveyStudio() {
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('beforeunload', beforeUnload) }
   }, [persist, save])
 
-  if (query.error) return <ErrorState onRetry={() => query.refetch()} />
+  if (query.error) return <ErrorState error={query.error} onRetry={() => query.refetch()} />
   if (!draft) return <div className="space-y-4"><Skeleton className="h-24 w-full rounded-3xl" /><Skeleton className="h-[480px] w-full rounded-3xl" /></div>
 
   const questions = draft.questions

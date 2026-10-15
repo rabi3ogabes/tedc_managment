@@ -118,7 +118,12 @@ export function homeFor(user: Me): string {
   const active = user.active_role ?? user.roles.find((r) => r.active)
   if (active?.landing_route) return active.landing_route
   const staff = ['super_admin', 'center_admin', 'program_coordinator', 'executive', 'school_admin', 'trainer']
-  if (user.roles.some((r) => staff.includes(r.slug))) return '/admin'
+  const has = (p: string) => user.permissions.includes(p) || user.roles.some((r) => r.slug === 'super_admin')
+  if (user.roles.some((r) => staff.includes(r.slug))) {
+    // The dashboard needs its own permission: a trainer, for one, starts at the programs they teach instead.
+    if (has('dashboard.view')) return '/admin'
+    if (has('programs.view')) return '/admin/programs'
+  }
   // Kit developers and the QA team work in the Training Kit Studio.
   return user.roles.some((r) => ['kit_developer', 'qa_reviewer'].includes(r.slug)) ? '/admin/kits' : '/portal'
 }
