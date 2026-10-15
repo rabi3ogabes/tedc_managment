@@ -58,3 +58,6 @@ New / changed (web)
 ## 6. Exact next step
 
 Phase 7 — reporting and the dashboard: the PLC overview (workshops by state, source and school; attendance and evaluation rates; needs converted), per-community and per-school reports with export. Report in `docs/plc/07-phase7-reporting.md`.
+
+---
+Full suite after Phase 6 (`php artisan test --compact`, Windows): 1172 tests, 1102 passed, 15861 assertions. The only failures are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors in SamlSso/LtiTool/PushNotifications/Lti/SupabaseConnection/IdentitySecurity); every PLC, evaluation, cron and classification test passes.
