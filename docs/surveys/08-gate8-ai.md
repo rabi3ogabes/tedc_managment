@@ -61,3 +61,6 @@ New / changed (web)
 | 8 | AI assistance | this commit |
 
 Decisions still open for the Ministry, gathered from the gate reports: replacing the fixed satisfaction form with an engine survey (changes the mobile app); when to run the data migration on live data; whether frozen aggregates should expire; the Azure move before go-live; how sparingly to grant `surveys.results.identified`. Everything else in the master prompt's scope is in place behind `survey_studio_v2`.
+
+---
+Full suite after Gate 8 (`php artisan test --compact`, Windows): 1168 tests, 1098 passed, 15599 assertions. The 4 failures and 54 errors are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, openssl in SamlSso / Lti / PushNotifications / SupabaseConnection / IdentitySecurity); nothing in the Survey Studio suites fails.
