@@ -67,3 +67,6 @@ New / changed (web)
 ## 7. Exact next step
 
 Gate 6 — analytics and exports on the engine: per-survey results with segments under the threshold rule, cross-survey comparisons, Arabic PDF / Excel / CSV exports, and the needs report natively on engine surveys. Report in `docs/surveys/06-gate6-analytics.md`.
+
+---
+Full suite after Gate 5 (`php artisan test --compact`, Windows): 1163 tests, 1093 passed, 15398 assertions. The 4 failures and 54 errors are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, openssl in SamlSso / Lti / PushNotifications / SupabaseConnection / IdentitySecurity).
