@@ -5,6 +5,7 @@ namespace App\Services\Surveys;
 use App\Models\Employee;
 use App\Models\Survey;
 use App\Models\User;
+use App\Services\NeedsSurveys\SurveyAnalyzer;
 use Illuminate\Support\Str;
 
 /**
@@ -30,6 +31,12 @@ class SurveyPrivacy
     public static function respondentKey(Survey $survey, User $user): string
     {
         return $survey->isIdentified() ? $user->id : self::hmac($survey, $user);
+    }
+
+    /** The key of one person's answer inside a context (an evaluation assignment): the same survey may be answered once per context. */
+    public static function contextKey(Survey $survey, User $user, string $contextId): string
+    {
+        return hash('sha256', self::respondentKey($survey, $user).'|'.$contextId);
     }
 
     public static function pseudonym(Survey $survey, User $user): ?string
@@ -91,14 +98,8 @@ class SurveyPrivacy
         if ($years === null || ! is_numeric($years)) {
             return null;
         }
-        $y = (float) $years;
 
-        return match (true) {
-            $y < 3 => '0-2',
-            $y < 6 => '3-5',
-            $y < 11 => '6-10',
-            $y < 21 => '11-20',
-            default => '21+',
-        };
+        // The same bands the audience filters and the needs reports use, so a segment means one thing everywhere.
+        return SurveyAnalyzer::band((float) $years);
     }
 }

@@ -13,13 +13,15 @@ import { CHOICE_TYPES, JUMP_TYPES, NO_ANSWER, OPERATORS, SCALED_TYPES, blank, ui
 import { toast } from '@/lib/toast'
 
 type Detail = {
-  id: string; kind: string; title_ar: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; status: string; privacy_mode: 'identified' | 'confidential' | 'anonymous'
+  id: string; kind: string; title_ar: string; title_en?: string | null; description_ar?: string | null; description_en?: string | null; status: string; privacy_mode: 'identified' | 'confidential' | 'anonymous'; legacy_type?: 'needs_survey' | 'evaluation_form' | null; legacy_id?: string | null
   questions: Question[]; audience: Record<string, unknown> | null; settings: Settings; opens_at?: string | null; closes_at?: string | null; retention_days?: number | null
   approval: { approved: boolean; required: boolean; reviewed_by?: string | null; reviewed_at?: string | null; note?: string | null }; version: { number: number; published_at: string } | null
   has_unpublished_changes: boolean; stats: { participants: number; answered: number; response_rate: number | null; submissions: number }; is_open: boolean
 }
 type Catalog = { kinds: string[]; privacy_modes: string[]; segment_fields: string[]; accept: string[]; defaults: { segment_threshold: number; retention_days: number } }
 type Tab = 'build' | 'settings' | 'audience' | 'distribute' | 'preview' | 'versions'
+/** Kinds whose respondents come from the evaluation centre's assignments, not from audience filters. */
+const ASSIGNED_KINDS = ['trainer_reflection', 'planning_evaluation', 'supervisor_feedback', 'specialist_feedback', 'custom', 'impact_trainee', 'impact_manager']
 const TONE: Record<string, 'gray' | 'amber' | 'green' | 'navy'> = { draft: 'gray', in_review: 'amber', approved: 'green', published: 'navy', closed: 'gray', archived: 'gray' }
 const ICONS: Record<QuestionType, typeof Type> = { section: Heading, instructions: Info, page_break: Scissors, short_text: Type, long_text: AlignLeft, email: AtSign, phone: Phone, number: Hash, date: Calendar, time: Clock, single: CircleDot, multiple: CheckSquare, dropdown: ChevronDown, yes_no: ThumbsUp, rating: Star, scale: SlidersHorizontal, likert: Rows3, nps: Gauge, matrix: Grid3x3, ranking: ListOrdered, file_upload: FileUp }
 const GROUPS: { key: string; types: QuestionType[] }[] = [
@@ -85,10 +87,11 @@ export default function Studio() {
   return (
     <>
       <PageHeader
-        title={<span className="flex flex-wrap items-center gap-3">{title}<Badge color={TONE[d.status] ?? 'gray'}>{t(`ss.state.${d.status}`)}</Badge>{d.version && <Badge color="gold">{t('ss.list.version')} {d.version.number}</Badge>}<Badge color="gray">{t(`ss.privacy.${d.privacy_mode}`)}</Badge></span>}
+        title={<span className="flex flex-wrap items-center gap-3">{title}<Badge color={TONE[d.status] ?? 'gray'}>{t(`ss.state.${d.status}`)}</Badge>{d.version && <Badge color="gold">{t('ss.list.version')} {d.version.number}</Badge>}<Badge color="gray">{t(`ss.privacy.${d.privacy_mode}`)}</Badge>{d.legacy_type && <Badge color="amber">{t(`ss.legacy.${d.legacy_type}`)}</Badge>}</span>}
         subtitle={d.approval.required ? (d.approval.approved ? t('ss.studio.approved') : t('ss.studio.notApproved')) : undefined}
         actions={<div className="flex flex-wrap gap-2">
           <Button variant="outline" to="/admin/surveys">{t('ss.list.title')}</Button>
+          {d.legacy_type && <Button variant="ghost" to={d.legacy_type === 'needs_survey' ? `/admin/needs/surveys/${d.legacy_id}?view=results` : '/admin/evaluation-forms'}>{t('ss.legacy.openLegacy')}</Button>}
           {editable && <Button variant={dirty ? 'gold' : 'outline'} icon={<Save className="size-4" />} loading={save.isPending} onClick={persist}>{dirty ? t('ss.studio.save') : t('ss.studio.saved')}</Button>}
           {editable && d.status === 'draft' && d.approval.required && !d.approval.approved && <Button variant="outline" onClick={() => run('submit-review')}>{t('ss.studio.actions.submitReview')}</Button>}
           {can('surveys.approve') && ['draft', 'in_review', 'published', 'closed'].includes(d.status) && !d.approval.approved && <Button variant="primary" onClick={() => setAction('approve')}>{t('ss.studio.actions.approve')}</Button>}
@@ -144,7 +147,7 @@ export default function Studio() {
       {tab === 'settings' && (
         <SettingsTab d={d} cat={cat} meta={meta} settings={settings} editable={editable} onMeta={(m) => { setMeta(m); setDirty(true) }} onSettings={(s) => { setSettings(s); setDirty(true) }} />
       )}
-      {tab === 'audience' && <AudienceTab id={d.id} audience={audience} editable={editable} onChange={(a) => { setAudience(a); setDirty(true) }} />}
+      {tab === 'audience' && (ASSIGNED_KINDS.includes(d.kind) ? <Card><p className="text-sm leading-7 text-slate-600">{t('ss.studio.audienceByAssignment')}</p></Card> : <AudienceTab id={d.id} audience={audience} editable={editable} onChange={(a) => { setAudience(a); setDirty(true) }} />)}
       {tab === 'preview' && (
         <Card padded={false}>
           <p className="border-b border-slate-100 px-5 py-3 text-xs text-slate-500">{t('ss.studio.previewHint')}</p>

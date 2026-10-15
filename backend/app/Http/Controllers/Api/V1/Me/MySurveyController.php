@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Http\Controllers\Controller;
 use App\Models\Survey;
+use App\Services\IndividualNeedsService;
 use App\Services\Surveys\LogicEngine;
 use App\Services\Surveys\SurveyCollector;
 use App\Services\Surveys\SurveyFiles;
@@ -71,6 +72,9 @@ class MySurveyController extends Controller
             'source' => ['nullable', 'in:web,mobile'],
         ]);
         $result = $this->collector->submit($studioSurvey, $this->user(), $data['answers'], $data['duration_seconds'] ?? null, $data['source'] ?? 'web');
+        if ($studioSurvey->kind === 'needs' && $studioSurvey->isIdentified()) {
+            rescue(fn () => app(IndividualNeedsService::class)->fromEngineSubmission($studioSurvey, $result['submission']), null, true);
+        }
         $settings = $studioSurvey->currentVersion?->settings ?? [];
         $thanks = app()->getLocale() === 'en' ? ($settings['thank_you_en'] ?? $settings['thank_you'] ?? null) : ($settings['thank_you'] ?? null);
 

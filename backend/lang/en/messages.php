@@ -92,6 +92,7 @@ return [
         'already_answered' => 'Your answers were already received, thank you.', 'edits_closed' => 'Answers to this survey cannot be changed after they are sent.', 'draft_too_large' => 'The draft is too large to save.',
         'reopen_changed' => 'The questions changed since the last publish; publish the survey instead of reopening it.', 'window_invalid' => 'The closing time must come after the opening time.',
         'thank_you' => 'Thank you, your answers were received.',
+        'migrated' => 'This survey moved to the Survey Studio; it is managed there.', 'rollback_blocked' => ':n answers arrived through the studio since the migration; rolling back deletes them, so confirm with force if you are sure.', 'batch_unknown' => 'Unknown migration batch.',
         'file_question' => 'This question does not take files.', 'file_type' => 'Only these kinds are accepted: :types.', 'file_size' => 'The file is larger than :mb MB.', 'file_count' => 'At most :n files for this question.', 'file_unknown' => 'A file in the answer is not yours or was removed.',
         'qr_png_unavailable' => 'PNG rendering is not available on this server; use the SVG.', 'link_closed' => 'This survey link is not open.', 'link_full' => 'This survey has reached its maximum number of answers.', 'invitation_expired' => 'This invitation has expired.', 'invitation_used' => 'This invitation was already used.',
         'mail_off' => 'E-mail is not configured on this server; the code cannot be sent.', 'code_invalid' => 'The code is wrong or expired.', 'code_required' => 'Verify your e-mail first.', 'client_required' => 'The device identifier is missing.',
@@ -132,6 +133,7 @@ return [
     ],
     'evaluation' => [
         'submitted' => 'This form was already filled in.',
+        'form_migrated' => 'This form moved to the Survey Studio; edit and approve its questions there.',
         'expired' => 'This form has expired.',
         'no_evidence' => 'This question does not accept attached evidence.',
         'too_many_files' => 'At most :max attachments per question.',

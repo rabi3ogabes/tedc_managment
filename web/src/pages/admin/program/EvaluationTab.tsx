@@ -87,7 +87,7 @@ function Results({ program, group }: { program: Program; group: string }) {
   const res = useGet<{ data: any }>(`/admin/programs/${program.id}/evaluations/${kind}/results`, group ? { group } : undefined, { staleTime: 0, retry: false })
   const kinds = (board.data?.data.instruments ?? []).map((i: any) => i.key).filter((k: string) => !['impact_trainee', 'impact_manager'].includes(k))
   const d = res.data?.data
-  const open = async (e: any) => { try { const { data } = await api.get(`/admin/evaluation-responses/${e.response_id}/evidence/${e.question_id}/${e.index}`); window.open(data.data.url, '_blank', 'noopener') } catch (x) { toast(errorMessage(x), 'error') } }
+  const open = async (e: any) => { if (e.url) { window.open(e.url, '_blank', 'noopener'); return } try { const { data } = await api.get(`/admin/evaluation-responses/${e.response_id}/evidence/${e.question_id}/${e.index}`); window.open(data.data.url, '_blank', 'noopener') } catch (x) { toast(errorMessage(x), 'error') } }
   const exp = (format: string) => d?.form ? downloadFile(`/admin/evaluation-forms/${d.form.id}/export?program_id=${program.id}&format=${format}&lang=${i18n.language}${group ? `&group=${group}` : ''}`, `evaluation.${format}`) : downloadFile(`/admin/programs/${program.id}/satisfaction/export?format=${format}&lang=${i18n.language}`, `satisfaction.${format}`)
   return (
     <div className="space-y-4">

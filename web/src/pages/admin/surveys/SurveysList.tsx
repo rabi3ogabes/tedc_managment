@@ -1,4 +1,4 @@
-import { ClipboardList, Plus, Search } from 'lucide-react'
+import { ClipboardList, DatabaseZap, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -7,8 +7,9 @@ import { useGet, useSend } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import MigrationPanel from './MigrationPanel'
 
-type Row = { id: string; kind: string; title_ar: string; title_en?: string | null; status: string; privacy_mode: string; owner?: string | null; participants: number; submissions: number; is_open: boolean; closes_at?: string | null; updated_at?: string }
+type Row = { id: string; kind: string; title_ar: string; title_en?: string | null; status: string; privacy_mode: string; owner?: string | null; participants: number; submissions: number; is_open: boolean; closes_at?: string | null; updated_at?: string; legacy_type?: 'needs_survey' | 'evaluation_form' | null }
 type Catalog = { kinds: string[]; privacy_modes: string[] }
 const TONE: Record<string, 'gray' | 'amber' | 'green' | 'navy' | 'red'> = { draft: 'gray', in_review: 'amber', approved: 'green', published: 'navy', closed: 'gray', archived: 'gray' }
 
@@ -22,11 +23,12 @@ export default function SurveysList() {
   const [status, setStatus] = useState('')
   const [mine, setMine] = useState(false)
   const [open, setOpen] = useState(false)
+  const [migrate, setMigrate] = useState(false)
   const res = useGet<{ data: Row[]; meta: { total: number } }>('/admin/surveys', { q: q || undefined, status: status || undefined, mine: mine ? 1 : undefined, per_page: 60 }, { staleTime: 0 })
   const catalog = useGet<{ data: Catalog }>('/admin/surveys/catalog')
   return (
     <>
-      <PageHeader title={t('ss.list.title')} subtitle={t('ss.list.subtitle')} actions={can('surveys.manage') && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('ss.list.create')}</Button>} />
+      <PageHeader title={t('ss.list.title')} subtitle={t('ss.list.subtitle')} actions={can('surveys.manage') && <div className="flex gap-2"><Button variant="outline" icon={<DatabaseZap className="size-4" />} onClick={() => setMigrate(true)}>{t('ss.migration.title')}</Button><Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('ss.list.create')}</Button></div>} />
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-52 flex-1"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input className="input ps-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder={String(t('ss.list.search'))} /></div>
         <select className="input w-auto" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">{t('ss.list.all')}</option>{['draft', 'in_review', 'approved', 'published', 'closed', 'archived'].map((s) => <option key={s} value={s}>{t(`ss.state.${s}`)}</option>)}</select>
@@ -38,12 +40,13 @@ export default function SurveysList() {
             <Link key={s.id} to={`/admin/surveys/${s.id}`} className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-navy-300 hover:shadow-sm">
               <div className="mb-2 flex items-start justify-between gap-2"><Badge color={TONE[s.status] ?? 'gray'}>{t(`ss.state.${s.status}`)}</Badge><Badge color="gray">{t(`ss.privacy.${s.privacy_mode}`)}</Badge></div>
               <div className="line-clamp-2 font-display text-base font-bold text-navy-900 group-hover:text-navy-700">{en && s.title_en ? s.title_en : s.title_ar}</div>
-              <div className="mt-1 text-xs text-slate-500">{t(`ss.kind.${s.kind}`)}{s.owner ? ` · ${s.owner}` : ''}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">{t(`ss.kind.${s.kind}`)}{s.owner ? ` · ${s.owner}` : ''}{s.legacy_type && <Badge color="amber">{t(`ss.legacy.${s.legacy_type}`)}</Badge>}</div>
               <div className="mt-3 flex gap-4 text-xs text-slate-600"><span><b className="tabular-nums">{s.participants}</b> {t('ss.list.participants')}</span><span><b className="tabular-nums">{s.submissions}</b> {t('ss.list.submissions')}</span></div>
             </Link>
           ))}
         </div>
       )}
+      <MigrationPanel open={migrate} onClose={() => { setMigrate(false); void res.refetch() }} />
       <CreateDialog open={open} onClose={() => setOpen(false)} catalog={catalog.data?.data} onCreated={(id) => navigate(`/admin/surveys/${id}`)} />
     </>
   )

@@ -2,6 +2,7 @@
 export const surveysAr = {
   tab: 'الاستبانات',
   heroTitle: 'استوديو استبانات الاحتياجات التدريبية',
+  migrated: 'في ستوديو الاستبانات', openStudio: 'افتح في الاستوديو', migrate: 'ترحيل إلى الاستوديو', migrateConfirm: 'ينقل الاستبانة بمستهدفيها وإجاباتها إلى ستوديو الاستبانات؛ يبقى هذا السجل للقراءة والتقارير وتوليد الاحتياجات. متابعة؟', migratedBanner: 'رُحّلت هذه الاستبانة إلى ستوديو الاستبانات: التصميم والنشر والإجابات من هناك، وتبقى النتائج وتوليد الاحتياجات هنا.',
   heroText: 'صمّم الاستبانة من قالب جاهز أو ملف Word / Excel أو من البداية، أرسلها إلى الفئة المستهدفة بدقة، ثم حوّل النتائج إلى احتياجات تدريبية بنقرة واحدة.',
   create: 'إنشاء استبانة',
   empty: 'لا توجد استبانات بعد — ابدأ بقالب جاهز خلال ثوانٍ.',
@@ -88,6 +89,7 @@ export const surveysAr = {
 export const surveysEn: typeof surveysAr = {
   tab: 'Surveys',
   heroTitle: 'Training-needs survey studio',
+  migrated: 'In the Survey Studio', openStudio: 'Open in the studio', migrate: 'Migrate to the studio', migrateConfirm: 'Moves the survey with its people and answers to the Survey Studio; this record stays for reading, reports and needs generation. Continue?', migratedBanner: 'This survey moved to the Survey Studio: design, publishing and answers live there; results and needs generation stay here.',
   heroText: 'Design a survey from a template, a Word / Excel file or from scratch, send it to a precise target audience, then turn the results into training needs in one click.',
   create: 'New survey',
   empty: 'No surveys yet — start from a ready-made template in seconds.',

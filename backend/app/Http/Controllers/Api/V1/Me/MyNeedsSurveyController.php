@@ -18,7 +18,7 @@ class MyNeedsSurveyController extends Controller
     {
         $recipients = NeedsSurveyRecipient::with('survey')
             ->where('user_id', $this->user()->id)
-            ->whereHas('survey', fn ($q) => $q->whereIn('status', ['published', 'closed']))
+            ->whereHas('survey', fn ($q) => $q->whereIn('status', ['published', 'closed'])->whereNull('survey_id'))
             ->latest()
             ->get();
 
@@ -73,6 +73,10 @@ class MyNeedsSurveyController extends Controller
     private function recipient(NeedsSurvey $needsSurvey): NeedsSurveyRecipient
     {
         abort_if($needsSurvey->status === 'draft', 404);
+        if ($needsSurvey->survey_id) {
+            // Moved to the engine: the client opens it there.
+            abort(response()->json(['message' => __('messages.surveys.migrated'), 'code' => 'survey_migrated', 'survey_id' => $needsSurvey->survey_id], 410));
+        }
 
         return NeedsSurveyRecipient::where('survey_id', $needsSurvey->id)->where('user_id', $this->user()->id)->firstOr(fn () => abort(403, __('This survey is not addressed to you.')));
     }

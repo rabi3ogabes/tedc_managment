@@ -81,6 +81,7 @@ export default function SurveyStudio() {
   if (!draft) return <div className="space-y-4"><Skeleton className="h-24 w-full rounded-3xl" /><Skeleton className="h-[480px] w-full rounded-3xl" /></div>
 
   const questions = draft.questions
+  const migrated = !!draft.survey_id
   const setQuestions = (qs: Question[]) => update({ questions: qs })
   const insert = (type: QuestionType) => {
     const q = newQuestion(type, t)
@@ -112,12 +113,12 @@ export default function SurveyStudio() {
           <div className="min-w-0 flex-1">
             <Link to="/admin/needs-hub?tab=surveys" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-navy-900"><ArrowRight className="size-3.5 ltr:rotate-180" />{t('surveys.actions.back')}</Link>
             <div className="mt-1 flex items-center gap-3">
-              <input className="min-w-0 flex-1 bg-transparent font-display text-2xl font-bold text-navy-900 outline-none focus:underline focus:decoration-gold-400 focus:decoration-2 focus:underline-offset-8" value={draft.title} onChange={(e) => update({ title: e.target.value })} aria-label={t('surveys.builder.titlePlaceholder')} />
+              <input className="min-w-0 flex-1 bg-transparent font-display text-2xl font-bold text-navy-900 outline-none focus:underline focus:decoration-gold-400 focus:decoration-2 focus:underline-offset-8" readOnly={migrated} value={draft.title} onChange={(e) => update({ title: e.target.value })} aria-label={t('surveys.builder.titlePlaceholder')} />
               <StatusBadge status={draft.status} label={t(`surveys.status.${draft.status}`)} />
             </div>
             <SaveIndicator state={save} error={saveError} />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">{migrated ? <Button variant="gold" size="sm" icon={<Wand2 className="size-4" />} to={`/admin/surveys/${draft.survey_id}`}>{t('surveys.openStudio')}</Button> : <>
             <Button variant="outline" size="sm" icon={<Eye className="size-4" />} onClick={() => setDialog('preview')}>{t('surveys.actions.preview')}</Button>
             <Button variant="outline" size="sm" icon={<Users className="size-4" />} onClick={() => setDialog('audience')}><span className="max-w-40 truncate">{draft.audience_summary}</span></Button>
             <Button variant="outline" size="sm" icon={<Settings2 className="size-4" />} onClick={() => setDialog('settings')}>{t('surveys.builder.settings')}</Button>
@@ -126,11 +127,12 @@ export default function SurveyStudio() {
             {draft.approval_status === 'pending' && can('instruments.approve') && <>
               <Button variant="outline" size="sm" onClick={() => void api.post(`/admin/needs-surveys/${draft.id}/approve`).then(() => setDraft({ ...draft, approval_status: 'approved' })).catch((e) => setToast(errorMessage(e)))}>{t('needsHub.instrument.approve')}</Button>
               <Button variant="outline" size="sm" onClick={async () => { const note = await dialogs.prompt(t('needsHub.instrument.return')); if (note) void api.post(`/admin/needs-surveys/${draft.id}/return`, { note }).then(() => setDraft({ ...draft, approval_status: 'returned', approval_note: note })).catch((e) => setToast(errorMessage(e))) }}>{t('needsHub.instrument.return')}</Button></>}
-            <Button variant="gold" size="sm" disabled={draft.approval_status !== 'approved'} icon={<Send className="size-4" />} onClick={async () => { clearTimeout(timer.current); await persist(); setDialog('publish') }}>{draft.status === 'draft' ? t('surveys.actions.publish') : t('surveys.actions.republish')}</Button>
+            <Button variant="gold" size="sm" disabled={draft.approval_status !== 'approved'} icon={<Send className="size-4" />} onClick={async () => { clearTimeout(timer.current); await persist(); setDialog('publish') }}>{draft.status === 'draft' ? t('surveys.actions.publish') : t('surveys.actions.republish')}</Button></>}
           </div>
         </div>
+        {migrated && <div className="mx-5 mb-4 rounded-2xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm leading-7 text-navy-900">{t('surveys.migratedBanner')}</div>}
         <div className="flex gap-1 border-t border-navy-100 px-5">
-          {(['design', 'results'] as const).map((v) => (
+          {(['design', 'results'] as const).filter((v) => !migrated || v === 'results').map((v) => (
             <button key={v} onClick={() => setParams(v === 'results' ? { view: 'results' } : {})} className={clsx('-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition', view === v ? 'border-gold-500 text-navy-900' : 'border-transparent text-slate-400 hover:text-navy-900')}>
               {v === 'design' ? <PenLine className="size-4" /> : <BarChart3 className="size-4" />}{t(`surveys.builder.${v}`)}
               {v === 'results' && draft.responses_count > 0 && <span className="rounded-full bg-gold-100 px-2 text-xs text-gold-700">{fmt.number(draft.responses_count)}</span>}
@@ -139,7 +141,7 @@ export default function SurveyStudio() {
         </div>
       </div>
 
-      {view === 'results' ? (
+      {migrated || view === 'results' ? (
         draft.status === 'draft' ? <div className="card p-10 text-center text-slate-500">{t('surveys.report.noData')}</div> : <SurveyReport survey={draft} onChanged={refresh} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[250px_1fr]">

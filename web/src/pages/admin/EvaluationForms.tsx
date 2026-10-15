@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { useFeature } from '@/hooks/useFeature'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { newQuestion, type Question } from '@/lib/surveys'
@@ -19,7 +20,9 @@ export default function EvaluationForms() {
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
   const { can } = useAuth()
+  const studio = useFeature('survey_studio_v2')
   const list = useGet<{ data: any[] }>('/admin/evaluation-forms', undefined, { staleTime: 0 })
+  const migrate = async (f: any) => { if (!(await dialogs.confirm(t('evalc.forms.migrateConfirm')))) return; try { await api.post(`/admin/evaluation-forms/${f.id}/migrate`); toast(t('evalc.forms.migrated')); void list.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
   const [edit, setEdit] = useState<any | null>(null)
   const open = (f: any | null) => setEdit(f ? { ...f, settings: f.settings ?? {} } : { kind: 'custom', title_ar: '', title_en: '', questions: [newQuestion('rating', (k) => t(k))], settings: { evidence: true, max_files: 3 } })
   const act = async (id: string, path: string, body?: object) => { try { await api.post(`/admin/evaluation-forms/${id}/${path}`, body); void list.refetch() } catch (e) { toast(errorMessage(e), 'error') } }
@@ -29,10 +32,12 @@ export default function EvaluationForms() {
       {list.isLoading ? <Spinner /> : !list.data?.data.length ? <Empty /> : (
         <div className="grid gap-3 lg:grid-cols-2">{list.data.data.map((f) => (
           <Card key={f.id} className="space-y-2"><div className="flex flex-wrap items-center gap-2"><b className="text-navy-900">{ar ? f.title_ar : f.title_en}</b><Badge>{t(`evalc.kinds.${f.kind}`)}</Badge><Badge color={f.approval_status === 'approved' ? 'green' : 'gold'}>{t(`evalc.forms.approval.${f.approval_status}`)}</Badge><span className="text-xs text-slate-400">{t('evalc.forms.version', { n: f.version })}</span></div>
-            {f.is_system ? <p className="text-xs text-slate-500">{t('evalc.forms.system')}</p> : (
+            {f.is_system ? <p className="text-xs text-slate-500">{t('evalc.forms.system')}</p> : f.survey_id ? (
+              <div className="flex flex-wrap items-center gap-2"><Badge color="navy">{t('evalc.forms.inStudio')}</Badge><Button size="sm" variant="gold" to={`/admin/surveys/${f.survey_id}`}>{t('evalc.forms.openStudio')}</Button></div>) : (
               <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => open(f)}>{t('common.edit')}</Button>
                 {['draft', 'returned'].includes(f.approval_status) && <Button size="sm" variant="outline" onClick={() => void act(f.id, 'submit-approval')}>{t('evalc.forms.submit')}</Button>}
-                {f.approval_status === 'pending' && can('instruments.approve') && <><Button size="sm" variant="gold" onClick={() => void act(f.id, 'approve')}>{t('evalc.forms.approve')}</Button><Button size="sm" variant="ghost" onClick={async () => { const note = await dialogs.prompt(t('evalc.forms.note')); if (note) void act(f.id, 'return', { note }) }}>{t('evalc.forms.returnIt')}</Button></>}</div>)}
+                {f.approval_status === 'pending' && can('instruments.approve') && <><Button size="sm" variant="gold" onClick={() => void act(f.id, 'approve')}>{t('evalc.forms.approve')}</Button><Button size="sm" variant="ghost" onClick={async () => { const note = await dialogs.prompt(t('evalc.forms.note')); if (note) void act(f.id, 'return', { note }) }}>{t('evalc.forms.returnIt')}</Button></>}
+                {studio && can('surveys.manage') && <Button size="sm" variant="ghost" onClick={() => void migrate(f)}>{t('evalc.forms.migrate')}</Button>}</div>)}
           </Card>))}</div>)}
       <Modal wide open={!!edit} onClose={() => setEdit(null)} title={t('evalc.forms.title')}>{edit && <Editor f={edit} onDone={() => { setEdit(null); void list.refetch() }} />}</Modal>
     </>

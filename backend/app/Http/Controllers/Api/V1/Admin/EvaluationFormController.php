@@ -9,6 +9,7 @@ use App\Models\EvaluationForm;
 use App\Services\EvaluationService;
 use App\Services\EvaluationSettings;
 use App\Services\NeedsSurveys\SurveySchema;
+use App\Services\Surveys\SurveyMigrator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -37,6 +38,7 @@ class EvaluationFormController extends Controller
         if ($form->is_system) {
             throw new BusinessRuleException(__('messages.evaluation.system_form'), 'system_form');
         }
+        $this->notMigrated($form);
         $d = $this->validated($request, false);
         // A change to an approved form is a new version that needs approving again.
         $changed = isset($d['questions']) && $d['questions'] !== $form->questions;
@@ -58,6 +60,7 @@ class EvaluationFormController extends Controller
 
     public function submitApproval(EvaluationForm $form): JsonResponse
     {
+        $this->notMigrated($form);
         $form->update(['approval_status' => 'pending']);
 
         return response()->json(['data' => $form->fresh()]);
@@ -66,10 +69,26 @@ class EvaluationFormController extends Controller
     public function decide(Request $request, EvaluationForm $form, string $decision): JsonResponse
     {
         abort_unless(in_array($decision, ['approve', 'return'], true), 404);
+        $this->notMigrated($form);
         $note = $request->validate(['note' => [$decision === 'return' ? 'required' : 'nullable', 'string', 'max:500']])['note'] ?? null;
         $form->update($decision === 'approve' ? ['approval_status' => 'approved', 'approved_by' => $this->user()->id, 'approved_at' => now(), 'approval_note' => $note] : ['approval_status' => 'returned', 'approval_note' => $note]);
 
         return response()->json(['data' => $form->fresh()]);
+    }
+
+    /** Moves the form onto the survey engine: the studio then owns its questions, versions and approval (Gate 5). */
+    public function migrate(EvaluationForm $form, SurveyMigrator $migrator): JsonResponse
+    {
+        $survey = $migrator->migrateForm($form, null, $this->user());
+
+        return response()->json(['data' => ['survey_id' => $survey->id, 'form' => $form->fresh()]], 201);
+    }
+
+    private function notMigrated(EvaluationForm $form): void
+    {
+        if ($form->survey_id) {
+            throw new BusinessRuleException(__('messages.evaluation.form_migrated'), 'form_migrated', ['survey_id' => $form->survey_id]);
+        }
     }
 
     public function settings(string $part = 'all'): JsonResponse

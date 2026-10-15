@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\Registration;
 use App\Models\SatisfactionAlert;
 use App\Models\SupervisorEvaluation;
+use App\Models\SurveyFile;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\EvaluationService;
@@ -19,6 +20,7 @@ use App\Services\EvaluationSettings;
 use App\Services\FileStorage;
 use App\Services\NeedsSurveys\SurveyAnalyzer;
 use App\Services\SatisfactionAlertService;
+use App\Services\Surveys\SurveyFiles;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -94,12 +96,14 @@ class GroupEvaluationController extends Controller
         }
         $form = EvaluationForm::where('kind', $kind)->where('is_system', false)->orderByDesc('is_default')->first();
         abort_unless($form, 404);
-        $responses = EvaluationResponse::with('assignment.respondent:id,name,name_ar')->whereHas('assignment', fn ($q) => $q->where('program_id', $program->id)->where('form_id', $form->id)->when($group, fn ($w) => $w->where('group_id', $group->id)))->get();
+        $responses = $this->evaluations->answersFor(fn ($q) => $q->where('program_id', $program->id)->where('form_id', $form->id)->when($group, fn ($w) => $w->where('group_id', $group->id)));
         $anonymous = (bool) ($form->settings['anonymous'] ?? false);
-        $stats = $analyzer->questionStats($form->questions, $responses);
-        $evidence = $responses->flatMap(fn ($r) => collect($r->evidence ?? [])->flatMap(fn ($items, $qid) => collect($items)->map(fn ($item, $i) => ['response_id' => $r->id, 'question_id' => $qid, 'index' => $i, 'type' => $item['type'], 'name' => $item['name'] ?? $item['url'] ?? '', 'by' => $anonymous ? null : $r->assignment->respondent?->displayName()])))->values();
+        $stats = $analyzer->questionStats($this->evaluations->questionsFor($form), $responses);
+        $files = app(SurveyFiles::class);
+        $evidence = $responses->flatMap(fn ($r) => collect($r->evidence ?? [])->flatMap(fn ($items, $qid) => collect($items)->map(fn ($item, $i) => ['response_id' => $r->id, 'question_id' => $qid, 'index' => $i, 'type' => $item['type'], 'name' => $item['name'] ?? $item['url'] ?? '', 'by' => $anonymous ? null : $r->assignment->respondent?->displayName(),
+            'url' => $item['type'] === 'link' ? $item['url'] : (isset($item['file_id']) ? rescue(fn () => $files->url(SurveyFile::find($item['file_id'])), null, false) : null)])))->values();
 
-        return response()->json(['data' => ['kind' => $kind, 'form' => ['id' => $form->id, 'title_ar' => $form->title_ar, 'title_en' => $form->title_en], 'responses' => $responses->count(), 'average_score' => $responses->whereNotNull('score')->isNotEmpty() ? round((float) $responses->whereNotNull('score')->avg('score'), 1) : null, 'questions' => $stats, 'evidence' => $evidence]]);
+        return response()->json(['data' => ['kind' => $kind, 'form' => ['id' => $form->id, 'title_ar' => $form->title_ar, 'title_en' => $form->title_en, 'survey_id' => $form->survey_id], 'responses' => $responses->count(), 'average_score' => $responses->whereNotNull('score')->isNotEmpty() ? round((float) $responses->whereNotNull('score')->avg('score'), 1) : null, 'questions' => $stats, 'evidence' => $evidence]]);
     }
 
     public function evidenceUrl(EvaluationResponse $response, string $question, int $index, FileStorage $storage): JsonResponse

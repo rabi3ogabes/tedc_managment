@@ -76,7 +76,7 @@ class SurveyDistributionTest extends TestCase
         $this->assertSame(2, $new['qr_version']);
         $this->getJson("/api/v1/public/surveys/$slug")->assertNotFound();
         $this->postJson("/api/v1/public/surveys/{$new['slug']}", ['client_id' => $one, 'answers' => ['q1' => 'a']])->assertOk()->assertJsonPath('edited', false);
-        $this->assertNull(SurveySubmission::where('survey_id', $id)->latest('submitted_at')->first()->respondent_pseudonym, 'the open rule stores no key');
+        $this->assertSame(1, SurveySubmission::where('survey_id', $id)->whereNull('respondent_pseudonym')->count(), 'the open rule stores no key');
         $this->asUser($admin)->putJson("/api/v1/admin/surveys/$id/distributions/{$d['id']}", ['is_active' => false])->assertOk();
         $this->getJson("/api/v1/public/surveys/{$new['slug']}")->assertStatus(410)->assertJsonPath('code', 'survey_link_closed');
         $this->assertSame(3, SurveyDistribution::find($d['id'])->submissions_count, 'edits are not counted');

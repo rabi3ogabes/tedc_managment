@@ -4,9 +4,13 @@ namespace App\Services\NeedsSurveys;
 
 use App\Models\JobTitle;
 use App\Models\NeedsSurvey;
+use App\Models\NeedsSurveyResponse;
 use App\Models\Program;
 use App\Models\School;
 use App\Models\Skill;
+use App\Models\SurveyParticipant;
+use App\Models\SurveySubmission;
+use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
@@ -47,25 +51,60 @@ class SurveyAnalyzer
     /** Responses of a survey, optionally filtered by segment values. */
     public function responses(NeedsSurvey $survey, array $filters = []): Collection
     {
-        return $survey->responses()
-            ->when($filters['school_id'] ?? null, fn ($q, $v) => $q->where('school_id', $v))
-            ->when($filters['job_title_id'] ?? null, fn ($q, $v) => $q->where('job_title_id', $v))
-            ->when($filters['specialization'] ?? null, fn ($q, $v) => $q->where('specialization', $v))
-            ->when($filters['nationality'] ?? null, fn ($q, $v) => $q->where('nationality', $v))
-            ->get()
-            ->when($filters['experience_band'] ?? null, fn ($c, $band) => $c->filter(fn ($r) => self::band($r->experience_years) === $band)->values());
+        $rows = $survey->survey_id ? $this->engineRows($survey) : $survey->responses()->with(['user:id,name,name_ar,email', 'school:id,name_ar,name_en', 'jobTitle:id,name_ar,name_en'])->get();
+
+        return $rows
+            ->when($filters['school_id'] ?? null, fn ($c, $v) => $c->where('school_id', $v))
+            ->when($filters['job_title_id'] ?? null, fn ($c, $v) => $c->where('job_title_id', $v))
+            ->when($filters['specialization'] ?? null, fn ($c, $v) => $c->where('specialization', $v))
+            ->when($filters['nationality'] ?? null, fn ($c, $v) => $c->where('nationality', $v))
+            ->when($filters['experience_band'] ?? null, fn ($c, $band) => $c->filter(fn ($r) => self::bandOf($r) === $band))
+            ->values();
+    }
+
+    /** The experience band of a row: stored as such by the engine, derived from the years in the legacy table. */
+    public static function bandOf($row): string
+    {
+        return $row->experience_band ?? self::band($row->experience_years);
+    }
+
+    /**
+     * A migrated survey's answers live in the engine: each submission is shaped like a legacy row (answers, the segment
+     * snapshot as columns, the person when the mode kept one) so every report reads the same.
+     */
+    private function engineRows(NeedsSurvey $survey): Collection
+    {
+        $submissions = SurveySubmission::where('survey_id', $survey->survey_id)->whereNull('context_id')->orderBy('submitted_at')->get();
+        $users = User::whereIn('id', $submissions->pluck('respondent_user_id')->filter())->get(['id', 'name', 'name_ar', 'email'])->keyBy('id');
+        $schools = School::whereIn('id', $submissions->pluck('segment_snapshot.school_id')->filter())->get(['id', 'name_ar', 'name_en'])->keyBy('id');
+        $titles = JobTitle::whereIn('id', $submissions->pluck('segment_snapshot.job_title_id')->filter())->get(['id', 'name_ar', 'name_en'])->keyBy('id');
+
+        return $submissions->map(function (SurveySubmission $s) use ($users, $schools, $titles) {
+            $seg = $s->segment_snapshot ?? [];
+            $row = (new NeedsSurveyResponse)->forceFill([
+                'id' => $s->id, 'survey_id' => $s->survey_id, 'user_id' => $s->respondent_user_id, 'school_id' => $seg['school_id'] ?? null, 'job_title_id' => $seg['job_title_id'] ?? null,
+                'experience_years' => null, 'experience_band' => $seg['experience_band'] ?? null, 'specialization' => $seg['specialization'] ?? null, 'nationality' => $seg['nationality'] ?? null, 'gender' => $seg['gender'] ?? null,
+                'education_stage' => $seg['education_stage'] ?? null, 'answers' => $s->answers, 'duration_seconds' => $s->duration_seconds, 'submitted_at' => $s->submitted_at,
+            ]);
+            $row->setRelation('user', $s->respondent_user_id ? $users->get($s->respondent_user_id) : null);
+            $row->setRelation('school', isset($seg['school_id']) ? $schools->get($seg['school_id']) : null);
+            $row->setRelation('jobTitle', isset($seg['job_title_id']) ? $titles->get($seg['job_title_id']) : null);
+
+            return $row;
+        });
     }
 
     public function report(NeedsSurvey $survey, array $filters = [], string $locale = 'ar'): array
     {
         $responses = $this->responses($survey, $filters);
-        $recipients = $survey->recipients()->count();
-        $answered = $survey->recipients()->whereNotNull('responded_at')->count();
+        $registry = $survey->survey_id ? SurveyParticipant::where('survey_id', $survey->survey_id) : $survey->recipients();
+        $recipients = (clone $registry)->count();
+        $answered = (clone $registry)->whereNotNull('responded_at')->count();
 
         return [
             'summary' => [
                 'recipients' => $recipients,
-                'responses' => $survey->responses()->count(),
+                'responses' => $this->responses($survey)->count(),
                 'filtered_responses' => $responses->count(),
                 'response_rate' => $recipients ? round($answered / $recipients * 100, 1) : 0,
                 'avg_duration_seconds' => (int) round((float) $responses->avg('duration_seconds')),
@@ -254,7 +293,7 @@ class SurveyAnalyzer
             $name = $skill ? ($locale === 'en' ? $skill->name_en : $skill->name_ar) : $meta[$key]['skill_name'];
 
             $breakdown = function (string $field, $names = null) use ($responses, $byResponse) {
-                return collect($byResponse)->groupBy(fn ($s, $i) => $field === 'experience_band' ? self::band($responses[$i]->experience_years) : ($responses[$i]->{$field} ?? '—'), true)
+                return collect($byResponse)->groupBy(fn ($s, $i) => $field === 'experience_band' ? self::bandOf($responses[$i]) : ($responses[$i]->{$field} ?? '—'), true)
                     ->map(fn ($group, $k) => [
                         'key' => (string) $k,
                         'label' => $names ? ($names[$k] ?? '—') : (string) $k,
@@ -292,14 +331,14 @@ class SurveyAnalyzer
     private function segments(NeedsSurvey $survey, string $locale): array
     {
         $name = $locale === 'en' ? 'name_en' : 'name_ar';
-        $rows = $survey->responses()->get(['school_id', 'job_title_id', 'specialization', 'nationality', 'experience_years']);
+        $rows = $this->responses($survey);
 
         return [
             'schools' => School::whereIn('id', $rows->pluck('school_id')->filter()->unique())->orderBy($name)->get(['id', $name.' as name']),
             'job_titles' => JobTitle::whereIn('id', $rows->pluck('job_title_id')->filter()->unique())->orderBy($name)->get(['id', $name.' as name']),
             'specializations' => $rows->pluck('specialization')->filter()->unique()->sort()->values(),
             'nationalities' => $rows->pluck('nationality')->filter()->unique()->sort()->values(),
-            'experience_bands' => $rows->map(fn ($r) => self::band($r->experience_years))->unique()->sort()->values(),
+            'experience_bands' => $rows->map(fn ($r) => self::bandOf($r))->unique()->sort()->values(),
         ];
     }
 }

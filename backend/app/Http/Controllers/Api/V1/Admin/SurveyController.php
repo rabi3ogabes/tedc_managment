@@ -192,6 +192,7 @@ class SurveyController extends Controller
     {
         return [
             'id' => $s->id, 'kind' => $s->kind, 'title_ar' => $s->title_ar, 'title_en' => $s->title_en, 'status' => $s->status, 'privacy_mode' => $s->privacy_mode,
+            'legacy_type' => $s->legacy_type, 'legacy_id' => $s->legacy_id, 'program_id' => $s->program_id,
             'owner' => $s->owner?->displayName(), 'opens_at' => $s->opens_at, 'closes_at' => $s->closes_at, 'published_at' => $s->published_at, 'closed_at' => $s->closed_at,
             'participants' => $s->participants_count ?? $s->participants()->count(), 'submissions' => $s->submissions_count ?? $s->submissions()->count(),
             'is_open' => $s->isOpen(), 'updated_at' => $s->updated_at,

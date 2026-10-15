@@ -9,12 +9,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['form_id', 'program_id', 'group_id', 'respondent_type', 'respondent_user_id', 'subject_registration_id', 'due_at', 'sent_at', 'reminded_at', 'status', 'assigned_by'])]
+#[Fillable(['form_id', 'program_id', 'group_id', 'respondent_type', 'respondent_user_id', 'subject_registration_id', 'due_at', 'sent_at', 'reminded_at', 'status', 'assigned_by', 'survey_id', 'submission_id', 'score'])]
 class EvaluationAssignment extends Model
 {
     use Auditable, HasUuids;
 
-    protected $casts = ['due_at' => 'datetime', 'sent_at' => 'datetime', 'reminded_at' => 'datetime'];
+    protected $casts = ['due_at' => 'datetime', 'sent_at' => 'datetime', 'reminded_at' => 'datetime', 'score' => 'float'];
+
+    public function survey(): BelongsTo
+    {
+        return $this->belongsTo(Survey::class, 'survey_id');
+    }
+
+    public function submission(): BelongsTo
+    {
+        return $this->belongsTo(SurveySubmission::class, 'submission_id');
+    }
 
     public function form(): BelongsTo
     {

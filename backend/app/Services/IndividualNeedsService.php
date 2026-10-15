@@ -10,6 +10,8 @@ use App\Models\JobCompetencyRequirement;
 use App\Models\NeedsSurvey;
 use App\Models\NeedsSurveyResponse;
 use App\Models\SiteSetting;
+use App\Models\Survey;
+use App\Models\SurveySubmission;
 use App\Models\User;
 use App\Support\AccessScope;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,12 +57,29 @@ class IndividualNeedsService
         if (! $employee) {
             return 0;
         }
+
+        return $this->fromAnswers($employee, $survey->questions ?? [], $response->answers ?? [], $survey->id, $survey->title);
+    }
+
+    /** The same, for an answer collected by the survey engine (Gate 5): only identified needs surveys name a person. */
+    public function fromEngineSubmission(Survey $survey, SurveySubmission $submission): int
+    {
+        $employee = $submission->respondent_user_id ? User::find($submission->respondent_user_id)?->employee : null;
+        if (! $employee || $survey->kind !== 'needs') {
+            return 0;
+        }
+
+        return $this->fromAnswers($employee, $survey->currentVersion?->questions ?? $survey->questions ?? [], $submission->answers ?? [], $survey->id, $survey->title_ar);
+    }
+
+    private function fromAnswers(Employee $employee, array $questions, array $answers, string $surveyId, string $title): int
+    {
         $created = [];
         $rows = [];
-        foreach ($survey->questions ?? [] as $q) {
+        foreach ($questions as $q) {
             $scale = $q['scale'] ?? ['min' => 1, 'max' => 5];
             $mode = $q['mode'] ?? 'competence';
-            $answer = $response->answers[$q['id']] ?? null;
+            $answer = $answers[$q['id']] ?? null;
             $items = ($q['type'] ?? '') === 'matrix' && is_array($answer) ? collect($q['rows'] ?? [])->mapWithKeys(fn ($r) => [$r['id'] => [$r, $answer[$r['id']] ?? null]]) : collect([$q['id'] => [$q, $answer]]);
             foreach ($items as [$src, $value]) {
                 if (empty($src['skill_id']) || ! is_numeric($value)) {
@@ -78,8 +97,8 @@ class IndividualNeedsService
             if ($gap < 1) {
                 continue;
             }
-            $need = $this->upsert($employee, $skillId, 'self_survey', ['source_ref' => ['survey_id' => $survey->id], 'current_level' => $current, 'required_level' => $required, 'gap' => $gap, 'priority_score' => $gap * 10,
-                'explanation_ar' => 'من إجاباتك في استبانة «'.$survey->title.'».', 'explanation_en' => 'From your answers in the survey "'.$survey->title.'".']);
+            $need = $this->upsert($employee, $skillId, 'self_survey', ['source_ref' => ['survey_id' => $surveyId], 'current_level' => $current, 'required_level' => $required, 'gap' => $gap, 'priority_score' => $gap * 10,
+                'explanation_ar' => 'من إجاباتك في استبانة «'.$title.'».', 'explanation_en' => 'From your answers in the survey "'.$title.'".']);
             $need && $created[] = $need;
         }
         $this->notifyManagers($created);

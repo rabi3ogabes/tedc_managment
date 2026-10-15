@@ -10,7 +10,7 @@ export const ssAr = {
   privacy: { identified: 'معرَّفة', confidential: 'سرية', anonymous: 'مجهولة', identifiedHint: 'تُحفظ هوية المجيب؛ تُعرض الإجابات الفردية لمن يملك الصلاحية.', confidentialHint: 'تُحفظ الإجابة باسم مستعار مشفَّر؛ لا يمكن ربطها بشخص بعد الإغلاق.', anonymousHint: 'لا يُحفظ شيء عن المجيب؛ إجابة واحدة لكل شخص عبر سجل المشاركة.' },
   state: { draft: 'مسودة', in_review: 'قيد المراجعة', approved: 'معتمدة', published: 'منشورة', closed: 'مغلقة', archived: 'مؤرشفة' },
   studio: {
-    tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', distribute: 'الروابط والدعوات', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
+    audienceByAssignment: 'هذه الاستبانة تُسند إلى أشخاص بعينهم من مركز التقييم (التكليفات)، فلا تُستهدف بفلاتر الجمهور.', tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', distribute: 'الروابط والدعوات', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
     palette: 'إضافة سؤال', structure: 'بنية', text: 'نصوص', choice: 'اختيارات', scales: 'مقاييس', misc: 'أخرى',
     empty: 'ابدأ بإضافة سؤال من اللوحة.', question: 'السؤال', questionEn: 'بالإنجليزية', description: 'وصف أو تعليمات', required: 'إلزامي', options: 'الخيارات', rows: 'العبارات', addOption: 'إضافة خيار', addRow: 'إضافة عبارة', other: 'خيار «أخرى» بنص حر',
     maxSelect: 'الحد الأقصى', minSelect: 'الحد الأدنى', scale: 'المقياس', min: 'من', max: 'إلى', minLabel: 'وصف الأدنى', maxLabel: 'وصف الأقصى', maxLength: 'أقصى طول', placeholder: 'نص إرشادي', numMin: 'أصغر قيمة', numMax: 'أكبر قيمة',
@@ -57,6 +57,14 @@ export const ssAr = {
     codeIntro: 'للإجابة عن هذه الاستبانة تحقق من بريدك الإلكتروني أولاً؛ لا يُحفظ بريدك مع إجابتك.', email: 'البريد الإلكتروني', code: 'رمز التحقق', codeHint: 'أرسلنا رمزاً من ستة أرقام صالحاً 15 دقيقة.', sendCode: 'إرسال الرمز', verify: 'تحقق', changeEmail: 'تغيير البريد',
     errors: { generic: 'تعذر فتح الاستبانة.', survey_link_closed: 'هذه الاستبانة غير مفتوحة الآن.', survey_link_full: 'بلغت الاستبانة الحد الأقصى من الإجابات.', survey_invitation_expired: 'انتهت صلاحية هذه الدعوة.', survey_invitation_used: 'استُخدمت هذه الدعوة من قبل.', survey_mail_off: 'البريد غير مهيأ؛ لا يمكن إرسال الرمز.', survey_code_invalid: 'الرمز خاطئ أو منتهٍ.' },
   },
+  legacy: { needs_survey: 'مرحّلة من استبانات الاحتياجات', evaluation_form: 'مرحّلة من نماذج التقييم', openLegacy: 'السجل القديم' },
+  migration: {
+    title: 'الترحيل إلى المحرك', pending: 'بانتظار الترحيل', needs: 'استبانات الاحتياجات', forms: 'نماذج التقييم', recipients: 'مستهدَف', responses: 'إجابة', assignments: 'تكليف', systemSkipped: 'أدوات النظام الثابتة لا تُرحَّل ({{n}})', migrated: 'رُحّلت',
+    runAll: 'ترحيل كل ما ينتظر', runNeeds: 'ترحيل الاحتياجات', runForms: 'ترحيل النماذج', confirm: 'يُنشئ الترحيل نسخة في المحرك لكل سجل ينتظر، بمستهدفيه وإجاباته وأدلته، ثم يجعل السجل القديم للقراءة فقط. يمكن التراجع ما لم تصل إجابات جديدة عبر المحرك. متابعة؟',
+    done: 'رُحّلت {{needs}} استبانة و{{forms}} نموذجاً: {{participants}} مشاركاً، {{submissions}} إجابة، {{files}} ملفاً.', skipped: 'تُخطّي', warnings: 'تنبيهات قبل الترحيل', types: { needs_survey: 'استبانة احتياجات', evaluation_form: 'نموذج تقييم' }, issues: { no_questions: 'بلا أسئلة؛ ستُتخطّى', orphan_responses: 'إجابات بلا مستخدم؛ تُرحَّل باسم مستعار' },
+    batches: 'دفعات الترحيل', batch: 'الدفعة', by: 'بواسطة', late: 'إجابات بعد الترحيل', rollback: 'تراجع', rollbackConfirm: 'التراجع يحذف نسخ المحرك لهذه الدفعة ويعيد السجلات القديمة كما كانت. متابعة؟', rollbackForce: 'وصلت {{n}} إجابة عبر المحرك بعد الترحيل وستُحذف نهائياً. اكتب «حذف» للتأكيد.', rolledBack: 'تم التراجع عن الدفعة.', nothing: 'لا شيء بانتظار الترحيل.',
+    dryNote: 'الأرقام أدناه هي التجربة الجافة: لا يتغير شيء حتى تضغط ترحيل. تبقى السجلات القديمة محفوظة وتُعرض للقراءة والتقارير، ويتولى الاستوديو الأسئلة والإصدارات والاعتماد والإجابات من بعدها.',
+  },
   portal: { title: 'استبانات موجهة إليك', open: 'افتح', answered: 'أجبت', canEdit: 'يمكنك التعديل حتى الإغلاق', closes: 'تُغلق', none: 'لا توجد استبانات موجهة إليك الآن.' },
 }
 
@@ -71,7 +79,7 @@ export const ssEn: typeof ssAr = {
   privacy: { identified: 'Identified', confidential: 'Confidential', anonymous: 'Anonymous', identifiedHint: 'The respondent is kept; individual answers are shown to those with the permission.', confidentialHint: 'Answers are stored under an encrypted pseudonym; nobody can be matched after close.', anonymousHint: 'Nothing about the respondent is stored; one answer per person through the participation registry.' },
   state: { draft: 'Draft', in_review: 'In review', approved: 'Approved', published: 'Published', closed: 'Closed', archived: 'Archived' },
   studio: {
-    tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', distribute: 'Links & invitations', preview: 'Preview', versions: 'Versions & log' },
+    audienceByAssignment: 'This survey is assigned to named people from the evaluation centre (assignments), so it has no audience filters.', tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', distribute: 'Links & invitations', preview: 'Preview', versions: 'Versions & log' },
     palette: 'Add a question', structure: 'Structure', text: 'Text', choice: 'Choices', scales: 'Scales', misc: 'Other',
     empty: 'Start by adding a question from the palette.', question: 'Question', questionEn: 'In English', description: 'Description or instructions', required: 'Required', options: 'Options', rows: 'Statements', addOption: 'Add option', addRow: 'Add statement', other: '"Other" with free text',
     maxSelect: 'Maximum', minSelect: 'Minimum', scale: 'Scale', min: 'From', max: 'To', minLabel: 'Low label', maxLabel: 'High label', maxLength: 'Max length', placeholder: 'Placeholder', numMin: 'Smallest value', numMax: 'Largest value',
@@ -117,6 +125,14 @@ export const ssEn: typeof ssAr = {
   public: {
     codeIntro: 'Verify your e-mail first to answer this survey; your address is not stored with your answer.', email: 'E-mail', code: 'Verification code', codeHint: 'We sent a six-digit code valid for 15 minutes.', sendCode: 'Send code', verify: 'Verify', changeEmail: 'Change e-mail',
     errors: { generic: 'The survey could not be opened.', survey_link_closed: 'This survey is not open right now.', survey_link_full: 'This survey reached its maximum number of answers.', survey_invitation_expired: 'This invitation has expired.', survey_invitation_used: 'This invitation was already used.', survey_mail_off: 'E-mail is not configured; the code cannot be sent.', survey_code_invalid: 'The code is wrong or expired.' },
+  },
+  legacy: { needs_survey: 'Migrated from needs surveys', evaluation_form: 'Migrated from evaluation forms', openLegacy: 'Legacy record' },
+  migration: {
+    title: 'Migration to the engine', pending: 'Awaiting migration', needs: 'Needs surveys', forms: 'Evaluation forms', recipients: 'recipients', responses: 'answers', assignments: 'assignments', systemSkipped: 'The fixed system instruments are not migrated ({{n}})', migrated: 'migrated',
+    runAll: 'Migrate everything pending', runNeeds: 'Migrate needs surveys', runForms: 'Migrate forms', confirm: 'Migration creates an engine copy of every pending record with its people, answers and evidence, then makes the legacy record read-only. It can be rolled back as long as no new answers arrive through the engine. Continue?',
+    done: '{{needs}} surveys and {{forms}} forms migrated: {{participants}} participants, {{submissions}} answers, {{files}} files.', skipped: 'Skipped', warnings: 'Before you migrate', types: { needs_survey: 'Needs survey', evaluation_form: 'Evaluation form' }, issues: { no_questions: 'No questions; it will be skipped', orphan_responses: 'Answers without a user; migrated under a pseudonym' },
+    batches: 'Migration batches', batch: 'Batch', by: 'By', late: 'Answers since', rollback: 'Roll back', rollbackConfirm: 'Rolling back removes the engine copies of this batch and hands the legacy records back unchanged. Continue?', rollbackForce: '{{n}} answers arrived through the engine since the migration and will be deleted for good. Type "delete" to confirm.', rolledBack: 'Batch rolled back.', nothing: 'Nothing is waiting to be migrated.',
+    dryNote: 'The numbers below are the dry run: nothing changes until you press migrate. Legacy records stay, read-only with their reports, and the studio owns questions, versions, approval and answers from then on.',
   },
   portal: { title: 'Surveys for you', open: 'Open', answered: 'Answered', canEdit: 'You may edit until it closes', closes: 'Closes', none: 'No surveys are addressed to you right now.' },
 }

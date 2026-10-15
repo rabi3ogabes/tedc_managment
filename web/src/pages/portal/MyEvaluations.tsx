@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import EvidenceInput, { noEvidence, type Evidence } from '@/components/EvidenceInput'
+import EngineForm from '@/components/surveys/EngineForm'
 import { QuestionInput } from '@/components/surveys/SurveyForm'
 import { Badge, Button, Card, Empty, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
@@ -12,7 +13,8 @@ import { isVisible, missingRequired, type Answers, type Question } from '@/lib/s
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 
-type Row = { id: string; kind: string; title_ar: string; title_en: string; program: string | null; status: string; due_at: string | null }
+type Row = { id: string; kind: string; title_ar: string; title_en: string; program: string | null; status: string; due_at: string | null; engine_backed?: boolean }
+type Engine = { survey_id: string; version: number; questions: any[]; settings: any; privacy_mode: 'identified' | 'confidential' | 'anonymous'; is_open: boolean; draft: { answers: any; page: number } | null; submission: { answers: any } | null }
 
 /** The evaluation forms waiting for the signed-in person: trainer reflection, planning evaluation, supervisor and specialist feedback. */
 export default function MyEvaluations() {
@@ -38,12 +40,13 @@ export function MyEvaluationForm() {
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
   const nav = useNavigate()
-  const res = useGet<{ data: Row & { questions: (Question & { title_en?: string })[]; evidence_allowed: boolean; max_files: number } }>(`/me/evaluations/${id}`, undefined, { staleTime: 0 })
+  const res = useGet<{ data: Row & { questions: (Question & { title_en?: string })[]; evidence_allowed: boolean; max_files: number; engine?: Engine } }>(`/me/evaluations/${id}`, undefined, { staleTime: 0 })
   const [answers, setAnswers] = useState<Answers>({})
   const [evidence, setEvidence] = useState<Record<string, Evidence>>({})
   const [busy, setBusy] = useState(false)
   if (res.isLoading || !res.data) return <Spinner />
   const f = res.data.data
+  if (f.engine) return <EngineEvaluation id={id!} f={f} onDone={() => nav('/portal/evaluations')} />
   const qs = f.questions.map((q) => ({ ...q, title: !ar && q.title_en ? q.title_en : q.title }))
 
   const submit = async () => {
@@ -66,5 +69,30 @@ export function MyEvaluationForm() {
         </Card>))}
       <div className="flex gap-2"><Button variant="gold" loading={busy} onClick={() => void submit()}>{t('evalc.my.submit')}</Button><Button variant="outline" to="/portal/evaluations">{t('evalc.my.back')}</Button></div>
     </div>
+  )
+}
+
+/** An evaluation form that lives on the survey engine (Gate 5): the same form as the studio, with autosave and file answers. */
+function EngineEvaluation({ id, f, onDone }: { id: string; f: Row & { engine?: Engine }; onDone: () => void }) {
+  const { t, i18n } = useTranslation()
+  const ar = i18n.language === 'ar'
+  const e = f.engine!
+  const pending = f.status === 'pending'
+  return (
+    <Card padded={false} className="overflow-hidden">
+      <div className="flex min-h-[80vh] flex-col">
+        <EngineForm
+          survey={{ title: ar ? f.title_ar : f.title_en, description: f.program, questions: e.questions, settings: e.settings, privacy_mode: e.privacy_mode, version: e.version }}
+          initialAnswers={e.submission?.answers ?? (f.status === 'submitted' ? {} : null)}
+          draft={e.draft}
+          closed={!pending || !e.is_open}
+          canEdit={false}
+          onDraft={pending ? async (answers, page) => api.put(`/me/evaluations/${id}/draft`, { answers, page }) : undefined}
+          onUpload={async (q, file) => { const fd = new FormData(); fd.append('question_id', q.id); fd.append('file', file); const { data } = await api.post(`/me/evaluations/${id}/files`, fd); return data.data }}
+          onSubmit={async (answers, duration) => { await api.post(`/me/evaluations/${id}`, { answers, duration_seconds: duration, source: 'web' }); return String(t('evalc.my.submitted')) }}
+          onClose={onDone}
+        />
+      </div>
+    </Card>
   )
 }

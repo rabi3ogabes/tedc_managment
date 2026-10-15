@@ -10,11 +10,19 @@ use App\Models\EvaluationResponse;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\Survey;
+use App\Models\SurveyFile;
+use App\Models\SurveySubmission;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\NeedsSurveys\SurveySchema;
+use App\Services\Surveys\EvaluationAnswer;
+use App\Services\Surveys\LegacyQuestions;
+use App\Services\Surveys\SurveyCollector;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -30,7 +38,7 @@ class EvaluationService
 
     public const EVIDENCE_MIMES = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'video/mp4'];
 
-    public function __construct(private readonly NotificationService $notifications, private readonly EvaluationSettings $settings, private readonly FileStorage $storage) {}
+    public function __construct(private readonly NotificationService $notifications, private readonly EvaluationSettings $settings, private readonly FileStorage $storage, private readonly SurveyCollector $collector) {}
 
     // ───────────────────────────── forms
 
@@ -86,7 +94,7 @@ class EvaluationService
             return null;
         }
         $a = EvaluationAssignment::create(['form_id' => $form->id, 'program_id' => $program->id, 'group_id' => $group?->id, 'respondent_type' => $type, 'respondent_user_id' => $respondent->id, 'subject_registration_id' => $subject?->id,
-            'due_at' => $due ?? now()->addDays((int) $this->settings->get('impact.expiry_days', 30)), 'sent_at' => now(), 'assigned_by' => $by?->id]);
+            'due_at' => $due ?? now()->addDays((int) $this->settings->get('impact.expiry_days', 30)), 'sent_at' => now(), 'assigned_by' => $by?->id, 'survey_id' => $form->survey_id]);
 
         $this->notifications->send($respondent->id, $type === 'manager' ? 'impact.manager_due' : 'evaluation.assigned', ['ar' => 'نموذج تقييم بانتظارك', 'en' => 'An evaluation form is waiting for you'],
             ['ar' => "مطلوب منك تعبئة «{$form->title_ar}» لبرنامج «{$program->title_ar}».", 'en' => "Please fill in \"{$form->title_en}\" for \"{$program->title_en}\"."], ['assignment_id' => $a->id, 'program_id' => $program->id]);
@@ -179,10 +187,10 @@ class EvaluationService
      * @param  array<string, mixed>  $answers
      * @param  array<string, list<UploadedFile|string>>  $evidence  per question: uploaded files and/or http(s) links
      */
-    public function submit(EvaluationAssignment $a, array $answers, array $evidence, User $by): EvaluationResponse
+    public function submit(EvaluationAssignment $a, array $answers, array $evidence, User $by, ?int $durationSeconds = null, string $source = 'web'): EvaluationAssignment
     {
         abort_unless($a->respondent_user_id === $by->id, 403);
-        $a->loadMissing('form', 'program');
+        $a->loadMissing('form', 'program', 'survey.currentVersion');
         if ($a->status === 'submitted') {
             throw new BusinessRuleException(__('messages.evaluation.submitted'), 'evaluation_submitted');
         }
@@ -190,12 +198,18 @@ class EvaluationService
             throw new BusinessRuleException(__('messages.evaluation.expired'), 'evaluation_expired');
         }
 
-        $questions = $a->form->questions;
-        $clean = SurveySchema::validateAnswers($questions, $answers);
-        $stored = $this->storeEvidence($a, $questions, $evidence);
-
-        $response = EvaluationResponse::create(['assignment_id' => $a->id, 'answers' => $clean, 'evidence' => $stored ?: null, 'form_version' => $a->form->version, 'score' => $this->score($questions, $clean), 'submitted_at' => now()]);
-        $a->update(['status' => 'submitted']);
+        if ($a->survey && $a->survey->currentVersion) {
+            // The form lives on the engine: its validation, its drafts and its file answers (Gate 5).
+            $result = $this->collector->submitFor($a->survey, $by, $a->id, $answers, $durationSeconds, $source);
+            $a->update(['status' => 'submitted', 'submission_id' => $result['submission']->id, 'score' => $this->score($a->survey->currentVersion->questions, $result['submission']->answers)]);
+        } else {
+            $questions = $a->form->questions;
+            $clean = SurveySchema::validateAnswers($questions, $answers);
+            $stored = $this->storeEvidence($a, $questions, $evidence);
+            $score = $this->score($questions, $clean);
+            EvaluationResponse::create(['assignment_id' => $a->id, 'answers' => $clean, 'evidence' => $stored ?: null, 'form_version' => $a->form->version, 'score' => $score, 'submitted_at' => now()]);
+            $a->update(['status' => 'submitted', 'score' => $score]);
+        }
         // A certificate that was waiting for this form can now be downloaded: tell its holder.
         if ($a->form->settings['required_for_certificate'] ?? false) {
             $certificates = app(CertificateService::class);
@@ -209,7 +223,48 @@ class EvaluationService
             }
         }
 
-        return $response;
+        return $a->fresh(['form', 'program']);
+    }
+
+    // ───────────────────────────── reading answers, wherever they live
+
+    /**
+     * Every answer to the assignments a scope selects, shaped alike whether the engine or the legacy table stores it:
+     * `answers`, `score`, `submitted_at`, `evidence` and the `assignment` (with its form and respondent).
+     *
+     * @param  callable(Builder): void  $scope
+     * @return Collection<int, EvaluationResponse|EvaluationAnswer>
+     */
+    public function answersFor(callable $scope): Collection
+    {
+        $q = EvaluationAssignment::with(['form', 'respondent:id,name,name_ar', 'response']);
+        $scope($q);
+        $assignments = $q->get();
+        $ids = $assignments->whereNotNull('submission_id')->pluck('submission_id');
+        $submissions = $ids->isEmpty() ? collect() : SurveySubmission::with('version:id,questions')->whereIn('id', $ids)->get()->keyBy('id');
+        $files = $ids->isEmpty() ? collect() : SurveyFile::whereIn('submission_id', $ids)->orderBy('created_at')->get()->groupBy('submission_id');
+
+        return $assignments->map(function (EvaluationAssignment $a) use ($submissions, $files) {
+            if ($a->submission_id && ($s = $submissions->get($a->submission_id))) {
+                return EvaluationAnswer::fromSubmission($a, $s, $files->get($s->id) ?? collect(), $s->version?->questions ?? []);
+            }
+            if ($a->response) {
+                $a->response->setRelation('assignment', $a);
+
+                return $a->response;
+            }
+
+            return null;
+        })->filter()->values();
+    }
+
+    /** The questions results are computed on: the engine version's (without the evidence companions) when the form lives there. */
+    public function questionsFor(EvaluationForm $form): array
+    {
+        $survey = $form->survey_id ? Survey::with('currentVersion')->find($form->survey_id) : null;
+        $questions = $survey?->currentVersion?->questions ?? $survey?->questions ?? $form->questions ?? [];
+
+        return $survey ? array_values(array_filter($questions, fn ($q) => ! LegacyQuestions::isCompanion($q) && ! in_array($q['type'], ['instructions', 'page_break'], true))) : $questions;
     }
 
     /** @return array<string, list<array<string, mixed>>> */

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['title', 'description', 'status', 'source', 'template_key', 'questions', 'audience', 'settings', 'created_by', 'published_at', 'closes_at', 'closed_at', 'approval_status', 'approved_by', 'approved_at', 'approval_note'])]
+#[Fillable(['title', 'description', 'status', 'source', 'template_key', 'questions', 'audience', 'settings', 'created_by', 'published_at', 'closes_at', 'closed_at', 'approval_status', 'approved_by', 'approved_at', 'approval_note', 'survey_id'])]
 class NeedsSurvey extends Model
 {
     use Auditable, HasUuids;
@@ -43,6 +43,12 @@ class NeedsSurvey extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(NeedsSurveyResponse::class, 'survey_id');
+    }
+
+    /** The engine survey that took this survey over (Survey Studio v2, Gate 5); the legacy row is then read-only. */
+    public function survey(): BelongsTo
+    {
+        return $this->belongsTo(Survey::class, 'survey_id');
     }
 
     public function trainingNeeds(): HasMany

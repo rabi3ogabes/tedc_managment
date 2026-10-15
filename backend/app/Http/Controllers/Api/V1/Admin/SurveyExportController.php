@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Evaluation;
 use App\Models\EvaluationForm;
-use App\Models\EvaluationResponse;
 use App\Models\NeedsSurvey;
 use App\Models\Program;
+use App\Services\EvaluationService;
 use App\Services\EvaluationSettings;
 use App\Services\NeedsSurveys\SurveyAnalyzer;
 use App\Services\Reports\ReportExporter;
@@ -38,10 +38,12 @@ class SurveyExportController extends Controller
     {
         [$format, $lang] = $this->options($request);
         $q = $request->validate(['program_id' => ['required', 'uuid', 'exists:programs,id'], 'group' => ['nullable', 'uuid']]);
-        $responses = EvaluationResponse::with('assignment.respondent:id,name,name_ar')->whereHas('assignment', fn ($w) => $w->where('form_id', $form->id)->where('program_id', $q['program_id'])->when($q['group'] ?? null, fn ($x, $g) => $x->where('group_id', $g)))->get();
+        $evaluations = app(EvaluationService::class);
+        $responses = $evaluations->answersFor(fn ($w) => $w->where('form_id', $form->id)->where('program_id', $q['program_id'])->when($q['group'] ?? null, fn ($x, $g) => $x->where('group_id', $g)));
+        $questions = $evaluations->questionsFor($form);
         $anonymous = (bool) ($form->settings['anonymous'] ?? false);
         $raw = $responses->map(fn ($r) => ['who' => $anonymous ? null : $r->assignment->respondent?->displayName(), 'at' => $r->submitted_at->format('Y-m-d H:i'), 'answers' => $r->answers])->all();
-        $doc = SurveyDocument::build($lang === 'ar' ? $form->title_ar : $form->title_en, Program::find($q['program_id'])?->translate('title') ?? '', $responses->count(), $this->analyzer->questionStats($form->questions, $responses), $form->questions, $raw, $lang);
+        $doc = SurveyDocument::build($lang === 'ar' ? $form->title_ar : $form->title_en, Program::find($q['program_id'])?->translate('title') ?? '', $responses->count(), $this->analyzer->questionStats($questions, $responses), $questions, $raw, $lang);
 
         return $this->send($doc, $format, $lang, 'evaluation');
     }

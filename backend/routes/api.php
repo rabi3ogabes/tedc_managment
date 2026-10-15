@@ -109,6 +109,7 @@ use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
+use App\Http\Controllers\Api\V1\Admin\SurveyMigrationController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
@@ -625,6 +626,8 @@ Route::prefix('v1')->group(function () {
             Route::get('evaluations', [MyEvaluationController::class, 'index']);
             Route::get('evaluations/{assignment}', [MyEvaluationController::class, 'show']);
             Route::post('evaluations/{assignment}', [MyEvaluationController::class, 'submit'])->middleware('throttle:30,1');
+            Route::put('evaluations/{assignment}/draft', [MyEvaluationController::class, 'draft'])->middleware('throttle:60,1');
+            Route::post('evaluations/{assignment}/files', [MyEvaluationController::class, 'upload'])->middleware('throttle:30,1');
             Route::get('assessments', [MyAssessmentController::class, 'index']);
             Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
             Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
@@ -1092,6 +1095,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+                Route::post('{needsSurvey}/migrate', [NeedsSurveyController::class, 'migrate'])->middleware('feature:survey_studio_v2');
             });
 
             // Professional learning communities (PLC), Phase 1: the hub, communities, the needs register and workshops on the programme engine.
@@ -1157,6 +1161,12 @@ Route::prefix('v1')->group(function () {
 
             // Survey Studio v2 (Gate 2): the unified survey engine. Reading needs surveys.view; every write names its permission.
             Route::middleware('feature:survey_studio_v2')->prefix('surveys')->controller(SurveyController::class)->group(function () {
+                // Fixed paths first, so the survey id parameter never swallows them (Gate 5 migration panel).
+                Route::middleware('permission:surveys.manage')->prefix('migration')->controller(SurveyMigrationController::class)->group(function () {
+                    Route::get('/', 'index');
+                    Route::post('/', 'run');
+                    Route::post('rollback', 'rollback');
+                });
                 Route::middleware('permission:surveys.view')->group(function () {
                     Route::get('/', 'index');
                     Route::get('catalog', 'catalog');
@@ -1845,6 +1855,7 @@ Route::prefix('v1')->group(function () {
                 Route::put('evaluation-forms/{form}', [EvaluationFormController::class, 'update']);
                 Route::delete('evaluation-forms/{form}', [EvaluationFormController::class, 'destroy']);
                 Route::post('evaluation-forms/{form}/submit-approval', [EvaluationFormController::class, 'submitApproval']);
+                Route::post('evaluation-forms/{form}/migrate', [EvaluationFormController::class, 'migrate'])->middleware('feature:survey_studio_v2');
                 Route::get('settings/evaluation', [EvaluationFormController::class, 'settings']);
                 Route::put('settings/evaluation', [EvaluationFormController::class, 'updateSettings']);
                 Route::post('programs/{program}/evaluations/assign', [GroupEvaluationController::class, 'assign']);

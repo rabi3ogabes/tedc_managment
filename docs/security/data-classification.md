@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 783 columns
-- Internal: 2236 columns
+- Public: 785 columns
+- Internal: 2248 columns
 - Confidential: 530 columns
 - Restricted: 27 columns
 
@@ -1254,6 +1254,9 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `assigned_by` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `survey_id` | Internal | — |
+| `submission_id` | Internal | — |
+| `score` | Internal | — |
 
 ### `evaluation_forms`
 
@@ -1275,6 +1278,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_by` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `survey_id` | Internal | — |
 
 ### `evaluation_interviews`
 
@@ -2448,6 +2452,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `approved_by` | Internal | — |
 | `approved_at` | Internal | — |
 | `approval_note` | Internal | — |
+| `survey_id` | Internal | — |
 
 ### `nominations`
 
@@ -4314,6 +4319,19 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `survey_migrations`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `batch` | Internal | — |
+| `legacy_type` | Internal | — |
+| `legacy_id` | Internal | — |
+| `survey_id` | Internal | — |
+| `counts` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+
 ### `survey_participants`
 
 | Column | Class | Control |
@@ -4399,6 +4417,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `edit_count` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+| `context_id` | Internal | — |
 
 ### `survey_versions`
 

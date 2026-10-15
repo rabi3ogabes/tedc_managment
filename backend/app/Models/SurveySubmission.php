@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * `respondent_user_id` is filled only in identified surveys, `respondent_pseudonym` only in confidential ones;
  * anonymous surveys carry neither. (The legacy lesson survey keeps the `survey_responses` table.)
  */
-#[Fillable(['survey_id', 'version_id', 'respondent_user_id', 'respondent_pseudonym', 'segment_snapshot', 'answers', 'status', 'source', 'duration_seconds', 'submitted_at', 'edited_at', 'edit_count'])]
+#[Fillable(['survey_id', 'version_id', 'respondent_user_id', 'respondent_pseudonym', 'context_id', 'segment_snapshot', 'answers', 'status', 'source', 'duration_seconds', 'submitted_at', 'edited_at', 'edit_count'])]
 class SurveySubmission extends Model
 {
     use HasUuids;

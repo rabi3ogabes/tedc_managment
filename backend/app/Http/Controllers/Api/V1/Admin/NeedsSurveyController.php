@@ -7,12 +7,15 @@ use App\Http\Controllers\Controller;
 use App\Models\NeedsSurvey;
 use App\Models\NeedsSurveyRecipient;
 use App\Models\Skill;
+use App\Models\SurveyParticipant;
+use App\Models\SurveySubmission;
 use App\Models\TrainingNeed;
 use App\Services\NeedsSurveys\SurveyAnalyzer;
 use App\Services\NeedsSurveys\SurveyAudience;
 use App\Services\NeedsSurveys\SurveySchema;
 use App\Services\NeedsSurveys\SurveyTemplates;
 use App\Services\NotificationService;
+use App\Services\Surveys\SurveyMigrator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +96,7 @@ class NeedsSurveyController extends Controller
 
     public function update(Request $request, NeedsSurvey $needsSurvey): JsonResponse
     {
+        $this->notMigrated($needsSurvey);
         $data = $this->validated($request, false);
         $changes = array_intersect_key($data, array_flip(['title', 'description', 'closes_at']));
         if (array_key_exists('questions', $data)) {
@@ -127,6 +131,7 @@ class NeedsSurveyController extends Controller
     /** Sends the survey to its audience. Re-publishing adds (and notifies) only new people. */
     public function publish(NeedsSurvey $needsSurvey, NotificationService $notifications): JsonResponse
     {
+        $this->notMigrated($needsSurvey);
         abort_if(! array_filter($needsSurvey->questions ?? [], fn ($q) => $q['type'] !== 'section'), 422, __('Add at least one question.'));
         if ($needsSurvey->approval_status !== 'approved') {
             throw new BusinessRuleException(__('messages.needs.instrument_not_approved'), 'instrument_not_approved');
@@ -164,6 +169,7 @@ class NeedsSurveyController extends Controller
 
     public function remind(NeedsSurvey $needsSurvey, NotificationService $notifications): JsonResponse
     {
+        $this->notMigrated($needsSurvey);
         abort_unless($needsSurvey->isOpen(), 422, __('The survey is not open.'));
         $pending = $needsSurvey->recipients()->whereNull('responded_at')->pluck('user_id');
         if ($pending->isNotEmpty()) {
@@ -180,6 +186,7 @@ class NeedsSurveyController extends Controller
 
     public function close(NeedsSurvey $needsSurvey): JsonResponse
     {
+        $this->notMigrated($needsSurvey);
         $needsSurvey->update(['status' => 'closed', 'closed_at' => now()]);
 
         return response()->json(['data' => $this->detail($needsSurvey)]);
@@ -187,6 +194,7 @@ class NeedsSurveyController extends Controller
 
     public function reopen(NeedsSurvey $needsSurvey): JsonResponse
     {
+        $this->notMigrated($needsSurvey);
         abort_unless($needsSurvey->published_at, 422);
         $needsSurvey->update(['status' => 'published', 'closed_at' => null, 'closes_at' => $needsSurvey->closes_at?->isPast() ? null : $needsSurvey->closes_at]);
 
@@ -221,32 +229,31 @@ class NeedsSurveyController extends Controller
             }
             fputcsv($out, $head);
 
-            $needsSurvey->responses()->with(['user:id,name,name_ar,email', 'school:id,name_ar', 'jobTitle:id,name_ar'])->orderBy('submitted_at')
-                ->chunk(500, function ($responses) use ($out, $questions, $anonymous) {
-                    foreach ($responses as $r) {
-                        $line = array_merge($anonymous ? [] : [$r->user?->name_ar ?? $r->user?->name, $r->user?->email], [
-                            $r->school?->name_ar, $r->jobTitle?->name_ar, $r->experience_years, $r->specialization, $r->nationality, $r->submitted_at->format('Y-m-d H:i'),
-                        ]);
-                        foreach ($questions as $q) {
-                            $a = $r->answers[$q['id']] ?? null;
-                            if ($q['type'] === 'matrix') {
-                                foreach ($q['rows'] as $row) {
-                                    $line[] = $a[$row['id']] ?? '';
-                                }
-
-                                continue;
+            $this->analyzer->responses($needsSurvey)->sortBy('submitted_at')->chunk(500)->each(function ($responses) use ($out, $questions, $anonymous) {
+                foreach ($responses as $r) {
+                    $line = array_merge($anonymous ? [] : [$r->user?->name_ar ?? $r->user?->name, $r->user?->email], [
+                        $r->school?->name_ar, $r->jobTitle?->name_ar, $r->experience_years, $r->specialization, $r->nationality, $r->submitted_at->format('Y-m-d H:i'),
+                    ]);
+                    foreach ($questions as $q) {
+                        $a = $r->answers[$q['id']] ?? null;
+                        if ($q['type'] === 'matrix') {
+                            foreach ($q['rows'] as $row) {
+                                $line[] = $a[$row['id']] ?? '';
                             }
-                            $labels = collect($q['options'] ?? [])->pluck('label', 'id');
-                            $line[] = match (true) {
-                                $a === null => '',
-                                is_array($a) => collect($a)->map(fn ($v) => $labels[$v] ?? $v)->implode(' | '),
-                                $q['type'] === 'yes_no' => $a === 'yes' ? 'نعم' : 'لا',
-                                default => $labels[$a] ?? $a,
-                            };
+
+                            continue;
                         }
-                        fputcsv($out, $line);
+                        $labels = collect($q['options'] ?? [])->pluck('label', 'id');
+                        $line[] = match (true) {
+                            $a === null => '',
+                            is_array($a) => collect($a)->map(fn ($v) => $labels[$v] ?? $v)->implode(' | '),
+                            $q['type'] === 'yes_no' => $a === 'yes' ? 'نعم' : 'لا',
+                            default => $labels[$a] ?? $a,
+                        };
                     }
-                });
+                    fputcsv($out, $line);
+                }
+            });
             fclose($out);
         }, Str::slug($needsSurvey->title ?: 'survey').'-responses.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
@@ -310,6 +317,21 @@ class NeedsSurveyController extends Controller
         return response()->json(['created' => $created]);
     }
 
+    /** Moves the survey onto the survey engine (Gate 5): people, answers and the report follow; the studio owns it from then on. */
+    public function migrate(NeedsSurvey $needsSurvey, SurveyMigrator $migrator): JsonResponse
+    {
+        $survey = $migrator->migrateNeedsSurvey($needsSurvey, null, $this->user());
+
+        return response()->json(['data' => ['survey_id' => $survey->id] + $this->summary($needsSurvey->fresh())], 201);
+    }
+
+    private function notMigrated(NeedsSurvey $s): void
+    {
+        if ($s->survey_id) {
+            throw new BusinessRuleException(__('messages.surveys.migrated'), 'survey_migrated', ['survey_id' => $s->survey_id]);
+        }
+    }
+
     private function validated(Request $request, bool $creating): array
     {
         return $request->validate([
@@ -354,8 +376,9 @@ class NeedsSurveyController extends Controller
             'approval_note' => $s->approval_note,
             'template_key' => $s->template_key,
             'questions_count' => count(array_filter($s->questions ?? [], fn ($q) => $q['type'] !== 'section')),
-            'recipients_count' => $s->recipients_count ?? $s->recipients()->count(),
-            'responses_count' => $s->responses_count ?? $s->responses()->count(),
+            'survey_id' => $s->survey_id,
+            'recipients_count' => $s->survey_id ? SurveyParticipant::where('survey_id', $s->survey_id)->count() : ($s->recipients_count ?? $s->recipients()->count()),
+            'responses_count' => $s->survey_id ? SurveySubmission::where('survey_id', $s->survey_id)->count() : ($s->responses_count ?? $s->responses()->count()),
             'needs_count' => $s->training_needs_count ?? $s->trainingNeeds()->count(),
             'audience_summary' => $this->audience->describe($s->audience ?? []),
             'accent' => $s->settings['accent'] ?? null,

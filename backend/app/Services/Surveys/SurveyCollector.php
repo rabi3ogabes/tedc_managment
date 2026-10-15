@@ -36,10 +36,10 @@ class SurveyCollector
     public function submissionOf(Survey $survey, User $user): ?SurveySubmission
     {
         if ($survey->isIdentified()) {
-            return $survey->submissions()->where('respondent_user_id', $user->id)->first();
+            return $survey->submissions()->whereNull('context_id')->where('respondent_user_id', $user->id)->first();
         }
         if ($survey->isConfidential() && $survey->pseudonym_key) {
-            return $survey->submissions()->where('respondent_pseudonym', SurveyPrivacy::pseudonym($survey, $user))->first();
+            return $survey->submissions()->whereNull('context_id')->where('respondent_pseudonym', SurveyPrivacy::pseudonym($survey, $user))->first();
         }
 
         return null;
@@ -115,7 +115,44 @@ class SurveyCollector
     /** The public respondent's earlier submission, when the rule keeps one per key. */
     public function submissionByKey(Survey $survey, string $key): ?SurveySubmission
     {
-        return $survey->submissions()->where('respondent_pseudonym', $key)->first();
+        return $survey->submissions()->whereNull('context_id')->where('respondent_pseudonym', $key)->first();
+    }
+
+    // Context answers: an evaluation assignment (Gate 5) ------------------------------------------------------------
+
+    /** The person's answer inside one context, whatever the mode (the context itself is addressed to the person). */
+    public function submissionFor(Survey $survey, User $user, string $contextId): ?SurveySubmission
+    {
+        $q = $survey->submissions()->where('context_id', $contextId);
+
+        return $survey->isIdentified() ? $q->where('respondent_user_id', $user->id)->first() : ($survey->pseudonym_key ? $q->where('respondent_pseudonym', SurveyPrivacy::contextKey($survey, $user, $contextId))->first() : null);
+    }
+
+    public function draftFor(Survey $survey, User $user, string $contextId): ?SurveySession
+    {
+        return $survey->pseudonym_key || $survey->isIdentified() ? $this->draftByKey($survey, SurveyPrivacy::contextKey($survey, $user, $contextId)) : null;
+    }
+
+    public function saveDraftFor(Survey $survey, User $user, string $contextId, array $answers, int $page = 0): SurveySession
+    {
+        return $this->saveDraftByKey($survey, SurveyPrivacy::contextKey($survey, $user, $contextId), $answers, $page);
+    }
+
+    /**
+     * Submits the person's answer for one context. No participation row is needed: the context (the assignment) is the invitation.
+     *
+     * @return array{submission: SurveySubmission, edited: bool}
+     */
+    public function submitFor(Survey $survey, User $user, string $contextId, array $answers, ?int $durationSeconds = null, string $source = 'web'): array
+    {
+        $this->assertOpen($survey);
+        $key = SurveyPrivacy::contextKey($survey, $user, $contextId);
+        $existing = $this->submissionFor($survey, $user, $contextId);
+
+        return $this->persist($survey, $key, [
+            'respondent_user_id' => $survey->isIdentified() ? $user->id : null, 'respondent_pseudonym' => $survey->isIdentified() ? null : $key, 'context_id' => $contextId,
+            'segment_snapshot' => SurveyPrivacy::segmentSnapshot($survey, $user->employee),
+        ], $existing, $answers, $durationSeconds, $source);
     }
 
     /**

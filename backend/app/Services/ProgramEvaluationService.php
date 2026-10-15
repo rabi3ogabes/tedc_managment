@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\EvaluationInterview;
-use App\Models\EvaluationResponse;
 use App\Models\ImpactSurvey;
 use App\Models\Program;
 use App\Models\ProgramEvaluationReport;
@@ -24,6 +23,7 @@ class ProgramEvaluationService
         private readonly ComparativeAnalysis $comparative,
         private readonly SatisfactionAlertService $alerts,
         private readonly NotificationService $notifications,
+        private readonly EvaluationService $evaluations,
     ) {}
 
     /** @return array<string, mixed> */
@@ -36,7 +36,7 @@ class ProgramEvaluationService
         $anonMin = (int) $this->settings->get('anonymous_min_responses', 3);
         $gain = $this->comparative->forProgram($program->id, $group?->id);
         $impactRegs = $regs->whereNotNull('impact_score');
-        $responses = EvaluationResponse::with('assignment.form')->whereHas('assignment', fn ($q) => $q->where('program_id', $program->id)->when($group, fn ($w) => $w->where('group_id', $group->id)))->get();
+        $responses = $this->evaluations->answersFor(fn ($q) => $q->where('program_id', $program->id)->when($group, fn ($w) => $w->where('group_id', $group->id)));
         $byKind = fn (string $kind) => $responses->filter(fn ($r) => $r->assignment->form->kind === $kind);
         $avgScore = fn ($c) => $c->whereNotNull('score')->isNotEmpty() ? round((float) $c->whereNotNull('score')->avg('score'), 1) : null;
         $interviews = EvaluationInterview::where('program_id', $program->id)->when($group, fn ($q) => $q->where('group_id', $group->id))->get();

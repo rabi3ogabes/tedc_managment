@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import {
-  BarChart3, CalendarClock, Copy, Cpu, Crown, Download, Eye, FilePlus2, FileSpreadsheet, FileText, GraduationCap, HeartHandshake, LayoutTemplate,
+  BarChart3, CalendarClock, Copy, Cpu, Crown, DatabaseZap, Download, Eye, FilePlus2, FileSpreadsheet, FileText, GraduationCap, HeartHandshake, LayoutTemplate,
   Loader2, PenLine, Plus, Search, Sparkles, Trash2, UploadCloud, Users, Wand2, Zap,
 } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
@@ -10,6 +10,7 @@ import SurveyForm, { SurveyDialog } from '@/components/surveys/SurveyForm'
 import { Button, Card, Empty, StatusBadge } from '@/components/ui'
 import { ProgramGridSkeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
+import { useFeature } from '@/hooks/useFeature'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { autoLinkSkills, downloadText, ImportError, importQuestions, importTemplateCsv, newQuestion, type Question, type Skill, type SurveySummary, type Template } from '@/lib/surveys'
@@ -24,9 +25,11 @@ export default function SurveysTab() {
   const [status, setStatus] = useState<'all' | 'draft' | 'published' | 'closed'>('all')
   const [q, setQ] = useState('')
   const [creating, setCreating] = useState(false)
+  const studio = useFeature('survey_studio_v2')
   const list = useGet<LaravelPage<SurveySummary>>('/admin/needs-surveys', { per_page: 60, status: status === 'all' ? undefined : status, q: q || undefined })
 
   const duplicate = async (s: SurveySummary) => { const { data } = await api.post(`/admin/needs-surveys/${s.id}/duplicate`); navigate(`/admin/needs/surveys/${data.data.id}`) }
+  const migrate = async (s: SurveySummary) => { if (!(await dialogs.confirm(t('surveys.migrateConfirm')))) return; try { const { data } = await api.post(`/admin/needs-surveys/${s.id}/migrate`); navigate(`/admin/surveys/${data.data.survey_id}`) } catch (e) { window.alert(errorMessage(e)) } }
   const remove = async (s: SurveySummary) => { if (await dialogs.confirm(t('surveys.actions.confirmDelete'))) { await api.delete(`/admin/needs-surveys/${s.id}`); list.refetch() } }
 
   return (
@@ -60,7 +63,7 @@ export default function SurveysTab() {
         <Card><Empty text={t('surveys.empty')} icon={<LayoutTemplate className="size-6" />} /></Card>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-          {list.data.data.map((s) => <SurveyCard key={s.id} survey={s} onOpen={() => navigate(`/admin/needs/surveys/${s.id}`)} onResults={() => navigate(`/admin/needs/surveys/${s.id}?view=results`)} onDuplicate={() => duplicate(s)} onDelete={() => remove(s)} />)}
+          {list.data.data.map((s) => <SurveyCard key={s.id} survey={s} onOpen={() => navigate(s.survey_id ? `/admin/surveys/${s.survey_id}` : `/admin/needs/surveys/${s.id}`)} onResults={() => navigate(`/admin/needs/surveys/${s.id}?view=results`)} onDuplicate={() => duplicate(s)} onDelete={() => remove(s)} onMigrate={studio && !s.survey_id ? () => migrate(s) : undefined} />)}
         </div>
       )}
 
@@ -69,7 +72,7 @@ export default function SurveysTab() {
   )
 }
 
-function SurveyCard({ survey: s, onOpen, onResults, onDuplicate, onDelete }: { survey: SurveySummary; onOpen: () => void; onResults: () => void; onDuplicate: () => void; onDelete: () => void }) {
+function SurveyCard({ survey: s, onOpen, onResults, onDuplicate, onDelete, onMigrate }: { survey: SurveySummary; onOpen: () => void; onResults: () => void; onDuplicate: () => void; onDelete: () => void; onMigrate?: () => void }) {
   const { t } = useTranslation()
   const accent = s.accent ?? '#8A1538'
   const rate = s.recipients_count ? Math.round((s.responses_count / s.recipients_count) * 100) : 0
@@ -80,7 +83,7 @@ function SurveyCard({ survey: s, onOpen, onResults, onDuplicate, onDelete }: { s
         <div className="pattern-bg absolute inset-0 opacity-30" />
         <svg className="absolute -bottom-8 -end-6 size-36 text-white/10 transition duration-500 group-hover:rotate-12" viewBox="0 0 100 100" aria-hidden><path d="M50 2 L61 39 L98 50 L61 61 L50 98 L39 61 L2 50 L39 39 Z" fill="currentColor" /></svg>
         <div className="absolute inset-x-5 top-4 flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur"><SourceIcon className="size-3.5" />{t(`surveys.source.${s.source}`)}</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur"><SourceIcon className="size-3.5" />{s.survey_id ? t('surveys.migrated') : t(`surveys.source.${s.source}`)}</span>
           <StatusBadge status={s.status} label={t(`surveys.status.${s.status}`)} />
         </div>
         <div className="absolute inset-x-5 bottom-3 line-clamp-1 font-display text-lg font-bold text-white">{s.title}</div>
@@ -103,11 +106,12 @@ function SurveyCard({ survey: s, onOpen, onResults, onDuplicate, onDelete }: { s
           {s.needs_count > 0 && <span className="font-semibold text-emerald-600"><Wand2 className="me-1 inline size-3.5" />{fmt.number(s.needs_count)} {t('surveys.stats.needs')}</span>}
         </div>
         <div className="mt-auto flex items-center gap-2 pt-5">
-          <Button size="sm" variant="primary" onClick={onOpen} icon={<PenLine className="size-3.5" />}>{t('surveys.actions.open')}</Button>
+          <Button size="sm" variant="primary" onClick={onOpen} icon={s.survey_id ? <DatabaseZap className="size-3.5" /> : <PenLine className="size-3.5" />}>{s.survey_id ? t('surveys.openStudio') : t('surveys.actions.open')}</Button>
           {s.status !== 'draft' && <Button size="sm" variant="outline" onClick={onResults} icon={<BarChart3 className="size-3.5" />}>{t('surveys.actions.results')}</Button>}
           <div className="ms-auto flex">
+            {onMigrate && <IconButton label={t('surveys.migrate')} onClick={onMigrate}><DatabaseZap className="size-4" /></IconButton>}
             <IconButton label={t('surveys.actions.duplicate')} onClick={onDuplicate}><Copy className="size-4" /></IconButton>
-            <IconButton label={t('surveys.actions.delete')} onClick={onDelete} danger><Trash2 className="size-4" /></IconButton>
+            {!s.survey_id && <IconButton label={t('surveys.actions.delete')} onClick={onDelete} danger><Trash2 className="size-4" /></IconButton>}
           </div>
         </div>
       </div>

@@ -61,3 +61,6 @@ Changed (web)
 ## 6. Exact next step
 
 Gate 5 — migrate the training workflows onto the engine (needs surveys, programme evaluation forms, impact surveys) with their triggers, keeping the legacy pages readable. Report in `docs/surveys/05-gate5-workflows.md`.
+
+---
+Full suite after Gate 4 (`php artisan test --compact`, Windows): 1161 tests, 1091 passed, 15278 assertions. The 4 failures and 54 errors are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, openssl).
