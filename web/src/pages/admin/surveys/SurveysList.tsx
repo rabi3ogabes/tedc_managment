@@ -11,6 +11,7 @@ import MigrationPanel from './MigrationPanel'
 
 type Row = { id: string; kind: string; title_ar: string; title_en?: string | null; status: string; privacy_mode: string; owner?: string | null; participants: number; submissions: number; is_open: boolean; closes_at?: string | null; updated_at?: string; legacy_type?: 'needs_survey' | 'evaluation_form' | null }
 type Catalog = { kinds: string[]; privacy_modes: string[] }
+type Overview = { by_status: Record<string, number>; by_kind: Record<string, number>; submissions_30d: number; timeline: { date: string; value: number }[]; open: { id: string; title: string; kind: string; closes_at?: string | null; participants: number; submissions: number; response_rate: number | null }[] }
 const TONE: Record<string, 'gray' | 'amber' | 'green' | 'navy' | 'red'> = { draft: 'gray', in_review: 'amber', approved: 'green', published: 'navy', closed: 'gray', archived: 'gray' }
 
 /** The surveys of the new engine, and the door to the studio. */
@@ -26,9 +27,11 @@ export default function SurveysList() {
   const [migrate, setMigrate] = useState(false)
   const res = useGet<{ data: Row[]; meta: { total: number } }>('/admin/surveys', { q: q || undefined, status: status || undefined, mine: mine ? 1 : undefined, per_page: 60 }, { staleTime: 0 })
   const catalog = useGet<{ data: Catalog }>('/admin/surveys/catalog')
+  const overview = useGet<{ data: Overview }>('/admin/surveys/overview', undefined, { staleTime: 60_000 })
   return (
     <>
       <PageHeader title={t('ss.list.title')} subtitle={t('ss.list.subtitle')} actions={can('surveys.manage') && <div className="flex gap-2"><Button variant="outline" icon={<DatabaseZap className="size-4" />} onClick={() => setMigrate(true)}>{t('ss.migration.title')}</Button><Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('ss.list.create')}</Button></div>} />
+      {overview.data && <OverviewStrip o={overview.data.data} />}
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <div className="relative min-w-52 flex-1"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input className="input ps-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder={String(t('ss.list.search'))} /></div>
         <select className="input w-auto" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">{t('ss.list.all')}</option>{['draft', 'in_review', 'approved', 'published', 'closed', 'archived'].map((s) => <option key={s} value={s}>{t(`ss.state.${s}`)}</option>)}</select>
@@ -74,5 +77,21 @@ function CreateDialog({ open, onClose, catalog, onCreated }: { open: boolean; on
       </div>
       <div className="mt-5 flex justify-end gap-2"><Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button variant="gold" disabled={!f.title_ar.trim()} loading={create.isPending} onClick={submit}>{t('ss.list.create')}</Button></div>
     </Modal>
+  )
+}
+
+/** The studio at a glance: how many surveys are open, answers over the last thirty days, and the open surveys' response rates. */
+function OverviewStrip({ o }: { o: Overview }) {
+  const { t } = useTranslation()
+  const max = Math.max(1, ...o.timeline.map((d) => d.value))
+  return (
+    <div className="mb-5 grid gap-3 md:grid-cols-[1fr_1fr_2fr]">
+      <div className="rounded-2xl bg-navy-900 p-4 text-white shadow-glass"><div className="text-xs text-white/60">{t('ss.overview.open')}</div><div className="font-display text-3xl font-bold">{o.by_status.published ?? 0}</div><div className="mt-1 text-xs text-white/60">{t('ss.overview.total', { n: Object.values(o.by_status).reduce((a, b) => a + b, 0) })}</div></div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4"><div className="text-xs text-slate-500">{t('ss.overview.answers30')}</div><div className="font-display text-3xl font-bold text-navy-900">{o.submissions_30d}</div>
+        <div className="mt-2 flex h-8 items-end gap-0.5">{o.timeline.slice(-30).map((d) => <div key={d.date} title={`${d.date}: ${d.value}`} className="flex-1 rounded-t bg-gold-400" style={{ height: `${Math.max(8, (d.value / max) * 100)}%` }} />)}</div></div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4"><div className="mb-2 text-xs text-slate-500">{t('ss.overview.openNow')}</div>
+        {!o.open.length ? <div className="text-sm text-slate-400">{t('ss.overview.none')}</div> : <ul className="space-y-1.5">{o.open.slice(0, 4).map((s) => <li key={s.id} className="flex items-center gap-2 text-xs"><Link to={`/admin/surveys/${s.id}`} className="w-40 truncate font-semibold text-navy-900 hover:text-gold-700">{s.title}</Link><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-l from-gold-400 to-gold-600" style={{ width: `${s.response_rate ?? 0}%` }} /></div><span className="w-20 text-end tabular-nums text-slate-500">{s.submissions}{s.participants ? ` / ${s.participants}` : ''}{s.response_rate != null ? ` · ${s.response_rate}%` : ''}</span></li>)}</ul>}
+      </div>
+    </div>
   )
 }

@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\V1\Admin\SurveyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\SurveyMigrationController;
+use App\Http\Controllers\Api\V1\Admin\SurveyResultsController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
 use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
@@ -1162,6 +1163,7 @@ Route::prefix('v1')->group(function () {
             // Survey Studio v2 (Gate 2): the unified survey engine. Reading needs surveys.view; every write names its permission.
             Route::middleware('feature:survey_studio_v2')->prefix('surveys')->controller(SurveyController::class)->group(function () {
                 // Fixed paths first, so the survey id parameter never swallows them (Gate 5 migration panel).
+                Route::get('compare', [SurveyResultsController::class, 'compare'])->middleware('permission:surveys.results');
                 Route::middleware('permission:surveys.manage')->prefix('migration')->controller(SurveyMigrationController::class)->group(function () {
                     Route::get('/', 'index');
                     Route::post('/', 'run');
@@ -1170,6 +1172,7 @@ Route::prefix('v1')->group(function () {
                 Route::middleware('permission:surveys.view')->group(function () {
                     Route::get('/', 'index');
                     Route::get('catalog', 'catalog');
+                    Route::get('overview', [SurveyResultsController::class, 'overview']);
                     Route::get('{studioSurvey}', 'show');
                     Route::get('{studioSurvey}/versions', 'versions');
                     Route::get('{studioSurvey}/versions/{number}', 'version')->whereNumber('number');
@@ -1179,8 +1182,12 @@ Route::prefix('v1')->group(function () {
                     Route::get('{studioSurvey}/distributions/{distribution}/qr.{format}', [SurveyDistributionController::class, 'qr'])->whereIn('format', ['svg', 'png']);
                 });
                 Route::middleware('permission:surveys.results')->group(function () {
+                    Route::get('{studioSurvey}/results', [SurveyResultsController::class, 'results']);
+                    Route::get('{studioSurvey}/answers', [SurveyResultsController::class, 'answers']);
                     Route::get('{studioSurvey}/files/{surveyFile}', [SurveyDistributionController::class, 'file']);
+                    Route::post('{studioSurvey}/generate-needs', [SurveyResultsController::class, 'generateNeeds'])->middleware('permission:needs.manage');
                 });
+                Route::get('{studioSurvey}/export', [SurveyResultsController::class, 'export'])->middleware('permission:surveys.export');
                 Route::middleware('permission:surveys.manage')->group(function () {
                     Route::post('/', 'store');
                     Route::post('audience/preview', 'audiencePreview');

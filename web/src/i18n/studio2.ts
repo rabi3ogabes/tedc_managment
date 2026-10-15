@@ -10,7 +10,7 @@ export const ssAr = {
   privacy: { identified: 'معرَّفة', confidential: 'سرية', anonymous: 'مجهولة', identifiedHint: 'تُحفظ هوية المجيب؛ تُعرض الإجابات الفردية لمن يملك الصلاحية.', confidentialHint: 'تُحفظ الإجابة باسم مستعار مشفَّر؛ لا يمكن ربطها بشخص بعد الإغلاق.', anonymousHint: 'لا يُحفظ شيء عن المجيب؛ إجابة واحدة لكل شخص عبر سجل المشاركة.' },
   state: { draft: 'مسودة', in_review: 'قيد المراجعة', approved: 'معتمدة', published: 'منشورة', closed: 'مغلقة', archived: 'مؤرشفة' },
   studio: {
-    audienceByAssignment: 'هذه الاستبانة تُسند إلى أشخاص بعينهم من مركز التقييم (التكليفات)، فلا تُستهدف بفلاتر الجمهور.', tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', distribute: 'الروابط والدعوات', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
+    audienceByAssignment: 'هذه الاستبانة تُسند إلى أشخاص بعينهم من مركز التقييم (التكليفات)، فلا تُستهدف بفلاتر الجمهور.', tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', distribute: 'الروابط والدعوات', results: 'النتائج', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
     palette: 'إضافة سؤال', structure: 'بنية', text: 'نصوص', choice: 'اختيارات', scales: 'مقاييس', misc: 'أخرى',
     empty: 'ابدأ بإضافة سؤال من اللوحة.', question: 'السؤال', questionEn: 'بالإنجليزية', description: 'وصف أو تعليمات', required: 'إلزامي', options: 'الخيارات', rows: 'العبارات', addOption: 'إضافة خيار', addRow: 'إضافة عبارة', other: 'خيار «أخرى» بنص حر',
     maxSelect: 'الحد الأقصى', minSelect: 'الحد الأدنى', scale: 'المقياس', min: 'من', max: 'إلى', minLabel: 'وصف الأدنى', maxLabel: 'وصف الأقصى', maxLength: 'أقصى طول', placeholder: 'نص إرشادي', numMin: 'أصغر قيمة', numMax: 'أكبر قيمة',
@@ -65,6 +65,17 @@ export const ssAr = {
     batches: 'دفعات الترحيل', batch: 'الدفعة', by: 'بواسطة', late: 'إجابات بعد الترحيل', rollback: 'تراجع', rollbackConfirm: 'التراجع يحذف نسخ المحرك لهذه الدفعة ويعيد السجلات القديمة كما كانت. متابعة؟', rollbackForce: 'وصلت {{n}} إجابة عبر المحرك بعد الترحيل وستُحذف نهائياً. اكتب «حذف» للتأكيد.', rolledBack: 'تم التراجع عن الدفعة.', nothing: 'لا شيء بانتظار الترحيل.',
     dryNote: 'الأرقام أدناه هي التجربة الجافة: لا يتغير شيء حتى تضغط ترحيل. تبقى السجلات القديمة محفوظة وتُعرض للقراءة والتقارير، ويتولى الاستوديو الأسئلة والإصدارات والاعتماد والإجابات من بعدها.',
   },
+  overview: { open: 'استبانات مفتوحة الآن', total: 'من أصل {{n}} استبانة', answers30: 'إجابات آخر ٣٠ يوماً', openNow: 'المفتوحة الآن ونسبة الاستجابة', none: 'لا استبانات مفتوحة.' },
+  results: {
+    participants: 'المستهدفون', answered: 'أجابوا', rate: 'نسبة الاستجابة', submissions: 'الإجابات', avgTime: 'متوسط مدة الإجابة', minutes: 'دقيقة', filters: 'الشرائح', clear: 'إزالة التصفية', allSources: 'كل المصادر', currentVersion: 'الإصدار الحالي',
+    noSegments: 'لا شرائح متاحة: تظهر الشريحة عندما تبلغ {{n}} إجابات.', thresholdNote: 'تُخفى أي شريحة تقل عن {{n}} إجابات حفاظاً على الخصوصية.', edited: '{{n}} إجابة عُدّلت', timeline: 'من {{from}} إلى {{to}}',
+    tabs: { summary: 'الملخص', answers: 'الإجابات الفردية', compare: 'مقارنة' }, hiddenTitle: 'شريحة أصغر من حد الإظهار', hiddenText: 'هذه التصفية تترك {{m}} إجابة فقط؛ لا تُعرض النتائج إلا عند {{n}} إجابات فأكثر.',
+    noAnswers: 'لا إجابات بعد.', answeredN: '{{n}} أجابوا', average: 'المتوسط', filesN: '{{n}} ملف', sources: { web: 'الويب', mobile: 'الجوال', public: 'رابط عام', invitation: 'دعوة', qr: 'QR', import: 'مرحّلة' },
+    needsTitle: 'الاحتياجات التدريبية المستخلصة', needsHint: 'مؤشر الاحتياج (0–100) محسوب من إجابات المهارات المرتبطة؛ حدد المهارات ثم ولّد الاحتياجات.', noNeeds: 'لا مهارات مرتبطة بالأسئلة بعد.', generate: 'توليد احتياجات', generated: 'وُلّد', inNeed: '{{n}} بحاجة من أصل {{of}} · {{share}}%',
+    generateHint: 'تُنشأ سجلات احتياج معتمدة لـ {{n}} مهارة في سجل الاحتياجات.', split: 'التقسيم', splitOverall: 'احتياج عام', splitSchool: 'احتياج لكل مدرسة', needsCreated: 'أُنشئ {{n}} احتياجاً.',
+    rowsN: '{{n}} إجابة', noIdentity: 'بلا هوية', when: 'التاريخ', who: 'المستجيب', source: 'المصدر', answersCount: 'عدد الإجابات', editedN: 'عُدّلت {{n}}',
+    compareHint: 'اختر حتى خمس استبانات أخرى؛ تُقارن الأسئلة التي تشترك في المعرّف والنوع.', nothingToCompare: 'لا استبانات أخرى بإجابات.', question: 'السؤال', noShared: 'لا أسئلة مشتركة بين هذه الاستبانات.',
+  },
   portal: { title: 'استبانات موجهة إليك', open: 'افتح', answered: 'أجبت', canEdit: 'يمكنك التعديل حتى الإغلاق', closes: 'تُغلق', none: 'لا توجد استبانات موجهة إليك الآن.' },
 }
 
@@ -79,7 +90,7 @@ export const ssEn: typeof ssAr = {
   privacy: { identified: 'Identified', confidential: 'Confidential', anonymous: 'Anonymous', identifiedHint: 'The respondent is kept; individual answers are shown to those with the permission.', confidentialHint: 'Answers are stored under an encrypted pseudonym; nobody can be matched after close.', anonymousHint: 'Nothing about the respondent is stored; one answer per person through the participation registry.' },
   state: { draft: 'Draft', in_review: 'In review', approved: 'Approved', published: 'Published', closed: 'Closed', archived: 'Archived' },
   studio: {
-    audienceByAssignment: 'This survey is assigned to named people from the evaluation centre (assignments), so it has no audience filters.', tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', distribute: 'Links & invitations', preview: 'Preview', versions: 'Versions & log' },
+    audienceByAssignment: 'This survey is assigned to named people from the evaluation centre (assignments), so it has no audience filters.', tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', distribute: 'Links & invitations', results: 'Results', preview: 'Preview', versions: 'Versions & log' },
     palette: 'Add a question', structure: 'Structure', text: 'Text', choice: 'Choices', scales: 'Scales', misc: 'Other',
     empty: 'Start by adding a question from the palette.', question: 'Question', questionEn: 'In English', description: 'Description or instructions', required: 'Required', options: 'Options', rows: 'Statements', addOption: 'Add option', addRow: 'Add statement', other: '"Other" with free text',
     maxSelect: 'Maximum', minSelect: 'Minimum', scale: 'Scale', min: 'From', max: 'To', minLabel: 'Low label', maxLabel: 'High label', maxLength: 'Max length', placeholder: 'Placeholder', numMin: 'Smallest value', numMax: 'Largest value',
@@ -133,6 +144,17 @@ export const ssEn: typeof ssAr = {
     done: '{{needs}} surveys and {{forms}} forms migrated: {{participants}} participants, {{submissions}} answers, {{files}} files.', skipped: 'Skipped', warnings: 'Before you migrate', types: { needs_survey: 'Needs survey', evaluation_form: 'Evaluation form' }, issues: { no_questions: 'No questions; it will be skipped', orphan_responses: 'Answers without a user; migrated under a pseudonym' },
     batches: 'Migration batches', batch: 'Batch', by: 'By', late: 'Answers since', rollback: 'Roll back', rollbackConfirm: 'Rolling back removes the engine copies of this batch and hands the legacy records back unchanged. Continue?', rollbackForce: '{{n}} answers arrived through the engine since the migration and will be deleted for good. Type "delete" to confirm.', rolledBack: 'Batch rolled back.', nothing: 'Nothing is waiting to be migrated.',
     dryNote: 'The numbers below are the dry run: nothing changes until you press migrate. Legacy records stay, read-only with their reports, and the studio owns questions, versions, approval and answers from then on.',
+  },
+  overview: { open: 'Open surveys now', total: 'of {{n}} surveys', answers30: 'Answers in the last 30 days', openNow: 'Open now and their response rates', none: 'No open surveys.' },
+  results: {
+    participants: 'Participants', answered: 'Answered', rate: 'Response rate', submissions: 'Answers', avgTime: 'Average time', minutes: 'min', filters: 'Segments', clear: 'Clear filters', allSources: 'All sources', currentVersion: 'Current version',
+    noSegments: 'No segments available: a segment appears once it reaches {{n}} answers.', thresholdNote: 'Any segment under {{n}} answers is hidden to protect privacy.', edited: '{{n}} answers edited', timeline: '{{from}} to {{to}}',
+    tabs: { summary: 'Summary', answers: 'Individual answers', compare: 'Compare' }, hiddenTitle: 'Segment under the display threshold', hiddenText: 'This filter leaves only {{m}} answers; results show from {{n}} answers up.',
+    noAnswers: 'No answers yet.', answeredN: '{{n}} answered', average: 'Average', filesN: '{{n}} files', sources: { web: 'Web', mobile: 'Mobile', public: 'Public link', invitation: 'Invitation', qr: 'QR', import: 'Migrated' },
+    needsTitle: 'Training needs derived', needsHint: 'The need index (0–100) comes from the answers to skill-linked questions; pick skills and generate the needs.', noNeeds: 'No questions are linked to skills yet.', generate: 'Generate needs', generated: 'generated', inNeed: '{{n}} in need of {{of}} · {{share}}%',
+    generateHint: 'Approved need records are created for {{n}} skills in the needs register.', split: 'Split', splitOverall: 'One overall need', splitSchool: 'One need per school', needsCreated: '{{n}} needs created.',
+    rowsN: '{{n}} answers', noIdentity: 'no identity', when: 'When', who: 'Respondent', source: 'Source', answersCount: 'Answers', editedN: 'edited {{n}}',
+    compareHint: 'Pick up to five other surveys; questions sharing an id and a type are compared.', nothingToCompare: 'No other surveys with answers.', question: 'Question', noShared: 'These surveys share no questions.',
   },
   portal: { title: 'Surveys for you', open: 'Open', answered: 'Answered', canEdit: 'You may edit until it closes', closes: 'Closes', none: 'No surveys are addressed to you right now.' },
 }

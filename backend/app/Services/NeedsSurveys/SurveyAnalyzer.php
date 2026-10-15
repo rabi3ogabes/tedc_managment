@@ -10,6 +10,7 @@ use App\Models\School;
 use App\Models\Skill;
 use App\Models\SurveyParticipant;
 use App\Models\SurveySubmission;
+use App\Models\TrainingNeed;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
@@ -51,7 +52,7 @@ class SurveyAnalyzer
     /** Responses of a survey, optionally filtered by segment values. */
     public function responses(NeedsSurvey $survey, array $filters = []): Collection
     {
-        $rows = $survey->survey_id ? $this->engineRows($survey) : $survey->responses()->with(['user:id,name,name_ar,email', 'school:id,name_ar,name_en', 'jobTitle:id,name_ar,name_en'])->get();
+        $rows = $survey->survey_id ? $this->engineRows($survey->survey_id) : $survey->responses()->with(['user:id,name,name_ar,email', 'school:id,name_ar,name_en', 'jobTitle:id,name_ar,name_en'])->get();
 
         return $rows
             ->when($filters['school_id'] ?? null, fn ($c, $v) => $c->where('school_id', $v))
@@ -72,9 +73,9 @@ class SurveyAnalyzer
      * A migrated survey's answers live in the engine: each submission is shaped like a legacy row (answers, the segment
      * snapshot as columns, the person when the mode kept one) so every report reads the same.
      */
-    private function engineRows(NeedsSurvey $survey): Collection
+    public function engineRows(string $engineSurveyId): Collection
     {
-        $submissions = SurveySubmission::where('survey_id', $survey->survey_id)->whereNull('context_id')->orderBy('submitted_at')->get();
+        $submissions = SurveySubmission::where('survey_id', $engineSurveyId)->whereNull('context_id')->orderBy('submitted_at')->get();
         $users = User::whereIn('id', $submissions->pluck('respondent_user_id')->filter())->get(['id', 'name', 'name_ar', 'email'])->keyBy('id');
         $schools = School::whereIn('id', $submissions->pluck('segment_snapshot.school_id')->filter())->get(['id', 'name_ar', 'name_en'])->keyBy('id');
         $titles = JobTitle::whereIn('id', $submissions->pluck('segment_snapshot.job_title_id')->filter())->get(['id', 'name_ar', 'name_en'])->keyBy('id');
@@ -139,7 +140,7 @@ class SurveyAnalyzer
     {
         $out = [];
         foreach ($questions as $q) {
-            if ($q['type'] === 'section') {
+            if (in_array($q['type'], ['section', 'instructions', 'page_break'], true)) {
                 continue;
             }
             $values = $responses->map(fn ($r) => $r->answers[$q['id']] ?? null)->filter(fn ($v) => SurveySchema::filled($v))->values();
@@ -149,6 +150,7 @@ class SurveyAnalyzer
                 case 'single':
                 case 'dropdown':
                 case 'multiple':
+                case 'likert':
                     $counts = array_fill_keys(array_column($q['options'], 'id'), 0);
                     foreach ($values as $v) {
                         foreach ((array) $v as $id) {
@@ -200,7 +202,10 @@ class SurveyAnalyzer
                         return ['id' => $row['id'], 'label' => $row['label'], 'average' => $scores->count() ? round($scores->avg(), 2) : null, 'answered' => $scores->count()];
                     }, $q['rows']);
                     break;
-                default: // text and dates: latest answers
+                case 'file_upload':
+                    $stat['files'] = $values->sum(fn ($v) => count((array) $v));
+                    break;
+                default: // text, e-mail, phone, dates and times: latest answers
                     $stat['samples'] = $values->reverse()->take(30)->map(fn ($v) => (string) $v)->values()->all();
             }
             $out[] = $stat;
@@ -211,6 +216,12 @@ class SurveyAnalyzer
 
     /** Need signals per skill for each response: [skillKey => [responseIndex => signal]]. */
     public function signals(NeedsSurvey $survey, Collection $responses): array
+    {
+        return $this->signalsFor($survey->questions, $responses);
+    }
+
+    /** The same for any question list (the engine's versions included). */
+    public function signalsFor(array $questions, Collection $responses): array
     {
         $signals = [];
         $meta = [];
@@ -226,7 +237,7 @@ class SurveyAnalyzer
         $norm = fn (float $v, array $scale, string $mode) => ($mode === 'need' ? $v - $scale['min'] : $scale['max'] - $v) / max(1, $scale['max'] - $scale['min']);
 
         foreach ($responses->values() as $i => $response) {
-            foreach ($survey->questions as $q) {
+            foreach ($questions as $q) {
                 $answer = $response->answers[$q['id']] ?? null;
                 if (! SurveySchema::filled($answer)) {
                     continue;
@@ -269,7 +280,17 @@ class SurveyAnalyzer
 
     private function needs(NeedsSurvey $survey, Collection $responses, string $locale): array
     {
-        [$signals, $meta] = $this->signals($survey, $responses);
+        return $this->needsFor($survey->questions, $responses, $locale, $survey->trainingNeeds()->get(['skill_id', 'skill_name', 'school_id']));
+    }
+
+    /**
+     * The needs ranking for any question list and any rows shaped like a legacy response; `$existing` tells which needs were already generated.
+     *
+     * @param  Collection<int, TrainingNeed>  $existing
+     */
+    public function needsFor(array $questions, Collection $responses, string $locale, Collection $existing): array
+    {
+        [$signals, $meta] = $this->signalsFor($questions, $responses);
         $responses = $responses->values();
         $skillIds = array_filter(array_column($meta, 'skill_id'));
         $skills = Skill::whereIn('id', $skillIds)->get()->keyBy('id');
@@ -279,7 +300,6 @@ class SurveyAnalyzer
             ->with('skills:id')->get(['id', 'code', 'title_ar', 'title_en', 'status', 'start_date']);
         $schoolNames = School::whereIn('id', $responses->pluck('school_id')->filter()->unique())->pluck($locale === 'en' ? 'name_en' : 'name_ar', 'id');
         $titleNames = JobTitle::whereIn('id', $responses->pluck('job_title_id')->filter()->unique())->pluck($locale === 'en' ? 'name_en' : 'name_ar', 'id');
-        $existing = $survey->trainingNeeds()->get(['skill_id', 'skill_name', 'school_id']);
 
         $needs = [];
         foreach ($signals as $key => $byResponse) {

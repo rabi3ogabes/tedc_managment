@@ -16,7 +16,7 @@
 ## Totals
 
 - Public: 785 columns
-- Internal: 2248 columns
+- Internal: 2249 columns
 - Confidential: 530 columns
 - Restricted: 27 columns
 
@@ -4742,6 +4742,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `updated_at` | Public | — |
 | `survey_id` | Internal | — |
 | `need_index` | Internal | — |
+| `engine_survey_id` | Internal | — |
 
 ### `training_places`
 

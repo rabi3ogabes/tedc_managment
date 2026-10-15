@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['school_id', 'submitted_by', 'skill_id', 'skill_name', 'employees_count', 'priority', 'reason', 'target_job_title_id', 'target_group', 'status', 'program_id', 'reviewed_by', 'review_notes', 'survey_id', 'need_index'])]
+#[Fillable(['school_id', 'submitted_by', 'skill_id', 'skill_name', 'employees_count', 'priority', 'reason', 'target_job_title_id', 'target_group', 'status', 'program_id', 'reviewed_by', 'review_notes', 'survey_id', 'need_index', 'engine_survey_id'])]
 class TrainingNeed extends Model
 {
     use Auditable, HasUuids;
