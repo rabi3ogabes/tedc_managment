@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import EvidenceInput, { noEvidence, type Evidence } from '@/components/EvidenceInput'
 import { NeedsSurveys } from '@/components/surveys/NeedsSurveys'
+import { Link } from 'react-router-dom'
 import { Badge, Button, Card, Empty, Field, PageHeader, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -16,12 +17,36 @@ export default function Surveys() {
   return (
     <>
       <PageHeader title={t('surveys.portal.title')} subtitle={t('surveys.portal.subtitle')} />
+      <StudioSurveys />
       <NeedsSurveys />
       <h2 className="mb-4 mt-10 text-lg font-bold text-navy-900">{t('surveys.portal.impact')}</h2>
       {isLoading ? <Spinner /> : !data?.data.length ? <Card><Empty /></Card> : (
         <div className="grid gap-4 lg:grid-cols-2">{data.data.map((s) => <SurveyCard key={s.id} survey={s} onDone={refetch} />)}</div>
       )}
     </>
+  )
+}
+
+type StudioRow = { id: string; title: string; description?: string | null; privacy_mode: string; is_open: boolean; closes_at?: string | null; answered: boolean; can_edit: boolean; questions: number }
+
+/** Surveys of the new engine addressed to the person (shown only when the engine is switched on). */
+function StudioSurveys() {
+  const { t } = useTranslation()
+  const { data } = useGet<{ data: StudioRow[] }>('/me/studio-surveys', undefined, { retry: false })
+  if (!data?.data.length) return null
+  return (
+    <section className="mb-10">
+      <h2 className="mb-4 text-lg font-bold text-navy-900">{t('ss.portal.title')}</h2>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {data.data.map((s) => (
+          <Link key={s.id} to={`/portal/surveys/${s.id}`} className="rounded-2xl border border-navy-100 bg-white p-5 transition hover:border-gold-400 hover:shadow-sm">
+            <div className="flex items-start justify-between gap-2"><h3 className="font-bold text-navy-900">{s.title}</h3><div className="flex gap-1.5">{s.answered && <Badge color="green">{t('ss.portal.answered')}</Badge>}<Badge color={s.is_open ? 'gold' : 'gray'}>{t(`ss.privacy.${s.privacy_mode}`)}</Badge></div></div>
+            {s.description && <p className="mt-1 line-clamp-2 text-sm text-slate-600">{s.description}</p>}
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500"><span>{t('ss.form.questions', { n: s.questions })}{s.closes_at ? ` · ${t('ss.portal.closes')} ${fmt.date(s.closes_at)}` : ''}</span><span className="font-semibold text-gold-700">{s.answered ? (s.can_edit ? t('ss.portal.canEdit') : t('ss.portal.answered')) : t('ss.portal.open')}</span></div>
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }
 

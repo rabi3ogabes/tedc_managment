@@ -1151,6 +1151,7 @@ Route::prefix('v1')->group(function () {
                 Route::middleware('permission:surveys.manage')->group(function () {
                     Route::post('/', 'store');
                     Route::post('audience/preview', 'audiencePreview');
+                    Route::get('audience/options', 'audienceOptions');
                     Route::put('{studioSurvey}', 'update');
                     Route::delete('{studioSurvey}', 'destroy');
                     Route::post('{studioSurvey}/duplicate', 'duplicate');

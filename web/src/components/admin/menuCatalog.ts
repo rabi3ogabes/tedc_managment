@@ -30,6 +30,7 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/sharing', label: t('content.navSharing'), icon: Users, permission: 'sharing.manage|job_groups.manage' },
       { to: '/admin/passing-policy', label: t('passing.global'), icon: Award, permission: 'passing.manage' },
       { to: '/admin/question-banks', label: t('assess.studio.title'), icon: ClipboardList, permission: 'banks.manage|assessments.manage' },
+      { to: '/admin/surveys', label: t('ss.nav'), icon: ClipboardList, permission: 'surveys.view', feature: 'survey_studio_v2' },
       { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.cycles|needs.propose|needs.request|needs.approve_individual|performance.import|gaps.view|competencies.manage' },
       { to: '/admin/plans', label: t('plans.nav'), icon: CalendarRange, permission: 'plans.view' },
       { to: '/admin/groups', label: t('groups.board.title'), icon: KanbanSquare, permission: 'programs.view' },

@@ -157,6 +157,11 @@ class SurveyController extends Controller
         return response()->json(['data' => ['visible' => $result['visible'], 'pages' => $result['pages'], 'ended' => $result['ended']]]);
     }
 
+    public function audienceOptions(SurveyAudience $audience): JsonResponse
+    {
+        return response()->json(['data' => $audience->options()]);
+    }
+
     public function audiencePreview(Request $request, SurveyAudience $audience): JsonResponse
     {
         $data = $request->validate(['audience' => ['present', 'array']]);

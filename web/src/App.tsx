@@ -93,6 +93,9 @@ const PlcWorkshopDetail = lazy(() => import('@/pages/admin/plc/WorkshopDetail'))
 const PlcSchoolsStep = lazy(() => import('@/pages/admin/plc/SchoolsStep'))
 const PlcTraineesStep = lazy(() => import('@/pages/admin/plc/TraineesStep'))
 const PlcTrainersStep = lazy(() => import('@/pages/admin/plc/TrainersStep'))
+const SurveysList = lazy(() => import('@/pages/admin/surveys/SurveysList'))
+const SurveyStudioV2 = lazy(() => import('@/pages/admin/surveys/Studio'))
+const SurveyRespond = lazy(() => import('@/pages/portal/SurveyRespond'))
 const Achievements = lazy(() => import('@/pages/Achievements'))
 const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
@@ -240,6 +243,8 @@ export default function App() {
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="needs" element={<Navigate to="/admin/needs-hub?tab=surveys" replace />} />
+          <Route path="surveys" element={<RequireAuth permission="surveys.view"><SurveysList /></RequireAuth>} />
+          <Route path="surveys/:id" element={<RequireAuth permission="surveys.view"><SurveyStudioV2 /></RequireAuth>} />
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
           <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />
@@ -295,6 +300,7 @@ export default function App() {
           <Route path="learn/:registrationId/:lessonId?" element={<Learn />} />
           <Route path="tasks" element={<MyTasks />} />
           <Route path="surveys" element={<Surveys />} />
+          <Route path="surveys/:id" element={<SurveyRespond />} />
           <Route path="evaluations" element={<MyEvaluations />} />
           <Route path="library" element={<Library />} />
           <Route path="growth" element={<MyGrowth />} />
