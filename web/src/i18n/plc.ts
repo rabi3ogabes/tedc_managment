@@ -3,7 +3,7 @@ export const plcAr = {
   nav: 'مجتمعات التعلم المهنية',
   title: 'مجتمعات التعلم المهنية',
   subtitle: 'من الاحتياج إلى الأثر: المجتمعات، الورش المشتركة والداخلية، المراجعة والاعتماد، ثم التنفيذ والتقييم.',
-  tabs: { overview: 'نظرة عامة', communities: 'المجتمعات', workshops: 'الورش', calendar: 'التقويم', needs: 'سجل الاحتياجات', spaces: 'النقاشات' },
+  tabs: { overview: 'نظرة عامة', communities: 'المجتمعات', workshops: 'الورش', calendar: 'التقويم', needs: 'سجل الاحتياجات', reports: 'التقارير', spaces: 'النقاشات' },
   schedule: {
     subtitle: 'جلسات الورشة: الوقت والصيغة والمكان أو الرابط والمدربون.', add: 'إضافة جلسة', editSession: 'تعديل الجلسة', empty: 'لا جلسات بعد؛ أضف الجلسة الأولى.', saved: 'حُفظت الجلسة.', removed: 'أُزيلت الجلسة.', cancelled: 'ملغاة',
     minutes: '{{n}} دقيقة', noVenue: 'بلا مكان بعد', noLink: 'بلا رابط بعد', link: 'رابط', protected: 'محمي برمز', noTrainer: 'بلا مدرب بعد', missing: { venue: 'ينقصها المكان', link: 'ينقصها الرابط', trainer: 'ينقصها المدرب' },
@@ -39,11 +39,21 @@ export const plcAr = {
     impact: 'قياس الأثر', impactCompleted: 'أكملوا الورشة', impactStages: 'المراحل (أيام)', impactTrainee: 'نماذج المتدربين', impactCounts: '{{s}} مجدولة · {{sent}} مرسلة · {{c}} مكتملة', impactNext: 'الموعد القادم', impactManager: 'نماذج المديرين (+{{n}} يوماً)', impactManagerLater: 'تُرسل في موعدها', impactOff: 'لا يُقاس الأثر لهذا المصدر بحسب السياسة.',
     rules: 'قواعد التقييم', rulesHint: 'سياسة المجتمعات: ما يُرسل، ومتى، وما يلزم قبل الإغلاق.', rulesSaved: 'حُفظت القواعد.', enabled: 'مفعّل', autoSend: 'الإرسال تلقائياً بحسب التوقيت', closeRate: 'نسبة الاستجابة للإغلاق', impactSources: 'مصادر قياس الأثر',
   },
+  reports: {
+    from: 'من تاريخ', to: 'إلى تاريخ', source: 'المصدر', state: 'الحالة', school: 'المدرسة', community: 'المجتمع', region: 'المنطقة', reset: 'إزالة التصفية',
+    workshops: 'الورش', heldN: '{{n}} نُفّذت أو جارية', people: 'المتدربون', peopleHint: 'من {{cap}} مقعداً · أكمل {{done}} · {{u}} شخصاً', attendance: 'نسبة الحضور', attendanceHint: '{{n}} من {{of}} بلغوا الحد الأدنى',
+    evaluation: 'استجابة التقييم', scoreHint: 'متوسط تقييم الورشة {{n}}%', answersHint: '{{n}} من {{of}} أجابوا', sessions: 'الجلسات', sessionsHint: '{{held}} عُقدت · {{h}} ساعة', schools: 'مدارس مشاركة', communitiesN: 'في {{n}} مجتمعاً',
+    needs: 'الاحتياجات', needsHint: 'حُوِّل {{n}}% · وسيط الانتظار {{days}} يوماً', noNeeds: 'لا احتياجات في النطاق', impact: 'نماذج قياس الأثر', impactHint: 'مكتملة {{c}} · نماذج المديرين {{m}}/{{ma}}',
+    overdueClose: '{{n}} ورشة انتهت منذ أكثر من أسبوعين ولم تُغلق بعد.', closedByException: 'أُغلقت {{n}} ورشة باستثناء موثّق.',
+    byMode: 'حسب الصيغة', trend: 'الورش حسب الشهر', trendHint: 'بحسب تاريخ بداية الورشة.', noData: 'لا بيانات في النطاق المحدد.', evalByInstrument: 'التقييم حسب الأداة', evalHint: 'تظهر المتوسطات بعد {{n}} إجابات حفاظاً على السرية.', avg: 'المتوسط', topAttendance: 'أعلى الورش حضوراً',
+    bySchool: 'حسب المدرسة', byCommunity: 'حسب المجتمع', footer: 'الأرقام محسوبة لحظياً من قاعدة البيانات ضمن نطاقك، وهي نفسها في النظرة العامة والتصدير.',
+    kpis: 'الحضور والتقييم', openReports: 'التقارير',
+  },
   calendar: {
     weekdays: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], allSchools: 'كل المدارس', allRegions: 'كل المناطق', allTrainers: 'كل المدربين', allModes: 'كل الصيغ', sessionsN: '{{n}} جلسة', closed: 'مغلق', kind: { weekend: 'عطلة', vacation: 'إجازة', exam: 'امتحانات', normal: 'مغلق' }, pickDay: 'اختر يوماً لعرض جلساته', nothing: 'لا جلسات في هذا اليوم.',
   },
 
-  phase: 'المرحلة الأولى: المجتمعات، الاحتياجات، إنشاء الورش ومسار الاعتماد. اختيار المدارس والمتدربين والمدربين والجدولة والحضور والتقييم تصل في المراحل التالية.',
+  phase: 'المراحل من الأولى إلى السابعة متاحة: المجتمعات والاحتياجات وإنشاء الورش والاعتماد، اختيار المدارس والمتدربين والمدربين، الجدولة والتقويم، الحضور، التقييم وقياس الأثر، والتقارير.',
   overview: {
     communities: 'مجتمعات نشطة', workshops: 'الورش', needs: 'احتياجات مسجّلة', unconverted: 'احتياجات لم تُعالج بعد', schools: 'مدارس مشاركة',
     byState: 'الورش حسب الحالة', bySource: 'الورش حسب المصدر', byScenario: 'حسب السيناريو', myReviews: 'بانتظار مراجعتك', noReviews: 'لا توجد ورش بانتظار مراجعتك.',
@@ -133,7 +143,7 @@ export const plcEn: typeof plcAr = {
   nav: 'Learning communities',
   title: 'Professional learning communities',
   subtitle: 'From need to impact: communities, shared and internal workshops, review and approval, then delivery and evaluation.',
-  tabs: { overview: 'Overview', communities: 'Communities', workshops: 'Workshops', calendar: 'Calendar', needs: 'Needs register', spaces: 'Discussions' },
+  tabs: { overview: 'Overview', communities: 'Communities', workshops: 'Workshops', calendar: 'Calendar', needs: 'Needs register', reports: 'Reports', spaces: 'Discussions' },
   schedule: {
     subtitle: 'The workshop sessions: time, mode, venue or link, and trainers.', add: 'Add a session', editSession: 'Edit session', empty: 'No sessions yet; add the first one.', saved: 'Session saved.', removed: 'Session removed.', cancelled: 'Cancelled',
     minutes: '{{n}} min', noVenue: 'No venue yet', noLink: 'No link yet', link: 'Link', protected: 'passcode', noTrainer: 'No trainer yet', missing: { venue: 'venue missing', link: 'link missing', trainer: 'trainer missing' },
@@ -169,11 +179,21 @@ export const plcEn: typeof plcAr = {
     impact: 'Impact follow-up', impactCompleted: 'Completed the workshop', impactStages: 'Stages (days)', impactTrainee: 'Trainee forms', impactCounts: '{{s}} scheduled · {{sent}} sent · {{c}} completed', impactNext: 'Next due', impactManager: 'Manager forms (+{{n}} days)', impactManagerLater: 'Sent when due', impactOff: 'No impact follow-up for this source under the policy.',
     rules: 'Evaluation rules', rulesHint: 'The PLC policy: what is sent, when, and what is required before closing.', rulesSaved: 'Rules saved.', enabled: 'Enabled', autoSend: 'Send automatically by the clock', closeRate: 'Response rate to close', impactSources: 'Impact sources',
   },
+  reports: {
+    from: 'From', to: 'To', source: 'Source', state: 'State', school: 'School', community: 'Community', region: 'Region', reset: 'Clear filters',
+    workshops: 'Workshops', heldN: '{{n}} held or running', people: 'Trainees', peopleHint: 'of {{cap}} seats · {{done}} completed · {{u}} people', attendance: 'Attendance', attendanceHint: '{{n}} of {{of}} met the minimum',
+    evaluation: 'Evaluation response', scoreHint: 'Workshop average {{n}}%', answersHint: '{{n}} of {{of}} answered', sessions: 'Sessions', sessionsHint: '{{held}} held · {{h}} hours', schools: 'Schools involved', communitiesN: 'in {{n}} communities',
+    needs: 'Needs', needsHint: '{{n}}% converted · median wait {{days}} days', noNeeds: 'No needs in scope', impact: 'Impact forms', impactHint: '{{c}} completed · manager forms {{m}}/{{ma}}',
+    overdueClose: '{{n}} workshops ended more than two weeks ago and are not closed yet.', closedByException: '{{n}} workshops were closed with a documented exception.',
+    byMode: 'By delivery mode', trend: 'Workshops by month', trendHint: 'By the workshop start date.', noData: 'No data in the selected scope.', evalByInstrument: 'Evaluation by instrument', evalHint: 'Averages appear after {{n}} answers to protect anonymity.', avg: 'Average', topAttendance: 'Best attended workshops',
+    bySchool: 'By school', byCommunity: 'By community', footer: 'Figures are counted live from the database inside your scope; they are the same on the overview and in the exports.',
+    kpis: 'Attendance and evaluation', openReports: 'Reports',
+  },
   calendar: {
     weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], allSchools: 'All schools', allRegions: 'All regions', allTrainers: 'All trainers', allModes: 'All modes', sessionsN: '{{n}} sessions', closed: 'Closed', kind: { weekend: 'Weekend', vacation: 'Vacation', exam: 'Exams', normal: 'Closed' }, pickDay: 'Pick a day to see its sessions', nothing: 'No sessions on this day.',
   },
 
-  phase: 'Phase 1: communities, needs, workshop creation and the approval path. School, trainee and trainer selection, scheduling, attendance and evaluation arrive in the next phases.',
+  phase: 'Phases 1 to 7 are available: communities, needs, workshop creation and approval, school, trainee and trainer selection, scheduling and the calendar, attendance, evaluation and impact, and reports.',
   overview: {
     communities: 'Active communities', workshops: 'Workshops', needs: 'Registered needs', unconverted: 'Needs not yet handled', schools: 'Schools involved',
     byState: 'Workshops by state', bySource: 'Workshops by source', byScenario: 'By scenario', myReviews: 'Awaiting your review', noReviews: 'Nothing awaits your review.',

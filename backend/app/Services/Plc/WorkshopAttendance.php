@@ -147,9 +147,10 @@ class WorkshopAttendance
             foreach ($this->seated($w) as $r) {
                 if (! $r->attendanceFor($s->id)) {
                     Attendance::create(['program_session_id' => $s->id, 'registration_id' => $r->id, 'employee_id' => $r->employee_id, 'status' => 'absent', 'method' => 'manual', 'location_status' => 'system', 'minutes_attended' => 0, 'recorded_by' => $auto ? null : $by->id]);
-                    $this->attendance->recalculate($r);
                     $written++;
                 }
+                // Everyone's rate is fixed with the session: a check-in without a check-out now counts up to the session's end.
+                $this->attendance->recalculate($r);
             }
             $s->forceFill(['attendance_locked_at' => now(), 'attendance_locked_by' => $auto ? null : $by->id])->save();
             $this->workflow->decision($w, 'attendance', $auto ? 'locked_automatically' : 'locked', null, ['session_id' => $s->id, 'absent_written' => $written], $by);

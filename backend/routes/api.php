@@ -73,6 +73,7 @@ use App\Http\Controllers\Api\V1\Admin\PdAdminController;
 use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityController;
 use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
+use App\Http\Controllers\Api\V1\Admin\Plc\PlcReportController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAttendanceController as PlcWorkshopAttendanceController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopEvaluationController as PlcWorkshopEvaluationController;
@@ -1146,6 +1147,11 @@ Route::prefix('v1')->group(function () {
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/correct', [PlcWorkshopAttendanceController::class, 'correct'])->whereUuid('plcSession');
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/lock', [PlcWorkshopAttendanceController::class, 'lock'])->whereUuid('plcSession');
                     Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/unlock', [PlcWorkshopAttendanceController::class, 'unlock'])->whereUuid('plcSession');
+                });
+                Route::middleware('permission:plc.reports')->group(function () {
+                    Route::get('reports', [PlcReportController::class, 'show']);
+                    Route::get('reports/options', [PlcReportController::class, 'options']);
+                    Route::get('reports/export', [PlcReportController::class, 'export']);
                 });
                 Route::middleware('permission:plc.evaluations.manage|plc.manage|plc.reports')->group(function () {
                     Route::get('workshops/{plcWorkshop}/evaluation', [PlcWorkshopEvaluationController::class, 'show']);

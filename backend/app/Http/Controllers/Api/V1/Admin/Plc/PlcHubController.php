@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\User;
 use App\Services\Plc\CommunityService;
 use App\Services\Plc\NeedsService;
+use App\Services\Plc\PlcReports;
 use App\Services\Plc\PlcSettings;
 use App\Services\Plc\WorkshopService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ use Illuminate\Http\Request;
 /** The PLC hub's overview (real counts inside the person's scope), lookups and settings. */
 class PlcHubController extends Controller
 {
-    public function __construct(private readonly WorkshopService $workshops, private readonly NeedsService $needs, private readonly CommunityService $communities, private readonly PlcSettings $settings) {}
+    public function __construct(private readonly WorkshopService $workshops, private readonly NeedsService $needs, private readonly CommunityService $communities, private readonly PlcSettings $settings, private readonly PlcReports $reports) {}
 
     public function dashboard(): JsonResponse
     {
@@ -34,7 +35,11 @@ class PlcHubController extends Controller
             return $step && $user->hasPermission($step['permission']);
         })->values();
 
+        // The same figures the reports tab shows (Phase 7): attendance, evaluation, people and sessions, unfiltered, inside the scope.
+        $kpis = $user->hasPermission('plc.reports') ? array_intersect_key($this->reports->build($user), array_flip(['attendance', 'evaluation', 'people', 'sessions', 'impact'])) : null;
+
         return response()->json(['data' => [
+            'kpis' => $kpis,
             'communities' => $this->communities->query($user)->where('status', 'active')->count(),
             'workshops' => ['total' => array_sum($byState->all()), 'by_state' => $byState, 'by_source' => $bySource, 'by_scenario' => $byScenario],
             'needs' => ['total' => array_sum($needsByStatus->all()), 'by_status' => $needsByStatus, 'by_source' => $needsBySource, 'unconverted' => (int) (($needsByStatus['new'] ?? 0) + ($needsByStatus['under_review'] ?? 0))],

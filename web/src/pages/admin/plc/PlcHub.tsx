@@ -1,7 +1,8 @@
-import { Archive, Building2, ClipboardList, FileSearch, LayoutDashboard, MessagesSquare, Plus, Search, Users, CalendarDays } from 'lucide-react'
+import { Archive, BarChart3, Building2, ClipboardCheck, ClipboardList, FileSearch, LayoutDashboard, MessagesSquare, Plus, Search, Users, CalendarDays } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PlcCalendar from './PlcCalendar'
+import PlcReports, { type Report } from './PlcReports'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card, CardTitle, Empty, ErrorState, Field, Modal, PageHeader, Spinner, StatCard, Tabs } from '@/components/ui'
 import Communities from '@/pages/Communities'
@@ -10,8 +11,8 @@ import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { STATE_TONE, fmtDate, type Catalog, type Community, type Need, type PlcSource, type PlcState, type SchoolRef, type WorkshopSummary } from './plcApi'
 
-type Tab = 'overview' | 'communities' | 'workshops' | 'needs' | 'calendar' | 'spaces'
-const TABS: Tab[] = ['overview', 'communities', 'workshops', 'calendar', 'needs', 'spaces']
+type Tab = 'overview' | 'communities' | 'workshops' | 'needs' | 'calendar' | 'reports' | 'spaces'
+const TABS: Tab[] = ['overview', 'communities', 'workshops', 'calendar', 'needs', 'reports', 'spaces']
 
 /** The PLC hub: everything about learning communities on one page, with the discussion spaces as its last tab. */
 export default function PlcHub() {
@@ -20,7 +21,7 @@ export default function PlcHub() {
   const tab = (TABS.includes(params.get('tab') as Tab) ? params.get('tab') : 'overview') as Tab
   const setTab = (next: Tab) => setParams((p) => { p.set('tab', next); return p }, { replace: true })
   const catalog = useGet<{ data: Catalog }>('/admin/plc/workshops/catalog')
-  const icons: Record<Tab, React.ReactNode> = { overview: <LayoutDashboard className="size-4" />, communities: <Users className="size-4" />, workshops: <ClipboardList className="size-4" />, needs: <FileSearch className="size-4" />, calendar: <CalendarDays className="size-4" />, spaces: <MessagesSquare className="size-4" /> }
+  const icons: Record<Tab, React.ReactNode> = { overview: <LayoutDashboard className="size-4" />, communities: <Users className="size-4" />, workshops: <ClipboardList className="size-4" />, needs: <FileSearch className="size-4" />, calendar: <CalendarDays className="size-4" />, reports: <BarChart3 className="size-4" />, spaces: <MessagesSquare className="size-4" /> }
 
   return (
     <>
@@ -31,6 +32,7 @@ export default function PlcHub() {
       {tab === 'workshops' && <WorkshopsTab catalog={catalog.data?.data} />}
       {tab === 'calendar' && <PlcCalendar />}
       {tab === 'needs' && <NeedsTab catalog={catalog.data?.data} />}
+      {tab === 'reports' && <PlcReports states={catalog.data?.data.states} sources={catalog.data?.data.sources} initial={{ school_id: params.get('school_id') ?? '', community_id: params.get('community_id') ?? '' }} />}
       {tab === 'spaces' && <Communities />}
     </>
   )
@@ -42,6 +44,7 @@ type Dashboard = {
   communities: number; workshops: { total: number; by_state: Record<string, number>; by_source: Record<string, number>; by_scenario: Record<string, number> }
   needs: { total: number; by_status: Record<string, number>; by_source: Record<string, number>; unconverted: number }
   schools_involved: number; my_reviews: WorkshopSummary[]; upcoming: WorkshopSummary[]; rased_integration: boolean
+  kpis?: Pick<Report, 'attendance' | 'evaluation' | 'people' | 'sessions' | 'impact'> | null
 }
 
 function Overview({ catalog, onTab }: { catalog?: Catalog; onTab: (t: Tab) => void }) {
@@ -61,6 +64,17 @@ function Overview({ catalog, onTab }: { catalog?: Catalog; onTab: (t: Tab) => vo
         <StatCard label={t('plc.overview.unconverted')} value={d.needs.unconverted} icon={<FileSearch className="size-5" />} />
         <StatCard label={t('plc.overview.schools')} value={d.schools_involved} icon={<Building2 className="size-5" />} />
       </div>
+      {d.kpis && (
+        <Card>
+          <CardTitle action={<Button variant="outline" size="sm" icon={<BarChart3 className="size-3.5" />} onClick={() => onTab('reports')}>{t('plc.reports.openReports')}</Button>}>{t('plc.reports.kpis')}</CardTitle>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard label={t('plc.reports.attendance')} value={d.kpis.attendance.rate != null ? `${d.kpis.attendance.rate}%` : '—'} icon={<ClipboardCheck className="size-5" />} hint={t('plc.reports.attendanceHint', { n: d.kpis.attendance.meeting, of: d.kpis.attendance.people })} />
+            <StatCard label={t('plc.reports.evaluation')} value={d.kpis.evaluation.workshop.rate != null ? `${d.kpis.evaluation.workshop.rate}%` : '—'} icon={<ClipboardCheck className="size-5" />} hint={t('plc.reports.answersHint', { n: d.kpis.evaluation.workshop.submitted, of: d.kpis.evaluation.workshop.assigned })} />
+            <StatCard label={t('plc.reports.people')} value={d.kpis.people.seated} icon={<Users className="size-5" />} hint={t('plc.reports.peopleHint', { cap: d.kpis.people.capacity, done: d.kpis.people.completed, u: d.kpis.people.unique })} />
+            <StatCard label={t('plc.reports.sessions')} value={d.kpis.sessions.total} hint={t('plc.reports.sessionsHint', { held: d.kpis.sessions.held, h: d.kpis.sessions.hours })} />
+          </div>
+        </Card>
+      )}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card><CardTitle>{t('plc.overview.byState')}</CardTitle>
           <ul className="space-y-2 text-sm">
