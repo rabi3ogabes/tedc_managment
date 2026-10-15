@@ -96,6 +96,7 @@ const PlcTrainersStep = lazy(() => import('@/pages/admin/plc/TrainersStep'))
 const SurveysList = lazy(() => import('@/pages/admin/surveys/SurveysList'))
 const SurveyStudioV2 = lazy(() => import('@/pages/admin/surveys/Studio'))
 const SurveyRespond = lazy(() => import('@/pages/portal/SurveyRespond'))
+const PublicSurvey = lazy(() => import('@/pages/public/PublicSurvey'))
 const Achievements = lazy(() => import('@/pages/Achievements'))
 const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
@@ -174,6 +175,8 @@ export default function App() {
           <Route path="payments/fake/:ref" element={<PaymentFake />} />
           <Route path="trainers" element={<Trainers />} />
           <Route path="join/:slug" element={<JoinForm />} />
+          <Route path="s/i/:token" element={<PublicSurvey />} />
+          <Route path="s/:slug" element={<PublicSurvey />} />
           <Route path="activate" element={<Activate />} />
           <Route path="forgot" element={<ForgotPassword />} />
           <Route path="reset" element={<ResetPassword />} />

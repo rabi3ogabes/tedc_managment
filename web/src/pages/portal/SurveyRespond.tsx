@@ -33,6 +33,7 @@ export default function SurveyRespond() {
           closed={!d.is_open}
           canEdit={d.can_edit}
           onDraft={d.is_open && (!d.answered || d.can_edit) ? onDraft : undefined}
+          onUpload={async (q, file) => { const fd = new FormData(); fd.append('question_id', q.id); fd.append('file', file); const { data } = await api.post(`/me/studio-surveys/${id}/files`, fd); return data.data }}
           onSubmit={async (answers, duration) => { const { data } = await api.post(`/me/studio-surveys/${id}`, { answers, duration_seconds: duration, source: 'web' }); res.refetch(); return data.message }}
           onClose={() => navigate('/portal/surveys')}
         />

@@ -107,6 +107,7 @@ use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
 use App\Http\Controllers\Api\V1\Admin\SurveyController;
+use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
@@ -170,6 +171,7 @@ use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
 use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
+use App\Http\Controllers\Api\V1\Public\PublicSurveyController;
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SamlController;
 use App\Http\Controllers\Api\V1\SearchController;
@@ -327,6 +329,21 @@ Route::prefix('v1')->group(function () {
         Route::get('{slug}', 'show');
         Route::post('{slug}/verify-email', 'verifyEmail')->middleware('throttle:external-code');
         Route::post('{slug}/submit', 'submit')->middleware('throttle:external-submit');
+    });
+
+    // Survey Studio v2 public links and invitations (no session; a pseudonymous key per device, verified e-mail or token).
+    Route::prefix('public/surveys')->middleware(['feature:survey_studio_v2', 'throttle:public'])->controller(PublicSurveyController::class)->group(function () {
+        Route::get('i/{token}', 'showInvitation')->where('token', '[A-Za-z0-9]{48}');
+        Route::put('i/{token}/draft', 'draftInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::post('i/{token}/files', 'uploadInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::post('i/{token}', 'submitInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::get('{slug}', 'show')->where('slug', '[a-z0-9]{10}');
+        Route::post('{slug}/code', 'sendCode')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-code');
+        Route::post('{slug}/verify', 'verifyCode')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-code');
+        Route::post('{slug}/resume', 'resume')->where('slug', '[a-z0-9]{10}');
+        Route::put('{slug}/draft', 'draft')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
+        Route::post('{slug}/files', 'upload')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
+        Route::post('{slug}', 'submit')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
     });
 
     // Fingerprint devices push signed punches (no user session).
@@ -669,6 +686,7 @@ Route::prefix('v1')->group(function () {
                 Route::put('{studioSurvey}/draft', 'draft')->middleware('throttle:60,1');
                 Route::post('{studioSurvey}/logic', 'logic');
                 Route::post('{studioSurvey}', 'submit')->middleware('throttle:20,1');
+                Route::post('{studioSurvey}/files', 'upload')->middleware('throttle:30,1');
             });
 
             Route::get('team', [MyOutcomesController::class, 'team'])->middleware('permission:impact.supervise');
@@ -1147,6 +1165,11 @@ Route::prefix('v1')->group(function () {
                     Route::get('{studioSurvey}/versions/{number}', 'version')->whereNumber('number');
                     Route::get('{studioSurvey}/events', 'events');
                     Route::post('{studioSurvey}/preview-logic', 'previewLogic');
+                    Route::get('{studioSurvey}/distributions', [SurveyDistributionController::class, 'index']);
+                    Route::get('{studioSurvey}/distributions/{distribution}/qr.{format}', [SurveyDistributionController::class, 'qr'])->whereIn('format', ['svg', 'png']);
+                });
+                Route::middleware('permission:surveys.results')->group(function () {
+                    Route::get('{studioSurvey}/files/{surveyFile}', [SurveyDistributionController::class, 'file']);
                 });
                 Route::middleware('permission:surveys.manage')->group(function () {
                     Route::post('/', 'store');
@@ -1157,6 +1180,11 @@ Route::prefix('v1')->group(function () {
                     Route::post('{studioSurvey}/duplicate', 'duplicate');
                     Route::post('{studioSurvey}/submit-review', 'submitReview');
                     Route::post('{studioSurvey}/remind', 'remind');
+                    Route::post('{studioSurvey}/distributions/public', [SurveyDistributionController::class, 'storePublic']);
+                    Route::put('{studioSurvey}/distributions/{distribution}', [SurveyDistributionController::class, 'update']);
+                    Route::post('{studioSurvey}/distributions/{distribution}/regenerate', [SurveyDistributionController::class, 'regenerate']);
+                    Route::post('{studioSurvey}/invitations', [SurveyDistributionController::class, 'invite']);
+                    Route::post('{studioSurvey}/invitations/remind', [SurveyDistributionController::class, 'remind']);
                 });
                 Route::middleware('permission:surveys.approve')->group(function () {
                     Route::post('{studioSurvey}/approve', 'approve');

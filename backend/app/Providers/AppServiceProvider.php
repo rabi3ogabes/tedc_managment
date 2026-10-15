@@ -28,6 +28,8 @@ use App\Models\ProfessionalLicence;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Survey;
+use App\Models\SurveyDistribution;
+use App\Models\SurveyFile;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
 use App\Security\SecurityEvents;
@@ -133,6 +135,8 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('survey', fn ($id) => ImpactSurvey::findOrFail($id));
         Route::bind('needsSurvey', fn ($id) => NeedsSurvey::findOrFail($id));
         Route::bind('studioSurvey', fn ($id) => Survey::findOrFail($id));
+        Route::bind('distribution', fn ($id) => SurveyDistribution::findOrFail($id));
+        Route::bind('surveyFile', fn ($id) => SurveyFile::findOrFail($id));
         Route::bind('plcWorkshop', fn ($id) => PlcWorkshop::findOrFail($id));
         Route::bind('plcNeed', fn ($id) => PlcNeed::findOrFail($id));
         Route::bind('plcCommunity', fn ($id) => PlcCommunity::findOrFail($id));

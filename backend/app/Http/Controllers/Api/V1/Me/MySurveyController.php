@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Survey;
 use App\Services\Surveys\LogicEngine;
 use App\Services\Surveys\SurveyCollector;
+use App\Services\Surveys\SurveyFiles;
+use App\Services\Surveys\SurveyPrivacy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -77,6 +79,19 @@ class MySurveyController extends Controller
             'edited' => $result['edited'],
             'can_edit' => $studioSurvey->isOpen() && ! $studioSurvey->isAnonymous() && $studioSurvey->editPolicy() === 'until_close',
         ]);
+    }
+
+    /** A file for a file-upload answer; it is bound to the submission on submit. */
+    public function upload(Request $request, Survey $studioSurvey, SurveyFiles $files): JsonResponse
+    {
+        $this->collector->participant($studioSurvey, $this->user());
+        abort_unless($studioSurvey->isOpen(), 422, __('messages.surveys.not_open'));
+        $data = $request->validate(['question_id' => ['required', 'string', 'max:40'], 'file' => ['required', 'file', 'max:25600']]);
+        $question = collect($studioSurvey->currentVersion?->questions ?? [])->firstWhere('id', $data['question_id']);
+        abort_unless($question, 422, __('messages.surveys.file_question'));
+        $file = $files->upload($studioSurvey, SurveyPrivacy::respondentKey($studioSurvey, $this->user()), $question, $request->file('file'));
+
+        return response()->json(['data' => $files->present($file)], 201);
     }
 
     /** Which questions and pages the person sees for the answers so far (the renderers can also compute this locally). */

@@ -10,7 +10,7 @@ export const ssAr = {
   privacy: { identified: 'معرَّفة', confidential: 'سرية', anonymous: 'مجهولة', identifiedHint: 'تُحفظ هوية المجيب؛ تُعرض الإجابات الفردية لمن يملك الصلاحية.', confidentialHint: 'تُحفظ الإجابة باسم مستعار مشفَّر؛ لا يمكن ربطها بشخص بعد الإغلاق.', anonymousHint: 'لا يُحفظ شيء عن المجيب؛ إجابة واحدة لكل شخص عبر سجل المشاركة.' },
   state: { draft: 'مسودة', in_review: 'قيد المراجعة', approved: 'معتمدة', published: 'منشورة', closed: 'مغلقة', archived: 'مؤرشفة' },
   studio: {
-    tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
+    tabs: { build: 'البناء', settings: 'الإعدادات', audience: 'المستهدفون', distribute: 'الروابط والدعوات', preview: 'المعاينة', versions: 'الإصدارات والسجل' },
     palette: 'إضافة سؤال', structure: 'بنية', text: 'نصوص', choice: 'اختيارات', scales: 'مقاييس', misc: 'أخرى',
     empty: 'ابدأ بإضافة سؤال من اللوحة.', question: 'السؤال', questionEn: 'بالإنجليزية', description: 'وصف أو تعليمات', required: 'إلزامي', options: 'الخيارات', rows: 'العبارات', addOption: 'إضافة خيار', addRow: 'إضافة عبارة', other: 'خيار «أخرى» بنص حر',
     maxSelect: 'الحد الأقصى', minSelect: 'الحد الأدنى', scale: 'المقياس', min: 'من', max: 'إلى', minLabel: 'وصف الأدنى', maxLabel: 'وصف الأقصى', maxLength: 'أقصى طول', placeholder: 'نص إرشادي', numMin: 'أصغر قيمة', numMax: 'أكبر قيمة',
@@ -43,7 +43,19 @@ export const ssAr = {
     start: 'ابدأ', continue: 'متابعة من حيث توقفت', editAnswers: 'تعديل الإجابات', resumed: 'استعدنا مسودتك', closed: 'هذه الاستبانة مغلقة.', saving: 'يحفظ…', saved: 'حُفظت المسودة',
     fixFirst: 'أكمل {{n}} من الأسئلة قبل المتابعة', problem: { required: 'هذا السؤال إلزامي.', invalid: 'الإجابة غير صالحة.', matrix_incomplete: 'أجب عن كل العبارات.', select_min: 'اختر عدداً أكبر من الخيارات.' },
     select: 'اختر…', other: 'أخرى (اكتب)', chooseUpTo: 'اختر حتى {{n}}', chooseAtLeast: 'على الأقل {{n}}', yes: 'نعم', no: 'لا', notLikely: 'غير محتمل', veryLikely: 'محتمل جداً', rankHint: 'رتّب العناصر بالأسهم، الأهم أولاً.', rankConfirm: 'اعتمد هذا الترتيب',
-    fileSoon: 'رفع الملفات يصل مع المرحلة التالية', fileRules: 'حتى {{n}} ملف · {{mb}} MB · {{types}}', prev: 'السابق', next: 'التالي', submit: 'إرسال', thanks: 'شكراً لك', thanksText: 'وصلتنا إجاباتك.',
+    fileRules: 'حتى {{n}} ملف · {{mb}} MB · {{types}}', chooseFile: 'اختر ملفاً', filePreview: 'رفع الملفات معطّل في المعاينة', fileAttached: 'ملف مرفق', kinds: { pdf: 'PDF', image: 'صورة', doc: 'مستند', xls: 'جدول', ppt: 'عرض', zip: 'ZIP', audio: 'صوت', video: 'فيديو' }, prev: 'السابق', next: 'التالي', submit: 'إرسال', thanks: 'شكراً لك', thanksText: 'وصلتنا إجاباتك.',
+  },
+  dist: {
+    public: 'الرابط العام ورمز QR', publicHint: 'رابط واحد لكل استبانة؛ اطبع رمزه أو شاركه. تجديد الرابط يُبطل كل ما طُبع أو شُورك.', notOpen: 'الاستبانة غير مفتوحة الآن؛ الرابط يعمل عند النشر داخل نافذة الإجابة.', create: 'إنشاء رابط عام', created: 'أُنشئ الرابط.', none: 'لا يوجد رابط عام.',
+    copy: 'نسخ', copied: 'نُسخ الرابط.', copyManual: 'انسخ الرابط:', active: 'نشط', inactive: 'موقوف', status: 'الحالة', submissions: '{{n}} إجابة', full: 'اكتمل', rule: 'قاعدة منع التكرار', max: 'الحد الأقصى للإجابات',
+    rules: { device: 'إجابة واحدة لكل جهاز', deviceHint: 'يُميَّز الجهاز بمعرّف محفوظ في المتصفح؛ لا يُعرف الشخص. من يمسح المتصفح يستطيع الإجابة ثانية.', email_code: 'التحقق بالبريد الإلكتروني', email_codeHint: 'يُرسَل رمز إلى البريد قبل الإجابة؛ إجابة واحدة لكل عنوان. يحتاج تهيئة البريد.', open: 'مفتوح بلا قيود', openHint: 'لا منع للتكرار ولا تعديل بعد الإرسال؛ مناسب للعرض السريع فقط.' },
+    mailOff: 'البريد غير مهيأ على هذا الخادم؛ لن يستطيع أحد استلام الرمز.', regenerate: 'تجديد الرابط', regenerateConfirm: 'تجديد الرابط يُبطل كل رمز QR مطبوع وكل رابط شُورك. متابعة؟', regenerated: 'جُدِّد الرابط.', card: 'بطاقة للطباعة', cardEyebrow: 'شاركنا رأيك', cardHint: 'امسح الرمز بكاميرا الهاتف للإجابة.', print: 'طباعة',
+    invitations: 'الدعوات الشخصية', inviteHint: 'لكل عنوان رابط خاص يُستخدم مرة واحدة ويُرسَل بالبريد.', inviteManualHint: 'البريد غير مهيأ؛ تُنشأ الروابط الخاصة وتُعرض لك مرة واحدة لمشاركتها يدوياً.', send: 'إرسال الدعوات', invited: 'أُنشئت {{n}} دعوة: أُرسلت {{sent}} · للمشاركة اليدوية {{manual}}',
+    remind: 'تذكير من لم يجب', reminded: 'أُرسل {{n}} تذكيراً من أصل {{p}}.', manualLinks: 'روابط للمشاركة اليدوية (تظهر مرة واحدة)', email: 'البريد', stats: { total: 'الدعوات', sent: 'أُرسلت', manual: 'يدوية', failed: 'فشلت', opened: 'فُتحت', responded: 'أُجيبت' }, sendStatus: { pending: 'قيد الإرسال', sent: 'أُرسلت', failed: 'فشل الإرسال', manual: 'يدوية' },
+  },
+  public: {
+    codeIntro: 'للإجابة عن هذه الاستبانة تحقق من بريدك الإلكتروني أولاً؛ لا يُحفظ بريدك مع إجابتك.', email: 'البريد الإلكتروني', code: 'رمز التحقق', codeHint: 'أرسلنا رمزاً من ستة أرقام صالحاً 15 دقيقة.', sendCode: 'إرسال الرمز', verify: 'تحقق', changeEmail: 'تغيير البريد',
+    errors: { generic: 'تعذر فتح الاستبانة.', survey_link_closed: 'هذه الاستبانة غير مفتوحة الآن.', survey_link_full: 'بلغت الاستبانة الحد الأقصى من الإجابات.', survey_invitation_expired: 'انتهت صلاحية هذه الدعوة.', survey_invitation_used: 'استُخدمت هذه الدعوة من قبل.', survey_mail_off: 'البريد غير مهيأ؛ لا يمكن إرسال الرمز.', survey_code_invalid: 'الرمز خاطئ أو منتهٍ.' },
   },
   portal: { title: 'استبانات موجهة إليك', open: 'افتح', answered: 'أجبت', canEdit: 'يمكنك التعديل حتى الإغلاق', closes: 'تُغلق', none: 'لا توجد استبانات موجهة إليك الآن.' },
 }
@@ -59,7 +71,7 @@ export const ssEn: typeof ssAr = {
   privacy: { identified: 'Identified', confidential: 'Confidential', anonymous: 'Anonymous', identifiedHint: 'The respondent is kept; individual answers are shown to those with the permission.', confidentialHint: 'Answers are stored under an encrypted pseudonym; nobody can be matched after close.', anonymousHint: 'Nothing about the respondent is stored; one answer per person through the participation registry.' },
   state: { draft: 'Draft', in_review: 'In review', approved: 'Approved', published: 'Published', closed: 'Closed', archived: 'Archived' },
   studio: {
-    tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', preview: 'Preview', versions: 'Versions & log' },
+    tabs: { build: 'Build', settings: 'Settings', audience: 'Audience', distribute: 'Links & invitations', preview: 'Preview', versions: 'Versions & log' },
     palette: 'Add a question', structure: 'Structure', text: 'Text', choice: 'Choices', scales: 'Scales', misc: 'Other',
     empty: 'Start by adding a question from the palette.', question: 'Question', questionEn: 'In English', description: 'Description or instructions', required: 'Required', options: 'Options', rows: 'Statements', addOption: 'Add option', addRow: 'Add statement', other: '"Other" with free text',
     maxSelect: 'Maximum', minSelect: 'Minimum', scale: 'Scale', min: 'From', max: 'To', minLabel: 'Low label', maxLabel: 'High label', maxLength: 'Max length', placeholder: 'Placeholder', numMin: 'Smallest value', numMax: 'Largest value',
@@ -92,7 +104,19 @@ export const ssEn: typeof ssAr = {
     start: 'Start', continue: 'Continue where you left off', editAnswers: 'Edit answers', resumed: 'Your draft was restored', closed: 'This survey is closed.', saving: 'Saving…', saved: 'Draft saved',
     fixFirst: 'Complete {{n}} questions before continuing', problem: { required: 'This question is required.', invalid: 'The answer is not valid.', matrix_incomplete: 'Answer every statement.', select_min: 'Choose more options.' },
     select: 'Choose…', other: 'Other (write)', chooseUpTo: 'Choose up to {{n}}', chooseAtLeast: 'At least {{n}}', yes: 'Yes', no: 'No', notLikely: 'Not likely', veryLikely: 'Very likely', rankHint: 'Order the items with the arrows, most important first.', rankConfirm: 'Keep this order',
-    fileSoon: 'File upload arrives with the next gate', fileRules: 'Up to {{n}} files · {{mb}} MB · {{types}}', prev: 'Back', next: 'Next', submit: 'Send', thanks: 'Thank you', thanksText: 'Your answers were received.',
+    fileRules: 'Up to {{n}} files · {{mb}} MB · {{types}}', chooseFile: 'Choose a file', filePreview: 'Uploads are off in the preview', fileAttached: 'Attached file', kinds: { pdf: 'PDF', image: 'image', doc: 'document', xls: 'spreadsheet', ppt: 'presentation', zip: 'ZIP', audio: 'audio', video: 'video' }, prev: 'Back', next: 'Next', submit: 'Send', thanks: 'Thank you', thanksText: 'Your answers were received.',
+  },
+  dist: {
+    public: 'Public link and QR', publicHint: 'One link per survey; print its code or share it. Regenerating the link voids everything printed or shared.', notOpen: 'The survey is not open now; the link works once published inside the answer window.', create: 'Create public link', created: 'Link created.', none: 'No public link.',
+    copy: 'Copy', copied: 'Link copied.', copyManual: 'Copy the link:', active: 'Active', inactive: 'Paused', status: 'Status', submissions: '{{n}} answers', full: 'Full', rule: 'Duplicate rule', max: 'Maximum answers',
+    rules: { device: 'One answer per device', deviceHint: 'The device is told apart by an id kept in the browser; nobody is identified. Clearing the browser allows another answer.', email_code: 'E-mail verification', email_codeHint: 'A code is sent to the address before answering; one answer per address. Needs e-mail configured.', open: 'Open, no limits', openHint: 'No duplicate check and no editing after sending; for quick polls only.' },
+    mailOff: 'E-mail is not configured on this server; nobody can receive the code.', regenerate: 'Regenerate link', regenerateConfirm: 'Regenerating voids every printed QR and every shared link. Continue?', regenerated: 'Link regenerated.', card: 'Printable card', cardEyebrow: 'Share your view', cardHint: 'Scan the code with your phone camera to answer.', print: 'Print',
+    invitations: 'Personal invitations', inviteHint: 'Each address gets a private single-use link sent by e-mail.', inviteManualHint: 'E-mail is not configured; private links are created and shown to you once for manual sharing.', send: 'Send invitations', invited: '{{n}} invitations: {{sent}} sent · {{manual}} for manual sharing',
+    remind: 'Remind the unanswered', reminded: '{{n}} reminders sent out of {{p}}.', manualLinks: 'Links for manual sharing (shown once)', email: 'E-mail', stats: { total: 'Invitations', sent: 'Sent', manual: 'Manual', failed: 'Failed', opened: 'Opened', responded: 'Answered' }, sendStatus: { pending: 'Pending', sent: 'Sent', failed: 'Failed', manual: 'Manual' },
+  },
+  public: {
+    codeIntro: 'Verify your e-mail first to answer this survey; your address is not stored with your answer.', email: 'E-mail', code: 'Verification code', codeHint: 'We sent a six-digit code valid for 15 minutes.', sendCode: 'Send code', verify: 'Verify', changeEmail: 'Change e-mail',
+    errors: { generic: 'The survey could not be opened.', survey_link_closed: 'This survey is not open right now.', survey_link_full: 'This survey reached its maximum number of answers.', survey_invitation_expired: 'This invitation has expired.', survey_invitation_used: 'This invitation was already used.', survey_mail_off: 'E-mail is not configured; the code cannot be sent.', survey_code_invalid: 'The code is wrong or expired.' },
   },
   portal: { title: 'Surveys for you', open: 'Open', answered: 'Answered', canEdit: 'You may edit until it closes', closes: 'Closes', none: 'No surveys are addressed to you right now.' },
 }

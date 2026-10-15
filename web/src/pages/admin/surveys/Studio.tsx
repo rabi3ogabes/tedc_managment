@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ClipboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import EngineForm from '@/components/surveys/EngineForm'
+import DistributionTab from './DistributionTab'
 import { Badge, Button, Card, CardTitle, ErrorState, Field, Modal, PageHeader, Spinner, StatCard, Tabs } from '@/components/ui'
 import { useGet, useSend } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
@@ -18,7 +19,7 @@ type Detail = {
   has_unpublished_changes: boolean; stats: { participants: number; answered: number; response_rate: number | null; submissions: number }; is_open: boolean
 }
 type Catalog = { kinds: string[]; privacy_modes: string[]; segment_fields: string[]; accept: string[]; defaults: { segment_threshold: number; retention_days: number } }
-type Tab = 'build' | 'settings' | 'audience' | 'preview' | 'versions'
+type Tab = 'build' | 'settings' | 'audience' | 'distribute' | 'preview' | 'versions'
 const TONE: Record<string, 'gray' | 'amber' | 'green' | 'navy'> = { draft: 'gray', in_review: 'amber', approved: 'green', published: 'navy', closed: 'gray', archived: 'gray' }
 const ICONS: Record<QuestionType, typeof Type> = { section: Heading, instructions: Info, page_break: Scissors, short_text: Type, long_text: AlignLeft, email: AtSign, phone: Phone, number: Hash, date: Calendar, time: Clock, single: CircleDot, multiple: CheckSquare, dropdown: ChevronDown, yes_no: ThumbsUp, rating: Star, scale: SlidersHorizontal, likert: Rows3, nps: Gauge, matrix: Grid3x3, ranking: ListOrdered, file_upload: FileUp }
 const GROUPS: { key: string; types: QuestionType[] }[] = [
@@ -106,7 +107,7 @@ export default function Studio() {
         <StatCard label={t('ss.studio.stats.rate')} value={d.stats.response_rate != null ? `${d.stats.response_rate}%` : '—'} />
         <StatCard label={t('ss.studio.stats.submissions')} value={d.stats.submissions} accent />
       </div>
-      <Tabs<Tab> value={tab} onChange={setTab} tabs={(['build', 'settings', 'audience', 'preview', 'versions'] as Tab[]).map((k) => ({ id: k, label: t(`ss.studio.tabs.${k}`) }))} />
+      <Tabs<Tab> value={tab} onChange={setTab} tabs={(['build', 'settings', 'audience', 'distribute', 'preview', 'versions'] as Tab[]).map((k) => ({ id: k, label: t(`ss.studio.tabs.${k}`) }))} />
 
       {tab === 'build' && (
         <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
@@ -150,6 +151,7 @@ export default function Studio() {
           <div className="flex min-h-[70vh] flex-col"><EngineForm preview survey={{ title, description: en ? d.description_en || d.description_ar : d.description_ar, questions, settings, privacy_mode: d.privacy_mode }} /></div>
         </Card>
       )}
+      {tab === 'distribute' && <DistributionTab surveyId={d.id} title={title} isOpen={d.is_open} canManage={can('surveys.manage')} />}
       {tab === 'versions' && <VersionsTab id={d.id} />}
 
       <Modal open={!!action} onClose={() => setAction(null)} title={action ? t(`ss.studio.actions.${action}`) : ''}>

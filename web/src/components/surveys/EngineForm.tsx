@@ -12,7 +12,9 @@ const DEFAULT_ACCENT = '#8A1538'
  * The respondent form of the survey engine: pages from page breaks, the server's logic evaluated live, validation per page
  * with an error summary and scroll-to-error, autosave with resume, submit, edit after submit, thank-you.
  */
-export default function EngineForm({ survey, initialAnswers, draft, preview = false, closed = false, canEdit = false, onDraft, onSubmit, onClose }: {
+export type UploadedMeta = { id: string; name: string; size?: number }
+
+export default function EngineForm({ survey, initialAnswers, draft, preview = false, closed = false, canEdit = false, onDraft, onUpload, onSubmit, onClose }: {
   survey: EngineSurvey
   initialAnswers?: Answers | null
   draft?: { answers: Answers; page?: number } | null
@@ -20,6 +22,7 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
   closed?: boolean
   canEdit?: boolean
   onDraft?: (answers: Answers, page: number) => Promise<unknown>
+  onUpload?: (question: Question, file: File) => Promise<UploadedMeta>
   onSubmit?: (answers: Answers, durationSeconds: number) => Promise<string | void>
   onClose?: () => void
 }) {
@@ -38,6 +41,7 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
   const started = useRef(0)
   const scroller = useRef<HTMLDivElement>(null)
   const dirty = useRef(false)
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const result = useMemo(() => evaluate(survey.questions, answers), [survey.questions, answers])
   const pages = useMemo(() => {
@@ -58,7 +62,8 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
   useEffect(() => {
     if (!onDraft || preview || stage !== 'form' || !dirty.current) return
     setSaved('saving')
-    const h = setTimeout(async () => { try { await onDraft(answers, pageIndex); setSaved('saved') } catch { setSaved('idle') } }, 1200)
+    const h = setTimeout(async () => { if (!dirty.current) return; try { await onDraft(answers, pageIndex); setSaved('saved') } catch { setSaved('idle') } }, 1200)
+    draftTimer.current = h
     return () => clearTimeout(h)
   }, [answers, pageIndex, onDraft, preview, stage])
 
@@ -72,14 +77,18 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
     setShowErrors(false)
     if (!last) { setPage(pageIndex + 1); scrollTop(); return }
     if (preview || !onSubmit) { setThanks((en ? settings.thank_you_en : settings.thank_you) ?? null); setStage('done'); return }
+    // Nothing may autosave while the submission is in flight, or the draft would be recreated after the server deleted it.
+    if (draftTimer.current) clearTimeout(draftTimer.current)
+    const wasDirty = dirty.current
+    dirty.current = false
     setSubmitting(true); setError(null)
     try {
       const visible = new Set(result.visible)
       const payload = Object.fromEntries(Object.entries(answers).filter(([k, v]) => visible.has(k) && filled(v)))
       const message = await onSubmit(payload, started.current ? Math.round((Date.now() - started.current) / 1000) : 0)
       setThanks(message || (en ? settings.thank_you_en : settings.thank_you) || null)
-      setStage('done'); dirty.current = false
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setSubmitting(false) }
+      setStage('done')
+    } catch (e) { dirty.current = wasDirty; setError(e instanceof Error ? e.message : String(e)) } finally { setSubmitting(false) }
   }
 
   const style = { '--accent': accent } as CSSProperties
@@ -146,7 +155,7 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
                       <div className="font-bold leading-7 text-navy-900">{titleOf(q, en)}{q.required && <span className="ms-1 text-red-500">*</span>}</div>
                       {descOf(q, en) && <p className="mt-1 text-sm leading-6 text-slate-500">{descOf(q, en)}</p>}
                     </div>
-                    <EngineInput q={q} value={answers[q.id]} onChange={(v) => set(q.id, v)} accent={accent} en={en} />
+                    <EngineInput q={q} value={answers[q.id]} onChange={(v) => set(q.id, v)} accent={accent} en={en} onUpload={onUpload} />
                     {bad && <p className="mt-3 text-xs font-semibold text-red-600">{t(`ss.form.problem.${problems[q.id]}`)}</p>}
                   </div>
                 )
@@ -179,6 +188,36 @@ export default function EngineForm({ survey, initialAnswers, draft, preview = fa
   )
 }
 
+const ACCEPT_EXT: Record<string, string> = { pdf: '.pdf', image: 'image/*', doc: '.doc,.docx,.rtf,.txt', xls: '.xls,.xlsx,.csv', ppt: '.ppt,.pptx', zip: '.zip', audio: 'audio/*', video: 'video/*' }
+const fileNames: Record<string, UploadedMeta> = {}
+
+/** The file-upload answer: uploads through the page's callback, keeps the ids as the answer, shows names and lets the person remove one. */
+function FileInput({ q, value, onChange, onUpload, accent }: { q: Question; value: string[] | undefined; onChange: (v: Answer) => void; onUpload?: (question: Question, file: File) => Promise<UploadedMeta>; accent: string }) {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const ids = value ?? []
+  const max = q.max_files ?? 1
+  const pick = async (file: File | undefined) => {
+    if (!file || !onUpload) return
+    setBusy(true); setErr(null)
+    try { const meta = await onUpload(q, file); fileNames[meta.id] = meta; onChange([...ids, meta.id]) } catch (e) { setErr(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) }
+  }
+  return (
+    <div className="space-y-2">
+      {ids.map((id) => <div key={id} className="flex items-center gap-2 rounded-xl border border-navy-100 bg-white px-3 py-2 text-sm"><Paperclip className="size-4 shrink-0" style={{ color: accent }} /><span className="min-w-0 flex-1 truncate" dir="ltr">{fileNames[id]?.name ?? t('ss.form.fileAttached')}</span><button type="button" aria-label="remove" className="text-slate-400 hover:text-red-600" onClick={() => onChange(ids.filter((x) => x !== id).length ? ids.filter((x) => x !== id) : undefined)}><X className="size-4" /></button></div>)}
+      {ids.length < max && (
+        <label className={clsx('flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-navy-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 transition hover:border-navy-400', !onUpload && 'cursor-not-allowed opacity-60')}>
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}{onUpload ? t('ss.form.chooseFile') : t('ss.form.filePreview')}
+          <input type="file" className="hidden" disabled={!onUpload || busy} accept={(q.accept ?? ['pdf', 'image']).map((a) => ACCEPT_EXT[a] ?? '').filter(Boolean).join(',')} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} />
+        </label>
+      )}
+      <p className="text-xs text-slate-400">{t('ss.form.fileRules', { n: max, mb: q.max_mb ?? 10, types: (q.accept ?? []).map((a) => t(`ss.form.kinds.${a}`, { defaultValue: a })).join('، ') })}</p>
+      {err && <p className="text-xs font-semibold text-red-600">{err}</p>}
+    </div>
+  )
+}
+
 function Fact({ icon, text }: { icon: ReactNode; text: string }) {
   return <div className="flex flex-col items-center gap-2 rounded-2xl border border-navy-100 bg-white p-4 text-slate-600"><span style={{ color: 'var(--accent)' }}>{icon}</span>{text}</div>
 }
@@ -186,7 +225,7 @@ function Fact({ icon, text }: { icon: ReactNode; text: string }) {
 const choiceClass = (active: boolean) => clsx('flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-start text-sm transition', active ? 'border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_8%,white)] font-semibold text-navy-900' : 'border-navy-100 bg-white hover:border-navy-300')
 
 /** One answer control per type. */
-export function EngineInput({ q, value, onChange, accent, en }: { q: Question; value: Answer; onChange: (v: Answer) => void; accent: string; en: boolean }) {
+export function EngineInput({ q, value, onChange, accent, en, onUpload }: { q: Question; value: Answer; onChange: (v: Answer) => void; accent: string; en: boolean; onUpload?: (question: Question, file: File) => Promise<UploadedMeta> }) {
   const { t } = useTranslation()
   const scale = q.scale ?? { min: 1, max: 5 }
   const points = Array.from({ length: scale.max - scale.min + 1 }, (_, i) => scale.min + i)
@@ -285,13 +324,7 @@ export function EngineInput({ q, value, onChange, accent, en }: { q: Question; v
         </div>
       )
     }
-    case 'file_upload': return (
-      <div className="rounded-xl border border-dashed border-navy-200 bg-slate-50 p-4 text-sm text-slate-500">
-        <div className="flex items-center gap-2 font-semibold text-navy-900"><Paperclip className="size-4" />{t('ss.form.fileSoon')}</div>
-        <p className="mt-1 text-xs">{t('ss.form.fileRules', { n: q.max_files ?? 1, mb: q.max_mb ?? 10, types: (q.accept ?? []).join(', ') })}</p>
-        {Array.isArray(value) && value.length > 0 && <button type="button" className="mt-2 inline-flex items-center gap-1 text-xs text-red-600" onClick={() => onChange(undefined)}><X className="size-3" />{t('common.remove', { defaultValue: 'Remove' })}</button>}
-      </div>
-    )
+    case 'file_upload': return <FileInput q={q} value={value as string[] | undefined} onChange={onChange} onUpload={onUpload} accent={accent} />
     default: return null
   }
 }

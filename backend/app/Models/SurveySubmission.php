@@ -18,7 +18,7 @@ class SurveySubmission extends Model
 {
     use HasUuids;
 
-    public const SOURCES = ['web', 'mobile', 'public', 'qr', 'import'];
+    public const SOURCES = ['web', 'mobile', 'public', 'invitation', 'qr', 'import'];
 
     protected function casts(): array
     {

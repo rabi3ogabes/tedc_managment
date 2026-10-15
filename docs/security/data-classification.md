@@ -15,10 +15,10 @@
 
 ## Totals
 
-- Public: 774 columns
-- Internal: 2206 columns
-- Confidential: 528 columns
-- Restricted: 26 columns
+- Public: 783 columns
+- Internal: 2236 columns
+- Confidential: 530 columns
+- Restricted: 27 columns
 
 ## Application-level encryption
 
@@ -4245,6 +4245,24 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `survey_distributions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `channel` | Internal | — |
+| `slug` | Internal | — |
+| `duplicate_rule` | Internal | — |
+| `max_responses` | Internal | — |
+| `is_active` | Internal | — |
+| `qr_version` | Internal | — |
+| `submissions_count` | Internal | — |
+| `created_by` | Internal | — |
+| `revoked_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `survey_events`
 
 | Column | Class | Control |
@@ -4256,6 +4274,45 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `data` | Internal | — |
 | `ip_address` | Confidential | masked in exports |
 | `created_at` | Public | — |
+
+### `survey_files`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `respondent_key` | Internal | — |
+| `question_id` | Internal | — |
+| `submission_id` | Internal | — |
+| `bucket` | Internal | — |
+| `path` | Internal | — |
+| `original_name` | Internal | — |
+| `mime` | Internal | — |
+| `size` | Internal | — |
+| `scanned_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `survey_invitations`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `distribution_id` | Internal | — |
+| `email` | Confidential | masked in exports |
+| `name` | Confidential | masked in exports |
+| `token_hash` | Restricted | hash / secret / expiring token |
+| `sent_at` | Internal | — |
+| `send_status` | Internal | — |
+| `send_error` | Internal | — |
+| `reminded_at` | Internal | — |
+| `opened_at` | Internal | — |
+| `responded_at` | Internal | — |
+| `expires_at` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `survey_participants`
 
