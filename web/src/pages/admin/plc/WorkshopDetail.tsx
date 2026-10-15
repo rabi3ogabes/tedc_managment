@@ -89,6 +89,9 @@ export default function WorkshopDetail() {
             </ul>
           </Card>
           <Card>
+            <CardTitle subtitle={t('plc.detail.peopleHint')} action={<div className="flex gap-1"><Button size="sm" variant="outline" to={`/admin/communities/workshops/${w.id}/trainees`}>{t('plc.detail.manageTrainees')}</Button><Button size="sm" variant="outline" to={`/admin/communities/workshops/${w.id}/trainers`}>{t('plc.detail.manageTrainers')}</Button></div>}>{t('plc.detail.people')}</CardTitle>
+          </Card>
+          <Card>
             <CardTitle>{t('plc.detail.decisions')}</CardTitle>
             {!w.decisions.length ? <p className="text-sm text-slate-500">{t('plc.detail.noDecisions')}</p> : (
               <ol className="relative space-y-3 border-s border-slate-200 ps-4 text-sm">

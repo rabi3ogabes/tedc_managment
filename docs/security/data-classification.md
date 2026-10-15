@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 771 columns
-- Internal: 2194 columns
+- Public: 774 columns
+- Internal: 2206 columns
 - Confidential: 528 columns
 - Restricted: 26 columns
 
@@ -2962,6 +2962,26 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_by` | Internal | — |
 | `reviewed_by` | Internal | — |
 | `reviewed_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_nominations`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_id` | Internal | — |
+| `employee_id` | Internal | — |
+| `school_id` | Internal | — |
+| `status` | Internal | — |
+| `source` | Internal | — |
+| `nominated_by` | Internal | — |
+| `decided_by` | Internal | — |
+| `decided_at` | Internal | — |
+| `reason` | Internal | — |
+| `note` | Internal | — |
+| `clashes` | Internal | — |
+| `registration_id` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 

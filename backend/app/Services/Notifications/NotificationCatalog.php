@@ -293,6 +293,12 @@ class NotificationCatalog
                 'title_ar' => 'قرار بشأن الورشة', 'title_en' => 'Decision on your workshop', 'body_ar' => 'افتح الورشة لمعرفة القرار.', 'body_en' => 'Open the workshop to see the decision.'],
             'plc.workshop_cancelled' => ['group' => 'program', 'name_ar' => 'إلغاء ورشة مجتمع مهني', 'name_en' => 'PLC workshop cancelled',
                 'title_ar' => 'أُلغيت الورشة', 'title_en' => 'The workshop was cancelled', 'body_ar' => 'أُلغيت الورشة وسيصلك إشعار بأي بديل.', 'body_en' => 'The workshop was cancelled; you will hear about any replacement.'],
+            'plc.nominated' => ['group' => 'registration', 'name_ar' => 'ترشيح لورشة مجتمع مهني', 'name_en' => 'PLC workshop nomination',
+                'title_ar' => 'رُشّحت لورشة', 'title_en' => 'You were nominated for a workshop', 'body_ar' => 'افتح تدريبي لمعرفة التفاصيل.', 'body_en' => 'Open My training for the details.'],
+            'plc.nomination_decided' => ['group' => 'registration', 'name_ar' => 'قرار بشأن ترشيح لورشة', 'name_en' => 'PLC nomination decision',
+                'title_ar' => 'قرار بشأن ترشيحك', 'title_en' => 'Decision on your nomination', 'body_ar' => 'افتح تدريبي لمعرفة القرار.', 'body_en' => 'Open My training to see the decision.'],
+            'plc.trainer_changed' => ['group' => 'program', 'name_ar' => 'تغيير مدرب ورشة', 'name_en' => 'PLC workshop trainer changed',
+                'title_ar' => 'تغيّر مدرب الورشة', 'title_en' => 'Workshop trainer changed', 'body_ar' => 'افتح الورشة لمعرفة التفاصيل.', 'body_en' => 'Open the workshop for the details.'],
         ];
     }
 

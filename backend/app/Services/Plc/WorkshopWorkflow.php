@@ -138,6 +138,10 @@ class WorkshopWorkflow
             $this->syncProgram($w, $to, $reason);
             $this->decision($w, 'transition', $to, $reason, ['from' => $from] + $data, $by);
             $this->notify($w, $to, $by, $reason);
+            if ($to === 'approved') {
+                // Approved nominations become registrations on the programme engine (seats, attendance, certificates).
+                app(WorkshopPeople::class)->materialise($w->refresh(), $by);
+            }
 
             return $w->refresh();
         });

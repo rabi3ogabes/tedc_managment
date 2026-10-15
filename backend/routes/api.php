@@ -74,6 +74,7 @@ use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityCon
 use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopPeopleController as PlcWorkshopPeopleController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopSchoolController as PlcWorkshopSchoolController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
@@ -1090,6 +1091,21 @@ Route::prefix('v1')->group(function () {
                     Route::get('workshops/{plcWorkshop}/schools', [PlcWorkshopSchoolController::class, 'index']);
                     Route::get('workshops/{plcWorkshop}/schools/search', [PlcWorkshopSchoolController::class, 'search']);
                     Route::get('workshops/{plcWorkshop}/schools/suggest', [PlcWorkshopSchoolController::class, 'suggest']);
+                    Route::get('workshops/{plcWorkshop}/people/eligible', [PlcWorkshopPeopleController::class, 'eligible']);
+                    Route::get('workshops/{plcWorkshop}/nominations', [PlcWorkshopPeopleController::class, 'nominations']);
+                    Route::get('workshops/{plcWorkshop}/trainers', [PlcWorkshopPeopleController::class, 'trainers']);
+                    Route::get('workshops/{plcWorkshop}/trainers/suggest', [PlcWorkshopPeopleController::class, 'suggestTrainers']);
+                });
+                Route::middleware('permission:plc.nominate|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/nominations', [PlcWorkshopPeopleController::class, 'nominate']);
+                    Route::post('workshops/{plcWorkshop}/nominations/{plcNomination}', [PlcWorkshopPeopleController::class, 'decide'])->whereUuid('plcNomination');
+                    Route::post('workshops/{plcWorkshop}/nominations-materialise', [PlcWorkshopPeopleController::class, 'materialise']);
+                });
+                Route::middleware('permission:plc.trainers.assign|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/trainers', [PlcWorkshopPeopleController::class, 'propose']);
+                    Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/confirm', [PlcWorkshopPeopleController::class, 'confirm'])->whereUuid('plcAssignment');
+                    Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/replace', [PlcWorkshopPeopleController::class, 'replace'])->whereUuid('plcAssignment');
+                    Route::delete('workshops/{plcWorkshop}/trainers/{plcAssignment}', [PlcWorkshopPeopleController::class, 'withdraw'])->whereUuid('plcAssignment');
                 });
                 Route::middleware('permission:plc.community.manage')->group(function () {
                     Route::post('communities', [PlcCommunityController::class, 'store']);

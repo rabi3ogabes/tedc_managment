@@ -153,7 +153,8 @@ export default function SchoolsStep() {
             {!!excludedRows.length && <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500"><div className="mb-1 font-semibold">{t('plc.schools.excludedList')}</div><ul className="space-y-1">{excludedRows.map((r) => <li key={r.id} className="flex items-center justify-between gap-2"><span>{name(r)}</span><span className="text-slate-400">{t(`plc.schools.exclusions.${r.excluded_reason}`)}</span></li>)}</ul></div>}
           </Card>
           <div className="flex flex-col gap-2">
-            <Button variant="gold" to={`/admin/communities/workshops/${id}`}>{t('plc.schools.done')}</Button>
+            <Button variant="gold" to={`/admin/communities/workshops/${id}/trainees`}>{t('plc.people.manageTrainees')} ←</Button>
+            <Button variant="outline" to={`/admin/communities/workshops/${id}`}>{t('plc.schools.done')}</Button>
           </div>
           <p className="text-xs text-slate-400">{t('plc.schools.advisory')}</p>
         </aside>
@@ -199,7 +200,7 @@ function HostPicker({ open, onClose, id, onPick }: { open: boolean; onClose: () 
 export function Stepper({ current, id }: { current: number; id: string }) {
   const { t } = useTranslation()
   const steps = t('plc.wizard.steps', { returnObjects: true }) as string[]
-  const links = [`/admin/communities/workshops/${id}/edit`, `/admin/communities/workshops/${id}/schools`]
+  const links = [`/admin/communities/workshops/${id}/edit`, `/admin/communities/workshops/${id}/schools`, `/admin/communities/workshops/${id}/trainees`, `/admin/communities/workshops/${id}/trainers`]
   return (
     <ol className="mb-6 flex flex-wrap gap-2">
       {steps.map((s, i) => {

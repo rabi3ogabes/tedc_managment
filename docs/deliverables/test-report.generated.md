@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **162**; test methods: **1097**.
+- Test files: **163**; test methods: **1099**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -136,6 +136,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | PaymentsTest.php | 25 |
 | PlanRulesEnforcementTest.php | 12 |
 | PlcFoundationTest.php | 4 |
+| PlcPeopleTest.php | 2 |
 | PlcSchoolsTest.php | 3 |
 | PresenceAndLockTest.php | 8 |
 | ProductionErrorsTest.php | 2 |
