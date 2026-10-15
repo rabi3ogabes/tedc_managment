@@ -163,6 +163,15 @@ return [
         'pubspec' => env('TEDC_FONTS_PUBSPEC', base_path('../mobile/pubspec.yaml')),
     ],
 
+    // Survey Studio v2 defaults (Gate 1 decisions, 2026-10-15). Each survey may override the threshold and retention.
+    'surveys' => [
+        'segment_threshold' => (int) env('TEDC_SURVEY_SEGMENT_THRESHOLD', 5),   // smallest group whose results are shown
+        'retention_days' => (int) env('TEDC_SURVEY_RETENTION_DAYS', 1095),      // answers: 36 months
+        'invitation_retention_days' => (int) env('TEDC_SURVEY_INVITATION_RETENTION_DAYS', 90), // after close
+        'draft_ttl_days' => (int) env('TEDC_SURVEY_DRAFT_TTL_DAYS', 30),        // autosaved drafts
+        'key_grace_days' => (int) env('TEDC_SURVEY_KEY_GRACE_DAYS', 30),        // pseudonym key kept after close
+    ],
+
     // The help centre's support channels (Phase 18): the centre's own contact details; empty until supplied.
     'support' => [
         'phone' => env('TEDC_SUPPORT_PHONE', ''),

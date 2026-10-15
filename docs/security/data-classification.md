@@ -15,10 +15,10 @@
 
 ## Totals
 
-- Public: 732 columns
-- Internal: 2059 columns
-- Confidential: 522 columns
-- Restricted: 23 columns
+- Public: 752 columns
+- Internal: 2117 columns
+- Confidential: 528 columns
+- Restricted: 26 columns
 
 ## Application-level encryption
 
@@ -4094,6 +4094,32 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `survey_events`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `actor_id` | Internal | — |
+| `event` | Internal | — |
+| `data` | Internal | — |
+| `ip_address` | Confidential | masked in exports |
+| `created_at` | Public | — |
+
+### `survey_participants`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `user_id` | Internal | — |
+| `invited_at` | Internal | — |
+| `notified_at` | Internal | — |
+| `reminded_at` | Internal | — |
+| `responded_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `survey_questions`
 
 | Column | Class | Control |
@@ -4120,6 +4146,102 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `submitted_at` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+
+### `survey_sessions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `version_id` | Internal | — |
+| `respondent_key` | Restricted | hash / secret / expiring token |
+| `draft_answers` | Confidential | masked in exports |
+| `page` | Internal | — |
+| `last_seen_at` | Internal | — |
+| `expires_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `survey_submission_edits`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `submission_id` | Internal | — |
+| `version_id` | Internal | — |
+| `previous_answers` | Confidential | masked in exports |
+| `created_at` | Public | — |
+
+### `survey_submissions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `version_id` | Internal | — |
+| `respondent_user_id` | Confidential | masked in exports |
+| `respondent_pseudonym` | Restricted | hash / secret / expiring token |
+| `segment_snapshot` | Confidential | masked in exports |
+| `answers` | Confidential | masked in exports |
+| `status` | Internal | — |
+| `source` | Internal | — |
+| `duration_seconds` | Internal | — |
+| `submitted_at` | Internal | — |
+| `edited_at` | Internal | — |
+| `edit_count` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `survey_versions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `number` | Internal | — |
+| `questions` | Internal | — |
+| `settings` | Internal | — |
+| `checksum` | Internal | — |
+| `published_by` | Internal | — |
+| `published_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `surveys`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `kind` | Internal | — |
+| `title_ar` | Internal | — |
+| `title_en` | Internal | — |
+| `description_ar` | Internal | — |
+| `description_en` | Internal | — |
+| `status` | Internal | — |
+| `privacy_mode` | Internal | — |
+| `owner_id` | Internal | — |
+| `program_id` | Internal | — |
+| `current_version_id` | Internal | — |
+| `questions` | Internal | — |
+| `audience` | Internal | — |
+| `settings` | Internal | — |
+| `approved_checksum` | Internal | — |
+| `review_note` | Internal | — |
+| `reviewed_by` | Internal | — |
+| `reviewed_at` | Internal | — |
+| `opens_at` | Internal | — |
+| `closes_at` | Internal | — |
+| `timezone` | Internal | — |
+| `retention_days` | Internal | — |
+| `pseudonym_key` | Restricted | hash / secret / expiring token |
+| `published_at` | Internal | — |
+| `closed_at` | Internal | — |
+| `archived_at` | Internal | — |
+| `legacy_type` | Internal | — |
+| `legacy_id` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+| `deleted_at` | Public | — |
 
 ### `target_groups`
 

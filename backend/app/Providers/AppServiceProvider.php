@@ -22,6 +22,7 @@ use App\Models\PdActivity;
 use App\Models\ProfessionalLicence;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\Survey;
 use App\Models\TaskSubmission;
 use App\Models\TrainingNeed;
 use App\Security\SecurityEvents;
@@ -126,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('need', fn ($id) => TrainingNeed::findOrFail($id));
         Route::bind('survey', fn ($id) => ImpactSurvey::findOrFail($id));
         Route::bind('needsSurvey', fn ($id) => NeedsSurvey::findOrFail($id));
+        Route::bind('studioSurvey', fn ($id) => Survey::findOrFail($id));
         Route::bind('submission', fn ($id) => TaskSubmission::findOrFail($id));
         Route::bind('session', fn ($id) => ProgramSession::findOrFail($id));
         Route::bind('notification', fn ($id) => AppNotification::findOrFail($id));

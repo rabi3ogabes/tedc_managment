@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-15 — Survey Studio v2, Gate 2: the unified survey engine (server side, behind `survey_studio_v2`)
+One engine for every survey instead of three: 21 question types (file upload, Likert, instructions, e-mail, phone, time and page breaks are new), condition groups on questions and pages, jumps, server-side validation that follows the same logic as the form; publishing freezes an append-only version that answers stay bound to, and a changed draft needs approval again; three privacy modes (identified, confidential with a per-survey pseudonym key, anonymous with a participation registry that is never joined to the answers); one answer per person with an edit history while the survey is open; autosaved drafts; an event trail mirrored into the audit log for every administrative action and deliberately not for answers; new `surveys.*` permissions; the routes `admin/surveys/*` and `me/studio-surveys/*`. Gate report: `docs/surveys/02-gate2-engine.md`; discovery and decisions: `docs/surveys/00-gate0-discovery.md`.
+
 ### 2026-10-15 — Hardening pass: every screen opened as every role, fixes and two features
 A Playwright sweep opened all 140 routes as the public visitor and nine demo roles and recorded console errors, failed requests, error boundaries and untranslated keys; the findings below were fixed, with tests.
 - **Self-service password reset** (`POST /auth/forgot`, `POST /auth/reset`, pages `/forgot` and `/reset`, a link on the login page and in the app). The answer never reveals whether an account exists, accounts that must use single sign-on get no link, the link follows the password policy shown on the page, and a reset ends the account's other sessions. Both actions are audited.

@@ -281,6 +281,10 @@ class NotificationCatalog
                 'title_ar' => 'استبانة جديدة', 'title_en' => 'New survey', 'body_ar' => 'شاركنا احتياجاتك التدريبية — تستغرق دقائق قليلة.', 'body_en' => 'Share your training needs — it only takes a few minutes.'],
             'needs_survey.reminder' => ['group' => 'survey', 'name_ar' => 'تذكير باستبانة الاحتياجات', 'name_en' => 'Needs survey reminder',
                 'title_ar' => 'تذكير باستبانة', 'title_en' => 'Survey reminder', 'body_ar' => 'لم نستلم إجاباتك بعد، رأيك يصنع برامج التدريب القادمة.', 'body_en' => 'We have not received your answers yet — your input shapes the next programs.'],
+            'survey.invite' => ['group' => 'survey', 'name_ar' => 'دعوة إلى استبانة', 'name_en' => 'Survey invitation',
+                'title_ar' => 'استبانة جديدة', 'title_en' => 'New survey', 'body_ar' => 'نرجو مشاركتك، لن تستغرق إلا دقائق.', 'body_en' => 'Your answers take only a few minutes.'],
+            'survey.reminder' => ['group' => 'survey', 'name_ar' => 'تذكير باستبانة', 'name_en' => 'Survey reminder',
+                'title_ar' => 'تذكير باستبانة', 'title_en' => 'Survey reminder', 'body_ar' => 'لم نستلم إجاباتك بعد.', 'body_en' => 'We have not received your answers yet.'],
         ];
     }
 

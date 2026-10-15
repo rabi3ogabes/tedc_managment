@@ -154,6 +154,14 @@ class RolePermissionSeeder extends Seeder
         'ai.forecasts.view' => ['ai', 'عرض التوقعات والمخاطر', 'View forecasts and risks'],
         'ai.feedback.review' => ['ai', 'مراجعة مسودات الملاحظات الذكية', 'Review AI feedback drafts'],
         'adaptive.manage' => ['ai', 'إدارة قواعد التعلّم التكيّفي', 'Manage adaptive learning rules'],
+        // Survey Studio v2 (Gate 2). `surveys.results.identified` is the only way to see who answered an identified survey.
+        'surveys.view' => ['surveys', 'عرض الاستبانات', 'View surveys'],
+        'surveys.manage' => ['surveys', 'إنشاء الاستبانات وتحريرها', 'Create and edit surveys'],
+        'surveys.approve' => ['surveys', 'اعتماد الاستبانات', 'Approve surveys'],
+        'surveys.publish' => ['surveys', 'نشر الاستبانات وإغلاقها', 'Publish and close surveys'],
+        'surveys.results' => ['surveys', 'عرض نتائج الاستبانات', 'View survey results'],
+        'surveys.results.identified' => ['surveys', 'عرض إجابات الأفراد في الاستبانات المعرَّفة', 'View identified individual answers'],
+        'surveys.export' => ['surveys', 'تصدير نتائج الاستبانات', 'Export survey results'],
     ];
 
     /** Which scopes a role may be granted at (null = any). A role without Ministry here is limited to its school unless granted wider. */
@@ -174,7 +182,7 @@ class RolePermissionSeeder extends Seeder
     public const ROLES = [
         Role::SUPER_ADMIN => ['مدير النظام', 'Super Admin', 100, ['*']],
         Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage', '-roles.create']],
-        Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, [
+        Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, ['surveys.view', 'surveys.manage', 'surveys.results',
             'packages.manage', 'library.view', 'sharing.manage', 'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
@@ -189,21 +197,21 @@ class RolePermissionSeeder extends Seeder
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports',
         ]],
-        Role::TRAINER => ['مدرب', 'Trainer', 50, ['library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
+        Role::TRAINER => ['مدرب', 'Trainer', 50, ['surveys.view', 'surveys.results', 'library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, [
             'dashboard.view', 'schools.view', 'employees.view', 'registrations.view', 'registrations.import', 'nominations.school',
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
-        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
-        Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, [
+        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['surveys.view', 'surveys.results', 'employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
+        Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, ['surveys.view', 'surveys.results',
             'kpi.view', 'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global', 'ai.forecasts.view',
         ]],
         Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['packages.manage', 'library.view', 'programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
         Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review', 'search.global']],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, ['search.global']],
-        Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, [
+        Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, ['surveys.view', 'surveys.manage', 'surveys.approve', 'surveys.publish', 'surveys.results', 'surveys.export',
             'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view', 'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage', 'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage', 'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
@@ -220,16 +228,16 @@ class RolePermissionSeeder extends Seeder
             'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global', 'communities.create',
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
-        Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, [
+        Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, ['surveys.view', 'surveys.results',
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view', 'impact.view', 'needs.view', 'ai.assistant',
             'reports.view', 'trainers.approve', 'plans.view', 'plans.approve', 'gaps.view', 'search.global',
         ]],
-        Role::PLANNING_HEAD => ['رئيس قسم التخطيط', 'Head of Planning', 66, [
+        Role::PLANNING_HEAD => ['رئيس قسم التخطيط', 'Head of Planning', 66, ['surveys.view', 'surveys.manage', 'surveys.approve', 'surveys.publish', 'surveys.results', 'surveys.export',
             'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'evaluation_reports.approve', 'evaluations.respond_planning', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'ai.assistant', 'reports.view',
             'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'search.global',
             'needs.cycles', 'competencies.manage', 'gaps.view', 'performance.import', 'ai.forecasts.view',
         ]],
-        Role::PLANNING_SPECIALIST => ['أخصائي التخطيط', 'Planning Specialist', 58, [
+        Role::PLANNING_SPECIALIST => ['أخصائي التخطيط', 'Planning Specialist', 58, ['surveys.view', 'surveys.manage', 'surveys.publish', 'surveys.results', 'surveys.export',
             'paths.manage', 'pd.recognise', 'evaluation_reports.prepare', 'evaluations.respond_planning', 'interviews.manage', 'dashboard.view', 'schools.view', 'programs.view', 'calendar.view', 'impact.view', 'needs.view', 'needs.manage', 'reports.view', 'plans.view', 'plans.manage', 'search.global',
             'needs.cycles', 'competencies.manage', 'gaps.view',
         ]],

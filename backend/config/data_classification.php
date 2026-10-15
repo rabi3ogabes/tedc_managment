@@ -30,6 +30,11 @@ return [
 
     /** Individual columns that are Restricted (or otherwise differ from what the patterns say): "table.column" => class. */
     'overrides' => [
+        // Survey Studio v2: answers and the organisational snapshot kept with them are confidential; the pseudonym and the key that
+        // makes it are restricted; a draft holds unfinished answers.
+        'surveys.pseudonym_key' => 'restricted', 'survey_submissions.respondent_pseudonym' => 'restricted', 'survey_submissions.respondent_user_id' => 'confidential', 'survey_submissions.answers' => 'confidential',
+        'survey_submissions.segment_snapshot' => 'confidential', 'survey_submission_edits.previous_answers' => 'confidential', 'survey_sessions.draft_answers' => 'confidential',
+        'survey_sessions.respondent_key' => 'restricted',
         // Programme categories and their type are published reference data (the catalogue shows them); masking them in copies would spoil every report.
         'program_categories.name_ar' => 'public', 'program_categories.name_en' => 'public', 'program_categories.program_type' => 'public',
         // Offline learning: each device's content key and each exam package's nonce are secrets; the frozen exam questions hold the answers.

@@ -43,5 +43,8 @@ return [
         'external_signup' => ['phase' => 4, 'unsafe' => false, 'default' => false,
             'title' => ['ar' => 'تسجيل المستخدمين من خارج الوزارة', 'en' => 'External user registration'],
             'description' => ['ar' => 'نموذج عام للتسجيل من خارج الوزارة مع مسار موافقة.', 'en' => 'A public sign-up form for people outside the Ministry, with an approval path.']],
+        'survey_studio_v2' => ['phase' => 8, 'unsafe' => false, 'default' => true, 'production' => false,
+            'title' => ['ar' => 'ستوديو الاستبانات (المحرك الجديد)', 'en' => 'Survey Studio (new engine)'],
+            'description' => ['ar' => 'محرك الاستبانات الموحّد: إصدارات ثابتة بعد النشر، أوضاع الخصوصية الثلاثة، الحفظ التلقائي، سجل التعديلات، وسجل الأحداث. يُفعَّل مرحلياً.', 'en' => 'The unified survey engine: immutable published versions, three privacy modes, autosave, edit history and an event trail. Switched on gate by gate.']],
     ],
 ];

@@ -100,6 +100,7 @@ use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
 use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
+use App\Http\Controllers\Api\V1\Admin\SurveyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\TeamsController;
@@ -150,6 +151,7 @@ use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
 use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyReportsController;
+use App\Http\Controllers\Api\V1\Me\MySurveyController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Me\RealtimeController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
@@ -654,6 +656,14 @@ Route::prefix('v1')->group(function () {
             Route::get('needs-surveys', [MyNeedsSurveyController::class, 'index']);
             Route::get('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'show']);
             Route::post('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'submit']);
+            // Survey Studio v2 (Gate 2): the participant's side. Takes over `me/surveys` when the legacy engines are migrated (Gate 5).
+            Route::middleware('feature:survey_studio_v2')->prefix('studio-surveys')->controller(MySurveyController::class)->group(function () {
+                Route::get('/', 'index');
+                Route::get('{studioSurvey}', 'show');
+                Route::put('{studioSurvey}/draft', 'draft')->middleware('throttle:60,1');
+                Route::post('{studioSurvey}/logic', 'logic');
+                Route::post('{studioSurvey}', 'submit')->middleware('throttle:20,1');
+            });
 
             Route::get('team', [MyOutcomesController::class, 'team'])->middleware('permission:impact.supervise');
             Route::post('team/registrations/{registration}/evaluation', [MyOutcomesController::class, 'supervisorEvaluation'])->middleware('permission:impact.supervise');
@@ -1058,6 +1068,37 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            // Survey Studio v2 (Gate 2): the unified survey engine. Reading needs surveys.view; every write names its permission.
+            Route::middleware('feature:survey_studio_v2')->prefix('surveys')->controller(SurveyController::class)->group(function () {
+                Route::middleware('permission:surveys.view')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('catalog', 'catalog');
+                    Route::get('{studioSurvey}', 'show');
+                    Route::get('{studioSurvey}/versions', 'versions');
+                    Route::get('{studioSurvey}/versions/{number}', 'version')->whereNumber('number');
+                    Route::get('{studioSurvey}/events', 'events');
+                    Route::post('{studioSurvey}/preview-logic', 'previewLogic');
+                });
+                Route::middleware('permission:surveys.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::post('audience/preview', 'audiencePreview');
+                    Route::put('{studioSurvey}', 'update');
+                    Route::delete('{studioSurvey}', 'destroy');
+                    Route::post('{studioSurvey}/duplicate', 'duplicate');
+                    Route::post('{studioSurvey}/submit-review', 'submitReview');
+                    Route::post('{studioSurvey}/remind', 'remind');
+                });
+                Route::middleware('permission:surveys.approve')->group(function () {
+                    Route::post('{studioSurvey}/approve', 'approve');
+                    Route::post('{studioSurvey}/return', 'returnToDraft');
+                });
+                Route::middleware('permission:surveys.publish')->group(function () {
+                    Route::post('{studioSurvey}/publish', 'publish');
+                    Route::post('{studioSurvey}/close', 'close');
+                    Route::post('{studioSurvey}/reopen', 'reopen');
+                });
             });
 
             Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
