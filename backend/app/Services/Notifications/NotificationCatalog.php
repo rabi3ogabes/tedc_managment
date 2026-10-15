@@ -285,6 +285,14 @@ class NotificationCatalog
                 'title_ar' => 'استبانة جديدة', 'title_en' => 'New survey', 'body_ar' => 'نرجو مشاركتك، لن تستغرق إلا دقائق.', 'body_en' => 'Your answers take only a few minutes.'],
             'survey.reminder' => ['group' => 'survey', 'name_ar' => 'تذكير باستبانة', 'name_en' => 'Survey reminder',
                 'title_ar' => 'تذكير باستبانة', 'title_en' => 'Survey reminder', 'body_ar' => 'لم نستلم إجاباتك بعد.', 'body_en' => 'We have not received your answers yet.'],
+            'plc.workshop_submitted' => ['group' => 'program', 'name_ar' => 'ورشة مجتمع مهني بانتظار المراجعة', 'name_en' => 'PLC workshop awaiting review',
+                'title_ar' => 'ورشة بانتظار مراجعتك', 'title_en' => 'A workshop awaits your review', 'body_ar' => 'افتح الورشة لمراجعتها واتخاذ القرار.', 'body_en' => 'Open the workshop to review it and decide.'],
+            'plc.workshop_changes' => ['group' => 'program', 'name_ar' => 'طلب تعديل ورشة مجتمع مهني', 'name_en' => 'PLC workshop changes requested',
+                'title_ar' => 'طُلب تعديل الورشة', 'title_en' => 'Changes requested on your workshop', 'body_ar' => 'راجع الملاحظات وأعد التقديم.', 'body_en' => 'Review the notes and resubmit.'],
+            'plc.workshop_decided' => ['group' => 'program', 'name_ar' => 'قرار بشأن ورشة مجتمع مهني', 'name_en' => 'PLC workshop decision',
+                'title_ar' => 'قرار بشأن الورشة', 'title_en' => 'Decision on your workshop', 'body_ar' => 'افتح الورشة لمعرفة القرار.', 'body_en' => 'Open the workshop to see the decision.'],
+            'plc.workshop_cancelled' => ['group' => 'program', 'name_ar' => 'إلغاء ورشة مجتمع مهني', 'name_en' => 'PLC workshop cancelled',
+                'title_ar' => 'أُلغيت الورشة', 'title_en' => 'The workshop was cancelled', 'body_ar' => 'أُلغيت الورشة وسيصلك إشعار بأي بديل.', 'body_en' => 'The workshop was cancelled; you will hear about any replacement.'],
         ];
     }
 

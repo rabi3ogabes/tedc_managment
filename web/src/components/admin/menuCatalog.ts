@@ -65,7 +65,7 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
       { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
       { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: badges.errors },
-      { to: '/admin/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
+      { to: '/admin/communities', label: t('plc.nav'), icon: MessagesSquare, feature: 'plc|forums' },
       { to: '/admin/trainer-inbox', label: t('soc.nav.inbox'), icon: ClipboardList, permission: 'trainers.respond|forums.moderate|ratings.moderate', feature: 'forums' },
       { to: '/admin/gamification', label: t('soc.nav.studio'), icon: Award, permission: 'gamification.manage|rewards.manage', feature: 'gamification' },
       { to: '/admin/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },

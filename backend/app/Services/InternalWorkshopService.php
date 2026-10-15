@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\Plc\WorkshopService;
 use App\Support\AccessScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -52,6 +53,9 @@ class InternalWorkshopService
                 ['ar' => 'ورشة داخلية بانتظار الاعتماد', 'en' => 'An internal workshop awaits approval'],
                 ['ar' => "«{$program->title_ar}» — {$program->ownerSchool?->name_ar}", 'en' => "\"{$program->title_en}\" — {$program->ownerSchool?->name_en}"], ['program_id' => $program->id, 'route' => '/admin/internal-workshops']);
         }
+
+        // The PLC engine (Phase 1) tracks the same programme as an internal workshop in review.
+        rescue(fn () => app(WorkshopService::class)->attachLegacy($program, $user));
 
         return $program;
     }

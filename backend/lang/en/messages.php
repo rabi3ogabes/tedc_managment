@@ -72,6 +72,12 @@ return [
     'offline' => ['not_allowed' => 'This assessment cannot be taken offline.', 'invalid' => 'This offline package is not valid for this device.', 'used' => 'This offline package was already handed in.', 'expired' => 'This offline package has expired. Download it again to take the assessment.', 'too_long' => 'The time on the phone is longer than the time limit allows, so the attempt cannot be accepted.'],
     'plans' => ['exists' => 'A plan for :year already exists. Open it, or create a new version.', 'reason_required' => 'After approval every change needs a reason.', 'empty' => 'Add at least one item before submitting.', 'locked' => 'The plan cannot be edited in its current state.', 'invalid_state' => 'This step is not available while the plan is “:status”.', 'rules_broken' => 'The plan breaks this year’s rules: :list. Fix them, or (head of planning) go ahead with a documented exception.', 'exception_required' => 'The plan breaks this year’s rules: :list. Approving it needs the reason for the exception.'],
     'workshops' => ['school_required' => 'Your account is not linked to a school, so a workshop cannot be submitted.', 'not_pending' => 'This workshop has already been decided.', 'not_approved' => 'The centre has not approved this workshop yet.'],
+    'plc' => [
+        'incomplete' => 'The workshop needs a source, a host school and a start date before it is submitted.', 'bad_transition' => 'This action is not possible while the workshop is :state.',
+        'reason_required' => 'A reason is required.', 'not_your_step' => 'The current review step (:step) is not yours to take.', 'outside_scope' => 'This record belongs to a school outside your scope.',
+        'school_required' => 'Choose the school; your account is not linked to one.', 'locked' => 'The workshop cannot be edited while it is :state.', 'source_frozen' => 'The source and its reference are frozen after approval; an exception with a reason is required.',
+        'edited_after_submit' => 'Edited after submission; the review starts again.', 'bad_source' => 'Unknown source.', 'need_declined' => 'A declined need cannot become a workshop.',
+    ],
     'surveys' => [
         'no_questions' => 'Add at least one question.', 'too_many' => 'A survey can hold at most :max questions.', 'unknown_type' => 'Unknown question type.',
         'title_required' => 'Every question needs a title.', 'options_min' => 'Choice questions need at least two options.', 'rows_min' => 'A matrix needs at least one statement.',

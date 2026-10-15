@@ -87,6 +87,9 @@ const EventDetail = lazy(() => import('@/pages/public/Events').then((m) => ({ de
 const NotificationPrefs = lazy(() => import('@/pages/NotificationPrefs'))
 const Communities = lazy(() => import('@/pages/Communities'))
 const SpaceView = lazy(() => import('@/pages/SpaceView'))
+const PlcHub = lazy(() => import('@/pages/admin/plc/PlcHub'))
+const PlcWorkshopWizard = lazy(() => import('@/pages/admin/plc/WorkshopWizard'))
+const PlcWorkshopDetail = lazy(() => import('@/pages/admin/plc/WorkshopDetail'))
 const Achievements = lazy(() => import('@/pages/Achievements'))
 const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
@@ -252,7 +255,10 @@ export default function App() {
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
-          <Route path="communities" element={<Communities />} />
+          <Route path="communities" element={<PlcHub />} />
+          <Route path="communities/workshops/new" element={<RequireAuth permission="plc.manage|plc.internal.submit"><PlcWorkshopWizard /></RequireAuth>} />
+          <Route path="communities/workshops/:id/edit" element={<RequireAuth permission="plc.manage|plc.internal.submit"><PlcWorkshopWizard /></RequireAuth>} />
+          <Route path="communities/workshops/:id" element={<RequireAuth permission="plc.view"><PlcWorkshopDetail /></RequireAuth>} />
           <Route path="communities/:id" element={<SpaceView />} />
           <Route path="achievements" element={<Achievements />} />
           <Route path="trainer-inbox" element={<RequireAuth permission="trainers.respond|forums.moderate|ratings.moderate"><TrainerInbox /></RequireAuth>} />

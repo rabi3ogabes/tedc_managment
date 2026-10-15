@@ -70,6 +70,10 @@ use App\Http\Controllers\Api\V1\Admin\PackageController;
 use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
 use App\Http\Controllers\Api\V1\Admin\PassingController;
 use App\Http\Controllers\Api\V1\Admin\PdAdminController;
+use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityController;
+use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
+use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
@@ -1068,6 +1072,44 @@ Route::prefix('v1')->group(function () {
                 Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
                 Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
                 Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+            });
+
+            // Professional learning communities (PLC), Phase 1: the hub, communities, the needs register and workshops on the programme engine.
+            Route::middleware('feature:plc')->prefix('plc')->group(function () {
+                Route::middleware('permission:plc.view')->group(function () {
+                    Route::get('dashboard', [PlcHubController::class, 'dashboard']);
+                    Route::get('lookup/{kind}', [PlcHubController::class, 'lookup'])->whereIn('kind', ['schools', 'users']);
+                    Route::get('communities', [PlcCommunityController::class, 'index']);
+                    Route::get('communities/{plcCommunity}', [PlcCommunityController::class, 'show']);
+                    Route::get('needs', [PlcNeedController::class, 'index']);
+                    Route::get('needs/{plcNeed}', [PlcNeedController::class, 'show']);
+                    Route::get('workshops', [PlcWorkshopController::class, 'index']);
+                    Route::get('workshops/catalog', [PlcWorkshopController::class, 'catalog']);
+                    Route::get('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'show']);
+                });
+                Route::middleware('permission:plc.community.manage')->group(function () {
+                    Route::post('communities', [PlcCommunityController::class, 'store']);
+                    Route::put('communities/{plcCommunity}', [PlcCommunityController::class, 'update']);
+                    Route::delete('communities/{plcCommunity}', [PlcCommunityController::class, 'destroy']);
+                });
+                Route::middleware('permission:plc.manage|plc.internal.submit')->group(function () {
+                    Route::post('needs', [PlcNeedController::class, 'store']);
+                    Route::put('needs/{plcNeed}', [PlcNeedController::class, 'update']);
+                    Route::post('needs/{plcNeed}/convert', [PlcNeedController::class, 'convert']);
+                    Route::post('workshops', [PlcWorkshopController::class, 'store']);
+                    Route::put('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'update']);
+                    Route::post('workshops/{plcWorkshop}/submit', [PlcWorkshopController::class, 'submit']);
+                    Route::post('workshops/{plcWorkshop}/cancel', [PlcWorkshopController::class, 'cancel']);
+                });
+                Route::middleware('permission:plc.approve|plc.approve.school')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/approve', [PlcWorkshopController::class, 'approve']);
+                    Route::post('workshops/{plcWorkshop}/request-changes', [PlcWorkshopController::class, 'requestChanges']);
+                    Route::post('workshops/{plcWorkshop}/reject', [PlcWorkshopController::class, 'reject']);
+                });
+                Route::middleware('permission:plc.settings')->group(function () {
+                    Route::get('settings', [PlcHubController::class, 'settings']);
+                    Route::put('settings', [PlcHubController::class, 'updateSettings']);
+                });
             });
 
             // Survey Studio v2 (Gate 2): the unified survey engine. Reading needs surveys.view; every write names its permission.

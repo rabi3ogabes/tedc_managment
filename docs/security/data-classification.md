@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 752 columns
-- Internal: 2117 columns
+- Public: 771 columns
+- Internal: 2194 columns
 - Confidential: 528 columns
 - Restricted: 26 columns
 
@@ -2889,6 +2889,137 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `name_en` | Confidential | masked in exports |
 | `name_ar` | Confidential | masked in exports |
 | `group` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_communities`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `code` | Internal | — |
+| `title_ar` | Internal | — |
+| `title_en` | Internal | — |
+| `description_ar` | Internal | — |
+| `description_en` | Internal | — |
+| `domain` | Internal | — |
+| `status` | Internal | — |
+| `lead_user_id` | Internal | — |
+| `host_school_id` | Internal | — |
+| `space_id` | Internal | — |
+| `settings` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_community_schools`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `community_id` | Internal | — |
+| `school_id` | Internal | — |
+| `role` | Internal | — |
+| `joined_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_decisions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `subject_type` | Internal | — |
+| `subject_id` | Internal | — |
+| `kind` | Internal | — |
+| `decision` | Internal | — |
+| `reason` | Internal | — |
+| `data` | Internal | — |
+| `decided_by` | Internal | — |
+| `created_at` | Public | — |
+
+### `plc_needs`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `source` | Internal | — |
+| `reference_no` | Internal | — |
+| `title` | Internal | — |
+| `description` | Internal | — |
+| `domain` | Internal | — |
+| `target_audience` | Internal | — |
+| `received_at` | Internal | — |
+| `review_status` | Internal | — |
+| `source_url` | Internal | — |
+| `notes` | Internal | — |
+| `school_ids` | Internal | — |
+| `entity_name` | Internal | — |
+| `proposer_name` | Internal | — |
+| `justification` | Internal | — |
+| `expected_outcomes` | Internal | — |
+| `attachments` | Internal | — |
+| `created_by` | Internal | — |
+| `reviewed_by` | Internal | — |
+| `reviewed_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_session_trainers`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_session_id` | Internal | — |
+| `trainer_id` | Internal | — |
+| `role` | Internal | — |
+| `minutes` | Internal | — |
+| `status` | Internal | — |
+| `note` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_workshop_schools`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_id` | Internal | — |
+| `school_id` | Internal | — |
+| `role` | Internal | — |
+| `seats` | Internal | — |
+| `status` | Internal | — |
+| `suggestion_reasons` | Internal | — |
+| `distance_km` | Internal | — |
+| `excluded_reason` | Internal | — |
+| `decided_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `plc_workshops`
+
+| Column | Class | Control |
+|---|---|---|
+| `program_id` | Internal | — |
+| `community_id` | Internal | — |
+| `need_id` | Internal | — |
+| `source` | Internal | — |
+| `source_ref` | Internal | — |
+| `organiser` | Internal | — |
+| `coordinator_user_id` | Internal | — |
+| `priority` | Internal | — |
+| `expected_participants` | Internal | — |
+| `prerequisites` | Internal | — |
+| `outcomes` | Internal | — |
+| `target_audience` | Internal | — |
+| `domain` | Internal | — |
+| `scenario` | Internal | — |
+| `host_school_id` | Internal | — |
+| `workflow_state` | Internal | — |
+| `state_changed_at` | Internal | — |
+| `approval_path` | Internal | — |
+| `decision_note` | Internal | — |
+| `attachments` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
