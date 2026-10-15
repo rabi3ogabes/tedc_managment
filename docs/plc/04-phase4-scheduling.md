@@ -49,3 +49,6 @@ New / changed (web)
 ## 6. Exact next step
 
 Phase 5 — attendance: check-in and check-out codes with revocation and windows, statuses including left-early, hybrid channels, corrections and locking, the live roster and report, the mobile scan update. Report in `docs/plc/05-phase5-attendance.md`.
+
+---
+Full suite after Phase 4 (`php artisan test --compact`, Windows): 1169 tests, 1099 passed, 15670 assertions. The 4 failures and 54 errors are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, openssl in SamlSso / Lti / PushNotifications / SupabaseConnection / IdentitySecurity); nothing in the PLC or Survey Studio suites fails.
