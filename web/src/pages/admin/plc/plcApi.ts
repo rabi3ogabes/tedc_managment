@@ -18,6 +18,7 @@ export type WorkshopDetail = WorkshopSummary & {
   can: { edit: boolean; submit: boolean; review: boolean; cancel: boolean }; transitions: PlcState[]
   decisions: { kind: string; decision: string; reason?: string | null; data?: Record<string, unknown> | null; by?: string | null; at: string }[]
   decision_note?: string | null; created_by?: string | null
+  sessions?: { count: number; next?: string | null }
 }
 export type Need = {
   id: string; source: PlcSource; reference_no?: string | null; title: string; description?: string | null; domain?: string | null; target_audience?: string | null

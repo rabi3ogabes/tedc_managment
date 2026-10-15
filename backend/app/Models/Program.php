@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -261,5 +262,10 @@ class Program extends Model
         }
 
         return $this->survey_opened_at !== null && (! $this->survey_closed_at || $this->survey_closed_at->lt($this->survey_opened_at));
+    }
+
+    public function plcWorkshop(): HasOne
+    {
+        return $this->hasOne(PlcWorkshop::class, 'program_id');
     }
 }

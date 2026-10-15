@@ -200,7 +200,7 @@ function HostPicker({ open, onClose, id, onPick }: { open: boolean; onClose: () 
 export function Stepper({ current, id }: { current: number; id: string }) {
   const { t } = useTranslation()
   const steps = t('plc.wizard.steps', { returnObjects: true }) as string[]
-  const links = [`/admin/communities/workshops/${id}/edit`, `/admin/communities/workshops/${id}/schools`, `/admin/communities/workshops/${id}/trainees`, `/admin/communities/workshops/${id}/trainers`]
+  const links = [`/admin/communities/workshops/${id}/edit`, `/admin/communities/workshops/${id}/schools`, `/admin/communities/workshops/${id}/trainees`, `/admin/communities/workshops/${id}/trainers`, `/admin/communities/workshops/${id}/schedule`]
   return (
     <ol className="mb-6 flex flex-wrap gap-2">
       {steps.map((s, i) => {

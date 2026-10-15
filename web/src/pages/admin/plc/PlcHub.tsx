@@ -1,6 +1,7 @@
-import { Archive, Building2, ClipboardList, FileSearch, LayoutDashboard, MessagesSquare, Plus, Search, Users } from 'lucide-react'
+import { Archive, Building2, ClipboardList, FileSearch, LayoutDashboard, MessagesSquare, Plus, Search, Users, CalendarDays } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import PlcCalendar from './PlcCalendar'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Badge, Button, Card, CardTitle, Empty, ErrorState, Field, Modal, PageHeader, Spinner, StatCard, Tabs } from '@/components/ui'
 import Communities from '@/pages/Communities'
@@ -9,8 +10,8 @@ import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { STATE_TONE, fmtDate, type Catalog, type Community, type Need, type PlcSource, type PlcState, type SchoolRef, type WorkshopSummary } from './plcApi'
 
-type Tab = 'overview' | 'communities' | 'workshops' | 'needs' | 'spaces'
-const TABS: Tab[] = ['overview', 'communities', 'workshops', 'needs', 'spaces']
+type Tab = 'overview' | 'communities' | 'workshops' | 'needs' | 'calendar' | 'spaces'
+const TABS: Tab[] = ['overview', 'communities', 'workshops', 'calendar', 'needs', 'spaces']
 
 /** The PLC hub: everything about learning communities on one page, with the discussion spaces as its last tab. */
 export default function PlcHub() {
@@ -19,7 +20,7 @@ export default function PlcHub() {
   const tab = (TABS.includes(params.get('tab') as Tab) ? params.get('tab') : 'overview') as Tab
   const setTab = (next: Tab) => setParams((p) => { p.set('tab', next); return p }, { replace: true })
   const catalog = useGet<{ data: Catalog }>('/admin/plc/workshops/catalog')
-  const icons: Record<Tab, React.ReactNode> = { overview: <LayoutDashboard className="size-4" />, communities: <Users className="size-4" />, workshops: <ClipboardList className="size-4" />, needs: <FileSearch className="size-4" />, spaces: <MessagesSquare className="size-4" /> }
+  const icons: Record<Tab, React.ReactNode> = { overview: <LayoutDashboard className="size-4" />, communities: <Users className="size-4" />, workshops: <ClipboardList className="size-4" />, needs: <FileSearch className="size-4" />, calendar: <CalendarDays className="size-4" />, spaces: <MessagesSquare className="size-4" /> }
 
   return (
     <>
@@ -28,6 +29,7 @@ export default function PlcHub() {
       {tab === 'overview' && <Overview catalog={catalog.data?.data} onTab={setTab} />}
       {tab === 'communities' && <CommunitiesTab catalog={catalog.data?.data} />}
       {tab === 'workshops' && <WorkshopsTab catalog={catalog.data?.data} />}
+      {tab === 'calendar' && <PlcCalendar />}
       {tab === 'needs' && <NeedsTab catalog={catalog.data?.data} />}
       {tab === 'spaces' && <Communities />}
     </>

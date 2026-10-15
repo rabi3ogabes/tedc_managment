@@ -215,6 +215,7 @@ class WorkshopService
                 'cancel' => $this->workflow->canTransition($w, 'cancelled') && ($user->hasPermission('plc.manage') || ($p->created_by === $user->id)),
             ],
             'transitions' => WorkshopWorkflow::TRANSITIONS[$w->workflow_state] ?? [],
+            'sessions' => ['count' => $p->sessions()->where('status', '!=', 'cancelled')->count(), 'next' => $p->sessions()->where('status', '!=', 'cancelled')->where('ends_at', '>=', now())->orderBy('starts_at')->value('starts_at')],
             'decisions' => $w->decisions()->with('decider:id,name,name_ar')->limit(100)->get()->map(fn ($d) => ['kind' => $d->kind, 'decision' => $d->decision, 'reason' => $d->reason, 'data' => $d->data, 'by' => $d->decider?->displayName(), 'at' => $d->created_at]),
             'created_by' => $p->created_by, 'created_at' => $w->created_at, 'updated_at' => $w->updated_at,
         ];

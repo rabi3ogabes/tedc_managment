@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-15 — PLC Phase 4: scheduling and the calendar
+Step 5 of the workshop wizard: sessions on the programme engine, each with its time, delivery mode (in person with a centre room or a venue at the host school, remote with a protected link, hybrid with both) and trainers from the workshop's confirmed trainers; every plan checked against the training calendar, the training-day window, the room, the trainers' other sessions and the workshop's own sessions, with refusals explained and alternatives (slots and rooms) suggested but never applied by themselves, a trainer clash overridable only with a recorded reason; the programme dates stretch to hold the sessions; "scheduled" is reached when every session is complete and sends the invitations to the seated people and the trainers; afterwards any change or cancellation needs a reason, is recorded and announced. A calendar tab on مجتمعات التعلم المهنية shows the sessions in scope for a month with closed days and filters by school, region, trainer and mode. Report: `docs/plc/04-phase4-scheduling.md`.
+
 ### 2026-10-15 — Survey Studio v2, Gate 8: AI assistance
 Under the platform's AI policy (a new `surveys` feature on the AI settings page): summaries of open-text answers for surveys that opt in (themes with counts and verbatim quotes, a sentiment split, suggested actions), with only the answer texts sent, identifiers redacted and the respondents' names hidden on identified surveys, the prompt never stored, every call logged and the result kept with who asked and when; and question suggestions in the studio from a stated goal, returned in the engine's format for the author to pick and edit. Report: `docs/surveys/08-gate8-ai.md`, which also wraps up the programme and lists the decisions still open for the Ministry.
 

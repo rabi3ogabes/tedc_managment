@@ -3,7 +3,22 @@ export const plcAr = {
   nav: 'مجتمعات التعلم المهنية',
   title: 'مجتمعات التعلم المهنية',
   subtitle: 'من الاحتياج إلى الأثر: المجتمعات، الورش المشتركة والداخلية، المراجعة والاعتماد، ثم التنفيذ والتقييم.',
-  tabs: { overview: 'نظرة عامة', communities: 'المجتمعات', workshops: 'الورش', needs: 'سجل الاحتياجات', spaces: 'النقاشات' },
+  tabs: { overview: 'نظرة عامة', communities: 'المجتمعات', workshops: 'الورش', calendar: 'التقويم', needs: 'سجل الاحتياجات', spaces: 'النقاشات' },
+  schedule: {
+    subtitle: 'جلسات الورشة: الوقت والصيغة والمكان أو الرابط والمدربون.', add: 'إضافة جلسة', editSession: 'تعديل الجلسة', empty: 'لا جلسات بعد؛ أضف الجلسة الأولى.', saved: 'حُفظت الجلسة.', removed: 'أُزيلت الجلسة.', cancelled: 'ملغاة',
+    minutes: '{{n}} دقيقة', noVenue: 'بلا مكان بعد', noLink: 'بلا رابط بعد', link: 'رابط', protected: 'محمي برمز', noTrainer: 'بلا مدرب بعد', missing: { venue: 'ينقصها المكان', link: 'ينقصها الرابط', trainer: 'ينقصها المدرب' },
+    conflict: { closed_day: 'يوم مغلق للتدريب', room: 'القاعة محجوزة', trainer: 'المدرب {{trainer}} مشغول', trainees: '{{n}} متدرباً لديهم جلسة أخرى في الوقت نفسه' },
+    readiness: 'جاهزية الجدول', readinessHint: 'كل جلسة تحتاج إلى وقت ومكان أو رابط ومدرب.', sessionsN: '{{n}} جلسات', sessionN: 'الجلسة {{n}}', invitedNote: 'أُرسلت الدعوات؛ أي تغيير بعد الآن يحتاج إلى سبب ويُبلَّغ به الجميع.', scheduleNow: 'اعتماد الجدول وإرسال الدعوات', approveFirst: 'تُرسل الدعوات بعد اعتماد الورشة.',
+    confirmSchedule: 'يُثبّت الجدول وتُرسل الدعوات للمتدربين المقبولين والمدربين. متابعة؟', scheduled: 'جُدولت الورشة وأُرسل {{n}} إشعاراً.', conflicts: 'التعارضات', noConflicts: 'لا تعارضات.', program: 'مدة الورشة', datesNote: 'تمتد تواريخ الورشة تلقائياً لتغطي جلساتها.', sessions: 'الجلسات', planNow: 'خطّط الجلسات', next: 'الجلسة القادمة',
+    title: 'عنوان الجلسة', titlePlaceholder: 'اختياري؛ يُرقّم تلقائياً', date: 'التاريخ', time: 'الوقت', room: 'قاعة المركز', roomHint: 'يُفحص الحجز والسعة تلقائياً.', noRoom: 'بلا قاعة (مكان في المدرسة)', venue: 'المكان في المدرسة', venueHint: 'مثل: مختبر العلوم في المدرسة المستضيفة.',
+    linkUrl: 'رابط الجلسة', linkHint: 'لا يظهر إلا للمدعوين المقبولين.', passcode: 'رمز الدخول', platform: 'المنصة', trainers: 'مدربو الجلسة', noConfirmedTrainers: 'ثبّت المدربين في الخطوة السابقة أولاً.', changeReason: 'سبب التغيير', changeReasonHint: 'يُسجَّل في سجل القرارات ويصل للمدعوين.',
+    forceTrainer: 'تجاوز تعارض المدرب (بسبب مسجّل)', forceReason: 'سبب التجاوز', calendarReason: 'سبب الموافقة على يوم مغلق (لمن يملك صلاحية التقويم)', suggest: 'اقترح بدائل', alternatives: 'بدائل مقترحة', alternativesHint: 'تُطبَّق فقط عندما تختارها؛ لا شيء يتغير تلقائياً.', noSlots: 'لا مواعيد بديلة خلال ثلاثة أسابيع.',
+    removeTitle: 'إزالة الجلسة', removeDraft: 'تُحذف الجلسة من الخطة.', removeInvited: 'أُرسلت الدعوات: تُلغى الجلسة ويُبلَّغ الجميع بالسبب.', removeConfirm: 'تأكيد',
+  },
+  calendar: {
+    weekdays: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], allSchools: 'كل المدارس', allRegions: 'كل المناطق', allTrainers: 'كل المدربين', allModes: 'كل الصيغ', sessionsN: '{{n}} جلسة', closed: 'مغلق', kind: { weekend: 'عطلة', vacation: 'إجازة', exam: 'امتحانات', normal: 'مغلق' }, pickDay: 'اختر يوماً لعرض جلساته', nothing: 'لا جلسات في هذا اليوم.',
+  },
+
   phase: 'المرحلة الأولى: المجتمعات، الاحتياجات، إنشاء الورش ومسار الاعتماد. اختيار المدارس والمتدربين والمدربين والجدولة والحضور والتقييم تصل في المراحل التالية.',
   overview: {
     communities: 'مجتمعات نشطة', workshops: 'الورش', needs: 'احتياجات مسجّلة', unconverted: 'احتياجات لم تُعالج بعد', schools: 'مدارس مشاركة',
@@ -94,7 +109,22 @@ export const plcEn: typeof plcAr = {
   nav: 'Learning communities',
   title: 'Professional learning communities',
   subtitle: 'From need to impact: communities, shared and internal workshops, review and approval, then delivery and evaluation.',
-  tabs: { overview: 'Overview', communities: 'Communities', workshops: 'Workshops', needs: 'Needs register', spaces: 'Discussions' },
+  tabs: { overview: 'Overview', communities: 'Communities', workshops: 'Workshops', calendar: 'Calendar', needs: 'Needs register', spaces: 'Discussions' },
+  schedule: {
+    subtitle: 'The workshop sessions: time, mode, venue or link, and trainers.', add: 'Add a session', editSession: 'Edit session', empty: 'No sessions yet; add the first one.', saved: 'Session saved.', removed: 'Session removed.', cancelled: 'Cancelled',
+    minutes: '{{n}} min', noVenue: 'No venue yet', noLink: 'No link yet', link: 'Link', protected: 'passcode', noTrainer: 'No trainer yet', missing: { venue: 'venue missing', link: 'link missing', trainer: 'trainer missing' },
+    conflict: { closed_day: 'Closed training day', room: 'Room booked', trainer: 'Trainer {{trainer}} is busy', trainees: '{{n}} trainees have another session at the same time' },
+    readiness: 'Schedule readiness', readinessHint: 'Every session needs a time, a venue or a link, and a trainer.', sessionsN: '{{n}} sessions', sessionN: 'Session {{n}}', invitedNote: 'Invitations were sent; any change from now needs a reason and is announced to everyone.', scheduleNow: 'Confirm the schedule and send invitations', approveFirst: 'Invitations go out once the workshop is approved.',
+    confirmSchedule: 'The schedule is fixed and invitations go to the seated trainees and the trainers. Continue?', scheduled: 'Workshop scheduled; {{n}} notifications sent.', conflicts: 'Conflicts', noConflicts: 'No conflicts.', program: 'Workshop span', datesNote: 'The workshop dates stretch automatically to hold its sessions.', sessions: 'Sessions', planNow: 'Plan the sessions', next: 'Next session',
+    title: 'Session title', titlePlaceholder: 'Optional; numbered automatically', date: 'Date', time: 'Time', room: 'Centre room', roomHint: 'Booking and capacity are checked automatically.', noRoom: 'No room (a venue at the school)', venue: 'Venue at the school', venueHint: 'e.g. the science lab at the host school.',
+    linkUrl: 'Session link', linkHint: 'Shown only to seated invitees.', passcode: 'Passcode', platform: 'Platform', trainers: 'Session trainers', noConfirmedTrainers: 'Confirm the trainers in the previous step first.', changeReason: 'Reason for the change', changeReasonHint: 'Recorded in the decision log and sent to the invitees.',
+    forceTrainer: 'Override the trainer conflict (with a recorded reason)', forceReason: 'Override reason', calendarReason: 'Reason to approve a closed day (calendar approvers only)', suggest: 'Suggest alternatives', alternatives: 'Suggested alternatives', alternativesHint: 'Applied only when you pick one; nothing changes by itself.', noSlots: 'No alternative slots within three weeks.',
+    removeTitle: 'Remove the session', removeDraft: 'The session is deleted from the plan.', removeInvited: 'Invitations were sent: the session is cancelled and everyone is told why.', removeConfirm: 'Confirm',
+  },
+  calendar: {
+    weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], allSchools: 'All schools', allRegions: 'All regions', allTrainers: 'All trainers', allModes: 'All modes', sessionsN: '{{n}} sessions', closed: 'Closed', kind: { weekend: 'Weekend', vacation: 'Vacation', exam: 'Exams', normal: 'Closed' }, pickDay: 'Pick a day to see its sessions', nothing: 'No sessions on this day.',
+  },
+
   phase: 'Phase 1: communities, needs, workshop creation and the approval path. School, trainee and trainer selection, scheduling, attendance and evaluation arrive in the next phases.',
   overview: {
     communities: 'Active communities', workshops: 'Workshops', needs: 'Registered needs', unconverted: 'Needs not yet handled', schools: 'Schools involved',

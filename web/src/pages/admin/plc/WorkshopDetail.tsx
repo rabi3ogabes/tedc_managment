@@ -1,7 +1,7 @@
 import { AlertTriangle, Ban, Check, CheckCircle2, Pencil, Send, Undo2, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Badge, Button, Card, CardTitle, ErrorState, Field, Modal, PageHeader, Spinner } from '@/components/ui'
 import { useGet, useSend } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
@@ -74,6 +74,7 @@ export default function WorkshopDetail() {
               {w.organiser && <Item label={t('plc.detail.organiser')}>{w.organiser === 'centre' ? t('plc.detail.organiserCentre') : w.organiser}</Item>}
               {w.need && <Item label={t('plc.wizard.need')}>{w.need.title}{w.need.reference_no ? ` · ${w.need.reference_no}` : ''}</Item>}
               {w.community && <Item label={t('plc.tabs.communities')}>{w.community.title}</Item>}
+              <Item label={t('plc.schedule.sessions')}><Link to={`/admin/communities/workshops/${w.id}/schedule`} className="font-semibold text-navy-900 underline decoration-gold-400 hover:text-gold-700">{w.sessions?.count ? t('plc.schedule.sessionsN', { n: w.sessions.count }) : t('plc.schedule.planNow')}</Link>{w.sessions?.next && <span className="block text-xs text-slate-500">{t('plc.schedule.next')}: {fmtDate(w.sessions.next, i18n.language)}</span>}</Item>
               {w.domain && <Item label={t('plc.wizard.domain')}>{w.domain}</Item>}
               {w.target_audience && <Item label={t('plc.detail.audience')}>{w.target_audience}</Item>}
             </dl>

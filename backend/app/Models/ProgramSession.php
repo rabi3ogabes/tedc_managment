@@ -67,4 +67,10 @@ class ProgramSession extends Model
     {
         return $this->hasOne(TeamsMeeting::class, 'session_id');
     }
+
+    /** The trainers of a PLC workshop session (lead and co), beside the engine's single trainer_id. */
+    public function plcTrainers(): HasMany
+    {
+        return $this->hasMany(PlcSessionTrainer::class, 'program_session_id');
+    }
 }
