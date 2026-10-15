@@ -55,3 +55,6 @@ Docs
 ## 6. Exact next step
 
 Gate 8 — AI assistance: summaries and themes of open-text answers for surveys that opt in (anonymous or pseudonymised text only), through the configured model with logging, and question suggestions in the studio. Report in `docs/surveys/08-gate8-ai.md`.
+
+---
+Full suite after Gate 7 (`php artisan test --compact`, Windows): 1166 tests, 1095 passed, 15542 assertions. Besides the known Windows-only failures (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors), the run caught one real regression: `SystemEndpointsTest::test_cron_runs_the_scheduled_commands` expects the exact cron command list, which now includes `tedc:surveys-retention`; the expectation was updated and the suite passes (8 tests).
