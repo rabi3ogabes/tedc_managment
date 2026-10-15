@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-15 — Survey Studio v2, Gate 8: AI assistance
+Under the platform's AI policy (a new `surveys` feature on the AI settings page): summaries of open-text answers for surveys that opt in (themes with counts and verbatim quotes, a sentiment split, suggested actions), with only the answer texts sent, identifiers redacted and the respondents' names hidden on identified surveys, the prompt never stored, every call logged and the result kept with who asked and when; and question suggestions in the studio from a stated goal, returned in the engine's format for the author to pick and edit. Report: `docs/surveys/08-gate8-ai.md`, which also wraps up the programme and lists the decisions still open for the Ministry.
+
 ### 2026-10-15 — Survey Studio v2, Gate 7: privacy and operations
 A daily retention run (`tedc:surveys-retention`, also in the Vercel cron): expired drafts and unbound files after 30 days, invitations 90 days after close, the pseudonym key of confidential surveys 30 days after close, and the answers after each survey's retention period (36 months by default) with the summary, per-question statistics and needs ranking frozen on the survey; a legal hold per survey; a panel الخصوصية والحفظ with the policy, what is pending, due and upcoming surveys, a dry run and a run by hand. The person's rights: the "my data" download includes survey participations and identified answers; privacy handlers see a requester's survey data and can detach them from identified answers (answers stay anonymous; files, drafts and participations deleted). Every respondent form states how long answers are kept. DPIA note `docs/security/dpia-survey-studio.md`; runbook section in the operations handbook. Report: `docs/surveys/07-gate7-privacy-ops.md`.
 

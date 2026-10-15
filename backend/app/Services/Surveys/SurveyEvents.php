@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Request;
  */
 class SurveyEvents
 {
-    public const ADMIN = ['created', 'updated', 'submitted_for_review', 'approved', 'returned', 'published', 'closed', 'reopened', 'archived', 'reminded', 'exported', 'privacy_changed', 'duplicated', 'migrated', 'needs_generated', 'key_deleted', 'answers_purged', 'subject_erased'];
+    public const ADMIN = ['created', 'updated', 'submitted_for_review', 'approved', 'returned', 'published', 'closed', 'reopened', 'archived', 'reminded', 'exported', 'privacy_changed', 'duplicated', 'migrated', 'needs_generated', 'key_deleted', 'answers_purged', 'subject_erased', 'ai_summarised', 'ai_suggested'];
 
     public static function record(Survey $survey, string $event, array $data = [], ?User $actor = null): SurveyEvent
     {

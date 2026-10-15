@@ -1,11 +1,12 @@
 import clsx from 'clsx'
-import { AlignLeft, ArrowDown, ArrowUp, AtSign, Calendar, CheckSquare, ChevronDown, CircleDot, Clock, Copy, FileUp, GitBranch, Grid3x3, Hash, Heading, Info, ListOrdered, Phone, Save, Scissors, SlidersHorizontal, Star, ThumbsUp, Trash2, Type, Gauge, Rows3 } from 'lucide-react'
+import { AlignLeft, ArrowDown, Sparkles, ArrowUp, AtSign, Calendar, CheckSquare, ChevronDown, CircleDot, Clock, Copy, FileUp, GitBranch, Grid3x3, Hash, Heading, Info, ListOrdered, Phone, Save, Scissors, SlidersHorizontal, Star, ThumbsUp, Trash2, Type, Gauge, Rows3 } from 'lucide-react'
 import { useEffect, useRef, useState, type ClipboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import EngineForm from '@/components/surveys/EngineForm'
 import DistributionTab from './DistributionTab'
 import ResultsTab from './ResultsTab'
+import SuggestDialog from './SuggestDialog'
 import { Badge, Button, Card, CardTitle, ErrorState, Field, Modal, PageHeader, Spinner, StatCard, Tabs } from '@/components/ui'
 import { useGet, useSend } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
@@ -45,6 +46,7 @@ export default function Studio() {
   const [audience, setAudience] = useState<Record<string, unknown>>({})
   const [selected, setSelected] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
+  const [suggest, setSuggest] = useState(false)
   const [action, setAction] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const loaded = useRef<string | null>(null)
@@ -118,6 +120,7 @@ export default function Studio() {
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             <Card>
               <h3 className="mb-3 font-display text-sm font-bold text-navy-900">{t('ss.studio.palette')}</h3>
+              {editable && <Button className="mb-3 w-full" size="sm" variant="outline" icon={<Sparkles className="size-4" />} onClick={() => setSuggest(true)}>{t('ss.ai.suggestTitle')}</Button>}
               {GROUPS.map((g) => (
                 <div key={g.key} className="mb-3">
                   <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-400">{t(`ss.studio.${g.key}`)}</div>
@@ -159,6 +162,7 @@ export default function Studio() {
       {tab === 'distribute' && <DistributionTab surveyId={d.id} title={title} isOpen={d.is_open} canManage={can('surveys.manage')} />}
       {tab === 'versions' && <VersionsTab id={d.id} />}
 
+      <SuggestDialog open={suggest} onClose={() => setSuggest(false)} surveyId={d.id} onAdd={(qs) => update([...questions, ...qs])} />
       <Modal open={!!action} onClose={() => setAction(null)} title={action ? t(`ss.studio.actions.${action}`) : ''}>
         <Field label={t('ss.studio.note')}><textarea className="input min-h-20" value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} /></Field>
         <div className="mt-4 flex justify-end gap-2"><Button variant="outline" onClick={() => setAction(null)}>{t('common.cancel')}</Button><Button variant="gold" loading={act.isPending} disabled={action === 'return' && !note.trim()} onClick={() => action && run(action, { note })}>{t('ss.studio.confirm')}</Button></div>
@@ -358,6 +362,7 @@ function SettingsTab({ d, cat, meta, settings, editable, onMeta, onSettings }: {
         <div className="mt-4 grid gap-3">
           <Field label={t('ss.studio.settings.editPolicy')}><select className="input" value={settings.edit_policy ?? 'until_close'} disabled={!editable} onChange={(e) => s('edit_policy', e.target.value as Settings['edit_policy'])}><option value="until_close">{t('ss.studio.settings.untilClose')}</option><option value="never">{t('ss.studio.settings.never')}</option></select></Field>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={settings.requires_approval !== false} disabled={!editable} onChange={(e) => s('requires_approval', e.target.checked)} />{t('ss.studio.settings.requiresApproval')}</label>
+          <Field label={t('ss.studio.settings.aiOptIn')} hint={t('ss.studio.settings.aiOptInHint')}><label className="flex h-10 items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={!!settings.ai_opt_in} disabled={!editable} onChange={(e) => s('ai_opt_in', e.target.checked)} />{t('ss.studio.settings.aiOptInOn')}</label></Field>
           <Field label={t('ss.studio.settings.threshold')}><input type="number" min={2} max={50} className="input max-w-32" value={settings.segment_threshold ?? cat.defaults.segment_threshold} disabled={!editable} onChange={(e) => s('segment_threshold', Number(e.target.value))} /></Field>
           <Field label={t('ss.studio.settings.segmentFields')} hint={t('ss.studio.settings.segmentHint')}>
             <div className="flex flex-wrap gap-1.5">{cat.segment_fields.map((f) => { const on = (settings.segment_fields ?? []).includes(f); return <button key={f} type="button" disabled={!editable} onClick={() => s('segment_fields', on ? (settings.segment_fields ?? []).filter((x) => x !== f) : [...(settings.segment_fields ?? []), f])} className={clsx('rounded-full border px-2.5 py-1 text-xs', on ? 'border-navy-900 bg-navy-900 text-white' : 'border-slate-200 text-slate-600')}>{t(`ss.studio.settings.fields.${f}`)}</button> })}</div>

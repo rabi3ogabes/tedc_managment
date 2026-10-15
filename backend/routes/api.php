@@ -106,6 +106,7 @@ use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
 use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
 use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
+use App\Http\Controllers\Api\V1\Admin\SurveyAiController;
 use App\Http\Controllers\Api\V1\Admin\SurveyController;
 use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
 use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
@@ -1191,6 +1192,9 @@ Route::prefix('v1')->group(function () {
                     Route::post('{studioSurvey}/generate-needs', [SurveyResultsController::class, 'generateNeeds'])->middleware('permission:needs.manage');
                 });
                 Route::get('{studioSurvey}/export', [SurveyResultsController::class, 'export'])->middleware('permission:surveys.export');
+                Route::get('{studioSurvey}/ai', [SurveyAiController::class, 'status'])->middleware('permission:surveys.results|surveys.manage');
+                Route::post('{studioSurvey}/ai/summaries', [SurveyAiController::class, 'summarise'])->middleware(['permission:surveys.results', 'throttle:20,1']);
+                Route::post('{studioSurvey}/ai/suggestions', [SurveyAiController::class, 'suggest'])->middleware(['permission:surveys.manage', 'throttle:20,1']);
                 Route::middleware('permission:surveys.manage')->group(function () {
                     Route::post('/', 'store');
                     Route::post('audience/preview', 'audiencePreview');

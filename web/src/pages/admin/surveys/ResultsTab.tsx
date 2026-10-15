@@ -9,6 +9,7 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import type { Question } from '@/lib/surveyEngine'
 import { toast } from '@/lib/toast'
+import AiPanel from './AiPanel'
 
 type Option = { id: string; label: string; count?: number; percent?: number; score?: number }
 type Stat = { id: string; type: string; title: string; answered: number; options?: Option[]; average?: number | null; nps?: number | null; distribution?: { label: string; value: number }[]; rows?: { id: string; label: string; average: number | null; answered: number }[]; scale?: { min: number; max: number }; samples?: string[]; files?: number }
@@ -83,6 +84,7 @@ export default function ResultsTab({ id, kind, questions, status }: { id: string
       ) : sub === 'summary' ? (
         <>
           {kind === 'needs' && <NeedsPanel id={id} needs={r.needs} canGenerate={can('needs.manage')} onDone={() => res.refetch()} />}
+          <AiPanel id={id} canRun={can('surveys.results')} />
           {!r.questions.length ? <Card><Empty text={String(t('ss.results.noAnswers'))} icon={<BarChart3 className="size-6" />} /></Card> : (
             <div className="grid gap-4 xl:grid-cols-2">{r.questions.map((q, i) => <QuestionCard key={q.id} q={q} n={i + 1} def={byId[q.id]} />)}</div>
           )}

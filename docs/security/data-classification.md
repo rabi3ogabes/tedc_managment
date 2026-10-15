@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 785 columns
-- Internal: 2253 columns
+- Public: 787 columns
+- Internal: 2262 columns
 - Confidential: 530 columns
 - Restricted: 27 columns
 
@@ -4249,6 +4249,22 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `last_synced_at` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
+
+### `survey_ai_insights`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `survey_id` | Internal | — |
+| `version_id` | Internal | — |
+| `question_id` | Internal | — |
+| `kind` | Internal | — |
+| `payload` | Internal | — |
+| `answers_count` | Internal | — |
+| `model` | Internal | — |
+| `redactions` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
 
 ### `survey_distributions`
 

@@ -12,7 +12,7 @@ class AiPolicy
 {
     public const KEY = 'ai_policy';
 
-    public const FEATURES = ['recommendations', 'feedback', 'adaptive', 'forecasts', 'assistant'];
+    public const FEATURES = ['recommendations', 'feedback', 'adaptive', 'forecasts', 'assistant', 'surveys'];
 
     /** @return array<string, mixed> */
     public static function defaults(): array

@@ -24,6 +24,7 @@ export const ssAr = {
     note: 'ملاحظة', reasonRequired: 'السبب مطلوب.', confirm: 'تأكيد',
     settings: {
       privacy: 'الخصوصية', editPolicy: 'تعديل الإجابة', untilClose: 'مسموح حتى الإغلاق (مع سجل)', never: 'غير مسموح بعد الإرسال', requiresApproval: 'تحتاج اعتماداً قبل النشر', threshold: 'الحد الأدنى لعرض شريحة', segmentFields: 'بيانات المجيب المحفوظة مع الإجابة', segmentHint: 'للاستبانة المعرَّفة تُحفظ كلها افتراضياً؛ للسرية والمجهولة لا يُحفظ إلا ما تختاره هنا.',
+      aiOptIn: 'تحليل الذكاء الاصطناعي', aiOptInOn: 'السماح بتحليل الإجابات النصية', aiOptInHint: 'اختياري لكل استبانة. تُرسل نصوص الإجابات فقط بعد إخفاء المعرّفات، إلى النموذج الذي تسمح به سياسة الذكاء الاصطناعي.',
       legalHold: 'تجميد قانوني', legalHoldOn: 'لا تُحذف الإجابات تلقائياً', legalHoldHint: 'يوقف حذف الإجابات وفق سياسة الحفظ حتى يُرفع.', purged: 'حُذفت الإجابات', keyDeleted: 'حُذف مفتاح الأسماء المستعارة؛ لا يمكن ربط الإجابات بأحد.', retireAt: 'تُحذف الإجابات تلقائياً في {{d}} وتبقى الإحصاءات.',
       welcome: 'رسالة الترحيب', thankYou: 'رسالة الشكر', onePerPage: 'سؤال واحد في كل صفحة', progress: 'إظهار شريط التقدم', accent: 'اللون', notify: 'إشعار المستهدفين عند النشر', window: 'نافذة الإجابة', opensAt: 'تفتح في', closesAt: 'تُغلق في', retention: 'الاحتفاظ بالإجابات (يوم)', description: 'الوصف', kind: 'نوع الاستبانة',
       frozen: 'وضع الخصوصية مجمّد لأن إجابات وصلت.',
@@ -86,6 +87,12 @@ export const ssAr = {
     dryResult: 'التجربة: {{drafts}} مسودة/ملف، {{invitations}} دعوة، {{keys}} مفتاحاً، {{answers}} استبانة ستُحذف إجاباتها.', runResult: 'نُفّذ: {{drafts}} مسودة/ملف، {{invitations}} دعوة، {{keys}} مفتاحاً، {{answers}} استبانة حُذفت إجاباتها.',
     scheduleNote: 'يعمل تلقائياً كل يوم 03:30 (وعلى Vercel مرة يومياً 05:00 ضمن مهمة cron الموحدة).',
   },
+  ai: {
+    title: 'تحليل الإجابات النصية بالذكاء الاصطناعي', hint: 'تُرسل نصوص الإجابات فقط إلى النموذج المسموح به في إعدادات الذكاء الاصطناعي، بعد إخفاء الأسماء والبريد والهواتف؛ لا تُحفظ المطالبة، وتُسجّل كل عملية.', optOut: 'لم تُفعّل هذه الاستبانة التحليل بالذكاء الاصطناعي؛ فعّله من الإعدادات إن أردته.',
+    unavailable: 'لا نموذج مسموح له بتحليل هذه النصوص الآن (الميزة متوقفة، أو لا نموذج مُسند، أو النموذج خارج قطر وسياسة الإقامة مفعّلة).', summariseAll: 'تحليل كل الإجابات النصية', allText: 'كل الأسئلة النصية', tooFew: 'يلزم {{n}} إجابات نصية على الأقل.', done: 'اكتمل التحليل.', none: 'لا تحليلات بعد.',
+    answersN: '{{n}} إجابة', redactedN: '{{n}} معرّفاً أُخفي', sentiment: 'الانطباع العام', positive: 'إيجابي', neutral: 'محايد', negative: 'سلبي', recommendations: 'توصيات مقترحة', disclaimer: 'تحليل آلي مساعد يُراجعه الإنسان؛ الاقتباسات حرفية من الإجابات.',
+    suggestTitle: 'اقتراح أسئلة', suggestHint: 'صف هدف الاستبانة ويقترح النموذج أسئلة بصيغة المحرك؛ تختار ما تضيفه وتعدّله كالمعتاد. لا تُرسل أي بيانات شخصية.', goal: 'هدف الاستبانة', goalPlaceholder: 'مثال: قياس رضا المعلمين عن ورشة التقويم من أجل التعلم وتحديد ما ينقصها', suggest: 'اقترح', addPicked: 'إضافة {{n}}', added: 'أُضيفت {{n}} أسئلة إلى الاستبانة.',
+  },
   portal: { title: 'استبانات موجهة إليك', open: 'افتح', answered: 'أجبت', canEdit: 'يمكنك التعديل حتى الإغلاق', closes: 'تُغلق', none: 'لا توجد استبانات موجهة إليك الآن.' },
 }
 
@@ -114,6 +121,7 @@ export const ssEn: typeof ssAr = {
     note: 'Note', reasonRequired: 'A reason is required.', confirm: 'Confirm',
     settings: {
       privacy: 'Privacy', editPolicy: 'Editing answers', untilClose: 'Allowed until close (with history)', never: 'Not allowed after sending', requiresApproval: 'Needs approval before publishing', threshold: 'Smallest group shown', segmentFields: 'Respondent attributes kept with the answer', segmentHint: 'Identified surveys keep all by default; confidential and anonymous keep only what you tick here.',
+      aiOptIn: 'AI analysis', aiOptInOn: 'Allow AI analysis of text answers', aiOptInHint: 'Opt-in per survey. Only the answer texts are sent, identifiers hidden, to the model the AI policy allows.',
       legalHold: 'Legal hold', legalHoldOn: 'Never purge the answers automatically', legalHoldHint: 'Stops the retention policy from removing the answers until lifted.', purged: 'Answers purged', keyDeleted: 'The pseudonym key was deleted; answers can no longer be linked to anyone.', retireAt: 'Answers are purged automatically on {{d}}; the statistics stay.',
       welcome: 'Welcome message', thankYou: 'Thank-you message', onePerPage: 'One question per page', progress: 'Show progress bar', accent: 'Colour', notify: 'Notify the audience on publish', window: 'Answer window', opensAt: 'Opens at', closesAt: 'Closes at', retention: 'Keep answers for (days)', description: 'Description', kind: 'Survey kind',
       frozen: 'The privacy mode is frozen because answers were received.',
@@ -175,6 +183,12 @@ export const ssEn: typeof ssAr = {
     purgedN: '{{n}} surveys purged', keysDeletedN: '{{n}} keys deleted', dryRun: 'Dry run', runNow: 'Run now', confirm: 'Runs immediately and permanently removes what is due (aggregates stay). Continue?',
     dryResult: 'Dry run: {{drafts}} drafts/files, {{invitations}} invitations, {{keys}} keys, {{answers}} surveys would be purged.', runResult: 'Done: {{drafts}} drafts/files, {{invitations}} invitations, {{keys}} keys, {{answers}} surveys purged.',
     scheduleNote: 'Runs by itself daily at 03:30 (on Vercel once a day at 05:00 inside the shared cron job).',
+  },
+  ai: {
+    title: 'AI analysis of open-text answers', hint: 'Only the answer texts go to the model allowed in the AI settings, with names, e-mails and phones hidden; the prompt is never stored and every call is logged.', optOut: 'This survey has not opted in to AI analysis; enable it in the settings if you want it.',
+    unavailable: 'No model may analyse these texts right now (the feature is off, no model is assigned, or the model is outside Qatar with residency enforced).', summariseAll: 'Analyse all text answers', allText: 'All text questions', tooFew: 'At least {{n}} text answers are needed.', done: 'Analysis complete.', none: 'No analyses yet.',
+    answersN: '{{n}} answers', redactedN: '{{n}} identifiers hidden', sentiment: 'Overall sentiment', positive: 'Positive', neutral: 'Neutral', negative: 'Negative', recommendations: 'Suggested actions', disclaimer: 'An assistive automated analysis reviewed by people; quotes are verbatim.',
+    suggestTitle: 'Suggest questions', suggestHint: 'Describe the goal and the model proposes questions in the engine\'s format; pick what to add and edit as usual. Nothing personal is sent.', goal: 'Survey goal', goalPlaceholder: 'e.g. measure teachers\' satisfaction with the assessment-for-learning workshop and find what it lacks', suggest: 'Suggest', addPicked: 'Add {{n}}', added: '{{n}} questions added to the survey.',
   },
   portal: { title: 'Surveys for you', open: 'Open', answered: 'Answered', canEdit: 'You may edit until it closes', closes: 'Closes', none: 'No surveys are addressed to you right now.' },
 }
