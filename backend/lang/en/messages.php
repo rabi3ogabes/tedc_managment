@@ -77,6 +77,8 @@ return [
         'reason_required' => 'A reason is required.', 'not_your_step' => 'The current review step (:step) is not yours to take.', 'outside_scope' => 'This record belongs to a school outside your scope.',
         'school_required' => 'Choose the school; your account is not linked to one.', 'locked' => 'The workshop cannot be edited while it is :state.', 'source_frozen' => 'The source and its reference are frozen after approval; an exception with a reason is required.',
         'edited_after_submit' => 'Edited after submission; the review starts again.', 'bad_source' => 'Unknown source.', 'need_declined' => 'A declined need cannot become a workshop.',
+        'host_required' => 'Choose the host school first.', 'internal_host_fixed' => 'An internal workshop is hosted by its own school.', 'internal_scope' => 'An internal workshop stays inside its school; widening it to other schools needs the centre.',
+        'school_unknown' => 'Unknown or inactive school.', 'gender_mismatch' => 'The policy keeps boys\' and girls\' schools apart: :schools.', 'gender_exception' => 'These schools do not match the host\'s category; an exception with a reason is required: :schools.', 'host_remove' => 'The host school cannot be removed; change the host instead.',
     ],
     'surveys' => [
         'no_questions' => 'Add at least one question.', 'too_many' => 'A survey can hold at most :max questions.', 'unknown_type' => 'Unknown question type.',

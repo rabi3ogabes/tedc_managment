@@ -203,7 +203,7 @@ class WorkshopService
             'expected_participants' => $w->expected_participants, 'prerequisites' => $w->prerequisites, 'outcomes' => $w->outcomes, 'target_audience' => $w->target_audience, 'domain' => $w->domain,
             'community' => $w->community ? ['id' => $w->community->id, 'code' => $w->community->code, 'title' => $w->community->title()] : null,
             'need' => $w->need ? ['id' => $w->need->id, 'title' => $w->need->title, 'reference_no' => $w->need->reference_no, 'source' => $w->need->source] : null,
-            'coordinator' => $w->coordinator ? ['id' => $w->coordinator->id, 'name' => $w->coordinator->displayName()] : null,
+            'coordinator' => $w->coordinator?->displayName(), 'coordinator_user' => $w->coordinator ? ['id' => $w->coordinator->id, 'name' => $w->coordinator->displayName()] : null,
             'host_school' => $w->hostSchool ? ['id' => $w->hostSchool->id, 'name' => $w->hostSchool->name_ar, 'name_en' => $w->hostSchool->name_en, 'gender' => $w->hostSchool->gender, 'region' => $w->hostSchool->region] : null,
             'schools' => $w->schools->map(fn ($s) => ['id' => $s->school_id, 'name' => $s->school?->name_ar, 'name_en' => $s->school?->name_en, 'gender' => $s->school?->gender, 'region' => $s->school?->region, 'role' => $s->role, 'status' => $s->status, 'seats' => $s->seats, 'reasons' => $s->suggestion_reasons, 'distance_km' => $s->distance_km])->values(),
             'state' => $w->workflow_state, 'state_changed_at' => $w->state_changed_at, 'decision_note' => $w->decision_note,

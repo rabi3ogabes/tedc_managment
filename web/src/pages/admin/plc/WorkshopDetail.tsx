@@ -71,7 +71,7 @@ export default function WorkshopDetail() {
               <Item label={t('plc.workshops.dates')}>{w.start_date ? `${fmtDate(w.start_date, i18n.language)}${w.end_date && w.end_date !== w.start_date ? ` – ${fmtDate(w.end_date, i18n.language)}` : ''}` : t('plc.workshops.noDate')}</Item>
               <Item label={t('plc.workshops.coordinator')}>{w.coordinator ?? '—'}</Item>
               <Item label={t('plc.wizard.expected')}>{w.expected_participants ?? '—'}{w.total_hours ? ` · ${w.total_hours} ${en ? 'h' : 'ساعة'}` : ''}</Item>
-              {w.organiser && <Item label={t('plc.detail.organiser')}>{w.organiser}</Item>}
+              {w.organiser && <Item label={t('plc.detail.organiser')}>{w.organiser === 'centre' ? t('plc.detail.organiserCentre') : w.organiser}</Item>}
               {w.need && <Item label={t('plc.wizard.need')}>{w.need.title}{w.need.reference_no ? ` · ${w.need.reference_no}` : ''}</Item>}
               {w.community && <Item label={t('plc.tabs.communities')}>{w.community.title}</Item>}
               {w.domain && <Item label={t('plc.wizard.domain')}>{w.domain}</Item>}
@@ -83,7 +83,7 @@ export default function WorkshopDetail() {
             {w.prerequisites && <div className="mt-4"><h4 className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">{t('plc.detail.prerequisites')}</h4><p className="text-sm text-slate-700">{w.prerequisites}</p></div>}
           </Card>
           <Card>
-            <CardTitle subtitle={t('plc.detail.schoolsNext')}>{t('plc.detail.schools')}</CardTitle>
+            <CardTitle subtitle={t('plc.detail.schoolsNext')} action={<Button size="sm" variant="outline" to={`/admin/communities/workshops/${w.id}/schools`}>{t('plc.detail.editSchools')}</Button>}>{t('plc.detail.schools')}</CardTitle>
             <ul className="divide-y divide-slate-100 text-sm">
               {w.schools.map((s) => <li key={s.id} className="flex items-center justify-between py-2"><span>{en && s.name_en ? s.name_en : s.name}</span><Badge color={s.role === 'host' ? 'gold' : 'gray'}>{t(`plc.detail.${s.role === 'host' ? 'host' : 'participant'}`)}</Badge></li>)}
             </ul>
@@ -97,7 +97,7 @@ export default function WorkshopDetail() {
                     <span className="absolute -start-[21px] top-1.5 size-2.5 rounded-full bg-gold-400 ring-4 ring-white" />
                     <div className="flex flex-wrap items-center gap-2">
                       <b className="text-navy-900">{t(`plc.detail.kinds.${d.kind}`, { defaultValue: d.kind })}</b>
-                      <Badge color={(STATE_TONE as Record<string, 'gray'>)[d.decision] ?? 'gray'}>{t(`plc.state.${d.decision}`, { defaultValue: t(`plc.step.${d.decision}`, { defaultValue: d.decision }) })}</Badge>
+                      <Badge color={(STATE_TONE as Record<string, 'gray'>)[d.decision] ?? 'gray'}>{(STATE_TONE as Record<string, string>)[d.decision] ? t(`plc.state.${d.decision}`) : t(`plc.detail.decisionLabels.${d.decision}`, { defaultValue: d.decision })}</Badge>
                       <span className="text-xs text-slate-400">{d.by ? `${t('plc.detail.by')} ${d.by} · ` : ''}{new Date(d.at).toLocaleString(en ? 'en-GB' : 'ar-QA')}</span>
                     </div>
                     {d.reason && <p className="mt-0.5 text-slate-600">{d.reason}</p>}

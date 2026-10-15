@@ -74,6 +74,7 @@ use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityCon
 use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopSchoolController as PlcWorkshopSchoolController;
 use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
@@ -1086,6 +1087,9 @@ Route::prefix('v1')->group(function () {
                     Route::get('workshops', [PlcWorkshopController::class, 'index']);
                     Route::get('workshops/catalog', [PlcWorkshopController::class, 'catalog']);
                     Route::get('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'show']);
+                    Route::get('workshops/{plcWorkshop}/schools', [PlcWorkshopSchoolController::class, 'index']);
+                    Route::get('workshops/{plcWorkshop}/schools/search', [PlcWorkshopSchoolController::class, 'search']);
+                    Route::get('workshops/{plcWorkshop}/schools/suggest', [PlcWorkshopSchoolController::class, 'suggest']);
                 });
                 Route::middleware('permission:plc.community.manage')->group(function () {
                     Route::post('communities', [PlcCommunityController::class, 'store']);
@@ -1100,6 +1104,11 @@ Route::prefix('v1')->group(function () {
                     Route::put('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'update']);
                     Route::post('workshops/{plcWorkshop}/submit', [PlcWorkshopController::class, 'submit']);
                     Route::post('workshops/{plcWorkshop}/cancel', [PlcWorkshopController::class, 'cancel']);
+                    Route::put('workshops/{plcWorkshop}/schools/host', [PlcWorkshopSchoolController::class, 'host']);
+                    Route::post('workshops/{plcWorkshop}/schools', [PlcWorkshopSchoolController::class, 'store']);
+                    Route::put('workshops/{plcWorkshop}/schools/{school}/seats', [PlcWorkshopSchoolController::class, 'seats'])->whereUuid('school');
+                    Route::post('workshops/{plcWorkshop}/schools/{school}/exclude', [PlcWorkshopSchoolController::class, 'exclude'])->whereUuid('school');
+                    Route::delete('workshops/{plcWorkshop}/schools/{school}', [PlcWorkshopSchoolController::class, 'destroy'])->whereUuid('school');
                 });
                 Route::middleware('permission:plc.approve|plc.approve.school')->group(function () {
                     Route::post('workshops/{plcWorkshop}/approve', [PlcWorkshopController::class, 'approve']);

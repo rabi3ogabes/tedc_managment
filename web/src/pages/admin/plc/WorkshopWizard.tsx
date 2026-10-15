@@ -7,6 +7,7 @@ import { useGet, useSend } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
 import { SchoolPicker } from './PlcHub'
+import { Stepper } from './SchoolsStep'
 import { type Catalog, type Need, type PlcSource, type SchoolRef, type WorkshopDetail } from './plcApi'
 
 type Form = {
@@ -65,7 +66,7 @@ export default function WorkshopWizard() {
     try {
       const { data } = editing ? await update.mutateAsync(body) : await create.mutateAsync(body)
       toast(String(t(editing ? 'plc.wizard.saved' : 'plc.wizard.created')))
-      navigate(`/admin/communities/workshops/${data.id}`)
+      navigate(editing ? `/admin/communities/workshops/${data.id}` : `/admin/communities/workshops/${data.id}/schools`)
     } catch (e) { toast(errorMessage(e), 'error') }
   }
 
@@ -78,14 +79,16 @@ export default function WorkshopWizard() {
   return (
     <>
       <PageHeader title={t(editing ? 'plc.wizard.edit' : 'plc.wizard.title')} subtitle={t('plc.subtitle')} actions={<Button variant="outline" to="/admin/communities?tab=workshops">{t('plc.detail.back')}</Button>} />
-      <ol className="mb-6 flex flex-wrap gap-2">
-        {steps.map((s, i) => (
-          <li key={s} className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${i === 0 ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
-            <span className={`grid size-5 place-items-center rounded-full text-[11px] ${i === 0 ? 'bg-gold-400 text-navy-950' : 'bg-white text-slate-500'}`}>{i === 0 ? <Check className="size-3" /> : i + 1}</span>
-            {s}{i > 0 && <span className="inline-flex items-center gap-1 text-[10px] font-normal opacity-80"><Lock className="size-3" />{t('plc.wizard.locked')}</span>}
-          </li>
-        ))}
-      </ol>
+      {editing ? <Stepper current={0} id={id!} /> : (
+        <ol className="mb-6 flex flex-wrap gap-2">
+          {steps.map((s, i) => (
+            <li key={s} className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${i === 0 ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
+              <span className={`grid size-5 place-items-center rounded-full text-[11px] ${i === 0 ? 'bg-gold-400 text-navy-950' : 'bg-white text-slate-500'}`}>{i === 0 ? <Check className="size-3" /> : i + 1}</span>
+              {s}{i > 0 && <span className="inline-flex items-center gap-1 text-[10px] font-normal opacity-80"><Lock className="size-3" />{t('plc.wizard.locked')}</span>}
+            </li>
+          ))}
+        </ol>
+      )}
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <Card>
@@ -156,7 +159,7 @@ export default function WorkshopWizard() {
             <p className="mt-3 text-xs text-slate-500">{t('plc.phase')}</p>
           </Card>
           <div className="flex flex-col gap-2">
-            <Button variant="gold" size="lg" loading={create.isPending || update.isPending} onClick={submit} icon={<ArrowRight className="size-4 rtl:rotate-180" />}>{t(editing ? 'plc.wizard.save' : 'plc.wizard.saveDraft')}</Button>
+            <Button variant="gold" size="lg" loading={create.isPending || update.isPending} onClick={submit} icon={<ArrowRight className="size-4 rtl:rotate-180" />}>{t(editing ? 'plc.wizard.save' : 'plc.wizard.next')}</Button>
             <Button variant="outline" to={editing ? `/admin/communities/workshops/${id}` : '/admin/communities?tab=workshops'}>{t('common.cancel')}</Button>
           </div>
           <p className="text-xs text-slate-400">{i18n.language === 'en' ? 'Saving keeps the workshop as a draft; submit it for review from its page.' : 'الحفظ يبقي الورشة مسودة؛ قدّمها للمراجعة من صفحتها.'}</p>
