@@ -87,7 +87,7 @@ class PlcHubController extends Controller
             'gender_policy' => ['sometimes', 'in:strict,allow_with_exception,open'], 'max_distance_km' => ['sometimes', 'integer', 'min:1', 'max:500'],
             'require_same_region' => ['sometimes', 'boolean'], 'allow_unapproved_execution' => ['sometimes', 'boolean'], 'geofence_default' => ['sometimes', 'boolean'],
             'late_minutes' => ['sometimes', 'integer', 'min:0', 'max:180'], 'early_leave_minutes' => ['sometimes', 'integer', 'min:0', 'max:180'],
-            'attachment_retention_months' => ['sometimes', 'integer', 'min:1', 'max:240'], 'approval_paths' => ['sometimes', 'array'], 'evaluation_rules' => ['sometimes', 'array'],
+            'attachment_retention_months' => ['sometimes', 'integer', 'min:1', 'max:240'], 'approval_paths' => ['sometimes', 'array'], 'evaluation_rules' => ['sometimes', 'array'], 'ai_feedback_opt_in' => ['sometimes', 'boolean'],
         ]);
 
         return response()->json(['data' => $this->settings->update($data, $this->user())]);

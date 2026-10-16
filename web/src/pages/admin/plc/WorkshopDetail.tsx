@@ -6,6 +6,7 @@ import { Badge, Button, Card, CardTitle, ErrorState, Field, Modal, PageHeader, S
 import { useGet, useSend } from '@/hooks/useApi'
 import { errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
+import AssistantPanel from './AssistantPanel'
 import { STATE_TONE, fmtDate, type WorkshopDetail as Detail } from './plcApi'
 
 type Action = 'submit' | 'approve' | 'request-changes' | 'reject' | 'cancel'
@@ -16,6 +17,7 @@ export default function WorkshopDetail() {
   const { id } = useParams()
   const res = useGet<{ data: Detail }>(`/admin/plc/workshops/${id}`, undefined, { staleTime: 0 })
   const [action, setAction] = useState<Action | null>(null)
+  const [kind, setKind] = useState<string | null>(null)
   const [text, setText] = useState('')
   const send = useSend<{ action: Action; body: Record<string, unknown> }, { data: Detail }>('post', (b) => `/admin/plc/workshops/${id}/${b.action}`, ['/admin/plc'])
   const en = i18n.language === 'en'
@@ -96,7 +98,7 @@ export default function WorkshopDetail() {
             <CardTitle>{t('plc.detail.decisions')}</CardTitle>
             {!w.decisions.length ? <p className="text-sm text-slate-500">{t('plc.detail.noDecisions')}</p> : (
               <ol className="relative space-y-3 border-s border-slate-200 ps-4 text-sm">
-                {w.decisions.map((d, i) => (
+                {w.decisions.filter((d) => !kind || d.kind === kind).map((d, i) => (
                   <li key={i} className="relative">
                     <span className="absolute -start-[21px] top-1.5 size-2.5 rounded-full bg-gold-400 ring-4 ring-white" />
                     <div className="flex flex-wrap items-center gap-2">
@@ -112,6 +114,7 @@ export default function WorkshopDetail() {
           </Card>
         </div>
         <aside className="space-y-4">
+          <AssistantPanel id={w.id} kind={kind} onKind={setKind} />
           <Card>
             <h3 className="mb-3 font-display text-sm font-bold text-navy-900">{t('plc.detail.path')}</h3>
             {!w.approval_path?.length ? <p className="text-sm text-slate-500">{t(`plc.state.${w.state}`)}</p> : (

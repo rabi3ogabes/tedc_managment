@@ -32,7 +32,7 @@ export default function PlcHub() {
       {tab === 'workshops' && <WorkshopsTab catalog={catalog.data?.data} />}
       {tab === 'calendar' && <PlcCalendar />}
       {tab === 'needs' && <NeedsTab catalog={catalog.data?.data} />}
-      {tab === 'reports' && <PlcReports states={catalog.data?.data.states} sources={catalog.data?.data.sources} initial={{ school_id: params.get('school_id') ?? '', community_id: params.get('community_id') ?? '' }} />}
+      {tab === 'reports' && <PlcReports states={catalog.data?.data.states} sources={catalog.data?.data.sources} initial={{ school_id: params.get('school_id') ?? '', community_id: params.get('community_id') ?? '', need_id: params.get('need_id') ?? '' }} />}
       {tab === 'spaces' && <Communities />}
     </>
   )
@@ -225,7 +225,7 @@ function NeedsTab({ catalog }: { catalog?: Catalog }) {
                   <td className="px-3 py-2 font-mono text-xs">{n.reference_no ?? '—'}</td>
                   <td className="px-3 py-2">{n.received_at ? fmtDate(n.received_at, i18n.language) : '—'}</td>
                   <td className="px-3 py-2"><Badge color={tone[n.review_status]}>{t(`plc.needs.status.${n.review_status}`)}</Badge></td>
-                  <td className="px-3 py-2 tabular-nums">{n.workshops}</td>
+                  <td className="px-3 py-2 tabular-nums">{n.workshops}{n.workshops > 0 && <Link to={`/admin/communities?tab=reports&need_id=${n.id}`} className="ms-2 text-xs text-gold-700 underline">{t('plc.assistant.needReports')}</Link>}</td>
                   <td className="px-3 py-2 text-end">{canWrite && n.review_status !== 'declined' && <Button size="sm" variant="outline" onClick={() => setConverting(n)}>{t('plc.needs.convert')}</Button>}</td>
                 </tr>
               ))}

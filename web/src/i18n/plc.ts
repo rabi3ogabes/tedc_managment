@@ -49,11 +49,19 @@ export const plcAr = {
     bySchool: 'حسب المدرسة', byCommunity: 'حسب المجتمع', footer: 'الأرقام محسوبة لحظياً من قاعدة البيانات ضمن نطاقك، وهي نفسها في النظرة العامة والتصدير.',
     kpis: 'الحضور والتقييم', openReports: 'التقارير',
   },
+  assistant: {
+    title: 'مساعد التخطيط', next: 'الخطوة التالية', advisory: 'كل ما هنا اقتراح للمراجعة؛ القرار لصاحب الصلاحية.', chain: 'من الاحتياج إلى الأثر', chainNeed: 'الاحتياج', chainSeated: 'مقاعد مشغولة', chainCompleted: 'أكملوا · الحضور', chainEvaluation: 'تقييم الورشة', chainImpact: 'نماذج الأثر المكتملة',
+    whySchools: 'لماذا هذه المدارس؟', clashes: '{{n}} ترشيحاً بتعارض في المواعيد؛ راجعها قبل الاعتماد.', decisionsByKind: 'سجل القرارات حسب النوع',
+    items: { source: 'المصدر', basics: 'الأساسيات', host: 'المدرسة المستضيفة', schools: 'المدارس المشاركة', trainees: 'المتدربون', trainers: 'المدربون', sessions: 'الجلسات', approval: 'الاعتماد', scheduled: 'الدعوات', attendance: 'الحضور', evaluation: 'التقييم', closed: 'الإغلاق' },
+    themes: 'ملامح التغذية الراجعة', themesHint: 'تحليل بالذكاء الاصطناعي للإجابات النصية في نماذج الورشة، بعد إخفاء أسماء المجيبين. اقتراحات للمركز لا قرارات.', generate: 'استخلاص الملامح', regenerate: 'إعادة الاستخلاص', optOut: 'لم تُفعّل سياسة المجتمعات تحليل التغذية الراجعة بالذكاء الاصطناعي.', enableOptIn: 'تفعيل التحليل (سياسة المجتمعات)', optInSaved: 'فُعّل تحليل التغذية الراجعة.',
+    unavailable: 'لا نموذج ذكاء اصطناعي مسموح له بقراءة هذا النص الآن (الإقامة أو الإعدادات).', tooFew: 'يلزم {{n}} إجابات نصية على الأقل؛ المتوفر {{have}}.', answersN: '{{n}} إجابة نصية', sentiment: 'الانطباع', positive: 'إيجابي', neutral: 'محايد', negative: 'سلبي', recommendations: 'اقتراحات للمركز', generatedBy: 'استُخلصت بواسطة {{by}} · النموذج {{model}} · أُخفي {{n}} معرّفاً',
+    register: 'سجل القرارات والاستثناءات', registerHint: 'آخر القرارات عبر الورش في نطاقك؛ الاستثناءات موسومة.', noDecisions: 'لا قرارات في النطاق.', needReports: 'أثر الاحتياج',
+  },
   calendar: {
     weekdays: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'], allSchools: 'كل المدارس', allRegions: 'كل المناطق', allTrainers: 'كل المدربين', allModes: 'كل الصيغ', sessionsN: '{{n}} جلسة', closed: 'مغلق', kind: { weekend: 'عطلة', vacation: 'إجازة', exam: 'امتحانات', normal: 'مغلق' }, pickDay: 'اختر يوماً لعرض جلساته', nothing: 'لا جلسات في هذا اليوم.',
   },
 
-  phase: 'المراحل من الأولى إلى السابعة متاحة: المجتمعات والاحتياجات وإنشاء الورش والاعتماد، اختيار المدارس والمتدربين والمدربين، الجدولة والتقويم، الحضور، التقييم وقياس الأثر، والتقارير.',
+  phase: 'المراحل الثماني متاحة: المجتمعات والاحتياجات وإنشاء الورش والاعتماد، اختيار المدارس والمتدربين والمدربين، الجدولة والتقويم، الحضور، التقييم وقياس الأثر، والتقارير.',
   overview: {
     communities: 'مجتمعات نشطة', workshops: 'الورش', needs: 'احتياجات مسجّلة', unconverted: 'احتياجات لم تُعالج بعد', schools: 'مدارس مشاركة',
     byState: 'الورش حسب الحالة', bySource: 'الورش حسب المصدر', byScenario: 'حسب السيناريو', myReviews: 'بانتظار مراجعتك', noReviews: 'لا توجد ورش بانتظار مراجعتك.',
@@ -88,8 +96,8 @@ export const plcAr = {
     actions: { edit: 'تعديل', submit: 'تقديم للمراجعة', approve: 'اعتماد هذه الخطوة', changes: 'طلب تعديل', reject: 'رفض', cancel: 'إلغاء الورشة' },
     reason: 'السبب', reasonHint: 'يُسجَّل السبب في سجل القرارات ويصل إلى مقدم الطلب.', note: 'ملاحظة (اختياري)', confirm: 'تأكيد', submitted: 'قُدِّمت الورشة للمراجعة.', approved: 'اعتُمدت الخطوة.',
     changesSent: 'أُرسل طلب التعديل.', rejected: 'رُفضت الورشة.', cancelled: 'أُلغيت الورشة.', missing: 'أكمل: ', missingFields: { source: 'المصدر', host_school_id: 'المدرسة المستضيفة', start_date: 'تاريخ البداية' },
-    kinds: { created: 'إنشاء', transition: 'تغيير الحالة', approval_step: 'خطوة اعتماد', exception: 'استثناء', school_choice: 'اختيار المدارس', nomination: 'ترشيح', trainer: 'مدرب' },
-    decisionLabels: { host_set: 'تعيين المستضيف', participants_added: 'إضافة مدارس مشاركة', participant_removed: 'إزالة مدرسة', excluded: 'استبعاد مدرسة', scope_widened: 'توسيع نطاق الورشة', gender_policy: 'استثناء من سياسة الجنس', source_changed: 'تغيير المصدر', shared: 'ورشة مشتركة', internal: 'ورشة داخلية', school: 'اعتماد المدرسة', centre: 'اعتماد المركز' , nominated: 'ترشيح', waitlisted: 'قائمة الانتظار', declined: 'اعتذار', withdrawn: 'انسحاب', promoted: 'ترقية من الانتظار', materialised: 'تسجيل المعتمدين', clash_overridden: 'تجاوز تعارض', seats_exceeded: 'تجاوز المقاعد', proposed: 'اقتراح مدرب', confirmed: 'تأكيد التكليف', replaced: 'استبدال مدرب', trainer_busy_overridden: 'تجاوز انشغال المدرب' },
+    kinds: { created: 'إنشاء', transition: 'تغيير الحالة', approval_step: 'خطوة اعتماد', exception: 'استثناء', school_choice: 'اختيار المدارس', nomination: 'ترشيح', trainer: 'مدرب', session: 'جلسة', schedule: 'الجدول', attendance: 'الحضور', evaluation: 'التقييم' },
+    decisionLabels: { host_set: 'تعيين المستضيف', participants_added: 'إضافة مدارس مشاركة', participant_removed: 'إزالة مدرسة', excluded: 'استبعاد مدرسة', scope_widened: 'توسيع نطاق الورشة', gender_policy: 'استثناء من سياسة الجنس', source_changed: 'تغيير المصدر', shared: 'ورشة مشتركة', internal: 'ورشة داخلية', school: 'اعتماد المدرسة', centre: 'اعتماد المركز' , nominated: 'ترشيح', waitlisted: 'قائمة الانتظار', declined: 'اعتذار', withdrawn: 'انسحاب', promoted: 'ترقية من الانتظار', materialised: 'تسجيل المعتمدين', clash_overridden: 'تجاوز تعارض', seats_exceeded: 'تجاوز المقاعد', proposed: 'اقتراح مدرب', confirmed: 'تأكيد التكليف', replaced: 'استبدال مدرب', trainer_busy_overridden: 'تجاوز انشغال المدرب', planned: 'تخطيط جلسة', changed: 'تغيير جلسة', removed: 'إزالة جلسة', invited: 'إرسال الدعوات', locked: 'قفل السجل', locked_automatically: 'قفل السجل تلقائياً', unlocked: 'فتح السجل', corrected: 'تصحيح حضور', code_revoked: 'إبطال الرمز', sent: 'إرسال تقييمات', reminded: 'تذكير', evaluation_waived: 'إعفاء من التقييم باستثناء', complete: 'اكتمال التقييم' },
     organiserCentre: 'مركز التدريب والتطوير',
   },
   needs: {
@@ -189,11 +197,19 @@ export const plcEn: typeof plcAr = {
     bySchool: 'By school', byCommunity: 'By community', footer: 'Figures are counted live from the database inside your scope; they are the same on the overview and in the exports.',
     kpis: 'Attendance and evaluation', openReports: 'Reports',
   },
+  assistant: {
+    title: 'Planning assistant', next: 'Next step', advisory: 'Everything here is a suggestion to review; the decision stays with the person entitled to it.', chain: 'From need to impact', chainNeed: 'Need', chainSeated: 'Seats taken', chainCompleted: 'Completed · attendance', chainEvaluation: 'Workshop evaluation', chainImpact: 'Impact forms completed',
+    whySchools: 'Why these schools?', clashes: '{{n}} nominations clash with other dates; review them before approving.', decisionsByKind: 'Decision log by kind',
+    items: { source: 'Source', basics: 'Basics', host: 'Host school', schools: 'Participating schools', trainees: 'Trainees', trainers: 'Trainers', sessions: 'Sessions', approval: 'Approval', scheduled: 'Invitations', attendance: 'Attendance', evaluation: 'Evaluation', closed: 'Close' },
+    themes: 'Feedback themes', themesHint: 'AI analysis of the open-text answers in the workshop forms, after the respondents\' names are hidden. Suggestions for the centre, not decisions.', generate: 'Extract themes', regenerate: 'Extract again', optOut: 'The PLC policy has not opted in to AI feedback analysis.', enableOptIn: 'Enable the analysis (PLC policy)', optInSaved: 'Feedback analysis enabled.',
+    unavailable: 'No AI model is allowed to read this text right now (residency or settings).', tooFew: 'At least {{n}} text answers are needed; {{have}} available.', answersN: '{{n}} text answers', sentiment: 'Sentiment', positive: 'Positive', neutral: 'Neutral', negative: 'Negative', recommendations: 'Suggestions for the centre', generatedBy: 'Extracted by {{by}} · model {{model}} · {{n}} identifiers hidden',
+    register: 'Decisions and exceptions register', registerHint: 'The latest decisions across the workshops in your scope; exceptions are flagged.', noDecisions: 'No decisions in scope.', needReports: 'Need impact',
+  },
   calendar: {
     weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], allSchools: 'All schools', allRegions: 'All regions', allTrainers: 'All trainers', allModes: 'All modes', sessionsN: '{{n}} sessions', closed: 'Closed', kind: { weekend: 'Weekend', vacation: 'Vacation', exam: 'Exams', normal: 'Closed' }, pickDay: 'Pick a day to see its sessions', nothing: 'No sessions on this day.',
   },
 
-  phase: 'Phases 1 to 7 are available: communities, needs, workshop creation and approval, school, trainee and trainer selection, scheduling and the calendar, attendance, evaluation and impact, and reports.',
+  phase: 'All eight phases are available: communities, needs, workshop creation and approval, school, trainee and trainer selection, scheduling and the calendar, attendance, evaluation and impact, reports, the planning assistant and feedback themes.',
   overview: {
     communities: 'Active communities', workshops: 'Workshops', needs: 'Registered needs', unconverted: 'Needs not yet handled', schools: 'Schools involved',
     byState: 'Workshops by state', bySource: 'Workshops by source', byScenario: 'By scenario', myReviews: 'Awaiting your review', noReviews: 'Nothing awaits your review.',
@@ -228,8 +244,8 @@ export const plcEn: typeof plcAr = {
     actions: { edit: 'Edit', submit: 'Submit for review', approve: 'Approve this step', changes: 'Request changes', reject: 'Reject', cancel: 'Cancel workshop' },
     reason: 'Reason', reasonHint: 'The reason is recorded in the decision log and reaches the requester.', note: 'Note (optional)', confirm: 'Confirm', submitted: 'Submitted for review.', approved: 'Step approved.',
     changesSent: 'Changes requested.', rejected: 'Workshop rejected.', cancelled: 'Workshop cancelled.', missing: 'Complete: ', missingFields: { source: 'source', host_school_id: 'host school', start_date: 'start date' },
-    kinds: { created: 'Created', transition: 'State change', approval_step: 'Approval step', exception: 'Exception', school_choice: 'School choice', nomination: 'Nomination', trainer: 'Trainer' },
-    decisionLabels: { host_set: 'Host set', participants_added: 'Participating schools added', participant_removed: 'School removed', excluded: 'School excluded', scope_widened: 'Scope widened', gender_policy: 'Gender-policy exception', source_changed: 'Source changed', shared: 'Shared workshop', internal: 'Internal workshop', school: 'School approval', centre: 'Centre approval' , nominated: 'Nominated', waitlisted: 'Waiting list', declined: 'Declined', withdrawn: 'Withdrawn', promoted: 'Promoted from the waiting list', materialised: 'Approved people registered', clash_overridden: 'Clash overridden', seats_exceeded: 'Seats exceeded', proposed: 'Trainer proposed', confirmed: 'Assignment confirmed', replaced: 'Trainer replaced', trainer_busy_overridden: 'Busy trainer overridden' },
+    kinds: { created: 'Created', transition: 'State change', approval_step: 'Approval step', exception: 'Exception', school_choice: 'School choice', nomination: 'Nomination', trainer: 'Trainer', session: 'Session', schedule: 'Schedule', attendance: 'Attendance', evaluation: 'Evaluation' },
+    decisionLabels: { host_set: 'Host set', participants_added: 'Participating schools added', participant_removed: 'School removed', excluded: 'School excluded', scope_widened: 'Scope widened', gender_policy: 'Gender-policy exception', source_changed: 'Source changed', shared: 'Shared workshop', internal: 'Internal workshop', school: 'School approval', centre: 'Centre approval' , nominated: 'Nominated', waitlisted: 'Waiting list', declined: 'Declined', withdrawn: 'Withdrawn', promoted: 'Promoted from the waiting list', materialised: 'Approved people registered', clash_overridden: 'Clash overridden', seats_exceeded: 'Seats exceeded', proposed: 'Trainer proposed', confirmed: 'Assignment confirmed', replaced: 'Trainer replaced', trainer_busy_overridden: 'Busy trainer overridden', planned: 'Session planned', changed: 'Session changed', removed: 'Session removed', invited: 'Invitations sent', locked: 'Record locked', locked_automatically: 'Record locked by the clock', unlocked: 'Record unlocked', corrected: 'Attendance corrected', code_revoked: 'Code revoked', sent: 'Evaluations sent', reminded: 'Reminder', evaluation_waived: 'Evaluation waived by exception', complete: 'Evaluation complete' },
     organiserCentre: 'Training & Development Centre',
   },
   needs: {

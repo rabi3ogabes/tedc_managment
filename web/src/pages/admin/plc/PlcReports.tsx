@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card, CardTitle, Empty, ErrorState, Progress, Spinner, StatCard } from '@/components/ui'
+import { fmt } from '@/lib/format'
 import { useGet } from '@/hooks/useApi'
 import { downloadFile } from '@/lib/api'
 import { STATE_TONE, type PlcSource, type PlcState, type WorkshopSummary } from './plcApi'
@@ -23,8 +24,9 @@ export type Report = {
   overdue_close: WorkshopSummary[]; top_attendance: { id: string; title_ar?: string | null; title_en?: string | null; people: number; rate: number }[]
 }
 type Options = { schools: { id: string; name: string; name_en?: string | null; region?: string | null }[]; communities: { id: string; title: string }[]; regions: string[] }
-type Filters = { from: string; to: string; source: string; scenario: string; state: string; mode: string; school_id: string; community_id: string; region: string }
-const EMPTY: Filters = { from: '', to: '', source: '', scenario: '', state: '', mode: '', school_id: '', community_id: '', region: '' }
+type Filters = { from: string; to: string; source: string; scenario: string; state: string; mode: string; school_id: string; community_id: string; region: string; need_id: string }
+const EMPTY: Filters = { from: '', to: '', source: '', scenario: '', state: '', mode: '', school_id: '', community_id: '', region: '', need_id: '' }
+type Decision = { id: string; workshop_id: string; workshop: { title_ar?: string | null; title_en?: string | null }; kind: string; decision: string; reason?: string | null; by?: string | null; at?: string | null }
 const pct = (v: number | null | undefined) => (v == null ? '—' : `${v}%`)
 
 /** The reports tab: the same figures as the dashboard, filtered by period, source, scenario, state, mode, school, community and region, with the school and community breakdowns and the exports. */
@@ -35,6 +37,8 @@ export default function PlcReports({ states, sources, initial }: { states?: PlcS
   const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v !== ''))
   const res = useGet<{ data: Report }>('/admin/plc/reports', params, { staleTime: 30_000 })
   const opts = useGet<{ data: Options }>('/admin/plc/reports/options', undefined, { staleTime: 300_000 })
+  const [decisionKind, setDecisionKind] = useState<string>('')
+  const decisions = useGet<{ data: { by_kind: Record<string, number>; rows: Decision[] } }>('/admin/plc/reports/decisions', { ...params, kind: decisionKind || undefined, limit: 50 }, { staleTime: 30_000 })
   const set = (k: keyof Filters, v: string) => setF((p) => ({ ...p, [k]: v }))
   const active = Object.keys(params).length
   const qs = new URLSearchParams({ ...params, lang: en ? 'en' : 'ar' })
@@ -151,6 +155,26 @@ export default function PlcReports({ states, sources, initial }: { states?: PlcS
                 </tbody></table></div>
             </Card>
           )}
+          <Card padded={false}>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+              <div><div className="font-bold text-navy-900">{t('plc.assistant.register')}</div><div className="text-xs text-slate-500">{t('plc.assistant.registerHint')}</div></div>
+              <div className="flex flex-wrap gap-1">
+                <button type="button" onClick={() => setDecisionKind('')} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${!decisionKind ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-600'}`}>{t('common.all')}</button>
+                {Object.entries(decisions.data?.data.by_kind ?? {}).map(([k, n]) => <button key={k} type="button" onClick={() => setDecisionKind(k)} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${decisionKind === k ? 'bg-navy-900 text-white' : k === 'exception' ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>{t(`plc.detail.kinds.${k}`, { defaultValue: k })} {n}</button>)}
+              </div>
+            </div>
+            {!decisions.data?.data.rows.length ? <Empty text={String(t('plc.assistant.noDecisions'))} /> : (
+              <ul className="divide-y divide-slate-100 text-xs">{decisions.data.data.rows.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-start gap-2 px-4 py-2">
+                  <Badge color={r.kind === 'exception' ? 'amber' : 'gray'}>{t(`plc.detail.kinds.${r.kind}`, { defaultValue: r.kind })}</Badge>
+                  <span className="font-semibold text-navy-900">{(STATE_TONE as Record<string, string>)[r.decision] ? t(`plc.state.${r.decision}`) : t(`plc.detail.decisionLabels.${r.decision}`, { defaultValue: r.decision })}</span>
+                  <Link to={`/admin/communities/workshops/${r.workshop_id}`} className="underline decoration-gold-300">{en && r.workshop.title_en ? r.workshop.title_en : r.workshop.title_ar}</Link>
+                  {r.reason && <span className="text-slate-600">— {r.reason}</span>}
+                  <span className="ms-auto text-slate-400">{r.by ? `${r.by} · ` : ''}{fmt.date(r.at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                </li>))}
+              </ul>
+            )}
+          </Card>
           <p className="text-xs text-slate-400">{t('plc.reports.footer')}</p>
         </>
       )}

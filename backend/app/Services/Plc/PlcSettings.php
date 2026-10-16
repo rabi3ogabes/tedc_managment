@@ -37,6 +37,7 @@ class PlcSettings
             'attachment_retention_months' => 36,
             'rased_integration' => false, // there is no electronic integration; needs are entered by hand with a reference
             'evaluation_rules' => self::evaluationDefaults(),
+            'ai_feedback_opt_in' => false, // feedback themes from open answers through the AI guard; off until the Ministry opts in
         ];
     }
 
@@ -92,6 +93,7 @@ class PlcSettings
         $next['early_leave_minutes'] = max(0, min(180, (int) $next['early_leave_minutes']));
         $next['attachment_retention_months'] = max(1, min(240, (int) $next['attachment_retention_months']));
         $next['evaluation_rules'] = self::cleanEvaluationRules((array) ($next['evaluation_rules'] ?? []));
+        $next['ai_feedback_opt_in'] = (bool) ($next['ai_feedback_opt_in'] ?? false);
         $paths = [];
         foreach (['internal', 'shared'] as $scenario) {
             $steps = [];

@@ -74,6 +74,7 @@ use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityCon
 use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
 use App\Http\Controllers\Api\V1\Admin\Plc\PlcReportController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAssistantController as PlcWorkshopAssistantController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAttendanceController as PlcWorkshopAttendanceController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
 use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopEvaluationController as PlcWorkshopEvaluationController;
@@ -1126,6 +1127,7 @@ Route::prefix('v1')->group(function () {
                     Route::get('workshops/{plcWorkshop}/trainers/suggest', [PlcWorkshopPeopleController::class, 'suggestTrainers']);
                     Route::get('calendar', [PlcWorkshopScheduleController::class, 'calendar']);
                     Route::get('workshops/{plcWorkshop}/sessions', [PlcWorkshopScheduleController::class, 'index']);
+                    Route::get('workshops/{plcWorkshop}/assistant', [PlcWorkshopAssistantController::class, 'show']);
                 });
                 Route::middleware('permission:plc.nominate|plc.manage')->group(function () {
                     Route::post('workshops/{plcWorkshop}/nominations', [PlcWorkshopPeopleController::class, 'nominate']);
@@ -1152,6 +1154,7 @@ Route::prefix('v1')->group(function () {
                     Route::get('reports', [PlcReportController::class, 'show']);
                     Route::get('reports/options', [PlcReportController::class, 'options']);
                     Route::get('reports/export', [PlcReportController::class, 'export']);
+                    Route::get('reports/decisions', [PlcReportController::class, 'decisions']);
                 });
                 Route::middleware('permission:plc.evaluations.manage|plc.manage|plc.reports')->group(function () {
                     Route::get('workshops/{plcWorkshop}/evaluation', [PlcWorkshopEvaluationController::class, 'show']);
@@ -1161,6 +1164,7 @@ Route::prefix('v1')->group(function () {
                     Route::post('workshops/{plcWorkshop}/evaluation/send', [PlcWorkshopEvaluationController::class, 'send']);
                     Route::post('workshops/{plcWorkshop}/evaluation/remind', [PlcWorkshopEvaluationController::class, 'remind']);
                     Route::post('workshops/{plcWorkshop}/evaluation/close', [PlcWorkshopEvaluationController::class, 'close']);
+                    Route::post('workshops/{plcWorkshop}/assistant/themes', [PlcWorkshopAssistantController::class, 'themes']);
                 });
                 Route::middleware('permission:plc.community.manage')->group(function () {
                     Route::post('communities', [PlcCommunityController::class, 'store']);

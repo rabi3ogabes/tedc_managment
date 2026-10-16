@@ -25,7 +25,7 @@ use Illuminate\Support\Collection;
  */
 class PlcReports
 {
-    public const FILTERS = ['from', 'to', 'source', 'scenario', 'state', 'mode', 'school_id', 'community_id', 'region'];
+    public const FILTERS = ['from', 'to', 'source', 'scenario', 'state', 'mode', 'school_id', 'community_id', 'region', 'need_id'];
 
     /** Workshops that happened or are happening: their attendance and evaluations count. */
     public const HELD = ['in_progress', 'completed', 'awaiting_evaluation', 'closed', 'archived'];
@@ -55,6 +55,9 @@ class PlcReports
         }
         if (! empty($f['community_id'])) {
             $q->where('community_id', $f['community_id']);
+        }
+        if (! empty($f['need_id'])) {
+            $q->where('need_id', $f['need_id']);
         }
         if (! empty($f['school_id'])) {
             $q->where(fn ($w) => $w->where('host_school_id', $f['school_id'])->orWhereHas('schools', fn ($s) => $s->where('school_id', $f['school_id'])->where('status', '!=', 'excluded')));
@@ -193,6 +196,21 @@ class PlcReports
     public function export(User $user, array $f, string $format, string $locale, array $labels = []): string
     {
         return $this->exporter->render($this->document($this->build($user, $f), $locale, $labels), $format, $locale);
+    }
+
+    /** The decision log across the workshops in scope: exceptions, transitions, attendance corrections, evaluation sendings … @return array{rows: list<array>, by_kind: array<string, int>} */
+    public function decisions(User $user, array $f = []): array
+    {
+        $ids = $this->query($user, array_intersect_key($f, array_flip(self::FILTERS)))->toBase()->pluck('plc_workshops.program_id');
+        $q = PlcDecision::with(['decider:id,name,name_ar'])->where('subject_type', PlcWorkshop::class)->whereIn('subject_id', $ids)
+            ->when(! empty($f['kind']), fn ($b) => $b->where('kind', $f['kind']))->when(! empty($f['decision']), fn ($b) => $b->where('decision', $f['decision']))
+            ->when(! empty($f['decided_from']), fn ($b) => $b->whereDate('created_at', '>=', $f['decided_from']))->when(! empty($f['decided_to']), fn ($b) => $b->whereDate('created_at', '<=', $f['decided_to']));
+        $byKind = (clone $q)->toBase()->selectRaw('kind, count(*) as c')->groupBy('kind')->pluck('c', 'kind')->all();
+        $rows = $q->orderByDesc('created_at')->limit((int) ($f['limit'] ?? 100))->get();
+        $titles = PlcWorkshop::with('program:id,title_ar,title_en')->whereIn('program_id', $rows->pluck('subject_id')->unique())->get()->keyBy('program_id');
+
+        return ['by_kind' => $byKind, 'rows' => $rows->map(fn (PlcDecision $d) => ['id' => $d->id, 'workshop_id' => $d->subject_id, 'workshop' => ['title_ar' => $titles[$d->subject_id]?->program?->title_ar, 'title_en' => $titles[$d->subject_id]?->program?->title_en],
+            'kind' => $d->kind, 'decision' => $d->decision, 'reason' => $d->reason, 'data' => $d->data, 'by' => $d->decider?->displayName(), 'at' => $d->created_at?->toIso8601String()])->values()->all()];
     }
 
     /** The filter options inside the person's scope. */

@@ -24,6 +24,14 @@ class PlcReportController extends Controller
         return response()->json(['data' => $this->reports->build($this->user(), $f)]);
     }
 
+    /** The decision log across the scope, filtered by kind, decision and date, on top of the report filters. */
+    public function decisions(Request $request): JsonResponse
+    {
+        $f = $this->filters($request, ['kind' => ['nullable', 'string', 'max:32'], 'decision' => ['nullable', 'string', 'max:48'], 'decided_from' => ['nullable', 'date'], 'decided_to' => ['nullable', 'date'], 'limit' => ['nullable', 'integer', 'min:1', 'max:500']]);
+
+        return response()->json(['data' => $this->reports->decisions($this->user(), $f)]);
+    }
+
     public function options(): JsonResponse
     {
         return response()->json(['data' => $this->reports->options($this->user())]);
@@ -44,7 +52,7 @@ class PlcReportController extends Controller
     {
         return $request->validate([
             'from' => ['nullable', 'date'], 'to' => ['nullable', 'date', 'after_or_equal:from'], 'source' => ['nullable', Rule::in(PlcWorkshop::SOURCES)], 'scenario' => ['nullable', Rule::in(PlcWorkshop::SCENARIOS)],
-            'state' => ['nullable', Rule::in(WorkshopWorkflow::STATES)], 'mode' => ['nullable', Rule::in(['in_person', 'online', 'hybrid'])], 'school_id' => ['nullable', 'uuid'], 'community_id' => ['nullable', 'uuid'], 'region' => ['nullable', 'string', 'max:120'],
+            'state' => ['nullable', Rule::in(WorkshopWorkflow::STATES)], 'mode' => ['nullable', Rule::in(['in_person', 'online', 'hybrid'])], 'school_id' => ['nullable', 'uuid'], 'community_id' => ['nullable', 'uuid'], 'region' => ['nullable', 'string', 'max:120'], 'need_id' => ['nullable', 'uuid'],
         ] + $extra);
     }
 

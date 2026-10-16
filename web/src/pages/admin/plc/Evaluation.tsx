@@ -1,4 +1,4 @@
-import { AlertTriangle, BellRing, CheckCircle2, ClipboardCheck, Download, Lock, Send, ShieldAlert, Sparkles, UserRound } from 'lucide-react'
+import { AlertTriangle, BellRing, CheckCircle2, ClipboardCheck, Download, Lock, Send, ShieldAlert, Sparkles, UserRound, WandSparkles } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
@@ -8,6 +8,9 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import { STATE_TONE, type PlcState } from './plcApi'
+import type { Assistant } from './AssistantPanel'
+
+type Themes = { summary: string; themes: { title: string; count: number; quotes: string[] }[]; sentiment: { positive: number; neutral: number; negative: number }; recommendations: string[]; answers_count: number; model?: string | null; redactions: number; generated_at: string; generated_by?: string | null; advisory: boolean }
 
 type Instrument = 'workshop' | 'trainer' | 'session' | 'community'
 type Status = 'off' | 'not_applicable' | 'waiting' | 'due' | 'sent' | 'complete'
@@ -39,6 +42,9 @@ export default function PlcEvaluation() {
   const [reason, setReason] = useState('')
   const [rules, setRules] = useState<Rules | null>(null)
   const [filter, setFilter] = useState<'all' | Instrument>('all')
+  const assistant = useGet<{ data: Assistant }>(`/admin/plc/workshops/${id}/assistant`, undefined, { staleTime: 15_000 })
+  const [themes, setThemes] = useState<Themes | null>(null)
+  const [themesBusy, setThemesBusy] = useState(false)
   if (res.isLoading && !res.data) return <Spinner />
   if (res.error || !res.data) return <ErrorState error={res.error} onRetry={() => res.refetch()} home={`/admin/communities/workshops/${id}`} />
   const d = res.data.data
@@ -152,6 +158,9 @@ export default function PlcEvaluation() {
         </div>
 
         <div className="space-y-4">
+          <ThemesCard id={id!} status={assistant.data?.data.themes} canSettings={d.can.settings} result={themes ?? (assistant.data?.data.themes.result as Themes | null)} busy={themesBusy}
+            onGenerate={async (fresh) => { setThemesBusy(true); try { const r = await api.post<{ data: Themes }>(`/admin/plc/workshops/${id}/assistant/themes`, { fresh, lang: en ? 'en' : 'ar' }); setThemes(r.data.data) } catch (e) { toast(errorMessage(e), 'error') } finally { setThemesBusy(false) } }}
+            onOptIn={async () => { try { await api.put('/admin/plc/settings', { ai_feedback_opt_in: true }); toast(String(t('plc.assistant.optInSaved'))); await assistant.refetch() } catch (e) { toast(errorMessage(e), 'error') } }} />
           <Card>
             <CardTitle subtitle={tx(d.impact.reason)}>{t('plc.evaluation.impact')}</CardTitle>
             {d.impact.applies ? (
@@ -202,6 +211,34 @@ export default function PlcEvaluation() {
         <div className="mt-4 flex justify-end gap-2"><Button variant="outline" onClick={() => setClosing(null)}>{t('common.cancel')}</Button><Button variant="gold" loading={busy} disabled={closing === 'exception' && !reason.trim()} onClick={async () => { if (await act('close', { reason: reason || undefined, exception: closing === 'exception' }, () => String(t('plc.evaluation.closed')))) setClosing(null) }}>{t('plc.detail.confirm')}</Button></div>
       </Modal>
     </>
+  )
+}
+
+function ThemesCard({ status, canSettings, result, busy, onGenerate, onOptIn }: { id: string; status?: Assistant['themes']; canSettings: boolean; result: Themes | null; busy: boolean; onGenerate: (fresh: boolean) => void; onOptIn: () => void }) {
+  const { t } = useTranslation()
+  if (!status) return null
+  const total = result ? Math.max(1, result.sentiment.positive + result.sentiment.neutral + result.sentiment.negative) : 1
+  return (
+    <Card>
+      <CardTitle subtitle={t('plc.assistant.themesHint')} action={status.can_generate && <Button size="sm" variant={result ? 'outline' : 'gold'} icon={<WandSparkles className="size-3.5" />} loading={busy} onClick={() => onGenerate(!!result)}>{result ? t('plc.assistant.regenerate') : t('plc.assistant.generate')}</Button>}>{t('plc.assistant.themes')}</CardTitle>
+      {!status.opt_in ? (
+        <div className="text-sm text-slate-600"><p>{t('plc.assistant.optOut')}</p>{canSettings && <Button size="sm" variant="outline" className="mt-2" onClick={onOptIn}>{t('plc.assistant.enableOptIn')}</Button>}</div>
+      ) : !status.available ? <p className="text-sm text-amber-700">{t('plc.assistant.unavailable')}</p>
+        : status.answers < status.min_answers ? <p className="text-sm text-slate-500">{t('plc.assistant.tooFew', { n: status.min_answers, have: status.answers })}</p>
+          : !result ? <p className="text-sm text-slate-500">{t('plc.assistant.answersN', { n: status.answers })}</p> : (
+            <div className="space-y-3 text-sm">
+              <p className="text-slate-700">{result.summary}</p>
+              <div>
+                <div className="mb-1 text-xs font-semibold text-navy-900">{t('plc.assistant.sentiment')}</div>
+                <div className="flex h-2 overflow-hidden rounded-full bg-slate-100"><div className="bg-emerald-500" style={{ width: `${(result.sentiment.positive / total) * 100}%` }} /><div className="bg-slate-300" style={{ width: `${(result.sentiment.neutral / total) * 100}%` }} /><div className="bg-red-400" style={{ width: `${(result.sentiment.negative / total) * 100}%` }} /></div>
+                <div className="mt-1 flex gap-3 text-[11px] text-slate-500"><span>{t('plc.assistant.positive')} {result.sentiment.positive}</span><span>{t('plc.assistant.neutral')} {result.sentiment.neutral}</span><span>{t('plc.assistant.negative')} {result.sentiment.negative}</span></div>
+              </div>
+              <ul className="space-y-2">{result.themes.map((th, i) => <li key={i}><div className="flex items-center justify-between gap-2"><span className="font-semibold text-navy-900">{th.title}</span><Badge color="gray">{th.count}</Badge></div>{th.quotes.length > 0 && <ul className="mt-0.5 space-y-0.5 text-xs text-slate-500">{th.quotes.map((q, j) => <li key={j}>« {q} »</li>)}</ul>}</li>)}</ul>
+              {result.recommendations.length > 0 && <div><div className="mb-1 text-xs font-semibold text-navy-900">{t('plc.assistant.recommendations')}</div><ul className="list-disc space-y-0.5 ps-5 text-xs text-slate-700">{result.recommendations.map((r, i) => <li key={i}>{r}</li>)}</ul></div>}
+              <p className="text-[11px] text-slate-400">{t('plc.assistant.generatedBy', { by: result.generated_by ?? '—', model: result.model ?? '—', n: result.redactions })} · {t('plc.assistant.advisory')}</p>
+            </div>
+          )}
+    </Card>
   )
 }
 
