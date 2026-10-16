@@ -53,3 +53,6 @@ The eight phases of the PLC design are built, tested and reported (`docs/plc/01`
 - The evaluation rules (which instruments are mandatory, the closing response rate, the impact sources) — defaults from the design table.
 - Whether a workshop below the minimum attendance should still get impact follow-ups (today only those who met it are completed).
 - The راصد integration stays a manual entry with a reference until an importer exists.
+
+---
+Full suite after Phase 8 (`php artisan test --compact`, Windows, 2026-10-16): 1174 tests, 1103 passed, 15951 assertions. Besides the known Windows-only failures (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors in SamlSso/LtiTool/PushNotifications/Lti/SupabaseConnection/IdentitySecurity), the run caught one date-dependent test: `PlcScheduleTest` chose its third session day by an offset that, after skipping a weekend, landed on the same date as its seeded closed day; the test now counts from the closed day itself and the five PLC suites pass together (6 tests, 379 assertions).

@@ -97,7 +97,11 @@ class PlcScheduleTest extends TestCase
         $sid2 = $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/sessions", array_replace($s2, ['training_room_id' => null, 'location_text' => 'مختبر المدرسة', 'force' => true, 'force_reason' => 'الجلسة الأخرى مسجلة ولا تحتاج حضوره']))->assertCreated()->json('data.id');
         $this->assertTrue(PlcDecision::where('subject_id', $id)->where('decision', 'trainer_double_booking_overridden')->exists());
         $this->assertSame(2, PlcSessionTrainer::where('program_session_id', $sid2)->count());
-        $d3 = $this->day(16);
+        // Two training days after the closed one: offsets that skip a weekend can land on the same date, so count from the closed day itself.
+        $d3 = $closed->copy()->addDays(2);
+        while (in_array($d3->dayOfWeek, [5, 6], true)) {
+            $d3->addDay();
+        }
         $sid3 = $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/sessions", ['starts_at' => $d3->toIso8601String(), 'ends_at' => $d3->copy()->addHours(2)->toIso8601String(), 'mode' => 'online', 'trainer_ids' => [$co->id]])->assertCreated()->json('data.id');
         $o = $this->asUser($officer)->getJson("/api/v1/admin/plc/workshops/$id/sessions")->assertOk()->json('data');
         $this->assertFalse($o['readiness']['complete']);
