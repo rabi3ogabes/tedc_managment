@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { Fingerprint, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Fingerprint, Languages, Mic, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Card, CardTitle, Field, PageHeader, Spinner, SaveDock } from '@/components/ui'
@@ -10,6 +10,7 @@ import { api, errorMessage } from '@/lib/api'
 import { toDateInput, toDateTimeInput } from '@/lib/format'
 import type { Program } from '@/lib/types'
 import { useProgramTypes } from './plans/programTypes'
+import VoiceComposer, { type ParsedRequest } from './program/VoiceComposer'
 
 type Lookups = {
   categories: { id: string; name_ar: string; name_en: string; program_type?: string | null }[]
@@ -29,6 +30,7 @@ const empty = {
   requires_tasks: true, requires_evaluation: true, start_date: '', end_date: '', registration_opens_at: '', registration_closes_at: '',
   registration_modes: MODES, status: 'draft', is_featured: false,
   skills: [] as { id: string; target_level: number }[], trainers: [] as { id: string; role: string }[],
+  audience: { genders: [] as string[], experience_min: '' as string | number, experience_max: '' as string | number },
   target_groups: [] as { job_title_id?: string | null; school_type?: string | null; education_stage?: string | null; description?: string | null }[],
 }
 
@@ -41,6 +43,11 @@ export default function ProgramEditor() {
   const [form, setForm] = useState(empty)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Most programmes are Arabic only: the English fields stay out of the way until the person asks for them.
+  const [english, setEnglish] = useState(false)
+  const [voice, setVoice] = useState(false)
+  const [applied, setApplied] = useState<string | null>(null)
+  const topRef = useRef<HTMLDivElement>(null)
   const name = (o: { name_ar: string; name_en: string }) => (i18n.language === 'ar' ? o.name_ar : o.name_en)
 
   useEffect(() => {
@@ -55,8 +62,10 @@ export default function ProgramEditor() {
       registration_opens_at: toDateTimeInput(p.registration_opens_at), registration_closes_at: toDateTimeInput(p.registration_closes_at),
       skills: (p.skills ?? []).map((s) => ({ id: s.id, target_level: s.target_level ?? 3 })),
       trainers: (p.trainers ?? []).map((tr) => ({ id: tr.id, role: tr.role ?? 'lead' })),
+      audience: { genders: ((p as { audience?: { genders?: string[] } }).audience?.genders ?? []) as string[], experience_min: (p as { audience?: { experience_min?: number } }).audience?.experience_min ?? '', experience_max: (p as { audience?: { experience_max?: number } }).audience?.experience_max ?? '' },
       target_groups: (p.target_groups ?? []).map(({ job_title_id, school_type, education_stage, description }) => ({ job_title_id, school_type, education_stage, description })),
     } as typeof empty)
+    setEnglish(Boolean((p.title_en && p.title_en !== p.title_ar) || p.summary_en || p.description_en))
   }, [existing.data])
 
   if (lookups.isLoading || (id && existing.isLoading)) return <Spinner />
@@ -69,7 +78,8 @@ export default function ProgramEditor() {
   const save = async () => {
     setSaving(true)
     setError(null)
-    const payload = { ...form, category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const audience = { ...(form.target_groups.some((g) => g.job_title_id) ? { job_title_ids: form.target_groups.map((g) => g.job_title_id).filter(Boolean) } : {}), ...(form.audience.genders.length ? { genders: form.audience.genders } : {}), ...(form.audience.experience_min !== '' ? { experience_min: Number(form.audience.experience_min) } : {}), ...(form.audience.experience_max !== '' ? { experience_max: Number(form.audience.experience_max) } : {}) }
+    const payload = { ...form, audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -82,7 +92,18 @@ export default function ProgramEditor() {
 
   return (
     <>
-      <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} />
+      <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} subtitle={!id ? t('admin.programs.voice.lead') : undefined}
+        actions={!id && <Button variant="gold" icon={<Mic className="size-4" />} onClick={() => setVoice(true)}>{t('admin.programs.voice.open')}</Button>} />
+      {!id && <VoiceComposer open={voice} onClose={() => setVoice(false)} lookups={{ job_titles: L.job_titles, trainers: L.trainers }} onApply={(r: ParsedRequest) => {
+        const p = r.program
+        setForm((f) => ({ ...f, code: p.code, title_ar: p.title_ar, title_en: p.title_en, summary_ar: p.summary_ar, summary_en: p.summary_en, delivery_mode: p.delivery_mode, level: p.level, total_hours: p.total_hours, capacity: p.capacity, start_date: p.start_date ?? '',
+          trainers: p.trainers, target_groups: p.target_groups.map((g) => ({ job_title_id: g.job_title_id })), audience: { genders: (p.audience.genders as string[] | undefined) ?? [], experience_min: (p.audience.experience_min as number | undefined) ?? '', experience_max: (p.audience.experience_max as number | undefined) ?? '' } }))
+        if (p.english && p.title_en) setEnglish(true)
+        setApplied(r.understood[i18n.language === 'en' ? 'en' : 'ar'])
+        topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }} />}
+      <div ref={topRef} />
+      {applied && <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold-200 bg-gold-50/70 p-4 text-sm"><Mic className="mt-0.5 size-4 shrink-0 text-gold-700" /><div><div className="font-bold text-navy-900">{t('admin.programs.voice.appliedTitle')}</div><div className="text-slate-700">{applied}</div><div className="mt-1 text-xs text-slate-500">{t('admin.programs.voice.appliedHint')}</div></div><button type="button" className="ms-auto text-xs text-slate-400 hover:text-navy-900" onClick={() => setApplied(null)}>{t('common.close')}</button></div>}
       <SaveDock label={t('common.save')} loading={saving} onClick={save} />
       {error && <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</div>}
       <div className="grid gap-6 xl:grid-cols-3">
@@ -91,11 +112,6 @@ export default function ProgramEditor() {
             <CardTitle>{t('admin.programs.basics')}</CardTitle>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t('admin.programs.code')}>{input('code')}</Field>
-              <Field label={t('programs.category')}>
-                <select className="input" value={form.category_id} onChange={(e) => set('category_id', e.target.value)}>
-                  <option value="">—</option>{L.categories.map((c) => <option key={c.id} value={c.id}>{name(c)}</option>)}
-                </select>
-              </Field>
               <ProgramTypeField value={form.program_type} onChange={(v) => set('program_type', v)} inherited={L.categories.find((c) => c.id === form.category_id)?.program_type ?? null} />
               <Field label={t('lobby.coordinator')}>
                 <select className="input" value={form.coordinator_id} onChange={(e) => set('coordinator_id', e.target.value)}>
@@ -103,11 +119,16 @@ export default function ProgramEditor() {
                 </select>
               </Field>
               <Field label={t('admin.programs.titleAr')}>{input('title_ar')}</Field>
-              <Field label={t('admin.programs.titleEn')}><input className="input" dir="ltr" value={form.title_en} onChange={(e) => set('title_en', e.target.value)} /></Field>
+              <div className={clsx('flex items-center gap-3 rounded-2xl border px-4 py-3 sm:col-span-2', english ? 'border-gold-300 bg-gold-50/60' : 'border-navy-100 bg-ivory')}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-navy-900 text-gold-300"><Languages className="size-5" /></span>
+                <div className="min-w-0 flex-1"><div className="font-bold text-navy-900">{t('admin.programs.englishToggle')}</div><p className="text-xs text-slate-500">{t('admin.programs.englishHint')}</p></div>
+                <Switch checked={english} label={t('admin.programs.englishToggle')} onChange={setEnglish} />
+              </div>
+              {english && <Field label={t('admin.programs.titleEn')} className="sm:col-span-2"><input className="input" dir="ltr" value={form.title_en} onChange={(e) => set('title_en', e.target.value)} /></Field>}
               <Field label={t('admin.programs.summaryAr')} className="sm:col-span-2">{input('summary_ar')}</Field>
-              <Field label={t('admin.programs.summaryEn')} className="sm:col-span-2"><input className="input" dir="ltr" value={form.summary_en} onChange={(e) => set('summary_en', e.target.value)} /></Field>
+              {english && <Field label={t('admin.programs.summaryEn')} className="sm:col-span-2"><input className="input" dir="ltr" value={form.summary_en} onChange={(e) => set('summary_en', e.target.value)} /></Field>}
               <Field label={t('admin.programs.descriptionAr')} className="sm:col-span-2"><textarea className="input min-h-28" value={form.description_ar} onChange={(e) => set('description_ar', e.target.value)} /></Field>
-              <Field label={t('admin.programs.descriptionEn')} className="sm:col-span-2"><textarea className="input min-h-28" dir="ltr" value={form.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>
+              {english && <Field label={t('admin.programs.descriptionEn')} className="sm:col-span-2"><textarea className="input min-h-28" dir="ltr" value={form.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>}
               <Field label={t('programs.objectives')} className="sm:col-span-2" hint="↵">
                 <textarea className="input min-h-24" value={form.objectives.join('\n')} onChange={(e) => set('objectives', e.target.value.split('\n'))} />
               </Field>
@@ -183,6 +204,13 @@ export default function ProgramEditor() {
           </Card>
           <Card>
             <CardTitle action={<Button size="sm" variant="outline" icon={<Plus className="size-4" />} onClick={() => set('target_groups', [...form.target_groups, {}])} />}>{t('admin.programs.audience')}</CardTitle>
+            <div className="mb-4 space-y-2 rounded-xl border border-navy-100 bg-white p-3">
+              <div className="text-xs font-semibold text-slate-500">{t('admin.programs.voice.gender')}</div>
+              <div className="flex gap-1.5">{([['', 'all'], ['male', 'male'], ['female', 'female']] as const).map(([v, k]) => <button key={k} type="button" onClick={() => set('audience', { ...form.audience, genders: v ? [v] : [] })} className={clsx('rounded-full px-3 py-1 text-xs font-semibold transition', (v ? form.audience.genders[0] === v && form.audience.genders.length === 1 : !form.audience.genders.length) ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}>{t(`admin.programs.voice.genders.${k}`)}</button>)}</div>
+              <div className="text-xs font-semibold text-slate-500">{t('admin.programs.voice.experience')}</div>
+              <div className="flex items-center gap-2"><input type="number" min={0} max={60} className="input" placeholder={String(t('admin.programs.voice.from'))} value={form.audience.experience_min} onChange={(e) => set('audience', { ...form.audience, experience_min: e.target.value })} /><span className="text-slate-400">–</span><input type="number" min={0} max={60} className="input" placeholder={String(t('admin.programs.voice.to'))} value={form.audience.experience_max} onChange={(e) => set('audience', { ...form.audience, experience_max: e.target.value })} /></div>
+              <p className="text-[11px] text-slate-400">{t('admin.programs.voice.audienceHint')}</p>
+            </div>
             <div className="space-y-4">
               {form.target_groups.map((g, i) => {
                 const upd = (patch: Partial<typeof g>) => set('target_groups', form.target_groups.map((x, j) => (j === i ? { ...x, ...patch } : x)))

@@ -85,6 +85,7 @@ use App\Http\Controllers\Api\V1\Admin\PresenceController;
 use App\Http\Controllers\Api\V1\Admin\ProcessController;
 use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
+use App\Http\Controllers\Api\V1\Admin\ProgramAssistantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
@@ -907,6 +908,9 @@ Route::prefix('v1')->group(function () {
                 Route::get('programs/{program}/impact', [ProgramController::class, 'impact']);
             });
             Route::middleware('permission:programs.manage')->group(function () {
+                // The spoken / typed order to create a programme (fixed paths, registered before {program}).
+                Route::get('programs/assistant', [ProgramAssistantController::class, 'status']);
+                Route::post('programs/assistant/parse', [ProgramAssistantController::class, 'parse'])->middleware('throttle:30,1');
                 Route::post('programs', [ProgramController::class, 'store']);
                 Route::put('programs/{program}', [ProgramController::class, 'update']);
                 Route::patch('programs/{program}/status', [ProgramController::class, 'updateStatus']);

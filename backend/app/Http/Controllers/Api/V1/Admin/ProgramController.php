@@ -7,6 +7,7 @@ use App\Http\Resources\ProgramResource;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Services\AudienceRules;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
 use App\Support\ProgramTypes;
@@ -56,8 +57,9 @@ class ProgramController extends Controller
     {
         $data = $this->validated($request);
 
+        $data = $this->withEnglishFallback($data);
         $program = DB::transaction(function () use ($data, $request) {
-            $program = Program::create($data + ['created_by' => $this->user()->id]);
+            $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
             $this->syncRelations($program, $request);
 
             return $program;
@@ -69,7 +71,7 @@ class ProgramController extends Controller
     public function update(Request $request, Program $program): ProgramResource
     {
         DB::transaction(function () use ($request, $program) {
-            $program->update($this->validated($request, $program));
+            $program->update(collect($this->withEnglishFallback($this->validated($request, $program), $program))->except('audience')->all());
             $this->syncRelations($program, $request);
         });
 
@@ -114,7 +116,7 @@ class ProgramController extends Controller
             'program_type' => ['nullable', Rule::in(ProgramTypes::ALL)],
             'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'],
             'title_ar' => [$required, 'string', 'max:255'],
-            'title_en' => [$required, 'string', 'max:255'],
+            'title_en' => ['nullable', 'string', 'max:255'],
             'summary_ar' => ['nullable', 'string', 'max:500'],
             'summary_en' => ['nullable', 'string', 'max:500'],
             'description_ar' => ['nullable', 'string'],
@@ -143,6 +145,7 @@ class ProgramController extends Controller
             'trainers' => ['sometimes', 'array'],
             'trainers.*.id' => ['required', 'uuid', 'exists:trainers,id'],
             'trainers.*.role' => ['nullable', Rule::in(['lead', 'assistant'])],
+            'audience' => ['nullable', 'array'],
             'target_groups' => ['sometimes', 'array'],
             'target_groups.*.job_title_id' => ['nullable', 'uuid', 'exists:job_titles,id'],
             'target_groups.*.department_id' => ['nullable', 'uuid', 'exists:departments,id'],
@@ -152,6 +155,16 @@ class ProgramController extends Controller
         ] + RemoteProgramRules::rules());
     }
 
+    /** Most programmes are Arabic only: an empty English title falls back to the Arabic one so every screen has a name to show. */
+    private function withEnglishFallback(array $data, ?Program $program = null): array
+    {
+        if (array_key_exists('title_en', $data) && trim((string) $data['title_en']) === '') {
+            $data['title_en'] = $data['title_ar'] ?? $program?->title_ar ?? '';
+        }
+
+        return $data;
+    }
+
     private function syncRelations(Program $program, Request $request): void
     {
         if ($request->has('skills')) {
@@ -159,6 +172,10 @@ class ProgramController extends Controller
         }
         if ($request->has('trainers')) {
             $program->trainers()->sync(collect($request->input('trainers'))->mapWithKeys(fn ($t) => [$t['id'] => ['role' => $t['role'] ?? 'lead']]));
+        }
+        if ($request->has('audience')) {
+            // The audience (gender, experience, job titles …) becomes generated eligibility rules; manual rules are kept.
+            app(AudienceRules::class)->apply($program, (array) $request->input('audience'));
         }
         if ($request->has('target_groups')) {
             $program->targetGroups()->delete();
