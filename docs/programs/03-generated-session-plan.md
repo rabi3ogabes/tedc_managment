@@ -44,3 +44,6 @@ New / changed (web)
 - The plan targets the programme's first group (group 1); extra groups are still added from the programme's Groups tab.
 - Online sessions get no link here; the link is added in the session screen or from the programme's remote settings.
 - The same generator is not yet offered on the edit page of an existing programme (its Sessions tab remains the way to add sessions).
+
+---
+Full suite after this change (`php artisan test --compact`, Windows, 2026-10-18): 1181 tests, 1110 passed, 16141 assertions. The only failures are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors) and the environment-bound social-files test noted earlier; the programme builder, plan-rules, PLC and every programme suite pass.
