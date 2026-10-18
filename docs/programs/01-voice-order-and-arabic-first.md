@@ -48,3 +48,6 @@ New / changed (web)
 ## 6. Exact next step
 
 If wanted: the same composer on the PLC workshop wizard, and a per-trainer availability check in the review (the trainer's calendar on the chosen start date).
+
+---
+Full suite after this change (`php artisan test --compact`, Windows, 2026-10-18): 1177 tests, 1104 passed, 15964 assertions. Besides the known Windows-only failures (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors), the run caught two date-dependent PLC tests whose day offsets collided after a weekend skip; every PLC test now counts training days, so two offsets never share a date, and the five PLC suites pass with the voice assistant suite (23 tests). `SocialFilesTest::test_dangerous_or_disguised_files_are_refused` fails in this environment today with a Windows temp-file read error; it fails identically on the previous commit, so it is independent of this change.

@@ -27,11 +27,14 @@ class PlcAttendanceTest extends TestCase
         Cache::flush();
     }
 
-    private function day(int $offset): Carbon
+    /** The n-th training day from today at 09:00 (weekends not counted), so two offsets never land on the same date. */
+    private function day(int $offset = 10): Carbon
     {
-        $d = today()->addDays($offset)->setTime(9, 0);
-        while (in_array($d->dayOfWeek, [5, 6], true)) {
-            $d->addDay();
+        $d = today()->setTime(9, 0);
+        for ($i = 0; $i < $offset; $i++) {
+            do {
+                $d->addDay();
+            } while (in_array($d->dayOfWeek, [5, 6], true));
         }
 
         return $d;
