@@ -10,6 +10,7 @@ use App\Models\Skill;
 use App\Models\TrainingNeed;
 use App\Models\User;
 use App\Services\NeedsSurveys\SurveyAudience;
+use App\Services\Programs\ProgramSessionWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -236,40 +237,8 @@ class ProgramPlanner
             }
             $this->rules->apply($program, $data['audience'] ?? null);
 
-            foreach (array_values($data['sessions'] ?? []) as $i => $session) {
-                $start = CarbonImmutable::parse($session['starts_at']);
-                $end = CarbonImmutable::parse($session['ends_at']);
-                if ($approvalReason) {
-                    $this->calendar->approveSpan($start, $end, $approvalReason, $actor->id);
-                }
-                $this->calendar->assertTrainingAllowed($start, $end);
-                app(TrainingDaySettings::class)->assertWithinDay($start, $end);
-                if (! empty($session['training_room_id']) && ! (($data['delivery_mode'] ?? '') === 'online' || ($session['mode'] ?? null) === 'online')) {
-                    $this->rooms->assertBookable($session['training_room_id'], $start, $end);
-                }
-                $trainerId = $session['trainer_id'] ?? collect($data['trainers'] ?? [])->firstWhere('role', 'lead')['id'] ?? ($data['trainers'][0]['id'] ?? null);
-                if ($trainerId) {
-                    $this->trainers->assertAssignable($trainerId, $start, $end);
-                }
-
-                // Remote programs: sessions are online meetings (no room), with the program's link unless one is given.
-                $remote = $data['remote'] ?? [];
-                $online = ($data['delivery_mode'] ?? 'in_person') === 'online' || ($session['mode'] ?? null) === 'online';
-
-                $program->sessions()->create([
-                    'mode' => $online ? 'online' : 'in_person',
-                    'online_url' => $online ? ($session['online_url'] ?? $remote['join_url'] ?? null) : null,
-                    'online_platform' => $online ? ($session['online_platform'] ?? $remote['platform'] ?? null) : null,
-                    'online_passcode' => $online ? ($session['online_passcode'] ?? $remote['passcode'] ?? null) : null,
-                    'sequence' => $session['sequence'] ?? $i + 1,
-                    'title_ar' => $session['title_ar'] ?? 'الجلسة '.($i + 1),
-                    'title_en' => $session['title_en'] ?? 'Session '.($i + 1),
-                    'starts_at' => $start, 'ends_at' => $end,
-                    'training_room_id' => $online ? null : ($session['training_room_id'] ?? null),
-                    'trainer_id' => $trainerId,
-                    'location_text' => $session['location_text'] ?? null,
-                ]);
-            }
+            // Remote programs: sessions are online meetings (no room), with the program's link unless one is given.
+            app(ProgramSessionWriter::class)->write($program, $data['sessions'] ?? [], $data, $actor, $approvalReason);
 
             if ($needIds) {
                 TrainingNeed::whereIn('id', $needIds)->update(['status' => 'planned', 'program_id' => $program->id, 'reviewed_by' => $actor->id]);

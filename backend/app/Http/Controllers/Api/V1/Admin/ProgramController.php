@@ -12,6 +12,7 @@ use App\Services\AudienceRules;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
 use App\Services\ProgramCatalogSettings;
+use App\Services\Programs\ProgramSessionWriter;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
@@ -61,9 +62,20 @@ class ProgramController extends Controller
 
         $data = $this->withEnglishFallback($data);
         $data = $this->withGeneratedCode($data);
-        $program = DB::transaction(function () use ($data, $request) {
+        $plan = $request->validate([
+            'sessions' => ['sometimes', 'array', 'max:60'], 'sessions.*.starts_at' => ['required', 'date'], 'sessions.*.ends_at' => ['required', 'date'],
+            'sessions.*.training_room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'sessions.*.trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
+            'sessions.*.title_ar' => ['nullable', 'string', 'max:255'], 'sessions.*.title_en' => ['nullable', 'string', 'max:255'], 'sessions.*.mode' => ['nullable', Rule::in(['in_person', 'online'])],
+            'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
+        ]);
+        $approval = $this->user()->hasPermission('calendar.approve') ? ($plan['calendar_approval_reason'] ?? null) : null;
+        $program = DB::transaction(function () use ($data, $request, $plan, $approval) {
             $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
             $this->syncRelations($program, $request);
+            // The generated session plan lands on the first group, with every calendar, room and trainer rule enforced; one refused session rolls everything back.
+            if (! empty($plan['sessions'])) {
+                app(ProgramSessionWriter::class)->write($program, $plan['sessions'], ['delivery_mode' => $data['delivery_mode'] ?? 'in_person', 'trainers' => $request->input('trainers', [])], $this->user(), $approval);
+            }
 
             return $program;
         });

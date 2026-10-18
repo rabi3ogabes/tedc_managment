@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-18 — Programmes: the session plan generated on "برنامج جديد"
+The new-programme form generates the sessions of the first group from the start date, hours, capacity, mode and trainer: one fixed weekday every week or every two weeks, consecutive training days, or chosen dates; closed days are skipped and explained; one room is fixed for the whole series when it is free on every date (the preferred room first, bookings included), otherwise each session takes the best free room and the plan says so. Every row stays editable and is re-checked (closed day, day window, room or trainer busy); the plan is saved with the programme on its first group in one transaction, with a closed-day approval reason when needed. `POST admin/programs/schedule-plan`; a shared `ProgramSessionWriter` serves the builder and the form. Report: `docs/programs/03-generated-session-plan.md`.
+
 ### 2026-10-18 — Programmes: codes stamped from the type, and the catalogue in the settings
 A new programme's code is generated from its type's prefix and a running number (LIC-00001, PRO-00001, EMP-, SPE-, ELE-, PRG- without a type); the form shows the next code live and a lock allows a manual code. Settings → "أنواع البرامج ورموزها" (`admin/settings/program-catalog`, `settings.manage`) renames the five programme types in both languages, sets each prefix, hides a type, sets the code format (default prefix, digits, separator) and renames the delivery modes, whose names reach every screen through the interface labels. `ProgramTypes::catalogue()` reads the settings; `admin/programs/next-code` serves the form. Report: `docs/programs/02-program-codes-and-catalogue.md`.
 

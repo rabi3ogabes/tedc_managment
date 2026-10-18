@@ -38,6 +38,7 @@ class CatalogController extends Controller
             'school_groups' => SchoolGroup::orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'roles' => Role::where('slug', '!=', Role::SUPER_ADMIN)->orderBy('level', 'desc')->get(['slug', 'name_ar', 'name_en']),
             'regions' => School::REGIONS,
+            'weekend' => array_values(config('tedc.calendar.weekend', [5, 6])),
             'school_types' => School::TYPES,
             'stages' => School::STAGES,
         ]]);

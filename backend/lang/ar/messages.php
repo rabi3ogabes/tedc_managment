@@ -207,6 +207,7 @@ return [
         'inactive' => 'المدرب «:trainer» غير نشط.',
         'busy' => 'المدرب «:trainer» لديه جلسة أخرى في هذا الوقت.',
     ],
+    'program_schedule' => ['session' => 'الجلسة :n:'],
     'program_catalog' => ['prefix_taken' => 'بادئة الرمز مستخدمة لنوع آخر؛ اختر بادئة مختلفة لكل نوع.'],
     'program_builder' => [
         'nomination_note' => 'ترشيح تلقائي ضمن الفئة المستهدفة للبرنامج.',

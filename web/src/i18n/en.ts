@@ -239,6 +239,15 @@ const en: Dictionary = {
       minAttendance: 'Minimum attendance %', startDate: 'Start date', endDate: 'End date', opensAt: 'Registration opens', closesAt: 'Registration closes',
       biometric: 'Fingerprint check before attendance', biometricHint: 'The app opens the attendance QR scan only after the trainee confirms with fingerprint, face or the phone lock.',
       modes: 'Registration channels', featured: 'Featured', requiresTasks: 'Requires tasks', requiresEvaluation: 'Requires evaluation', skills: 'Target skills',
+      plan: {
+        title: 'Programme sessions', group1: 'Group 1', subtitle: 'The sessions are generated from what you entered: the start date, the hours, the capacity and how they recur, and a room is fixed when it is free on every date. Any session can be edited.', offHint: 'Create the programme without sessions now and add them later from the programme page.',
+        needDate: 'Enter the start date and the hours above to see the suggested sessions.', recurrence: 'How the sessions recur', fixedDay: 'Fixed day', weekendDay: 'Weekend', customHint: 'Edit the dates yourself or add sessions; rooms and the trainer are re-checked after every change.',
+        rec: { weekly: 'Once a week (fixed day)', biweekly: 'Once every two weeks (fixed day)', consecutive: 'Consecutive days', custom: 'Chosen dates' },
+        count: 'Number of sessions', countHint: 'Automatic: {{n}} from the hours and the training day', startTime: 'Start time', room: 'Room', roomMode: { fixed: 'One fixed room', per_session: 'Best room per session', none: 'No room' }, preferred: 'Preferred room', autoRoom: 'Choose automatically',
+        freeAll: 'Free on all {{n}} dates', freeSome: 'Free on {{n}} of {{of}}', tooSmall: 'too small', summary: '{{n}} sessions · {{h}} hours', everyDay: 'Every {{day}}', everyOther: 'Every other {{day}}', roomFixed: 'Room "{{room}}" is fixed for every session ✓', roomMixed: 'The room changes between sessions', roomRemote: 'Online sessions, no room', roomNone: 'No room',
+        edited: 'You edited the sessions by hand; they will not change when the fields change.', regenerate: 'Regenerate', from: 'From', to: 'To', online: 'Online session', addSession: 'Add a session', hoursNote: 'The training day is {{h}} hours ({{from}}–{{to}})',
+        approval: 'Reason for approving closed days', approvalHint: 'Some sessions fall on days closed for training; give the reason and the days are approved when the programme is saved.', approvalDenied: 'Some sessions fall on closed days and need the calendar approval permission; change the dates or ask for the approval.', approvalPlaceholder: 'e.g. an emergency programme by management decision',
+      },
       codeAuto: 'Automatic', codeManual: 'Manual', codeUnlock: 'Type a code yourself', codeLock: 'Back to the automatic code', codeAutoHint: 'Generated from the programme type (LIC-00001, PRO-00001 …) and fixed when you save.', codeManualHint: 'A code of your own; it must be unique.',
       englishToggle: 'Add the English version', englishHint: 'Most programmes are Arabic only. Switch this on to show the English title, summary and description.',
       voice: {

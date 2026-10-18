@@ -10,6 +10,8 @@ import { api, errorMessage } from '@/lib/api'
 import { toDateInput, toDateTimeInput } from '@/lib/format'
 import type { Program } from '@/lib/types'
 import { useProgramTypes } from './plans/programTypes'
+import { useAuth } from '@/lib/auth'
+import SchedulePlanner, { type PlannerState } from './program/SchedulePlanner'
 import VoiceComposer, { type ParsedRequest } from './program/VoiceComposer'
 
 type Lookups = {
@@ -19,6 +21,7 @@ type Lookups = {
   job_titles: { id: string; name_ar: string; name_en: string }[]
   trainers: { id: string; name_ar: string; name_en: string }[]
   school_types: string[]
+  weekend?: number[]
   stages: string[]
 }
 
@@ -47,6 +50,10 @@ export default function ProgramEditor() {
   const [english, setEnglish] = useState(false)
   const [voice, setVoice] = useState(false)
   const [applied, setApplied] = useState<string | null>(null)
+  // The generated session plan of a new programme's first group (kept here so it is saved with the form).
+  const { can } = useAuth()
+  const [plan, setPlan] = useState<PlannerState>({ enabled: true, sessions: [], errors: 0, blocking: 0, closedDays: 0, first: null, last: null })
+  const [approval, setApproval] = useState('')
   // A new programme's code is stamped from its type (LIC-00001 …) unless the person unlocks the field and types one.
   const [codeLocked, setCodeLocked] = useState(true)
   const nextCode = useGet<{ data: { code: string; prefix: string } }>(!id && codeLocked ? '/admin/programs/next-code' : null, { program_type: form.program_type || undefined, category_id: form.category_id || undefined }, { staleTime: 0 })
@@ -83,7 +90,8 @@ export default function ProgramEditor() {
     setSaving(true)
     setError(null)
     const audience = { ...(form.target_groups.some((g) => g.job_title_id) ? { job_title_ids: form.target_groups.map((g) => g.job_title_id).filter(Boolean) } : {}), ...(form.audience.genders.length ? { genders: form.audience.genders } : {}), ...(form.audience.experience_min !== '' ? { experience_min: Number(form.audience.experience_min) } : {}), ...(form.audience.experience_max !== '' ? { experience_max: Number(form.audience.experience_max) } : {}) }
-    const payload = { ...form, audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const sessions = !id && plan.enabled ? plan.sessions.map((s) => ({ starts_at: s.starts_at, ends_at: s.ends_at, training_room_id: s.training_room_id, title_ar: s.title_ar, title_en: s.title_en, mode: s.mode })) : []
+    const payload = { ...form, ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -108,7 +116,7 @@ export default function ProgramEditor() {
       }} />}
       <div ref={topRef} />
       {applied && <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold-200 bg-gold-50/70 p-4 text-sm"><Mic className="mt-0.5 size-4 shrink-0 text-gold-700" /><div><div className="font-bold text-navy-900">{t('admin.programs.voice.appliedTitle')}</div><div className="text-slate-700">{applied}</div><div className="mt-1 text-xs text-slate-500">{t('admin.programs.voice.appliedHint')}</div></div><button type="button" className="ms-auto text-xs text-slate-400 hover:text-navy-900" onClick={() => setApplied(null)}>{t('common.close')}</button></div>}
-      <SaveDock label={t('common.save')} loading={saving} onClick={save} />
+      <SaveDock label={t('common.save')} loading={saving} onClick={save} disabled={!id && plan.enabled && (plan.blocking > 0 || (plan.closedDays > 0 && approval.trim().length < 3))} />
       {error && <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</div>}
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
@@ -185,6 +193,18 @@ export default function ProgramEditor() {
               </div>
             </div>
           </Card>
+
+          {!id && (
+            <SchedulePlanner
+              inputs={{ start_date: form.start_date, total_hours: Number(form.total_hours) || 0, capacity: Number(form.capacity) || 0, delivery_mode: form.delivery_mode, trainer_id: form.trainers[0]?.id ?? null }}
+              weekend={L.weekend ?? [5, 6]} canApprove={can('calendar.approve')} approval={approval} onApproval={setApproval} state={plan}
+              onChange={(s) => {
+                setPlan(s)
+                // The programme's own dates follow its sessions.
+                if (s.enabled && s.first && s.last) setForm((f) => (f.start_date === s.first && f.end_date === s.last ? f : { ...f, start_date: s.first!, end_date: s.last! }))
+              }}
+            />
+          )}
         </div>
 
         <div className="space-y-6">
