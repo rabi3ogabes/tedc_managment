@@ -41,3 +41,6 @@ New / changed (web)
 
 - Changing a prefix later does not renumber existing programmes (their codes are identifiers on certificates and reports); new programmes take the new prefix and start from the highest number already used under it.
 - The type ids and the mode ids are fixed by design; adding a sixth type would need a change to the annual-plan rules.
+
+---
+Full suite after this change (`php artisan test --compact`, Windows, 2026-10-18): 1178 tests, 1107 passed, 16077 assertions. The only failures are the known Windows-only ones (VercelEnvTest ×2, ContractDriverTest mTLS byte count, IntegrationDocsTest line endings, 54 openssl errors) and the environment-bound social-files test noted in the previous report; every programme, catalogue, plan-rules and PLC test passes.
