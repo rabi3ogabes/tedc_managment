@@ -14,10 +14,11 @@ class NeedsService
 {
     public function __construct(private readonly WorkshopService $workshops) {}
 
-    public function query(User $user): Builder
+    /** The needs inside the person's scope. `$withCounts` adds the converted-workshops count per row; aggregate queries (group by) leave it out, since PostgreSQL refuses a plain column next to a grouped count. */
+    public function query(User $user, bool $withCounts = true): Builder
     {
         $scope = AccessScope::current($user);
-        $q = PlcNeed::query()->withCount('workshops');
+        $q = $withCounts ? PlcNeed::query()->withCount('workshops') : PlcNeed::query();
         if ($scope->isMinistryWide()) {
             return $q;
         }

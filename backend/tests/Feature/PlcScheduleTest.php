@@ -32,12 +32,15 @@ class PlcScheduleTest extends TestCase
         return Trainer::create(['name_ar' => 'مدرب', 'name_en' => 'Trainer', 'email' => 'tr'.uniqid().'@test.qa', 'status' => 'active', 'specializations' => ['assessment'], 'rating' => 4, 'user_id' => $this->makeUser(Role::TRAINER)->id]);
     }
 
-    /** A training day at 09:00 at least ten days out, never a weekend. */
+    /** The n-th training day from today at 09:00 (Fridays and Saturdays skipped). Counted one training day at a time, so two offsets never meet on one date, whatever today's weekday. */
     private function day(int $offset = 10): Carbon
     {
-        $d = today()->addDays($offset)->setTime(9, 0);
-        while (in_array($d->dayOfWeek, [5, 6], true)) {
+        $d = today()->setTime(9, 0);
+        for ($i = 0; $i < $offset; $i++) {
             $d->addDay();
+            while (in_array($d->dayOfWeek, [5, 6], true)) {
+                $d->addDay();
+            }
         }
 
         return $d;
@@ -97,11 +100,7 @@ class PlcScheduleTest extends TestCase
         $sid2 = $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/sessions", array_replace($s2, ['training_room_id' => null, 'location_text' => 'مختبر المدرسة', 'force' => true, 'force_reason' => 'الجلسة الأخرى مسجلة ولا تحتاج حضوره']))->assertCreated()->json('data.id');
         $this->assertTrue(PlcDecision::where('subject_id', $id)->where('decision', 'trainer_double_booking_overridden')->exists());
         $this->assertSame(2, PlcSessionTrainer::where('program_session_id', $sid2)->count());
-        // Two training days after the closed one: offsets that skip a weekend can land on the same date, so count from the closed day itself.
-        $d3 = $closed->copy()->addDays(2);
-        while (in_array($d3->dayOfWeek, [5, 6], true)) {
-            $d3->addDay();
-        }
+        $d3 = $this->day(16);
         $sid3 = $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/sessions", ['starts_at' => $d3->toIso8601String(), 'ends_at' => $d3->copy()->addHours(2)->toIso8601String(), 'mode' => 'online', 'trainer_ids' => [$co->id]])->assertCreated()->json('data.id');
         $o = $this->asUser($officer)->getJson("/api/v1/admin/plc/workshops/$id/sessions")->assertOk()->json('data');
         $this->assertFalse($o['readiness']['complete']);

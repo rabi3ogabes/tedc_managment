@@ -27,11 +27,15 @@ class PlcAttendanceTest extends TestCase
         Cache::flush();
     }
 
+    /** The n-th training day from today at 09:00 (Fridays and Saturdays skipped). Counted one training day at a time, so two offsets never meet on one date, whatever today's weekday. */
     private function day(int $offset): Carbon
     {
-        $d = today()->addDays($offset)->setTime(9, 0);
-        while (in_array($d->dayOfWeek, [5, 6], true)) {
+        $d = today()->setTime(9, 0);
+        for ($i = 0; $i < $offset; $i++) {
             $d->addDay();
+            while (in_array($d->dayOfWeek, [5, 6], true)) {
+                $d->addDay();
+            }
         }
 
         return $d;

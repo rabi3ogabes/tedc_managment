@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-18 — CI green on PostgreSQL after the PLC programme
+The PostgreSQL CI job had been red since PLC Phase 1: `programs.kind` was an 8-character column and every PLC workshop writes `plc_workshop`, so no workshop could be created on PostgreSQL (SQLite ignores the length); a migration widens the column. The PLC dashboard grouped the needs on a query that also selected every column, which PostgreSQL refuses; the grouped queries now leave the per-row count out. A Pint rule on the survey controller (an inline fully-qualified class name) is fixed, and the five PLC test suites count their days in training days so that two offsets never land on one date whatever today's weekday is.
+
 ### 2026-10-16 — PLC Phase 8: smart assistants (programme complete)
 The advisory layer: a planning checklist and completion tracker on every workshop (twelve items with a reason and a link each, warnings that point but never block, the next step as the first thing not started), the school reasons and trainee clash counts on the page, the decision log filtered by kind and a decisions-and-exceptions register across the scope (`admin/plc/reports/decisions`), the need → workshop → attendance → evaluation → impact chain with a `need_id` filter on the reports, and feedback themes from the PLC forms' open answers through the AI guard under a new `plc` feature, only after the Ministry opts in from the PLC policy (`ai_feedback_opt_in`), with respondents' names hidden, the result cleaned, cached for a day and audited, and marked advisory. Routes `workshops/{plcWorkshop}/assistant` and `…/assistant/themes`. Report: `docs/plc/08-phase8-assistants.md`.
 

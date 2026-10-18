@@ -26,11 +26,15 @@ class PlcReportsTest extends TestCase
         Cache::flush();
     }
 
+    /** The n-th training day from today at 09:00 (Fridays and Saturdays skipped). Counted one training day at a time, so two offsets never meet on one date, whatever today's weekday. */
     private function day(int $offset): Carbon
     {
-        $d = today()->addDays($offset)->setTime(9, 0);
-        while (in_array($d->dayOfWeek, [5, 6], true)) {
+        $d = today()->setTime(9, 0);
+        for ($i = 0; $i < $offset; $i++) {
             $d->addDay();
+            while (in_array($d->dayOfWeek, [5, 6], true)) {
+                $d->addDay();
+            }
         }
 
         return $d;
@@ -50,7 +54,12 @@ class PlcReportsTest extends TestCase
         $community = PlcCommunity::create(['code' => 'C-'.uniqid(), 'title_ar' => 'مجتمع التقويم', 'status' => 'active', 'lead_user_id' => $head->id, 'host_school_id' => $host->id, 'created_by' => $officer->id]);
         $d1 = $this->day(10);
         $id = $this->asUser($officer)->postJson('/api/v1/admin/plc/workshops', ['title_ar' => 'ورشة التقرير', 'host_school_id' => $host->id, 'start_date' => $d1->toDateString(), 'end_date' => $d1->toDateString(), 'capacity' => 12, 'delivery_mode' => 'in_person', 'source' => 'rased', 'source_ref' => 'R-9', 'community_id' => $community->id, 'min_attendance_percent' => 50])->assertCreated()->json('data.id');
-        $this->asUser($officer)->postJson('/api/v1/admin/plc/workshops', ['title_ar' => 'مسودة', 'host_school_id' => $host->id, 'start_date' => $this->day(30)->toDateString(), 'capacity' => 8, 'delivery_mode' => 'online', 'source' => 'centre'])->assertCreated();
+        // The draft starts a month after the first workshop (on a training day), so the trend always spans two months.
+        $nextMonth = $d1->copy()->addMonthNoOverflow();
+        while (in_array($nextMonth->dayOfWeek, [5, 6], true)) {
+            $nextMonth->addDay();
+        }
+        $this->asUser($officer)->postJson('/api/v1/admin/plc/workshops', ['title_ar' => 'مسودة', 'host_school_id' => $host->id, 'start_date' => $nextMonth->toDateString(), 'capacity' => 8, 'delivery_mode' => 'online', 'source' => 'centre'])->assertCreated();
         $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/nominations", ['employee_ids' => [$a->id, $b->id, $c->id]])->assertOk();
         foreach ($this->asUser($officer)->getJson("/api/v1/admin/plc/workshops/$id/nominations")->json('data.rows') as $row) {
             $this->asUser($officer)->postJson("/api/v1/admin/plc/workshops/$id/nominations/{$row['id']}", ['to' => 'approved'])->assertOk();
