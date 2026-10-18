@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Services\ProgramCatalogSettings;
+
 /**
  * The five programme types of the RFP's annual plan. `apprenticeship` was the first English slug for تمهين; plans
  * saved with it read it as `professionalisation`.
@@ -12,8 +14,14 @@ final class ProgramTypes
 
     public const LEGACY = ['apprenticeship' => 'professionalisation'];
 
-    /** @return list<array{id: string, name_ar: string, name_en: string, hint_ar: string, hint_en: string}> */
+    /** The catalogue as the administrator named it (Settings → Programme catalogue), with each type's code prefix and whether it is offered. @return list<array{id: string, name_ar: string, name_en: string, hint_ar: string, hint_en: string, prefix: string, enabled: bool}> */
     public static function catalogue(): array
+    {
+        return app(ProgramCatalogSettings::class)->types();
+    }
+
+    /** The RFP's built-in names, the base the settings override. @return list<array{id: string, name_ar: string, name_en: string, hint_ar: string, hint_en: string}> */
+    public static function baseCatalogue(): array
     {
         return [
             ['id' => 'licensing', 'name_ar' => 'ترخيص', 'name_en' => 'Licensing', 'hint_ar' => 'برامج تؤهل للرخصة المهنية أو تجديدها.', 'hint_en' => 'Prepares for the professional licence or its renewal.'],

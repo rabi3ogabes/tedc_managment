@@ -196,15 +196,12 @@ class ProgramPlanner
         ])->all();
     }
 
+    /** The next code from the programme catalogue: the category's type gives the prefix (LIC-00001 …), the default prefix otherwise. */
     public function nextCode(?string $categorySlug): string
     {
-        $prefix = strtoupper(substr(preg_replace('/[^a-z]/i', '', (string) $categorySlug) ?: 'PRG', 0, 3));
-        $number = 100;
-        do {
-            $code = $prefix.'-'.(++$number);
-        } while (Program::withTrashed()->where('code', $code)->exists());
+        $type = $categorySlug ? ProgramCategory::where('slug', $categorySlug)->value('program_type') : null;
 
-        return $code;
+        return app(ProgramCatalogSettings::class)->nextCode($type);
     }
 
     /**

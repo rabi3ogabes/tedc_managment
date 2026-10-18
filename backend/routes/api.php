@@ -87,6 +87,7 @@ use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
 use App\Http\Controllers\Api\V1\Admin\ProgramAssistantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
+use App\Http\Controllers\Api\V1\Admin\ProgramCatalogSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
@@ -909,6 +910,7 @@ Route::prefix('v1')->group(function () {
             });
             Route::middleware('permission:programs.manage')->group(function () {
                 // The spoken / typed order to create a programme (fixed paths, registered before {program}).
+                Route::get('programs/next-code', [ProgramController::class, 'nextCode']);
                 Route::get('programs/assistant', [ProgramAssistantController::class, 'status']);
                 Route::post('programs/assistant/parse', [ProgramAssistantController::class, 'parse'])->middleware('throttle:30,1');
                 Route::post('programs', [ProgramController::class, 'store']);
@@ -1617,6 +1619,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('settings/room-screen', [RoomScreenSettingsController::class, 'show']);
                 Route::put('settings/room-screen', [RoomScreenSettingsController::class, 'update']);
                 Route::post('settings/room-screen/reset', [RoomScreenSettingsController::class, 'reset']);
+                Route::get('settings/program-catalog', [ProgramCatalogSettingsController::class, 'show']);
+                Route::put('settings/program-catalog', [ProgramCatalogSettingsController::class, 'update']);
                 Route::get('settings/training-day', [TrainingDaySettingsController::class, 'show']);
                 Route::put('settings/training-day', [TrainingDaySettingsController::class, 'update']);
                 Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);

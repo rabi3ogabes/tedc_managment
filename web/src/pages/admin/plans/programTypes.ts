@@ -1,6 +1,6 @@
 import { useGet } from '@/hooks/useApi'
 
-export type ProgramType = { id: string; name_ar: string; name_en: string; hint_ar: string; hint_en: string }
+export type ProgramType = { id: string; name_ar: string; name_en: string; hint_ar: string; hint_en: string; prefix?: string; enabled?: boolean }
 export type Issue = { code: string; item_ids: string[]; message: { ar: string; en: string } }
 export type Compliance = {
   caps: { seats: { used: number; max: number | null }; hours: { used: number; max: number | null } }

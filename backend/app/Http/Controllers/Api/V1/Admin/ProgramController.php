@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProgramResource;
 use App\Models\Program;
+use App\Models\ProgramCategory;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Services\AudienceRules;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
+use App\Services\ProgramCatalogSettings;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +60,7 @@ class ProgramController extends Controller
         $data = $this->validated($request);
 
         $data = $this->withEnglishFallback($data);
+        $data = $this->withGeneratedCode($data);
         $program = DB::transaction(function () use ($data, $request) {
             $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
             $this->syncRelations($program, $request);
@@ -111,7 +114,7 @@ class ProgramController extends Controller
         $required = $program ? 'sometimes' : 'required';
 
         return $request->validate([
-            'code' => [$required, 'string', 'max:32', Rule::unique('programs', 'code')->ignore($program?->id)],
+            'code' => [$program ? 'sometimes' : 'nullable', 'string', 'max:32', Rule::unique('programs', 'code')->ignore($program?->id)],
             'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],
             'program_type' => ['nullable', Rule::in(ProgramTypes::ALL)],
             'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'],
@@ -155,10 +158,29 @@ class ProgramController extends Controller
         ] + RemoteProgramRules::rules());
     }
 
+    /** The next code for a programme of this type (the form shows it before saving). */
+    public function nextCode(Request $request, ProgramCatalogSettings $catalog): JsonResponse
+    {
+        $type = ProgramTypes::normalize($request->query('program_type')) ?: ($request->query('category_id') ? ProgramCategory::find($request->query('category_id'))?->program_type : null);
+
+        return response()->json(['data' => ['code' => $catalog->nextCode($type), 'prefix' => $catalog->prefixFor($type), 'program_type' => $type]]);
+    }
+
+    /** An empty code is stamped from the programme type's prefix (LIC-00001 …), or the category's type, or the default prefix. */
+    private function withGeneratedCode(array $data): array
+    {
+        if (trim((string) ($data['code'] ?? '')) === '') {
+            $type = $data['program_type'] ?? (! empty($data['category_id']) ? ProgramCategory::find($data['category_id'])?->program_type : null);
+            $data['code'] = app(ProgramCatalogSettings::class)->nextCode($type);
+        }
+
+        return $data;
+    }
+
     /** Most programmes are Arabic only: an empty English title falls back to the Arabic one so every screen has a name to show. */
     private function withEnglishFallback(array $data, ?Program $program = null): array
     {
-        if (array_key_exists('title_en', $data) && trim((string) $data['title_en']) === '') {
+        if (($program === null || array_key_exists('title_en', $data)) && trim((string) ($data['title_en'] ?? '')) === '') {
             $data['title_en'] = $data['title_ar'] ?? $program?->title_ar ?? '';
         }
 

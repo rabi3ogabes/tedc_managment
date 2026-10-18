@@ -239,6 +239,7 @@ const en: Dictionary = {
       minAttendance: 'Minimum attendance %', startDate: 'Start date', endDate: 'End date', opensAt: 'Registration opens', closesAt: 'Registration closes',
       biometric: 'Fingerprint check before attendance', biometricHint: 'The app opens the attendance QR scan only after the trainee confirms with fingerprint, face or the phone lock.',
       modes: 'Registration channels', featured: 'Featured', requiresTasks: 'Requires tasks', requiresEvaluation: 'Requires evaluation', skills: 'Target skills',
+      codeAuto: 'Automatic', codeManual: 'Manual', codeUnlock: 'Type a code yourself', codeLock: 'Back to the automatic code', codeAutoHint: 'Generated from the programme type (LIC-00001, PRO-00001 …) and fixed when you save.', codeManualHint: 'A code of your own; it must be unique.',
       englishToggle: 'Add the English version', englishHint: 'Most programmes are Arabic only. Switch this on to show the English title, summary and description.',
       voice: {
         open: 'Create by voice', lead: 'Say what you want or type it, check what the system understood, then start.', title: 'Voice order to create a programme', subtitle: 'Speak in Arabic or English: the programme name, the target audience, experience, gender, trainer, hours, seats, delivery mode. The system reads your request and shows it clearly for you to check before it is applied to the form.',

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Fingerprint, Languages, Mic, Plus, Trash2 } from 'lucide-react'
+import { Fingerprint, Languages, Lock, LockOpen, Mic, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -47,6 +47,10 @@ export default function ProgramEditor() {
   const [english, setEnglish] = useState(false)
   const [voice, setVoice] = useState(false)
   const [applied, setApplied] = useState<string | null>(null)
+  // A new programme's code is stamped from its type (LIC-00001 …) unless the person unlocks the field and types one.
+  const [codeLocked, setCodeLocked] = useState(true)
+  const nextCode = useGet<{ data: { code: string; prefix: string } }>(!id && codeLocked ? '/admin/programs/next-code' : null, { program_type: form.program_type || undefined, category_id: form.category_id || undefined }, { staleTime: 0 })
+  useEffect(() => { if (!id && codeLocked && nextCode.data) setForm((f) => (f.code === nextCode.data!.data.code ? f : { ...f, code: nextCode.data!.data.code })) }, [id, codeLocked, nextCode.data])
   const topRef = useRef<HTMLDivElement>(null)
   const name = (o: { name_ar: string; name_en: string }) => (i18n.language === 'ar' ? o.name_ar : o.name_en)
 
@@ -111,7 +115,12 @@ export default function ProgramEditor() {
           <Card>
             <CardTitle>{t('admin.programs.basics')}</CardTitle>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label={t('admin.programs.code')}>{input('code')}</Field>
+              <Field label={t('admin.programs.code')} hint={!id ? (codeLocked ? t('admin.programs.codeAutoHint') : t('admin.programs.codeManualHint')) : undefined}>
+                <div className="flex gap-2">
+                  <input className={clsx('input font-mono', codeLocked && 'bg-ivory text-navy-900')} dir="ltr" readOnly={codeLocked} value={form.code} onChange={(e) => set('code', e.target.value)} />
+                  <button type="button" className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-navy-100 px-3 text-xs font-semibold text-slate-600 hover:border-gold-400 hover:text-navy-900" onClick={() => setCodeLocked(!codeLocked)} title={String(t(codeLocked ? 'admin.programs.codeUnlock' : 'admin.programs.codeLock'))}>{codeLocked ? <Lock className="size-3.5" /> : <LockOpen className="size-3.5" />}{t(codeLocked ? 'admin.programs.codeAuto' : 'admin.programs.codeManual')}</button>
+                </div>
+              </Field>
               <ProgramTypeField value={form.program_type} onChange={(v) => set('program_type', v)} inherited={L.categories.find((c) => c.id === form.category_id)?.program_type ?? null} />
               <Field label={t('lobby.coordinator')}>
                 <select className="input" value={form.coordinator_id} onChange={(e) => set('coordinator_id', e.target.value)}>
@@ -247,7 +256,7 @@ function ProgramTypeField({ value, onChange, inherited }: { value: string; onCha
     <Field label={t('plans.types.label')} hint={chosen ? (ar ? chosen.hint_ar : chosen.hint_en) : t('plans.types.inherited', { type: label(inherited) })}>
       <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">{t('plans.types.asCategory', { type: label(inherited) })}</option>
-        {types.map((ty) => <option key={ty.id} value={ty.id}>{ar ? `${ty.name_ar} — ${ty.name_en}` : `${ty.name_en} — ${ty.name_ar}`}</option>)}
+        {types.filter((ty) => ty.enabled !== false || ty.id === value).map((ty) => <option key={ty.id} value={ty.id}>{ar ? `${ty.name_ar} — ${ty.name_en}` : `${ty.name_en} — ${ty.name_ar}`}</option>)}
       </select>
     </Field>
   )

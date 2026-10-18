@@ -207,6 +207,7 @@ return [
         'inactive' => 'Trainer ":trainer" is inactive.',
         'busy' => 'Trainer ":trainer" already has another session at this time.',
     ],
+    'program_catalog' => ['prefix_taken' => 'That code prefix is already used by another type; give each type its own prefix.'],
     'program_builder' => [
         'nomination_note' => 'Automatic nomination within the program target audience.',
         'publish_first' => 'Publish the program before nominating its audience.',

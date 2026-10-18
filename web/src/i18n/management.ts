@@ -1,5 +1,11 @@
 /** Strings for the management screens: rooms, trainers & partners, training calendar and the smart program wizard. */
 export const mgmtAr = {
+  catalog: {
+    types: 'أنواع البرامج', typesHint: 'الأسماء كما تظهر في النماذج والخطة السنوية والتقارير، وبادئة الرمز التي يُختم بها كل برنامج جديد من هذا النوع. المعرّفات ثابتة؛ ما يتغير هو ما يقرأه الناس والبادئة.',
+    nextCode: 'الرمز التالي', programsN: '{{n}} برنامجاً', offered: 'معروض', hidden: 'مخفي', nameAr: 'الاسم بالعربية', nameEn: 'الاسم بالإنجليزية', hintAr: 'الوصف بالعربية', hintEn: 'الوصف بالإنجليزية', prefix: 'بادئة الرمز', prefixRule: 'من حرفين إلى خمسة أحرف لاتينية.', prefixTaken: 'مستخدمة لنوع آخر.',
+    code: 'صيغة رمز البرنامج', codeHint: 'يُولَّد الرمز تلقائياً عند إنشاء البرنامج: البادئة ثم الفاصل ثم رقم متسلسل لكل بادئة.', defaultPrefix: 'البادئة الافتراضية', defaultPrefixHint: 'للبرامج التي لا نوع لها.', digits: 'عدد الأرقام', separator: 'الفاصل', none: 'بلا فاصل', preview: 'أمثلة على الرموز القادمة', untyped: '{{n}} برنامجاً بلا نوع يأخذ البادئة الافتراضية.',
+    modes: 'أنماط التنفيذ', modesHint: 'أسماء الأنماط الثلاثة كما تظهر في كل الشاشات: الموقع العام، البوابة، النماذج والتقارير.', modesNote: 'تُطبَّق الأسماء فوراً عبر أسماء الواجهة ولا تغيّر المعرّفات التقنية.', saved: 'حُفظ دليل البرامج.',
+  },
   chat: {
     title: 'محادثات الموقع', subtitle: 'كل محادثات زوار الموقع مع المساعد الذكي بسجلّها الكامل — يمكنك تولّي أي محادثة والرد يدوياً، أو إعادتها للمساعد.',
     stats: { needs: 'تنتظر الفريق', unread: 'رسائل غير مقروءة', open: 'محادثات مفتوحة', total: 'إجمالي المحادثات' }, search: 'ابحث في الأسماء والرسائل…',
@@ -168,6 +174,7 @@ export const mgmtAr = {
       security: { title: 'الأمان وقفل الجلسة', desc: 'اقفل لوحة التحكم تلقائياً لفريق الإدارة عند عدم النشاط، مع طلب كلمة المرور.' },
       screens: { title: 'الشاشات', desc: 'كل شاشات المركز في مكان واحد: شاشة باب القاعة (١٩٢٠×١٠٨٠) وشاشة برامج اليوم الرأسية (١٠٨٠×١٩٢٠) للمعاينة والضبط.' },
       roomscreen: { title: 'شاشة القاعة', desc: 'قالب الشاشة عند باب القاعة: الهوية والألوان وما يظهر عليها، مع معاينة مباشرة.' },
+      programcatalog: { title: 'أنواع البرامج ورموزها', desc: 'أسماء أنواع البرامج الخمسة وبادئة رمز كل نوع (LIC-00001، PRO-00001…)، وصيغة الرمز، وأسماء أنماط التنفيذ: حضوري، عن بُعد، مدمج.' },
       trainingday: { title: 'اليوم التدريبي', desc: 'ساعات اليوم التدريبي (من 8 صباحاً إلى 1 ظهراً) وجلسة واحدة لكل قاعة في اليوم.' },
       attendance: { title: 'الحضور والتحقق من الموقع', desc: 'يتحقق التطبيق من وجود المتدرب في مكان التدريب قبل تسجيل الحضور.' },
       users: { title: 'المستخدمون والصلاحيات', desc: 'إدارة الحسابات والأدوار وصلاحيات كل دور.' },
@@ -248,6 +255,12 @@ export const mgmtAr = {
 export type MgmtStrings = typeof mgmtAr
 
 export const mgmtEn: MgmtStrings = {
+  catalog: {
+    types: 'Programme types', typesHint: 'The names as they appear in forms, the annual plan and reports, and the code prefix stamped on every new programme of the type. The ids are fixed; what people read and the prefix change.',
+    nextCode: 'Next code', programsN: '{{n}} programmes', offered: 'Offered', hidden: 'Hidden', nameAr: 'Arabic name', nameEn: 'English name', hintAr: 'Arabic description', hintEn: 'English description', prefix: 'Code prefix', prefixRule: 'Two to five Latin letters.', prefixTaken: 'Used by another type.',
+    code: 'Programme code format', codeHint: 'The code is generated when a programme is created: the prefix, the separator, then a running number per prefix.', defaultPrefix: 'Default prefix', defaultPrefixHint: 'For programmes without a type.', digits: 'Digits', separator: 'Separator', none: 'None', preview: 'Examples of the next codes', untyped: '{{n}} programmes without a type take the default prefix.',
+    modes: 'Delivery modes', modesHint: 'The names of the three modes as they appear everywhere: the public site, the portal, forms and reports.', modesNote: 'The names apply at once through the interface labels and never change the technical ids.', saved: 'Programme catalogue saved.',
+  },
   chat: {
     title: 'Website chats', subtitle: 'Every conversation visitors have with the AI assistant, with its full history — take over any conversation and reply manually, or hand it back to the assistant.',
     stats: { needs: 'Waiting for the team', unread: 'Unread messages', open: 'Open chats', total: 'All chats' }, search: 'Search names and messages…',
@@ -416,6 +429,7 @@ export const mgmtEn: MgmtStrings = {
       security: { title: 'Security & session lock', desc: 'Lock the dashboard for the administration team when idle and ask for the password again.' },
       screens: { title: 'Screens', desc: 'All the center screens in one place: the room door screen (1920×1080) and the portrait today’s programs screen (1080×1920), to preview and set up.' },
       roomscreen: { title: 'Room screen', desc: 'The template of the screen at the classroom door: brand, colours and what it shows, with a live preview.' },
+      programcatalog: { title: 'Programme types & codes', desc: 'The names of the five programme types and each type\'s code prefix (LIC-00001, PRO-00001 …), the code format, and the names of the delivery modes: in person, online, hybrid.' },
       trainingday: { title: 'Training day', desc: 'The hours of the training day (8 am to 1 pm) and one session per room per day.' },
       attendance: { title: 'Attendance & location check', desc: 'The app verifies that participants are at the venue before recording attendance.' },
       users: { title: 'Users & permissions', desc: 'Manage accounts, roles and what each role can do.' },

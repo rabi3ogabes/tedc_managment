@@ -72,7 +72,7 @@ class CatalogController extends Controller
         return response()->json(['data' => $programCategory]);
     }
 
-    /** The five programme types of the annual plan, with their Arabic and English names. */
+    /** The five programme types of the annual plan as the administrator named them, with each one's code prefix and whether it is offered. */
     public function programTypes(): JsonResponse
     {
         return response()->json(['data' => ProgramTypes::catalogue()]);
