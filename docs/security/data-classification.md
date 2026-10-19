@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 796 columns
-- Internal: 2290 columns
-- Confidential: 536 columns
+- Public: 799 columns
+- Internal: 2298 columns
+- Confidential: 553 columns
 - Restricted: 27 columns
 
 ## Application-level encryption
@@ -1119,6 +1119,22 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `dim` | Internal | — |
 | `vec` | Internal | — |
 
+### `employee_numbers`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `employee_id` | Internal | — |
+| `employee_no` | Internal | — |
+| `seq` | Internal | — |
+| `appointed_on` | Internal | — |
+| `employment_class` | Internal | — |
+| `org_name` | Internal | — |
+| `is_current` | Internal | — |
+| `source_system` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `employee_path_progress`
 
 | Column | Class | Control |
@@ -1177,6 +1193,16 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `grade_level` | Confidential | masked in exports |
 | `subjects` | Confidential | masked in exports |
 | `grades_taught` | Confidential | masked in exports |
+| `national_id_hash` | Confidential | masked in exports |
+| `education_level` | Confidential | masked in exports |
+| `certificate_name` | Confidential | masked in exports |
+| `job_class` | Confidential | masked in exports |
+| `employment_class` | Confidential | masked in exports |
+| `employee_kind` | Confidential | masked in exports |
+| `employment_seq` | Confidential | masked in exports |
+| `sub_unit` | Confidential | masked in exports |
+| `source_system` | Confidential | masked in exports |
+| `imported_at` | Confidential | masked in exports |
 
 ### `entity_account_users`
 
@@ -2844,6 +2870,13 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `recognition_request` | Confidential | masked in exports |
 | `created_at` | Confidential | masked in exports |
 | `updated_at` | Confidential | masked in exports |
+| `source_system` | Confidential | masked in exports |
+| `row_hash` | Confidential | masked in exports |
+| `source_empno` | Confidential | masked in exports |
+| `course_type` | Confidential | masked in exports |
+| `track` | Confidential | masked in exports |
+| `external_ref` | Confidential | masked in exports |
+| `external_ref_desc` | Confidential | masked in exports |
 
 ### `pd_activity_types`
 

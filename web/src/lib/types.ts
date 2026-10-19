@@ -86,6 +86,9 @@ export type Employee = {
   id: string; employee_no: string; user_id: string; name?: string; name_ar?: string; name_en?: string; email?: string
   school?: { id: string; name: string; region: string; type: string } | null; job_title?: { id: string; code: string; name: string; category: string } | null
   experience_years: number; education_stage?: string | null; qualification?: string | null; skills?: Skill[]
+  nationality?: string | null; hire_date?: string | null; specialization?: string | null; status?: string
+  education_level?: string | null; certificate_name?: string | null; job_class?: string | null; employment_class?: string | null; employee_kind?: string | null; sub_unit?: string | null
+  employee_numbers?: { employee_no: string; seq: number | null; appointed_on: string | null; employment_class: string | null; org_name: string | null; is_current: boolean }[]
 }
 
 export type Registration = {

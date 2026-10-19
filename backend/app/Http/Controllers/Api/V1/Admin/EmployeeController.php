@@ -30,8 +30,11 @@ class EmployeeController extends Controller
             ->when($supervisorOnly, fn ($q) => $q->where('supervisor_id', $user->employee?->id ?? '00000000-0000-0000-0000-000000000000'))
             ->when($request->query('school_id'), fn ($q, $id) => $q->where('school_id', $id))
             ->when($request->query('job_title_id'), fn ($q, $id) => $q->where('job_title_id', $id))
+            // By name, e-mail, any employee number the person has had, or (a full 11-digit number) the national ID — found through its blind index. A number-only search does not scan names.
             ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('employee_no', "%{$term}%")
-                ->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%")->orWhereLike('email', "%{$term}%"))))
+                ->orWhereHas('numbers', fn ($n) => $n->whereLike('employee_no', "%{$term}%"))
+                ->when(preg_match('/^\d{11}$/', trim((string) $term)) === 1, fn ($x) => $x->orWhere('national_id_hash', Employee::nationalIdHash(trim((string) $term))))
+                ->unless(ctype_digit(trim((string) $term)), fn ($x) => $x->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%")->orWhereLike('email', "%{$term}%")))))
             ->orderBy('employee_no')
             ->paginate($this->perPage($request, 25));
 
@@ -43,10 +46,24 @@ class EmployeeController extends Controller
         $this->authorizeView($employee);
 
         return response()->json(['data' => [
-            'employee' => new EmployeeResource($employee->load(['user', 'school', 'jobTitle', 'department', 'skills'])),
+            'employee' => new EmployeeResource($employee->load(['user', 'school', 'jobTitle', 'department', 'skills', 'numbers'])),
+            'training_history' => $this->trainingHistory($employee),
             'passport' => $passport->build($employee),
             'registrations' => RegistrationResource::collection($employee->registrations()->with('program')->latest()->get()),
         ]]);
+    }
+
+    /** The courses recorded for the person (the Ministry's extract and approved outside activities): the latest hundred, and the totals by year. @return array<string, mixed> */
+    private function trainingHistory(Employee $employee): array
+    {
+        $all = $employee->pdActivities()->where('status', 'approved');
+        $rows = (clone $all)->orderByDesc('starts_on')->limit(100)->get(['id', 'title', 'provider', 'track', 'course_type', 'starts_on', 'ends_on', 'duration_hours', 'approved_hours', 'location', 'source_system']);
+        $byYear = (clone $all)->get(['starts_on', 'approved_hours', 'computed_hours'])->groupBy(fn ($a) => $a->starts_on->year)
+            ->map(fn ($g, $y) => ['year' => (int) $y, 'courses' => $g->count(), 'hours' => round((float) $g->sum(fn ($a) => $a->approved_hours ?? $a->computed_hours), 1)])->sortByDesc('year')->values();
+
+        return ['totals' => ['courses' => $byYear->sum('courses'), 'hours' => round((float) $byYear->sum('hours'), 1), 'by_year' => $byYear],
+            'rows' => $rows->map(fn ($a) => ['id' => $a->id, 'title' => $a->title, 'provider' => $a->provider, 'track' => $a->track, 'type' => $a->course_type, 'starts_on' => $a->starts_on?->toDateString(), 'ends_on' => $a->ends_on?->toDateString(),
+                'hours' => (float) ($a->approved_hours ?? $a->duration_hours), 'country' => $a->location, 'source' => $a->source_system])->values()];
     }
 
     public function store(Request $request): EmployeeResource
