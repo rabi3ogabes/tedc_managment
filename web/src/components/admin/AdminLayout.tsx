@@ -13,6 +13,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
 import HelpButton from '@/components/help/HelpButton'
 import TourHost from '@/components/help/TourHost'
+import AssignmentPopup from '@/components/teaching/AssignmentPopup'
 import ReportProblem from './ReportProblem'
 import UserMenu from './UserMenu'
 import { GROUP_ORDER, SETTINGS_SECTIONS } from '@/pages/admin/settings/registry'
@@ -293,6 +294,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           {portal && <AssistantPanel portal />}
           <ReportProblem />
           <TourHost />
+          <AssignmentPopup />
         </main>
       </div>
     </div>

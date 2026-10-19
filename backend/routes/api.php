@@ -47,6 +47,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitProtectionController;
 use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\KpiController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
@@ -174,6 +175,7 @@ use App\Http\Controllers\Api\V1\Me\MyReportsController;
 use App\Http\Controllers\Api\V1\Me\MySurveyController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Me\RealtimeController;
+use App\Http\Controllers\Api\V1\Me\TeachingController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Payments\CertificationController;
 use App\Http\Controllers\Api\V1\Payments\GatewayController;
@@ -660,6 +662,21 @@ Route::prefix('v1')->group(function () {
             });
             Route::get('lessons/{lesson}/interactions', [VideoInteractionController::class, 'mine']);
             Route::post('lessons/{lesson}/interactions/{interaction}/answer', [VideoInteractionController::class, 'answer']);
+            // The trainer's teaching desk: programmes, the protected kit reader and presenter (no download route exists), popup notices, starting a session.
+            Route::prefix('teaching')->controller(TeachingController::class)->scopeBindings()->group(function () {
+                Route::get('/', 'home');
+                Route::get('notices', 'notices');
+                Route::post('notices/dismiss-all', 'dismissAll');
+                Route::post('notices/{notice}/dismiss', 'dismiss');
+                Route::get('programs/{program}', 'program');
+                Route::post('sessions/{session}/start', 'startSession')->middleware('throttle:30,1');
+                Route::get('kits/{kit}', 'kit');
+                Route::post('kits/{kit}/acknowledge', 'acknowledge');
+                Route::post('kits/{kit}/events', 'event')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/files/{file}', 'view')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/files/{file}/stream', 'stream')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/assets/{asset}', 'asset')->middleware('throttle:600,1');
+            });
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -807,8 +824,12 @@ Route::prefix('v1')->group(function () {
                 Route::get('people', [KitController::class, 'people']);
                 Route::get('ai/status', [KitAiController::class, 'status']);
                 Route::post('/', [KitController::class, 'store']);
+                // Protection of the kits in the trainer's reader and presenter: switches, and the trail of who opened, presented or tried to capture what.
+                Route::get('protection', [KitProtectionController::class, 'show']);
+                Route::put('protection', [KitProtectionController::class, 'update']);
 
                 Route::prefix('{kit}')->group(function () {
+                    Route::get('access-events', [KitProtectionController::class, 'events']);
                     Route::get('/', [KitController::class, 'show']);
                     Route::put('/', [KitController::class, 'update']);
                     Route::delete('/', [KitController::class, 'destroy']);

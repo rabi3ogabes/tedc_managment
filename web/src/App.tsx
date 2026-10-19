@@ -104,6 +104,11 @@ const PublicSurvey = lazy(() => import('@/pages/public/PublicSurvey'))
 const Achievements = lazy(() => import('@/pages/Achievements'))
 const MyQuestions = lazy(() => import('@/pages/portal/MyQuestions'))
 const TrainerInbox = lazy(() => import('@/pages/admin/TrainerInbox'))
+const TeachingHub = lazy(() => import('@/pages/admin/teaching/TeachingHub'))
+const KitReader = lazy(() => import('@/pages/admin/teaching/KitReader'))
+const KitProtectionAdmin = lazy(() => import('@/pages/admin/teaching/KitProtectionAdmin'))
+const PresentationStudio = lazy(() => import('@/pages/admin/teaching/present/PresentationStudio'))
+const PresentAudience = lazy(() => import('@/pages/admin/teaching/present/Audience'))
 const GamificationStudio = lazy(() => import('@/pages/admin/GamificationStudio'))
 const AdaptiveRules = lazy(() => import('@/pages/admin/AdaptiveRules'))
 const MyPrivacy = lazy(() => import('@/pages/MyPrivacy'))
@@ -198,6 +203,8 @@ export default function App() {
         <Route path="lti/launch" element={<LtiLaunch />} />
         <Route path="lti/link" element={<RequireAuth><LtiLink /></RequireAuth>} />
 
+        <Route path="admin/teaching/present/:kitId/:fileId" element={<RequireAuth permission="trainers.respond|kits.view"><PresentationStudio /></RequireAuth>} />
+        <Route path="admin/teaching/audience/:kitId/:fileId" element={<RequireAuth permission="trainers.respond|kits.view"><PresentAudience /></RequireAuth>} />
         <Route path="admin/kits/:kitId/files/:fileId" element={<RequireAuth permission="kits.view"><FileStudio /></RequireAuth>} />
         <Route path="room-screen/:token" element={<RoomScreen />} />
         <Route path="lobby-screen/:token" element={<LobbyScreen />} />
@@ -207,6 +214,9 @@ export default function App() {
         <Route path="admin/sessions/:id/qr" element={<RequireAuth permission="attendance.manage"><SessionQr /></RequireAuth>} />
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Dashboard />} />
+          <Route path="teaching" element={<RequireAuth permission="trainers.respond|kits.view"><TeachingHub /></RequireAuth>} />
+          <Route path="teaching/kits/:kitId" element={<RequireAuth permission="trainers.respond|kits.view"><KitReader /></RequireAuth>} />
+          <Route path="kit-protection" element={<RequireAuth permission="kits.manage"><KitProtectionAdmin /></RequireAuth>} />
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
           <Route path="evaluation-forms" element={<RequireAuth permission="evaluations.manage"><EvaluationForms /></RequireAuth>} />
           <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />

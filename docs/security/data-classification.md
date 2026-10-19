@@ -15,9 +15,9 @@
 
 ## Totals
 
-- Public: 791 columns
-- Internal: 2275 columns
-- Confidential: 534 columns
+- Public: 796 columns
+- Internal: 2290 columns
+- Confidential: 536 columns
 - Restricted: 27 columns
 
 ## Application-level encryption
@@ -1781,6 +1781,22 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `reserved_at` | Internal | — |
 | `available_at` | Internal | — |
 | `created_at` | Internal | — |
+
+### `kit_access_events`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `user_id` | Internal | — |
+| `kit_id` | Internal | — |
+| `kit_file_id` | Internal | — |
+| `program_id` | Internal | — |
+| `session_id` | Internal | — |
+| `kind` | Internal | — |
+| `meta` | Internal | — |
+| `ip` | Confidential | masked in exports |
+| `user_agent` | Confidential | masked in exports |
+| `created_at` | Public | — |
 
 ### `kit_activity`
 
@@ -4668,6 +4684,22 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 | `template_id` | Internal | — |
+
+### `trainer_notices`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `user_id` | Internal | — |
+| `trainer_id` | Internal | — |
+| `program_id` | Internal | — |
+| `group_id` | Internal | — |
+| `scope_key` | Internal | — |
+| `kind` | Internal | — |
+| `seen_at` | Internal | — |
+| `dismissed_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `trainers`
 

@@ -137,7 +137,7 @@ class ProgramKitsAndAnnouncementsTest extends TestCase
         $this->assertStringContainsString('2', AppNotification::where('user_id', $adminA->id)->where('type', 'program.registration_open.school')->value('body_ar')); // two eligible teachers in school A
         $this->assertSame(0, AppNotification::where('user_id', $adminC->id)->where('type', 'program.registration_open.school')->count());
         foreach ([$trainer->user_id, $adminA->id, $adminB->id] as $uid) {
-            $this->assertEqualsCanonicalizing(['email', 'sms'], NotificationDelivery::where('user_id', $uid)->pluck('channel')->all()); // push leaves through its own dispatcher; e-mail and SMS are queued
+            $this->assertEqualsCanonicalizing(['email', 'sms'], NotificationDelivery::where('user_id', $uid)->where('type', 'like', 'program.registration_open.%')->pluck('channel')->all()); // push leaves through its own dispatcher; e-mail and SMS are queued
         }
         $this->assertNotNull(Program::find($id)->registration_announced_at);
 
@@ -148,7 +148,7 @@ class ProgramKitsAndAnnouncementsTest extends TestCase
 
         // A draft opened later by status change is announced; one opened by its date through the scheduler is too.
         $draft = $this->asUser($admin)->postJson('/api/v1/admin/programs', $this->payload(['code' => 'DR-1', 'audience' => $audience, 'trainers' => [['id' => $trainer->id, 'role' => 'lead']]]))->assertCreated()->json('data.id');
-        $this->assertSame(0, AppNotification::where('user_id', $trainer->user_id)->where('data->program_id', $draft)->count()); // a draft tells no one
+        $this->assertSame(0, AppNotification::where('user_id', $trainer->user_id)->where('type', 'like', 'program.registration_open.%')->where('data->program_id', $draft)->count()); // a draft does not announce registration
         $this->asUser($admin)->patchJson("/api/v1/admin/programs/$draft/status", ['status' => 'registration_open'])->assertOk();
         $this->assertSame(1, AppNotification::where('user_id', $trainer->user_id)->where('type', 'program.registration_open.trainer')->where('data->program_id', $draft)->count());
         $dated = $this->asUser($admin)->postJson('/api/v1/admin/programs', $this->payload(['code' => 'DT-1', 'audience' => $audience, 'trainers' => [['id' => $trainer->id, 'role' => 'lead']], 'status' => 'published', 'registration_opens_at' => now()->subHour()->toIso8601String()]))->assertCreated()->json('data.id');

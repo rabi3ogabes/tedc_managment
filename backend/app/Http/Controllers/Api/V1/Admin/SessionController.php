@@ -11,6 +11,7 @@ use App\Services\AttendanceService;
 use App\Services\CalendarService;
 use App\Services\ProgramGrantService;
 use App\Services\RoomService;
+use App\Services\Teaching\TrainerNotices;
 use App\Services\TrainerCertificateService;
 use App\Services\TrainerService;
 use App\Services\TrainingDaySettings;
@@ -42,6 +43,9 @@ class SessionController extends Controller
             $data = ['mode' => 'online', 'online_url' => $program->remote['join_url'] ?? null, 'online_platform' => $program->remote['platform'] ?? null, 'online_passcode' => $program->remote['passcode'] ?? null] + array_filter($data, fn ($v) => $v !== null);
         }
         $session = $program->sessions()->create(Arr::except($data, 'calendar_approval_reason'));
+        if ($session->trainer_id) {
+            app(TrainerNotices::class)->sync($program);
+        }
 
         return (new SessionResource($session->load(['trainer', 'room'])))->response()->setStatusCode(201);
     }
@@ -63,6 +67,9 @@ class SessionController extends Controller
             $this->guardResources($start, $end, $roomId, $trainerId, $session->id, $session->program_id);
         }
         $session->update(Arr::except($data, 'calendar_approval_reason'));
+        if ($session->wasChanged('trainer_id') && $session->trainer_id) {
+            app(TrainerNotices::class)->sync($session->program);
+        }
         // Marking a session delivered can complete a trainer's hours: issue their certificate straight away.
         if (($data['status'] ?? null) === 'completed') {
             app(TrainerCertificateService::class)->sync($session->program);

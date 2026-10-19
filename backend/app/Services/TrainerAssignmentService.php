@@ -11,6 +11,7 @@ use App\Models\Trainer;
 use App\Models\TrainingGroup;
 use App\Models\TrainingKit;
 use App\Models\User;
+use App\Services\Teaching\TrainerNotices;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -81,6 +82,9 @@ class TrainerAssignmentService
         });
 
         $assignment->load(['trainer', 'group.program']);
+        if ($approve) {
+            app(TrainerNotices::class)->sync($assignment->group->program);
+        }
         if ($assignment->trainer?->user_id) {
             $group = $assignment->group;
             $program = $group->program;

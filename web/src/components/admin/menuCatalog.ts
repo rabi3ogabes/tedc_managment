@@ -1,5 +1,5 @@
 import {
-  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen,
+  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
@@ -20,7 +20,9 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
       { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
       { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
+      { to: '/admin/teaching', label: t('teach.nav'), icon: Presentation, permission: 'trainers.respond' },
       { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
+      { to: '/admin/kit-protection', label: t('teach.protection.nav'), icon: ShieldCheck, permission: 'kits.manage' },
       { to: '/admin/evaluation-forms', label: t('evalc.nav'), icon: ClipboardList, permission: 'evaluations.manage' },
       { to: '/admin/evaluation-settings', label: t('evalc.settingsNav'), icon: Settings2, permission: 'evaluations.manage' },
       { to: '/admin/career-paths', label: t('career.nav'), icon: Map, permission: 'paths.manage|licences.manage' },

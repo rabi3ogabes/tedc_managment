@@ -13,6 +13,7 @@ use App\Models\Skill;
 use App\Services\AudienceRules;
 use App\Services\NeedsSurveys\SurveyAudience;
 use App\Services\ProgramPlanner;
+use App\Services\Teaching\TrainerNotices;
 use App\Services\TrainingDaySettings;
 use App\Support\RemoteProgramRules;
 use Carbon\CarbonImmutable;
@@ -130,6 +131,7 @@ class ProgramBuilderController extends Controller
 
         $reason = $this->user()->hasPermission('calendar.approve') ? ($data['calendar_approval_reason'] ?? null) : null;
         $program = $this->planner->create($data, $this->user(), $reason);
+        app(TrainerNotices::class)->sync($program->fresh());
 
         $meta = [];
         $published = in_array($program->status, Program::VISIBLE, true);

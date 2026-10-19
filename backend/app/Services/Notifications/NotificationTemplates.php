@@ -29,7 +29,7 @@ class NotificationTemplates
         $existing = NotificationTemplate::pluck('event')->flip();
         foreach (NotificationCatalog::events() as $event => $d) {
             if (! $existing->has($event)) {
-                NotificationTemplate::create(['event' => $event, 'is_system' => true] + collect($d)->only(['name_ar', 'name_en', 'title_ar', 'title_en', 'body_ar', 'body_en'])->all());
+                NotificationTemplate::create(['event' => $event, 'is_system' => true] + collect($d)->only(['name_ar', 'name_en', 'title_ar', 'title_en', 'body_ar', 'body_en', 'push', 'email', 'sms'])->all());
             }
         }
         Cache::forget(self::CACHE);

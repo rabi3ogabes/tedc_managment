@@ -15,6 +15,7 @@ use App\Services\ProgramCatalogSettings;
 use App\Services\Programs\ProgramAnnouncer;
 use App\Services\Programs\ProgramInstruments;
 use App\Services\Programs\ProgramSessionWriter;
+use App\Services\Teaching\TrainerNotices;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
@@ -85,6 +86,8 @@ class ProgramController extends Controller
 
         // Created already open for registration: the trainers and the schools' system administrators are told now that everything is in place.
         app(ProgramAnnouncer::class)->registrationOpened($program->fresh());
+        // Everyone attached as a trainer is told once: when, for which group, in which room and under whom.
+        app(TrainerNotices::class)->sync($program->fresh());
 
         return (new ProgramResource($program->load(['category', 'skills', 'trainers', 'targetGroups'])))->response()->setStatusCode(201);
     }
@@ -96,6 +99,7 @@ class ProgramController extends Controller
             $this->syncRelations($program, $request);
             $this->syncKits($program, $request);
         });
+        app(TrainerNotices::class)->sync($program->fresh());
 
         return $this->show($program);
     }
