@@ -233,7 +233,7 @@ const en: Dictionary = {
       byCategory: 'Programs by category', statusDist: 'Registration status', upcoming: 'Upcoming sessions', topPrograms: 'Top programs', impact: 'Impact',
     },
     programs: {
-      new: 'New program', edit: 'Edit program', basics: 'Basics', schedule: 'Schedule & capacity', audience: 'Target audience', rules: 'Eligibility rules',
+      new: 'New program', edit: 'Edit program', basics: 'Basics', schedule: 'Schedule & capacity', audience: 'Target audience', rules: 'Admission conditions',
       sessions: 'Sessions', materials: 'Materials', tasks: 'Tasks', participants: 'Participants', code: 'Code', titleAr: 'Title (Arabic)', titleEn: 'Title (English)',
       summaryAr: 'Summary (Arabic)', summaryEn: 'Summary (English)', descriptionAr: 'Description (Arabic)', descriptionEn: 'Description (English)', hours: 'Hours', capacity: 'Capacity',
       minAttendance: 'Minimum attendance %', startDate: 'Start date', endDate: 'End date', opensAt: 'Registration opens', closesAt: 'Registration closes',

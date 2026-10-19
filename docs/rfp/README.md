@@ -5,6 +5,7 @@ This folder tracks how the platform meets the Ministry's RFP (*مشروع بوا
 | File | What it is | Edited by |
 |---|---|---|
 | `gap-register.md` | The 278 requirement IDs with status, evidence and the phase that closes each one. **Source of truth.** | People — after every phase |
+| `gap-register.md` → *Product additions beyond the RFP* | Features with no RFP line behind them (ADD-nn), each with the requirement it serves and why it exists. Not counted in the 278. | People |
 | `compliance-sheet.md` | The RFP's mandatory tables (31 main items, Infrastructure & Security, Technical, KPIs) pre-filled from the register, with a *Proposal page* column. | Generated |
 | `BASELINE.md` | Test counts, versions and how to run the verification gate at the start of the programme. | People |
 | `../../backend/resources/rfp/status.json` | The register as data, read by **Settings → RFP Compliance**. | Generated |

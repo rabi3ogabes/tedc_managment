@@ -231,7 +231,7 @@ const ar = {
       byCategory: 'البرامج حسب المجال', statusDist: 'توزيع حالات التسجيل', upcoming: 'الجلسات القادمة', topPrograms: 'البرامج الأعلى مشاركة', impact: 'الأثر',
     },
     programs: {
-      new: 'برنامج جديد', edit: 'تعديل البرنامج', basics: 'البيانات الأساسية', schedule: 'الجدولة والسعة', audience: 'الفئة المستهدفة', rules: 'شروط الأهلية',
+      new: 'برنامج جديد', edit: 'تعديل البرنامج', basics: 'البيانات الأساسية', schedule: 'الجدولة والسعة', audience: 'الفئة المستهدفة', rules: 'شروط الإلتحاق',
       sessions: 'الجلسات', materials: 'المواد التدريبية', tasks: 'المهام', participants: 'المشاركون', code: 'رمز البرنامج', titleAr: 'العنوان بالعربية', titleEn: 'العنوان بالإنجليزية',
       summaryAr: 'نبذة بالعربية', summaryEn: 'نبذة بالإنجليزية', descriptionAr: 'الوصف بالعربية', descriptionEn: 'الوصف بالإنجليزية', hours: 'عدد الساعات', capacity: 'السعة',
       minAttendance: 'الحد الأدنى للحضور %', startDate: 'تاريخ البدء', endDate: 'تاريخ الانتهاء', opensAt: 'بدء التسجيل', closesAt: 'نهاية التسجيل',
