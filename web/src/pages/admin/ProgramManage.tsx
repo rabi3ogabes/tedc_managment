@@ -35,7 +35,7 @@ export default function ProgramManage() {
   const { can } = useAuth()
   const payments = useFeature('payments')
   const [search] = useSearchParams()
-  const [tab, setTab] = useState<Tab>((search.get('tab') as Tab | null) ?? 'participants')
+  const [tab, setTab] = useState<Tab>((search.get('tab') as Tab | null) ?? 'groups')
   const [notice, setNotice] = useState<string | null>(null)
   const { data, isLoading, error, refetch } = useGet<{ data: Program }>(`/admin/programs/${id}`)
   if (isLoading) return <Spinner />
@@ -65,8 +65,8 @@ export default function ProgramManage() {
       />
       {notice && <div className="mb-4 rounded-xl bg-gold-100 p-3 text-sm text-navy-900">{notice}</div>}
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[
-        { id: 'participants', label: t('admin.programs.participants') },
         { id: 'groups', label: t('groups.tab') },
+        { id: 'participants', label: t('admin.programs.participants') },
         { id: 'structure', label: t('structure.tab') },
         ...(can('registrations.view') ? [{ id: 'admission' as const, label: t('admission.tab') }] : []),
         ...(can('assessments.manage') || can('assessments.grade') || can('assessments.invigilate') ? [{ id: 'assessments' as const, label: t('assess.builder.tab') }] : []),

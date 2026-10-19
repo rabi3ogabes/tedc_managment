@@ -45,7 +45,7 @@ class RegistrationService
     /**
      * @param  bool  $override  training-center staff may bypass the window / eligibility (recorded in the snapshot)
      */
-    public function register(Program $program, Employee $employee, string $source, ?User $actor = null, ?Nomination $nomination = null, bool $override = false, ?TrainingGroup $group = null): Registration
+    public function register(Program $program, Employee $employee, string $source, ?User $actor = null, ?Nomination $nomination = null, bool $override = false, ?TrainingGroup $group = null, bool $ignoreWindow = false): Registration
     {
         if ($group && $group->program_id !== $program->id) {
             throw new BusinessRuleException(__('messages.groups.not_of_program'), 'group_mismatch');
@@ -62,7 +62,7 @@ class RegistrationService
             throw new BusinessRuleException(__('messages.registration.mode_not_allowed'), 'mode_not_allowed');
         }
 
-        if (! $override && ! ($multi ? $group?->isRegistrationOpen() : $program->isRegistrationOpen())) {
+        if (! $override && ! $ignoreWindow && ! ($multi ? $group?->isRegistrationOpen() : $program->isRegistrationOpen())) {
             throw new BusinessRuleException(__('messages.registration.closed'), 'registration_closed');
         }
 
@@ -151,11 +151,11 @@ class RegistrationService
         });
     }
 
-    public function nominate(Program $program, Employee $employee, User $actor, string $nominatorType, ?string $justification = null, bool $override = false, ?TrainingGroup $group = null): Registration
+    public function nominate(Program $program, Employee $employee, User $actor, string $nominatorType, ?string $justification = null, bool $override = false, ?TrainingGroup $group = null, bool $ignoreWindow = false): Registration
     {
         $source = $nominatorType === 'school_admin' ? Registration::SOURCE_SCHOOL : Registration::SOURCE_CENTER;
 
-        return DB::transaction(function () use ($program, $employee, $actor, $nominatorType, $justification, $override, $source, $group) {
+        return DB::transaction(function () use ($program, $employee, $actor, $nominatorType, $justification, $override, $source, $group, $ignoreWindow) {
             $nomination = Nomination::create([
                 'program_id' => $program->id,
                 'employee_id' => $employee->id,
@@ -166,7 +166,7 @@ class RegistrationService
                 'status' => 'pending',
             ]);
 
-            $registration = $this->register($program, $employee, $source, $actor, $nomination, $override, $group);
+            $registration = $this->register($program, $employee, $source, $actor, $nomination, $override, $group, $ignoreWindow);
             $nomination->update(['status' => 'converted', 'decided_at' => now()]);
 
             return $registration;

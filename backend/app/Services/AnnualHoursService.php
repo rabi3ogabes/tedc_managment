@@ -57,6 +57,34 @@ class AnnualHoursService
         ];
     }
 
+    /**
+     * Hours each person trained last year (the counting year before the current one): centre programs and school workshops (certificates),
+     * approved outside activities and approved knowledge transfer, summed — in three queries however many people are asked about.
+     *
+     * @param  list<string>  $employeeIds
+     * @return array{year: int, hours: array<string, float>}
+     */
+    public function lastYearHours(array $employeeIds): array
+    {
+        $year = $this->yearOf() - 1;
+        $hours = array_fill_keys($employeeIds, 0.0);
+        if ($employeeIds === []) {
+            return ['year' => $year, 'hours' => $hours];
+        }
+        [$from, $to] = $this->bounds($year);
+        foreach (Certificate::whereIn('employee_id', $employeeIds)->where('status', 'valid')->whereBetween('issued_at', [$from, $to])->selectRaw('employee_id, sum(hours) as h')->groupBy('employee_id')->pluck('h', 'employee_id') as $id => $h) {
+            $hours[$id] += (float) $h;
+        }
+        foreach (PdActivity::whereIn('employee_id', $employeeIds)->where('status', 'approved')->whereBetween('starts_on', [$from, $to])->get(['employee_id', 'approved_hours', 'computed_hours']) as $a) {
+            $hours[$a->employee_id] += (float) ($a->approved_hours ?? $a->computed_hours);
+        }
+        foreach (KnowledgeTransfer::whereIn('employee_id', $employeeIds)->where('status', 'approved')->whereBetween('delivered_on', [$from, $to])->selectRaw('employee_id, sum(hours) as h')->groupBy('employee_id')->pluck('h', 'employee_id') as $id => $h) {
+            $hours[$id] += (float) $h;
+        }
+
+        return ['year' => $year, 'hours' => array_map(fn ($h) => round($h, 1), $hours)];
+    }
+
     public function allTime(Employee $e): float
     {
         return round(array_sum($this->bySource($e)), 1);

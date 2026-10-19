@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\V1\Admin\ExternalLearningController;
 use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
 use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
+use App\Http\Controllers\Api\V1\Admin\GroupTraineeController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
@@ -1017,6 +1018,7 @@ Route::prefix('v1')->group(function () {
 
             // Registrations & nominations
             Route::get('registrations/import/template', [RegistrationController::class, 'template'])->middleware('permission:registrations.import');
+            Route::post('employees/hours-last-year', [GroupTraineeController::class, 'hours'])->middleware('permission:registrations.view|employees.view|programs.view|nominations.center|nominations.school');
             Route::middleware('permission:registrations.view')->group(function () {
                 Route::get('registrations', [RegistrationController::class, 'index']);
                 Route::get('registrations/{registration}', [RegistrationController::class, 'show']);
@@ -1028,6 +1030,10 @@ Route::prefix('v1')->group(function () {
             });
             Route::middleware('permission:nominations.center|nominations.school')->group(function () {
                 Route::post('programs/{program}/nominations', [RegistrationController::class, 'nominate']);
+                // Adding trainees to a group: by employee number or from a school's staff — target audience only.
+                Route::get('groups/{group}/trainee-candidates', [GroupTraineeController::class, 'candidates']);
+                Route::post('groups/{group}/trainees/check', [GroupTraineeController::class, 'check']);
+                Route::post('groups/{group}/trainees', [GroupTraineeController::class, 'store']);
                 Route::get('programs/{program}/candidates', [RegistrationController::class, 'candidates']);
                 Route::post('programs/{program}/registrations/import', [RegistrationController::class, 'import'])->middleware('permission:registrations.import');
             });

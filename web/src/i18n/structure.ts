@@ -1,6 +1,7 @@
 /** Training groups, trainer assignment, the annual plan and internal workshops (Phase 02). */
 export const structureAr = {
   groups: {
+    trainees: { title: 'المتدربون', add: 'إضافة متدربين', none: 'لا متدربين في هذه المجموعة بعد.' },
     tab: 'المجموعات', title: 'المجموعات التدريبية', hint: 'كل مجموعة لها مواعيدها ومقاعدها ومشرفها ومدربوها وحالتها.', new: 'مجموعة جديدة', empty: 'لا توجد مجموعات بعد.', seats: 'مقعد', sessions: 'جلسة',
     clone: 'نسخ', publish: 'نشر', unpublish: 'إلغاء النشر', changeStatus: 'تغيير الحالة', delete: 'حذف', confirmDelete: 'حذف المجموعة «{{name}}»؟', saved: 'تم الحفظ', deleted: 'تم الحذف',
     start: 'البداية', end: 'النهاية', capacity: 'السعة', mode: 'نمط التقديم', modes: { in_person: 'حضوري', online: 'عن بُعد', blended: 'مدمج', self_paced: 'ذاتي' },
@@ -88,6 +89,7 @@ export const structureAr = {
 
 export const structureEn: typeof structureAr = {
   groups: {
+    trainees: { title: 'Trainees', add: 'Add trainees', none: 'No trainees in this group yet.' },
     tab: 'Groups', title: 'Training groups', hint: 'Each group has its own dates, seats, supervisor, trainers and status.', new: 'New group', empty: 'No groups yet.', seats: 'seats', sessions: 'sessions',
     clone: 'Clone', publish: 'Publish', unpublish: 'Unpublish', changeStatus: 'Change status', delete: 'Delete', confirmDelete: 'Delete group “{{name}}”?', saved: 'Saved', deleted: 'Deleted',
     start: 'Start', end: 'End', capacity: 'Capacity', mode: 'Delivery', modes: { in_person: 'In person', online: 'Online', blended: 'Blended', self_paced: 'Self-paced' },

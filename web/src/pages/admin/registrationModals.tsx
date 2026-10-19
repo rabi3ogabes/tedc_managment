@@ -6,6 +6,7 @@ import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import type { Eligibility, Employee } from '@/lib/types'
+import { HoursChip, useLastYearHours } from './program/lastYearHours'
 
 type NominationResult = { employee_id: string; ok: boolean; status?: string; message?: string; details?: Eligibility }
 
@@ -24,6 +25,7 @@ export function NominateModal({ open, onClose, programId }: { open: boolean; onC
   const search = useGet<{ data: Employee[] }>(open && q.length > 1 ? '/admin/employees' : null, { q, per_page: 10 })
 
   const list = q.length > 1 ? search.data?.data ?? [] : (candidates.data?.data ?? []).map((c) => c.employee)
+  const { hours, year } = useLastYearHours(list.map((e) => e.id))
   const toggle = (e: Employee) => setSelected((s) => (s.some((x) => x.id === e.id) ? s.filter((x) => x.id !== e.id) : [...s, e]))
 
   const submit = async () => {
@@ -60,11 +62,11 @@ export function NominateModal({ open, onClose, programId }: { open: boolean; onC
           {!q && <p className="mb-2 text-xs font-bold text-gold-700">{t('admin.registrations.candidates')}</p>}
           <div className="max-h-72 overflow-y-auto rounded-xl border border-navy-100">
             {candidates.isLoading ? <Spinner /> : (
-              <Table head={['', t('common.name'), t('admin.employees.school'), t('admin.employees.jobTitle')]}>
+              <Table head={['', t('common.name'), t('admin.employees.school'), t('admin.employees.jobTitle'), t('admin.programs.traineesAdd.hoursCol')]}>
                 {list.map((e) => (
                   <tr key={e.id} className="cursor-pointer hover:bg-ivory" onClick={() => toggle(e)}>
                     <Td><input type="checkbox" readOnly className="accent-gold-600" checked={selected.some((s) => s.id === e.id)} /></Td>
-                    <Td className="font-semibold">{e.name}</Td><Td className="text-xs">{e.school?.name}</Td><Td className="text-xs">{e.job_title?.name}</Td>
+                    <Td className="font-semibold">{e.name}</Td><Td className="text-xs">{e.school?.name}</Td><Td className="text-xs">{e.job_title?.name}</Td><Td><HoursChip hours={hours[e.id]} year={year} /></Td>
                   </tr>
                 ))}
               </Table>

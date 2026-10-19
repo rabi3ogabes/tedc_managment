@@ -248,6 +248,13 @@ const en: Dictionary = {
         edited: 'You edited the sessions by hand; they will not change when the fields change.', regenerate: 'Regenerate', from: 'From', to: 'To', online: 'Online session', addSession: 'Add a session', hoursNote: 'The training day is {{h}} hours ({{from}}–{{to}})',
         approval: 'Reason for approving closed days', approvalHint: 'Some sessions fall on days closed for training; give the reason and the days are approved when the programme is saved.', approvalDenied: 'Some sessions fall on closed days and need the calendar approval permission; change the dates or ask for the approval.', approvalPlaceholder: 'e.g. an emergency programme by management decision',
       },
+      traineesAdd: {
+        title: 'Add trainees', rule: 'Only people in the program\'s target audience can be added: the school list shows only them, the number check says why anyone else is refused, and this screen cannot override it.',
+        bySchool: 'From a school\'s staff', byNumber: 'By employee number', numbersPh: 'Type one or more numbers, separated by a space, comma or new line', addToList: 'Add to the list ({{n}})',
+        findSchool: 'Find a school…', school: 'School', findPerson: 'Search by name or employee number…', audienceOf: '{{n}} of {{total}} staff are in the target audience', outside: '{{n}} are outside the target audience — not shown', already: '{{n}} are already in the program',
+        selectAll: 'Select all', shown: 'Shown: {{n}}', none: 'No staff of this school are in the target audience.', selected: 'Selected ({{n}})', submit: 'Add {{n}} to the group', added: 'Added to the group',
+        hoursCol: 'Hours last year', hoursTitle: 'Training hours last year {{year}}',
+      },
       groups: {
         title: 'Groups', name: 'Group name (Arabic, optional)', nameEn: 'Group name (English)', add: 'Add a group', suggest: 'Suggest a name from the target audience', suggestAll: 'Suggest names from the target audience',
         hint: 'Every programme has at least one group. Names are suggested from the target audience with the group\'s number (Teachers 1 · Coordinators 2 · Leaders 3), and you can rename a group at any time.',

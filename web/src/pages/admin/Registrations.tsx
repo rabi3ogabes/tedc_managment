@@ -8,6 +8,7 @@ import { useGet } from '@/hooks/useApi'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Program, Registration } from '@/lib/types'
+import { HoursChip, useLastYearHours } from './program/lastYearHours'
 import { Pager } from './shared'
 
 export default function Registrations() {
@@ -19,6 +20,7 @@ export default function Registrations() {
   const programs = useGet<Paginated<Program>>('/admin/programs', { per_page: 100 })
   const { data, isLoading } = useGet<Paginated<Registration>>('/admin/registrations', { ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)), page })
 
+  const { hours, year } = useLastYearHours((data?.data ?? []).map((r) => r.employee_id))
   return (
     <>
       <PageHeader title={t('admin.registrations.title')} subtitle={t('hlp.regSubtitle')} actions={(can('registrations.manage') || can('registrations.approve_center') || can('registrations.approve_manager')) && <Button variant="gold" to="/admin/approvals">{t('hlp.regApprovals')}</Button>} />
@@ -32,6 +34,7 @@ export default function Registrations() {
         <DataView id="admin.registrations" rows={data?.data} total={data?.meta?.total} loading={isLoading} rowKey={(r) => r.id} columns={[
           { key: 'employee', header: t('admin.registrations.employee'), role: 'title', cell: (r) => <><div className="font-semibold text-navy-900">{r.employee?.name}</div><div className="text-xs font-normal text-slate-400">{r.employee?.school?.name}</div></> },
           { key: 'program', header: t('admin.registrations.program'), cell: (r) => <Link to={`/admin/programs/${r.program_id}`} className="text-sm font-semibold text-navy-800 hover:text-link">{r.program?.title}</Link> },
+          { key: 'hours', header: t('admin.programs.traineesAdd.hoursCol'), cell: (r) => <HoursChip hours={hours[r.employee_id]} year={year} /> },
           { key: 'group', header: t('admin.programs.groups.column'), cell: (r) => <span className="text-xs font-semibold text-navy-800">{r.group?.title ?? '—'}</span> },
           { key: 'source', header: t('admin.registrations.source'), cell: (r) => <span className="text-xs text-slate-500">{t(`sources.${r.source}`)}</span> },
           { key: 'eligibility', header: t('admin.registrations.eligibility'), cell: (r) => <button onClick={() => setViewing(r)}><StatusBadge status={r.eligibility?.eligible === false ? 'not_eligible' : 'eligible'} label={r.eligibility?.label ?? t('status.eligible')} /></button> },

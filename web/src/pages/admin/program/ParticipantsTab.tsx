@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Program, Registration } from '@/lib/types'
 import { ImportModal, NominateModal } from '../registrationModals'
+import { HoursChip, useLastYearHours } from './lastYearHours'
 import PassStatusModal from './PassStatusModal'
 
 export default function ParticipantsTab({ program }: { program: Program }) {
@@ -50,6 +51,7 @@ export default function ParticipantsTab({ program }: { program: Program }) {
   }
 
   const rows = data?.data ?? []
+  const { hours, year } = useLastYearHours(rows.map((r) => r.employee_id))
   return (
     <Card padded={false}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy-100 p-4">
@@ -78,6 +80,7 @@ export default function ParticipantsTab({ program }: { program: Program }) {
       <DataView id="admin.program.participants" rows={rows} total={data?.meta?.total} loading={isLoading} rowKey={(r) => r.id} isSelected={(r) => selected.includes(r.id)} columns={[
         { key: 'select', header: '', role: 'select', cell: (r) => <input type="checkbox" className="accent-gold-600" aria-label={r.employee?.name} checked={selected.includes(r.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, r.id] : selected.filter((x) => x !== r.id))} /> },
         { key: 'employee', header: t('admin.registrations.employee'), role: 'title', cell: (r) => <><div className="font-semibold text-navy-900">{r.employee?.name}</div><div className="text-xs font-normal text-slate-400">{r.employee?.school?.name} · {r.employee?.employee_no}</div></> },
+        { key: 'hours', header: t('admin.programs.traineesAdd.hoursCol'), cell: (r) => <HoursChip hours={hours[r.employee_id]} year={year} /> },
         { key: 'group', header: t('admin.programs.groups.column'), cell: (r) => (can('registrations.manage') && groups.length > 1
           ? <select className="input w-auto min-w-28 py-1 text-xs" value={r.group?.id ?? ''} onChange={(e) => e.target.value && void move([r.id], e.target.value)} aria-label={t('admin.programs.groups.column')}>{!r.group && <option value="">—</option>}{groups.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}</select>
           : <span className="text-xs font-semibold text-navy-800">{r.group?.title ?? '—'}</span>) },

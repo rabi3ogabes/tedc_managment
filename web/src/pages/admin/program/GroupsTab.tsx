@@ -1,4 +1,5 @@
-import { CalendarPlus, Copy, GraduationCap, Globe, GlobeLock, Pencil, Plus, Trash2, UserPlus } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { CalendarPlus, ChevronDown, Copy, GraduationCap, Globe, GlobeLock, Pencil, Plus, Trash2, UserPlus, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, Spinner } from '@/components/ui'
@@ -9,6 +10,9 @@ import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
 import { dialogs } from '@/lib/dialogs'
+import type { Registration } from '@/lib/types'
+import AddTraineesModal from './AddTraineesModal'
+import { HoursChip, useLastYearHours } from './lastYearHours'
 
 export type GroupTrainer = { id: string; trainer_id: string; name: string | null; role: string; status: string }
 export type Group = {
@@ -57,7 +61,11 @@ export default function GroupsTab({ program }: { program: Program }) {
   const [statusFor, setStatusFor] = useState<Group | null>(null)
   const [proposeFor, setProposeFor] = useState<Group | null>(null)
   const [decideFor, setDecideFor] = useState<GroupTrainer | null>(null)
+  const [addFor, setAddFor] = useState<Group | null>(null)
+  const qc = useQueryClient()
   const manage = can('groups.manage')
+  const canAdd = can('nominations.center') || can('nominations.school')
+  const refreshAll = () => { void list.refetch(); void qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').includes('/participants') }) }
 
   const create = async () => {
     setBusy(true)
@@ -100,6 +108,7 @@ export default function GroupsTab({ program }: { program: Program }) {
               ))}</ul>
             )}
           </div>
+          <Trainees group={g} canAdd={canAdd} onAdd={() => setAddFor(g)} />
           {manage && (
             <div className="flex flex-wrap gap-2">
               {g.allowed_transitions.length > 0 && can('groups.status') && <Button size="sm" variant="outline" icon={<Pencil className="size-4" />} onClick={() => setStatusFor(g)}>{t('groups.changeStatus')}</Button>}
@@ -133,9 +142,44 @@ export default function GroupsTab({ program }: { program: Program }) {
         </div>
       </Modal>
 
+      <AddTraineesModal group={addFor} onClose={() => setAddFor(null)} onDone={refreshAll} />
       <StatusDialog group={statusFor} onClose={() => setStatusFor(null)} onDone={() => void list.refetch()} />
       <ProposeDialog group={proposeFor} locale={i18n.language} onClose={() => setProposeFor(null)} onDone={() => void list.refetch()} />
       <DecideDialog assignment={decideFor} onClose={() => setDecideFor(null)} onDone={() => void list.refetch()} />
+    </div>
+  )
+}
+
+/** The group's trainees (loaded when opened), each with the hours trained last year; trainees are added here, from the school's staff or by employee number. */
+function Trainees({ group, canAdd, onAdd }: { group: Group; canAdd: boolean; onAdd: () => void }) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const res = useGet<{ data: Registration[] }>(open ? `/admin/groups/${group.id}/participants` : null, undefined, { staleTime: 0 })
+  const rows = res.data?.data ?? []
+  const { hours, year } = useLastYearHours(rows.map((r) => r.employee_id))
+  return (
+    <div className="rounded-xl border border-navy-100">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2 text-start text-xs font-bold text-slate-600">
+          <Users className="size-4" />{t('groups.trainees.title')} <Badge color="gold">{fmt.number(group.seats_taken)}</Badge><ChevronDown className={`size-4 transition ${open ? 'rotate-180' : ''}`} />
+        </button>
+        {canAdd && <button type="button" onClick={onAdd} className="flex items-center gap-1 text-xs font-bold text-navy-800 hover:text-gold-700"><UserPlus className="size-4" />{t('groups.trainees.add')}</button>}
+      </div>
+      {open && (
+        <div className="border-t border-navy-100">
+          {res.isLoading ? <Spinner /> : rows.length === 0 ? <p className="p-4 text-center text-xs text-slate-400">{t('groups.trainees.none')}</p> : (
+            <ul className="max-h-72 divide-y divide-slate-100 overflow-y-auto">
+              {rows.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1"><span className="block font-semibold text-navy-900">{r.employee?.name}</span><span className="block text-xs text-slate-500"><span className="font-mono" dir="ltr">{r.employee?.employee_no}</span> · {r.employee?.school?.name}{r.employee?.job_title ? ` · ${r.employee.job_title.name}` : ''}</span></span>
+                  <HoursChip hours={hours[r.employee_id]} year={year} />
+                  <Badge color={r.status === 'approved' ? 'green' : r.status === 'waitlisted' ? 'blue' : 'gold'}>{t(`status.${r.status}`)}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }
