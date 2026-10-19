@@ -248,6 +248,21 @@ const en: Dictionary = {
         edited: 'You edited the sessions by hand; they will not change when the fields change.', regenerate: 'Regenerate', from: 'From', to: 'To', online: 'Online session', addSession: 'Add a session', hoursNote: 'The training day is {{h}} hours ({{from}}–{{to}})',
         approval: 'Reason for approving closed days', approvalHint: 'Some sessions fall on days closed for training; give the reason and the days are approved when the programme is saved.', approvalDenied: 'Some sessions fall on closed days and need the calendar approval permission; change the dates or ask for the approval.', approvalPlaceholder: 'e.g. an emergency programme by management decision',
       },
+      widgets: {
+        view: 'View', viewTabs: 'Tabs', viewWidgets: 'Widgets', intro: 'Every section of the program on one page: press a widget to open it in a window where you edit its options.', details: 'Program details', openAsTab: 'Open as a tab', editHint: 'Edit the program\'s details, then press Save.',
+        hint: {
+          details: 'Title, description, dates, capacity, target audience, trainers and kits.', groups: 'The program\'s groups, their names, dates and trainers, and adding trainees to them.', participants: 'Everyone registered, their status, attendance and moving them between groups.',
+          structure: 'Units and sub-programs with their hours.', admission: 'Seats by entity, priority rules, the waiting list and withdrawal.', assessments: 'Pre-, post- and final tests and question banks.',
+          passing: 'Pass-criteria weights and attendance, task and test conditions.', evaluation: 'Evaluation forms, interviews and the program evaluation report.', sessions: 'The program\'s sessions, their times, rooms and attendance.',
+          course: 'The e-course with its modules and lessons.', remote: 'Remote session tracking and Teams attendance.', rules: 'Admission conditions: job, experience, qualification and more.', tasks: 'Program tasks, trainees\' submissions and grading.',
+          materials: 'Files, links and videos trainees open from «My training».', survey: 'The survey, when it opens and its notifications.', certificates: 'Issuing certificates, their type and template.', impact: 'The program\'s impact on performance after it ends.', staff: 'Rights on this program only, for chosen people.',
+        },
+        m: {
+          approved: 'approved', pending: 'awaiting approval', groups: 'groups', seats: 'seats', units: 'units', subPrograms: 'sub-programs', waiting: 'waiting', tests: 'tests', published: 'published', passed: 'passed', trainees: 'trainees', forms: 'forms', interviews: 'interviews',
+          sessionsDone: 'sessions done', next: 'next', modules: 'modules', lessons: 'lessons', rules: 'conditions', tasks: 'tasks', files: 'files', surveyMode: 'survey opens', issued: 'certificates issued', impact: 'average impact', grants: 'rights granted',
+          mode: { always: 'always', manual: 'manual', auto: 'automatic' },
+        },
+      },
       traineesAdd: {
         title: 'Add trainees', rule: 'Only people in the program\'s target audience can be added: the school list shows only them, the number check says why anyone else is refused, and this screen cannot override it.',
         bySchool: 'From a school\'s staff', byNumber: 'By employee number', numbersPh: 'Type one or more numbers, separated by a space, comma or new line', addToList: 'Add to the list ({{n}})',
