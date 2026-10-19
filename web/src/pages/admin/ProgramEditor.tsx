@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Fingerprint, Languages, Lock, LockOpen, Mic, Plus, Trash2 } from 'lucide-react'
+import { AlertTriangle, Fingerprint, Languages, Lock, LockOpen, Mic, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -72,6 +72,7 @@ export default function ProgramEditor() {
   useEffect(() => { if (!id && codeLocked && nextCode.data) setForm((f) => (f.code === nextCode.data!.data.code ? f : { ...f, code: nextCode.data!.data.code })) }, [id, codeLocked, nextCode.data])
   const topRef = useRef<HTMLDivElement>(null)
   const name = (o: { name_ar: string; name_en: string }) => (i18n.language === 'ar' ? o.name_ar : o.name_en)
+  const busy = !id && plan.enabled ? plan.sessions.flatMap((s) => s.flags.filter((f) => f.code === 'trainer_busy').map((f) => ({ flag: i18n.language === 'en' ? f.en : f.ar, date: s.starts_at.slice(0, 10) }))) : []
 
   useEffect(() => {
     const p = existing.data?.data
@@ -238,9 +239,18 @@ export default function ProgramEditor() {
             <CardTitle action={<Button size="sm" variant="outline" icon={<Plus className="size-4" />} onClick={() => set('trainers', [...form.trainers, { id: L.trainers[0].id, role: 'lead' }])} />}>{t('admin.programs.trainers')}</CardTitle>
             <div className="space-y-2">
               {form.trainers.map((tr, i) => (
-                <div key={i} className="flex gap-2">
-                  <select className="input" value={tr.id} onChange={(e) => set('trainers', form.trainers.map((x, j) => (j === i ? { ...x, id: e.target.value } : x)))}>{L.trainers.map((k) => <option key={k.id} value={k.id}>{name(k)}</option>)}</select>
-                  <button className="text-slate-400 hover:text-danger" onClick={() => set('trainers', form.trainers.filter((_, j) => j !== i))}><Trash2 className="size-4" /></button>
+                <div key={i}>
+                  <div className="flex gap-2">
+                    <select className="input" value={tr.id} onChange={(e) => set('trainers', form.trainers.map((x, j) => (j === i ? { ...x, id: e.target.value } : x)))}>{L.trainers.map((k) => <option key={k.id} value={k.id}>{name(k)}</option>)}</select>
+                    <button className="text-slate-400 hover:text-danger" onClick={() => set('trainers', form.trainers.filter((_, j) => j !== i))}><Trash2 className="size-4" /></button>
+                  </div>
+                  {/* The trainer the session plan is built for: when they teach elsewhere at the same time, it is said here too, with the dates. */}
+                  {i === 0 && busy.length > 0 && (
+                    <p role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold text-danger">
+                      <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                      <span>{busy[0].flag}{' '}<span className="font-normal text-slate-500" dir="ltr">({busy.map((b) => b.date).join(' · ')})</span></span>
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
