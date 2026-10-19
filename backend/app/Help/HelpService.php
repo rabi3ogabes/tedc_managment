@@ -217,7 +217,7 @@ class HelpService
     {
         $done = UserTour::where('user_id', $user->id)->pluck('tour_key')->all();
         $role = $this->primaryRole($user);
-        $first = "first-login:{$role}";
+        $first = "first-login:{$role}.v2";
         if (! in_array($first, $done, true)) {
             return ['key' => $first, 'kind' => 'first-login', 'steps' => TourCatalog::firstLogin($role)];
         }

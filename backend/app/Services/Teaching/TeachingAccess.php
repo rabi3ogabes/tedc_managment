@@ -9,6 +9,7 @@ use App\Models\KitFile;
 use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\Role;
 use App\Models\Trainer;
 use App\Models\TrainingKit;
 use App\Models\User;
@@ -139,7 +140,7 @@ class TeachingAccess
         $what = ['capture_attempt' => ['ar' => 'تصوير للشاشة', 'en' => 'tried to capture the screen'], 'print_attempt' => ['ar' => 'طباعة أو حفظ', 'en' => 'tried to print or save'], 'tamper' => ['ar' => 'عبث بحماية المحتوى', 'en' => 'tried to tamper with the content protection']][$kind];
         $d = ['ar' => "رُصدت محاولة {$what['ar']} من {$user->displayName('ar')} أثناء عرض الحقيبة «{$kit->title_ar}»".($file ? " (الملف: {$file->name})" : '').($program ? " في برنامج «{$program->title_ar}»" : '').'. أُخفي المحتوى وسُجّلت المحاولة.',
             'en' => "{$user->displayName('en')} {$what['en']} while viewing the kit \"".($kit->title_en ?: $kit->title_ar).'"'.($file ? " (file: {$file->name})" : '').($program ? ' in "'.($program->title_en ?: $program->title_ar).'"' : '').'. The content was blacked out and the attempt logged.'];
-        $staff = User::whereHas('roles', fn ($q) => $q->whereIn('slug', \App\Models\Role::CENTER_STAFF))->where('status', 'active')->where('id', '!=', $user->id)->pluck('id');
+        $staff = User::whereHas('roles', fn ($q) => $q->whereIn('slug', Role::CENTER_STAFF))->where('status', 'active')->where('id', '!=', $user->id)->pluck('id');
         $this->notifications->broadcast($staff, 'kit.capture_attempt', ['ar' => 'محاولة تصوير حقيبة تدريبية', 'en' => 'Attempt to capture a training kit'], $d,
             ['kit_id' => $kit->id, 'program_id' => $program?->id, 'route' => '/admin/kit-protection', 'detail_ar' => $d['ar'], 'detail_en' => $d['en']]);
     }

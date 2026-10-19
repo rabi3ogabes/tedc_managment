@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Help\HelpService;
+use App\Help\TourCatalog;
 use App\Models\HelpArticle;
 use App\Models\Role;
 use Database\Seeders\HelpArticlesSeeder;
@@ -151,9 +152,9 @@ class HelpCentreTest extends TestCase
     {
         $user = $this->makeUser(Role::EMPLOYEE);
         $t = $this->asUser($user)->getJson('/api/v1/me/tours')->assertOk()->json('data');
-        $this->assertSame('first-login:employee', $t['key']);
+        $this->assertSame('first-login:employee.v2', $t['key']);
         $this->assertGreaterThanOrEqual(3, count($t['steps']));
-        $this->assertSame('my-training', collect($t['steps'])->last()['target']);
+        $this->assertSame('/portal/passport', collect($t['steps'])->last()['route']);
 
         $this->asUser($user)->postJson('/api/v1/me/tours', ['key' => $t['key'], 'state' => 'dismissed'])->assertCreated();
         $n = $this->asUser($user)->getJson('/api/v1/me/tours')->json('data');
@@ -162,11 +163,28 @@ class HelpCentreTest extends TestCase
         $this->assertNull($this->asUser($user)->getJson('/api/v1/me/tours')->json('data'));
 
         $this->asUser($user)->deleteJson('/api/v1/me/tours')->assertOk();
-        $this->assertSame('first-login:employee', $this->asUser($user)->getJson('/api/v1/me/tours')->json('data.key'));
+        $this->assertSame('first-login:employee.v2', $this->asUser($user)->getJson('/api/v1/me/tours')->json('data.key'));
         $this->asUser($user)->postJson('/api/v1/me/tours', ['key' => 'bad key!'])->assertStatus(422);
 
         $trainer = $this->makeUser(Role::TRAINER);
-        $this->assertSame('first-login:trainer', $this->asUser($trainer)->getJson('/api/v1/me/tours')->json('data.key'));
+        $this->assertSame('first-login:trainer.v2', $this->asUser($trainer)->getJson('/api/v1/me/tours')->json('data.key'));
+    }
+
+    public function test_every_role_has_its_own_story_after_the_shared_steps_in_both_languages(): void
+    {
+        $common = count(TourCatalog::firstLogin('nobody-role')) - 1;
+        foreach (HelpService::MANUAL_ROLES as $role) {
+            $steps = TourCatalog::firstLogin($role);
+            $this->assertGreaterThan($common, count($steps), $role);
+            foreach ($steps as $step) {
+                foreach (['title_ar', 'title_en', 'body_ar', 'body_en'] as $k) {
+                    $this->assertNotSame('', trim((string) $step[$k]), "$role $k");
+                }
+                $this->assertSame(count($step['points_ar']), count($step['points_en']), "$role points");
+            }
+            $this->assertCount(count($steps), collect($steps)->unique('title_en'), "$role has repeated steps");
+        }
+        $this->assertGreaterThanOrEqual(2, count(TourCatalog::firstLogin(Role::TRAINER)) - $common);
     }
 
     public function test_screenshots_and_video_attach_to_an_article_and_appear_in_the_manual(): void

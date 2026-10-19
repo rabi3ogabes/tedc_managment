@@ -148,7 +148,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
               {group.items.map((item) => item.to === '/admin/settings' && settingsChildren.length > 0 && !compact ? (
                 <div key={item.to}>
                   <div className={clsx('flex items-stretch rounded-xl transition', onSettings ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 ring-1 ring-gold-500/30' : 'hover:bg-white/5')}>
-                    <Link to="/admin/settings?tab=home" onClick={() => !settingsOpen && toggleSettings(true)}
+                    <Link to="/admin/settings?tab=home" data-tour="nav:/admin/settings" onClick={() => !settingsOpen && toggleSettings(true)}
                       className={clsx('flex flex-1 items-center gap-3 px-3 py-2.5 text-sm font-medium', onSettings ? 'text-gold-300' : 'text-white/70 hover:text-white')}>
                       <item.icon className="size-5" />
                       {item.label}
@@ -191,7 +191,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                   </div>
                 </div>
               ) : (
-                <NavLink key={item.to} to={item.to} end={item.end} title={compact ? item.label : undefined} aria-label={compact ? item.label : undefined}
+                <NavLink key={item.to} to={item.to} end={item.end} data-tour={`nav:${item.to}`} title={compact ? item.label : undefined} aria-label={compact ? item.label : undefined}
                   className={({ isActive }) => clsx('relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition', compact ? 'justify-center px-0' : 'px-3',
                     isActive ? 'bg-gradient-to-l from-gold-500/25 to-gold-500/5 text-gold-300 ring-1 ring-gold-500/30' : 'text-white/70 hover:bg-white/5 hover:text-white')}>
                   <item.icon className="size-5 shrink-0" />
@@ -265,7 +265,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
               <HelpButton portal={portal} />
               <LanguageToggle />
               <CartDrawer />
-              <Link to="/portal/notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
+              <Link to="/portal/notifications" data-tour="notifications" className="relative rounded-xl p-2 text-navy-800 hover:bg-navy-100/60" aria-label="notifications">
                 <Bell className="size-5" />
                 {unreadCount > 0 && <span className={clsx('absolute -end-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-gold-500 px-1 text-[10px] font-bold text-navy-950', pulse && 'animate-bounce')}>{unreadCount}</span>}
               </Link>
@@ -293,7 +293,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           </AppErrorBoundary>
           {portal && <AssistantPanel portal />}
           <ReportProblem />
-          <TourHost />
+          <TourHost portal={portal} groups={visible.map((g) => ({ id: g.id, title: g.title, items: g.items.map((i) => ({ to: i.to, label: i.label, icon: i.icon })) }))} />
           <AssignmentPopup />
         </main>
       </div>
