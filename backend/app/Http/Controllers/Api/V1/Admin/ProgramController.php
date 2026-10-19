@@ -12,6 +12,7 @@ use App\Services\AudienceRules;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
 use App\Services\ProgramCatalogSettings;
+use App\Services\Programs\GroupNamer;
 use App\Services\Programs\ProgramAnnouncer;
 use App\Services\Programs\ProgramInstruments;
 use App\Services\Programs\ProgramSessionWriter;
@@ -80,7 +81,7 @@ class ProgramController extends Controller
             $this->syncRelations($program, $request);
             // The generated session plan lands on the first group, with every calendar, room and trainer rule enforced; one refused session rolls everything back.
             $this->syncKits($program, $request);
-            $this->applyGroups($program, $groups);
+            $this->applyGroups($program, $groups, $request);
             if (! empty($plan['sessions'])) {
                 app(ProgramSessionWriter::class)->write($program, $plan['sessions'], ['delivery_mode' => $data['delivery_mode'] ?? 'in_person', 'trainers' => $request->input('trainers', [])], $this->user(), $approval);
             }
@@ -185,18 +186,25 @@ class ProgramController extends Controller
         ] + RemoteProgramRules::rules());
     }
 
-    /** The groups named on a new programme's form: the first renames the group every programme starts with, the others are added with the programme's dates. @param list<array<string, mixed>> $groups */
-    private function applyGroups(Program $program, array $groups): void
+    /**
+     * The groups named on a new programme's form: the first names the group every programme starts with, the others are added with the
+     * programme's dates. A group left without a name is named from the audience («معلمون 1»), else «المجموعة 1» — so every new programme
+     * has at least one named group. @param list<array<string, mixed>> $groups
+     */
+    private function applyGroups(Program $program, array $groups, Request $request): void
     {
-        if ($groups === []) {
-            return;
-        }
+        $groups = $groups === [] ? [[]] : array_values($groups);
+        $titles = collect($request->input('target_groups', []))->pluck('job_title_id')->merge((array) $request->input('audience.job_title_ids', []))->filter()->unique()->values()->all();
+        $suggested = app(GroupNamer::class)->suggest($titles, (array) $request->input('audience.genders', []), 1, count($groups));
         $first = $program->groups()->orderBy('sequence')->first();
         $service = app(TrainingGroupService::class);
-        foreach (array_values($groups) as $i => $g) {
-            $names = ['title_ar' => $g['title_ar'] ?? null, 'title_en' => ($g['title_en'] ?? null) ?: ($g['title_ar'] ?? null)];
+        foreach ($groups as $i => $g) {
+            $ar = trim((string) ($g['title_ar'] ?? '')) ?: ($titles !== [] ? $suggested[$i]['title_ar'] : null);
+            $names = ['title_ar' => $ar, 'title_en' => trim((string) ($g['title_en'] ?? '')) ?: ($titles !== [] && ! trim((string) ($g['title_ar'] ?? '')) ? $suggested[$i]['title_en'] : $ar)];
             if ($i === 0 && $first) {
-                $service->update($first, $names);
+                if ($names['title_ar']) {
+                    $service->update($first, $names);
+                }
 
                 continue;
             }

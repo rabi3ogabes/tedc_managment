@@ -251,7 +251,7 @@ const en: Dictionary = {
       groups: {
         title: 'Groups', name: 'Group name (Arabic, optional)', nameEn: 'Group name (English)', add: 'Add a group', suggest: 'Suggest a name from the target audience', suggestAll: 'Suggest names from the target audience',
         hint: 'Every programme has at least one group. Names are suggested from the target audience with the group\'s number (Teachers 1 · Coordinators 2 · Leaders 3), and you can rename a group at any time.',
-        added: 'The group was added.', deleted: 'The group was deleted.', confirmDelete: 'Delete the group "{{name}}" and its sessions?', hasRegs: 'A group with registrations cannot be deleted', seats: '{{n}} of {{total}} seats', sessions: '{{n}} sessions', unnamed: 'Unnamed (the programme\'s name shows)',
+        added: 'The group was added.', deleted: 'The group was deleted.', confirmDelete: 'Delete the group "{{name}}" and its sessions?', hasRegs: 'A group with registrations cannot be deleted', seats: '{{n}} of {{total}} seats', sessions: '{{n}} sessions', unnamed: 'Unnamed (the programme\'s name shows)', column: 'Group', auto: 'Automatic (the first open group)', all: 'All groups', moveTo: 'Move to a group…', move: 'Move', free: '{{n}} free',
       },
       kits: {
         title: 'Training kits', subtitle: 'Choose one or more kits for the programme; only approved and published ones. Each kit is pinned at its current version.', selected: '{{n}} selected', search: 'Search by name or code…', none: 'No approved or published kits yet.', hours: 'h', filesN: '{{n}} files', pre: 'Pre-test', post: 'Post-test',

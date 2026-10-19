@@ -29,7 +29,8 @@ class RegistrationController extends Controller
     {
         $scope = $this->scope();
 
-        $query = Registration::with(['employee.user', 'employee.school', 'employee.jobTitle', 'program', 'certificates'])
+        $query = Registration::with(['employee.user', 'employee.school', 'employee.jobTitle', 'program', 'certificates', 'trainingGroup'])
+            ->when($request->query('group_id'), fn ($q, $id) => $q->where('training_group_id', $id))
             ->tap(fn ($q) => $scope->constrainThroughEmployee($q))
             ->when($request->query('program_id'), fn ($q, $id) => $q->where('program_id', $id))
             ->when($request->query('status'), fn ($q, $s) => $q->whereIn('status', explode(',', $s)))
@@ -96,6 +97,25 @@ class RegistrationController extends Controller
         }
 
         return response()->json(['data' => $results], 201);
+    }
+
+    /** Moves trainees to a group of their programme (one registration or several): every trainee belongs to a group. */
+    public function assignGroup(Request $request): JsonResponse
+    {
+        $data = $request->validate(['registration_ids' => ['required', 'array', 'min:1', 'max:200'], 'registration_ids.*' => ['uuid', 'exists:registrations,id'], 'group_id' => ['required', 'uuid', 'exists:training_groups,id'], 'override' => ['sometimes', 'boolean']]);
+        $group = TrainingGroup::findOrFail($data['group_id']);
+        $results = [];
+        foreach (Registration::with('employee')->whereIn('id', $data['registration_ids'])->get() as $registration) {
+            try {
+                $this->authorizeSchool($registration->employee);
+                $this->registrations->assignToGroup($registration, $group, $this->user(), (bool) ($data['override'] ?? false) && $this->isCenterStaff());
+                $results[] = ['registration_id' => $registration->id, 'ok' => true];
+            } catch (BusinessRuleException $e) {
+                $results[] = ['registration_id' => $registration->id, 'ok' => false, 'message' => $e->getMessage()];
+            }
+        }
+
+        return response()->json(['data' => $results]);
     }
 
     public function updateStatus(Request $request, Registration $registration): RegistrationResource

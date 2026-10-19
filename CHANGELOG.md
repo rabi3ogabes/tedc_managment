@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-19 — Programmes: every programme has «المجموعة 1», every trainee has a group
+A new programme is created with its first group named «المجموعة 1» (or from the audience, «معلمون 1», when one is given), whichever way it is created; groups without a name are named after their number, a copy gets its own name, and the groups and registrations already there were named and filled in by a migration. A registration is always put in a group (the open one, else the first). Trainees can be moved between the groups of their programme — one or the selected ones, with seats checked, the centre's override and an audit entry — from the programme's participants tab, which now shows and filters by group; the nomination dialog chooses the group and the registrations list shows it. `POST admin/registrations/assign-group`, `group_id` filter. Report: `docs/programs/07-groups-on-the-form.md` §5.
+
 ### 2026-10-19 — Programmes: the groups on the new / edit form
 A «المجموعات» card above «المهارات المستهدفة» lets the administrator add, rename and delete a programme's groups. Names are suggested from the target audience with the group's number — «معلمون 1 · منسقات 2 · قادة 3» (job-title plurals, feminine for women only, taken in turn when there are several titles) — and follow the audience until edited by hand; on a new programme the groups are saved with it, on an existing one each change is saved at once and any group can be renamed at any time. Duplicate names within a programme, deleting the last group and deleting a group that has registrations are refused. `POST admin/programs/group-names`, `GroupNamer`. Report: `docs/programs/07-groups-on-the-form.md`.
 

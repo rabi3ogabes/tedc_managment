@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\BusinessRuleException;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Nomination;
 use App\Models\Program;
@@ -212,6 +213,31 @@ class RegistrationService
      * Moves the best-ranked waiting employee into a freed seat: highest priority first, then who registered first.
      * With seat allocations the person must also fit a pool they may use.
      */
+    /** Puts a trainee in another group of the same programme (the group must still be running, and have a seat unless the centre overrides). */
+    public function assignToGroup(Registration $registration, TrainingGroup $group, User $by, bool $override = false): Registration
+    {
+        if ($group->program_id !== $registration->program_id) {
+            throw new BusinessRuleException(__('messages.groups.not_of_program'), 'group_mismatch');
+        }
+        if ($registration->training_group_id === $group->id) {
+            return $registration;
+        }
+        if (in_array($group->status, [TrainingGroup::CANCELLED, TrainingGroup::COMPLETED], true)) {
+            throw new BusinessRuleException(__('messages.groups.closed_for_move'), 'group_closed');
+        }
+        if (! $override && in_array($registration->status, Registration::SEAT_HOLDING, true) && $group->seatsAvailable() <= 0) {
+            throw new BusinessRuleException(__('messages.groups.full', ['group' => $group->displayTitle()]), 'group_full');
+        }
+        $from = $registration->training_group_id;
+        DB::transaction(function () use ($registration, $group) {
+            $registration->update(['training_group_id' => $group->id]);
+            WaitingList::where('registration_id', $registration->id)->update(['training_group_id' => $group->id]);
+        });
+        AuditLog::create(['user_id' => $by->id, 'action' => 'registration_group_changed', 'auditable_type' => Registration::class, 'auditable_id' => $registration->id, 'old_values' => ['training_group_id' => $from], 'new_values' => ['training_group_id' => $group->id]]);
+
+        return $registration->refresh();
+    }
+
     public function promoteFromWaitingList(Program $program, ?TrainingGroup $group = null): ?Registration
     {
         // With several groups each one has its own seats and its own waiting list.

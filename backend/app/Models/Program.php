@@ -32,13 +32,7 @@ class Program extends Model
     protected static function booted(): void
     {
         // Every program has at least one group (its first run); a program edited as a whole keeps a single group in step.
-        static::created(fn (Program $program) => TrainingGroup::create([
-            'program_id' => $program->id, 'code' => $program->code.'-G1', 'sequence' => 1, 'delivery_mode' => TrainingGroup::modeFor($program->delivery_mode ?? 'in_person'),
-            'start_date' => $program->start_date, 'end_date' => $program->end_date, 'registration_opens_at' => $program->registration_opens_at, 'registration_closes_at' => $program->registration_closes_at,
-            'capacity' => $program->capacity ?? 30, 'min_attendance_percent' => $program->min_attendance_percent, 'status' => TrainingGroup::statusFor($program->status ?? self::STATUS_DRAFT),
-            'is_emergency' => (bool) $program->is_emergency, 'supervisor_id' => $program->coordinator_id,
-            'published_at' => ($program->status ?? self::STATUS_DRAFT) === self::STATUS_DRAFT ? null : now(),
-        ]));
+        static::created(fn (Program $program) => $program->makeFirstGroup());
         static::saved(function (Program $program) {
             if (! $program->wasChanged(['start_date', 'end_date', 'registration_opens_at', 'registration_closes_at', 'capacity', 'min_attendance_percent', 'delivery_mode', 'status', 'coordinator_id', 'is_emergency'])) {
                 return;
@@ -246,6 +240,25 @@ class Program extends Model
         $groups = $this->groups()->get();
 
         return $groups->first(fn (TrainingGroup $g) => $g->isRegistrationOpen()) ?? $groups->first();
+    }
+
+    /** The group every programme starts with, named «المجموعة 1» (a better name can be suggested from the audience and given at any time). */
+    public function makeFirstGroup(int $sequence = 1): TrainingGroup
+    {
+        return TrainingGroup::create([
+            'program_id' => $this->id, 'code' => $this->code.'-G'.$sequence, 'sequence' => $sequence, 'title_ar' => TrainingGroup::defaultTitle($sequence, 'ar'), 'title_en' => TrainingGroup::defaultTitle($sequence, 'en'),
+            'delivery_mode' => TrainingGroup::modeFor($this->delivery_mode ?? 'in_person'),
+            'start_date' => $this->start_date, 'end_date' => $this->end_date, 'registration_opens_at' => $this->registration_opens_at, 'registration_closes_at' => $this->registration_closes_at,
+            'capacity' => $this->capacity ?? 30, 'min_attendance_percent' => $this->min_attendance_percent, 'status' => TrainingGroup::statusFor($this->status ?? self::STATUS_DRAFT),
+            'is_emergency' => (bool) $this->is_emergency, 'supervisor_id' => $this->coordinator_id,
+            'published_at' => ($this->status ?? self::STATUS_DRAFT) === self::STATUS_DRAFT ? null : now(),
+        ]);
+    }
+
+    /** A group to receive a trainee: the open one, else the first, else a new «المجموعة n» — a trainee is never without a group. */
+    public function ensureGroup(): TrainingGroup
+    {
+        return $this->primaryGroup() ?? $this->makeFirstGroup((int) $this->groups()->withTrashed()->max('sequence') + 1);
     }
 
     public function hasSingleGroup(): bool

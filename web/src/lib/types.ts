@@ -94,6 +94,7 @@ export type Registration = {
   certificate_status: string; impact_score?: number | null; completed_at?: string | null; created_at?: string; certificate?: Certificate | null
   has_course?: boolean; course_percent?: number; course_completed?: boolean
   pass_status?: string; passed_via?: string | null; weighted_score?: number | null; participation_percent?: number; certificates?: Certificate[]
+  group?: { id: string; title: string; status?: string } | null
 }
 
 export type Certificate = {

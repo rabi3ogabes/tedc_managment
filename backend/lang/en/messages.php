@@ -61,6 +61,7 @@ return [
     ],
     'training_day' => ['outside' => 'A session must fall within the training day (:from to :to).', 'order' => 'The day must end after it starts.'],
     'groups' => [
+        'closed_for_move' => 'A trainee cannot be moved to a cancelled or completed group.', 'full' => 'The group :group has no seat left.',
         'duplicate_title' => 'This programme already has a group named :title.', 'last_group' => 'The programme\'s only group cannot be deleted; every programme keeps at least one.',
         'emergency_reason' => 'Write why this group is an emergency (unplanned) one.', 'invalid_transition' => 'The group cannot move from “:from” to “:to”.', 'reason_required' => 'A reason is required for this change.',
         'not_of_program' => 'This group does not belong to this program.', 'pattern_start' => 'Choose the date the sessions start.', 'has_registrations' => 'This is not possible because people are registered in the group.', 'not_held' => 'The group ended without attendance recorded for any session.',

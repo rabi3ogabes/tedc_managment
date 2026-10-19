@@ -68,6 +68,12 @@ class TrainingGroup extends Model
         return $this->belongsTo(Program::class);
     }
 
+    /** «المجموعة 1» / «Group 1»: the name a group gets when nobody has chosen one. */
+    public static function defaultTitle(int $sequence, string $lang): string
+    {
+        return $lang === 'ar' ? "المجموعة {$sequence}" : "Group {$sequence}";
+    }
+
     public function supervisor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'supervisor_id');

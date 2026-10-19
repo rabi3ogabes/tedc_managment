@@ -35,6 +35,7 @@ class TrainingGroupService
         return DB::transaction(function () use ($program, $data) {
             $sequence = (int) $program->groups()->withTrashed()->max('sequence') + 1;
             $this->assertUniqueTitle($program->id, $data['title_ar'] ?? null);
+            [$data['title_ar'], $data['title_en']] = $this->names($program->id, $sequence, $data['title_ar'] ?? null, $data['title_en'] ?? null);
             $pattern = $data['sessions'] ?? null;
             if ($pattern !== null) {
                 $pattern['start_date'] ??= $data['start_date'] ?? null;
@@ -107,7 +108,7 @@ class TrainingGroupService
             $program = $source->program;
             $sequence = (int) $program->groups()->withTrashed()->max('sequence') + 1;
             $copy = TrainingGroup::create([
-                'program_id' => $program->id, 'code' => $program->code.'-G'.$sequence, 'sequence' => $sequence, 'title_ar' => $source->title_ar, 'title_en' => $source->title_en,
+                'program_id' => $program->id, 'code' => $program->code.'-G'.$sequence, 'sequence' => $sequence, 'title_ar' => $this->names($program->id, $sequence, null, null)[0], 'title_en' => $this->names($program->id, $sequence, null, null)[1],
                 'delivery_mode' => $source->delivery_mode, 'start_date' => $source->start_date?->addDays($shift), 'end_date' => $source->end_date?->addDays($shift),
                 'registration_opens_at' => $source->registration_opens_at?->addDays($shift), 'registration_closes_at' => $source->registration_closes_at?->addDays($shift),
                 'capacity' => $data['capacity'] ?? $source->capacity, 'min_attendance_percent' => $source->min_attendance_percent, 'supervisor_id' => $source->supervisor_id,
@@ -161,6 +162,21 @@ class TrainingGroupService
         $group->update(['published_at' => null]);
 
         return $group;
+    }
+
+    /** The name a group is saved with: the one given, else «المجموعة n» (the next free number from its own). @return array{0: string, 1: string} */
+    private function names(string $programId, int $sequence, ?string $ar, ?string $en): array
+    {
+        $ar = trim((string) $ar);
+        if ($ar !== '') {
+            return [$ar, trim((string) $en) ?: $ar];
+        }
+        $n = $sequence;
+        while (TrainingGroup::where('program_id', $programId)->where('title_ar', TrainingGroup::defaultTitle($n, 'ar'))->exists()) {
+            $n++;
+        }
+
+        return [TrainingGroup::defaultTitle($n, 'ar'), TrainingGroup::defaultTitle($n, 'en')];
     }
 
     /** Two groups of one programme cannot carry the same name. */

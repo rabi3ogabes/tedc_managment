@@ -32,6 +32,7 @@ export default function Registrations() {
         <DataView id="admin.registrations" rows={data?.data} total={data?.meta?.total} loading={isLoading} rowKey={(r) => r.id} columns={[
           { key: 'employee', header: t('admin.registrations.employee'), role: 'title', cell: (r) => <><div className="font-semibold text-navy-900">{r.employee?.name}</div><div className="text-xs font-normal text-slate-400">{r.employee?.school?.name}</div></> },
           { key: 'program', header: t('admin.registrations.program'), cell: (r) => <Link to={`/admin/programs/${r.program_id}`} className="text-sm font-semibold text-navy-800 hover:text-link">{r.program?.title}</Link> },
+          { key: 'group', header: t('admin.programs.groups.column'), cell: (r) => <span className="text-xs font-semibold text-navy-800">{r.group?.title ?? '—'}</span> },
           { key: 'source', header: t('admin.registrations.source'), cell: (r) => <span className="text-xs text-slate-500">{t(`sources.${r.source}`)}</span> },
           { key: 'eligibility', header: t('admin.registrations.eligibility'), cell: (r) => <button onClick={() => setViewing(r)}><StatusBadge status={r.eligibility?.eligible === false ? 'not_eligible' : 'eligible'} label={r.eligibility?.label ?? t('status.eligible')} /></button> },
           { key: 'status', header: t('common.status'), role: 'badge', cell: (r) => <StatusBadge status={r.status} /> },

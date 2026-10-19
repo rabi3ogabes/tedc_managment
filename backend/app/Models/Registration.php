@@ -71,7 +71,8 @@ class Registration extends Model
     protected static function booted(): void
     {
         static::creating(function (Registration $registration) {
-            $registration->training_group_id ??= Program::find($registration->program_id)?->primaryGroup()?->id;
+            // Every trainee belongs to a group: the open one, else the first (a programme without one gets «المجموعة n» now).
+            $registration->training_group_id ??= Program::find($registration->program_id)?->ensureGroup()->id;
         });
     }
 

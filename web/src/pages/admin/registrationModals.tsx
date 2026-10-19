@@ -16,6 +16,8 @@ export function NominateModal({ open, onClose, programId }: { open: boolean; onC
   const [selected, setSelected] = useState<Employee[]>([])
   const [justification, setJustification] = useState('')
   const [override, setOverride] = useState(false)
+  const [groupId, setGroupId] = useState('')
+  const groups = useGet<{ data: { id: string; sequence: number; title: string; seats_available: number }[] }>(open ? `/admin/programs/${programId}/groups` : null)
   const [results, setResults] = useState<NominationResult[] | null>(null)
   const [loading, setLoading] = useState(false)
   const candidates = useGet<{ data: { employee: Employee; skill_gap: number }[] }>(open ? `/admin/programs/${programId}/candidates` : null)
@@ -27,7 +29,7 @@ export function NominateModal({ open, onClose, programId }: { open: boolean; onC
   const submit = async () => {
     setLoading(true)
     try {
-      const { data } = await api.post(`/admin/programs/${programId}/nominations`, { employee_ids: selected.map((s) => s.id), justification, override })
+      const { data } = await api.post(`/admin/programs/${programId}/nominations`, { employee_ids: selected.map((s) => s.id), justification, override, ...(groupId ? { group_id: groupId } : {}) })
       setResults(data.data)
     } catch (e) {
       setResults([{ employee_id: '', ok: false, message: errorMessage(e) }])
@@ -68,6 +70,14 @@ export function NominateModal({ open, onClose, programId }: { open: boolean; onC
               </Table>
             )}
           </div>
+          {(groups.data?.data.length ?? 0) > 1 && (
+            <Field label={t('admin.programs.groups.column')} className="mt-4">
+              <select className="input" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+                <option value="">{t('admin.programs.groups.auto')}</option>
+                {groups.data?.data.sort((a, b) => a.sequence - b.sequence).map((g) => <option key={g.id} value={g.id}>{g.title} · {t('admin.programs.groups.free', { n: g.seats_available })}</option>)}
+              </select>
+            </Field>
+          )}
           <Field label={t('admin.registrations.justification')} className="mt-4"><textarea className="input" value={justification} onChange={(e) => setJustification(e.target.value)} /></Field>
           {can('nominations.center') && <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={override} onChange={(e) => setOverride(e.target.checked)} />{t('admin.registrations.override')}</label>}
           <div className="mt-5 flex justify-end gap-2">

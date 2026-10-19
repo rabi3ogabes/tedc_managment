@@ -1024,6 +1024,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:registrations.manage')->group(function () {
                 Route::patch('registrations/{registration}/status', [RegistrationController::class, 'updateStatus']);
                 Route::post('registrations/bulk-status', [RegistrationController::class, 'bulkStatus']);
+                Route::post('registrations/assign-group', [RegistrationController::class, 'assignGroup']);
             });
             Route::middleware('permission:nominations.center|nominations.school')->group(function () {
                 Route::post('programs/{program}/nominations', [RegistrationController::class, 'nominate']);
