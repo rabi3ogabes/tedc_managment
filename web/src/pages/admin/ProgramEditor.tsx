@@ -13,6 +13,7 @@ import { useProgramTypes } from './plans/programTypes'
 import { useAuth } from '@/lib/auth'
 import SchedulePlanner, { type PlannerState } from './program/SchedulePlanner'
 import { EMPTY_KITS, type KitsState } from './program/kitsState'
+import GroupsCard, { newDraft, type GroupDraft } from './program/GroupsCard'
 import ProgramKits from './program/ProgramKits'
 import VoiceComposer, { type ParsedRequest } from './program/VoiceComposer'
 
@@ -59,6 +60,8 @@ export default function ProgramEditor() {
   // The training kits chosen for the programme and the instruments generated from them (sent on a new programme always, on an existing one only once changed).
   const [kits, setKits] = useState<KitsState>(EMPTY_KITS)
   const [kitsTouched, setKitsTouched] = useState(false)
+  // The programme's groups (a new programme saves them with it; an existing one saves each change at once).
+  const [groupRows, setGroupRows] = useState<GroupDraft[]>(() => [newDraft()])
   const saved = useGet<{ data: { kits: { id: string }[]; instruments: { kind: keyof KitsState['instruments']; enabled: boolean; auto_hours?: number | null }[] } }>(id ? `/admin/programs/${id}/instruments` : null, undefined, { staleTime: 0 })
   useEffect(() => {
     const d = saved.data?.data
@@ -104,7 +107,7 @@ export default function ProgramEditor() {
     setError(null)
     const audience = { ...(form.target_groups.some((g) => g.job_title_id) ? { job_title_ids: form.target_groups.map((g) => g.job_title_id).filter(Boolean) } : {}), ...(form.audience.genders.length ? { genders: form.audience.genders } : {}), ...(form.audience.experience_min !== '' ? { experience_min: Number(form.audience.experience_min) } : {}), ...(form.audience.experience_max !== '' ? { experience_max: Number(form.audience.experience_max) } : {}) }
     const sessions = !id && plan.enabled ? plan.sessions.map((s) => ({ starts_at: s.starts_at, ends_at: s.ends_at, training_room_id: s.training_room_id, title_ar: s.title_ar, title_en: s.title_en, mode: s.mode })) : []
-    const payload = { ...form, ...(!id || kitsTouched ? { kit_ids: kits.kitIds, instruments: kits.instruments } : {}), ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const payload = { ...form, ...(!id ? { groups: groupRows.map((g) => ({ title_ar: g.title_ar.trim() || null, title_en: english ? g.title_en.trim() || null : null })) } : {}), ...(!id || kitsTouched ? { kit_ids: kits.kitIds, instruments: kits.instruments } : {}), ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -223,6 +226,8 @@ export default function ProgramEditor() {
         </div>
 
         <div className="space-y-6">
+          <GroupsCard programId={id} audience={{ jobTitleIds: form.target_groups.map((g) => g.job_title_id).filter(Boolean) as string[], genders: form.audience.genders }} english={english} rows={groupRows} onRows={setGroupRows}
+            programme={{ start_date: form.start_date, end_date: form.end_date, capacity: form.capacity }} />
           <Card>
             <CardTitle action={<Button size="sm" variant="outline" icon={<Plus className="size-4" />} onClick={() => set('skills', [...form.skills, { id: L.skills[0].id, target_level: 3 }])} />}>{t('admin.programs.skills')}</CardTitle>
             <div className="space-y-2">

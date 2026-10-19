@@ -34,6 +34,7 @@ class TrainingGroupService
     {
         return DB::transaction(function () use ($program, $data) {
             $sequence = (int) $program->groups()->withTrashed()->max('sequence') + 1;
+            $this->assertUniqueTitle($program->id, $data['title_ar'] ?? null);
             $pattern = $data['sessions'] ?? null;
             if ($pattern !== null) {
                 $pattern['start_date'] ??= $data['start_date'] ?? null;
@@ -136,6 +137,7 @@ class TrainingGroupService
     /** @param  array<string, mixed>  $data */
     public function update(TrainingGroup $group, array $data): TrainingGroup
     {
+        $this->assertUniqueTitle($group->program_id, $data['title_ar'] ?? null, $group->id);
         if (($data['is_emergency'] ?? false) && ! $group->is_emergency && blank($data['status_reason'] ?? null) && blank($group->status_reason)) {
             throw new BusinessRuleException(__('messages.groups.emergency_reason'), 'emergency_reason_required');
         }
@@ -161,8 +163,20 @@ class TrainingGroupService
         return $group;
     }
 
+    /** Two groups of one programme cannot carry the same name. */
+    private function assertUniqueTitle(string $programId, ?string $title, ?string $except = null): void
+    {
+        $title = trim((string) $title);
+        if ($title !== '' && TrainingGroup::where('program_id', $programId)->where('title_ar', $title)->when($except, fn ($q) => $q->where('id', '!=', $except))->exists()) {
+            throw new BusinessRuleException(__('messages.groups.duplicate_title', ['title' => $title]), 'duplicate_title');
+        }
+    }
+
     public function delete(TrainingGroup $group): void
     {
+        if (TrainingGroup::where('program_id', $group->program_id)->count() <= 1) {
+            throw new BusinessRuleException(__('messages.groups.last_group'), 'last_group');
+        }
         if ($group->registrations()->exists()) {
             throw new BusinessRuleException(__('messages.groups.has_registrations'), 'has_registrations');
         }

@@ -16,6 +16,7 @@ use App\Services\Programs\ProgramAnnouncer;
 use App\Services\Programs\ProgramInstruments;
 use App\Services\Programs\ProgramSessionWriter;
 use App\Services\Teaching\TrainerNotices;
+use App\Services\TrainingGroupService;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
 use Illuminate\Http\JsonResponse;
@@ -72,11 +73,14 @@ class ProgramController extends Controller
             'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
         ]);
         $approval = $this->user()->hasPermission('calendar.approve') ? ($plan['calendar_approval_reason'] ?? null) : null;
-        $program = DB::transaction(function () use ($data, $request, $plan, $approval) {
+        $groups = $request->validate(['groups' => ['sometimes', 'array', 'max:30'], 'groups.*.title_ar' => ['nullable', 'string', 'max:255'], 'groups.*.title_en' => ['nullable', 'string', 'max:255'], 'groups.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000']])['groups'] ?? [];
+        abort_if(count($groups) > 1 && ! $this->user()->hasPermission('groups.manage'), 403, __('auth.forbidden'));
+        $program = DB::transaction(function () use ($data, $request, $plan, $approval, $groups) {
             $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
             $this->syncRelations($program, $request);
             // The generated session plan lands on the first group, with every calendar, room and trainer rule enforced; one refused session rolls everything back.
             $this->syncKits($program, $request);
+            $this->applyGroups($program, $groups);
             if (! empty($plan['sessions'])) {
                 app(ProgramSessionWriter::class)->write($program, $plan['sessions'], ['delivery_mode' => $data['delivery_mode'] ?? 'in_person', 'trainers' => $request->input('trainers', [])], $this->user(), $approval);
             }
@@ -179,6 +183,25 @@ class ProgramController extends Controller
             'target_groups.*.education_stage' => ['nullable', 'string', 'max:32'],
             'target_groups.*.description' => ['nullable', 'string', 'max:255'],
         ] + RemoteProgramRules::rules());
+    }
+
+    /** The groups named on a new programme's form: the first renames the group every programme starts with, the others are added with the programme's dates. @param list<array<string, mixed>> $groups */
+    private function applyGroups(Program $program, array $groups): void
+    {
+        if ($groups === []) {
+            return;
+        }
+        $first = $program->groups()->orderBy('sequence')->first();
+        $service = app(TrainingGroupService::class);
+        foreach (array_values($groups) as $i => $g) {
+            $names = ['title_ar' => $g['title_ar'] ?? null, 'title_en' => ($g['title_en'] ?? null) ?: ($g['title_ar'] ?? null)];
+            if ($i === 0 && $first) {
+                $service->update($first, $names);
+
+                continue;
+            }
+            $service->create($program->fresh(), $names + ['start_date' => $program->start_date?->toDateString(), 'end_date' => $program->end_date?->toDateString(), 'capacity' => $g['capacity'] ?? $program->capacity], $this->user());
+        }
     }
 
     /** The kits chosen on the form and the instruments generated from them (only when the form sent them). */

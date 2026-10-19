@@ -8,6 +8,7 @@ use App\Http\Resources\SessionResource;
 use App\Http\Resources\TrainingGroupResource;
 use App\Models\Program;
 use App\Models\TrainingGroup;
+use App\Services\Programs\GroupNamer;
 use App\Services\TrainingGroupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,15 @@ class TrainingGroupController extends Controller
     public function index(Program $program): JsonResponse
     {
         return response()->json(['data' => TrainingGroupResource::collection($program->groups()->with(['program', 'supervisor:id,name,name_ar', 'room', 'trainers.trainer'])->withCount('sessions')->get())]);
+    }
+
+    /** Names for the groups of a programme (also one not saved yet) from its audience: «معلمون 1»، «منسقات 2»، «قادة 3». */
+    public function suggestNames(Request $request): JsonResponse
+    {
+        $d = $request->validate(['job_title_ids' => ['nullable', 'array', 'max:20'], 'job_title_ids.*' => ['uuid'], 'genders' => ['nullable', 'array'], 'genders.*' => ['in:male,female'],
+            'from' => ['nullable', 'integer', 'min:1', 'max:200'], 'count' => ['nullable', 'integer', 'min:1', 'max:30']]);
+
+        return response()->json(['data' => app(GroupNamer::class)->suggest($d['job_title_ids'] ?? [], $d['genders'] ?? [], (int) ($d['from'] ?? 1), (int) ($d['count'] ?? 1))]);
     }
 
     public function show(TrainingGroup $group): TrainingGroupResource

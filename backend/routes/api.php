@@ -935,6 +935,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:programs.manage')->group(function () {
                 // The spoken / typed order to create a programme (fixed paths, registered before {program}).
                 Route::get('programs/next-code', [ProgramController::class, 'nextCode']);
+                Route::post('programs/group-names', [TrainingGroupController::class, 'suggestNames'])->middleware('permission:programs.manage|groups.manage');
                 Route::get('programs/kit-options', [ProgramInstrumentController::class, 'kits']);
                 Route::post('programs/schedule-plan', [ProgramScheduleController::class, 'plan'])->middleware('throttle:90,1');
                 Route::get('programs/assistant', [ProgramAssistantController::class, 'status']);

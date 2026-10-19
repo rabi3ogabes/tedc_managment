@@ -248,6 +248,11 @@ const en: Dictionary = {
         edited: 'You edited the sessions by hand; they will not change when the fields change.', regenerate: 'Regenerate', from: 'From', to: 'To', online: 'Online session', addSession: 'Add a session', hoursNote: 'The training day is {{h}} hours ({{from}}–{{to}})',
         approval: 'Reason for approving closed days', approvalHint: 'Some sessions fall on days closed for training; give the reason and the days are approved when the programme is saved.', approvalDenied: 'Some sessions fall on closed days and need the calendar approval permission; change the dates or ask for the approval.', approvalPlaceholder: 'e.g. an emergency programme by management decision',
       },
+      groups: {
+        title: 'Groups', name: 'Group name (Arabic, optional)', nameEn: 'Group name (English)', add: 'Add a group', suggest: 'Suggest a name from the target audience', suggestAll: 'Suggest names from the target audience',
+        hint: 'Every programme has at least one group. Names are suggested from the target audience with the group\'s number (Teachers 1 · Coordinators 2 · Leaders 3), and you can rename a group at any time.',
+        added: 'The group was added.', deleted: 'The group was deleted.', confirmDelete: 'Delete the group "{{name}}" and its sessions?', hasRegs: 'A group with registrations cannot be deleted', seats: '{{n}} of {{total}} seats', sessions: '{{n}} sessions', unnamed: 'Unnamed (the programme\'s name shows)',
+      },
       kits: {
         title: 'Training kits', subtitle: 'Choose one or more kits for the programme; only approved and published ones. Each kit is pinned at its current version.', selected: '{{n}} selected', search: 'Search by name or code…', none: 'No approved or published kits yet.', hours: 'h', filesN: '{{n}} files', pre: 'Pre-test', post: 'Post-test',
         instruments: 'Evaluation instruments', instrumentsHint: 'Generated from the chosen kits and prepared for their moment; nothing reaches a trainee or a trainer before its time.',

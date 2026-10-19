@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-19 — Programmes: the groups on the new / edit form
+A «المجموعات» card above «المهارات المستهدفة» lets the administrator add, rename and delete a programme's groups. Names are suggested from the target audience with the group's number — «معلمون 1 · منسقات 2 · قادة 3» (job-title plurals, feminine for women only, taken in turn when there are several titles) — and follow the audience until edited by hand; on a new programme the groups are saved with it, on an existing one each change is saved at once and any group can be renamed at any time. Duplicate names within a programme, deleting the last group and deleting a group that has registrations are refused. `POST admin/programs/group-names`, `GroupNamer`. Report: `docs/programs/07-groups-on-the-form.md`.
+
 ### 2026-10-19 — The guided tour shows every feature for every user type
 The welcome tour is now a complete walk through the platform: the shared basics, then the story of the person's own role (all 17 roles, in both languages, with points and a page to open), then one chapter per section of the menu the person can really open — every page with what it is for and an Open button, the hovered page lit in the side menu, and for administrators every settings section — and a closing step. A chapter rail, minimise-and-resume to look at a page, "skip and don't show again", and a new tour key so everyone sees the complete tour once; the help centre replays it. Report: `docs/programs/06-guided-tour.md`.
 
