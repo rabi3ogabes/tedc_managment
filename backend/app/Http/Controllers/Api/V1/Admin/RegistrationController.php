@@ -12,6 +12,7 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Models\TrainingGroup;
 use App\Services\BulkImportService;
+use App\Services\Programs\ProgramAnnouncer;
 use App\Services\RecommendationEngine;
 use App\Services\RegistrationService;
 use Illuminate\Http\JsonResponse;
@@ -67,6 +68,7 @@ class RegistrationController extends Controller
         abort_unless($isCenter || $user->hasRole(Role::SCHOOL_ADMIN), 403);
 
         $results = [];
+        $assigned = [];
         foreach (Employee::whereIn('id', $data['employee_ids'])->get() as $employee) {
             try {
                 if (! $isCenter) {
@@ -82,9 +84,15 @@ class RegistrationController extends Controller
                     $group,
                 );
                 $results[] = ['employee_id' => $employee->id, 'ok' => true, 'status' => $registration->status, 'registration_id' => $registration->id];
+                $assigned[] = $registration;
             } catch (BusinessRuleException $e) {
                 $results[] = ['employee_id' => $employee->id, 'ok' => false, 'message' => $e->getMessage(), 'details' => $e->details];
             }
+        }
+
+        // The centre's specialist assigned trainees directly: the programme's trainers and the schools' system administrators are told once for the whole batch.
+        if ($isCenter && $assigned !== []) {
+            app(ProgramAnnouncer::class)->traineesAssigned($program, $assigned);
         }
 
         return response()->json(['data' => $results], 201);

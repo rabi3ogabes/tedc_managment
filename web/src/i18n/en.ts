@@ -248,6 +248,15 @@ const en: Dictionary = {
         edited: 'You edited the sessions by hand; they will not change when the fields change.', regenerate: 'Regenerate', from: 'From', to: 'To', online: 'Online session', addSession: 'Add a session', hoursNote: 'The training day is {{h}} hours ({{from}}–{{to}})',
         approval: 'Reason for approving closed days', approvalHint: 'Some sessions fall on days closed for training; give the reason and the days are approved when the programme is saved.', approvalDenied: 'Some sessions fall on closed days and need the calendar approval permission; change the dates or ask for the approval.', approvalPlaceholder: 'e.g. an emergency programme by management decision',
       },
+      kits: {
+        title: 'Training kits', subtitle: 'Choose one or more kits for the programme; only approved and published ones. Each kit is pinned at its current version.', selected: '{{n}} selected', search: 'Search by name or code…', none: 'No approved or published kits yet.', hours: 'h', filesN: '{{n}} files', pre: 'Pre-test', post: 'Post-test',
+        instruments: 'Evaluation instruments', instrumentsHint: 'Generated from the chosen kits and prepared for their moment; nothing reaches a trainee or a trainer before its time.',
+        instr: { trainee_survey: 'Trainee survey', trainer_reflection: 'Trainer survey (self-reflection)', pre_test: 'Pre-test', post_test: 'Post-test' },
+        traineeNote: 'The trainees\' satisfaction survey for the programme, opened automatically by the system after the programme ends.', afterHours: 'after', trainerNote: 'Assigned to each group\'s trainer when the group completes, for their own reflection on the delivery.',
+        fromKit: 'A draft test from the assessment tools of the kit "{{kit}}" ({{files}}); you add the questions, then publish it.', noTool: 'No assessment tool in the chosen kits suits this test.', unavailable: 'Not in the kit',
+        notifyTitle: 'Who is told, and when', notifyOpen: 'When registration opens: the programme\'s trainer and the system administrator of every school in the target group are notified (app, e-mail and SMS).', notifyOpenNow: 'Registration is open: right after saving, the programme\'s trainer and the system administrator of every school in the target group are notified (app, e-mail and SMS).',
+        notifyAssign: 'When the centre\'s specialist assigns trainees directly: the trainee, the programme\'s trainer and the system administrator of the trainee\'s school are notified.', notifyChannels: 'Notifications use the channels the platform has on and each person\'s preferences; their wording can be edited in the notification templates settings.',
+      },
       codeAuto: 'Automatic', codeManual: 'Manual', codeUnlock: 'Type a code yourself', codeLock: 'Back to the automatic code', codeAutoHint: 'Generated from the programme type (LIC-00001, PRO-00001 …) and fixed when you save.', codeManualHint: 'A code of your own; it must be unique.',
       englishToggle: 'Add the English version', englishHint: 'Most programmes are Arabic only. Switch this on to show the English title, summary and description.',
       voice: {

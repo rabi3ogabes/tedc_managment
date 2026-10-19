@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasTranslations;
 use App\Payments\SeatHolds;
+use App\Services\Programs\ProgramAnnouncer;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -15,13 +16,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable([
     'code', 'category_id', 'program_type', 'title_en', 'title_ar', 'summary_en', 'summary_ar', 'description_en', 'description_ar',
     'objectives', 'delivery_mode', 'level', 'total_hours', 'capacity', 'min_attendance_percent', 'require_biometric', 'requires_tasks',
     'requires_evaluation', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
-    'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at',
+    'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at', 'registration_announced_at',
     'parent_id', 'kind', 'axes', 'is_emergency', 'emergency_reason', 'owner_type', 'owner_school_id', 'approval_status', 'repeat_policy', 'knowledge_transfer', 'external_platform',
     'remote', 'coordinator_id', 'certificate_template_id', 'trainer_certificate_template_id', 'has_course', 'course_sequential', 'course_completion_percent', 'course_auto_certificate',
 ])]
@@ -51,6 +53,12 @@ class Program extends Model
                 'status' => TrainingGroup::statusFor($program->status ?? self::STATUS_DRAFT), 'supervisor_id' => $program->coordinator_id, 'is_emergency' => (bool) $program->is_emergency,
                 'published_at' => $program->status === self::STATUS_DRAFT ? null : ($groups->first()->published_at ?? now()),
             ]);
+        });
+        // Registration opening on an existing programme (an administrator, the planner or an approval) tells its trainers and the schools' system administrators.
+        static::updated(function (Program $program) {
+            if ($program->wasChanged('status') && $program->status === self::STATUS_REGISTRATION_OPEN) {
+                DB::afterCommit(fn () => app(ProgramAnnouncer::class)->registrationOpened($program->fresh()));
+            }
         });
         // Changing how a program is delivered changes the type of its kits with it.
         static::saved(function (Program $program) {
@@ -104,6 +112,7 @@ class Program extends Model
             'survey_auto_hours' => 'integer',
             'survey_opened_at' => 'datetime',
             'survey_closed_at' => 'datetime',
+            'registration_announced_at' => 'datetime',
             'start_date' => 'date',
             'end_date' => 'date',
             'registration_opens_at' => 'datetime',
@@ -142,6 +151,17 @@ class Program extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(ProgramSession::class)->orderBy('starts_at');
+    }
+
+    /** The training kits chosen for the programme, each pinned at the version it had then. */
+    public function kits(): BelongsToMany
+    {
+        return $this->belongsToMany(TrainingKit::class, 'kit_program', 'program_id', 'kit_id')->withPivot('pinned_version')->withTimestamps();
+    }
+
+    public function instruments(): HasMany
+    {
+        return $this->hasMany(ProgramInstrument::class);
     }
 
     public function trainers(): BelongsToMany

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Services\CertificateService;
+use App\Services\Programs\ProgramAnnouncer;
 use App\Services\TrainerCertificateService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -20,6 +21,9 @@ class AdvanceProgramLifecycle extends Command
             ->whereNotNull('registration_opens_at')->where('registration_opens_at', '<=', now())
             ->where(fn ($q) => $q->whereNull('registration_closes_at')->orWhere('registration_closes_at', '>', now()))
             ->update(['status' => Program::STATUS_REGISTRATION_OPEN]);
+
+        // The dates opened these in bulk (no model events): tell their trainers and the schools' system administrators.
+        app(ProgramAnnouncer::class)->sweep();
 
         $started = Program::whereIn('status', [Program::STATUS_PUBLISHED, Program::STATUS_REGISTRATION_OPEN])
             ->whereNotNull('start_date')->whereDate('start_date', '<=', today())

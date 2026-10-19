@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 787 columns
-- Internal: 2267 columns
+- Public: 791 columns
+- Internal: 2275 columns
 - Confidential: 534 columns
 - Restricted: 27 columns
 
@@ -3261,6 +3261,22 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
+### `program_instruments`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_id` | Internal | — |
+| `kind` | Internal | — |
+| `enabled` | Internal | — |
+| `form_id` | Internal | — |
+| `assessment_id` | Internal | — |
+| `source_kit_id` | Internal | — |
+| `meta` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
 ### `program_proposals`
 
 | Column | Class | Control |
@@ -3423,6 +3439,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `knowledge_transfer` | Public | — |
 | `external_platform` | Public | — |
 | `program_type` | Public | — |
+| `registration_announced_at` | Public | — |
 
 ### `public_stats`
 

@@ -12,6 +12,8 @@ use App\Services\AudienceRules;
 use App\Services\FileStorage;
 use App\Services\ImpactService;
 use App\Services\ProgramCatalogSettings;
+use App\Services\Programs\ProgramAnnouncer;
+use App\Services\Programs\ProgramInstruments;
 use App\Services\Programs\ProgramSessionWriter;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
@@ -73,12 +75,16 @@ class ProgramController extends Controller
             $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
             $this->syncRelations($program, $request);
             // The generated session plan lands on the first group, with every calendar, room and trainer rule enforced; one refused session rolls everything back.
+            $this->syncKits($program, $request);
             if (! empty($plan['sessions'])) {
                 app(ProgramSessionWriter::class)->write($program, $plan['sessions'], ['delivery_mode' => $data['delivery_mode'] ?? 'in_person', 'trainers' => $request->input('trainers', [])], $this->user(), $approval);
             }
 
             return $program;
         });
+
+        // Created already open for registration: the trainers and the schools' system administrators are told now that everything is in place.
+        app(ProgramAnnouncer::class)->registrationOpened($program->fresh());
 
         return (new ProgramResource($program->load(['category', 'skills', 'trainers', 'targetGroups'])))->response()->setStatusCode(201);
     }
@@ -88,6 +94,7 @@ class ProgramController extends Controller
         DB::transaction(function () use ($request, $program) {
             $program->update(collect($this->withEnglishFallback($this->validated($request, $program), $program))->except('audience')->all());
             $this->syncRelations($program, $request);
+            $this->syncKits($program, $request);
         });
 
         return $this->show($program);
@@ -168,6 +175,19 @@ class ProgramController extends Controller
             'target_groups.*.education_stage' => ['nullable', 'string', 'max:32'],
             'target_groups.*.description' => ['nullable', 'string', 'max:255'],
         ] + RemoteProgramRules::rules());
+    }
+
+    /** The kits chosen on the form and the instruments generated from them (only when the form sent them). */
+    private function syncKits(Program $program, Request $request): void
+    {
+        if (! $request->has('kit_ids')) {
+            return;
+        }
+        $d = $request->validate(['kit_ids' => ['array', 'max:20'], 'kit_ids.*' => ['uuid', 'exists:training_kits,id'], 'instruments' => ['sometimes', 'array'],
+            'instruments.trainee_survey' => ['sometimes', 'boolean'], 'instruments.trainer_reflection' => ['sometimes', 'boolean'], 'instruments.pre_test' => ['sometimes', 'boolean'], 'instruments.post_test' => ['sometimes', 'boolean'], 'instruments.survey_auto_hours' => ['sometimes', 'integer', 'min:0', 'max:720']]);
+        $service = app(ProgramInstruments::class);
+        $service->attachKits($program, $d['kit_ids'] ?? []);
+        $service->generate($program->fresh(), $d['instruments'] ?? [], $this->user());
     }
 
     /** The next code for a programme of this type (the form shows it before saving). */

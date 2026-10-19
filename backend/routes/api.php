@@ -90,6 +90,7 @@ use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
 use App\Http\Controllers\Api\V1\Admin\ProgramCatalogSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
+use App\Http\Controllers\Api\V1\Admin\ProgramInstrumentController;
 use App\Http\Controllers\Api\V1\Admin\ProgramScheduleController;
 use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
@@ -904,6 +905,7 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:programs.view|programs.manage')->group(function () {
                 Route::get('programs/{program}', [ProgramController::class, 'show']);
                 Route::get('programs/{program}/sessions', [SessionController::class, 'index']);
+                Route::get('programs/{program}/instruments', [ProgramInstrumentController::class, 'show']);
                 Route::get('programs/{program}/materials', [MaterialController::class, 'index']);
                 Route::get('programs/{program}/tasks', [TaskController::class, 'index']);
                 Route::get('programs/{program}/eligibility-rules', [EligibilityRuleController::class, 'index']);
@@ -912,11 +914,13 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:programs.manage')->group(function () {
                 // The spoken / typed order to create a programme (fixed paths, registered before {program}).
                 Route::get('programs/next-code', [ProgramController::class, 'nextCode']);
+                Route::get('programs/kit-options', [ProgramInstrumentController::class, 'kits']);
                 Route::post('programs/schedule-plan', [ProgramScheduleController::class, 'plan'])->middleware('throttle:90,1');
                 Route::get('programs/assistant', [ProgramAssistantController::class, 'status']);
                 Route::post('programs/assistant/parse', [ProgramAssistantController::class, 'parse'])->middleware('throttle:30,1');
                 Route::post('programs', [ProgramController::class, 'store']);
                 Route::put('programs/{program}', [ProgramController::class, 'update']);
+                Route::put('programs/{program}/instruments', [ProgramInstrumentController::class, 'update']);
                 Route::patch('programs/{program}/status', [ProgramController::class, 'updateStatus']);
                 Route::post('programs/{program}/cover', [ProgramController::class, 'uploadCover']);
                 Route::delete('programs/{program}', [ProgramController::class, 'destroy']);

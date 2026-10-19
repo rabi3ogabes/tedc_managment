@@ -12,6 +12,8 @@ import type { Program } from '@/lib/types'
 import { useProgramTypes } from './plans/programTypes'
 import { useAuth } from '@/lib/auth'
 import SchedulePlanner, { type PlannerState } from './program/SchedulePlanner'
+import { EMPTY_KITS, type KitsState } from './program/kitsState'
+import ProgramKits from './program/ProgramKits'
 import VoiceComposer, { type ParsedRequest } from './program/VoiceComposer'
 
 type Lookups = {
@@ -54,6 +56,16 @@ export default function ProgramEditor() {
   const { can } = useAuth()
   const [plan, setPlan] = useState<PlannerState>({ enabled: true, sessions: [], errors: 0, blocking: 0, closedDays: 0, first: null, last: null })
   const [approval, setApproval] = useState('')
+  // The training kits chosen for the programme and the instruments generated from them (sent on a new programme always, on an existing one only once changed).
+  const [kits, setKits] = useState<KitsState>(EMPTY_KITS)
+  const [kitsTouched, setKitsTouched] = useState(false)
+  const saved = useGet<{ data: { kits: { id: string }[]; instruments: { kind: keyof KitsState['instruments']; enabled: boolean; auto_hours?: number | null }[] } }>(id ? `/admin/programs/${id}/instruments` : null, undefined, { staleTime: 0 })
+  useEffect(() => {
+    const d = saved.data?.data
+    if (!d) return
+    const on = (k: string) => d.instruments.find((i) => i.kind === k)?.enabled ?? true
+    setKits({ kitIds: d.kits.map((k) => k.id), instruments: { trainee_survey: on('trainee_survey'), trainer_reflection: on('trainer_reflection'), pre_test: on('pre_test'), post_test: on('post_test'), survey_auto_hours: d.instruments.find((i) => i.kind === 'trainee_survey')?.auto_hours ?? 24 } })
+  }, [saved.data])
   // A new programme's code is stamped from its type (LIC-00001 …) unless the person unlocks the field and types one.
   const [codeLocked, setCodeLocked] = useState(true)
   const nextCode = useGet<{ data: { code: string; prefix: string } }>(!id && codeLocked ? '/admin/programs/next-code' : null, { program_type: form.program_type || undefined, category_id: form.category_id || undefined }, { staleTime: 0 })
@@ -91,7 +103,7 @@ export default function ProgramEditor() {
     setError(null)
     const audience = { ...(form.target_groups.some((g) => g.job_title_id) ? { job_title_ids: form.target_groups.map((g) => g.job_title_id).filter(Boolean) } : {}), ...(form.audience.genders.length ? { genders: form.audience.genders } : {}), ...(form.audience.experience_min !== '' ? { experience_min: Number(form.audience.experience_min) } : {}), ...(form.audience.experience_max !== '' ? { experience_max: Number(form.audience.experience_max) } : {}) }
     const sessions = !id && plan.enabled ? plan.sessions.map((s) => ({ starts_at: s.starts_at, ends_at: s.ends_at, training_room_id: s.training_room_id, title_ar: s.title_ar, title_en: s.title_en, mode: s.mode })) : []
-    const payload = { ...form, ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
+    const payload = { ...form, ...(!id || kitsTouched ? { kit_ids: kits.kitIds, instruments: kits.instruments } : {}), ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
       navigate(`/admin/programs/${data.data.id}`)
@@ -205,6 +217,8 @@ export default function ProgramEditor() {
               }}
             />
           )}
+
+          <ProgramKits deliveryMode={form.delivery_mode} state={kits} open={form.status === 'registration_open'} onChange={(s) => { setKits(s); setKitsTouched(true) }} />
         </div>
 
         <div className="space-y-6">

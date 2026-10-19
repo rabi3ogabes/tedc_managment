@@ -16,6 +16,7 @@ use App\Models\SurveySubmission;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\NeedsSurveys\SurveySchema;
+use App\Services\Programs\ProgramInstruments;
 use App\Services\Surveys\EvaluationAnswer;
 use App\Services\Surveys\LegacyQuestions;
 use App\Services\Surveys\SurveyCollector;
@@ -118,9 +119,15 @@ class EvaluationService
         $program = $group->program;
         $n = 0;
 
-        foreach ($group->trainers->where('status', 'approved') as $gt) {
-            if ($user = $gt->trainer?->user_id ? User::find($gt->trainer->user_id) : null) {
-                $n += (int) (bool) $this->assign($this->defaultFor('trainer_reflection'), $program, $group, $user, 'trainer');
+        // The programme's own choice (generated from its kits): the self-reflection can be switched off, or use another approved form.
+        $instruments = app(ProgramInstruments::class);
+        if ($instruments->enabled($program, 'trainer_reflection')) {
+            $formId = $instruments->formFor($program, 'trainer_reflection');
+            $reflection = ($formId ? EvaluationForm::where('id', $formId)->where('approval_status', 'approved')->first() : null) ?? $this->defaultFor('trainer_reflection');
+            foreach ($group->trainers->where('status', 'approved') as $gt) {
+                if ($user = $gt->trainer?->user_id ? User::find($gt->trainer->user_id) : null) {
+                    $n += (int) (bool) $this->assign($reflection, $program, $group, $user, 'trainer');
+                }
             }
         }
         if ($program->coordinator_id && ($coordinator = User::find($program->coordinator_id))) {

@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Registration;
 use App\Models\User;
+use App\Services\Programs\ProgramAnnouncer;
 use App\Support\AccessScope;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -39,6 +40,7 @@ class BulkImportService
         $notesIndex = array_search('notes', $header, true);
 
         $report = ['imported' => 0, 'waitlisted' => 0, 'failed' => 0, 'rows' => []];
+        $assigned = [];
         $scope = AccessScope::current($actor);
 
         foreach ($sheet as $i => $row) {
@@ -65,6 +67,7 @@ class BulkImportService
                     $registration->update(['notes' => (string) $row[$notesIndex]]);
                 }
                 $registration->status === Registration::STATUS_WAITLISTED ? $report['waitlisted']++ : $report['imported']++;
+                $assigned[] = $registration;
                 $report['rows'][] = ['row' => $line, 'employee_no' => $number, 'status' => $registration->status, 'message' => null];
             } catch (BusinessRuleException $e) {
                 $report['failed']++;
@@ -76,6 +79,9 @@ class BulkImportService
                 ];
             }
         }
+
+        // The centre assigned these trainees: the trainers and the schools' system administrators are told once for the whole file.
+        app(ProgramAnnouncer::class)->traineesAssigned($program, $assigned);
 
         return $report;
     }

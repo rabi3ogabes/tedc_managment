@@ -10,6 +10,7 @@ use App\Models\Skill;
 use App\Models\TrainingNeed;
 use App\Models\User;
 use App\Services\NeedsSurveys\SurveyAudience;
+use App\Services\Programs\ProgramAnnouncer;
 use App\Services\Programs\ProgramSessionWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -271,21 +272,23 @@ class ProgramPlanner
     {
         $result = ['nominated' => 0, 'already' => 0, 'failed' => 0];
         $registered = $program->registrations()->pluck('employee_id')->flip();
+        $assigned = [];
 
         $this->audience->query($program->audience ?? [])->orderBy('employees.employee_no')->limit(500)->get()
-            ->each(function (Employee $employee) use ($program, $actor, $registered, &$result) {
+            ->each(function (Employee $employee) use ($program, $actor, $registered, &$result, &$assigned) {
                 if ($registered->has($employee->id)) {
                     $result['already']++;
 
                     return;
                 }
                 try {
-                    $this->registrations->nominate($program, $employee, $actor, 'training_center', __('messages.program_builder.nomination_note'), true);
+                    $assigned[] = $this->registrations->nominate($program, $employee, $actor, 'training_center', __('messages.program_builder.nomination_note'), true);
                     $result['nominated']++;
                 } catch (\Throwable) {
                     $result['failed']++;
                 }
             });
+        app(ProgramAnnouncer::class)->traineesAssigned($program, $assigned);
 
         return $result;
     }

@@ -43,10 +43,10 @@ export function PhoneNotification({ title, body, lang, appName }: { title: strin
   )
 }
 
-export function Switch({ checked, onChange, label, small }: { checked: boolean; onChange: (v: boolean) => void; label: string; small?: boolean }) {
+export function Switch({ checked, onChange, label, small, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; small?: boolean; disabled?: boolean }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)}
-      className={clsx('relative inline-flex shrink-0 items-center rounded-full p-0.5 transition-colors', small ? 'h-6 w-11' : 'h-7 w-12', checked ? 'justify-end bg-emerald-500' : 'justify-start bg-slate-300')}>
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} onClick={() => onChange(!checked)}
+      className={clsx('relative inline-flex shrink-0 items-center rounded-full p-0.5 transition-colors', small ? 'h-6 w-11' : 'h-7 w-12', checked ? 'justify-end bg-emerald-500' : 'justify-start bg-slate-300', disabled && 'cursor-not-allowed opacity-50')}>
       <span className={clsx('inline-block rounded-full bg-white shadow-md transition-all', small ? 'size-5' : 'size-6')} />
     </button>
   )
