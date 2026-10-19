@@ -40,10 +40,8 @@ const empty = {
   target_groups: [] as { job_title_id?: string | null; school_type?: string | null; education_stage?: string | null; description?: string | null }[],
 }
 
-/** The programme form — as a page, or (`embedded`) inside a widget's popup on the program page: no page header, its own save button, and `onSaved` instead of navigating away. */
-export default function ProgramEditor({ programId, embedded = false, onSaved }: { programId?: string; embedded?: boolean; onSaved?: () => void } = {}) {
-  const params = useParams()
-  const id = programId ?? params.id
+export default function ProgramEditor() {
+  const { id } = useParams()
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const lookups = useGet<{ data: Lookups }>('/admin/lookups')
@@ -112,8 +110,7 @@ export default function ProgramEditor({ programId, embedded = false, onSaved }: 
     const payload = { ...form, ...(!id ? { groups: groupRows.map((g) => ({ title_ar: g.title_ar.trim() || null, title_en: english ? g.title_en.trim() || null : null })) } : {}), ...(!id || kitsTouched ? { kit_ids: kits.kitIds, instruments: kits.instruments } : {}), ...(sessions.length ? { sessions, calendar_approval_reason: approval || undefined } : {}), audience, title_en: english ? form.title_en : '', summary_en: english ? form.summary_en : '', description_en: english ? form.description_en : '', category_id: form.category_id || null, program_type: form.program_type || null, coordinator_id: form.coordinator_id || null, start_date: form.start_date || null, end_date: form.end_date || null, registration_opens_at: form.registration_opens_at || null, registration_closes_at: form.registration_closes_at || null }
     try {
       const { data } = id ? await api.put(`/admin/programs/${id}`, payload) : await api.post('/admin/programs', payload)
-      if (embedded) onSaved?.()
-      else navigate(`/admin/programs/${data.data.id}`)
+      navigate(`/admin/programs/${data.data.id}`)
     } catch (e) {
       setError(errorMessage(e))
     } finally {
@@ -123,9 +120,8 @@ export default function ProgramEditor({ programId, embedded = false, onSaved }: 
 
   return (
     <>
-      {!embedded && <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} subtitle={!id ? t('admin.programs.voice.lead') : undefined}
-        actions={!id && <Button variant="gold" icon={<Mic className="size-4" />} onClick={() => setVoice(true)}>{t('admin.programs.voice.open')}</Button>} />}
-      {embedded && <div className="sticky top-0 z-20 -mx-1 mb-4 flex items-center justify-between gap-3 rounded-2xl border border-navy-100 bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur-0"><span className="text-sm text-slate-500">{t('admin.programs.widgets.editHint')}</span><Button variant="gold" loading={saving} onClick={save}>{t('common.save')}</Button></div>}
+      <PageHeader title={id ? t('admin.programs.edit') : t('admin.programs.new')} subtitle={!id ? t('admin.programs.voice.lead') : undefined}
+        actions={!id && <Button variant="gold" icon={<Mic className="size-4" />} onClick={() => setVoice(true)}>{t('admin.programs.voice.open')}</Button>} />
       {!id && <VoiceComposer open={voice} onClose={() => setVoice(false)} lookups={{ job_titles: L.job_titles, trainers: L.trainers }} onApply={(r: ParsedRequest) => {
         const p = r.program
         setForm((f) => ({ ...f, code: p.code, title_ar: p.title_ar, title_en: p.title_en, summary_ar: p.summary_ar, summary_en: p.summary_en, delivery_mode: p.delivery_mode, level: p.level, total_hours: p.total_hours, capacity: p.capacity, start_date: p.start_date ?? '',
@@ -136,7 +132,7 @@ export default function ProgramEditor({ programId, embedded = false, onSaved }: 
       }} />}
       <div ref={topRef} />
       {applied && <div className="mb-4 flex items-start gap-3 rounded-2xl border border-gold-200 bg-gold-50/70 p-4 text-sm"><Mic className="mt-0.5 size-4 shrink-0 text-gold-700" /><div><div className="font-bold text-navy-900">{t('admin.programs.voice.appliedTitle')}</div><div className="text-slate-700">{applied}</div><div className="mt-1 text-xs text-slate-500">{t('admin.programs.voice.appliedHint')}</div></div><button type="button" className="ms-auto text-xs text-slate-400 hover:text-navy-900" onClick={() => setApplied(null)}>{t('common.close')}</button></div>}
-      {!embedded && <SaveDock label={t('common.save')} loading={saving} onClick={save} disabled={!id && plan.enabled && (plan.blocking > 0 || (plan.closedDays > 0 && approval.trim().length < 3))} />}
+      <SaveDock label={t('common.save')} loading={saving} onClick={save} disabled={!id && plan.enabled && (plan.blocking > 0 || (plan.closedDays > 0 && approval.trim().length < 3))} />
       {error && <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-danger">{error}</div>}
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">

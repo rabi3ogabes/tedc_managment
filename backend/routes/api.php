@@ -93,7 +93,6 @@ use App\Http\Controllers\Api\V1\Admin\ProgramCatalogSettingsController;
 use App\Http\Controllers\Api\V1\Admin\ProgramController;
 use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
 use App\Http\Controllers\Api\V1\Admin\ProgramInstrumentController;
-use App\Http\Controllers\Api\V1\Admin\ProgramOverviewController;
 use App\Http\Controllers\Api\V1\Admin\ProgramScheduleController;
 use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
 use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
@@ -937,7 +936,6 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:programs.manage')->group(function () {
                 // The spoken / typed order to create a programme (fixed paths, registered before {program}).
                 Route::get('programs/next-code', [ProgramController::class, 'nextCode']);
-                Route::get('programs/{program}/overview', ProgramOverviewController::class)->middleware('permission:programs.view|programs.manage');
                 Route::post('programs/group-names', [TrainingGroupController::class, 'suggestNames'])->middleware('permission:programs.manage|groups.manage');
                 Route::get('programs/kit-options', [ProgramInstrumentController::class, 'kits']);
                 Route::post('programs/schedule-plan', [ProgramScheduleController::class, 'plan'])->middleware('throttle:90,1');
