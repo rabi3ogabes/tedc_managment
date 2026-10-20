@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
 import clsx from 'clsx'
 import L from 'leaflet'
@@ -162,7 +163,7 @@ export default function SchoolsMap({ data, loading }: { data?: SchoolsMapData; l
               {selected.email && <Row icon={Mail} label={t('schoolsMap.details.email')}><a href={`mailto:${selected.email}`} dir="ltr" className="break-all font-semibold text-navy-900 hover:underline">{selected.email}</a></Row>}
               {selected.website && <Row icon={Globe} label={t('schoolsMap.details.website')}><a href={selected.website.startsWith('http') ? selected.website : `https://${selected.website}`} target="_blank" rel="noreferrer" dir="ltr" className="break-all font-semibold text-navy-900 hover:underline">{selected.website}</a></Row>}
             </dl>
-            {selected.staff > 0 && <div className="mt-4 rounded-2xl bg-gold-100/60 px-4 py-2.5 text-sm font-bold text-navy-900">{t('schoolsMap.details.staff')}: {selected.staff}</div>}
+            {selected.staff > 0 && <Link to={`/admin/schools/${selected.id}`} className="mt-4 flex items-center justify-between rounded-2xl bg-gold-100/60 px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-gold-100"><span>{t('schoolsMap.details.staff')}: {selected.staff}</span><span className="text-xs text-gold-700">{t('schoolTl.timelineTitle')} ›</span></Link>}
             <div className="mt-4 flex gap-2">
               <a href={`https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`} target="_blank" rel="noreferrer" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-navy-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-800"><Navigation className="size-4" />{t('schoolsMap.details.directions')}</a>
               <button type="button" onClick={() => copy(selected)} className="inline-flex items-center gap-2 rounded-xl border border-navy-100 px-3 py-2.5 text-sm font-bold text-navy-800 hover:border-gold-400" aria-label={t('schoolsMap.details.copy')} title={t('schoolsMap.details.copy')}>{copied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}</button>

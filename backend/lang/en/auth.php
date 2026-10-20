@@ -39,7 +39,7 @@ return [
     'sso_pkce' => 'The app must sign in with PKCE (S256).',
     'saml_no_next_key' => 'There is no next key to switch to. Publish one first.',
     'saml_metadata_unreadable' => 'The identity provider\'s metadata could not be read. Paste the XML, or give an HTTPS address that serves it.',
-    'sso_link_untrusted' => 'This e-mail already has a TEDC account, and the identity provider is not set to vouch for its domain. Ask the platform administrator to add the domain to single sign-on.',
+    'sso_link_untrusted' => 'This e-mail already has a Shaheen account, and the identity provider is not set to vouch for its domain. Ask the platform administrator to add the domain to single sign-on.',
     'sso_metadata_other_idp' => 'The metadata names a different identity provider; nothing was changed.',
     'ldap_failed' => 'The directory credentials are not correct.',
     'password_expired' => 'Your password has expired; choose a new one.',

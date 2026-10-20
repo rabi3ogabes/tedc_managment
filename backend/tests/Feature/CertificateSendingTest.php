@@ -111,9 +111,9 @@ class CertificateSendingTest extends TestCase
         $this->assertSame(1, preg_match_all('#/Type\s*/Page\b(?!s)#', $pdf), 'the certificate must fit on one page');
 
         // The default name, then a name changed in the settings page.
-        $this->assertSame('مركز التدريب والتطوير', app(ThemeService::class)->centerName()['ar']);
+        $this->assertSame('شاهين - مشروع بوابة التدريب', app(ThemeService::class)->centerName()['ar']);
         $theme = $this->getJson('/api/v1/public/theme')->assertOk()->json('data');
-        $this->assertSame('مركز التدريب والتطوير', $theme['identity']['name_ar']);
+        $this->assertSame('شاهين - مشروع بوابة التدريب', $theme['identity']['name_ar']);
         $theme['identity']['name_ar'] = 'مركز الابتكار التدريبي';
         $theme['identity']['name_en'] = 'Training Innovation Center';
         $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.identity.name_ar', 'مركز الابتكار التدريبي');
@@ -123,6 +123,6 @@ class CertificateSendingTest extends TestCase
 
         // Clearing the name restores the default instead of leaving it empty.
         $theme['identity']['name_ar'] = '   ';
-        $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.identity.name_ar', 'مركز التدريب والتطوير');
+        $this->asUser($admin)->putJson('/api/v1/admin/theme', $theme)->assertOk()->assertJsonPath('data.identity.name_ar', 'شاهين - مشروع بوابة التدريب');
     }
 }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui'
 import { homeFor, useAuth } from '@/lib/auth'
 import ChatWidget from './ChatWidget'
 import Logo from './Logo'
+import VersionStamp from '@/components/VersionStamp'
 import { useCenterName } from '@/lib/ThemeProvider'
 
 const links = [
@@ -152,7 +153,7 @@ export default function PublicLayout() {
         <div className="relative border-t border-white/10">
           <div className="container-x flex flex-col items-center justify-between gap-2 py-5 text-xs text-white/50 sm:flex-row">
             <span>© {new Date().getFullYear()} {centerName} — {t('footer.rights')}</span>
-            <span>{t('contact.hours')}</span>
+            <span className="flex flex-col items-center gap-1 sm:items-end"><span>{t('contact.hours')}</span><VersionStamp /></span>
           </div>
         </div>
       </footer>

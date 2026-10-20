@@ -34,8 +34,8 @@ class S {
   }
 
   static const Map<String, String> _ar = {
-    'app.name': 'مركز التدريب والتطوير',
-    'app.tagline': 'نصنع أثراً مستداماً في التعليم',
+    'app.name': 'شاهين - مشروع بوابة التدريب',
+    'app.tagline': 'رؤية أبعد.. وتميّز أكبر',
     'nav.home': 'الرئيسية',
     'nav.programs': 'البرامج',
     'nav.training': 'تدريبي',
@@ -959,8 +959,8 @@ class S {
   };
 
   static const Map<String, String> _en = {
-    'app.name': 'Training & Development Center',
-    'app.tagline': 'Creating lasting impact in education',
+    'app.name': 'Shaheen – Training Portal Project',
+    'app.tagline': 'A farther vision.. a greater distinction',
     'nav.home': 'Home',
     'nav.programs': 'Programs',
     'nav.training': 'My Training',

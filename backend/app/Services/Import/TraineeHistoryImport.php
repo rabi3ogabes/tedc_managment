@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\PdActivityType;
 use App\Models\Role;
 use App\Support\XlsxStream;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -39,6 +40,9 @@ class TraineeHistoryImport
         'SEX_DESC' => 'sex', 'SEC_EMAIL' => 'email', 'MOBILE_NO' => 'mobile', 'COURSE_TYPE_NAME_A' => 'ctype', 'TRACK_DESCE' => 'track', 'COURSE_NAME_A' => 'course', 'COUNTRY_NAME_A' => 'country',
         'PROVIDER_NAME_A' => 'provider', 'COURSE_DT_FROM' => 'from', 'COURSE_DT_END' => 'to', 'DURATION' => 'hours', 'PROG_JOBNO' => 'jobno', 'PROG_JOBNO_DESC' => 'jobdesc',
     ];
+
+    /** Columns that newer extracts carry and older ones do not: read when present, empty otherwise. */
+    private const OPTIONAL_HEADERS = ['EMPTYPE' => 'emptype'];
 
     /** Organisation names in the extract that are not schools. */
     private const PSEUDO_ORGS = ['مجهزين للحذف', 'أجازة طويلة مدارس', 'لا يعملون_مدارس'];
@@ -118,7 +122,7 @@ class TraineeHistoryImport
                         'appointed' => Cleanser::date($r['appointed']), 'org' => Cleanser::name((string) $r['org']), 'sub' => Cleanser::name((string) $r['sub']), 'eq' => Cleanser::name((string) $r['eq']),
                         'cert' => Cleanser::name((string) $r['cert']) ?: null, 'spec' => Cleanser::name((string) $r['spec']) ?: null, 'job' => Cleanser::name((string) $r['job']), 'jobclass' => Cleanser::name((string) $r['jobclass']),
                         'empclass' => Cleanser::name((string) $r['empclass']), 'kind' => Cleanser::name((string) $r['kind']), 'sex' => Cleanser::gender((string) $r['sex']), 'email' => Cleanser::email((string) $r['email']),
-                        'phone' => Cleanser::phone((string) $r['mobile']),
+                        'phone' => Cleanser::phone((string) $r['mobile']), 'emptype' => trim((string) ($r['emptype'] ?? '')) ?: null,
                     ];
                     $k = Cleanser::arabic($records[$key]['job']);
                     $jobClassVotes[$k][$records[$key]['jobclass']] = ($jobClassVotes[$k][$records[$key]['jobclass']] ?? 0) + 1;
@@ -182,12 +186,16 @@ class TraineeHistoryImport
                     }
                     $map[$key] = $pos;
                 }
+                foreach (self::OPTIONAL_HEADERS as $h => $key) {
+                    $pos = array_search($h, $head, true);
+                    $map[$key] = $pos === false ? null : $pos;
+                }
 
                 continue;
             }
             $row = [];
             foreach ($map as $key => $pos) {
-                $v = $cells[$pos] ?? null;
+                $v = $pos === null ? null : ($cells[$pos] ?? null);
                 $row[$key] = is_string($v) ? (trim($v) === '' ? null : $v) : $v;
             }
             yield $i + 1 => $row;
@@ -331,15 +339,30 @@ class TraineeHistoryImport
             }
             $id = (string) Str::uuid7();
             $map[$key] = $id;
-            $this->stats['departments_created']++;
             $rows[] = ['id' => $id, 'school_id' => $school, 'code' => 'D'.strtoupper(substr(sha1($key), 0, 10)), 'name_en' => $sub, 'name_ar' => $sub, 'created_at' => now(), 'updated_at' => now()];
         }
-        if (! $dry) {
-            foreach (array_chunk($rows, 200) as $chunk) {
-                DB::table('departments')->insertOrIgnore($chunk);
+        // A unit that is already there (same school, same code) is reused, so a second load adds nothing.
+        $existing = [];
+        if ($rows !== []) {
+            foreach (array_chunk(array_column($rows, 'code'), 500) as $codes) {
+                foreach (DB::table('departments')->whereIn('code', $codes)->orderBy('created_at')->get(['id', 'school_id', 'code']) as $d) {
+                    $existing[$d->school_id.'|'.$d->code] ??= $d->id;
+                }
             }
-            foreach ($rows as $r) {
-                $map[$r['school_id'].'|'.Cleanser::arabic($r['name_ar'])] = DB::table('departments')->where('school_id', $r['school_id'])->where('code', $r['code'])->value('id');
+        }
+        $fresh = [];
+        foreach ($rows as $r) {
+            if (isset($existing[$r['school_id'].'|'.$r['code']])) {
+                $map[$r['school_id'].'|'.Cleanser::arabic($r['name_ar'])] = $existing[$r['school_id'].'|'.$r['code']];
+
+                continue;
+            }
+            $fresh[] = $r;
+            $this->stats['departments_created']++;
+        }
+        if (! $dry) {
+            foreach (array_chunk($fresh, 200) as $chunk) {
+                DB::table('departments')->insert($chunk);
             }
         }
 
@@ -441,7 +464,7 @@ class TraineeHistoryImport
                 $schoolId = $p['school'] ? ($schools[Cleanser::arabic($p['school'])] ?? null) : null;
                 $fields = [
                     'school_id' => $schoolId, 'department_id' => $schoolId ? ($departments[$schoolId.'|'.Cleanser::arabic($p['sub'])] ?? null) : null, 'job_title_id' => $p['job'] !== '' ? ($jobTitles[Cleanser::arabic($p['job'])] ?? null) : null,
-                    'job_class' => $p['jobclass'] ?: null, 'employment_class' => $p['empclass'] ?: null, 'employee_kind' => $p['kind'] ?: null, 'employment_seq' => $p['seq'], 'sub_unit' => $p['sub'] ?: null,
+                    'job_class' => $p['jobclass'] ?: null, 'employment_class' => $p['empclass'] ?: null, 'employee_kind' => $p['kind'] ?: null, 'employee_type_code' => $p['emptype'] ?? null, 'employment_seq' => $p['seq'], 'sub_unit' => $p['sub'] ?: null,
                     'gender' => $p['sex'], 'nationality' => $this->nationality($p['nat']), 'hire_date' => $p['appointed'], 'education_level' => $p['eq'] ?: null, 'certificate_name' => $p['cert'], 'specialization' => $p['spec'],
                     'qualification' => self::QUALIFICATION[$p['eq'] ?? ''] ?? null, 'status' => $p['inactive'] ? 'inactive' : 'active', 'source_system' => $source, 'imported_at' => now(),
                     'experience_moe_years' => $p['first_appointed'] ? round(max(0, now()->diffInDays($p['first_appointed'], true)) / 365.25, 1) : null,
@@ -631,5 +654,5 @@ class TraineeHistoryImport
         $flush();
     }
 
-    private ?\Illuminate\Support\Carbon $startedAt = null;
+    private ?Carbon $startedAt = null;
 }

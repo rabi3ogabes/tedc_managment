@@ -1,7 +1,7 @@
 import type { Dictionary } from './ar'
 
 const en: Dictionary = {
-  brand: { name: 'Training & Development Center', short: 'TEDC', tagline: 'Creating lasting impact in education' },
+  brand: { name: 'Shaheen – Training Portal Project', short: 'Shaheen', tagline: 'A farther vision.. a greater distinction' },
   nav: {
     pin: 'Pin the menu at full size', unpin: 'Unpin and shrink the menu', collapse: 'Shrink the menu', expand: 'Expand the menu', autoExpand: 'Expand on hover',
     home: 'Home', about: 'About', programs: 'Programs', trainers: 'Trainers', calendar: 'Training Calendar',
@@ -346,7 +346,7 @@ const en: Dictionary = {
     markAllRead: 'Mark all as read', calendarFeed: 'Calendar feed (ics)', cancelRegistration: 'Cancel registration',
   },
   footer: {
-    rights: 'All rights reserved', quickLinks: 'Quick links', contact: 'Contact', apps: 'Mobile app', appsText: 'Follow your training journey, check in and keep your certificates on your phone.',
+    version: 'Version', updated: 'Last updated', rights: 'All rights reserved', quickLinks: 'Quick links', contact: 'Contact', apps: 'Mobile app', appsText: 'Follow your training journey, check in and keep your certificates on your phone.',
     about: 'A specialised center for educator professional development, managing the full training lifecycle and measuring its impact with data.',
   },
 }

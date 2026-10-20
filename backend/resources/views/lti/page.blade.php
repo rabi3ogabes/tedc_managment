@@ -8,7 +8,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>{{ $t('مركز التدريب والتطوير التربوي', 'Training and Educational Development Center') }}</title>
+<title>{{ $t('شاهين - مشروع بوابة التدريب', 'Shaheen – Training Portal Project') }}</title>
 <style>
   :root { --maroon: #8a1538; --maroon-soft: #f8f1f3; --line: #f1e3e7; --gold: #a29475; --ink: #2b1d22; --muted: #6b5a60; }
   * { box-sizing: border-box; }
@@ -41,24 +41,24 @@
 </head>
 <body>
 <main>
-  <header><span class="mark" aria-hidden="true">T</span><b>{{ $t('مركز التدريب والتطوير التربوي', 'TEDC') }}</b><span>{{ $platform ?? '' }}</span></header>
+  <header><span class="mark" aria-hidden="true">{{ $t('ش', 'S') }}</span><b>{{ $t('شاهين - مشروع بوابة التدريب', 'Shaheen') }}</b><span>{{ $platform ?? '' }}</span></header>
   <section class="{{ $mode === 'error' ? 'error' : '' }}">
     @if ($mode === 'open')
       <h1>{{ $title }}</h1>
-      <p>{{ $t('يُفتح المحتوى في نافذة TEDC. إن لم يُفتح تلقائيًا فاضغط الزر.', 'The content opens in a TEDC window. If it does not open by itself, press the button.') }}</p>
-      <a id="go" class="btn" href="{{ $url }}" target="_blank" rel="noopener">{{ $t('افتح في TEDC', 'Open in TEDC') }}</a>
+      <p>{{ $t('يُفتح المحتوى في نافذة شاهين. إن لم يُفتح تلقائيًا فاضغط الزر.', 'The content opens in a Shaheen window. If it does not open by itself, press the button.') }}</p>
+      <a id="go" class="btn" href="{{ $url }}" target="_blank" rel="noopener">{{ $t('افتح في شاهين', 'Open in Shaheen') }}</a>
       <script>if (window.top === window.self) { location.replace(document.getElementById('go').href); }</script>
     @elseif ($mode === 'link')
-      <h1>{{ $t('لديك حساب في TEDC بهذا البريد', 'You already have a TEDC account with this e-mail') }}</h1>
-      <p>{{ $t('لحماية حسابك لا نربطه دون إذنك. سجّل الدخول إلى TEDC مرة واحدة لتأكيد الربط، ثم تُفتح الدروس من منصتك مباشرة.', 'To protect your account we never link it without you. Sign in to TEDC once to confirm, and later launches from your platform open directly.') }}</p>
+      <h1>{{ $t('لديك حساب في شاهين بهذا البريد', 'You already have a Shaheen account with this e-mail') }}</h1>
+      <p>{{ $t('لحماية حسابك لا نربطه دون إذنك. سجّل الدخول إلى شاهين مرة واحدة لتأكيد الربط، ثم تُفتح الدروس من منصتك مباشرة.', 'To protect your account we never link it without you. Sign in to Shaheen once to confirm, and later launches from your platform open directly.') }}</p>
       <a class="btn" href="{{ $url }}" target="_blank" rel="noopener">{{ $t('سجّل الدخول واربط الحساب', 'Sign in and link my account') }}</a>
     @elseif ($mode === 'signin')
       <h1>{{ $title }}</h1>
-      <p>{{ $t('حسابك في TEDC يحمل صلاحيات إدارية، لذا لا يُفتح بالدخول من منصة أخرى. سجّل الدخول بنفسك للمتابعة.', 'Your TEDC account has staff permissions, so another platform cannot sign it in. Sign in yourself to continue.') }}</p>
-      <a class="btn" href="{{ $url }}" target="_blank" rel="noopener">{{ $t('سجّل الدخول إلى TEDC', 'Sign in to TEDC') }}</a>
+      <p>{{ $t('حسابك في شاهين يحمل صلاحيات إدارية، لذا لا يُفتح بالدخول من منصة أخرى. سجّل الدخول بنفسك للمتابعة.', 'Your Shaheen account has staff permissions, so another platform cannot sign it in. Sign in yourself to continue.') }}</p>
+      <a class="btn" href="{{ $url }}" target="_blank" rel="noopener">{{ $t('سجّل الدخول إلى شاهين', 'Sign in to Shaheen') }}</a>
     @elseif ($mode === 'select')
-      <h1>{{ $t('اختر محتوى TEDC لمقررك', 'Choose TEDC content for your course') }}</h1>
-      <p>{{ $t('يظهر كل اختيار في منصتك رابطًا يفتح الدرس أو البرنامج في TEDC، وتعود الدرجة إلى سجل الدرجات.', 'Each choice appears in your platform as a link that opens the lesson or programme in TEDC, and the grade comes back to your gradebook.') }}</p>
+      <h1>{{ $t('اختر محتوى شاهين لمقررك', 'Choose Shaheen content for your course') }}</h1>
+      <p>{{ $t('يظهر كل اختيار في منصتك رابطًا يفتح الدرس أو البرنامج في شاهين، وتعود الدرجة إلى سجل الدرجات.', 'Each choice appears in your platform as a link that opens the lesson or programme in Shaheen, and the grade comes back to your gradebook.') }}</p>
       <form method="POST" action="{{ $action }}">
         <input type="hidden" name="launch" value="{{ $launch }}">
         <input type="hidden" name="token" value="{{ $token }}">
@@ -72,7 +72,7 @@
               @endforeach
             </fieldset>
           @empty
-            <div class="empty">{{ $t('لم يُسمح لهذه المنصة بأي برنامج بعد. اطلب من مسؤول TEDC إضافة البرامج في إعدادات منصات LTI.', 'This platform may not reach any programme yet. Ask the TEDC administrator to add programmes in the LTI platform settings.') }}</div>
+            <div class="empty">{{ $t('لم يُسمح لهذه المنصة بأي برنامج بعد. اطلب من مسؤول شاهين إضافة البرامج في إعدادات منصات LTI.', 'This platform may not reach any programme yet. Ask the Shaheen administrator to add programmes in the LTI platform settings.') }}</div>
           @endforelse
         </div>
         <button class="btn" type="submit">{{ $t('أضف إلى المقرر', 'Add to the course') }}</button>

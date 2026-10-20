@@ -1,5 +1,5 @@
 import {
-  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Video, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
+  Award, Bug, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
@@ -18,7 +18,7 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
     ] },
     { id: 'lifecycle', title: m('groups.lifecycle'), items: [
       { to: '/admin/programs', label: m('programs'), icon: BookOpen, permission: 'programs.view' },
-      { to: '/admin/programs/remote', label: t('studio.nav.remote'), icon: Video, permission: 'programs.manage' },
+      // «البرامج عن بُعد» is hidden for now (its page stays at /admin/programs/remote); it will be merged into another button.
       { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
       { to: '/admin/teaching', label: t('teach.nav'), icon: Presentation, permission: 'trainers.respond' },
       { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },

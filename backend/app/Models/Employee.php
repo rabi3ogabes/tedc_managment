@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['national_id_hash', 'education_level', 'certificate_name', 'job_class', 'employment_class', 'employee_kind', 'employment_seq', 'sub_unit', 'source_system', 'imported_at', 'user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'birth_date', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status', 'experience_moe_years', 'experience_outside_years', 'current_title_since', 'grade_level', 'subjects', 'grades_taught'])]
+#[Fillable(['national_id_hash', 'education_level', 'certificate_name', 'job_class', 'employment_class', 'employee_kind', 'employee_type_code', 'employment_seq', 'sub_unit', 'source_system', 'imported_at', 'user_id', 'school_id', 'department_id', 'job_title_id', 'supervisor_id', 'employee_no', 'national_id', 'gender', 'nationality', 'birth_date', 'hire_date', 'experience_years', 'education_stage', 'qualification', 'specialization', 'status', 'experience_moe_years', 'experience_outside_years', 'current_title_since', 'grade_level', 'subjects', 'grades_taught'])]
 #[Hidden(['national_id', 'national_id_hash'])]
 class Employee extends Model
 {

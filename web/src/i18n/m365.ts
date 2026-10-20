@@ -40,8 +40,8 @@ export const m365Ar = {
       },
       cert: { subject: 'الموضوع', notAfter: 'ينتهي في', left: 'بقي {{n}} يومًا', warn: 'ينتهي خلال {{n}} يومًا — جدّده', expired: 'منتهي الصلاحية', fingerprint: 'البصمة (SHA-256)' },
       test: {
-        button: 'جرّب الدخول', hint: 'تفتح نافذة للدخول عند مزوّد الهوية ثم تعرض لك ما وصل وما سيفعله TEDC. لا يدخل أحد ولا يُنشأ حساب، ويمكن إجراؤها قبل التشغيل.',
-        title: 'نتيجة تجربة الدخول', ok: 'وصلت استجابة سليمة', failed: 'رُفضت الاستجابة', claims: 'ما أرسله مزوّد الهوية', account: 'ما سيفعله TEDC',
+        button: 'جرّب الدخول', hint: 'تفتح نافذة للدخول عند مزوّد الهوية ثم تعرض لك ما وصل وما سيفعله شاهين. لا يدخل أحد ولا يُنشأ حساب، ويمكن إجراؤها قبل التشغيل.',
+        title: 'نتيجة تجربة الدخول', ok: 'وصلت استجابة سليمة', failed: 'رُفضت الاستجابة', claims: 'ما أرسله مزوّد الهوية', account: 'ما سيفعله شاهين',
         why: { malformed: 'تعذّرت قراءة الاستجابة.', unsolicited: 'الاستجابة لا تخص طلب دخول بدأته المنصة.', invalid: 'التوقيع أو الجمهور أو العنوان أو الوقت غير صحيح.', replayed: 'استُخدم هذا التأكيد من قبل.', no_subject: 'لا يحمل الرمز معرّفًا للمستخدم.' },
         detail: 'التفاصيل',
         fields: { subject: 'المعرّف', email: 'البريد', upn: 'اسم الدخول (UPN)', name: 'الاسم', name_ar: 'الاسم بالعربية', employee_no: 'الرقم الوظيفي', groups: 'المجموعات', email_verified: 'البريد موثَّق', name_id: 'NameID', name_id_format: 'صيغة NameID' },
@@ -114,8 +114,8 @@ export const m365En: typeof m365Ar = {
         entityId: 'Identifier (Entity ID)', acs: 'Reply address (ACS, HTTP-POST)', slo: 'Logout address (SLO)', metadata: 'Metadata address', download: 'Download the metadata file',
         copy: 'Copy', copied: 'Copied',
         key: {
-          title: 'TEDC\'s signing and encryption key', none: 'No key yet. Generate one, then give TEDC\'s metadata to the identity provider.', generate: 'Generate the key', next: 'Publish a new key (rollover)', promote: 'Switch to the new key',
-          current: 'Current key', upcoming: 'Next key — published in the metadata', rollover: 'To roll over: publish a new key, let the identity provider re-read TEDC\'s metadata, then switch to it.',
+          title: 'Shaheen\'s signing and encryption key', none: 'No key yet. Generate one, then give Shaheen\'s metadata to the identity provider.', generate: 'Generate the key', next: 'Publish a new key (rollover)', promote: 'Switch to the new key',
+          current: 'Current key', upcoming: 'Next key — published in the metadata', rollover: 'To roll over: publish a new key, let the identity provider re-read Shaheen\'s metadata, then switch to it.',
           created: 'Key generated', promoted: 'Switched to the new key', confirmGenerate: 'Generating a key replaces the current one at once, so the identity provider refuses requests until it reads the new metadata. For a safe change use "Publish a new key". Continue?',
         },
         idp: {
@@ -127,8 +127,8 @@ export const m365En: typeof m365Ar = {
       },
       cert: { subject: 'Subject', notAfter: 'Expires', left: '{{n}} days left', warn: 'Expires in {{n}} days — renew it', expired: 'Expired', fingerprint: 'Fingerprint (SHA-256)' },
       test: {
-        button: 'Try a sign-in', hint: 'Opens a window to sign in at the identity provider, then shows what arrived and what TEDC would do. Nobody is signed in and no account is created; it works before switching on.',
-        title: 'Sign-in test result', ok: 'A valid response arrived', failed: 'The response was refused', claims: 'What the identity provider sent', account: 'What TEDC would do',
+        button: 'Try a sign-in', hint: 'Opens a window to sign in at the identity provider, then shows what arrived and what Shaheen would do. Nobody is signed in and no account is created; it works before switching on.',
+        title: 'Sign-in test result', ok: 'A valid response arrived', failed: 'The response was refused', claims: 'What the identity provider sent', account: 'What Shaheen would do',
         why: { malformed: 'The response could not be read.', unsolicited: 'The response is not for a sign-in the platform started.', invalid: 'The signature, audience, address or time is wrong.', replayed: 'This assertion was already used.', no_subject: 'The token carries no user identifier.' },
         detail: 'Details',
         fields: { subject: 'Identifier', email: 'E-mail', upn: 'Sign-in name (UPN)', name: 'Name', name_ar: 'Arabic name', employee_no: 'Employee number', groups: 'Groups', email_verified: 'E-mail verified', name_id: 'NameID', name_id_format: 'NameID format' },
@@ -145,12 +145,12 @@ export const m365En: typeof m365Ar = {
         on: 'Switch town halls on', inviteOnly: 'Only the registered trainees can join', saved: 'Setting saved',
         organizer: {
           title: 'Organiser account', connected: 'Connected as {{account}}', none: 'No account connected yet', connect: 'Connect the organiser account', reconnect: 'Connect again', disconnect: 'Disconnect',
-          why: 'Microsoft does not let apps create town halls with application permissions alone, so TEDC acts as an organiser account you connect once; its token is kept encrypted.',
+          why: 'Microsoft does not let apps create town halls with application permissions alone, so Shaheen acts as an organiser account you connect once; its token is kept encrypted.',
           redirect: 'Add this redirect address to the app registration (Web redirect URI):', done: 'The organiser account is connected', failed: 'The account could not be connected. Check that the permissions were consented to and that the account belongs to the Ministry tenant.', confirmDisconnect: 'Disconnecting stops new town halls until an account is connected again. Continue?',
         },
       },
       feed: {
-        title: 'Teams activity feed', hint: 'TEDC notifications appear in the activity feed of people who signed in with their Microsoft account, with a link that opens TEDC. The notification rules decide which kinds arrive.',
+        title: 'Teams activity feed', hint: 'Shaheen notifications appear in the activity feed of people who signed in with their Microsoft account, with a link that opens Shaheen. The notification rules decide which kinds arrive.',
         on: 'Send notifications to the activity feed', active: 'The channel is running', inactive: 'The channel is off', appId: 'Teams app id', appIdHint: 'Created with the first package. After the app is uploaded, compare it with the id shown in the Teams admin centre and correct it here if it differs.',
         package: 'Download the Teams app package', version: 'Version {{v}} · {{n}} kinds of notification', saved: 'Setting saved', downloaded: 'Package downloaded',
         steps: ['Download the package and hand it to the Ministry\'s Teams administrator.', 'They upload it in the Teams admin centre → Manage apps → Upload new app.', 'They install the app for users (app setup policy) so the notifications reach them.', 'Then switch the option above on and check the permissions list.'],

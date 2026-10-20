@@ -62,7 +62,7 @@ export const DEFAULT_THEME: Theme = {
   banners: { overlay_color: '#3A0918', overlay_opacity: 72, hero_images: [null, null, null, null], page_banner_image: null, cta_style: 'gradient' },
   pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null, tint: null, repeat: 'tile' },
   shape: { card_radius: 14, glass_blur: 18 },
-  identity: { name_ar: 'مركز التدريب والتطوير', name_en: 'Training & Development Center', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
+  identity: { name_ar: 'شاهين - مشروع بوابة التدريب', name_en: 'Shaheen – Training Portal Project', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
   typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
   navigation: { style: 'classic' },
   loading: { style: 'emblem', message_ar: 'جارٍ التحميل…', message_en: 'Loading…', background: null, accent: null, show_name: true },

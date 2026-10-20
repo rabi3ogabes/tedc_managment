@@ -40,7 +40,7 @@ class EmployeeResource extends JsonResource
             'specialization' => $this->specialization,
             'status' => $this->status,
             'education_level' => $this->education_level, 'certificate_name' => $this->certificate_name, 'job_class' => $this->job_class, 'employment_class' => $this->employment_class,
-            'employee_kind' => $this->employee_kind, 'sub_unit' => $this->sub_unit, 'employment_seq' => $this->employment_seq, 'source_system' => $this->source_system,
+            'employee_kind' => $this->employee_kind, 'employee_type_code' => $this->employee_type_code, 'sub_unit' => $this->sub_unit, 'employment_seq' => $this->employment_seq, 'source_system' => $this->source_system,
             'employee_numbers' => $this->whenLoaded('numbers', fn () => $this->numbers->map(fn ($n) => ['employee_no' => $n->employee_no, 'seq' => $n->seq, 'appointed_on' => $n->appointed_on?->toDateString(), 'employment_class' => $n->employment_class, 'org_name' => $n->org_name, 'is_current' => $n->is_current])),
             'skills' => $this->whenLoaded('skills', fn () => $this->skills->map(fn ($s) => [
                 'id' => $s->id, 'code' => $s->code, 'name' => $s->translate('name'), 'category' => $s->category,

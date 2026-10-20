@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
+use App\Http\Controllers\Api\V1\Admin\SchoolTrainingController;
 use App\Http\Controllers\Api\V1\Admin\SecurityPolicyController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
@@ -1071,6 +1072,11 @@ Route::prefix('v1')->group(function () {
                 Route::get('schools/map', [SchoolController::class, 'map']);
                 Route::get('schools', [SchoolController::class, 'index']);
                 Route::get('schools/{school}', [SchoolController::class, 'show']);
+                // The school's page: its staff and the history of their training as a timeline (staff data, so it also needs the employees permission).
+                Route::middleware('permission:employees.view|employees.manage')->group(function () {
+                    Route::get('schools/{school}/staff', [SchoolTrainingController::class, 'staff']);
+                    Route::get('schools/{school}/timeline', [SchoolTrainingController::class, 'timeline']);
+                });
             });
             Route::middleware('permission:schools.manage')->group(function () {
                 Route::post('schools/sync', [SchoolController::class, 'sync'])->middleware('throttle:6,1');

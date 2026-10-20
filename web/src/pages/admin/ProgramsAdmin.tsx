@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Building2, Layers, LayoutGrid, MonitorPlay, Plus, Search, Video, Wand2 } from 'lucide-react'
+import { Building2, Layers, LayoutGrid, MonitorPlay, Plus, Search, Wand2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -33,7 +33,7 @@ export default function ProgramsAdmin() {
 
   return (
     <>
-      <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <div className="flex flex-wrap gap-2"><Button to="/admin/programs/smart" variant="gold" icon={<Wand2 className="size-4" />}>{t('mgmt.wizard.smartCreate')}</Button><Button to="/admin/programs/remote" variant="primary" icon={<Video className="size-4" />}>{t('studio.nav.remote')}</Button><Button to="/admin/programs/new" variant="outline" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button></div>} />
+      <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <div className="flex flex-wrap gap-2"><Button to="/admin/programs/smart" variant="gold" icon={<Wand2 className="size-4" />}>{t('mgmt.wizard.smartCreate')}</Button><Button to="/admin/programs/new" variant="outline" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button></div>} />
       {/* The three kinds of program: choose one to see only those */}
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" role="tablist" aria-label={t('programs.mode')}>
         {([['', LayoutGrid], ['in_person', Building2], ['online', MonitorPlay], ['hybrid', Layers]] as const).map(([k, Icon]) => {

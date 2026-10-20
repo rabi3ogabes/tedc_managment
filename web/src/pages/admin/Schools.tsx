@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { List, Map as MapIcon, RefreshCcw, Search, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { Button, Card, PageHeader } from '@/components/ui'
 import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
@@ -65,7 +66,7 @@ export default function Schools() {
           </div>
           <DataView id="admin.schools" rows={list.data?.data} total={list.data?.total} loading={list.isLoading} rowKey={(s) => s.id} columns={[
             { key: 'code', header: t('admin.schools.code'), role: 'media', cell: (s) => <span className="inline-block rounded-lg bg-navy-100/70 px-2 py-1 font-mono text-[11px] font-bold text-navy-800" dir="ltr">{s.code}</span> },
-            { key: 'name', header: t('common.name'), role: 'title', cell: (s) => <span className="font-semibold text-navy-900">{i18n.language === 'ar' ? s.name_ar : s.name_en} {s.is_partner && <Star className="inline size-3.5 fill-gold-500 text-gold-500" />}</span> },
+            { key: 'name', header: t('common.name'), role: 'title', cell: (s) => <Link to={`/admin/schools/${s.id}`} className="font-semibold text-navy-900 hover:text-gold-700 hover:underline">{i18n.language === 'ar' ? s.name_ar : s.name_en} {s.is_partner && <Star className="inline size-3.5 fill-gold-500 text-gold-500" />}</Link> },
             { key: 'region', header: t('admin.schools.region'), role: 'subtitle', cell: (s) => t(`regions.${s.region}`) },
             { key: 'type', header: t('admin.schools.type'), cell: (s) => t(`schoolTypes.${s.type}`) },
             { key: 'stage', header: t('admin.schools.stage'), cell: (s) => t(`stages.${s.stage}`) },

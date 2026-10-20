@@ -23,7 +23,7 @@ class TedcApp extends ConsumerWidget {
     return KeyedSubtree(
       key: ValueKey('${AppColors.signature}|${AppStyle.signature}'),
       child: MaterialApp.router(
-        title: 'مركز التدريب والتطوير',
+        title: 'شاهين - مشروع بوابة التدريب',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(locale),
         locale: locale,

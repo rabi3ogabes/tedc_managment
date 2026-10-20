@@ -17,7 +17,7 @@
 
 - Public: 799 columns
 - Internal: 2298 columns
-- Confidential: 553 columns
+- Confidential: 554 columns
 - Restricted: 27 columns
 
 ## Application-level encryption
@@ -1203,6 +1203,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `sub_unit` | Confidential | masked in exports |
 | `source_system` | Confidential | masked in exports |
 | `imported_at` | Confidential | masked in exports |
+| `employee_type_code` | Confidential | masked in exports |
 
 ### `entity_account_users`
 

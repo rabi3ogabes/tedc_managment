@@ -147,7 +147,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                         child: Transform.translate(
                           offset: Offset(0, 16 * (1 - name)),
                           child: const Text(
-                            'مركز التدريب والتطوير',
+                            'شاهين - مشروع بوابة التدريب',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontFamily: 'Tajawal', fontSize: 30, fontWeight: FontWeight.w800, color: Colors.white, height: 1.3),   // no letter-spacing: it would break Arabic letter joining
                           ),

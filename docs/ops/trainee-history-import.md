@@ -25,6 +25,7 @@ It takes about four minutes for the three files and a few megabytes of memory (t
 | IDNO (11 digits) | `employees.national_id` (encrypted) + `employees.national_id_hash` (HMAC-SHA256 blind index, unique) — the key of a person |
 | EMPNO | `employees.employee_no` (the person's current number) and every number in the new `employee_numbers` table (re-hired staff have one per employment) |
 | EMPNO_SEQ | `employees.employment_seq`, `employee_numbers.seq` |
+| EMPTYPE (newer extracts; optional) | `employees.employee_type_code` as written (blank in the extract of 18 Oct) |
 | EMPNAME | `users.name` and `users.name_ar` (trimmed; the extract has Arabic names only) |
 | NATNAME | `employees.nationality` — the adjective mapped to the country name the rules use (قطرية → Qatar, about 90 forms); unknown forms kept as written; «غير محددة الجنسية» → empty |
 | SECAPPMDT | `employees.hire_date`; the earliest appointment of the person sets `experience_moe_years` / `experience_years` |

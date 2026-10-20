@@ -131,6 +131,7 @@ const CertificateDesigner = lazy(() => import('@/pages/admin/certificates/Design
 const Schools = lazy(() => import('@/pages/admin/Schools'))
 const Employees = lazy(() => import('@/pages/admin/Employees'))
 const EmployeeProfile = lazy(() => import('@/pages/admin/EmployeeProfile'))
+const SchoolDetail = lazy(() => import('@/pages/admin/SchoolDetail'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const AuditLog = lazy(() => import('@/pages/admin/AuditLog'))
 
@@ -276,6 +277,7 @@ export default function App() {
           <Route path="certificate-templates" element={<RequireAuth permission="certificates.view"><CertificateTemplates /></RequireAuth>} />
           <Route path="certificate-templates/:id" element={<RequireAuth permission="certificates.issue"><CertificateDesigner /></RequireAuth>} />
           <Route path="schools" element={<Schools />} />
+          <Route path="schools/:id" element={<RequireAuth permission="schools.view"><SchoolDetail /></RequireAuth>} />
           <Route path="employees" element={<Employees />} />
           <Route path="employees/:id" element={<EmployeeProfile />} />
           <Route path="profile" element={<Profile />} />

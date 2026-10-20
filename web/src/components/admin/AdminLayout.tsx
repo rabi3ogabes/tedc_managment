@@ -1,3 +1,4 @@
+import VersionStamp from '@/components/VersionStamp'
 import clsx from 'clsx'
 import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/components/search/GlobalSearch'
 import FeatureBanner from './FeatureBanner'
@@ -128,7 +129,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           <>
             <BrandMark onDark className="h-11 max-w-[120px]" />
             <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate font-display text-sm font-bold">{centerName}</div>
+              <div className="line-clamp-2 font-display text-[13px] font-bold leading-snug" title={centerName}>{centerName}</div>
               <div className="text-[11px] text-gold-300">{portal ? t('nav.portal') : t('nav.dashboard')}</div>
             </div>
             {!drawer && (
@@ -236,6 +237,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
           {portal && <AssistantPanel portal />}
         </main>
+        <footer className="border-t border-navy-100/70 px-4 py-3 text-center text-[11px] text-slate-400"><VersionStamp /></footer>
       </div>
     )
   }
@@ -296,6 +298,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           <TourHost portal={portal} groups={visible.map((g) => ({ id: g.id, title: g.title, items: g.items.map((i) => ({ to: i.to, label: i.label, icon: i.icon })) }))} />
           <AssignmentPopup />
         </main>
+        <footer className="border-t border-navy-100/70 px-4 py-3 text-center text-[11px] text-slate-400 sm:px-8"><VersionStamp /></footer>
       </div>
     </div>
   )

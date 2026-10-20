@@ -112,7 +112,7 @@ export default function DistributionTab({ surveyId, title, isOpen, canManage }: 
           <div className="mx-auto my-6 inline-block rounded-2xl bg-white p-4 shadow-sm"><QRCodeSVG value={pub?.link ?? ''} size={220} level="M" /></div>
           <p className="text-sm text-slate-600">{t('ss.dist.cardHint')}</p>
           <p className="mt-2 font-mono text-xs text-slate-500" dir="ltr">{pub?.link}</p>
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400"><QrCode className="size-3.5" />{en ? 'Training & Development Centre' : 'مركز التدريب والتطوير'}<Users className="size-3.5" /></div>
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400"><QrCode className="size-3.5" />{en ? 'Shaheen – Training Portal Project' : 'شاهين - مشروع بوابة التدريب'}<Users className="size-3.5" /></div>
         </div>
         <div className="mt-4 flex justify-end gap-2"><Button variant="outline" onClick={() => setCard(false)}>{t('common.close')}</Button><Button variant="gold" icon={<Printer className="size-4" />} onClick={() => { const el = document.getElementById('survey-qr-card'); if (!el) return; const w = window.open('', '_blank'); if (!w) return; w.document.write(`<html dir="${en ? 'ltr' : 'rtl'}"><head><title>${title}</title><style>body{font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0}</style></head><body>${el.outerHTML}</body></html>`); w.document.close(); w.focus(); w.print() }}>{t('ss.dist.print')}</Button></div>
       </Modal>
