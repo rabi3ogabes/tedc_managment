@@ -21,7 +21,7 @@ class SchoolTrainingController extends Controller
     {
         $this->authorizeSchool($school);
         $approved = fn (Builder $q) => $q->where('status', 'approved');
-        $staff = Employee::with(['user:id,name,name_ar', 'jobTitle:id,title_ar,title_en', 'department:id,name_ar,name_en'])
+        $staff = Employee::with(['user:id,name,name_ar', 'jobTitle:id,name_ar,name_en', 'department:id,name_ar,name_en'])
             ->where('school_id', $school->id)
             ->tap(fn ($q) => $this->scope()->constrainEmployees($q))
             ->withCount(['pdActivities as courses_count' => $approved])
@@ -36,7 +36,7 @@ class SchoolTrainingController extends Controller
 
         return response()->json([
             'data' => $staff->getCollection()->map(fn (Employee $e) => [
-                'id' => $e->id, 'employee_no' => $e->employee_no, 'name' => $e->user?->name_ar ?: $e->user?->name, 'job_title' => $e->jobTitle?->title_ar, 'job_title_en' => $e->jobTitle?->title_en,
+                'id' => $e->id, 'employee_no' => $e->employee_no, 'name' => $e->user?->name_ar ?: $e->user?->name, 'job_title' => $e->jobTitle?->name_ar, 'job_title_en' => $e->jobTitle?->name_en,
                 'unit' => $e->department?->name_ar ?? $e->sub_unit, 'status' => $e->status, 'hire_date' => $e->hire_date?->toDateString(),
                 'courses' => (int) $e->courses_count, 'hours' => round((float) ($e->hours_total ?? 0), 1), 'last_course_on' => $e->last_course_on ? substr((string) $e->last_course_on, 0, 10) : null,
             ])->values(),

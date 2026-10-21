@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\JobTitle;
 use App\Models\PdActivity;
 use App\Models\PdActivityType;
 use App\Models\Role;
@@ -34,6 +35,7 @@ class SchoolTrainingTimelineTest extends TestCase
         $this->assertSame(2, $staff['total']);
         $this->assertSame(['100', 13.0, 2], [$staff['data'][0]['employee_no'], (float) $staff['data'][0]['hours'], $staff['data'][0]['courses']]);
         $this->assertSame('2025-03-02', $staff['data'][0]['last_course_on']);
+        $this->assertSame(JobTitle::find($a->job_title_id)?->name_ar, $staff['data'][0]['job_title']);   // the real title, not a column name
         $this->assertCount(1, $this->asUser($admin)->getJson("/api/v1/admin/schools/{$school->id}/staff?q=200")->json('data'));
 
         $t = $this->asUser($admin)->getJson("/api/v1/admin/schools/{$school->id}/timeline")->assertOk()->json('data');

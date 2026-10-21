@@ -105,7 +105,9 @@ class RegistrationController extends Controller
         $data = $request->validate(['registration_ids' => ['required', 'array', 'min:1', 'max:200'], 'registration_ids.*' => ['uuid', 'exists:registrations,id'], 'group_id' => ['required', 'uuid', 'exists:training_groups,id'], 'override' => ['sometimes', 'boolean']]);
         $group = TrainingGroup::findOrFail($data['group_id']);
         $results = [];
-        foreach (Registration::with('employee')->whereIn('id', $data['registration_ids'])->get() as $registration) {
+        // In the order the administrator chose them: when seats run short, the first ones get them (the database returns no order of its own).
+        $order = array_flip(array_values($data['registration_ids']));
+        foreach (Registration::with('employee')->whereIn('id', $data['registration_ids'])->get()->sortBy(fn ($r) => $order[$r->id] ?? PHP_INT_MAX) as $registration) {
             try {
                 $this->authorizeSchool($registration->employee);
                 $this->registrations->assignToGroup($registration, $group, $this->user(), (bool) ($data['override'] ?? false) && $this->isCenterStaff());

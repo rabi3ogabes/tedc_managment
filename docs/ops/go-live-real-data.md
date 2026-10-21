@@ -53,3 +53,16 @@ Rehearsal: 11 816 demo rows in 180 tables removed; foreign keys and integrity ch
 and training timeline. Then set `TEDC_DEMO_SITE=false` in Vercel (no demo accounts on the sign-in screen) and delete `backend/.env.live`.
 
 **Full suite (21 Oct 2026):** 1205 tests, 1134 passed; the failures are the known Windows-only set (VercelEnvTest x2, ContractDriverTest mTLS, IntegrationDocsTest line endings, SocialFilesTest) and 54 openssl errors.
+
+## 4. Rehearsed on PostgreSQL (the live database type)
+
+The first rehearsals ran on SQLite, which does not check column lengths or true/false types and quietly reads an unknown column name in quotes as text. A second rehearsal on a local PostgreSQL (WSL), with the demo data seeded exactly as live and the official school list, found and fixed:
+
+- the importer wrote `0/1` into true/false columns (`schools.is_partner`, `employee_numbers.is_current`, `users.mfa_enabled`, `pd_activities.recognition_request`) — PostgreSQL refuses them; now `true/false`;
+- `schools.source` allowed 16 characters, `moe_training_extract` has 20 — widened to 32 (migration `…008400`);
+- **live bug:** a PLC workshop's programme is of kind `plc_workshop` (12 characters) in a column of 8 — creating a PLC workshop failed on the live site; widened to 16 (migration `…008500`);
+- **live bug:** the PLC dashboard grouped counts over a query that carried every column — PostgreSQL refused it; the counts now start from a clean column list;
+- moving several trainees into a group with too few seats now follows the order the administrator selected (PostgreSQL returns rows in no fixed order);
+- the school page read the job title from columns that do not exist (`title_ar/title_en`, the columns are `name_ar/name_en`) — SQLite showed the column name as text; fixed and covered by the test.
+
+Result on PostgreSQL: import 142 302 rows / 31 502 people / 718 198 hours, reconciled; a second import creates nothing; clean-up removes 5 711 demo rows (with backup) and keeps 31 502 people, 812 schools (20 of them Ministry departments) and the setup; a redeploy adds nothing. All 57 tests of the recent features pass on PostgreSQL and on SQLite.

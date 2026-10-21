@@ -13,6 +13,7 @@ use App\Services\Plc\PlcSettings;
 use App\Services\Plc\WorkshopService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /** The PLC hub's overview (real counts inside the person's scope), lookups and settings. */
 class PlcHubController extends Controller
@@ -24,11 +25,11 @@ class PlcHubController extends Controller
         $user = $this->user();
         $w = fn () => $this->workshops->query($user);
         $n = fn () => $this->needs->query($user);
-        $byState = $w()->toBase()->selectRaw('workflow_state, count(*) as c')->groupBy('workflow_state')->pluck('c', 'workflow_state');
-        $bySource = $w()->toBase()->selectRaw('source, count(*) as c')->groupBy('source')->pluck('c', 'source');
-        $byScenario = $w()->toBase()->selectRaw('scenario, count(*) as c')->groupBy('scenario')->pluck('c', 'scenario');
-        $needsByStatus = $n()->toBase()->selectRaw('review_status, count(*) as c')->groupBy('review_status')->pluck('c', 'review_status');
-        $needsBySource = $n()->toBase()->selectRaw('source, count(*) as c')->groupBy('source')->pluck('c', 'source');
+        $byState = $w()->toBase()->reorder()->select(DB::raw('workflow_state, count(*) as c'))->groupBy('workflow_state')->pluck('c', 'workflow_state');
+        $bySource = $w()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source');
+        $byScenario = $w()->toBase()->reorder()->select(DB::raw('scenario, count(*) as c'))->groupBy('scenario')->pluck('c', 'scenario');
+        $needsByStatus = $n()->toBase()->reorder()->select(DB::raw('review_status, count(*) as c'))->groupBy('review_status')->pluck('c', 'review_status');
+        $needsBySource = $n()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source');
         $pending = $w()->where('workflow_state', 'submitted')->get()->filter(function (PlcWorkshop $x) use ($user) {
             $step = collect($x->approval_path ?? [])->firstWhere('status', 'pending');
 

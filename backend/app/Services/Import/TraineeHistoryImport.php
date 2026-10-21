@@ -291,7 +291,7 @@ class TraineeHistoryImport
             $map[$norm] = $id;
             $this->stats['schools_created']++;
             $rows[] = ['id' => $id, 'code' => 'IMP-'.strtoupper(substr(sha1($norm), 0, 8)), 'name_en' => $name, 'name_ar' => $name, 'type' => self::isAdministrative($name) ? 'administrative' : 'government', 'gender' => $this->schoolGender($name), 'stage' => $this->schoolStage($name),
-                'region' => 'غير محدد', 'is_partner' => 0, 'status' => 'active', 'source' => 'moe_training_extract', 'created_at' => now(), 'updated_at' => now()];
+                'region' => 'غير محدد', 'is_partner' => false, 'status' => 'active', 'source' => 'moe_training_extract', 'created_at' => now(), 'updated_at' => now()];
         }
         if (! $dry) {
             foreach (array_chunk($rows, 100) as $chunk) {
@@ -556,7 +556,7 @@ class TraineeHistoryImport
                     $usedEmails[$email] = true;
                     $no = isset($takenNos[$primary]) ? $primary.'-'.substr((string) $idno, -4) : $primary;
                     $takenNos[$no] = true;
-                    $users[] = ['id' => $userId, 'name' => $p['name'], 'name_ar' => $p['name'], 'email' => $email, 'phone' => $p['phone'], 'locale' => 'ar', 'status' => $p['inactive'] ? 'inactive' : 'active', 'failed_attempts' => 0, 'mfa_enabled' => 0,
+                    $users[] = ['id' => $userId, 'name' => $p['name'], 'name_ar' => $p['name'], 'email' => $email, 'phone' => $p['phone'], 'locale' => 'ar', 'status' => $p['inactive'] ? 'inactive' : 'active', 'failed_attempts' => 0, 'mfa_enabled' => false,
                         'created_at' => now(), 'updated_at' => now()];
                     $employees[] = ['id' => $employeeId, 'user_id' => $userId, 'employee_no' => $no, 'national_id' => Crypt::encryptString((string) $idno), 'national_id_hash' => $hash, 'created_at' => now(), 'updated_at' => now()] + $fields;
                     if ($roleId) {
@@ -569,7 +569,7 @@ class TraineeHistoryImport
                 if (! isset($numbersTaken[$ownNo])) {
                     $numbersTaken[$ownNo] = $employeeId;
                     $numbers[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'employee_no' => $ownNo, 'seq' => $p['seq'], 'appointed_on' => $p['appointed'], 'employment_class' => $p['empclass'] ?: null,
-                        'org_name' => $p['org'] ?: null, 'is_current' => 1, 'source_system' => $source, 'created_at' => now(), 'updated_at' => now()];
+                        'org_name' => $p['org'] ?: null, 'is_current' => true, 'source_system' => $source, 'created_at' => now(), 'updated_at' => now()];
                 }
                 foreach ($p['records'] as $r) {
                     if (isset($numbersTaken[$r['empno']]) && $numbersTaken[$r['empno']] !== $employeeId) {
@@ -580,7 +580,7 @@ class TraineeHistoryImport
                     if (! isset($numbersTaken[$r['empno']])) {
                         $numbersTaken[$r['empno']] = $employeeId;
                         $numbers[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'employee_no' => $r['empno'], 'seq' => $r['seq'], 'appointed_on' => $r['appointed'], 'employment_class' => $r['empclass'] ?: null,
-                            'org_name' => $r['org'] ?: null, 'is_current' => $r['empno'] === $p['empno'] ? 1 : 0, 'source_system' => $source, 'created_at' => now(), 'updated_at' => now()];
+                            'org_name' => $r['org'] ?: null, 'is_current' => $r['empno'] === $p['empno'], 'source_system' => $source, 'created_at' => now(), 'updated_at' => now()];
                     }
                 }
             }
@@ -711,7 +711,7 @@ class TraineeHistoryImport
                 $batch[] = [
                     'id' => (string) Str::uuid7(), 'employee_id' => $idnoToEmployee[$idno], 'type_id' => $typeId, 'title' => $title, 'provider' => Cleanser::name((string) $r['provider']) ?: null, 'domain' => null, 'skill_ids' => '[]',
                     'starts_on' => $from, 'ends_on' => $to, 'duration_hours' => $hours, 'participation_level' => 'attendee', 'location' => Cleanser::name((string) $r['country']) ?: null, 'evidence' => null,
-                    'computed_hours' => $hours, 'approved_hours' => $hours, 'status' => 'approved', 'decided_at' => $now, 'recognition_request' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    'computed_hours' => $hours, 'approved_hours' => $hours, 'status' => 'approved', 'decided_at' => $now, 'recognition_request' => false, 'created_at' => $now, 'updated_at' => $now,
                     'source_system' => $source, 'row_hash' => $hash, 'source_empno' => $empno, 'course_type' => Cleanser::name((string) $r['ctype']) ?: null, 'track' => Cleanser::name((string) $r['track']) ?: null,
                     'external_ref' => $this->digits($r['jobno']) ?: null, 'external_ref_desc' => Cleanser::name((string) $r['jobdesc']) ?: null,
                 ];
