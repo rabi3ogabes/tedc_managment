@@ -1,0 +1,64 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\PdActivity;
+use App\Models\PdActivityType;
+use App\Models\Registration;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\Import\TraineeHistoryImport;
+use App\Services\PdService;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+/** `tedc:purge-demo`: the demo data goes, the setup, the official schools and the imported people stay, with one administrator. */
+class PurgeDemoDataTest extends TestCase
+{
+    public function test_the_demo_data_goes_and_the_imported_people_the_official_schools_and_the_setup_stay(): void
+    {
+        app(PdService::class)->ensureTypes();
+        $type = PdActivityType::first();
+        $official = $this->makeSchool(['source' => 'moe_government']);
+        $demoSchool = $this->makeSchool();
+        $imported = $this->makeEmployee(['school_id' => $official->id, 'source_system' => TraineeHistoryImport::SOURCE]);
+        PdActivity::create(['employee_id' => $imported->id, 'type_id' => $type->id, 'title' => 'دورة', 'starts_on' => '2025-01-05', 'duration_hours' => 6, 'computed_hours' => 6, 'approved_hours' => 6, 'status' => 'approved']);
+        DB::table('pd_activities')->update(['source_system' => TraineeHistoryImport::SOURCE]);   // the importer writes it directly
+        $demo = $this->makeEmployee(['school_id' => $demoSchool->id]);
+        $program = $this->makeProgram();
+        Registration::create(['program_id' => $program->id, 'employee_id' => $demo->id, 'status' => 'approved', 'source' => 'self']);
+        $demoAdmin = $this->makeUser(Role::SUPER_ADMIN, ['email' => 'admin@tedc.qa']);
+        $roles = DB::table('roles')->count();
+        $jobTitles = DB::table('job_titles')->count();
+
+        // A dry run changes nothing; deleting needs the administrator to keep.
+        $this->artisan('tedc:purge-demo')->assertSuccessful();
+        $this->assertDatabaseHas('programs', ['id' => $program->id]);
+        $this->artisan('tedc:purge-demo', ['--force' => true])->assertFailed();
+        $this->assertDatabaseHas('programs', ['id' => $program->id]);
+
+        $this->artisan('tedc:purge-demo', ['--force' => true, '--admin' => 'Head.Admin@moehe.gov.qa', '--admin-name' => 'مدير المنصة'])->assertSuccessful();
+
+        $this->assertDatabaseMissing('programs', ['id' => $program->id]);
+        $this->assertSame(0, DB::table('registrations')->count());
+        $this->assertDatabaseMissing('employees', ['id' => $demo->id]);
+        $this->assertDatabaseMissing('users', ['id' => $demoAdmin->id]);
+        $this->assertDatabaseMissing('schools', ['id' => $demoSchool->id]);
+        $this->assertDatabaseHas('employees', ['id' => $imported->id]);
+        $this->assertDatabaseHas('users', ['id' => $imported->user_id]);
+        $this->assertSame(1, DB::table('pd_activities')->count());
+        $this->assertDatabaseHas('schools', ['id' => $official->id]);
+        $this->assertSame($roles, DB::table('roles')->count());
+        $this->assertSame($jobTitles, DB::table('job_titles')->count());
+        $admin = User::where('email', 'head.admin@moehe.gov.qa')->firstOrFail();
+        $this->assertSame('مدير المنصة', $admin->name);
+        $this->assertTrue($admin->roles()->where('slug', Role::SUPER_ADMIN)->exists());
+        $this->assertTrue(DB::table('site_settings')->where('key', 'demo_purged_at')->exists());
+
+        // Nothing is left to delete, and without imported people the command refuses to run.
+        $this->artisan('tedc:purge-demo', ['--force' => true, '--admin' => 'head.admin@moehe.gov.qa'])->assertSuccessful();
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+        DB::table('employees')->delete();
+        $this->artisan('tedc:purge-demo', ['--force' => true, '--admin' => 'head.admin@moehe.gov.qa'])->assertFailed();
+    }
+}

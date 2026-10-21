@@ -16,7 +16,7 @@ class School extends Model
 {
     use Auditable, HasFactory, HasTranslations, HasUuids;
 
-    public const TYPES = ['government', 'private', 'community', 'international'];
+    public const TYPES = ['government', 'private', 'community', 'international', 'administrative'];   // administrative: a Ministry department or office (from the training extract)
 
     public const STAGES = ['kindergarten', 'primary', 'preparatory', 'secondary', 'multi'];
 

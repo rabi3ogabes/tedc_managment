@@ -261,9 +261,13 @@ class TraineeHistoryImport
     /** @param array<string, array<string, mixed>> $people @return array<string, string> normalised name => school id */
     private function schools(array $people, bool $dry, callable $log): array
     {
+        // A school is found by its name as written, else by its name with the usual variations taken out (see schoolKey) when that
+        // points to exactly one school — so «مدرسة معيذر الابتدائية بنين» finds «معيذر الابتدائية للبنين» of the official list.
         $existing = [];
-        foreach (DB::table('schools')->get(['id', 'name_ar']) as $s) {
-            $existing[Cleanser::arabic($s->name_ar)] = $s->id;
+        $byKey = [];
+        foreach (DB::table('schools')->orderBy('code')->get(['id', 'name_ar']) as $s) {
+            $existing[Cleanser::arabic($s->name_ar)] ??= $s->id;
+            $byKey[self::schoolKey($s->name_ar)][$s->id] = Cleanser::arabic($s->name_ar);
         }
         $names = [];
         foreach ($people as $p) {
@@ -276,8 +280,9 @@ class TraineeHistoryImport
         $map = [];
         $rows = [];
         foreach ($names as $norm => $name) {
-            if (isset($existing[$norm])) {
-                $map[$norm] = $existing[$norm];
+            $found = $existing[$norm] ?? self::pickSchool($byKey, self::schoolKey($name));
+            if ($found) {
+                $map[$norm] = $found;
                 $this->stats['schools_matched']++;
 
                 continue;
@@ -285,7 +290,7 @@ class TraineeHistoryImport
             $id = (string) Str::uuid7();
             $map[$norm] = $id;
             $this->stats['schools_created']++;
-            $rows[] = ['id' => $id, 'code' => 'IMP-'.strtoupper(substr(sha1($norm), 0, 8)), 'name_en' => $name, 'name_ar' => $name, 'type' => 'government', 'gender' => $this->schoolGender($name), 'stage' => $this->schoolStage($name),
+            $rows[] = ['id' => $id, 'code' => 'IMP-'.strtoupper(substr(sha1($norm), 0, 8)), 'name_en' => $name, 'name_ar' => $name, 'type' => self::isAdministrative($name) ? 'administrative' : 'government', 'gender' => $this->schoolGender($name), 'stage' => $this->schoolStage($name),
                 'region' => 'غير محدد', 'is_partner' => 0, 'status' => 'active', 'source' => 'moe_training_extract', 'created_at' => now(), 'updated_at' => now()];
         }
         if (! $dry) {
@@ -300,6 +305,71 @@ class TraineeHistoryImport
         $log(sprintf('Schools: %d matched, %d new.', $this->stats['schools_matched'], $this->stats['schools_created']));
 
         return $map;
+    }
+
+    /**
+     * A school's name with the variations seen between the extract and the official list taken out: «مدرسة», «المستقلة», the article
+     * «ال», «للبنين/بنين/للبنبن» and «للبنات/بنات», «ابتدائي/إعدادي/ثانوي» for the full forms, punctuation and spacing. Boys and girls stay
+     * apart, and «روضة» (the kindergarten of a school) stays, so a kindergarten never matches its school.
+     */
+    public static function schoolKey(string $name): string
+    {
+        $s = preg_replace('/[()\[\]\-–—_،,.]/u', ' ', Cleanser::arabic($name)) ?? '';
+        $out = [];
+        foreach (preg_split('/\s+/u', trim($s)) ?: [] as $w) {
+            if ($w === '' || in_array($w, ['مدرسه', 'المدرسه', 'المستقله', 'مستقله'], true)) {
+                continue;
+            }
+            $w = match ($w) {
+                'للبنين', 'بنين', 'للبنبن', 'البنين' => 'بنين',
+                'للبنات', 'بنات', 'البنات' => 'بنات',
+                default => $w,
+            };
+            if (mb_strlen($w) > 3 && str_starts_with($w, 'ال')) {
+                $w = mb_substr($w, 2);
+            }
+            $out[] = match ($w) {
+                'ابتدايي' => 'ابتداييه',
+                'اعدادي' => 'اعداديه',
+                'ثانوي' => 'ثانويه',
+                default => $w,
+            };
+        }
+
+        return implode(' ', $out);
+    }
+
+    /**
+     * The one school a key points to: a single candidate, or several that are the same name listed more than once in the official list
+     * (the first is taken). A name with no «بنين/بنات» matches when exactly one boys' or girls' school fits. Otherwise none.
+     *
+     * @param  array<string, array<string, string>>  $byKey  key => [school id => name]
+     */
+    public static function pickSchool(array $byKey, string $key): ?string
+    {
+        $one = function (array $c): ?string {
+            return $c !== [] && count(array_unique($c)) === 1 ? (string) array_key_first($c) : null;
+        };
+        if (isset($byKey[$key])) {
+            return $one($byKey[$key]);
+        }
+        if (! preg_match('/(^| )(بنين|بنات)( |$)/u', $key)) {
+            $boys = $byKey[$key.' بنين'] ?? [];
+            $girls = $byKey[$key.' بنات'] ?? [];
+            if (($boys === []) !== ($girls === [])) {
+                return $one($boys ?: $girls);
+            }
+        }
+
+        return null;
+    }
+
+    /** A Ministry department, office, council or college in the extract's organisation column: not a school. */
+    public static function isAdministrative(string $name): bool
+    {
+        $n = Cleanser::arabic($name);
+
+        return (bool) preg_match('/^(ال)?(اداره|مكتب|مجلس|لجنه|كليه|اكاديميه|جمعيه|اتحاد|مركز)( |$)/u', $n) || $n === 'المعارين';
     }
 
     private function schoolStage(string $n): string

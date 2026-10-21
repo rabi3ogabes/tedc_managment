@@ -248,4 +248,32 @@ class TraineeHistoryImportTest extends TestCase
         $this->artisan('tedc:import-trainee-history', ['files' => [$f]])->assertSuccessful();
         $this->assertSame(2, Employee::whereNotNull('national_id_hash')->count());
     }
+
+    public function test_school_names_written_differently_find_the_official_school_but_never_the_other_gender_or_the_kindergarten(): void
+    {
+        $key = fn (string $n) => TraineeHistoryImport::schoolKey($n);
+        $this->assertSame($key('معيذر الابتدائية للبنين'), $key('مدرسة معيذر الابتدائية بنين'));
+        $this->assertSame($key('أحمد بن حنبل الثانوية للبنين'), $key('أحمد بن حنبل الثانوية للبنبن'));
+        $this->assertSame($key('الجميلية الابتدائية الإعدادية الثانوية للبنين'), $key('الجميلية ابتدائي اعدادي ثانوي بنين'));
+        $this->assertNotSame($key('الوكير الثانوية للبنين'), $key('الوكير الثانوية للبنات'));
+        $this->assertNotSame($key('روضة مدرسة الكرعانة الابتدائية للبنات'), $key('الكرعانة الابتدائية للبنات'));
+
+        $byKey = [
+            $key('حطين النموذجية للبنين') => ['a' => 'حطين'],
+            $key('الجميلية الثانوية للبنين') => ['b1' => 'الجميلية', 'b2' => 'الجميلية'],          // listed twice under one name
+            $key('الوكرة الثانوية للبنين') => ['c' => 'الوكرة بنين'], $key('الوكرة الثانوية للبنات') => ['d' => 'الوكرة بنات'],
+            $key('السد الابتدائية للبنين') => ['e' => 'السد', 'f' => 'السد الجديدة'],                // two different schools: no guess
+        ];
+        $this->assertSame('a', TraineeHistoryImport::pickSchool($byKey, $key('حطين النموذجية')));
+        $this->assertSame('b1', TraineeHistoryImport::pickSchool($byKey, $key('الجميلية الثانوية بنين')));
+        $this->assertNull(TraineeHistoryImport::pickSchool($byKey, $key('الوكرة الثانوية')));
+        $this->assertNull(TraineeHistoryImport::pickSchool($byKey, $key('السد الابتدائية للبنين')));
+        $this->assertNull(TraineeHistoryImport::pickSchool($byKey, $key('مدرسة لا توجد')));
+
+        $this->assertTrue(TraineeHistoryImport::isAdministrative('إدارة الموارد البشرية'));
+        $this->assertTrue(TraineeHistoryImport::isAdministrative('مكتب وكيل الوزارة المساعد للشؤون التعليمية'));
+        $this->assertTrue(TraineeHistoryImport::isAdministrative('المعارين'));
+        $this->assertFalse(TraineeHistoryImport::isAdministrative('معهد النور للمكفوفين'));
+        $this->assertFalse(TraineeHistoryImport::isAdministrative('مدرسة الإدارة النموذجية للبنين'));
+    }
 }

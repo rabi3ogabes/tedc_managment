@@ -31,7 +31,7 @@ const en: Dictionary = {
   priority: { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' },
   regions: { doha: 'Doha', al_rayyan: 'Al Rayyan', al_wakrah: 'Al Wakrah', al_khor: 'Al Khor', al_shamal: 'Al Shamal', umm_salal: 'Umm Salal', al_daayen: 'Al Daayen', al_shahaniya: 'Al Shahaniya' },
   stages: { kindergarten: 'Kindergarten', primary: 'Primary', preparatory: 'Preparatory', secondary: 'Secondary', multi: 'Multi-stage' },
-  schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International' },
+  schoolTypes: { government: 'Government', private: 'Private', community: 'Community', international: 'International', administrative: 'Ministry department' },
 
   userMenu: { account: 'Account menu', profile: 'My profile', lock: 'Lock screen', homeNewTab: 'Open home in a new tab' },
   profile: {

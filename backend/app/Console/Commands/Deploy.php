@@ -20,6 +20,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 #[Signature('tedc:deploy {--no-cache : Skip config/route/view caching}')]
@@ -39,7 +40,7 @@ class Deploy extends Command
         if (! Schema::hasTable('roles') || Role::query()->doesntExist()) {
             $this->info('Empty database — seeding.');
             $this->call('db:seed', ['--force' => true]);
-        } elseif (filter_var(env('TEDC_SEED_DEMO', false), FILTER_VALIDATE_BOOL) && DemoGuard::allowed()) {
+        } elseif (filter_var(env('TEDC_SEED_DEMO', false), FILTER_VALIDATE_BOOL) && DemoGuard::allowed() && ! $this->demoPurged()) {
             // Demo data added by later releases to an existing demo database (each seeder is idempotent).
             $this->call('db:seed', ['--class' => DemoNeedsSurveySeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoTrainerTraineeSeeder::class, '--force' => true]);
@@ -82,5 +83,15 @@ class Deploy extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /** After `tedc:purge-demo` the database holds real data only: no release adds demo data to it again. */
+    private function demoPurged(): bool
+    {
+        try {
+            return DB::table('site_settings')->where('key', 'demo_purged_at')->exists();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

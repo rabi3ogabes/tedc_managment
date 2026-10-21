@@ -44,7 +44,7 @@ function tedc_vercel_env(bool $runtime = true): void
         'SUPABASE_URL' => 'https://wlgvhrmdooembvvoqjnc.supabase.co',
         'SUPABASE_PUBLISHABLE_KEY' => 'sb_publishable_gp-BK8p_bdJf1BrIckE45Q_fvxjiO8b',
         'SUPABASE_JWKS_URL' => 'https://wlgvhrmdooembvvoqjnc.supabase.co/auth/v1/.well-known/jwks.json',
-        'TEDC_SEED_DEMO' => 'true',
+        'TEDC_SEED_DEMO' => 'false',
     ];
 
     // The production deployment is always production, whatever APP_ENV the dashboard holds: every "never on a live

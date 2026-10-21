@@ -29,7 +29,7 @@ const ar = {
   priority: { low: 'منخفضة', medium: 'متوسطة', high: 'عالية', critical: 'حرجة' },
   regions: { doha: 'الدوحة', al_rayyan: 'الريان', al_wakrah: 'الوكرة', al_khor: 'الخور', al_shamal: 'الشمال', umm_salal: 'أم صلال', al_daayen: 'الضعاين', al_shahaniya: 'الشحانية' },
   stages: { kindergarten: 'رياض الأطفال', primary: 'ابتدائي', preparatory: 'إعدادي', secondary: 'ثانوي', multi: 'متعدد المراحل' },
-  schoolTypes: { government: 'حكومية', private: 'خاصة', community: 'مجتمعية', international: 'دولية' },
+  schoolTypes: { government: 'حكومية', private: 'خاصة', community: 'مجتمعية', international: 'دولية', administrative: 'جهة إدارية بالوزارة' },
 
   userMenu: { account: 'قائمة الحساب', profile: 'ملفي الشخصي', lock: 'قفل الشاشة', homeNewTab: 'فتح الرئيسية في تبويب جديد' },
   profile: {
