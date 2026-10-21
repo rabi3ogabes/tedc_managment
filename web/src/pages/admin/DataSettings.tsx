@@ -238,7 +238,7 @@ function Report({ report: r, issues, onNew }: { report: Record<string, number | 
 function PurgeCard() {
   const { t } = useTranslation()
   const { logout } = useAuth()
-  const preview = useGet<{ data: Preview }>('/admin/system/demo-data')
+  const preview = useGet<{ data: Preview }>('/admin/system/demo-data', undefined, { retry: false })
   const [form, setForm] = useState({ admin_name: '', admin_email: '', password: '', password_confirmation: '', confirmation: '' })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -258,7 +258,18 @@ function PurgeCard() {
     } finally { setSaving(false) }
   }
 
-  if (preview.isLoading || !p) return <Card><Spinner /></Card>
+  if (preview.isError) {
+    return (
+      <Card>
+        <CardTitle><span className="inline-flex items-center gap-2"><Trash2 className="size-5 text-danger" />{t('dataset.purge.title')}</span></CardTitle>
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-2xl bg-red-50 p-4 text-sm text-danger">
+          <AlertTriangle className="size-5 shrink-0" /><span className="flex-1">{t('dataset.purge.previewFailed')} {errorMessage(preview.error)}</span>
+          <Button variant="outline" size="sm" icon={<RotateCw className="size-4" />} onClick={() => void preview.refetch()}>{t('dataset.purge.retry')}</Button>
+        </div>
+      </Card>
+    )
+  }
+  if (preview.isLoading || !p) return <Card><div className="flex items-center justify-center gap-3 py-8 text-sm text-slate-500"><Spinner />{t('dataset.purge.computing')}</div></Card>
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   return (

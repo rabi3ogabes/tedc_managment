@@ -117,7 +117,7 @@ class DemoPurge
         if ($this->admin === '') {
             throw new RuntimeException('The administrator to keep is required.');
         }
-        $removedEmails = DB::table('users')->whereNotIn('id', $this->keptUsers())->pluck('email')->map(fn ($e) => strtolower((string) $e))->all();
+        $removedEmails = $this->doomed('users')->pluck('email')->map(fn ($e) => strtolower((string) $e))->all();
         $pending = $tables;
         $messages = [];
         for ($pass = 1; $pending !== [] && $pass <= 12; $pass++) {
@@ -232,25 +232,36 @@ class DemoPurge
     {
         $q = DB::table($t);
 
+        // NOT EXISTS, never NOT IN over the kept people: PostgreSQL turns NOT IN (31 000 ids) into a row-by-row comparison when its working
+        // memory is small (minutes); NOT EXISTS is always a hashed anti-join.
         return match ($t) {
-            'users' => $q->whereNotIn('id', $this->keptUsers()),
-            'employees' => $q->where(fn ($w) => $w->whereNull('source_system')->orWhere('source_system', '!=', TraineeHistoryImport::SOURCE)),
-            'pd_activities' => $q->where(fn ($w) => $w->whereNull('source_system')->orWhere('source_system', '!=', TraineeHistoryImport::SOURCE)),
-            'employee_numbers' => $q->whereNotIn('employee_id', DB::table('employees')->where('source_system', TraineeHistoryImport::SOURCE)->select('id')),
-            'role_user', 'user_identities', 'user_notification_preferences' => $q->whereNotIn('user_id', $this->keptUsers()),
-            'schools' => $q->whereNotIn('id', $this->keptSchools()),
-            'departments' => $q->whereNotIn('id', DB::table('employees')->where('source_system', TraineeHistoryImport::SOURCE)->whereNotNull('department_id')->select('department_id')),
-            'school_group_school' => $q->whereNotIn('school_id', $this->keptSchools()),
-            'report_definitions' => $q->whereNotNull('owner_id')->whereNotIn('owner_id', $this->keptUsers()),
+            'users' => $q->whereNotExists($this->importedVia('user_id', 'users.id'))
+                ->when($this->admin !== '', fn ($x) => $x->where(fn ($w) => $w->whereNull('email')->orWhere('email', '!=', $this->admin))),
+            'employees', 'pd_activities' => $q->where(fn ($w) => $w->whereNull('source_system')->orWhere('source_system', '!=', TraineeHistoryImport::SOURCE)),
+            'employee_numbers' => $q->whereNotExists($this->importedVia('id', 'employee_numbers.employee_id')),
+            'role_user', 'user_identities', 'user_notification_preferences' => $q->whereNotExists($this->importedVia('user_id', "{$t}.user_id"))
+                ->when($this->admin !== '', fn ($x) => $x->whereNotExists($this->adminVia("{$t}.user_id"))),
+            'schools' => $q->where(fn ($w) => $w->whereNull('source')->orWhere('source', 'not like', 'moe_%'))->whereNotExists($this->importedVia('school_id', 'schools.id')),
+            'departments' => $q->whereNotExists($this->importedVia('department_id', 'departments.id')),
+            'school_group_school' => $q->whereNotExists(fn ($s) => $s->select(DB::raw(1))->from('schools as ks')->whereColumn('ks.id', 'school_group_school.school_id')
+                ->where(fn ($w) => $w->where('ks.source', 'like', 'moe_%')->orWhereExists($this->importedVia('school_id', 'ks.id')))),
+            'report_definitions' => $q->whereNotNull('owner_id')->whereNotExists($this->importedVia('user_id', 'report_definitions.owner_id'))
+                ->when($this->admin !== '', fn ($x) => $x->whereNotExists($this->adminVia('report_definitions.owner_id'))),
             'notification_rules' => $q->whereNotNull('program_id'),
             default => $q,
         };
     }
 
-    private function keptUsers(): Builder
+    /** "An imported employee whose $column is the outer row's $outer". */
+    private function importedVia(string $column, string $outer): \Closure
     {
-        return DB::table('users')->where(fn ($w) => $w->whereIn('id', DB::table('employees')->where('source_system', TraineeHistoryImport::SOURCE)->select('user_id'))
-            ->when($this->admin !== '', fn ($x) => $x->orWhere('email', $this->admin)))->select('id');
+        return fn ($s) => $s->select(DB::raw(1))->from('employees as imp')->whereColumn("imp.{$column}", $outer)->where('imp.source_system', TraineeHistoryImport::SOURCE);
+    }
+
+    /** "The administrator who stays is the user $outer points at". */
+    private function adminVia(string $outer): \Closure
+    {
+        return fn ($s) => $s->select(DB::raw(1))->from('users as adm')->whereColumn('adm.id', $outer)->where('adm.email', $this->admin);
     }
 
     /** The official school list, and any school an imported person works in. */
