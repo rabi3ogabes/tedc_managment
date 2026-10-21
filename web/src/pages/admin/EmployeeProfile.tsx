@@ -15,6 +15,11 @@ type History = {
 
 export default function EmployeeProfile() {
   const { id } = useParams()
+  return <EmployeeProfileBody id={id!} />
+}
+
+/** The employee's training passport and profile — as its own page, or (`embedded`) inside the side panel opened from the employees list, where the panel shows the name. */
+export function EmployeeProfileBody({ id, embedded = false }: { id: string; embedded?: boolean }) {
   const { t } = useTranslation()
   const { data, isLoading } = useGet<{ data: { employee: Employee; passport: PassportData; registrations: Registration[]; training_history: History } }>(`/admin/employees/${id}`)
   if (isLoading || !data) return <Spinner />
@@ -26,8 +31,8 @@ export default function EmployeeProfile() {
   const hasFacts = facts.some(([, v]) => v)
   return (
     <>
-      <PageHeader title={<span className="flex items-center gap-4"><Avatar name={e.name ?? ''} size={56} />{e.name}{e.status === 'inactive' && <Badge color="gray">{t('status.inactive', { defaultValue: 'inactive' })}</Badge>}</span>}
-        subtitle={`${e.job_title?.name ?? ''} · ${e.school?.name ?? ''} · ${e.employee_no}`} />
+      {!embedded && <PageHeader title={<span className="flex items-center gap-4"><Avatar name={e.name ?? ''} size={56} />{e.name}{e.status === 'inactive' && <Badge color="gray">{t('status.inactive', { defaultValue: 'inactive' })}</Badge>}</span>}
+        subtitle={`${e.job_title?.name ?? ''} · ${e.school?.name ?? ''} · ${e.employee_no}`} />}
       <PassportView data={passport} />
 
       {(hasFacts || (e.employee_numbers?.length ?? 0) > 1) && (

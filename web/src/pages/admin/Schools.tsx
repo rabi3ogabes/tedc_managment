@@ -12,6 +12,7 @@ import { fmt } from '@/lib/format'
 import type { LaravelPage } from '@/lib/types'
 import SchoolsMap, { type SchoolsMapData } from './schools/SchoolsMap'
 import { dialogs } from '@/lib/dialogs'
+import { Pager } from './shared'
 
 type School = { id: string; code: string; name_ar: string; name_en: string; type: string; stage: string; region: string; employees_count: number; is_partner: boolean }
 
@@ -21,9 +22,10 @@ export default function Schools() {
   const [tab, setTab] = useState<'map' | 'list'>('map')
   const [q, setQ] = useState('')
   const [region, setRegion] = useState('')
+  const [page, setPage] = useState(1)
   const [syncing, setSyncing] = useState(false)
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
-  const list = useGet<LaravelPage<School>>('/admin/schools', { q: q || undefined, region: region || undefined, official: 1, per_page: 50 }, { enabled: tab === 'list' })
+  const list = useGet<LaravelPage<School>>('/admin/schools', { q: q || undefined, region: region || undefined, official: 1, per_page: 50, page }, { enabled: tab === 'list' })
   const map = useGet<{ data: SchoolsMapData }>('/admin/schools/map')
   const regions = ['doha', 'al_rayyan', 'al_wakrah', 'al_khor', 'al_shamal', 'umm_salal', 'al_daayen', 'al_shahaniya']
   const synced = map.data?.data.synced_at
@@ -61,8 +63,8 @@ export default function Schools() {
       {tab === 'map' ? <SchoolsMap data={map.data?.data} loading={map.isLoading} /> : (
         <Card padded={false}>
           <div className="flex flex-wrap gap-3 border-b border-navy-100 p-4">
-            <div className="relative min-w-60 flex-1"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={q} onChange={(e) => setQ(e.target.value)} /></div>
-            <select className="input w-auto" value={region} onChange={(e) => setRegion(e.target.value)}><option value="">{t('admin.schools.region')}</option>{regions.map((r) => <option key={r} value={r}>{t(`regions.${r}`)}</option>)}</select>
+            <div className="relative min-w-60 flex-1"><Search className="absolute start-3 top-3 size-4 text-slate-400" /><input className="input ps-9" placeholder={t('common.search')} value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} /></div>
+            <select className="input w-auto" value={region} onChange={(e) => { setRegion(e.target.value); setPage(1) }}><option value="">{t('admin.schools.region')}</option>{regions.map((r) => <option key={r} value={r}>{t(`regions.${r}`)}</option>)}</select>
           </div>
           <DataView id="admin.schools" rows={list.data?.data} total={list.data?.total} loading={list.isLoading} rowKey={(s) => s.id} columns={[
             { key: 'code', header: t('admin.schools.code'), role: 'media', cell: (s) => <span className="inline-block rounded-lg bg-navy-100/70 px-2 py-1 font-mono text-[11px] font-bold text-navy-800" dir="ltr">{s.code}</span> },
@@ -72,6 +74,7 @@ export default function Schools() {
             { key: 'stage', header: t('admin.schools.stage'), cell: (s) => t(`stages.${s.stage}`) },
             { key: 'employees', header: t('admin.schools.employees'), cell: (s) => <span className="font-bold">{fmt.number(s.employees_count)}</span> },
           ]} />
+          <Pager page={page} last={list.data?.last_page} onChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }} />
         </Card>
       )}
     </>

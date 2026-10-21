@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-21 — Schools list pages through every school; the training passport opens in a side panel or a full page
+«المدارس» (list) now pages through all the schools (50 a page, with previous / next; the search and the region filter go back to page 1) instead of stopping at the first 50. On «الموظفون», «جواز التدريب» opens either in a side panel over the list (the list keeps its search and page; Escape or the backdrop closes it; «فتح كصفحة كاملة» moves to the page) or as a full page — the administrator chooses with «فتح جواز التدريب: نافذة جانبية / صفحة كاملة» at the top of the list, remembered on the browser; Ctrl/middle-click still opens the full page in a new tab.
+
 ### 2026-10-20 — The platform is named «شاهين - مشروع بوابة التدريب»
 The application's name is now «شاهين - مشروع بوابة التدريب» (Shaheen – Training Portal Project) with the slogan «رؤية أبعد.. وتميّز أكبر» ("A farther vision.. a greater distinction"): the page title and loading screen, the header and sign-in screen, the footer, the administration sidebar (the name wraps to two lines), the LTI launch pages, the survey QR card, the mobile app (home-screen name «شاهين», splash, strings) and every place the old product name «TEDC» appeared in screen text and messages. The default identity name in the settings and a name saved in Settings that was still the old default were moved to the new name (migration `…008200`); a name an administrator chose themselves is left alone. The Ministry's training centre keeps its own name wherever the text speaks of the centre itself (e.g. the director's title on certificates).
 

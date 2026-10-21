@@ -334,7 +334,7 @@ const en: Dictionary = {
     users: { title: 'Users & roles', roles: 'Roles', permissions: 'Permissions', users: 'Users', role: 'Role', lastLogin: 'Last sign-in' },
     audit: { title: 'Audit log', action: 'Action', entity: 'Entity', user: 'User', ip: 'IP' },
     schools: { title: 'Schools', code: 'Code', type: 'Type', stage: 'Stage', region: 'Region', employees: 'Employees', partner: 'Partner' },
-    employees: { title: 'Employees', number: 'Employee no.', jobTitle: 'Job title', school: 'School', experience: 'Experience (yrs)', passport: 'Training passport' },
+    employees: { title: 'Employees', number: 'Employee no.', jobTitle: 'Job title', school: 'School', experience: 'Experience (yrs)', passport: 'Training passport', openMode: 'Open the training passport in', openPanel: 'Side panel', openPage: 'Full page', openFull: 'Open as a full page' },
     tasks: { title: 'Task review', submissions: 'Submissions', feedback: 'Feedback', approve: 'Approve', reject: 'Reject', requestChanges: 'Request changes', due: 'Due', types: 'Accepted types' },
     impact: { title: 'Impact', score: 'Impact score', applied: 'Application rate', needsSupport: 'Need support', byStage: 'By follow-up stage', skillsImproved: 'Skills improved', days: 'days' },
   },
