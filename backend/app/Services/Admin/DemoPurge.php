@@ -8,11 +8,11 @@ use App\Models\User;
 use App\Security\PasswordService;
 use App\Services\FeatureSettings;
 use App\Services\Import\TraineeHistoryImport;
+use App\Support\AppTables;
 use App\Support\Supabase;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -224,7 +224,7 @@ class DemoPurge
     /** @return list<string> */
     private function tables(): array
     {
-        return collect(Schema::getTables())->pluck('name')->reject(fn ($t) => in_array($t, self::SKIP, true) || str_starts_with($t, 'sqlite_'))->values()->all();
+        return collect(AppTables::names())->reject(fn ($t) => in_array($t, self::SKIP, true) || str_starts_with($t, 'sqlite_'))->values()->all();
     }
 
     /** The rows of a table that go. */

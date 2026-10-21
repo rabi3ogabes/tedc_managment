@@ -2,6 +2,7 @@
 
 namespace App\Ops;
 
+use App\Support\AppTables;
 use Illuminate\Support\Facades\Schema;
 
 /** Applies config/data_classification.php to the live schema and renders the register. */
@@ -11,8 +12,7 @@ class DataClassification
     public function map(): array
     {
         $out = [];
-        foreach (Schema::getTables() as $t) {
-            $name = $t['name'];
+        foreach (AppTables::names() as $name) {
             foreach (Schema::getColumnListing($name) as $col) {
                 $out[$name][$col] = $this->classify($name, $col);
             }

@@ -3,6 +3,9 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-21 — Only the platform's own tables (Supabase keeps its own in the same database)
+On the live database the demo clean-up preview answered «Server Error»: on PostgreSQL `Schema::getTables()` lists every schema, and Supabase keeps its own tables (auth.identities, storage.objects …) next to the platform's, so the clean-up tried to count a table that is not the platform's. `AppTables::names()` now lists only the tables of the schema in use; the clean-up, the data-subject export and the data-classification register use it. Reproduced on PostgreSQL with Supabase-like schemas and covered by a test.
+
 ### 2026-10-21 — The demo clean-up preview no longer hangs on the live database
 With the 31 502 imported people on the live site, «إزالة البيانات التجريبية» stayed on «جارٍ التحميل…»: its queries said «rows NOT IN the kept people», which PostgreSQL ran as a row-by-row comparison (still unfinished after 10 minutes on a copy of the live data). They are now NOT EXISTS anti-joins: the preview takes 1–2 s and the whole clean-up with its backup 41 s, with the very same rows selected (checked on SQLite and PostgreSQL). The card now shows an error with «إعادة المحاولة» instead of loading forever, and the preview is not retried automatically.
 

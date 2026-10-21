@@ -7,9 +7,11 @@ use App\Models\PdActivityType;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Admin\DemoPurge;
 use App\Services\FileStorage;
 use App\Services\Import\TraineeHistoryImport;
 use App\Services\PdService;
+use App\Support\AppTables;
 use App\Support\Features;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\DB;
@@ -102,5 +104,18 @@ class PurgeDemoDataTest extends TestCase
         $this->assertNotEmpty($token);
         $admin = User::where('email', 'head.admin@moehe.gov.qa')->firstOrFail();
         $this->assertNotNull($this->asUser($admin)->getJson($url)->assertOk()->json('data.purged'));
+    }
+
+    public function test_only_the_platforms_own_tables_are_looked_at_not_those_supabase_keeps_in_other_schemas(): void
+    {
+        $this->makeEmployee(['source_system' => TraineeHistoryImport::SOURCE]);
+        if (DB::getDriverName() === 'pgsql') {
+            // Supabase keeps auth.identities, storage.objects … in the same database; counting them as the platform's failed with a 500.
+            DB::statement('create schema if not exists supabase_like');
+            DB::statement('create table if not exists supabase_like.identities (id int)');
+        }
+        $this->assertContains('programs', AppTables::names());
+        $this->assertNotContains('identities', AppTables::names());
+        $this->assertIsArray(app(DemoPurge::class)->forAdmin('head@moehe.gov.qa')->plan());
     }
 }

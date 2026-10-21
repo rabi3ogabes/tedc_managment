@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Security\SecurityEvents;
 use App\Services\NotificationService;
 use App\Services\Surveys\SurveyDataSubject;
+use App\Support\AppTables;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -85,8 +86,7 @@ class DataSubjectService
     {
         $employee = Employee::where('user_id', $user->id)->first();
         $sections = [];
-        foreach (Schema::getTables() as $t) {
-            $table = $t['name'];
+        foreach (AppTables::names() as $table) {
             if (in_array($table, Anonymiser::SKIP, true) || in_array($table, ['users', 'employees', 'siem_outbox'], true)) {
                 continue;
             }
