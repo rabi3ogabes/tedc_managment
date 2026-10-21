@@ -9,9 +9,11 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Services\AnnualHoursService;
+use App\Services\FileStorage;
 use App\Services\Import\TraineeHistoryImport;
 use App\Support\XlsxStream;
 use Carbon\Carbon;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -275,5 +277,52 @@ class TraineeHistoryImportTest extends TestCase
         $this->assertTrue(TraineeHistoryImport::isAdministrative('المعارين'));
         $this->assertFalse(TraineeHistoryImport::isAdministrative('معهد النور للمكفوفين'));
         $this->assertFalse(TraineeHistoryImport::isAdministrative('مدرسة الإدارة النموذجية للبنين'));
+    }
+
+    public function test_the_extract_is_imported_from_the_browser_step_by_step_with_the_same_result_as_the_command(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $rows = [
+            $this->row(),
+            $this->row(['COURSE_NAME_A' => 'دورة الاختبار الثانية', 'COURSE_DT_FROM' => '2023-10-01', 'COURSE_DT_END' => '2023-10-01', 'DURATION' => 4]),
+            $this->row(['IDNO' => 20000000002, 'EMPNO' => 7002, 'EMPNAME' => 'خالد الاختبار', 'SEX_DESC' => 'ذكر', 'SEC_EMAIL' => 'khaled.test@example.test']),
+            $this->row(['IDNO' => 20000000003, 'EMPNO' => 7003, 'EMPNAME' => 'يوسف الاختبار', 'SEX_DESC' => 'ذكر', 'SEC_EMAIL' => null, 'ORGNNAME' => 'إدارة الموارد البشرية']),
+            $this->row(['IDNO' => 20000000004, 'EMPNO' => 7004, 'EMPNAME' => 'سارة الاختبار', 'DURATION' => 0]),   // a course with no hours: reported
+        ];
+        $files = [$this->workbook(array_slice($rows, 0, 3), 'a'), $this->workbook(array_slice($rows, 3), 'b')];
+        $admin = $this->makeUser(Role::SUPER_ADMIN);
+        $storage = app(FileStorage::class);
+
+        // Another administrator is not allowed; the super administrator starts a run and gets one upload address per workbook.
+        $this->asUser($this->makeUser(Role::CENTER_ADMIN))->postJson('/api/v1/admin/imports/trainee-history', ['files' => [['name' => 'a.xlsx', 'size' => 10]]])->assertForbidden();
+        $run = $this->asUser($admin)->postJson('/api/v1/admin/imports/trainee-history', ['files' => array_map(fn ($f, $i) => ['name' => "extract_{$i}.xlsx", 'size' => filesize($f)], $files, array_keys($files))])
+            ->assertCreated()->assertJsonCount(2, 'data.uploads')->json('data');
+        $this->asUser($admin)->postJson("/api/v1/admin/imports/{$run['id']}/uploaded")->assertStatus(422);   // nothing uploaded yet
+        foreach ($files as $i => $f) {
+            $storage->put('documents', "imports/{$run['id']}/".($i + 1).'.xlsx', (string) file_get_contents($f), 'application/octet-stream');
+        }
+        $ready = $this->asUser($admin)->postJson("/api/v1/admin/imports/{$run['id']}/uploaded")->assertOk()->json('data');
+        $this->assertSame(['ready', 1 + 6 + 2], [$ready['status'], $ready['total_steps']]);
+
+        // Step after step until the report.
+        for ($i = 0, $state = $ready; $state['status'] !== 'done' && $i < 20; $i++) {
+            $state = $this->asUser($admin)->postJson("/api/v1/admin/imports/{$run['id']}/step")->assertOk()->json('data');
+        }
+        $this->assertSame('done', $state['status']);
+        $report = $state['report'];
+        $this->assertTrue($report['reconciled']);
+        $this->assertSame([5, 0, 4, 4, 1], [$report['source_rows'], $report['rejected_rows'], $report['people'], $report['activities_imported'], $report['activities_rejected']]);
+        $this->assertSame(4, $report['people_created']);
+        $this->assertSame('administrative', School::where('name_ar', 'إدارة الموارد البشرية')->value('type'));
+        $this->assertSame(4, Employee::where('source_system', TraineeHistoryImport::SOURCE)->count());
+        $this->assertSame('20000000002', Employee::where('national_id_hash', Employee::nationalIdHash('20000000002'))->firstOrFail()->national_id);
+        $this->assertFalse($storage->exists('documents', "imports/{$run['id']}/1.xlsx"));   // the workbooks (personal data) are deleted at the end
+        $this->assertSame('hours_invalid', collect($state['issues'])->firstWhere('code', 'hours_invalid')['code']);
+
+        // A finished run takes no more steps; the history lists it; the same files again change nothing.
+        $this->asUser($admin)->postJson("/api/v1/admin/imports/{$run['id']}/step")->assertStatus(409);
+        $this->assertSame($run['id'], $this->asUser($admin)->getJson('/api/v1/admin/imports')->assertOk()->json('data.0.id'));
+        $again = app(TraineeHistoryImport::class)->run($files);
+        $this->assertSame([0, 4], [$again['activities_imported'], $again['activities_existing']]);
     }
 }

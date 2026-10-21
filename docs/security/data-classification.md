@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 799 columns
-- Internal: 2298 columns
+- Public: 802 columns
+- Internal: 2309 columns
 - Confidential: 554 columns
 - Restricted: 27 columns
 
@@ -1603,6 +1603,25 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 | `evidence` | Internal | — |
+
+### `import_runs`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `kind` | Internal | — |
+| `status` | Internal | — |
+| `files` | Internal | — |
+| `plan` | Internal | — |
+| `stats` | Internal | — |
+| `issues` | Internal | — |
+| `report` | Internal | — |
+| `error` | Internal | — |
+| `created_by` | Internal | — |
+| `started_at` | Internal | — |
+| `finished_at` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `inbound_events`
 

@@ -85,10 +85,7 @@ class TraineeHistoryImport
     {
         $log ??= fn (string $m) => null;
         $source ??= self::SOURCE;
-        $this->stats = array_fill_keys(['source_rows', 'rejected_rows', 'people', 'people_created', 'people_updated', 'employee_numbers', 'schools_created', 'schools_matched', 'departments_created', 'job_titles_created', 'job_titles_matched',
-            'activities_imported', 'activities_existing', 'activities_rejected', 'placeholder_emails', 'inactive_people', 'source_hours', 'imported_hours'], 0);
-        $this->issues = [];
-        $this->unmappedNationalities = [];
+        $this->resetStats();
         foreach ($files as $f) {
             if (! is_file($f)) {
                 throw new RuntimeException("File not found: {$f}");
@@ -97,41 +94,7 @@ class TraineeHistoryImport
         $started = microtime(true);
 
         // ── 1. everyone in the files: one record per employee number
-        $records = [];
-        $jobCodes = [];
-        $jobClassVotes = [];
-        foreach ($files as $fi => $file) {
-            $log('Reading people from '.basename($file).' …');
-            foreach ($this->rows($file) as $n => $r) {
-                $this->stats['source_rows']++;
-                $empno = $this->digits($r['empno']);
-                $idno = $this->digits($r['idno']);
-                if ($empno === '' || $idno === '' || Cleanser::name((string) $r['name']) === '') {
-                    $this->reject('identity_missing', $empno ?: null, $n, $fi);
-
-                    continue;
-                }
-                // An employee number filed under two national IDs: the second person keeps their own record under a compound key.
-                $key = isset($records[$empno]) && $records[$empno]['idno'] !== $idno ? $empno.'#'.$idno : $empno;
-                if ($key !== $empno && ! isset($records[$key])) {
-                    $this->issues[] = ['code' => 'empno_filed_under_two_ids', 'empno' => $empno, 'detail' => 'each person kept; the second gets a suffixed employee number'];
-                }
-                if (! isset($records[$key])) {
-                    $records[$key] = [
-                        'empno' => $empno, 'idno' => $idno, 'seq' => is_numeric($r['seq']) ? (int) $r['seq'] : 0, 'name' => Cleanser::name((string) $r['name']), 'nat' => Cleanser::name((string) $r['nat']),
-                        'appointed' => Cleanser::date($r['appointed']), 'org' => Cleanser::name((string) $r['org']), 'sub' => Cleanser::name((string) $r['sub']), 'eq' => Cleanser::name((string) $r['eq']),
-                        'cert' => Cleanser::name((string) $r['cert']) ?: null, 'spec' => Cleanser::name((string) $r['spec']) ?: null, 'job' => Cleanser::name((string) $r['job']), 'jobclass' => Cleanser::name((string) $r['jobclass']),
-                        'empclass' => Cleanser::name((string) $r['empclass']), 'kind' => Cleanser::name((string) $r['kind']), 'sex' => Cleanser::gender((string) $r['sex']), 'email' => Cleanser::email((string) $r['email']),
-                        'phone' => Cleanser::phone((string) $r['mobile']), 'emptype' => trim((string) ($r['emptype'] ?? '')) ?: null,
-                    ];
-                    $k = Cleanser::arabic($records[$key]['job']);
-                    $jobClassVotes[$k][$records[$key]['jobclass']] = ($jobClassVotes[$k][$records[$key]['jobclass']] ?? 0) + 1;
-                }
-                if ($r['jobdesc'] !== null && $r['jobno'] !== null) {
-                    $jobCodes[Cleanser::arabic((string) $r['jobdesc'])] ??= $this->digits($r['jobno']);
-                }
-            }
-        }
+        [$records, $jobCodes, $jobClassVotes] = $this->scan($files, $log);
         $people = $this->people($records);
         $this->stats['people'] = count($people);
         $this->stats['employee_numbers'] = count($records);
@@ -146,8 +109,7 @@ class TraineeHistoryImport
         $idnoToEmployee = $this->writePeople($people, $schools, $departments, $jobTitles, $source, $dry, $log);
 
         // ── 4. the courses
-        $typeId = $dry ? 'dry-run' : PdActivityType::firstOrCreate(['code' => self::TYPE_CODE], ['name_ar' => 'دورة تدريبية (سجل الوزارة)', 'name_en' => 'Course (Ministry record)',
-            'hour_rules' => ['attendee' => ['factor' => 1]], 'evidence_required' => false, 'is_active' => true])->id;
+        $typeId = $dry ? 'dry-run' : $this->typeId();
         $this->writeActivities($files, $idnoToEmployee, $typeId, $source, $dry, $log);
 
         $report = ['dry_run' => $dry, 'source' => $source, 'files' => array_map('basename', $files), 'seconds' => round(microtime(true) - $started, 1)] + $this->stats
@@ -496,6 +458,156 @@ class TraineeHistoryImport
     }
 
     // ───────────────────────────── writing the people
+
+    /** The steps of an import run in the browser, in order (each fits in one request on serverless hosting). @return list<array{step: string, part: int, parts: int}> */
+    public static function plan(int $files, int $peopleParts = 6): array
+    {
+        $plan = [['step' => 'setup', 'part' => 0, 'parts' => 1]];
+        for ($i = 0; $i < $peopleParts; $i++) {
+            $plan[] = ['step' => 'people', 'part' => $i, 'parts' => $peopleParts];
+        }
+        for ($i = 0; $i < $files; $i++) {
+            $plan[] = ['step' => 'courses', 'part' => $i, 'parts' => $files];
+        }
+
+        return $plan;
+    }
+
+    /** The numbers each kind of step adds to a run's report. */
+    public const STEP_STATS = [
+        'setup' => ['source_rows', 'rejected_rows', 'people', 'employee_numbers', 'schools_created', 'schools_matched', 'departments_created', 'job_titles_created', 'job_titles_matched'],
+        'people' => ['people_created', 'people_updated', 'placeholder_emails', 'inactive_people'],
+        'courses' => ['activities_imported', 'activities_existing', 'activities_rejected', 'source_hours', 'imported_hours'],
+    ];
+
+    /**
+     * One step of a run (see plan()): `setup` — schools, units and job titles; `people` — part k of n of the people; `courses` — the
+     * courses of file k. Each step reads again what it needs and writes idempotently, so a step that was interrupted is simply run again.
+     *
+     * @param  list<string>  $files
+     * @return array{stats: array<string, int|float>, issues: list<array<string, mixed>>, unmapped_nationalities: int}
+     */
+    public function step(array $files, string $step, int $part = 0, int $parts = 1, ?string $source = null): array
+    {
+        $log = fn (string $m) => null;
+        $source ??= self::SOURCE;
+        $this->resetStats();
+        foreach ($files as $f) {
+            if (! is_file($f)) {
+                throw new RuntimeException("File not found: {$f}");
+            }
+        }
+        if ($step === 'courses') {
+            $file = $files[$part] ?? throw new RuntimeException("No file {$part} in this run.");
+            $idnos = [];
+            foreach ($this->rows($file) as $r) {
+                $idno = $this->digits($r['idno']);
+                if ($idno !== '') {
+                    $idnos[$idno] = true;
+                }
+            }
+            $this->writeActivities([$part => $file], $this->employeesByIdno(array_keys($idnos)), $this->typeId(), $source, false, $log);
+        } else {
+            [$records, $jobCodes, $jobClassVotes] = $this->scan($files, $log);
+            $people = $this->people($records);
+            $this->stats['people'] = count($people);
+            $this->stats['employee_numbers'] = count($records);
+            $schools = $this->schools($people, false, $log);
+            $departments = $this->departments($people, $schools, false);
+            $jobTitles = $this->jobTitles($people, $jobCodes, $jobClassVotes, false);
+            if ($step === 'people') {
+                $size = (int) ceil(count($people) / max(1, $parts));
+                $this->writePeople(array_slice($people, $part * $size, $size, true), $schools, $departments, $jobTitles, $source, false, $log);
+            } elseif ($step !== 'setup') {
+                throw new RuntimeException("Unknown step {$step}.");
+            }
+        }
+
+        return [
+            'stats' => array_intersect_key($this->stats, array_flip(self::STEP_STATS[$step])),
+            'issues' => array_slice($this->issues, 0, 50),
+            'unmapped_nationalities' => $step === 'setup' ? count($this->unmappedNationalities) : 0,
+        ];
+    }
+
+    /** The employees already imported, found by the blind index of their national ID. @param list<string|int> $idnos @return array<string, string> */
+    private function employeesByIdno(array $idnos): array
+    {
+        $map = [];
+        foreach (array_chunk($idnos, 1000) as $chunk) {
+            $byHash = [];
+            foreach ($chunk as $idno) {
+                $byHash[Employee::nationalIdHash((string) $idno)] = (string) $idno;
+            }
+            foreach (DB::table('employees')->whereIn('national_id_hash', array_keys($byHash))->get(['id', 'national_id_hash']) as $e) {
+                $map[$byHash[$e->national_id_hash]] = $e->id;
+            }
+        }
+
+        return $map;
+    }
+
+    private function typeId(): string
+    {
+        return PdActivityType::firstOrCreate(['code' => self::TYPE_CODE], ['name_ar' => 'دورة تدريبية (سجل الوزارة)', 'name_en' => 'Course (Ministry record)',
+            'hour_rules' => ['attendee' => ['factor' => 1]], 'evidence_required' => false, 'is_active' => true])->id;
+    }
+
+    private function resetStats(): void
+    {
+        $this->stats = array_fill_keys(['source_rows', 'rejected_rows', 'people', 'people_created', 'people_updated', 'employee_numbers', 'schools_created', 'schools_matched', 'departments_created', 'job_titles_created', 'job_titles_matched',
+            'activities_imported', 'activities_existing', 'activities_rejected', 'placeholder_emails', 'inactive_people', 'source_hours', 'imported_hours'], 0);
+        $this->issues = [];
+        $this->unmappedNationalities = [];
+    }
+
+    /**
+     * The first pass over the files: one record per employee number, the job numbers seen with each job name and, per job name, how
+     * often each job class appears. Counts the rows and the rejected ones.
+     *
+     * @param  array<int, string>  $files
+     * @return array{0: array<string, array<string, mixed>>, 1: array<string, string>, 2: array<string, array<string, int>>}
+     */
+    private function scan(array $files, callable $log): array
+    {
+        $records = [];
+        $jobCodes = [];
+        $jobClassVotes = [];
+        foreach ($files as $fi => $file) {
+            $log('Reading people from '.basename($file).' …');
+            foreach ($this->rows($file) as $n => $r) {
+                $this->stats['source_rows']++;
+                $empno = $this->digits($r['empno']);
+                $idno = $this->digits($r['idno']);
+                if ($empno === '' || $idno === '' || Cleanser::name((string) $r['name']) === '') {
+                    $this->reject('identity_missing', $empno ?: null, $n, $fi);
+
+                    continue;
+                }
+                // An employee number filed under two national IDs: the second person keeps their own record under a compound key.
+                $key = isset($records[$empno]) && $records[$empno]['idno'] !== $idno ? $empno.'#'.$idno : $empno;
+                if ($key !== $empno && ! isset($records[$key])) {
+                    $this->issues[] = ['code' => 'empno_filed_under_two_ids', 'empno' => $empno, 'detail' => 'each person kept; the second gets a suffixed employee number'];
+                }
+                if (! isset($records[$key])) {
+                    $records[$key] = [
+                        'empno' => $empno, 'idno' => $idno, 'seq' => is_numeric($r['seq']) ? (int) $r['seq'] : 0, 'name' => Cleanser::name((string) $r['name']), 'nat' => Cleanser::name((string) $r['nat']),
+                        'appointed' => Cleanser::date($r['appointed']), 'org' => Cleanser::name((string) $r['org']), 'sub' => Cleanser::name((string) $r['sub']), 'eq' => Cleanser::name((string) $r['eq']),
+                        'cert' => Cleanser::name((string) $r['cert']) ?: null, 'spec' => Cleanser::name((string) $r['spec']) ?: null, 'job' => Cleanser::name((string) $r['job']), 'jobclass' => Cleanser::name((string) $r['jobclass']),
+                        'empclass' => Cleanser::name((string) $r['empclass']), 'kind' => Cleanser::name((string) $r['kind']), 'sex' => Cleanser::gender((string) $r['sex']), 'email' => Cleanser::email((string) $r['email']),
+                        'phone' => Cleanser::phone((string) $r['mobile']), 'emptype' => trim((string) ($r['emptype'] ?? '')) ?: null,
+                    ];
+                    $k = Cleanser::arabic($records[$key]['job']);
+                    $jobClassVotes[$k][$records[$key]['jobclass']] = ($jobClassVotes[$k][$records[$key]['jobclass']] ?? 0) + 1;
+                }
+                if ($r['jobdesc'] !== null && $r['jobno'] !== null) {
+                    $jobCodes[Cleanser::arabic((string) $r['jobdesc'])] ??= $this->digits($r['jobno']);
+                }
+            }
+        }
+
+        return [$records, $jobCodes, $jobClassVotes];
+    }
 
     /**
      * @param  array<string, array<string, mixed>>  $people

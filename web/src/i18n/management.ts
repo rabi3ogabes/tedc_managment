@@ -156,6 +156,7 @@ export const mgmtAr = {
     sections: {
       appearance: { title: 'الهوية البصرية والمظهر', desc: 'اسم المركز والشعارات والألوان والخطوط والخلفيات — تُطبَّق فوراً على الموقع ولوحة التحكم.' },
       notifications: { title: 'الإشعارات الفورية', desc: 'ربط Firebase وإرسال إشعار تجريبي والتحقق من وصول الإشعارات للهواتف.' },
+      data: { title: 'البيانات والاستيراد', desc: 'استيراد بيانات الوزارة (العاملون ودوراتهم) من ملفات إكسل، وإزالة البيانات التجريبية بعد ذلك.' },
       testaccounts: { title: 'حسابات الاختبار', desc: 'متدربون ومدربون تجريبيون لتجربة التطبيق، مع بيان البرامج المسندة لكل حساب.' },
       roles: { title: 'الأدوار والصلاحيات', desc: 'أدوار المنصة وإنشاء أدوار مخصصة أو نسخها، ومصفوفة الصلاحيات مع معاينة التغييرات قبل الحفظ.' },
       schoolgroups: { title: 'مجموعات المدارس', desc: 'مديريات وعناقيد ومراحل تُمنح عليها الأدوار، فيرى صاحب الدور مدارس المجموعة فقط.' },
@@ -411,6 +412,7 @@ export const mgmtEn: MgmtStrings = {
     sections: {
       appearance: { title: 'Brand & appearance', desc: 'Center name, logos, colors, fonts and backgrounds - applied instantly to the website and dashboard.' },
       notifications: { title: 'Push notifications', desc: 'Connect Firebase, send a test notification and verify delivery to phones.' },
+      data: { title: 'Data & import', desc: 'Import the Ministry data (staff and their courses) from Excel files, then remove the demo data.' },
       testaccounts: { title: 'Test accounts', desc: 'Test trainees and trainers for trying the app, with the programs assigned to each account.' },
       roles: { title: 'Roles & permissions', desc: 'The platform roles, custom roles (new or copied) and the permission matrix with a preview of the changes before saving.' },
       schoolgroups: { title: 'School groups', desc: 'Directorates, clusters and stages that roles are granted over, so the holder sees only the schools of the group.' },

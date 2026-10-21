@@ -1,4 +1,4 @@
-import { Tags, LifeBuoy, PanelLeft, ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
+import { Database, Tags, LifeBuoy, PanelLeft, ClipboardCheck, Layers, ShieldCheck, ToggleRight, Sparkles, BellRing, BellPlus, Mail, CalendarDays, Clock, MonitorPlay, FlaskConical, Languages, LockKeyhole, MapPinCheck, DoorOpen, FileSearch, GraduationCap, Palette, UserCog } from 'lucide-react'
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
 
 export type SettingsGroup = 'identity' | 'communication' | 'security' | 'training'
@@ -34,6 +34,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: 'trainingday', group: 'training', permission: ['settings.manage'], icon: Clock, component: lazy(() => import('@/pages/admin/TrainingDaySettings')), keywords: ['day', 'hours', 'time', 'start', 'end', 'room', 'session', 'يوم', 'ساعات', 'وقت', 'بداية', 'نهاية', 'قاعة', 'جلسة'] },
   { id: 'attendance', group: 'training', permission: ['settings.manage'], icon: MapPinCheck, component: lazy(() => import('@/pages/admin/AttendanceSettings')), keywords: ['attendance', 'location', 'gps', 'geofence', 'presence', 'حضور', 'موقع', 'تحقق'] },
   { id: 'security', group: 'security', permission: ['settings.manage'], icon: LockKeyhole, component: lazy(() => import('@/pages/admin/SessionLockSettings')), keywords: ['security', 'lock', 'idle', 'session', 'password', 'timeout', 'أمان', 'قفل', 'جلسة', 'كلمة المرور'] },
+  { id: 'data', group: 'security', permission: ['settings.manage'], icon: Database, component: lazy(() => import('@/pages/admin/DataSettings')), keywords: ['import', 'ministry', 'excel', 'xlsx', 'employees', 'trainees', 'demo', 'purge', 'delete', 'data', 'استيراد', 'الوزارة', 'بيانات', 'إكسل', 'الموظفون', 'تجريبية', 'حذف'] },
   { id: 'testaccounts', group: 'training', permission: ['users.manage'], icon: FlaskConical, component: lazy(() => import('@/pages/admin/TestAccounts')), keywords: ['test', 'demo', 'trainee', 'trainer', 'accounts', 'app', 'اختبار', 'تجريبي', 'متدرب', 'مدرب', 'حسابات'] },
   { id: 'users', group: 'security', permission: ['users.manage'], icon: UserCog, component: lazy(() => import('@/pages/admin/Users')), keywords: ['users', 'user', 'roles', 'permissions', 'accounts', 'مستخدمين', 'صلاحيات', 'أدوار'] },
   { id: 'audit', group: 'security', permission: ['audit.view'], icon: FileSearch, component: lazy(() => import('@/pages/admin/AuditLog')), keywords: ['audit', 'log', 'history', 'سجل', 'تدقيق'] },

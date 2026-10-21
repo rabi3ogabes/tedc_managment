@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\V1\Admin\ContentImportController;
 use App\Http\Controllers\Api\V1\Admin\ContentLifecycleController;
 use App\Http\Controllers\Api\V1\Admin\CourseController;
 use App\Http\Controllers\Api\V1\Admin\DemoAccountsController;
+use App\Http\Controllers\Api\V1\Admin\DemoDataController;
 use App\Http\Controllers\Api\V1\Admin\EKitController;
 use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
 use App\Http\Controllers\Api\V1\Admin\EmployeeController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\Api\V1\Admin\GapController;
 use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
 use App\Http\Controllers\Api\V1\Admin\GroupTraineeController;
 use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
+use App\Http\Controllers\Api\V1\Admin\ImportRunController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
 use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
 use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
@@ -1613,6 +1615,16 @@ Route::prefix('v1')->group(function () {
             });
 
             // Brand Studio (appearance)
+            // Settings → Data: the Ministry's trainee extract imported from the browser, and the demo data removed (super administrators only).
+            Route::middleware('permission:settings.manage')->group(function () {
+                Route::get('imports', [ImportRunController::class, 'index']);
+                Route::post('imports/trainee-history', [ImportRunController::class, 'store'])->middleware('throttle:10,1');
+                Route::get('imports/{importRun}', [ImportRunController::class, 'show'])->whereUuid('importRun');
+                Route::post('imports/{importRun}/uploaded', [ImportRunController::class, 'uploaded'])->whereUuid('importRun');
+                Route::post('imports/{importRun}/step', [ImportRunController::class, 'step'])->whereUuid('importRun');
+                Route::get('system/demo-data', [DemoDataController::class, 'show']);
+                Route::post('system/demo-data/purge', [DemoDataController::class, 'purge'])->middleware('throttle:3,10');
+            });
             Route::middleware('permission:settings.manage')->group(function () {
                 Route::get('app-themes', [AppThemesController::class, 'show']);
                 Route::put('app-themes', [AppThemesController::class, 'update']);
