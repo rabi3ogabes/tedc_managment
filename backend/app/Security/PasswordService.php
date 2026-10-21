@@ -71,7 +71,7 @@ class PasswordService
         $old = PasswordHistory::where('user_id', $user->id)->latest('created_at')->skip($keep)->take(100)->pluck('id');
         PasswordHistory::whereIn('id', $old)->delete();
         if (config('tedc.auth.driver') === 'supabase' && $user->auth_id) {
-            Supabase::admin()->put("/admin/users/{$user->auth_id}", ['password' => $password])->throw();
+            Supabase::admin()->put(Supabase::url("/auth/v1/admin/users/{$user->auth_id}"), ['password' => $password])->throw();
         }
     }
 

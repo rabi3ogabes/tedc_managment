@@ -3,6 +3,11 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-10-21 — Fixes from the production error log
+- **Passwords on the live site (Supabase):** a password set or reset in the platform was sent to Supabase Auth at a relative address (`/admin/users/…`) and failed with «URI must include a scheme and host» — this stopped the demo clean-up after it had created the administrator, and would have broken every password change or reset on the live site. Now the full Supabase address; covered by `PasswordSupabaseSyncTest` (fails without the fix).
+- **«can't access property "default", e._result is undefined» on many pages (21 reports):** after a new deployment, a tab opened before it asked for a page file that no longer exists; the recovery called `preventDefault()` on Vite's preload error, which makes Vite hand React an empty module, so the page crashed instead of reloading. The recovery now lets the error through and reloads once; the empty-module messages are recognised as the same case and are no longer reported as critical errors (`staleCode.ts`, with a test).
+- Already fixed earlier, last seen before those fixes: the demo clean-up preview with Supabase's own tables (0.10.2), the PLC dashboard grouping (0.9.6), the self-referencing foreign key of `bank_categories` (6 Oct), a missing storage bucket (7 Oct).
+
 ### 2026-10-21 — Only the platform's own tables (Supabase keeps its own in the same database)
 On the live database the demo clean-up preview answered «Server Error»: on PostgreSQL `Schema::getTables()` lists every schema, and Supabase keeps its own tables (auth.identities, storage.objects …) next to the platform's, so the clean-up tried to count a table that is not the platform's. `AppTables::names()` now lists only the tables of the schema in use; the clean-up, the data-subject export and the data-classification register use it. Reproduced on PostgreSQL with Supabase-like schemas and covered by a test.
 

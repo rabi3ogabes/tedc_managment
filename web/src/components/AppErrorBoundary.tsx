@@ -2,8 +2,9 @@ import { RotateCw, TriangleAlert } from 'lucide-react'
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import i18n from '@/i18n'
 import { reportError } from '@/lib/errorReporter'
+import { isStaleCodeError } from '@/lib/staleCode'
 
-const STALE = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module|ChunkLoadError|Loading chunk .* failed|Unable to preload CSS/i
+export { isStaleCodeError }
 
 /**
  * A new deployment replaces the hashed files of the site, so a tab that was opened before it can fail to load a
@@ -20,13 +21,10 @@ export function reloadOnce(): boolean {
   return true
 }
 
-export function isStaleCodeError(error: unknown): boolean {
-  return STALE.test(String((error as Error | undefined)?.message ?? error ?? ''))
-}
-
 /** Call once at start: stale code detected outside React (route preloads, rejected promises). */
 export function installStaleCodeRecovery() {
-  window.addEventListener('vite:preloadError', (e) => { e.preventDefault(); reloadOnce() })
+  // No preventDefault: that makes Vite hand React an empty module, which crashed the page («e._result is undefined») instead of reloading it.
+  window.addEventListener('vite:preloadError', () => { reloadOnce() })
   window.addEventListener('unhandledrejection', (e) => { if (isStaleCodeError(e.reason)) { e.preventDefault(); reloadOnce() } })
 }
 
@@ -41,8 +39,9 @@ export default class AppErrorBoundary extends Component<Props, { error: Error | 
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('The page crashed', error, info.componentStack)
+    // A tab older than the last deployment is expected, not a bug: reload instead of reporting a critical error.
+    if (isStaleCodeError(error)) { reloadOnce(); return }
     reportError(error, { level: 'critical', context: { componentStack: String(info.componentStack ?? '').slice(0, 1500) } })
-    if (isStaleCodeError(error)) reloadOnce()
   }
 
   componentDidUpdate(prev: Props) {
