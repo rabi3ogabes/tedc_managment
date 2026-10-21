@@ -35,6 +35,10 @@ Expected for the extract of 18 Oct 2026 (rehearsed on PostgreSQL with the live d
 - In Vercel set `TEDC_DEMO_SITE` to `false` (or delete it) so the sign-in screen never offers demo accounts.
 - Vercel → Settings → Environments → Production → **Branch Tracking = `main`** (so pushes to `main` deploy to production).
 
+## If a deployment fails with `git_info_fail` or «Branch "main" not found»
+
+Vercel has lost its view of the GitHub repository (it happens after the GitHub app or the account is reconnected). Fix: github.com → Settings → Applications → Vercel → Configure → give it access to `tedc_managment`; then Vercel → project → Settings → Git → Disconnect and Connect `rabi3ogabes/tedc_managment` again; set the production branch to `main`; push or create a deployment of `main`.
+
 ## The same from a terminal (when the live APP_KEY is at hand)
 
 ```bash
