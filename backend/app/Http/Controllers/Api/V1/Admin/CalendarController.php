@@ -135,6 +135,7 @@ class CalendarController extends Controller
             'title_ar' => [$required, 'string', 'max:255'],
             'title_en' => [$required, 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'allow_events' => ['sometimes', 'boolean'],
         ]);
     }
 }

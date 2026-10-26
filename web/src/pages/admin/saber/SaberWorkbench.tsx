@@ -1,26 +1,32 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import {
-  BookOpen, CalendarCheck2, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, LayoutGrid, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
+  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Empty, ErrorState, Modal, PageHeader, StatCard } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { SaberActionsContext, type SaberActions } from './actions'
+import { OffdayInbox, OffdayRequestDialog, WeeklyHolidays } from './CalendarDialogs'
+import CancelDialog from './CancelDialog'
 import GroupPanel from './GroupPanel'
-import { lightsOf, withGroup, type Group, type Overview, type Program } from './types'
+import PlanDialog from './PlanDialog'
+import { DetailsModal, SurveyLinks } from './ProgramExtras'
+import { lightsOf, withGroup, type Group, type Notice, type OffdayTarget, type Overview, type Program } from './types'
 
 type Filters = { q: string; from: string; to: string; term_first: boolean; term_second: boolean; kit_ready: boolean; kit_not_ready: boolean; page: number }
-type Tools = { search: boolean; dates: boolean; term: boolean; kit: boolean; view: boolean; expand: boolean }
+type Tools = { plan: boolean; cancel: boolean; inbox: boolean; weekly: boolean; search: boolean; dates: boolean; term: boolean; kit: boolean; view: boolean; expand: boolean }
 type Page = { data: Program[]; meta: { total: number; page: number; per_page: number; last_page: number } }
 
 const NO_FILTERS: Filters = { q: '', from: '', to: '', term_first: true, term_second: true, kit_ready: true, kit_not_ready: true, page: 1 }
-const ALL_TOOLS: Tools = { search: true, dates: true, term: true, kit: true, view: true, expand: true }
+const ALL_TOOLS: Tools = { plan: true, cancel: true, inbox: true, weekly: true, search: true, dates: true, term: true, kit: true, view: true, expand: true }
+const tell = (notices?: Notice[]) => notices?.forEach((n) => toast(n.text, n.type === 'warning' ? 'error' : n.type === 'info' ? 'info' : 'success'))
 const store = {
   get: <T,>(key: string, fallback: T): T => { try { const v = localStorage.getItem(key); return v ? { ...fallback, ...JSON.parse(v) } : fallback } catch { return fallback } },
   set: (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* private window */ } },
@@ -37,6 +43,13 @@ export default function SaberWorkbench() {
   const [open, setOpen] = useState<Set<string>>(new Set())
   const [toolsOpen, setToolsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [params0, setParams0] = useSearchParams()
+  const [plan, setPlan] = useState<{ program: Program; group: Group } | 'new' | null>(null)
+  const [cancel, setCancel] = useState<{ program: Program; group: Group } | 'new' | null>(null)
+  const [offday, setOffday] = useState<OffdayTarget | null>(null)
+  const [inboxOpen, setInboxOpen] = useState(() => params0.get('inbox') === '1')
+  const [weeklyOpen, setWeeklyOpen] = useState(false)
+  const [detailsId, setDetailsId] = useState<string | null>(null)
 
   useEffect(() => { const id = setTimeout(() => setFilters((f) => (f.q === search ? f : { ...f, q: search, page: 1 })), 300); return () => clearTimeout(id) }, [search])
   useEffect(() => store.set('saber.tools', tools), [tools])
@@ -57,13 +70,31 @@ export default function SaberWorkbench() {
     qc.setQueriesData<Page>({ queryKey: ['/admin/saber/programs'] }, (old) => old && { ...old, data: old.data.map((p) => (p.id === id ? fn(p) : p)) })
   const toggle = (id: string) => setOpen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
   const allOpen = !!page && page.data.length > 0 && page.data.every((p) => open.has(p.id))
+  const refresh = () => qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/admin/saber') })
+  const actions: SaberActions = {
+    plan: (program, group) => setPlan({ program, group }),
+    cancelGroup: (program, group) => setCancel({ program, group }),
+    requestOffday: setOffday,
+    details: setDetailsId,
+    refresh,
+  }
+  const closeInbox = () => { setInboxOpen(false); if (params0.has('inbox')) { params0.delete('inbox'); setParams0(params0, { replace: true }) } }
 
   if (overview.isError || list.isError) return <ErrorState error={overview.error ?? list.error} onRetry={() => { overview.refetch(); list.refetch() }} />
 
   return (
+    <SaberActionsContext.Provider value={actions}>
     <div className="space-y-5 pb-8">
       <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {tools.plan && ov?.can['saber.plan.view'] && <Button variant="gold" size="sm" icon={<CalendarRange className="size-4" />} onClick={() => setPlan('new')}>{t('saber.plan.open')}</Button>}
+          {tools.cancel && <Button variant="outline" size="sm" icon={<Ban className="size-4" />} onClick={() => setCancel('new')}>{t('saber.cancel.open')}</Button>}
+          {tools.inbox && (
+            <Button variant="outline" size="sm" icon={<CalendarClock className="size-4" />} onClick={() => setInboxOpen(true)}>
+              {t('saber.offday.open')}{!!ov?.offday_pending && <span className="ms-1 grid min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[11px] font-bold leading-5 text-white">{ov.offday_pending}</span>}
+            </Button>
+          )}
+          {tools.weekly && <Button variant="outline" size="sm" icon={<CalendarOff className="size-4" />} onClick={() => setWeeklyOpen(true)}>{t('saber.weekly.open')}</Button>}
           <Button variant="outline" size="sm" icon={<SlidersHorizontal className="size-4" />} onClick={() => setToolsOpen(true)}>{t('saber.tools.title')}</Button>
           {ov?.can['settings.manage'] && <Button variant="outline" size="sm" icon={<Settings2 className="size-4" />} onClick={() => setSettingsOpen(true)}>{t('saber.settings.title')}</Button>}
         </div>} />
@@ -121,7 +152,7 @@ export default function SaberWorkbench() {
           </div>
           <ul className="space-y-3">
             {page.data.map((p) => (
-              <ProgramRow key={p.id} program={p} overview={ov} view={view} open={open.has(p.id)} onToggle={() => toggle(p.id)}
+              <ProgramRow key={p.id} program={p} overview={ov} view={view} open={open.has(p.id)} onToggle={() => toggle(p.id)} onDetails={setDetailsId}
                 onProgram={(next) => replaceProgram(p.id, () => next)}
                 onGroup={(g) => replaceProgram(p.id, (old) => withGroup(old, g))}
                 onAdded={(g) => replaceProgram(p.id, (old) => { const groups = [...old.groups, g]; return { ...old, groups, lights: lightsOf(groups, old.days) } })}
@@ -149,7 +180,14 @@ export default function SaberWorkbench() {
         </div>
       </Modal>
       {ov && settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} settings={ov.settings} onSaved={() => overview.refetch()} />}
+      {ov && plan && <PlanDialog overview={ov} initial={plan === 'new' ? null : plan} onClose={() => setPlan(null)} onApplied={(n) => { tell(n); refresh() }} />}
+      {ov && cancel && <CancelDialog overview={ov} initial={cancel === 'new' ? null : cancel} onClose={() => setCancel(null)} onChanged={(n) => { tell(n); refresh() }} />}
+      {ov && offday && <OffdayRequestDialog target={offday} overview={ov} onClose={() => setOffday(null)} onDone={() => refresh()} />}
+      {inboxOpen && <OffdayInbox onClose={closeInbox} onChanged={refresh} />}
+      {weeklyOpen && <WeeklyHolidays canManage={!!ov?.can['calendar.manage']} onClose={() => setWeeklyOpen(false)} onChanged={refresh} />}
+      {detailsId && <DetailsModal programId={detailsId} onClose={() => setDetailsId(null)} />}
     </div>
+    </SaberActionsContext.Provider>
   )
 }
 
@@ -164,9 +202,9 @@ function Segment({ label, items, filters, set }: { label: string; items: [keyof 
   )
 }
 
-type RowProps = { program: Program; overview: Overview; view: 'rows' | 'cards'; open: boolean; onToggle: () => void; onProgram: (p: Program) => void; onGroup: (g: Group) => void; onAdded: (g: Group) => void; onRemoved: (id: string) => void }
+type RowProps = { program: Program; overview: Overview; view: 'rows' | 'cards'; open: boolean; onToggle: () => void; onDetails: (id: string) => void; onProgram: (p: Program) => void; onGroup: (g: Group) => void; onAdded: (g: Group) => void; onRemoved: (id: string) => void }
 
-function ProgramRow({ program: p, overview, view, open, onToggle, onProgram, onGroup, onAdded, onRemoved }: RowProps) {
+function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onProgram, onGroup, onAdded, onRemoved }: RowProps) {
   const { t } = useTranslation()
   const [adding, setAdding] = useState(false)
   const can = (k: string) => !!overview.can[k]
@@ -199,6 +237,7 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onProgram, onG
             </span>
           </span>
         </button>
+        <button type="button" onClick={() => onDetails(p.id)} title={t('saber.details.open')} aria-label={t('saber.details.open')} className="grid size-9 place-items-center rounded-xl text-slate-400 transition hover:bg-ivory hover:text-navy-900"><Info className="size-4" /></button>
         <Lights lights={p.lights} complete={complete} />
         <KitToggle program={p} disabled={!can('saber.group.manage')} onChange={(v) => patch({ kit_ready: v })} />
       </div>
@@ -221,6 +260,7 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onProgram, onG
                 onBlur={(e) => { const n = Number(e.target.value); if (n && n !== p.days) patch({ training_days: n }) }}
                 className="h-9 w-16 rounded-xl border border-navy-100 bg-white text-center text-sm font-bold text-navy-900" />
             </label>
+            <SurveyLinks program={p} canEdit={can('saber.survey_links.manage')} onSaved={onProgram} />
             <div className="ms-auto flex items-center gap-2">
               <Link to={`/admin/programs/${p.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-navy-700 hover:text-gold-700"><ExternalLink className="size-3.5" />{t('saber.program.open')}</Link>
               {can('saber.group.manage') && !p.cancelled && <Button size="sm" variant="gold" icon={<Plus className="size-4" />} loading={adding} onClick={addGroup}>{t('saber.group.add')}</Button>}

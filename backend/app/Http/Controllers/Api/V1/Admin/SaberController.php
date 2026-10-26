@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CalendarApproval;
 use App\Models\CalendarDay;
+use App\Models\CalendarRequest;
+use App\Models\CalendarWeeklyRule;
 use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Role;
@@ -14,7 +16,9 @@ use App\Models\TrainingGroup;
 use App\Models\TrainingRoom;
 use App\Models\User;
 use App\Services\CalendarService;
+use App\Services\FileStorage;
 use App\Services\RoomService;
+use App\Services\Saber\Scheduling;
 use App\Services\Saber\Workbench;
 use App\Services\TrainingDaySettings;
 use App\Services\TrainingGroupService;
@@ -54,6 +58,7 @@ class SaberController extends Controller
             'supervisors' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::COORDINATOR, Role::TRAINING_HEAD]))->where('status', 'active')->orderBy('name')
                 ->get(['id', 'name', 'name_ar'])->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]),
             'palette' => Workbench::PALETTE,
+            'offday_pending' => CalendarRequest::where('status', CalendarRequest::PENDING)->when(! $user->hasPermission('calendar.approve'), fn ($q) => $q->where('requested_by', $user->id))->count(),
             'settings' => $this->settings(),
             'day' => ['hours' => $this->day->hours()] + $this->day->all(),
             'can' => collect(['saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
@@ -161,8 +166,13 @@ class SaberController extends Controller
         $d = $request->validate([
             'kit_ready' => ['sometimes', 'boolean'], 'coordinator_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
             'training_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:200'],
+            'survey_link' => ['sometimes', 'nullable', 'url:https,http', 'max:2048'], 'survey_edit_link' => ['sometimes', 'nullable', 'url:https,http', 'max:2048'],
         ]);
-        $this->need(array_key_exists('coordinator_id', $d) ? 'saber.supervisor.assign' : 'saber.group.manage');
+        $this->need(match (true) {
+            array_key_exists('coordinator_id', $d) => 'saber.supervisor.assign',
+            array_key_exists('survey_link', $d) || array_key_exists('survey_edit_link', $d) => 'saber.survey_links.manage',
+            default => 'saber.group.manage',
+        });
         if (array_key_exists('coordinator_id', $d)) {
             abort_unless($this->settings()['supervisor_edit_enabled'], 403, __('messages.saber.supervisor_locked'));
         }
@@ -262,6 +272,211 @@ class SaberController extends Controller
         $n = $this->bench->resetGroup($group);
 
         return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program)), 'reset' => $n]);
+    }
+
+    /** «تفاصيل البرنامج»: everything about a programme and its groups in one window. */
+    public function details(Program $program): JsonResponse
+    {
+        $program->load(['coordinator:id,name,name_ar', 'kits:id,status,title_ar,title_en', 'category', 'groups' => fn ($q) => $q->orderBy('sequence')->withCount(['registrations' => fn ($r) => $r->whereIn('status', ['approved', 'pending', 'waitlisted'])])]);
+        $rooms = TrainingRoom::pluck('name_ar', 'id');
+        $trainers = Trainer::pluck('name_ar', 'id');
+        $row = $this->programRow($program);
+        $row['groups'] = collect($row['groups'])->map(function ($g) use ($program, $rooms, $trainers) {
+            $model = $program->groups->firstWhere('id', $g['id']);
+            $g['registrations'] = $model?->registrations_count ?? 0;
+            $g['capacity'] = $model?->capacity;
+            $g['status_reason'] = $model?->status_reason;
+            $g['cancel'] = $model?->cancelled_at ? ['at' => $model->cancelled_at->toIso8601String(), 'requested_by' => $model->cancel_requested_by, 'has_attachment' => (bool) $model->cancel_attachment_path] : null;
+            $g['days'] = collect($g['days'])->map(fn ($d) => $d + ['room' => $d['room_id'] ? ($rooms[$d['room_id']] ?? null) : null, 'trainer' => $d['trainer_id'] ? ($trainers[$d['trainer_id']] ?? null) : null])->all();
+
+            return $g;
+        })->all();
+
+        return response()->json(['data' => $row + [
+            'summary' => $program->summary_ar ?: $program->summary_en, 'objectives' => $program->objectives, 'audience' => $program->audience, 'level' => $program->level,
+            'capacity' => $program->capacity, 'category' => $program->category?->name_ar ?? $program->category?->name_en ?? null,
+            'kits' => $program->kits->map(fn ($k) => ['id' => $k->id, 'title' => $k->title_ar ?: $k->title_en, 'status' => $k->status])->values(),
+            'cancel' => $program->cancelled_at ? ['at' => $program->cancelled_at->toIso8601String(), 'reason' => $program->cancel_reason, 'requested_by' => $program->cancel_requested_by, 'has_attachment' => (bool) $program->cancel_attachment_path] : null,
+        ]]);
+    }
+
+    /** «خطة الأيام القادمة»: which dates of a weekly pattern are free, taken or closed — nothing is saved. */
+    public function planPreview(Request $request, TrainingGroup $group, Scheduling $scheduling): JsonResponse
+    {
+        $this->need('saber.plan.view');
+        $max = max($this->bench->daysPerGroup($group->program), 1);
+        $d = $request->validate([
+            'weekday' => ['required', 'integer', 'between:0,6'], 'every' => ['required', 'integer', Rule::in([1, 2])], 'count' => ['required', 'integer', 'min:1', 'max:'.min(200, $max * 4)],
+            'from' => ['required', 'date_format:Y-m-d'], 'room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
+            'start_time' => ['nullable', 'date_format:H:i'], 'end_time' => ['nullable', 'date_format:H:i'],
+        ]);
+
+        return response()->json(['data' => $scheduling->preview($group, $d), 'meta' => ['max' => $max, 'saved' => collect($this->bench->days($group, $max))->whereNotNull('date')->count()]]);
+    }
+
+    /** Applies the chosen dates to the group, replacing its days. */
+    public function planApply(Request $request, TrainingGroup $group, Scheduling $scheduling): JsonResponse
+    {
+        $this->need('saber.day.edit');
+        abort_if($group->status === TrainingGroup::CANCELLED, 422, __('messages.saber.group_cancelled'));
+        $d = $request->validate([
+            'dates' => ['required', 'array', 'min:1', 'max:200'], 'dates.*' => ['date_format:Y-m-d'],
+            'room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
+        ]);
+        if (! empty($d['room_id'])) {
+            $this->need('saber.room.assign');
+        }
+        if (! empty($d['trainer_id'])) {
+            $this->need('saber.trainer.assign');
+        }
+        $notices = $scheduling->applyPlan($group, $d['dates'], $d['room_id'] ?? null, $d['trainer_id'] ?? null, $this->user());
+
+        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program)), 'notices' => $notices]);
+    }
+
+    public function cancelProgram(Request $request, Program $program, Scheduling $scheduling, FileStorage $storage): JsonResponse
+    {
+        $this->need('saber.program.cancel');
+        $scheduling->cancelProgram($program, $this->cancellation($request, $storage, "saber/cancellations/program-{$program->id}"), $this->user());
+
+        return response()->json(['data' => ['cancelled' => true]]);
+    }
+
+    public function cancelGroup(Request $request, TrainingGroup $group, Scheduling $scheduling, FileStorage $storage): JsonResponse
+    {
+        $this->need('saber.program.cancel');
+        $scheduling->cancelGroup($group, $this->cancellation($request, $storage, "saber/cancellations/group-{$group->id}"), $this->user());
+
+        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program))]);
+    }
+
+    public function reactivateProgram(Program $program, Scheduling $scheduling): JsonResponse
+    {
+        $this->need('saber.program.reactivate');
+
+        return response()->json(['data' => ['reactivated' => true], 'notices' => $scheduling->reactivateProgram($program, $this->user())]);
+    }
+
+    public function reactivateGroup(TrainingGroup $group, Scheduling $scheduling): JsonResponse
+    {
+        $this->need('saber.program.reactivate');
+
+        return response()->json(['data' => ['reactivated' => true], 'notices' => $scheduling->reactivateGroup($group, $this->user())]);
+    }
+
+    /** «الملغاة»: cancelled programmes, and cancelled groups of programmes that still run. */
+    public function cancelled(): JsonResponse
+    {
+        $programs = Program::where('status', Program::STATUS_CANCELLED)->withCount('groups')->orderByDesc('cancelled_at')->limit(200)->get();
+        $groups = TrainingGroup::with('program:id,title_ar,title_en,code,status')->where('status', TrainingGroup::CANCELLED)
+            ->whereHas('program', fn ($q) => $q->where('status', '!=', Program::STATUS_CANCELLED))->orderByDesc('cancelled_at')->limit(200)->get();
+        $by = User::whereIn('id', $programs->pluck('cancelled_by')->merge($groups->pluck('cancelled_by'))->filter()->unique())->get(['id', 'name', 'name_ar'])->keyBy('id');
+
+        return response()->json(['data' => [
+            'programs' => $programs->map(fn ($p) => [
+                'id' => $p->id, 'code' => $p->code, 'title' => $p->title_ar ?: $p->title_en, 'groups' => $p->groups_count, 'days' => $this->bench->daysPerGroup($p),
+                'reason' => $p->cancel_reason, 'requested_by' => $p->cancel_requested_by, 'cancelled_at' => $p->cancelled_at?->toIso8601String(),
+                'cancelled_by' => $p->cancelled_by ? $by[$p->cancelled_by]?->displayName() : null, 'has_attachment' => (bool) $p->cancel_attachment_path,
+            ])->values(),
+            'groups' => $groups->map(fn ($g) => [
+                'id' => $g->id, 'number' => $g->sequence, 'title' => $g->title_ar, 'program' => ['id' => $g->program_id, 'code' => $g->program?->code, 'title' => $g->program?->title_ar ?: $g->program?->title_en],
+                'reason' => $g->status_reason, 'requested_by' => $g->cancel_requested_by, 'cancelled_at' => $g->cancelled_at?->toIso8601String(),
+                'cancelled_by' => $g->cancelled_by ? $by[$g->cancelled_by]?->displayName() : null, 'has_attachment' => (bool) $g->cancel_attachment_path,
+            ])->values(),
+        ]]);
+    }
+
+    /** A short-lived link to the document attached to a cancellation. */
+    public function cancellationAttachment(string $type, string $id, FileStorage $storage): JsonResponse
+    {
+        $model = $type === 'program' ? Program::findOrFail($id) : TrainingGroup::findOrFail($id);
+        abort_unless($model->cancel_attachment_path, 404);
+
+        return response()->json(['data' => ['url' => $storage->temporaryUrl('documents', $model->cancel_attachment_path, 300)]]);
+    }
+
+    /** «طلبات أيام الإجازة»: whoever approves the calendar sees every request; everyone else sees their own. */
+    public function offdayRequests(Request $request): JsonResponse
+    {
+        $status = $request->validate(['status' => ['nullable', Rule::in(['pending', 'approved', 'rejected'])]])['status'] ?? null;
+        $approver = $this->user()->hasPermission('calendar.approve');
+        $rows = CalendarRequest::with(['program:id,title_ar,title_en', 'trainingGroup:id,sequence,title_ar', 'requester:id,name,name_ar', 'decider:id,name,name_ar'])
+            ->when(! $approver, fn ($q) => $q->where('requested_by', $this->user()->id))
+            ->when($status, fn ($q, $s) => $q->where('status', $s))
+            ->orderByRaw("case when status = 'pending' then 0 else 1 end")->orderByDesc('created_at')->limit(200)->get();
+
+        return response()->json(['data' => $rows->map(fn (CalendarRequest $r) => $this->requestRow($r))->values(), 'meta' => ['approver' => $approver, 'pending' => CalendarRequest::where('status', 'pending')->when(! $approver, fn ($q) => $q->where('requested_by', $this->user()->id))->count()]]);
+    }
+
+    public function requestOffday(Request $request, Scheduling $scheduling): JsonResponse
+    {
+        $this->need('saber.day.edit');
+        $d = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'], 'group_id' => ['nullable', 'uuid', 'exists:training_groups,id'], 'day_idx' => ['nullable', 'integer', 'min:1', 'max:200'],
+            'reason' => ['required', 'string', 'min:3', 'max:1000'], 'instant' => ['sometimes', 'boolean'],
+        ]);
+        $group = ! empty($d['group_id']) ? TrainingGroup::find($d['group_id']) : null;
+        $row = $scheduling->requestClosedDay($d['date'], $group, $d['day_idx'] ?? null, $d['reason'], $this->user(), (bool) ($d['instant'] ?? false));
+
+        return response()->json(['data' => $this->requestRow($row->fresh(['program', 'trainingGroup', 'requester', 'decider']))], 201);
+    }
+
+    public function decideOffday(Request $request, CalendarRequest $calendarRequest, Scheduling $scheduling): JsonResponse
+    {
+        $d = $request->validate(['approve' => ['required', 'boolean'], 'note' => ['nullable', 'string', 'max:1000']]);
+
+        return response()->json(['data' => $this->requestRow($scheduling->decide($calendarRequest, $d['approve'], $d['note'] ?? null, $this->user()))]);
+    }
+
+    /** «الإجازات الأسبوعية»: weekdays off every week, with a label and whether events may still take place. */
+    public function weeklyRules(): JsonResponse
+    {
+        return response()->json(['data' => [
+            'rules' => CalendarWeeklyRule::orderBy('weekday')->get()->map(fn ($r) => ['id' => $r->id, 'weekday' => $r->weekday, 'title_ar' => $r->title_ar, 'title_en' => $r->title_en, 'allow_events' => $r->allow_events])->values(),
+            'weekend' => array_values(config('tedc.calendar.weekend', [5, 6])),
+        ]]);
+    }
+
+    public function saveWeeklyRule(Request $request): JsonResponse
+    {
+        $d = $request->validate([
+            'weekday' => ['required', 'integer', 'between:0,6'], 'title_ar' => ['nullable', 'string', 'max:160'], 'title_en' => ['nullable', 'string', 'max:160'], 'allow_events' => ['sometimes', 'boolean'],
+        ]);
+        $rule = CalendarWeeklyRule::updateOrCreate(['weekday' => $d['weekday']], $d + ['created_by' => $this->user()->id]);
+        $affected = ProgramSession::where('status', '!=', 'cancelled')->where('starts_at', '>=', now())->get(['id', 'starts_at'])
+            ->filter(fn ($s) => $s->starts_at->timezone(config('app.timezone'))->dayOfWeek === (int) $d['weekday'])->count();
+
+        return response()->json(['data' => ['id' => $rule->id], 'meta' => ['sessions_on_that_day' => $affected]], 201);
+    }
+
+    public function deleteWeeklyRule(CalendarWeeklyRule $rule): JsonResponse
+    {
+        $rule->delete();
+
+        return response()->json(null, 204);
+    }
+
+    /** @return array{reason: string, requested_by: string, attachment_path: ?string} */
+    private function cancellation(Request $request, FileStorage $storage, string $directory): array
+    {
+        $d = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:2000'], 'requested_by' => ['required', 'string', 'min:2', 'max:160'],
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,png,jpg,jpeg,doc,docx'],
+        ]);
+
+        return ['reason' => $d['reason'], 'requested_by' => $d['requested_by'], 'attachment_path' => $request->hasFile('attachment') ? $storage->upload($request->file('attachment'), 'documents', $directory) : null];
+    }
+
+    /** @return array<string, mixed> */
+    private function requestRow(CalendarRequest $r): array
+    {
+        return [
+            'id' => $r->id, 'date' => $r->date->toDateString(), 'reason' => $r->reason, 'status' => $r->status, 'day_idx' => $r->day_idx,
+            'program' => $r->program ? ['id' => $r->program->id, 'title' => $r->program->title_ar ?: $r->program->title_en] : null,
+            'group' => $r->trainingGroup ? ['id' => $r->trainingGroup->id, 'number' => $r->trainingGroup->sequence, 'title' => $r->trainingGroup->title_ar] : null,
+            'requested_by' => $r->requester?->displayName(), 'decided_by' => $r->decider?->displayName(), 'decided_at' => $r->decided_at?->toIso8601String(),
+            'decision_note' => $r->decision_note, 'created_at' => $r->created_at?->toIso8601String(),
+        ];
     }
 
     public function saveSettings(Request $request): JsonResponse

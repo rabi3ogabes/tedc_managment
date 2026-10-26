@@ -10,6 +10,7 @@ use App\Models\ProgramSession;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
+use App\Services\CalendarService;
 use Database\Seeders\ReferenceDataSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,6 +26,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
         config(['tedc.auth.driver' => 'local', 'tedc.storage_driver' => 'local', 'tedc.ai.api_key' => null]);
         $this->seed([RolePermissionSeeder::class, ReferenceDataSeeder::class]);
+        CalendarService::forgetWeeklyRules();   // a rule cached by an earlier test was rolled back with its database
     }
 
     protected function makeUser(string $role = Role::EMPLOYEE, array $attributes = []): User

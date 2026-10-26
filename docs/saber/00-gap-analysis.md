@@ -44,17 +44,17 @@ Status: ✅ exists in شاهين · 🟡 partly · 🆕 to build
 | A11 | Toolbar personalisation — show/hide each tool, remembered | ✅ phase 1 |
 | A12 | Days shown as compact rows or as cards | ✅ phase 1 |
 | A13 | Supervisor per programme (assignable, setting can lock it) | ✅ phase 1 |
-| A14 | Programme details window: overview, groups, days, all details | 🟡 programme page exists, window 🆕 |
-| A15 | Per-programme survey link: open, copy, QR code (download PNG), edit link | 🆕 |
+| A14 | Programme details window: overview, groups, days, all details | ✅ phase 2 |
+| A15 | Per-programme survey link: open, copy, QR code (download PNG), edit link | ✅ phase 2 |
 | A16 | Per-programme survey Excel report | ✅ evaluation exports — linked from the workbench |
 
 ### B. Scheduling tools
 | # | Feature | Status |
 |---|---|---|
-| B1 | Plan of the coming days (simulation): programme, group, optional room and trainer, weekday, weekly / every two weeks, count, from date → each date free / busy / holiday; select; apply to the group (replaces its days, with a warning) | 🟡 planner exists for a new programme's first group; any-group simulation 🆕 |
-| B2 | Cancel a programme or one group: reason, requested by, attachment; frees rooms and trainers; cancelled list; reactivation for the super administrator only | 🟡 group status/reason exists; flow 🆕 |
-| B3 | Booking on a holiday: request with reason → inbox «طلبات أيام الإجازة» → approve / reject; instant approval for whoever holds the right | 🟡 direct approvals exist; requests 🆕 |
-| B4 | Holidays: single dates and weekly recurring days, with a label; «allow an exceptional event» on a holiday | 🟡 dates ✅; weekly + event flag 🆕 |
+| B1 | Plan of the coming days (simulation): programme, group, optional room and trainer, weekday, weekly / every two weeks, count, from date → each date free / busy / holiday; select; apply to the group (replaces its days, with a warning) | ✅ phase 2 |
+| B2 | Cancel a programme or one group: reason, requested by, attachment; frees rooms and trainers; cancelled list; reactivation for the super administrator only | ✅ phase 2 |
+| B3 | Booking on a holiday: request with reason → inbox «طلبات أيام الإجازة» → approve / reject; instant approval for whoever holds the right | ✅ phase 2 |
+| B4 | Holidays: single dates and weekly recurring days, with a label; «allow an exceptional event» on a holiday | ✅ phase 2 (events flag enforced for meetings in phase 3) |
 
 ### C. Rooms and meeting bookings
 | # | Feature | Status |

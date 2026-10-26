@@ -939,6 +939,22 @@ Route::prefix('v1')->group(function () {
                 Route::put('groups/{group}/days/{idx}', [SaberController::class, 'setDay'])->whereUuid('group')->whereNumber('idx');
                 Route::delete('groups/{group}/days/{idx}', [SaberController::class, 'resetDay'])->whereUuid('group')->whereNumber('idx');
                 Route::put('settings', [SaberController::class, 'saveSettings'])->middleware('permission:settings.manage');
+                // Phase 2 — details, plan of the coming days, cancellation, closed-day requests, weekly holidays.
+                Route::get('programs/{program}/details', [SaberController::class, 'details'])->whereUuid('program');
+                Route::post('groups/{group}/plan/preview', [SaberController::class, 'planPreview'])->whereUuid('group');
+                Route::post('groups/{group}/plan/apply', [SaberController::class, 'planApply'])->whereUuid('group');
+                Route::post('programs/{program}/cancel', [SaberController::class, 'cancelProgram'])->whereUuid('program');
+                Route::post('groups/{group}/cancel', [SaberController::class, 'cancelGroup'])->whereUuid('group');
+                Route::post('programs/{program}/reactivate', [SaberController::class, 'reactivateProgram'])->whereUuid('program');
+                Route::post('groups/{group}/reactivate', [SaberController::class, 'reactivateGroup'])->whereUuid('group');
+                Route::get('cancelled', [SaberController::class, 'cancelled']);
+                Route::get('cancellations/{type}/{id}/attachment', [SaberController::class, 'cancellationAttachment'])->whereIn('type', ['program', 'group'])->whereUuid('id');
+                Route::get('offday-requests', [SaberController::class, 'offdayRequests']);
+                Route::post('offday-requests', [SaberController::class, 'requestOffday']);
+                Route::post('offday-requests/{calendarRequest}/decide', [SaberController::class, 'decideOffday'])->whereUuid('calendarRequest')->middleware('permission:calendar.approve');
+                Route::get('weekly-rules', [SaberController::class, 'weeklyRules']);
+                Route::post('weekly-rules', [SaberController::class, 'saveWeeklyRule'])->middleware('permission:calendar.manage');
+                Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
             });
 
             // Programs & sessions

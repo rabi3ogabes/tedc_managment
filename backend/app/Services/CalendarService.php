@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\BusinessRuleException;
 use App\Models\CalendarApproval;
 use App\Models\CalendarDay;
+use App\Models\CalendarWeeklyRule;
 use App\Models\ProgramSession;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -15,16 +16,19 @@ use Illuminate\Support\Collection;
  *
  * Every date resolves to one "kind":
  *   workday  - unmarked weekday, open for training
- *   weekend  - configured weekend (Friday and Saturday), off, closed for training
+ *   weekend  - configured weekend (Friday and Saturday) or a weekly holiday (calendar_weekly_rules), off, closed for training
  *   vacation - marked vacation, off, closed for training
  *   exam     - marked exam day, working day but closed for training
  *   normal   - marked normal day, working day but closed for training
  *
- * A closed day becomes open for training only through an explicit approval.
+ * A closed day becomes open for training only through an explicit approval. A holiday may still allow events (meetings) when marked so.
  */
 class CalendarService
 {
     public const MAX_RANGE_DAYS = 800;
+
+    /** @var Collection<int, CalendarWeeklyRule>|null weekly holidays by weekday, read once and forgotten when a rule changes */
+    private static ?Collection $weekly = null;
 
     /**
      * @return array{days: list<array>, summary: array}
@@ -61,6 +65,7 @@ class CalendarService
     public function describe(CarbonInterface $date, ?CalendarDay $entry = null, ?CalendarApproval $approval = null): array
     {
         $kind = $entry?->type ?? ($this->isWeekend($date) ? 'weekend' : 'workday');
+        $rule = $entry ? null : $this->weeklyRule($date);
         $isWorking = in_array($kind, ['workday', 'exam', 'normal'], true);
         $closed = $kind !== 'workday';
 
@@ -70,11 +75,13 @@ class CalendarService
             'kind' => $kind,
             'is_working_day' => $isWorking,
             'is_weekend' => $this->isWeekend($date),
+            'weekly' => $rule ? ['id' => $rule->id, 'title' => $rule->translate('title'), 'allow_events' => $rule->allow_events] : null,
+            'allow_events' => (bool) ($entry?->allow_events ?? $rule?->allow_events ?? false),
             'training_allowed' => ! $closed || $approval !== null,
             'requires_approval' => $closed && $approval === null,
             'entry' => $entry ? [
                 'id' => $entry->id, 'type' => $entry->type, 'title' => $entry->translate('title'),
-                'title_ar' => $entry->title_ar, 'title_en' => $entry->title_en, 'notes' => $entry->notes,
+                'title_ar' => $entry->title_ar, 'title_en' => $entry->title_en, 'notes' => $entry->notes, 'allow_events' => (bool) $entry->allow_events,
             ] : null,
             'approval' => $approval ? [
                 'id' => $approval->id, 'reason' => $approval->reason, 'approved_at' => $approval->created_at?->toIso8601String(),
@@ -85,7 +92,28 @@ class CalendarService
 
     public function isWeekend(CarbonInterface $date): bool
     {
-        return in_array($date->dayOfWeek, config('tedc.calendar.weekend', [5, 6]), true);
+        return in_array($date->dayOfWeek, config('tedc.calendar.weekend', [5, 6]), true) || $this->weeklyRule($date) !== null;
+    }
+
+    /** The weekly holiday that falls on this date's weekday, if any. */
+    public function weeklyRule(CarbonInterface $date): ?CalendarWeeklyRule
+    {
+        self::$weekly ??= CalendarWeeklyRule::all()->keyBy('weekday');
+
+        return self::$weekly->get($date->dayOfWeek);
+    }
+
+    public static function forgetWeeklyRules(): void
+    {
+        self::$weekly = null;
+    }
+
+    /** True when events (meetings, bookings) may take place on the date even though it is closed for training. */
+    public function eventsAllowed(CarbonInterface $date): bool
+    {
+        $day = $this->describe($date, CalendarDay::whereDate('date', $date->toDateString())->first());
+
+        return $day['kind'] === 'workday' || $day['allow_events'] || in_array($day['kind'], ['exam', 'normal'], true);
     }
 
     /**

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * exam     - school exam day, no training
  * normal   - regular working day that is closed for training unless it is approved
  */
-#[Fillable(['date', 'type', 'title_ar', 'title_en', 'notes', 'created_by'])]
+#[Fillable(['date', 'type', 'title_ar', 'title_en', 'notes', 'allow_events', 'created_by'])]
 class CalendarDay extends Model
 {
     use Auditable, HasTranslations, HasUuids;
@@ -28,5 +28,5 @@ class CalendarDay extends Model
 
     public const TYPES = [self::VACATION, self::EXAM, self::NORMAL];
 
-    protected $casts = ['date' => 'date:Y-m-d'];
+    protected $casts = ['date' => 'date:Y-m-d', 'allow_events' => 'boolean'];
 }

@@ -20,7 +20,7 @@ export type RoomOption = Option & { capacity: number | null; building: string | 
 
 export type Overview = {
   stats: { programs_month: number; awaiting_approval: number; booked_rooms: number; trainers: number }
-  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]
+  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]; offday_pending: number
   settings: { supervisor_edit_enabled: boolean; group_delete_enabled: boolean }
   day: { hours: number; day_start: string; day_end: string }
   can: Record<string, boolean>
@@ -40,3 +40,27 @@ export function lightsOf(groups: Group[], days: number): Program['lights'] {
   const all = groups.flatMap((g) => g.days.filter((d) => !d.extra))
   return { total: groups.length * days, dates: all.filter((d) => d.date).length, rooms: all.filter((d) => d.room_id).length, trainers: all.filter((d) => d.trainer_id).length }
 }
+
+export type PlanRow = { date: string; status: 'free' | 'busy' | 'off'; label: string | null; allow_events: boolean; weekly: boolean; busy: string[] }
+
+export type OffdayRequest = {
+  id: string; date: string; reason: string; status: 'pending' | 'approved' | 'rejected'; day_idx: number | null
+  program: { id: string; title: string } | null; group: { id: string; number: number; title: string | null } | null
+  requested_by: string | null; decided_by: string | null; decided_at: string | null; decision_note: string | null; created_at: string | null
+}
+
+export type CancelledList = {
+  programs: { id: string; code: string; title: string; groups: number; days: number; reason: string | null; requested_by: string | null; cancelled_at: string | null; cancelled_by: string | null; has_attachment: boolean }[]
+  groups: { id: string; number: number; title: string | null; program: { id: string; code: string; title: string }; reason: string | null; requested_by: string | null; cancelled_at: string | null; cancelled_by: string | null; has_attachment: boolean }[]
+}
+
+export type DetailDay = Day & { room: string | null; trainer: string | null }
+export type Details = Omit<Program, 'groups'> & {
+  summary: string | null; objectives: unknown; audience: unknown; level: string | null; capacity: number | null; category: string | null
+  kits: { id: string; title: string; status: string }[]
+  cancel: { at: string; reason: string | null; requested_by: string | null; has_attachment: boolean } | null
+  groups: (Omit<Group, 'days'> & { registrations: number; capacity: number | null; status_reason: string | null; days: DetailDay[]; cancel: { at: string; requested_by: string | null; has_attachment: boolean } | null })[]
+}
+
+/** The day a closed-day request is about. */
+export type OffdayTarget = { date: string; groupId: string; idx: number; programTitle: string; groupLabel: string }

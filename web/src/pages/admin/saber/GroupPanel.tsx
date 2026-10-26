@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, CalendarX2, Eraser, Lock, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react'
+import { Ban, BadgeCheck, CalendarRange, CalendarX2, Eraser, Lock, RotateCcw, ShieldCheck, Trash2, Undo2 } from 'lucide-react'
 import { Fragment, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui'
@@ -7,6 +7,7 @@ import { api, errorMessage } from '@/lib/api'
 import { dialogs } from '@/lib/dialogs'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { useSaberActions } from './actions'
 import { Picker } from './Picker'
 import type { Day, Group, Notice, Overview, Program } from './types'
 
@@ -17,6 +18,7 @@ const tell = (notices: Notice[] | undefined) => notices?.forEach((n) => toast(n.
 /** One group: its identity (colour, number, name, term, approval) and its training days, each saved the moment it changes. */
 export default function GroupPanel({ program, group, overview, view, onGroup, onRemoved }: Props) {
   const { t } = useTranslation()
+  const actions = useSaberActions()
   const can = (p: string) => !!overview.can[p]
   const [busyDay, setBusyDay] = useState<number | null>(null)
   const online = program.method === 'online'
@@ -38,7 +40,20 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
       onGroup(data.data)
       if (data.notices?.length) tell(data.notices)
       else toast(t('saber.day.saved', { n: day.idx }))
-    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusyDay(null) }
+    } catch (e) {
+      // A closed day is not a dead end: offer the request to train on it (or the instant approval for whoever holds the right).
+      const code = (e as { response?: { data?: { code?: string } } }).response?.data?.code
+      const date = patch.date ?? day.date
+      if (code === 'calendar_closed' && date) actions.requestOffday({ date, groupId: group.id, idx: day.idx, programTitle: program.title, groupLabel: name })
+      else toast(errorMessage(e), 'error')
+    } finally { setBusyDay(null) }
+  }
+
+  const reactivate = async () => {
+    try {
+      const { data } = await api.post(`/admin/saber/groups/${group.id}/reactivate`)
+      tell(data.notices); toast(t('saber.cancel.reactivated')); actions.refresh()
+    } catch (e) { toast(errorMessage(e), 'error') }
   }
 
   const resetDay = async (day: Day) => {
@@ -88,7 +103,10 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
         {group.cancelled && <Badge color="red">{t('saber.group.cancelled')}</Badge>}
         <ValidationChip group={group} canValidate={can('saber.group.validate')} onToggle={validate} />
         <div className="ms-auto flex items-center gap-1">
+          {group.cancelled && can('saber.program.reactivate') && <IconButton label={t('saber.cancel.reactivate')} onClick={reactivate}><Undo2 className="size-4" /></IconButton>}
+          {can('saber.plan.view') && editable && <IconButton label={t('saber.plan.fromGroup')} onClick={() => actions.plan(program, group)}><CalendarRange className="size-4" /></IconButton>}
           {can('saber.day.edit') && editable && <IconButton label={t('saber.group.reset')} onClick={resetGroup}><Eraser className="size-4" /></IconButton>}
+          {can('saber.program.cancel') && editable && <IconButton label={t('saber.cancel.cancelGroup')} onClick={() => actions.cancelGroup(program, group)} danger><Ban className="size-4" /></IconButton>}
           {canManage && overview.settings.group_delete_enabled && <IconButton label={t('saber.group.delete')} onClick={remove} danger><Trash2 className="size-4" /></IconButton>}
         </div>
       </header>
