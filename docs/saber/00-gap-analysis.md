@@ -82,7 +82,7 @@ Status: ✅ exists in شاهين · 🟡 partly · 🆕 to build
 
 ## Status
 
-All four phases are built and deployed (reports `01-workbench.md` … `04-data-tools.md`).
+All four phases are built and deployed (reports `01-workbench.md` … `04-data-tools.md`). Since then SABER+ is a planning space whose changes are reviewed and published from the Programmes page, and imports accept any layout (`05-review-and-flexible-import.md`).
 
 ## Build plan (each phase: backend + web + tests on SQLite and PostgreSQL, deployed)
 

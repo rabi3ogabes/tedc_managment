@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import {
   Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Database, UsersRound, Map as MapIcon, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
 } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Empty, ErrorState, Modal, PageHeader, StatCard } from '@/components/ui'
@@ -14,6 +14,7 @@ import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import { SaberActionsContext, type SaberActions } from './actions'
 import { DataTools, SupervisorsPanel } from './DataTab'
+import { DraftBar, NewProgramDialog } from './DraftControls'
 import { OffdayInbox, OffdayRequestDialog, WeeklyHolidays } from './CalendarDialogs'
 import CancelDialog from './CancelDialog'
 import GroupPanel from './GroupPanel'
@@ -82,6 +83,10 @@ export default function SaberWorkbench() {
   const toggle = (id: string) => setOpen((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
   const allOpen = !!page && page.data.length > 0 && page.data.every((p) => open.has(p.id))
   const refresh = () => qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/admin/saber') })
+  // After an edit the row is updated at once; its draft status and counts follow a moment later (one refetch for a burst of edits).
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const softRefresh = () => { if (settle.current) clearTimeout(settle.current); settle.current = setTimeout(() => { list.refetch(); overview.refetch() }, 1200) }
+  const [newProgram, setNewProgram] = useState(false)
   const actions: SaberActions = {
     plan: (program, group) => setPlan({ program, group }),
     cancelGroup: (program, group) => setCancel({ program, group }),
@@ -99,7 +104,7 @@ export default function SaberWorkbench() {
       <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={
         <div className="flex flex-wrap items-center justify-end gap-2">
           {(tab === 'calendar' || tab === 'map') && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
-          {tab === 'programs' && ov?.can['programs.manage'] && <Button variant="outline" size="sm" icon={<Plus className="size-4" />} to="/admin/programs/smart">{t('saber.newProgram')}</Button>}
+          {tab === 'programs' && ov?.can['saber.program.create'] && <Button variant="outline" size="sm" icon={<Plus className="size-4" />} onClick={() => setNewProgram(true)}>{t('saber.newProgram')}</Button>}
           {tools.plan && ov?.can['saber.plan.view'] && <Button variant="gold" size="sm" icon={<CalendarRange className="size-4" />} onClick={() => setPlan('new')}>{t('saber.plan.open')}</Button>}
           {tools.cancel && <Button variant="outline" size="sm" icon={<Ban className="size-4" />} onClick={() => setCancel('new')}>{t('saber.cancel.open')}</Button>}
           {tools.inbox && (
@@ -120,6 +125,14 @@ export default function SaberWorkbench() {
           <StatCard label={t('saber.stats.trainers')} value={fmt.number(ov.stats.trainers)} icon={<GraduationCap className="size-5" />} />
         </> : Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
       </div>
+
+      {ov && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-gold-200 bg-gradient-to-l from-gold-50 to-white px-4 py-3 text-sm">
+          <span className="min-w-0 flex-1 text-slate-600">{t('saber.draft.banner')}</span>
+          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-gold-800 ring-1 ring-inset ring-gold-200">{t('saber.draft.mine', { n: ov.drafts.mine })}</span>
+          {ov.can['saber.publish'] && <Button size="sm" variant="primary" to="/admin/programs/saber-review">{t('saber.draft.submitted', { n: ov.drafts.submitted })}</Button>}
+        </div>
+      )}
 
       <div className="flex gap-1 overflow-x-auto rounded-2xl border border-navy-100 bg-white p-1 shadow-sm" role="tablist">
         {([['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon], ['supervisors', t('saber.tabs.supervisors'), UsersRound], ['data', t('saber.tabs.data'), Database]] as const).map(([id, label, Icon]) => (
@@ -186,10 +199,11 @@ export default function SaberWorkbench() {
           <ul className="space-y-3">
             {page.data.map((p) => (
               <ProgramRow key={p.id} program={p} overview={ov} view={view} open={open.has(p.id)} onToggle={() => toggle(p.id)} onDetails={setDetailsId}
-                onProgram={(next) => replaceProgram(p.id, () => next)}
-                onGroup={(g) => replaceProgram(p.id, (old) => withGroup(old, g))}
-                onAdded={(g) => replaceProgram(p.id, (old) => { const groups = [...old.groups, g]; return { ...old, groups, lights: lightsOf(groups, old.days) } })}
-                onRemoved={(id) => replaceProgram(p.id, (old) => { const groups = old.groups.filter((x) => x.id !== id); return { ...old, groups, lights: lightsOf(groups, old.days) } })} />
+                onProgram={(next) => { replaceProgram(p.id, () => next); softRefresh() }}
+                onGroup={(g) => { replaceProgram(p.id, (old) => withGroup(old, g)); softRefresh() }}
+                onAdded={(g) => { replaceProgram(p.id, (old) => { const groups = [...old.groups, g]; return { ...old, groups, lights: lightsOf(groups, old.days) } }); softRefresh() }}
+                onRemoved={(id) => { replaceProgram(p.id, (old) => { const groups = old.groups.filter((x) => x.id !== id); return { ...old, groups, lights: lightsOf(groups, old.days) } }); softRefresh() }}
+                onDraft={refresh} />
             ))}
           </ul>
           {page.meta.last_page > 1 && (
@@ -220,6 +234,7 @@ export default function SaberWorkbench() {
       {inboxOpen && <OffdayInbox onClose={closeInbox} onChanged={refresh} />}
       {weeklyOpen && <WeeklyHolidays canManage={!!ov?.can['calendar.manage']} onClose={() => setWeeklyOpen(false)} onChanged={refresh} />}
       {detailsId && <DetailsModal programId={detailsId} onClose={() => setDetailsId(null)} />}
+      {ov && newProgram && <NewProgramDialog overview={ov} onClose={() => setNewProgram(false)} onCreated={(id) => { refresh(); setOpen((o) => new Set(o).add(id)) }} />}
       {ov && meeting && month.data && <MeetingDialog overview={ov} rooms={month.data.data.rooms} initial={meeting} onClose={() => setMeeting(null)} onBooked={() => { month.refetch(); overview.refetch() }} />}
     </div>
     </SaberActionsContext.Provider>
@@ -237,9 +252,9 @@ function Segment({ label, items, filters, set }: { label: string; items: [keyof 
   )
 }
 
-type RowProps = { program: Program; overview: Overview; view: 'rows' | 'cards'; open: boolean; onToggle: () => void; onDetails: (id: string) => void; onProgram: (p: Program) => void; onGroup: (g: Group) => void; onAdded: (g: Group) => void; onRemoved: (id: string) => void }
+type RowProps = { program: Program; overview: Overview; view: 'rows' | 'cards'; open: boolean; onToggle: () => void; onDetails: (id: string) => void; onProgram: (p: Program) => void; onGroup: (g: Group) => void; onAdded: (g: Group) => void; onRemoved: (id: string) => void; onDraft: () => void }
 
-function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onProgram, onGroup, onAdded, onRemoved }: RowProps) {
+function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onProgram, onGroup, onAdded, onRemoved, onDraft }: RowProps) {
   const { t } = useTranslation()
   const [adding, setAdding] = useState(false)
   const can = (k: string) => !!overview.can[k]
@@ -276,6 +291,7 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onP
         <Lights lights={p.lights} complete={complete} />
         <KitToggle program={p} disabled={!can('saber.group.manage')} onChange={(v) => patch({ kit_ready: v })} />
       </div>
+      {p.draft && <div className="px-4 pb-3"><DraftBar program={p} overview={overview} onChanged={onDraft} /></div>}
 
       {open && (
         <div className="space-y-3 border-t border-navy-50 bg-ivory/40 p-4">

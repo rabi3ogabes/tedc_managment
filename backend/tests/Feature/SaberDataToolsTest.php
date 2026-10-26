@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Role;
+use App\Models\SaberRevision;
 use App\Models\SaberSurveyLink;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
+use App\Services\TrainingGroupService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -36,7 +38,27 @@ class SaberDataToolsTest extends TestCase
         return ExcelDate::PHPToExcel(CarbonImmutable::parse($d));
     }
 
-    public function test_the_rooms_calendar_is_matched_to_programmes_and_applied_to_their_groups(): void
+    private function upload(string $url, array $data, $user)
+    {
+        return $this->asUser($user)->post($url, $data, ['Accept' => 'application/json']);
+    }
+
+    public function test_a_workbook_is_inspected_sheet_by_sheet_with_its_header_row_guessed(): void
+    {
+        $file = $this->workbook(function ($s) {
+            $s->setCellValue('A1', 'جدول التدريب');
+            $s->fromArray(['البرنامج', 'المجموعة', 'التاريخ', 'من', 'إلى', 'القاعة', 'المدرب'], null, 'A3');
+            $s->fromArray(['برنامج', '1', '01/11/2026', '08:00', '12:00', 'قاعة', 'مدرب'], null, 'A4');
+        }, 'خطة');
+
+        $res = $this->upload('/api/v1/admin/saber/data/import/inspect', ['file' => $file], $this->makeUser(Role::TRAINING_HEAD))->assertOk();
+        $this->assertSame('خطة', $res->json('data.sheets.0.name'));
+        $this->assertSame(3, $res->json('data.sheets.0.header_row'));
+        $this->assertSame('التاريخ', $res->json('data.sheets.0.rows.2.2'));
+        $this->upload('/api/v1/admin/saber/data/import/inspect', ['file' => $file], $this->makeUser(Role::COORDINATOR))->assertForbidden();
+    }
+
+    public function test_the_rooms_calendar_grid_is_matched_to_programmes_and_planned_in_their_drafts(): void
     {
         $program = $this->makeProgram(['title_ar' => 'برنامج القيادة المدرسية', 'total_hours' => 10]);
         TrainingRoom::create(['code' => 'R1', 'name_ar' => 'قاعة الريادة', 'name_en' => 'Riyada', 'capacity' => 25, 'status' => 'active']);
@@ -47,60 +69,91 @@ class SaberDataToolsTest extends TestCase
             $s->setCellValue('D5', $this->excelDate('2026-11-01'))->setCellValue('H5', 'برنامج القيادة المدرسيه - 1')->setCellValue('I5', 'برنامج غير موجود اطلاقا - 2');
             $s->setCellValue('D6', $this->excelDate('2026-11-02'))->setCellValue('I6', 'برنامج القيادة المدرسيه - 1');
         }, 'تقويم القاعات التدريبية');
+        $layout = ['type' => 'grid', 'sheet' => 'تقويم القاعات التدريبية', 'date_col' => 4, 'first_room_col' => 8];
 
-        $plan = $this->asUser($head)->post('/api/v1/admin/saber/data/calendar/preview', ['file' => $file], ['Accept' => 'application/json'])->assertOk()->json('data');
-
+        $plan = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
         $this->assertSame(3, $plan['cells']);
         $this->assertCount(1, $plan['tracks']);
-        $this->assertSame($program->id, $plan['tracks'][0]['program_id']);
         $this->assertSame($program->groups()->first()->id, $plan['tracks'][0]['group_id'], 'group number 1 of the programme');
         $this->assertSame('diff', $plan['tracks'][0]['verdict']);
         $this->assertSame(['2026-11-01', '2026-11-02'], array_column($plan['tracks'][0]['days'], 'date'));
         $this->assertSame('برنامج غير موجود اطلاقا - 2', $plan['unmatched'][0]['label']);
         $this->assertSame([true, false], array_column($plan['rooms'], 'exists'));
 
-        $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/calendar/apply', ['tracks' => $plan['tracks'], 'approve' => true])->assertOk()->json('data');
-        $this->assertSame(['updated' => 1, 'created' => 0, 'rooms_created' => 1, 'approved' => 1], array_intersect_key($res, array_flip(['updated', 'created', 'rooms_created', 'approved'])));
-        $group = $program->groups()->first();
-        $this->assertNotNull($group->validated_at);
-        $sessions = $group->sessions()->orderBy('starts_at')->with('room')->get();
-        $this->assertSame(['قاعة الريادة', 'قاعة المستقبل'], $sessions->map(fn ($s) => TrainingRoom::find($s->training_room_id)->name_ar)->all());
+        $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/import/apply', ['type' => 'grid', 'tracks' => $plan['tracks'], 'submit' => true])->assertOk()->json('data');
+        $this->assertSame(['updated' => 1, 'created' => 0, 'rooms_created' => 1, 'drafts' => 1, 'submitted' => 1], array_intersect_key($res, array_flip(['updated', 'created', 'rooms_created', 'drafts', 'submitted'])));
+        $this->assertSame(0, $program->sessions()->count(), 'an import never writes the live programme');
+        $rev = SaberRevision::where('program_id', $program->id)->first();
+        $this->assertSame('submitted', $rev->status);
+        $this->assertSame('calendar_import', $rev->source);
 
-        $again = $this->asUser($head)->post('/api/v1/admin/saber/data/calendar/preview', ['file' => $file], ['Accept' => 'application/json'])->assertOk()->json('data');
-        $this->assertSame('match', $again['tracks'][0]['verdict'], 're-checking the same file finds the group up to date');
-        $this->asUser($this->makeUser(Role::COORDINATOR))->post('/api/v1/admin/saber/data/calendar/preview', ['file' => $file], ['Accept' => 'application/json'])->assertForbidden();
+        $again = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
+        $this->assertSame('match', $again['tracks'][0]['verdict'], 're-checking the same file finds the plan up to date');
+
+        $this->asUser($head)->postJson("/api/v1/admin/saber/reviews/{$rev->id}/publish")->assertOk();
+        $rooms = $program->groups()->first()->sessions()->orderBy('starts_at')->get()->map(fn ($x) => TrainingRoom::find($x->training_room_id)->name_ar)->all();
+        $this->assertSame(['قاعة الريادة', 'قاعة المستقبل'], $rooms);
     }
 
-    public function test_the_programme_list_is_checked_then_updates_or_creates_programmes_with_their_groups(): void
+    public function test_a_day_per_row_workbook_with_any_column_order_is_mapped_and_planned(): void
     {
-        $existing = $this->makeProgram(['title_ar' => 'مهارات القيادة']);
+        $program = $this->makeProgram(['title_ar' => 'التعلم الرقمي للمعلمين', 'total_hours' => 10]);
+        $room = TrainingRoom::create(['code' => 'R2', 'name_ar' => 'مختبر الحاسب', 'name_en' => 'Lab', 'capacity' => 25, 'status' => 'active']);
+        $trainer = Trainer::create(['name_ar' => 'سلمى الكواري', 'name_en' => 'Salma', 'status' => 'active', 'source' => 'center', 'validated_at' => now()]);
+        $head = $this->makeUser(Role::TRAINING_HEAD);
+        $file = $this->workbook(function ($s) {
+            $s->fromArray(['القاعة', 'اليوم', 'اسم البرنامج التدريبي', 'رقم المجموعة', 'يبدأ', 'ينتهي', 'المدرب'], null, 'A1');
+            $s->fromArray(['مختبر الحاسب', '01/11/2026', 'التعلم الرقمي للمعلمين', '2', '08:30', '12:30', 'سلمى الكوارى'], null, 'A2');
+            $s->fromArray(['مختبر الحاسب', '02/11/2026', 'التعلم الرقمي للمعلمين', '2', '08:30', '12:30', 'سلمى الكوارى'], null, 'A3');
+        });
+        $layout = ['type' => 'rows', 'header_row' => 1, 'columns' => json_encode(['room' => 1, 'date' => 2, 'program' => 3, 'group' => 4, 'start' => 5, 'end' => 6, 'trainer' => 7])];
+
+        $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file, 'type' => 'rows', 'header_row' => 1, 'columns' => json_encode(['room' => 1])], $head)->assertUnprocessable();
+        $plan = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
+        $this->assertCount(1, $plan['tracks']);
+        $this->assertSame('المجموعة 2', $plan['tracks'][0]['group_name']);
+        $this->assertSame('new', $plan['tracks'][0]['verdict']);
+        $this->assertSame('سلمى الكواري', $plan['trainers'][0]['match']);
+        $this->assertSame('08:30', $plan['tracks'][0]['days'][0]['start_time']);
+
+        $this->asUser($head)->postJson('/api/v1/admin/saber/data/import/apply', ['type' => 'rows', 'tracks' => $plan['tracks']])->assertOk()->assertJsonPath('data.created', 1);
+        $group = collect(SaberRevision::where('program_id', $program->id)->first()->state['groups'])->firstWhere('title', 'المجموعة 2');
+        $this->assertSame([$room->id, $room->id], array_column($group['days'], 'room_id'));
+        $this->assertSame([$trainer->id, $trainer->id], array_column($group['days'], 'trainer_id'));
+        $this->assertSame('12:30', $group['days'][0]['end_time']);
+    }
+
+    public function test_the_programme_list_with_mapped_columns_goes_to_drafts(): void
+    {
+        $existing = $this->makeProgram(['title_ar' => 'مهارات القيادة', 'training_days' => 2]);
         $head = $this->makeUser(Role::TRAINING_HEAD);
         $file = $this->workbook(function ($s) {
             $s->setCellValue('A1', 'قائمة برامج المركز');
-            $s->fromArray(['اسم البرنامج', 'نوع البرنامج', 'آلية التدريب', 'الفئة المستهدفة', 'عدد الساعات', 'عدد الأيام', 'الهدف العام', 'الكتل التدريبية', 'توفر الحقيبة', 'موعد تنفيذ', 'ملاحظات'], null, 'A2');
-            $s->fromArray(['مهارات القيادة', 'تطويري', 'حضوري', 'القادة', 15, 3, '', 1, 'متوفر', '', ''], null, 'A3');
-            $s->fromArray(['التعلم الرقمي', 'تدريبي', 'عن بعد', 'المعلمون', 10, 2, 'تمكين المعلمين رقمياً', 2, 'غير متوفر', '15/11/2026', 'أولوية'], null, 'A4');
-            $s->fromArray(['التعلم الرقمي', 'تدريبي', 'عن بعد', '', 10, 2, '', 1, '', '', ''], null, 'A5');
+            $s->fromArray(['م', 'عدد الأيام', 'البرنامج', 'الآلية', 'الساعات', 'المجموعات', 'الحقيبة', 'التنفيذ'], null, 'A2');
+            $s->fromArray([1, 3, 'مهارات القيادة', 'حضوري', 15, 1, 'متوفر', ''], null, 'A3');
+            $s->fromArray([2, 2, 'التعلم الرقمي', 'عن بعد', 10, 2, 'غير متوفر', '15/11/2026'], null, 'A4');
+            $s->fromArray([3, 2, 'التعلم الرقمي', 'عن بعد', 10, 1, '', ''], null, 'A5');
         }, 'البرامج');
+        $layout = ['type' => 'programs', 'sheet' => 'البرامج', 'header_row' => 2, 'columns' => json_encode(['days' => 2, 'name' => 3, 'method' => 4, 'hours' => 5, 'groups' => 6, 'kit' => 7, 'date' => 8])];
 
-        $plan = $this->asUser($head)->post('/api/v1/admin/saber/data/programs/preview', ['file' => $file], ['Accept' => 'application/json'])->assertOk()->json('data');
+        $plan = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
         $this->assertSame(['update', 'create'], array_column($plan['rows'], 'action'));
         $this->assertSame('2026-11-15', $plan['rows'][1]['date']);
         $this->assertStringContainsString('التعلم الرقمي', collect($plan['issues'])->pluck('message')->implode(' '), 'the duplicate row is reported');
 
-        $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/programs/apply', ['rows' => $plan['rows']])->assertOk()->json('data');
-        $this->assertSame(1, $res['created']);
-        $this->assertSame(1, $res['updated']);
-        $this->assertSame(3, $existing->fresh()->training_days);
+        $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/import/apply', ['type' => 'programs', 'rows' => $plan['rows'], 'submit' => true])->assertOk()->json('data');
+        $this->assertSame([1, 1, 2], [$res['created'], $res['updated'], $res['submitted']]);
+        $this->assertSame(2, $existing->fresh()->training_days, 'the existing programme changes only when its draft is published');
         $new = Program::where('title_ar', 'التعلم الرقمي')->first();
         $this->assertSame(Program::STATUS_DRAFT, $new->status);
         $this->assertSame('online', $new->delivery_mode);
         $this->assertFalse($new->kit_ready);
-        $this->assertSame(2, $new->training_days);
-        $this->assertSame(2, $new->groups()->count());
         $this->assertSame('2026-11-15', $new->start_date->toDateString());
+        $this->assertCount(2, SaberRevision::where('program_id', $new->id)->first()->state['groups']);
 
-        $this->asUser($head)->postJson('/api/v1/admin/saber/data/programs/preview', ['url' => 'https://evil.example.com/list.xlsx'])->assertUnprocessable();
+        $this->asUser($head)->postJson('/api/v1/admin/saber/reviews/'.SaberRevision::where('program_id', $existing->id)->first()->id.'/publish')->assertOk();
+        $this->assertSame(3, $existing->fresh()->training_days);
+        $this->upload('/api/v1/admin/saber/data/import/preview', ['url' => 'https://evil.example.com/list.xlsx', 'type' => 'programs'], $head)->assertUnprocessable();
     }
 
     public function test_survey_links_are_uploaded_and_given_to_programmes(): void
@@ -163,9 +216,9 @@ class SaberDataToolsTest extends TestCase
     public function test_the_supervisors_page_lists_programmes_with_approved_and_pending_groups(): void
     {
         $coordinator = $this->makeUser(Role::COORDINATOR, ['name_ar' => 'المشرفة هند']);
-        $program = $this->makeProgram(['title_ar' => 'برنامج المشرفة', 'coordinator_id' => $coordinator->id]);
+        $program = $this->makeProgram(['title_ar' => 'برنامج المشرفة', 'coordinator_id' => $coordinator->id, 'delivery_mode' => 'in_person']);
         $program->groups()->first()->update(['validated_at' => now()]);
-        $this->asUser($coordinator)->postJson("/api/v1/admin/saber/programs/{$program->id}/groups")->assertCreated();
+        app(TrainingGroupService::class)->create($program, [], $coordinator);   // a live group; SABER+ additions are drafts until published
 
         $row = collect($this->asUser($coordinator)->getJson('/api/v1/admin/saber/data/supervisors')->assertOk()->json('data'))->firstWhere('id', $coordinator->id);
         $this->assertSame('برنامج المشرفة', $row['programs'][0]['title']);

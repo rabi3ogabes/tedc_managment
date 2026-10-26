@@ -18,6 +18,9 @@ export default function ProgramsAdmin() {
   const [status, setStatus] = useState('')
   const [type, setType] = useState<'' | 'in_person' | 'online' | 'hybrid'>('')
   const [page, setPage] = useState(1)
+  // SABER+ changes wait here for whoever reviews and publishes them.
+  const review = useGet<{ meta: { counts: Record<string, number> } }>(can('saber.publish') ? '/admin/saber/reviews' : null, { status: 'submitted' }, { staleTime: 30_000 })
+  const waiting = review.data?.meta.counts.submitted ?? 0
   const { data, isLoading } = useGet<Paginated<Program> & { types?: Record<'in_person' | 'online' | 'hybrid', number> }>('/admin/programs', { q: q || undefined, status: status || undefined, delivery_mode: type || undefined, page })
 
   const columns: Column<Program>[] = [
@@ -34,6 +37,17 @@ export default function ProgramsAdmin() {
   return (
     <>
       <PageHeader title={t('admin.menu.programs')} actions={can('programs.manage') && <div className="flex flex-wrap gap-2"><Button to="/admin/programs/smart" variant="gold" icon={<Wand2 className="size-4" />}>{t('mgmt.wizard.smartCreate')}</Button><Button to="/admin/programs/new" variant="outline" icon={<Plus className="size-4" />}>{t('admin.programs.new')}</Button></div>} />
+      {can('saber.publish') && (
+        <Link to="/admin/programs/saber-review" className={clsx('mb-4 flex flex-wrap items-center gap-3 rounded-2xl border px-4 py-3 transition hover:shadow-md', waiting ? 'border-gold-300 bg-gradient-to-l from-gold-50 to-white' : 'border-navy-100 bg-white')}>
+          <span className="grid size-10 place-items-center rounded-xl bg-navy-900 text-gold-300"><Layers className="size-5" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold text-navy-900">{t('saber.review.nav')}</span>
+            <span className="block text-xs text-slate-500">{waiting ? t('saber.review.banner', { n: waiting }) : t('saber.review.subtitle')}</span>
+          </span>
+          {waiting > 0 && <span className="grid min-w-7 place-items-center rounded-full bg-rose-600 px-2 text-sm font-bold leading-7 text-white">{waiting}</span>}
+          <span className="text-sm font-bold text-navy-700">{t('saber.review.open')}</span>
+        </Link>
+      )}
       {/* The three kinds of program: choose one to see only those */}
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" role="tablist" aria-label={t('programs.mode')}>
         {([['', LayoutGrid], ['in_person', Building2], ['online', MonitorPlay], ['hybrid', Layers]] as const).map(([k, Icon]) => {

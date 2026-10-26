@@ -5,212 +5,64 @@ namespace App\Services\Saber;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Program;
 use App\Models\Role;
+use App\Models\SaberRevision;
+use App\Models\Trainer;
 use App\Models\TrainingGroup;
 use App\Models\TrainingRoom;
 use App\Models\User;
-use App\Services\TrainingGroupService;
-use Carbon\CarbonImmutable;
-use DateTimeInterface;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
- * «استيراد تقويم القاعات التدريبية» (docs/saber/04-data-tools.md, D1). The workbook has one sheet of rooms × dates: a header row of room
- * names (from column H), the capacity under it («25 متدرب»), the date in column D and, in each booked cell, «<البرنامج> - <المجموعة أو
- * المشرف>». Every label is matched to an existing programme (never created), cells of one label become one or more groups (parallel rooms on
- * one date are parallel groups), and applying writes those groups' days through the workbench rules. Missing rooms are added; supervisors are
- * matched to the platform's supervisors by name.
+ * Schedules into SABER+ drafts (docs/saber/04-data-tools.md D1, 05-review-and-flexible-import.md). Two shapes of workbook, read by
+ * {@see WorkbookReader} with the columns the administrator chose:
+ *  - a rooms × dates grid (rooms across a header row, a date column, «<البرنامج> - <المجموعة أو المشرف>» in each booked cell);
+ *  - one training day per row (programme, group, date, times, room, trainer, supervisor in any columns).
+ * Every programme name is matched to an existing programme (never created); cells of one programme and group become one planned group
+ * (parallel rooms on one date are parallel groups). Applying writes the programmes' drafts — never the live programmes — and can send them
+ * for review. Missing rooms are added; trainers and supervisors are matched by name to the platform's.
  */
 class CalendarImport
 {
     private const THRESHOLD = 0.7;
 
-    public function __construct(private readonly Workbench $bench, private readonly TrainingGroupService $groups) {}
-
-    /** @return array<string, mixed> the plan: tracks (with their target group and verdict), unmatched labels, rooms, supervisors */
-    public function preview(string $path): array
-    {
-        $cells = $this->cells($path);
-        if ($cells === []) {
-            throw new BusinessRuleException(__('messages.saber.import.no_cells'), 'no_cells');
-        }
-        $programs = Program::where('status', '!=', Program::STATUS_CANCELLED)->get(['id', 'title_ar', 'title_en', 'training_days', 'total_hours'])
-            ->map(fn ($p) => ['id' => $p->id, 'name' => $p->title_ar ?: $p->title_en])->filter(fn ($p) => $p['name'])->values()->all();
-        $supervisors = $this->supervisors();
-        $rooms = TrainingRoom::get(['id', 'name_ar', 'name_en']);
-
-        $byLabel = collect($cells)->groupBy('label');
-        $tracks = [];
-        $unmatched = [];
-        $roomsSeen = [];
-        $supsSeen = [];
-        foreach ($byLabel as $label => $group) {
-            $parsed = $this->matchLabel((string) $label, $programs, $supervisors->pluck('name')->all());
-            if (! $parsed['program']) {
-                $best = collect($programs)->map(fn ($p) => ['name' => $p['name'], 's' => ArabicMatch::nameScore((string) $label, $p['name'])])->sortByDesc('s')->first();
-                $unmatched[] = ['label' => $label, 'count' => $group->count(), 'best' => $best['name'] ?? null, 'score' => round($best['s'] ?? 0, 2)];
-
-                continue;
-            }
-            foreach ($group as $c) {
-                $roomsSeen[$c['room']] ??= $c['capacity'];
-            }
-            if ($parsed['supervisor']) {
-                $supsSeen[$parsed['supervisor']] = true;
-            }
-            $split = $this->splitTracks($group->map(fn ($c) => ['date' => $c['date'], 'room' => $c['room']])->all());
-            foreach ($split as $i => $days) {
-                usort($days, fn ($a, $b) => strcmp($a['date'], $b['date']));
-                $n = preg_match('/(\d+)\s*$/u', $parsed['group'], $m) && count($split) === 1 ? (int) $m[1] : $i + 1;
-                $tracks[] = [
-                    'key' => $parsed['program']['id'].'|'.$label.'|'.$i, 'label' => $label, 'program_id' => $parsed['program']['id'], 'program' => $parsed['program']['name'],
-                    'score' => round($parsed['score'], 2), 'group_name' => count($split) > 1 && $parsed['group'] ? "{$parsed['group']} ({$n})" : ($parsed['group'] ?: TrainingGroup::defaultTitle($n, 'ar')),
-                    'supervisor' => $parsed['supervisor'], 'index' => $n, 'days' => $days,
-                ];
-            }
-        }
-        usort($tracks, fn ($a, $b) => strcmp(ArabicMatch::normalize($a['program']), ArabicMatch::normalize($b['program'])) ?: strcmp($a['group_name'], $b['group_name']));
-        $this->targets($tracks, $rooms);
-        usort($unmatched, fn ($a, $b) => $b['count'] <=> $a['count']);
-
-        return [
-            'cells' => count($cells), 'tracks' => $tracks, 'unmatched' => $unmatched,
-            'rooms' => collect($roomsSeen)->map(fn ($cap, $name) => ['name' => $name, 'capacity' => $cap, 'exists' => $this->findRoom($rooms, $name) !== null])->values()->all(),
-            'supervisors' => collect(array_keys($supsSeen))->map(fn ($name) => ['name' => $name, 'user' => $this->findSupervisor($supervisors, $name)['name'] ?? null])->values()->all(),
-        ];
-    }
+    public function __construct(private readonly Drafts $drafts, private readonly WorkbookReader $reader) {}
 
     /**
-     * Writes the chosen tracks: rooms added when missing, each track's group found or created, its days replaced (a day refused by the
-     * calendar or a clash is reported and the rest goes on), its supervisor set when known, and — when asked and allowed — the groups that
-     * went through without a problem approved.
-     *
-     * @param  list<array{program_id: string, group_id?: ?string, group_name: string, supervisor?: ?string, days: list<array{date: string, room: string}>}>  $tracks
-     * @return array<string, mixed>
+     * @param  array{sheet?: ?string, header_row?: ?int, date_col?: ?int, first_room_col?: ?int}  $layout
+     * @return list<array<string, mixed>> cells: date, room, capacity, label
      */
-    public function apply(array $tracks, bool $approve, User $actor): array
+    public function gridCells(string $path, array $layout = []): array
     {
-        $rooms = TrainingRoom::get(['id', 'name_ar', 'name_en']);
-        $supervisors = $this->supervisors();
-        $made = ['updated' => 0, 'created' => 0, 'rooms_created' => 0, 'approved' => 0, 'failures' => [], 'supervisors_missing' => []];
-        $canApprove = $approve && $actor->hasPermission('saber.group.validate');
-
-        foreach ($tracks as $t) {
-            $program = Program::find($t['program_id']);
-            if (! $program) {
-                continue;
-            }
-            $roomIds = [];
-            foreach ($t['days'] as $d) {
-                $room = $this->findRoom($rooms, $d['room']);
-                if (! $room) {
-                    $room = TrainingRoom::create(['name_ar' => $d['room'], 'name_en' => $d['room'], 'capacity' => (int) ($d['capacity'] ?? 0) ?: 25, 'status' => 'active', 'room_type' => 'training', 'layout' => 'classroom', 'layouts' => ['classroom' => (int) ($d['capacity'] ?? 0) ?: 25]]);
-                    $rooms->push($room);
-                    $made['rooms_created']++;
-                }
-                $roomIds[$d['date']] = $room->id;
-            }
-            $failures = [];
-            DB::transaction(function () use ($t, $program, $roomIds, $supervisors, $actor, &$made, &$failures, $canApprove) {
-                $group = ! empty($t['group_id']) ? TrainingGroup::where('program_id', $program->id)->find($t['group_id']) : null;
-                if (! $group) {
-                    $title = TrainingGroup::where('program_id', $program->id)->where('title_ar', $t['group_name'])->exists() ? null : $t['group_name'];
-                    $group = $this->groups->create($program, ['title_ar' => $title], $actor)['group'];
-                    $group->update(['color' => $this->bench->nextColour($program)]);
-                    $made['created']++;
-                } else {
-                    $made['updated']++;
-                }
-                if ($group->sessions()->whereHas('attendance')->exists()) {
-                    $failures[] = ['group' => $t['group_name'], 'program' => $program->title_ar, 'date' => null, 'message' => __('messages.saber.plan.has_attendance')];
-
-                    return;
-                }
-                $group->sessions()->get()->each->delete();
-                $group->update(['default_room_id' => null]);
-                $dates = array_keys($roomIds);
-                sort($dates);
-                foreach ($dates as $i => $date) {
-                    try {
-                        $this->bench->setDay($group->fresh(), $i + 1, ['date' => $date, 'room_id' => $roomIds[$date]], $actor);
-                    } catch (BusinessRuleException $e) {
-                        $failures[] = ['group' => $t['group_name'], 'program' => $program->title_ar, 'date' => $date, 'message' => $e->getMessage()];
-                        if ($e->errorCode !== 'calendar_closed' && $e->errorCode !== 'outside_training_day') {
-                            try {
-                                $this->bench->setDay($group->fresh(), $i + 1, ['date' => $date, 'room_id' => null], $actor);
-                            } catch (BusinessRuleException) {
-                                // the date itself is refused: reported above
-                            }
-                        }
-                    }
-                }
-                if (! empty($t['supervisor'])) {
-                    $user = $this->findSupervisor($supervisors, $t['supervisor']);
-                    if ($user) {
-                        $group->update(['supervisor_id' => $user['id']]);
-                    } else {
-                        $made['supervisors_missing'][$t['supervisor']] = true;
-                    }
-                }
-                if ($canApprove && $failures === []) {
-                    $group->update(['validated_at' => now(), 'validated_by' => $actor->id, 'validated_by_name' => $actor->displayName('ar')]);
-                    $made['approved']++;
-                }
-            });
-            $made['failures'] = [...$made['failures'], ...$failures];
-        }
-        $made['supervisors_missing'] = array_keys($made['supervisors_missing']);
-
-        return $made;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-    /** @return list<array{date: string, room: string, capacity: ?int, label: string}> */
-    private function cells(string $path): array
-    {
-        $book = IOFactory::createReaderForFile($path)->setReadDataOnly(true)->load($path);
-        $sheet = collect($book->getWorksheetIterator())->first(fn (Worksheet $s) => str_contains($s->getTitle(), 'تقويم')) ?? $book->getSheet(0);
-        $lastRow = $sheet->getHighestDataRow();
-        $lastCol = Coordinate::columnIndexFromString($sheet->getHighestDataColumn());
-        $at = fn (int $r, int $c) => $sheet->getCell([$c, $r])->getValue();
-
+        $rows = $this->reader->rows($path, $layout['sheet'] ?? null);
+        $first = (int) ($layout['first_room_col'] ?? 8) - 1;
+        $dateCol = (int) ($layout['date_col'] ?? 4) - 1;
         // The room-header row has the most distinct texts across the room columns (capacity rows repeat a few values).
-        $header = 3;
-        $best = 0;
-        for ($r = 1; $r <= min($lastRow, 16); $r++) {
-            $seen = [];
-            for ($c = 8; $c <= $lastCol; $c++) {
-                $v = $at($r, $c);
-                if (is_string($v) && trim($v) !== '') {
-                    $seen[trim($v)] = true;
+        $header = isset($layout['header_row']) ? (int) $layout['header_row'] - 1 : null;
+        if ($header === null) {
+            $best = 0;
+            $header = 2;
+            foreach (array_slice($rows, 0, 16, true) as $r => $row) {
+                $n = count(array_unique(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', array_slice($row, $first)))));
+                if ($n > $best) {
+                    [$best, $header] = [$n, $r];
                 }
-            }
-            if (count($seen) > $best) {
-                [$best, $header] = [count($seen), $r];
             }
         }
         $rooms = [];
-        for ($c = 8; $c <= $lastCol; $c++) {
-            $name = $at($header, $c);
-            if (is_string($name) && trim($name) !== '') {
-                $cap = preg_match('/\d+/', (string) $at($header + 1, $c), $m) ? (int) $m[0] : null;
+        foreach ($rows[$header] ?? [] as $c => $name) {
+            if ($c >= $first && is_string($name) && trim($name) !== '') {
+                $cap = preg_match('/\d+/', (string) ($rows[$header + 1][$c] ?? ''), $m) ? (int) $m[0] : null;
                 $rooms[$c] = ['name' => trim(preg_replace('/\s+/u', ' ', $name) ?? $name), 'capacity' => $cap];
             }
         }
         $out = [];
-        for ($r = $header + 1; $r <= $lastRow; $r++) {
-            $date = $this->date($at($r, 4));
+        foreach (array_slice($rows, $header + 1, null, true) as $row) {
+            $date = $this->reader->date($row[$dateCol] ?? null);
             if (! $date) {
                 continue;
             }
             foreach ($rooms as $c => $room) {
-                $v = $at($r, $c);
-                $label = is_string($v) ? trim(preg_replace('/\s+/u', ' ', $v) ?? $v) : '';
+                $label = is_string($row[$c] ?? null) ? trim(preg_replace('/\s+/u', ' ', $row[$c]) ?? '') : '';
                 if ($label !== '') {
                     $out[] = ['date' => $date, 'room' => $room['name'], 'capacity' => $room['capacity'], 'label' => $label];
                 }
@@ -220,34 +72,197 @@ class CalendarImport
         return $out;
     }
 
-    private function date(mixed $v): ?string
+    /**
+     * One training day per row, columns chosen by the administrator (1-based): program (required), date (required), group, start, end,
+     * room, trainer, supervisor.
+     *
+     * @param  array<string, ?int>  $columns
+     * @return list<array<string, mixed>>
+     */
+    public function rowCells(string $path, ?string $sheet, int $headerRow, array $columns): array
     {
-        if ($v instanceof DateTimeInterface) {
-            return CarbonImmutable::instance($v)->toDateString();
-        }
-        if (is_numeric($v) && (float) $v > 20000 && (float) $v < 80000) {
-            return CarbonImmutable::instance(ExcelDate::excelToDateTimeObject((float) $v))->toDateString();
-        }
-        if (is_string($v) && preg_match('#^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$#', trim($v), $m)) {
-            return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
-        }
-        if (is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($v))) {
-            return trim($v);
+        $rows = $this->reader->rows($path, $sheet);
+        $col = fn (array $row, string $f) => isset($columns[$f]) && $columns[$f] ? ($row[$columns[$f] - 1] ?? null) : null;
+        $out = [];
+        foreach (array_slice($rows, $headerRow, null, true) as $row) {
+            $program = trim(preg_replace('/\s+/u', ' ', (string) $col($row, 'program')) ?? '');
+            $date = $this->reader->date($col($row, 'date'));
+            if ($program === '' || ! $date) {
+                continue;
+            }
+            $out[] = [
+                'date' => $date, 'label' => $program, 'group' => $this->text($col($row, 'group')), 'room' => $this->text($col($row, 'room')), 'capacity' => null,
+                'trainer' => $this->text($col($row, 'trainer')), 'supervisor' => $this->text($col($row, 'supervisor')),
+                'start_time' => $this->reader->time($col($row, 'start')), 'end_time' => $this->reader->time($col($row, 'end')),
+            ];
         }
 
-        return null;
+        return $out;
+    }
+
+    /** @param list<array<string, mixed>> $cells @return array<string, mixed> the plan: groups with their target and verdict, unmatched names, rooms, trainers, supervisors */
+    public function plan(array $cells): array
+    {
+        if ($cells === []) {
+            throw new BusinessRuleException(__('messages.saber.import.no_cells'), 'no_cells');
+        }
+        $programs = Program::where('status', '!=', Program::STATUS_CANCELLED)->get(['id', 'title_ar', 'title_en'])
+            ->map(fn ($p) => ['id' => $p->id, 'name' => $p->title_ar ?: $p->title_en])->filter(fn ($p) => $p['name'])->values()->all();
+        $supervisors = $this->supervisors();
+        $trainers = Trainer::where('status', '!=', 'inactive')->get(['id', 'name_ar', 'name_en'])->map(fn ($t) => ['id' => $t->id, 'name' => $t->name_ar ?: $t->name_en]);
+        $rooms = TrainingRoom::get(['id', 'name_ar', 'name_en']);
+
+        $tracks = [];
+        $unmatched = [];
+        $roomsSeen = [];
+        $supsSeen = [];
+        $trainersSeen = [];
+        foreach (collect($cells)->groupBy(fn ($c) => $c['label'].'|'.($c['group'] ?? '')) as $group) {
+            $label = $group->first()['label'];
+            $explicit = $group->first()['group'] ?? null;
+            $parsed = $this->matchLabel($label, $programs, $supervisors->pluck('name')->all(), $explicit !== null);
+            if (! $parsed['program']) {
+                $best = collect($programs)->map(fn ($p) => ['name' => $p['name'], 's' => ArabicMatch::nameScore($label, $p['name'])])->sortByDesc('s')->first();
+                $unmatched[] = ['label' => $label.($explicit ? " — {$explicit}" : ''), 'count' => $group->count(), 'best' => $best['name'] ?? null, 'score' => round($best['s'] ?? 0, 2)];
+
+                continue;
+            }
+            if ($explicit !== null) {
+                $parsed['group'] = preg_match('/^\d+$/', $explicit) ? TrainingGroup::defaultTitle((int) $explicit, 'ar') : $explicit;
+            }
+            $supervisor = $group->pluck('supervisor')->filter()->first() ?? $parsed['supervisor'];
+            foreach ($group as $c) {
+                if (! empty($c['room'])) {
+                    $roomsSeen[$c['room']] ??= $c['capacity'] ?? null;
+                }
+                if (! empty($c['trainer'])) {
+                    $trainersSeen[$c['trainer']] = true;
+                }
+            }
+            if ($supervisor) {
+                $supsSeen[$supervisor] = true;
+            }
+            $split = $explicit !== null ? [$group->values()->all()] : $this->splitTracks($group->values()->all());
+            foreach ($split as $i => $days) {
+                usort($days, fn ($a, $b) => strcmp($a['date'], $b['date']));
+                $n = preg_match('/(\d+)\s*$/u', $parsed['group'], $m) && count($split) === 1 ? (int) $m[1] : $i + 1;
+                $tracks[] = [
+                    'key' => $parsed['program']['id'].'|'.$label.'|'.($explicit ?? '').'|'.$i, 'label' => $label.($explicit ? " — {$explicit}" : ''), 'program_id' => $parsed['program']['id'],
+                    'program' => $parsed['program']['name'], 'score' => round($parsed['score'], 2),
+                    'group_name' => count($split) > 1 && $parsed['group'] ? "{$parsed['group']} ({$n})" : ($parsed['group'] ?: TrainingGroup::defaultTitle($n, 'ar')),
+                    'supervisor' => $supervisor, 'index' => $n,
+                    'days' => array_map(fn ($d) => array_filter(['date' => $d['date'], 'room' => $d['room'] ?? null, 'capacity' => $d['capacity'] ?? null, 'trainer' => $d['trainer'] ?? null,
+                        'start_time' => $d['start_time'] ?? null, 'end_time' => $d['end_time'] ?? null], fn ($v) => $v !== null), $days),
+                ];
+            }
+        }
+        usort($tracks, fn ($a, $b) => strcmp(ArabicMatch::normalize($a['program']), ArabicMatch::normalize($b['program'])) ?: strcmp($a['group_name'], $b['group_name']));
+        $this->targets($tracks);
+        usort($unmatched, fn ($a, $b) => $b['count'] <=> $a['count']);
+
+        return [
+            'cells' => count($cells), 'tracks' => $tracks, 'unmatched' => $unmatched,
+            'rooms' => collect($roomsSeen)->map(fn ($cap, $name) => ['name' => $name, 'capacity' => $cap, 'exists' => $this->findRoom($rooms, $name) !== null])->values()->all(),
+            'supervisors' => collect(array_keys($supsSeen))->map(fn ($name) => ['name' => $name, 'user' => $this->best($supervisors, $name)['name'] ?? null])->values()->all(),
+            'trainers' => collect(array_keys($trainersSeen))->map(fn ($name) => ['name' => $name, 'match' => $this->best($trainers, $name, 0.85)['name'] ?? null])->values()->all(),
+        ];
     }
 
     /**
-     * «الباقة الثالثة للمعلمين - معلمون ومنسقون - 1» → programme + group «معلمون ومنسقون - 1»; «شروق الشمس - انجي» → programme + supervisor.
+     * Writes the chosen groups into the programmes' drafts (rooms missing from the platform are added); a day the rules refuse is reported
+     * and the rest goes on. With `submit`, each touched draft is sent for review.
      *
-     * @param  list<array{id: string, name: string}>  $programs
-     * @param  list<string>  $knownSupervisors
+     * @param  list<array<string, mixed>>  $tracks
+     * @return array<string, mixed>
+     */
+    public function apply(array $tracks, bool $submit, User $actor, string $source = 'calendar_import'): array
+    {
+        $rooms = TrainingRoom::get(['id', 'name_ar', 'name_en']);
+        $supervisors = $this->supervisors();
+        $trainers = Trainer::where('status', '!=', 'inactive')->get(['id', 'name_ar', 'name_en'])->map(fn ($t) => ['id' => $t->id, 'name' => $t->name_ar ?: $t->name_en]);
+        $made = ['updated' => 0, 'created' => 0, 'rooms_created' => 0, 'drafts' => 0, 'submitted' => 0, 'failures' => [], 'supervisors_missing' => [], 'trainers_missing' => []];
+        $touched = [];
+
+        foreach ($tracks as $t) {
+            $program = Program::find($t['program_id']);
+            if (! $program) {
+                continue;
+            }
+            $rev = $this->drafts->draft($program, $actor, $source);
+            $key = ! empty($t['group_id']) && collect($rev->state['groups'])->contains(fn ($g) => $g['key'] === $t['group_id'] && empty($g['deleted'])) ? $t['group_id'] : null;
+            if (! $key) {
+                $key = $this->drafts->addGroup($rev, $actor, ['title' => $this->freeTitle($rev->state, $t['group_name'])])['key'];
+                $made['created']++;
+            } else {
+                $made['updated']++;
+            }
+            $days = [];
+            foreach ($t['days'] as $d) {
+                $roomId = null;
+                if (! empty($d['room'])) {
+                    $room = $this->findRoom($rooms, $d['room']);
+                    if (! $room) {
+                        $cap = (int) ($d['capacity'] ?? 0) ?: 25;
+                        $room = TrainingRoom::create(['name_ar' => $d['room'], 'name_en' => $d['room'], 'capacity' => $cap, 'status' => 'active', 'room_type' => 'training', 'layout' => 'classroom', 'layouts' => ['classroom' => $cap]]);
+                        $rooms->push($room);
+                        $made['rooms_created']++;
+                    }
+                    $roomId = $room->id;
+                }
+                $trainerId = null;
+                if (! empty($d['trainer'])) {
+                    $trainerId = $this->best($trainers, $d['trainer'], 0.85)['id'] ?? null;
+                    if (! $trainerId) {
+                        $made['trainers_missing'][$d['trainer']] = true;
+                    }
+                }
+                $days[] = ['date' => $d['date'], 'room_id' => $roomId, 'trainer_id' => $trainerId, 'start_time' => $d['start_time'] ?? null, 'end_time' => $d['end_time'] ?? null];
+            }
+            try {
+                $result = $this->drafts->replaceDays($rev->fresh(), $key, $days, $actor);
+                foreach ($result['failures'] as $f) {
+                    $made['failures'][] = ['program' => $program->title_ar, 'group' => $t['group_name'], 'date' => $f['date'], 'message' => $f['message']];
+                }
+            } catch (BusinessRuleException $e) {
+                $made['failures'][] = ['program' => $program->title_ar, 'group' => $t['group_name'], 'date' => null, 'message' => $e->getMessage()];
+            }
+            if (! empty($t['supervisor'])) {
+                $user = $this->best($supervisors, $t['supervisor']);
+                if ($user) {
+                    $this->drafts->updateGroup($rev->fresh(), $key, ['supervisor_id' => $user['id']], $actor);
+                } else {
+                    $made['supervisors_missing'][$t['supervisor']] = true;
+                }
+            }
+            $touched[$program->id] = $rev->id;
+        }
+        $made['drafts'] = count($touched);
+        if ($submit) {
+            foreach ($touched as $revId) {
+                $rev = SaberRevision::find($revId);
+                if ($rev && $rev->status === SaberRevision::DRAFT) {
+                    $this->drafts->submit($rev, $actor);
+                    $made['submitted']++;
+                }
+            }
+        }
+        $made['supervisors_missing'] = array_keys($made['supervisors_missing']);
+        $made['trainers_missing'] = array_keys($made['trainers_missing']);
+
+        return $made;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * «الباقة الثالثة للمعلمين - معلمون ومنسقون - 1» → programme + group «معلمون ومنسقون - 1»; «شروق الشمس - انجي» → programme + supervisor.
+     * With an explicit group column, the whole text is the programme name.
+     *
      * @return array{program: ?array{id: string, name: string}, score: float, group: string, supervisor: ?string}
      */
-    private function matchLabel(string $label, array $programs, array $knownSupervisors): array
+    private function matchLabel(string $label, array $programs, array $knownSupervisors, bool $whole): array
     {
-        $segments = array_values(array_filter(array_map('trim', preg_split('/\s*[-–—]\s*/u', $label) ?: []), fn ($s) => $s !== ''));
+        $segments = $whole ? [$label] : array_values(array_filter(array_map('trim', preg_split('/\s*[-–—]\s*/u', $label) ?: []), fn ($s) => $s !== ''));
         $maxK = count($segments);
         while ($maxK > 1 && preg_match('/^\d+$/', $segments[$maxK - 1])) {
             $maxK--;
@@ -283,22 +298,16 @@ class CalendarImport
         return ['program' => $best['program'], 'score' => $best['score'], 'group' => $group, 'supervisor' => $supervisor];
     }
 
-    /**
-     * One label in several rooms on one date means parallel groups: each track takes one room per date, keeping the same room when it can.
-     *
-     * @param  list<array{date: string, room: string}>  $days
-     * @return list<list<array{date: string, room: string}>>
-     */
+    /** One label in several rooms on one date means parallel groups: each track takes one room per date, keeping its room when it can. */
     private function splitTracks(array $days): array
     {
-        $byDate = collect($days)->groupBy('date')->sortKeys();
         $tracks = [];
-        foreach ($byDate as $date => $rows) {
+        foreach (collect($days)->groupBy('date')->sortKeys() as $date => $rows) {
             $used = [];
             foreach ($rows as $row) {
                 $idx = null;
                 foreach ($tracks as $i => $t) {
-                    if (! isset($used[$i]) && end($t)['room'] === $row['room'] && ! collect($t)->contains('date', $date)) {
+                    if (! isset($used[$i]) && (end($t)['room'] ?? null) === ($row['room'] ?? null) && ! collect($t)->contains('date', $date)) {
                         $idx = $i;
                         break;
                     }
@@ -316,35 +325,50 @@ class CalendarImport
                     $idx = count($tracks) - 1;
                 }
                 $used[$idx] = true;
-                $tracks[$idx][] = ['date' => $date, 'room' => $row['room']];
+                $tracks[$idx][] = $row;
             }
         }
 
         return $tracks;
     }
 
-    /** Gives each track the group it updates (same name, else same number, else none = a new group) and says whether it already matches. */
-    private function targets(array &$tracks, Collection $rooms): void
+    /** Each track's group in the programme's plan (same name, else same number, else a new group) and whether the plan already matches. */
+    private function targets(array &$tracks): void
     {
-        $tz = config('app.timezone');
+        $rooms = TrainingRoom::get(['id', 'name_ar', 'name_en']);
         $claimed = [];
-        $pool = TrainingGroup::with(['sessions' => fn ($q) => $q->where('status', '!=', 'cancelled')->orderBy('starts_at')])
-            ->whereIn('program_id', collect($tracks)->pluck('program_id')->unique())->where('status', '!=', TrainingGroup::CANCELLED)->get()->groupBy('program_id');
+        $states = [];
         foreach ($tracks as &$t) {
-            $candidates = ($pool[$t['program_id']] ?? collect())->reject(fn ($g) => isset($claimed[$g->id]));
-            $target = $candidates->first(fn ($g) => $g->title_ar && ArabicMatch::similarity($g->title_ar, $t['group_name']) >= 0.85)
-                ?? $candidates->first(fn ($g) => $g->sequence === $t['index'])
-                ?? ($candidates->count() === 1 && $candidates->first()->sessions->isEmpty() ? $candidates->first() : null);
+            $program = Program::find($t['program_id']);
+            $states[$t['program_id']] ??= ($this->drafts->open($program)?->state ?? $this->drafts->live($program));
+            $candidates = collect($states[$t['program_id']]['groups'])->reject(fn ($g) => ! empty($g['deleted']) || ($g['status'] ?? null) === TrainingGroup::CANCELLED || isset($claimed[$g['key']]));
+            $target = $candidates->first(fn ($g) => $g['title'] && $this->sameName($g['title'], $t['group_name']))
+                ?? $candidates->first(fn ($g) => (int) $g['number'] === (int) $t['index'])
+                ?? ((int) $t['index'] === 1 && $candidates->count() === 1 && empty($candidates->first()['days']) ? $candidates->first() : null);
             if ($target) {
-                $claimed[$target->id] = true;
+                $claimed[$target['key']] = true;
             }
-            $saved = $target ? $target->sessions->map(fn ($s) => $s->starts_at->timezone($tz)->toDateString().'|'.($s->training_room_id ?? ''))->sort()->values()->all() : [];
-            $wanted = collect($t['days'])->map(fn ($d) => $d['date'].'|'.($this->findRoom($rooms, $d['room'])?->id ?? 'new'))->sort()->values()->all();
-            $t['group_id'] = $target?->id;
-            $t['target'] = $target ? ($target->title_ar ?: TrainingGroup::defaultTitle($target->sequence, 'ar')) : null;
+            $saved = collect($target['days'] ?? [])->map(fn ($d) => $d['date'].'|'.($d['room_id'] ?? ''))->sort()->values()->all();
+            $wanted = collect($t['days'])->map(fn ($d) => $d['date'].'|'.(! empty($d['room']) ? ($this->findRoom($rooms, $d['room'])?->id ?? 'new') : ''))->sort()->values()->all();
+            $t['group_id'] = $target['key'] ?? null;
+            $t['target'] = $target['title'] ?? null;
             $t['verdict'] = ! $target ? 'new' : ($saved === $wanted ? 'match' : 'diff');
-            $t['validated'] = (bool) $target?->validated_at;
+            $t['validated'] = false;
         }
+    }
+
+    /** Close names with the same numbers: «المجموعة 2» is not «المجموعة 1». */
+    private function sameName(string $a, string $b): bool
+    {
+        preg_match_all('/\d+/', $a, $x);
+        preg_match_all('/\d+/', $b, $y);
+
+        return $x[0] === $y[0] && ArabicMatch::similarity($a, $b) >= 0.85;
+    }
+
+    private function freeTitle(array $state, string $title): ?string
+    {
+        return collect($state['groups'])->contains(fn ($g) => empty($g['deleted']) && trim((string) $g['title']) === trim($title)) ? null : $title;
     }
 
     private function findRoom(Collection $rooms, string $name): ?TrainingRoom
@@ -354,15 +378,20 @@ class CalendarImport
         return $rooms->first(fn ($r) => ArabicMatch::normalize($r->name_ar) === $n || ArabicMatch::normalize($r->name_en) === $n);
     }
 
-    /** @return Collection<int, array{id: string, name: string}> */
     private function supervisors(): Collection
     {
-        return User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::COORDINATOR, Role::TRAINING_HEAD]))->get(['id', 'name', 'name_ar'])
-            ->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]);
+        return User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::COORDINATOR, Role::TRAINING_HEAD]))->get(['id', 'name', 'name_ar'])->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]);
     }
 
-    private function findSupervisor(Collection $supervisors, string $name): ?array
+    private function best(Collection $people, string $name, float $min = 0.8): ?array
     {
-        return $supervisors->map(fn ($s) => $s + ['s' => ArabicMatch::similarity($s['name'], $name)])->filter(fn ($s) => $s['s'] >= 0.8)->sortByDesc('s')->first();
+        return $people->map(fn ($s) => $s + ['s' => ArabicMatch::similarity($s['name'], $name)])->filter(fn ($s) => $s['s'] >= $min)->sortByDesc('s')->first();
+    }
+
+    private function text(mixed $v): ?string
+    {
+        $s = trim(preg_replace('/\s+/u', ' ', (string) $v) ?? '');
+
+        return $s === '' ? null : $s;
     }
 }

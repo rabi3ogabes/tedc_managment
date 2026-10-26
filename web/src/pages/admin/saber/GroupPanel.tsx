@@ -24,10 +24,13 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
   const online = program.method === 'online'
   const editable = !group.cancelled && !program.cancelled
   const name = group.title || t('saber.group.n', { n: group.number })
+  // Planning edits go to the programme's draft; approval and cancellation act on the live group.
+  const base = `/admin/saber/programs/${program.id}/groups/${group.id}`
+  const live = group.live !== false
 
   const patchGroup = async (body: Record<string, unknown>) => {
     try {
-      const { data } = await api.patch(`/admin/saber/groups/${group.id}`, body)
+      const { data } = await api.patch(`${base}`, body)
       onGroup(data.data)
       toast(t('saber.group.renamed'))
     } catch (e) { toast(errorMessage(e), 'error') }
@@ -36,7 +39,7 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
   const setDay = async (day: Day, patch: Partial<Record<'date' | 'start_time' | 'end_time' | 'room_id' | 'trainer_id', string | null>>) => {
     setBusyDay(day.idx)
     try {
-      const { data } = await api.put(`/admin/saber/groups/${group.id}/days/${day.idx}`, patch)
+      const { data } = await api.put(`${base}/days/${day.idx}`, patch)
       onGroup(data.data)
       if (data.notices?.length) tell(data.notices)
       else toast(t('saber.day.saved', { n: day.idx }))
@@ -58,20 +61,20 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
 
   const resetDay = async (day: Day) => {
     setBusyDay(day.idx)
-    try { onGroup((await api.delete(`/admin/saber/groups/${group.id}/days/${day.idx}`)).data.data) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusyDay(null) }
+    try { onGroup((await api.delete(`${base}/days/${day.idx}`)).data.data) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusyDay(null) }
   }
 
   const resetGroup = async () => {
     if (!(await dialogs.confirm(t('saber.group.resetConfirm', { name })))) return
     try {
-      const { data } = await api.post(`/admin/saber/groups/${group.id}/reset`)
+      const { data } = await api.post(`${base}/reset`)
       onGroup(data.data); toast(t('saber.group.resetDone', { n: data.reset }))
     } catch (e) { toast(errorMessage(e), 'error') }
   }
 
   const remove = async () => {
     if (!(await dialogs.confirm(t('saber.group.deleteConfirm', { name })))) return
-    try { await api.delete(`/admin/saber/groups/${group.id}`); onRemoved(group.id); toast(t('saber.group.deleted')) } catch (e) { toast(errorMessage(e), 'error') }
+    try { await api.delete(base); onRemoved(group.id); actions.refresh(); toast(t('saber.group.deleted')) } catch (e) { toast(errorMessage(e), 'error') }
   }
 
   const validate = async () => {
@@ -101,12 +104,13 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
           {(['first', 'second', 'year'] as const).map((x) => <option key={x} value={x}>{t(`saber.group.terms.${x}`)}</option>)}
         </select>
         {group.cancelled && <Badge color="red">{t('saber.group.cancelled')}</Badge>}
-        <ValidationChip group={group} canValidate={can('saber.group.validate')} onToggle={validate} />
+        {!live && <Badge color="blue">{t('saber.draft.newGroup')}</Badge>}
+        {live ? <ValidationChip group={group} canValidate={can('saber.group.validate')} onToggle={validate} /> : <span className="text-[11px] text-slate-400">{t('saber.draft.liveOnly')}</span>}
         <div className="ms-auto flex items-center gap-1">
-          {group.cancelled && can('saber.program.reactivate') && <IconButton label={t('saber.cancel.reactivate')} onClick={reactivate}><Undo2 className="size-4" /></IconButton>}
+          {live && group.cancelled && can('saber.program.reactivate') && <IconButton label={t('saber.cancel.reactivate')} onClick={reactivate}><Undo2 className="size-4" /></IconButton>}
           {can('saber.plan.view') && editable && <IconButton label={t('saber.plan.fromGroup')} onClick={() => actions.plan(program, group)}><CalendarRange className="size-4" /></IconButton>}
           {can('saber.day.edit') && editable && <IconButton label={t('saber.group.reset')} onClick={resetGroup}><Eraser className="size-4" /></IconButton>}
-          {can('saber.program.cancel') && editable && <IconButton label={t('saber.cancel.cancelGroup')} onClick={() => actions.cancelGroup(program, group)} danger><Ban className="size-4" /></IconButton>}
+          {live && can('saber.program.cancel') && editable && <IconButton label={t('saber.cancel.cancelGroup')} onClick={() => actions.cancelGroup(program, group)} danger><Ban className="size-4" /></IconButton>}
           {canManage && overview.settings.group_delete_enabled && <IconButton label={t('saber.group.delete')} onClick={remove} danger><Trash2 className="size-4" /></IconButton>}
         </div>
       </header>
@@ -121,7 +125,7 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
               {group.days.map((d) => (
                 <tr key={d.idx} className={clsx('transition', busyDay === d.idx && 'opacity-60', d.extra && 'bg-amber-50/40')}>
                   <td className="w-24 px-3 py-2"><DayLabel day={d} /></td>
-                  <DayCells day={d} {...{ overview, online, editable, can, setDay, resetDay }} wrap={(c) => <td className="px-2 py-2">{c}</td>} />
+                  <DayCells day={d} scope={{ programId: program.id, groupId: group.id }} {...{ overview, online, editable, can, setDay, resetDay }} wrap={(c) => <td className="px-2 py-2">{c}</td>} />
                 </tr>
               ))}
             </tbody>
@@ -132,7 +136,7 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
           {group.days.map((d) => (
             <div key={d.idx} className={clsx('space-y-2 rounded-xl border border-navy-50 bg-ivory/40 p-3 transition', busyDay === d.idx && 'opacity-60', d.extra && 'border-amber-200')}>
               <div className="flex items-center justify-between"><DayLabel day={d} /></div>
-              <DayCells day={d} {...{ overview, online, editable, can, setDay, resetDay }} wrap={(c) => <div>{c}</div>} cards />
+              <DayCells day={d} scope={{ programId: program.id, groupId: group.id }} {...{ overview, online, editable, can, setDay, resetDay }} wrap={(c) => <div>{c}</div>} cards />
             </div>
           ))}
         </div>
@@ -148,17 +152,18 @@ function DayLabel({ day }: { day: Day }) {
       <span className={clsx('size-2 rounded-full', day.date && (day.room_id || day.trainer_id) ? 'bg-emerald-500' : day.date ? 'bg-amber-400' : 'bg-slate-200')} />
       {day.extra ? t('saber.day.extra') : t('saber.day.n', { n: day.idx })}
       {day.locked && <Lock className="size-3.5 text-slate-400" aria-label={t('saber.day.locked')} />}
+      {day.changed && <span className="rounded-full bg-gold-100 px-1.5 text-[10px] font-bold text-gold-800" title={t('saber.draft.changedDay')}>{t('saber.draft.changedDay')}</span>}
     </span>
   )
 }
 
 type CellProps = {
-  day: Day; overview: Overview; online: boolean; editable: boolean; can: (p: string) => boolean; cards?: boolean
+  day: Day; scope: { programId: string; groupId: string }; overview: Overview; online: boolean; editable: boolean; can: (p: string) => boolean; cards?: boolean
   setDay: (d: Day, patch: Record<string, string | null>) => void; resetDay: (d: Day) => void; wrap: (c: React.ReactNode) => React.ReactNode
 }
 
 /** Date, times, room, trainer and the clear button of one day; the same cells serve the rows and the cards. */
-function DayCells({ day, overview, online, editable, can, setDay, resetDay, wrap, cards }: CellProps) {
+function DayCells({ day, scope, overview, online, editable, can, setDay, resetDay, wrap, cards }: CellProps) {
   const { t } = useTranslation()
   const canDay = editable && can('saber.day.edit') && !day.locked
   const time = (field: 'start_time' | 'end_time', value: string | null, fallback: string) => (
@@ -177,8 +182,8 @@ function DayCells({ day, overview, online, editable, can, setDay, resetDay, wrap
     cards ? null : time('end_time', day.end_time, overview.day.day_end),
     online
       ? <span key="room" className="text-xs text-slate-400">{t('saber.day.online')}</span>
-      : <Picker key="room" kind="room" day={day} value={day.room_id} options={overview.rooms} placeholder={t('saber.day.pickRoom')} disabled={!editable || !can('saber.room.assign') || !day.date} onPick={(id) => setDay(day, { room_id: id })} />,
-    <Picker key="trainer" kind="trainer" day={day} value={day.trainer_id} options={overview.trainers} placeholder={t('saber.day.pickTrainer')} disabled={!editable || !can('saber.trainer.assign') || !day.date} onPick={(id) => setDay(day, { trainer_id: id })} />,
+      : <Picker key="room" kind="room" day={day} scope={scope} value={day.room_id} options={overview.rooms} placeholder={t('saber.day.pickRoom')} disabled={!editable || !can('saber.room.assign') || !day.date} onPick={(id) => setDay(day, { room_id: id })} />,
+    <Picker key="trainer" kind="trainer" day={day} scope={scope} value={day.trainer_id} options={overview.trainers} placeholder={t('saber.day.pickTrainer')} disabled={!editable || !can('saber.trainer.assign') || !day.date} onPick={(id) => setDay(day, { trainer_id: id })} />,
     <div key="reset" className={clsx('flex', cards ? 'justify-end' : 'justify-center')}>
       {day.date && canDay ? <IconButton label={t('saber.day.reset')} onClick={() => resetDay(day)}><RotateCcw className="size-4" /></IconButton> : day.date ? null : <CalendarX2 className="size-4 text-slate-200" />}
     </div>,

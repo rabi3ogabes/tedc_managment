@@ -74,6 +74,7 @@ class RolePermissionSeeder extends Seeder
         'saber.plan.view' => ['saber', 'خطة الأيام القادمة (المحاكاة)', 'Plan of the coming days (simulation)'],
         'saber.import' => ['saber', 'استيراد تقويم القاعات وقائمة البرامج', 'Import the rooms calendar and the programme list'],
         'saber.survey_links.manage' => ['saber', 'إدارة روابط الاستمارات الخارجية', 'Manage external survey links'],
+        'saber.publish' => ['saber', 'مراجعة تعديلات سابر+ ونشرها في البرامج', 'Review SABER+ changes and publish them to the programmes'],
         'trainers.validate' => ['programs', 'اعتماد المدربين الجدد قبل إسنادهم', 'Approve new trainers before they can be assigned'],
         'logistics.manage' => ['programs', 'إدارة الطلبات اللوجستية', 'Manage logistics requests'],
         'plans.view' => ['planning', 'عرض الخطة التدريبية', 'View the training plan'],
@@ -255,7 +256,7 @@ class RolePermissionSeeder extends Seeder
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports', 'refunds.approve',
             'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
-            'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
+            'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate', 'saber.publish',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, ['plc.view', 'plc.internal.submit', 'plc.nominate', 'plc.attendance.manage', 'plc.reports',
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -373,5 +374,6 @@ class RolePermissionSeeder extends Seeder
         // سابر+ (docs/saber)
         'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename',
         'saber.group.validate', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
+        'saber.publish',
     ];
 }

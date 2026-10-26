@@ -35,7 +35,7 @@ export default function PlanDialog({ overview, initial, onClose, onApplied }: {
     if (!program || !groupId) return
     setBusy(true)
     try {
-      const { data } = await api.post(`/admin/saber/groups/${groupId}/plan/preview`, {
+      const { data } = await api.post(`/admin/saber/programs/${program.id}/groups/${groupId}/plan/preview`, {
         weekday: Number(form.weekday), every: Number(form.every), count: Math.min(Number(form.count) || 1, max * 4), from: form.from,
         room_id: form.room_id || null, trainer_id: form.trainer_id || null,
       })
@@ -49,7 +49,7 @@ export default function PlanDialog({ overview, initial, onClose, onApplied }: {
     if (meta && meta.saved > 0 && !(await dialogs.confirm(t('saber.plan.replace', { saved: meta.saved, n: chosen.size })))) return
     setBusy(true)
     try {
-      const { data } = await api.post(`/admin/saber/groups/${groupId}/plan/apply`, { dates: [...chosen], room_id: form.room_id || null, trainer_id: form.trainer_id || null })
+      const { data } = await api.post(`/admin/saber/programs/${program!.id}/groups/${groupId}/plan/apply`, { dates: [...chosen], room_id: form.room_id || null, trainer_id: form.trainer_id || null })
       onApplied(data.notices ?? []); onClose()
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }

@@ -11,6 +11,7 @@ use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Role;
 use App\Models\RoomBooking;
+use App\Models\SaberRevision;
 use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
@@ -18,7 +19,8 @@ use App\Models\TrainingRoom;
 use App\Models\User;
 use App\Services\CalendarService;
 use App\Services\FileStorage;
-use App\Services\RoomService;
+use App\Services\ProgramCatalogSettings;
+use App\Services\Saber\Drafts;
 use App\Services\Saber\Meetings;
 use App\Services\Saber\Scheduling;
 use App\Services\Saber\Workbench;
@@ -38,7 +40,7 @@ class SaberController extends Controller
 {
     private const PAGE = 20;
 
-    public function __construct(private readonly Workbench $bench, private readonly TrainingGroupService $groups, private readonly TrainingDaySettings $day) {}
+    public function __construct(private readonly Workbench $bench, private readonly TrainingGroupService $groups, private readonly TrainingDaySettings $day, private readonly Drafts $drafts) {}
 
     /** Header figures, the lists the editors pick from, the settings and what this person may do. */
     public function overview(): JsonResponse
@@ -63,12 +65,13 @@ class SaberController extends Controller
                 ->get(['id', 'name', 'name_ar'])->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]),
             'palette' => Workbench::PALETTE,
             'me' => $user->id,
+            'drafts' => ['mine' => SaberRevision::whereIn('status', SaberRevision::OPEN)->where('created_by', $user->id)->count(), 'submitted' => SaberRevision::where('status', SaberRevision::SUBMITTED)->count()],
             'offday_pending' => CalendarRequest::where('status', CalendarRequest::PENDING)->when(! $user->hasPermission('calendar.approve'), fn ($q) => $q->where('requested_by', $user->id))->count(),
             'settings' => $this->settings(),
             'day' => ['hours' => $this->day->hours()] + $this->day->all(),
             'can' => collect(['saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
                 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage',
-                'trainers.manage', 'calendar.manage', 'calendar.approve', 'surveys.export', 'settings.manage', 'rooms.book', 'rooms.manage', 'programs.manage'])->mapWithKeys(fn ($p) => [$p => $user->hasPermission($p)]),
+                'trainers.manage', 'calendar.manage', 'calendar.approve', 'surveys.export', 'settings.manage', 'rooms.book', 'rooms.manage', 'programs.manage', 'saber.publish'])->mapWithKeys(fn ($p) => [$p => $user->hasPermission($p)]),
         ]]);
     }
 
@@ -92,9 +95,20 @@ class SaberController extends Controller
         $rows = Program::query()->with(['groups:id,program_id,term,status', 'kits:id,status'])
             ->when($f['q'] ?? null, fn ($q, $t) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$t}%")->orWhereLike('title_en', "%{$t}%")->orWhereLike('code', "%{$t}%")))
             ->get(['id', 'title_ar', 'title_en', 'code', 'kit_ready', 'start_date', 'end_date']);
+        // A programme with an open draft is filtered by its planned groups and dates.
+        $openDrafts = SaberRevision::whereIn('status', SaberRevision::OPEN)->get(['program_id', 'state'])->keyBy('program_id');
+        foreach ($openDrafts as $programId => $rev) {
+            foreach ($rev->state['groups'] ?? [] as $g) {
+                $dates = collect($g['days'] ?? [])->pluck('date')->filter()->sort()->values();
+                $firstDays->put($g['key'], (object) ['first_at' => $dates->first(), 'last_at' => $dates->last()]);
+            }
+        }
         $visible = [];
         foreach ($rows as $p) {
-            $groups = $p->groups->filter(function ($g) use ($firstDays, $showFirst, $showSecond) {
+            $planned = isset($openDrafts[$p->id])
+                ? collect($openDrafts[$p->id]->state['groups'] ?? [])->reject(fn ($g) => ! empty($g['deleted']))->map(fn ($g) => (object) ['id' => $g['key'], 'term' => $g['term'] ?? null, 'status' => $g['status'] ?? null])
+                : $p->groups;
+            $groups = $planned->filter(function ($g) use ($firstDays, $showFirst, $showSecond) {
                 $first = $firstDays->get($g->id)?->first_at;
                 $term = Workbench::termOf($g->term, $first ? CarbonImmutable::parse($first)->toDateString() : null);
 
@@ -130,17 +144,17 @@ class SaberController extends Controller
             ->whereIn('id', array_column($slice, 'id'))->get()->keyBy('id');
 
         return response()->json([
-            'data' => collect($slice)->map(fn ($v) => $this->programRow($programs[$v['id']]))->values(),
+            'data' => collect($slice)->map(fn ($v) => $this->rowOf($programs[$v['id']]))->values(),
             'meta' => ['total' => $total, 'page' => $page, 'per_page' => self::PAGE, 'last_page' => max(1, (int) ceil($total / self::PAGE))],
         ]);
     }
 
-    /** For the day editors: is the date open for training, which rooms are taken and which trainers are busy in that time. */
-    public function availability(Request $request, CalendarService $calendar, RoomService $rooms): JsonResponse
+    /** For the day editors: is the date open, which rooms are taken and which trainers are busy — live bookings of other programmes and the open drafts. */
+    public function availability(Request $request, CalendarService $calendar): JsonResponse
     {
         $d = $request->validate([
             'date' => ['required', 'date_format:Y-m-d'], 'start_time' => ['nullable', 'date_format:H:i'], 'end_time' => ['nullable', 'date_format:H:i'],
-            'session_id' => ['nullable', 'uuid'],
+            'program_id' => ['required', 'uuid', 'exists:programs,id'], 'group' => ['required', 'uuid'], 'idx' => ['required', 'integer', 'min:1', 'max:200'],
         ]);
         $tz = config('app.timezone');
         $settings = $this->day->all();
@@ -149,23 +163,15 @@ class SaberController extends Controller
         if ($end->lessThanOrEqualTo($start)) {
             $end = $start->addHour();
         }
-        $except = $d['session_id'] ?? null;
-        $busyRooms = [];
-        foreach (TrainingRoom::where('room_type', 'training')->where('status', '!=', 'inactive')->pluck('id') as $id) {
-            $holders = $rooms->occupants($id, $start, $end, $except);
-            if ($holders !== []) {
-                $busyRooms[$id] = $holders[0]['program'] ?? $holders[0]['title'];
-            }
-        }
-        $busyTrainers = ProgramSession::whereNotNull('trainer_id')->where('status', '!=', 'cancelled')->where('starts_at', '<', $end)->where('ends_at', '>', $start)
-            ->when($except, fn ($q, $id) => $q->where('id', '!=', $id))->distinct()->pluck('trainer_id');
+        $busy = $this->drafts->availability(Program::find($d['program_id']), $d['group'], (int) $d['idx'], $start, $end);
 
         return response()->json(['data' => [
             'day' => $calendar->describe($start, CalendarDay::whereDate('date', $d['date'])->first(), CalendarApproval::whereDate('date', $d['date'])->first()),
-            'busy_rooms' => (object) $busyRooms, 'busy_trainers' => $busyTrainers->values(),
+            'busy_rooms' => (object) $busy['rooms'], 'busy_trainers' => array_keys($busy['trainers']), 'trainer_holders' => (object) $busy['trainers'],
         ]]);
     }
 
+    /** Programme fields: kit readiness and survey links change the live programme; the supervisor and the days per group are planned (draft). */
     public function updateProgram(Request $request, Program $program): JsonResponse
     {
         $d = $request->validate([
@@ -181,55 +187,94 @@ class SaberController extends Controller
         if (array_key_exists('coordinator_id', $d)) {
             abort_unless($this->settings()['supervisor_edit_enabled'], 403, __('messages.saber.supervisor_locked'));
         }
-        $program->update($d);
+        $planned = array_intersect_key($d, array_flip(['coordinator_id', 'training_days']));
+        if ($planned !== []) {
+            $this->drafts->setProgram($this->drafts->draft($program, $this->user()), $planned, $this->user());
+        }
+        $live = array_diff_key($d, $planned);
+        if ($live !== []) {
+            $program->update($live);
+        }
 
-        return response()->json(['data' => $this->programRow($program->fresh(['coordinator:id,name,name_ar', 'kits:id,status', 'groups' => fn ($q) => $q->orderBy('sequence')]))]);
+        return response()->json(['data' => $this->rowOf($program->fresh())]);
+    }
+
+    /** «برنامج جديد» from SABER+: created as a draft programme, published by the reviewer. */
+    public function createProgram(Request $request, ProgramCatalogSettings $catalog): JsonResponse
+    {
+        $this->need('saber.program.create');
+        $d = $request->validate([
+            'title' => ['required', 'string', 'max:255'], 'delivery_mode' => ['required', Rule::in(['in_person', 'online', 'hybrid'])], 'total_hours' => ['required', 'numeric', 'min:1', 'max:2000'],
+            'training_days' => ['nullable', 'integer', 'min:1', 'max:200'], 'groups' => ['required', 'integer', 'min:1', 'max:30'], 'kit_ready' => ['nullable', 'boolean'],
+            'start_date' => ['nullable', 'date_format:Y-m-d'], 'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'], 'objective' => ['nullable', 'string', 'max:2000'], 'capacity' => ['nullable', 'integer', 'min:1', 'max:5000'],
+        ]);
+        abort_if(Program::where('title_ar', $d['title'])->exists(), 422, __('messages.saber.title_taken'));
+        $user = $this->user();
+        $program = DB::transaction(function () use ($d, $catalog, $user) {
+            $program = Program::create([
+                'code' => $catalog->nextCode(null), 'title_ar' => $d['title'], 'title_en' => $d['title'], 'status' => Program::STATUS_DRAFT, 'delivery_mode' => $d['delivery_mode'],
+                'total_hours' => $d['total_hours'], 'training_days' => $d['training_days'] ?? null, 'kit_ready' => $d['kit_ready'] ?? null, 'start_date' => $d['start_date'] ?? null,
+                'coordinator_id' => $d['coordinator_id'] ?? null, 'objectives' => ! empty($d['objective']) ? [$d['objective']] : null, 'capacity' => $d['capacity'] ?? 25,
+                'min_attendance_percent' => 80, 'registration_modes' => Program::MODES, 'created_by' => $user->id,
+            ]);
+            $rev = $this->drafts->draft($program, $user, 'new_program');
+            for ($i = 1; $i < $d['groups']; $i++) {
+                $this->drafts->addGroup($rev->fresh(), $user, ['supervisor_id' => $d['coordinator_id'] ?? null]);
+            }
+
+            return $program;
+        });
+
+        return response()->json(['data' => $this->rowOf($program->fresh())], 201);
     }
 
     public function addGroup(Program $program): JsonResponse
     {
         $this->need('saber.group.manage');
-        $colour = $this->bench->nextColour($program);
-        $group = $this->groups->create($program, [], $this->user())['group'];
-        $group->update(['color' => $colour]);
+        $rev = $this->drafts->draft($program, $this->user());
+        $group = $this->drafts->addGroup($rev, $this->user(), ['supervisor_id' => $this->drafts->field($program, $rev->state, 'coordinator_id')]);
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($program))], 201);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $group['key'])], 201);
     }
 
-    public function updateGroup(Request $request, TrainingGroup $group): JsonResponse
+    public function updateGroup(Request $request, Program $program, string $key): JsonResponse
     {
         $d = $request->validate([
             'title_ar' => ['sometimes', 'nullable', 'string', 'max:160'], 'sequence' => ['sometimes', 'integer', 'min:1', 'max:999'],
             'color' => ['sometimes', 'nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'], 'term' => ['sometimes', 'nullable', Rule::in(['first', 'second', 'year'])],
+            'supervisor_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
         ]);
-        if (array_key_exists('title_ar', $d)) {
+        if (array_key_exists('title_ar', $d) || array_key_exists('color', $d) || array_key_exists('term', $d)) {
             abort_unless($this->user()->hasPermission('saber.group.rename') || $this->user()->hasPermission('saber.group.manage'), 403);
-            $taken = TrainingGroup::where('program_id', $group->program_id)->where('id', '!=', $group->id)->where('title_ar', $d['title_ar'])->exists();
-            abort_if($d['title_ar'] && $taken, 422, __('messages.groups.duplicate_title', ['title' => $d['title_ar']]));
-            $d['title_ar'] = $d['title_ar'] ?: TrainingGroup::defaultTitle($group->sequence, 'ar');
         }
         if (array_key_exists('sequence', $d)) {
             $this->need('saber.group.manage');
-            abort_if(TrainingGroup::where('program_id', $group->program_id)->where('id', '!=', $group->id)->where('sequence', $d['sequence'])->exists(), 422, __('messages.saber.number_taken', ['n' => $d['sequence']]));
         }
-        if (array_key_exists('color', $d) || array_key_exists('term', $d)) {
-            abort_unless($this->user()->hasPermission('saber.group.manage') || $this->user()->hasPermission('saber.group.rename'), 403);
+        if (array_key_exists('supervisor_id', $d)) {
+            $this->need('saber.supervisor.assign');
         }
-        $group->update($d);
+        $patch = [];
+        foreach (['title_ar' => 'title', 'sequence' => 'number', 'color' => 'color', 'term' => 'term', 'supervisor_id' => 'supervisor_id'] as $in => $out) {
+            if (array_key_exists($in, $d)) {
+                $patch[$out] = $in === 'sequence' ? (int) $d[$in] : $d[$in];
+            }
+        }
+        $rev = $this->drafts->draft($program, $this->user());
+        $this->drafts->updateGroup($rev, $key, $patch, $this->user());
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program))]);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $key)]);
     }
 
-    public function deleteGroup(TrainingGroup $group): JsonResponse
+    public function deleteGroup(Program $program, string $key): JsonResponse
     {
         $this->need('saber.group.manage');
         abort_unless($this->settings()['group_delete_enabled'], 403, __('messages.saber.delete_disabled'));
-        $this->groups->delete($group);
+        $this->drafts->deleteGroup($this->drafts->draft($program, $this->user()), $key, $this->user());
 
         return response()->json(['data' => ['deleted' => true]]);
     }
 
-    /** «اعتماد المجموعة»: press again to withdraw it. */
+    /** «اعتماد المجموعة» is the head of training's sign-off on a live group: press again to withdraw it. */
     public function validateGroup(TrainingGroup $group): JsonResponse
     {
         $this->need('saber.group.validate');
@@ -238,17 +283,16 @@ class SaberController extends Controller
             ? ['validated_at' => null, 'validated_by' => null, 'validated_by_name' => null]
             : ['validated_at' => now(), 'validated_by' => $user->id, 'validated_by_name' => $user->name_ar ?: $user->name]);
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program))]);
+        return response()->json(['data' => $this->groupOf($group->program, $this->drafts->open($group->program), $group->id)]);
     }
 
-    public function setDay(Request $request, TrainingGroup $group, int $idx): JsonResponse
+    public function setDay(Request $request, Program $program, string $key, int $idx): JsonResponse
     {
         $d = $request->validate([
             'date' => ['sometimes', 'nullable', 'date_format:Y-m-d'], 'start_time' => ['sometimes', 'date_format:H:i'], 'end_time' => ['sometimes', 'date_format:H:i'],
             'room_id' => ['sometimes', 'nullable', 'uuid', 'exists:training_rooms,id'], 'trainer_id' => ['sometimes', 'nullable', 'uuid', 'exists:trainers,id'],
         ]);
         abort_if($idx < 1 || $idx > 200, 404);
-        abort_if($group->status === TrainingGroup::CANCELLED, 422, __('messages.saber.group_cancelled'));
         if (array_key_exists('date', $d) || array_key_exists('start_time', $d) || array_key_exists('end_time', $d)) {
             $this->need('saber.day.edit');
         }
@@ -258,25 +302,114 @@ class SaberController extends Controller
         if (array_key_exists('trainer_id', $d)) {
             $this->need('saber.trainer.assign');
         }
-        $notices = $this->bench->setDay($group, $idx, $d, $this->user());
+        $rev = $this->drafts->draft($program, $this->user());
+        $notices = $this->drafts->setDay($rev, $key, $idx, $d, $this->user());
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program)), 'notices' => $notices]);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $key), 'notices' => $notices]);
     }
 
-    public function resetDay(TrainingGroup $group, int $idx): JsonResponse
+    public function resetDay(Program $program, string $key, int $idx): JsonResponse
     {
         $this->need('saber.day.edit');
-        $this->bench->resetDay($group, $idx);
+        $rev = $this->drafts->draft($program, $this->user());
+        $this->drafts->setDay($rev, $key, $idx, ['date' => null], $this->user());
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program))]);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $key)]);
     }
 
-    public function resetGroup(TrainingGroup $group): JsonResponse
+    public function resetGroup(Program $program, string $key): JsonResponse
     {
         $this->need('saber.day.edit');
-        $n = $this->bench->resetGroup($group);
+        $rev = $this->drafts->draft($program, $this->user());
+        $n = $this->drafts->resetGroup($rev, $key, $this->user());
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program)), 'reset' => $n]);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $key), 'reset' => $n]);
+    }
+
+    // ── draft and review ─────────────────────────────────────────────────────────────────────────────────────────
+
+    /** The planner's view of their draft: what will change. */
+    public function draftDiff(Program $program): JsonResponse
+    {
+        $rev = $this->drafts->open($program);
+        abort_unless($rev, 404);
+
+        return response()->json(['data' => $this->revisionRow($rev) + ['diff' => $this->drafts->diff($rev)]]);
+    }
+
+    public function submitDraft(Program $program): JsonResponse
+    {
+        $rev = $this->drafts->open($program);
+        abort_unless($rev, 404);
+        abort_if($this->drafts->counts($rev)['groups'] === 0 && $this->drafts->counts($rev)['fields'] === 0 && $program->status !== Program::STATUS_DRAFT, 422, __('messages.saber.review.nothing'));
+        $this->drafts->submit($rev, $this->user());
+
+        return response()->json(['data' => $this->rowOf($program->fresh())]);
+    }
+
+    /** Throwing a draft away: its author or a reviewer. A programme that only existed as a SABER+ draft goes with it. */
+    public function discardDraft(Request $request, Program $program): JsonResponse
+    {
+        $rev = $this->drafts->open($program);
+        abort_unless($rev, 404);
+        abort_unless($rev->created_by === $this->user()->id || $this->user()->hasPermission('saber.publish'), 403);
+        $this->drafts->discard($rev, $request->input('note'), $this->user());
+        $removed = false;
+        if ($rev->source === 'new_program' && $program->status === Program::STATUS_DRAFT && ! $program->registrations()->exists()) {
+            $program->delete();
+            $removed = true;
+        }
+
+        return response()->json(['data' => $removed ? ['removed' => true] : $this->rowOf($program->fresh())]);
+    }
+
+    /** «مراجعة سابر+»: the drafts sent for review (or every open one, or the history). */
+    public function reviews(Request $request): JsonResponse
+    {
+        $this->need('saber.publish');
+        $status = $request->validate(['status' => ['nullable', Rule::in(['submitted', 'draft', 'published', 'discarded'])]])['status'] ?? 'submitted';
+        $rows = SaberRevision::with(['program:id,code,title_ar,title_en,status', 'author:id,name,name_ar', 'submitter:id,name,name_ar', 'reviewer:id,name,name_ar', 'editor:id,name,name_ar'])
+            ->where('status', $status)->latest($status === 'submitted' ? 'submitted_at' : 'updated_at')->limit(200)->get();
+
+        return response()->json(['data' => $rows->filter(fn ($r) => $r->program)->map(fn ($r) => $this->revisionRow($r) + ['counts' => in_array($r->status, SaberRevision::OPEN, true) ? $this->drafts->counts($r) : null])->values(),
+            'meta' => ['counts' => SaberRevision::selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status')]]);
+    }
+
+    public function review(SaberRevision $revision): JsonResponse
+    {
+        $this->need('saber.publish');
+
+        return response()->json(['data' => $this->revisionRow($revision) + ['diff' => in_array($revision->status, SaberRevision::OPEN, true) ? $this->drafts->diff($revision) : null]]);
+    }
+
+    public function publishReview(Request $request, SaberRevision $revision): JsonResponse
+    {
+        $this->need('saber.publish');
+        $note = $request->validate(['note' => ['nullable', 'string', 'max:1000']])['note'] ?? null;
+
+        return response()->json(['data' => $this->drafts->publish($revision, $note, $this->user())]);
+    }
+
+    public function returnReview(Request $request, SaberRevision $revision): JsonResponse
+    {
+        $this->need('saber.publish');
+        $note = $request->validate(['note' => ['required', 'string', 'min:3', 'max:1000']])['note'];
+        abort_unless(in_array($revision->status, SaberRevision::OPEN, true), 422, __('messages.saber.review.not_open'));
+
+        return response()->json(['data' => $this->revisionRow($this->drafts->returnToDraft($revision, $note, $this->user()))]);
+    }
+
+    public function discardReview(Request $request, SaberRevision $revision): JsonResponse
+    {
+        $this->need('saber.publish');
+        abort_unless(in_array($revision->status, SaberRevision::OPEN, true), 422, __('messages.saber.review.not_open'));
+        $this->drafts->discard($revision, $request->input('note'), $this->user());
+        $program = $revision->program;
+        if ($revision->source === 'new_program' && $program && $program->status === Program::STATUS_DRAFT && ! $program->registrations()->exists()) {
+            $program->delete();
+        }
+
+        return response()->json(['data' => ['discarded' => true]]);
     }
 
     /** «تفاصيل البرنامج»: everything about a programme and its groups in one window. */
@@ -285,7 +418,7 @@ class SaberController extends Controller
         $program->load(['coordinator:id,name,name_ar', 'kits:id,status,title_ar,title_en', 'category', 'groups' => fn ($q) => $q->orderBy('sequence')->withCount(['registrations' => fn ($r) => $r->whereIn('status', ['approved', 'pending', 'waitlisted'])])]);
         $rooms = TrainingRoom::pluck('name_ar', 'id');
         $trainers = Trainer::pluck('name_ar', 'id');
-        $row = $this->programRow($program);
+        $row = $this->rowOf($program);
         $row['groups'] = collect($row['groups'])->map(function ($g) use ($program, $rooms, $trainers) {
             $model = $program->groups->firstWhere('id', $g['id']);
             $g['registrations'] = $model?->registrations_count ?? 0;
@@ -306,24 +439,27 @@ class SaberController extends Controller
     }
 
     /** «خطة الأيام القادمة»: which dates of a weekly pattern are free, taken or closed — nothing is saved. */
-    public function planPreview(Request $request, TrainingGroup $group, Scheduling $scheduling): JsonResponse
+    public function planPreview(Request $request, Program $program, string $key, Scheduling $scheduling): JsonResponse
     {
         $this->need('saber.plan.view');
-        $max = max($this->bench->daysPerGroup($group->program), 1);
+        $rev = $this->drafts->open($program);
+        $state = $rev?->state ?? $this->drafts->live($program);
+        $max = max($this->drafts->daysPerGroup($program, $state), 1);
         $d = $request->validate([
             'weekday' => ['required', 'integer', 'between:0,6'], 'every' => ['required', 'integer', Rule::in([1, 2])], 'count' => ['required', 'integer', 'min:1', 'max:'.min(200, $max * 4)],
             'from' => ['required', 'date_format:Y-m-d'], 'room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
             'start_time' => ['nullable', 'date_format:H:i'], 'end_time' => ['nullable', 'date_format:H:i'],
         ]);
+        $group = TrainingGroup::where('program_id', $program->id)->find($key) ?? new TrainingGroup(['program_id' => $program->id]);
+        $saved = count(collect($state['groups'])->firstWhere('key', $key)['days'] ?? []);
 
-        return response()->json(['data' => $scheduling->preview($group, $d), 'meta' => ['max' => $max, 'saved' => collect($this->bench->days($group, $max))->whereNotNull('date')->count()]]);
+        return response()->json(['data' => $scheduling->preview($group, $d), 'meta' => ['max' => $max, 'saved' => $saved]]);
     }
 
-    /** Applies the chosen dates to the group, replacing its days. */
-    public function planApply(Request $request, TrainingGroup $group, Scheduling $scheduling): JsonResponse
+    /** Applies the chosen dates to the group in the draft, replacing its planned days. */
+    public function planApply(Request $request, Program $program, string $key): JsonResponse
     {
         $this->need('saber.day.edit');
-        abort_if($group->status === TrainingGroup::CANCELLED, 422, __('messages.saber.group_cancelled'));
         $d = $request->validate([
             'dates' => ['required', 'array', 'min:1', 'max:200'], 'dates.*' => ['date_format:Y-m-d'],
             'room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
@@ -334,9 +470,16 @@ class SaberController extends Controller
         if (! empty($d['trainer_id'])) {
             $this->need('saber.trainer.assign');
         }
-        $notices = $scheduling->applyPlan($group, $d['dates'], $d['room_id'] ?? null, $d['trainer_id'] ?? null, $this->user());
+        // Every chosen date must be open: the plan dialog only offers open ones, so a closed one means the calendar changed meanwhile.
+        $closed = collect($d['dates'])->filter(fn ($date) => app(CalendarService::class)->closedDates(CarbonImmutable::parse($date), CarbonImmutable::parse($date))->isNotEmpty())->values();
+        abort_if($closed->isNotEmpty(), response()->json(['message' => __('messages.calendar.closed_for_training', ['dates' => $closed->implode(', ')]), 'code' => 'calendar_closed', 'details' => ['dates' => $closed]], 422));
+        $rev = $this->drafts->draft($program, $this->user());
+        $result = $this->drafts->replaceDays($rev, $key, collect($d['dates'])->unique()->map(fn ($date) => ['date' => $date, 'room_id' => $d['room_id'] ?? null, 'trainer_id' => $d['trainer_id'] ?? null])->values()->all(), $this->user());
+        $notices = [...$result['notices'], ...array_map(fn ($f) => ['type' => 'warning', 'text' => "{$f['date']}: {$f['message']}"], $result['failures'])];
+        $planned = count(collect($rev->fresh()->state['groups'])->firstWhere('key', $key)['days'] ?? []);
+        $notices[] = ['type' => 'success', 'text' => __('messages.saber.plan.applied', ['n' => $planned])];
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program)), 'notices' => $notices]);
+        return response()->json(['data' => $this->groupOf($program, $rev->fresh(), $key), 'notices' => array_values(collect($notices)->unique('text')->all())]);
     }
 
     public function cancelProgram(Request $request, Program $program, Scheduling $scheduling, FileStorage $storage): JsonResponse
@@ -352,7 +495,7 @@ class SaberController extends Controller
         $this->need('saber.program.cancel');
         $scheduling->cancelGroup($group, $this->cancellation($request, $storage, "saber/cancellations/group-{$group->id}"), $this->user());
 
-        return response()->json(['data' => $this->groupRow($group->fresh(), $this->bench->daysPerGroup($group->program))]);
+        return response()->json(['data' => $this->groupOf($group->program, $this->drafts->open($group->program), $group->id)]);
     }
 
     public function reactivateProgram(Program $program, Scheduling $scheduling): JsonResponse
@@ -564,35 +707,67 @@ class SaberController extends Controller
         return ['supervisor_edit_enabled' => (bool) ($v['supervisor_edit_enabled'] ?? true), 'group_delete_enabled' => (bool) ($v['group_delete_enabled'] ?? false)];
     }
 
-    /** @return array<string, mixed> */
-    private function programRow(Program $p): array
+    /** A programme as the workbench shows it: its open draft when it has one, else the live programme. @return array<string, mixed> */
+    private function rowOf(Program $p): array
     {
-        $days = $this->bench->daysPerGroup($p);
-        $groups = $p->groups->map(fn ($g) => $this->groupRow($g, $days))->values();
+        $p->loadMissing(['coordinator:id,name,name_ar', 'kits:id,status']);
+        $rev = $this->drafts->open($p);
+        $state = $rev?->state ?? $this->drafts->live($p);
+        $days = $this->drafts->daysPerGroup($p, $state);
+        $liveGroups = TrainingGroup::where('program_id', $p->id)->get()->keyBy('id');
+        $groups = collect($state['groups'])->reject(fn ($g) => $g['deleted'] ?? false)->sortBy('number')->map(fn ($g) => $this->groupRowOf($p, $g, $days, $liveGroups->get($g['key'])))->values();
         $all = $groups->flatMap(fn ($g) => collect($g['days'])->where('extra', false))->values();
         $dates = $all->pluck('date')->filter()->sort()->values();
+        $supervisorId = $this->drafts->field($p, $state, 'coordinator_id');
+        $supervisor = $supervisorId ? User::find($supervisorId, ['id', 'name', 'name_ar']) : null;
 
         return [
             'id' => $p->id, 'code' => $p->code, 'title' => $p->title_ar ?: $p->title_en, 'title_en' => $p->title_en, 'type' => $p->program_type, 'method' => $p->delivery_mode,
             'hours' => (float) $p->total_hours, 'days' => $days, 'status' => $p->status, 'cancelled' => $p->status === Program::STATUS_CANCELLED,
             'kit_ready' => $this->bench->kitReady($p), 'kit_ready_set' => $p->kit_ready !== null, 'survey_link' => $p->survey_link, 'survey_edit_link' => $p->survey_edit_link,
-            'supervisor' => $p->coordinator ? ['id' => $p->coordinator->id, 'name' => $p->coordinator->name_ar ?: $p->coordinator->name] : null,
+            'supervisor' => $supervisor ? ['id' => $supervisor->id, 'name' => $supervisor->name_ar ?: $supervisor->name] : null,
             'start_date' => $dates->first() ?? $p->start_date?->toDateString(), 'end_date' => $dates->last() ?? $p->end_date?->toDateString(),
             'lights' => ['total' => $groups->count() * $days, 'dates' => $all->whereNotNull('date')->count(), 'rooms' => $all->whereNotNull('room_id')->count(), 'trainers' => $all->whereNotNull('trainer_id')->count()],
             'groups' => $groups,
+            'draft' => $rev ? $this->revisionRow($rev) + ['counts' => $this->drafts->counts($rev)] : null,
         ];
     }
 
     /** @return array<string, mixed> */
-    private function groupRow(TrainingGroup $g, int $days): array
+    private function groupOf(Program $program, ?SaberRevision $rev, string $key): array
     {
-        $list = $this->bench->days($g, $days);
+        $state = $rev?->state ?? $this->drafts->live($program);
+        $g = collect($state['groups'])->firstWhere('key', $key);
+        abort_unless($g, 404);
+
+        return $this->groupRowOf($program, $g, $this->drafts->daysPerGroup($program, $state), TrainingGroup::find($key));
+    }
+
+    /** @return array<string, mixed> */
+    private function groupRowOf(Program $program, array $g, int $days, ?TrainingGroup $live): array
+    {
+        $list = $this->drafts->daysOf($program, $g, $days);
         $first = collect($list)->pluck('date')->filter()->sort()->first();
 
         return [
-            'id' => $g->id, 'program_id' => $g->program_id, 'number' => $g->sequence, 'title' => $g->title_ar, 'color' => $g->color,
-            'term' => $g->term, 'term_effective' => Workbench::termOf($g->term, $first), 'status' => $g->status, 'cancelled' => $g->status === TrainingGroup::CANCELLED,
-            'validated_at' => $g->validated_at?->toIso8601String(), 'validated_by_name' => $g->validated_by_name, 'days' => $list,
+            'id' => $g['key'], 'program_id' => $program->id, 'number' => $g['number'], 'title' => $g['title'], 'color' => $g['color'], 'term' => $g['term'] ?? null,
+            'term_effective' => Workbench::termOf($g['term'] ?? null, $first), 'status' => $live?->status ?? TrainingGroup::PLANNED, 'cancelled' => $live?->status === TrainingGroup::CANCELLED,
+            'validated_at' => $live?->validated_at?->toIso8601String(), 'validated_by_name' => $live?->validated_by_name, 'supervisor_id' => $g['supervisor_id'] ?? null,
+            'live' => (bool) ($g['live'] ?? false), 'changed' => collect($list)->contains('changed', true), 'days' => $list,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function revisionRow(SaberRevision $r): array
+    {
+        $r->loadMissing(['program:id,code,title_ar,title_en,status', 'author:id,name,name_ar', 'editor:id,name,name_ar', 'submitter:id,name,name_ar', 'reviewer:id,name,name_ar']);
+        $name = fn ($u) => $u ? ($u->name_ar ?: $u->name) : null;
+
+        return [
+            'id' => $r->id, 'status' => $r->status, 'source' => $r->source, 'program' => ['id' => $r->program_id, 'code' => $r->program?->code, 'title' => $r->program?->title_ar ?: $r->program?->title_en, 'status' => $r->program?->status],
+            'author' => $name($r->author), 'editor' => $name($r->editor), 'submitted_by' => $name($r->submitter), 'reviewed_by' => $name($r->reviewer),
+            'created_at' => $r->created_at?->toIso8601String(), 'updated_at' => $r->updated_at?->toIso8601String(), 'submitted_at' => $r->submitted_at?->toIso8601String(),
+            'reviewed_at' => $r->reviewed_at?->toIso8601String(), 'review_note' => $r->review_note, 'mine' => $r->created_by === $this->user()->id,
         ];
     }
 

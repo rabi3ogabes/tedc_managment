@@ -933,17 +933,27 @@ Route::prefix('v1')->group(function () {
                 Route::get('availability', [SaberController::class, 'availability']);
                 Route::patch('programs/{program}', [SaberController::class, 'updateProgram'])->whereUuid('program');
                 Route::post('programs/{program}/groups', [SaberController::class, 'addGroup'])->whereUuid('program');
-                Route::patch('groups/{group}', [SaberController::class, 'updateGroup'])->whereUuid('group');
-                Route::delete('groups/{group}', [SaberController::class, 'deleteGroup'])->whereUuid('group');
+                // Review workflow — SABER+ edits are drafts until a reviewer publishes them (docs/saber/05).
+                Route::post('programs', [SaberController::class, 'createProgram']);
+                Route::get('programs/{program}/draft', [SaberController::class, 'draftDiff'])->whereUuid('program');
+                Route::post('programs/{program}/draft/submit', [SaberController::class, 'submitDraft'])->whereUuid('program');
+                Route::delete('programs/{program}/draft', [SaberController::class, 'discardDraft'])->whereUuid('program');
+                Route::get('reviews', [SaberController::class, 'reviews']);
+                Route::get('reviews/{revision}', [SaberController::class, 'review'])->whereUuid('revision');
+                Route::post('reviews/{revision}/publish', [SaberController::class, 'publishReview'])->whereUuid('revision');
+                Route::post('reviews/{revision}/return', [SaberController::class, 'returnReview'])->whereUuid('revision');
+                Route::post('reviews/{revision}/discard', [SaberController::class, 'discardReview'])->whereUuid('revision');
+                Route::patch('programs/{program}/groups/{key}', [SaberController::class, 'updateGroup'])->whereUuid(['program', 'key']);
+                Route::delete('programs/{program}/groups/{key}', [SaberController::class, 'deleteGroup'])->whereUuid(['program', 'key']);
                 Route::post('groups/{group}/validate', [SaberController::class, 'validateGroup'])->whereUuid('group');
-                Route::post('groups/{group}/reset', [SaberController::class, 'resetGroup'])->whereUuid('group');
-                Route::put('groups/{group}/days/{idx}', [SaberController::class, 'setDay'])->whereUuid('group')->whereNumber('idx');
-                Route::delete('groups/{group}/days/{idx}', [SaberController::class, 'resetDay'])->whereUuid('group')->whereNumber('idx');
+                Route::post('programs/{program}/groups/{key}/reset', [SaberController::class, 'resetGroup'])->whereUuid(['program', 'key']);
+                Route::put('programs/{program}/groups/{key}/days/{idx}', [SaberController::class, 'setDay'])->whereUuid(['program', 'key'])->whereNumber('idx');
+                Route::delete('programs/{program}/groups/{key}/days/{idx}', [SaberController::class, 'resetDay'])->whereUuid(['program', 'key'])->whereNumber('idx');
                 Route::put('settings', [SaberController::class, 'saveSettings'])->middleware('permission:settings.manage');
                 // Phase 2 — details, plan of the coming days, cancellation, closed-day requests, weekly holidays.
                 Route::get('programs/{program}/details', [SaberController::class, 'details'])->whereUuid('program');
-                Route::post('groups/{group}/plan/preview', [SaberController::class, 'planPreview'])->whereUuid('group');
-                Route::post('groups/{group}/plan/apply', [SaberController::class, 'planApply'])->whereUuid('group');
+                Route::post('programs/{program}/groups/{key}/plan/preview', [SaberController::class, 'planPreview'])->whereUuid(['program', 'key']);
+                Route::post('programs/{program}/groups/{key}/plan/apply', [SaberController::class, 'planApply'])->whereUuid(['program', 'key']);
                 Route::post('programs/{program}/cancel', [SaberController::class, 'cancelProgram'])->whereUuid('program');
                 Route::post('groups/{group}/cancel', [SaberController::class, 'cancelGroup'])->whereUuid('group');
                 Route::post('programs/{program}/reactivate', [SaberController::class, 'reactivateProgram'])->whereUuid('program');
@@ -958,10 +968,11 @@ Route::prefix('v1')->group(function () {
                 Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
                 // Phase 4 — data tools: imports, survey links workbook, trainers manager, supervisors.
                 Route::prefix('data')->controller(SaberDataController::class)->group(function () {
-                    Route::post('calendar/preview', 'calendarPreview')->middleware('throttle:20,1');
-                    Route::post('calendar/apply', 'calendarApply');
-                    Route::post('programs/preview', 'programsPreview')->middleware('throttle:20,1');
-                    Route::post('programs/apply', 'programsApply');
+                    Route::post('import/inspect', 'inspect')->middleware('throttle:30,1');
+                    Route::post('import/preview', 'preview')->middleware('throttle:30,1');
+                    Route::post('import/apply', 'apply');
+                    Route::get('import/presets', 'presets');
+                    Route::post('import/presets', 'savePreset');
                     Route::get('survey-links', 'surveyLinks');
                     Route::post('survey-links', 'uploadSurveyLinks');
                     Route::get('survey-links/template', 'surveyLinksTemplate');

@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Role;
 use App\Models\SaberSurveyLink;
+use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
 use App\Models\User;
@@ -14,6 +15,7 @@ use App\Services\Saber\ArabicMatch;
 use App\Services\Saber\CalendarImport;
 use App\Services\Saber\ProgramListImport;
 use App\Services\Saber\TrainerRoster;
+use App\Services\Saber\WorkbookReader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,51 +33,104 @@ class SaberDataController extends Controller
 {
     private const XLSX = ['required', 'file', 'max:20480', 'mimes:xlsx,xls'];
 
-    // ── D1 · rooms calendar ──────────────────────────────────────────────────────────────────────────────────────
+    // ── D1 / D2 · imports with any layout, into drafts ──────────────────────────────────────────────────────────
 
-    public function calendarPreview(Request $request, CalendarImport $import): JsonResponse
+    /** Step 1 — the workbook's sheets with a preview of their first rows, and the header row guessed for each. */
+    public function inspect(Request $request, WorkbookReader $reader, ProgramListImport $programs): JsonResponse
     {
         $this->need('saber.import');
-        $request->validate(['file' => self::XLSX]);
 
-        return response()->json(['data' => $import->preview($request->file('file')->getRealPath())]);
+        return response()->json(['data' => ['sheets' => $reader->inspect($this->source($request, $programs))]]);
     }
 
-    public function calendarApply(Request $request, CalendarImport $import): JsonResponse
+    /**
+     * Step 3 — what the import would do with the administrator's layout: a rooms × dates grid, one training day per row, or a programme list.
+     * Nothing is saved.
+     */
+    public function preview(Request $request, CalendarImport $calendar, ProgramListImport $programs): JsonResponse
     {
         $this->need('saber.import');
+        $d = $this->layout($request);
+        $path = $this->source($request, $programs);
+
+        return response()->json(['data' => match ($d['type']) {
+            'grid' => $calendar->plan($calendar->gridCells($path, ['sheet' => $d['sheet'] ?? null, 'header_row' => $d['header_row'] ?? null, 'date_col' => $d['date_col'] ?? null, 'first_room_col' => $d['first_room_col'] ?? null])),
+            'rows' => $calendar->plan($calendar->rowCells($path, $d['sheet'] ?? null, (int) ($d['header_row'] ?? 1), $d['columns'] ?? [])),
+            'programs' => $programs->preview($path, ['sheet' => $d['sheet'] ?? null, 'header_row' => $d['header_row'] ?? null, 'columns' => $d['columns'] ?? []]),
+        } + ['type' => $d['type']]]);
+    }
+
+    /** Step 4 — writes the previewed plan into the programmes' SABER+ drafts (never the live programmes) and, if asked, sends them for review. */
+    public function apply(Request $request, CalendarImport $calendar, ProgramListImport $programs): JsonResponse
+    {
+        $this->need('saber.import');
+        $type = $request->validate(['type' => ['required', Rule::in(['grid', 'rows', 'programs'])], 'submit' => ['sometimes', 'boolean']])['type'];
+        $submit = $request->boolean('submit');
+        if ($type === 'programs') {
+            $d = $request->validate([
+                'rows' => ['required', 'array', 'min:1', 'max:1000'], 'rows.*.name' => ['required', 'string', 'max:255'], 'rows.*.program_id' => ['nullable', 'uuid'],
+                'rows.*.type' => ['nullable', 'string', 'max:120'], 'rows.*.method' => ['nullable', 'string', 'max:120'], 'rows.*.audience' => ['nullable', 'string', 'max:500'],
+                'rows.*.hours' => ['nullable', 'numeric', 'min:0', 'max:2000'], 'rows.*.days' => ['nullable', 'integer', 'min:1', 'max:200'], 'rows.*.objective' => ['nullable', 'string', 'max:2000'],
+                'rows.*.groups' => ['nullable', 'integer', 'min:1', 'max:30'], 'rows.*.kit' => ['nullable', 'string', 'max:120'], 'rows.*.date' => ['nullable', 'date_format:Y-m-d'], 'rows.*.notes' => ['nullable', 'string', 'max:2000'],
+            ]);
+
+            return response()->json(['data' => $programs->apply($d['rows'], $this->user(), $submit)]);
+        }
         $d = $request->validate([
             'tracks' => ['required', 'array', 'min:1', 'max:500'], 'tracks.*.program_id' => ['required', 'uuid', 'exists:programs,id'], 'tracks.*.group_id' => ['nullable', 'uuid'],
             'tracks.*.group_name' => ['required', 'string', 'max:160'], 'tracks.*.supervisor' => ['nullable', 'string', 'max:160'],
-            'tracks.*.days' => ['required', 'array', 'min:1', 'max:200'], 'tracks.*.days.*.date' => ['required', 'date_format:Y-m-d'], 'tracks.*.days.*.room' => ['required', 'string', 'max:255'],
-            'tracks.*.days.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000'], 'approve' => ['sometimes', 'boolean'],
+            'tracks.*.days' => ['required', 'array', 'min:1', 'max:200'], 'tracks.*.days.*.date' => ['required', 'date_format:Y-m-d'], 'tracks.*.days.*.room' => ['nullable', 'string', 'max:255'],
+            'tracks.*.days.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000'], 'tracks.*.days.*.trainer' => ['nullable', 'string', 'max:255'],
+            'tracks.*.days.*.start_time' => ['nullable', 'date_format:H:i'], 'tracks.*.days.*.end_time' => ['nullable', 'date_format:H:i'],
         ]);
 
-        return response()->json(['data' => $import->apply($d['tracks'], (bool) ($d['approve'] ?? false), $this->user())]);
+        return response()->json(['data' => $calendar->apply($d['tracks'], $submit, $this->user(), $type === 'grid' ? 'calendar_import' : 'flexible_import')]);
     }
 
-    // ── D2 · programme list ──────────────────────────────────────────────────────────────────────────────────────
-
-    public function programsPreview(Request $request, ProgramListImport $import): JsonResponse
+    /** The saved column layouts, so a workbook the centre sends every month maps itself. */
+    public function presets(): JsonResponse
     {
         $this->need('saber.import');
-        $d = $request->validate(['file' => ['required_without:url', 'file', 'max:20480', 'mimes:xlsx,xls'], 'url' => ['required_without:file', 'nullable', 'url:https', 'max:2048']]);
-        $path = $request->hasFile('file') ? $request->file('file')->getRealPath() : $import->download($d['url']);
 
-        return response()->json(['data' => $import->preview($path)]);
+        return response()->json(['data' => (object) (SiteSetting::find('saber.import_presets')?->value ?? [])]);
     }
 
-    public function programsApply(Request $request, ProgramListImport $import): JsonResponse
+    public function savePreset(Request $request): JsonResponse
     {
         $this->need('saber.import');
+        $d = $request->validate(['name' => ['required', 'string', 'max:80'], 'layout' => ['required', 'array']]);
+        $all = (array) (SiteSetting::find('saber.import_presets')?->value ?? []);
+        $all[$d['name']] = array_intersect_key($d['layout'], array_flip(['type', 'header_row', 'date_col', 'first_room_col', 'columns']));
+        SiteSetting::updateOrCreate(['key' => 'saber.import_presets'], ['value' => $all, 'updated_by' => $this->user()->id]);
+
+        return response()->json(['data' => $all]);
+    }
+
+    /** @return array<string, mixed> */
+    private function layout(Request $request): array
+    {
         $d = $request->validate([
-            'rows' => ['required', 'array', 'min:1', 'max:1000'], 'rows.*.name' => ['required', 'string', 'max:255'], 'rows.*.program_id' => ['nullable', 'uuid'],
-            'rows.*.type' => ['nullable', 'string', 'max:120'], 'rows.*.method' => ['nullable', 'string', 'max:120'], 'rows.*.audience' => ['nullable', 'string', 'max:500'],
-            'rows.*.hours' => ['nullable', 'numeric', 'min:0', 'max:2000'], 'rows.*.days' => ['nullable', 'integer', 'min:1', 'max:200'], 'rows.*.objective' => ['nullable', 'string', 'max:2000'],
-            'rows.*.groups' => ['nullable', 'integer', 'min:1', 'max:30'], 'rows.*.kit' => ['nullable', 'string', 'max:120'], 'rows.*.date' => ['nullable', 'date_format:Y-m-d'], 'rows.*.notes' => ['nullable', 'string', 'max:2000'],
+            'type' => ['required', Rule::in(['grid', 'rows', 'programs'])], 'sheet' => ['nullable', 'string', 'max:120'], 'header_row' => ['nullable', 'integer', 'min:1', 'max:200'],
+            'date_col' => ['nullable', 'integer', 'min:1', 'max:500'], 'first_room_col' => ['nullable', 'integer', 'min:1', 'max:500'], 'columns' => ['nullable'],
         ]);
+        $columns = is_string($d['columns'] ?? null) ? json_decode($d['columns'], true) : ($d['columns'] ?? []);
+        $d['columns'] = collect(is_array($columns) ? $columns : [])->map(fn ($v) => $v === null || $v === '' ? null : (int) $v)->filter(fn ($v) => $v === null || ($v >= 1 && $v <= 500))->all();
+        if ($d['type'] === 'rows') {
+            abort_if(empty($d['columns']['program']) || empty($d['columns']['date']), 422, __('messages.saber.import.map_required'));
+        }
+        if ($d['type'] === 'programs' && ! empty($d['columns']) && empty($d['columns']['name'])) {
+            abort(422, __('messages.saber.import.map_name'));
+        }
 
-        return response()->json(['data' => $import->apply($d['rows'], $this->user())]);
+        return $d;
+    }
+
+    /** The uploaded workbook, or one downloaded from a shared OneDrive / SharePoint link. */
+    private function source(Request $request, ProgramListImport $programs): string
+    {
+        $d = $request->validate(['file' => ['required_without:url', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt'], 'url' => ['required_without:file', 'nullable', 'url:https', 'max:2048']]);
+
+        return $request->hasFile('file') ? $request->file('file')->getRealPath() : $programs->download($d['url']);
     }
 
     // ── D3 · survey links ────────────────────────────────────────────────────────────────────────────────────────

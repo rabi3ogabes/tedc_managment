@@ -21,8 +21,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * سابر+ scheduling tools (docs/saber/02-scheduling-tools.md, B1–B3): the plan of the coming days for a group, cancelling and reactivating a
- * programme or a group, and requests to train on a closed day.
+ * سابر+ scheduling tools (docs/saber/02-scheduling-tools.md, B1–B3): the preview of the coming days for a group (applied through the draft,
+ * {@see Drafts::replaceDays}), cancelling and reactivating a programme or a group, and requests to train on a closed day.
  */
 class Scheduling
 {
@@ -30,7 +30,6 @@ class Scheduling
     private const RESTORABLE = [TrainingGroup::REGISTRATION_OPEN, TrainingGroup::ONGOING, TrainingGroup::POSTPONED, TrainingGroup::INCOMPLETE];
 
     public function __construct(
-        private readonly Workbench $bench,
         private readonly CalendarService $calendar,
         private readonly RoomService $rooms,
         private readonly TrainerService $trainers,
@@ -81,46 +80,6 @@ class Scheduling
         }
 
         return $out;
-    }
-
-    /**
-     * Replaces the group's days with the chosen dates (day 1 = the earliest), with the room and trainer when they are free that day.
-     *
-     * @param  list<string>  $dates
-     * @return list<array{type: string, text: string}>
-     */
-    public function applyPlan(TrainingGroup $group, array $dates, ?string $roomId, ?string $trainerId, User $actor): array
-    {
-        $dates = collect($dates)->unique()->sort()->values();
-        $closed = $dates->filter(fn ($d) => ! $this->calendar->describe(CarbonImmutable::parse($d), CalendarDay::whereDate('date', $d)->first(), CalendarApproval::whereDate('date', $d)->first())['training_allowed']);
-        if ($closed->isNotEmpty()) {
-            throw new BusinessRuleException(__('messages.calendar.closed_for_training', ['dates' => $closed->implode(', ')]), 'calendar_closed', ['dates' => $closed->values()->all()]);
-        }
-        if ($group->sessions()->whereHas('attendance')->exists()) {
-            throw new BusinessRuleException(__('messages.saber.plan.has_attendance'), 'day_has_attendance');
-        }
-
-        return DB::transaction(function () use ($group, $dates, $roomId, $trainerId, $actor) {
-            $group->sessions()->get()->each->delete();
-            $group->update(['default_room_id' => null]);
-            $notices = [];
-            foreach ($dates as $i => $date) {
-                $patch = ['date' => $date] + array_filter(['room_id' => $roomId, 'trainer_id' => $trainerId]);
-                try {
-                    $notices = [...$notices, ...$this->bench->setDay($group->fresh(), $i + 1, $patch, $actor)];
-                } catch (BusinessRuleException $e) {
-                    if (in_array($e->errorCode, ['calendar_closed', 'outside_training_day', 'end_before_start'], true)) {
-                        throw $e;
-                    }
-                    // The room or the trainer is taken that day: keep the date, say what could not be given.
-                    $this->bench->setDay($group->fresh(), $i + 1, ['date' => $date, 'room_id' => null, 'trainer_id' => null], $actor);
-                    $notices[] = ['type' => 'warning', 'text' => __('messages.saber.plan.resource_skipped', ['n' => $i + 1, 'date' => $date])];
-                }
-            }
-            $notices[] = ['type' => 'success', 'text' => __('messages.saber.plan.applied', ['n' => $dates->count()])];
-
-            return $this->squash($notices);
-        });
     }
 
     // ── B2 · cancellation and reactivation ───────────────────────────────────────────────────────────────────────

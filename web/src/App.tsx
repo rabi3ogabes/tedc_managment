@@ -35,6 +35,7 @@ const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
 const SaberWorkbench = lazy(() => import('@/pages/admin/saber/SaberWorkbench'))
+const SaberReview = lazy(() => import('@/pages/admin/saber/SaberReview'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
 const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
@@ -260,6 +261,7 @@ export default function App() {
           <Route path="tickets" element={<RequireAuth permission="integrations.manage|integrations.logs"><SupportTickets /></RequireAuth>} />
           <Route path="my-data" element={<MyPrivacy />} />
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
+          <Route path="programs/saber-review" element={<RequireAuth permission="saber.publish"><SaberReview /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
           <Route path="registrations" element={<Registrations />} />
           <Route path="needs" element={<Navigate to="/admin/needs-hub?tab=surveys" replace />} />

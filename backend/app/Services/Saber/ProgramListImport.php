@@ -4,6 +4,7 @@ namespace App\Services\Saber;
 
 use App\Exceptions\BusinessRuleException;
 use App\Models\Program;
+use App\Models\SaberRevision;
 use App\Models\User;
 use App\Services\ProgramCatalogSettings;
 use App\Services\TrainingGroupService;
@@ -48,22 +49,28 @@ class ProgramListImport
         return $path;
     }
 
-    /** @return array{rows: list<array<string, mixed>>, issues: list<array{sheet: string, row: int, level: string, message: string}>} */
-    public function preview(string $path): array
+    /**
+     * @param  array{sheet?: ?string, header_row?: ?int, columns?: array<string, ?int>}|null  $mapping  the administrator's choice of sheet, header row and columns (1-based); none = every sheet, columns found by their headers
+     * @return array{rows: list<array<string, mixed>>, issues: list<array{sheet: string, row: int, level: string, message: string}>}
+     */
+    public function preview(string $path, ?array $mapping = null): array
     {
         $book = IOFactory::createReaderForFile($path)->setReadDataOnly(true)->load($path);
         $existing = Program::get(['id', 'title_ar', 'title_en', 'training_days'])->mapWithKeys(fn ($p) => [ArabicMatch::normalize($p->title_ar ?: $p->title_en) => $p]);
         $rows = [];
         $issues = [];
         $seen = [];
-        foreach ($book->getWorksheetIterator() as $sheet) {
+        $sheets = $mapping && ! empty($mapping['sheet']) ? array_filter([$book->getSheetByName($mapping['sheet'])]) : iterator_to_array($book->getWorksheetIterator());
+        foreach ($sheets as $sheet) {
             $title = $sheet->getTitle();
             $data = $sheet->toArray(null, true, false, false);
-            $headerAt = null;
-            foreach (array_slice($data, 0, 15, true) as $i => $row) {
-                if (collect($row)->contains(fn ($v) => is_string($v) && ArabicMatch::normalize($v) === ArabicMatch::normalize('اسم البرنامج'))) {
-                    $headerAt = $i;
-                    break;
+            $headerAt = $mapping && ! empty($mapping['header_row']) ? (int) $mapping['header_row'] - 1 : null;
+            if ($headerAt === null) {
+                foreach (array_slice($data, 0, 15, true) as $i => $row) {
+                    if (collect($row)->contains(fn ($v) => is_string($v) && ArabicMatch::normalize($v) === ArabicMatch::normalize('اسم البرنامج'))) {
+                        $headerAt = $i;
+                        break;
+                    }
                 }
             }
             if ($headerAt === null) {
@@ -71,7 +78,7 @@ class ProgramListImport
 
                 continue;
             }
-            $cols = $this->columns($data[$headerAt]);
+            $cols = ! empty($mapping['columns']) ? collect($mapping['columns'])->filter()->map(fn ($c) => (int) $c - 1)->all() : $this->columns($data[$headerAt]);
             foreach (array_slice($data, $headerAt + 1, null, true) as $i => $row) {
                 $excelRow = $i + 1;
                 $get = fn (string $k) => isset($cols[$k]) ? $row[$cols[$k]] ?? null : null;
@@ -116,14 +123,19 @@ class ProgramListImport
     }
 
     /**
+     * Into SABER+ drafts: a programme of the same name gets its changes in its draft (days, hours, delivery, kit; start date and objective
+     * only when empty; more groups when the file asks for them); a new programme is created as a draft programme. Nothing reaches the live
+     * catalogue before a reviewer publishes. With `submit`, the drafts are sent for review.
+     *
      * @param  list<array<string, mixed>>  $rows
-     * @return array{created: int, updated: int, groups_added: int}
+     * @return array{created: int, updated: int, groups_added: int, submitted: int}
      */
-    public function apply(array $rows, User $actor): array
+    public function apply(array $rows, User $actor, bool $submit = false, string $source = 'program_import'): array
     {
-        $out = ['created' => 0, 'updated' => 0, 'groups_added' => 0];
+        $out = ['created' => 0, 'updated' => 0, 'groups_added' => 0, 'submitted' => 0];
+        $drafts = app(Drafts::class);
         foreach ($rows as $r) {
-            DB::transaction(function () use ($r, $actor, &$out) {
+            DB::transaction(function () use ($r, $actor, &$out, $drafts, $submit, $source) {
                 $program = ! empty($r['program_id']) ? Program::find($r['program_id']) : null;
                 $program ??= Program::get(['id', 'title_ar', 'title_en'])->first(fn ($p) => ArabicMatch::normalize($p->title_ar ?: $p->title_en) === ArabicMatch::normalize($r['name']));
                 $mode = $this->mode($r['method'] ?? null);
@@ -131,11 +143,12 @@ class ProgramListImport
                 $days = $r['days'] ? (int) $r['days'] : null;
                 $hours = $r['hours'] ? (float) $r['hours'] : null;
                 if ($program) {
-                    $program->update(array_filter([
+                    $rev = $drafts->draft($program, $actor, $source);
+                    $drafts->setProgram($rev, array_filter([
                         'training_days' => $days, 'total_hours' => $hours, 'delivery_mode' => $mode, 'kit_ready' => $kit,
                         'start_date' => $program->start_date ? null : ($r['date'] ?? null),
                         'objectives' => empty($program->objectives) && ! empty($r['objective']) ? [$r['objective']] : null,
-                    ], fn ($v) => $v !== null));
+                    ], fn ($v) => $v !== null), $actor);
                     $out['updated']++;
                 } else {
                     $program = Program::create([
@@ -146,11 +159,17 @@ class ProgramListImport
                         'description_ar' => collect([$r['type'] ? "نوع البرنامج: {$r['type']}" : null, $r['audience'] ? "الفئة المستهدفة: {$r['audience']}" : null, $r['notes'] ? "ملاحظات: {$r['notes']}" : null])->filter()->implode("\n") ?: null,
                         'created_by' => $actor->id,
                     ]);
+                    $rev = $drafts->draft($program, $actor, 'new_program');
                     $out['created']++;
                 }
-                for ($n = $program->groups()->count(); $n < min((int) ($r['groups'] ?? 1), 30); $n++) {
-                    $this->groups->create($program, [], $actor);
+                $planned = collect($rev->fresh()->state['groups'])->reject(fn ($g) => ! empty($g['deleted']))->count();
+                for ($n = $planned; $n < min((int) ($r['groups'] ?? 1), 30); $n++) {
+                    $drafts->addGroup($rev->fresh(), $actor);
                     $out['groups_added']++;
+                }
+                if ($submit && $rev->fresh()->status === SaberRevision::DRAFT) {
+                    $drafts->submit($rev->fresh(), $actor);
+                    $out['submitted']++;
                 }
             });
         }

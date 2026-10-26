@@ -9,17 +9,20 @@ import type { Availability, Day, Option, RoomOption } from './types'
 const normalise = (s: string) => s.toLowerCase().replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[ً-ٟـ]/g, '')
 
 /** The availability of a day's time slot, fetched only while a picker is open. */
-function useAvailability(day: Day, open: boolean) {
+export type Scope = { programId: string; groupId: string }
+
+/** Who holds rooms and trainers in this day's slot — live bookings of other programmes and the open drafts (this one's other days included). */
+function useAvailability(day: Day, open: boolean, scope: Scope) {
   return useGet<{ data: Availability }>(open && day.date ? '/admin/saber/availability' : null,
-    { date: day.date, start_time: day.start_time ?? undefined, end_time: day.end_time ?? undefined, session_id: day.session_id ?? undefined }, { staleTime: 15_000 })
+    { date: day.date, start_time: day.start_time ?? undefined, end_time: day.end_time ?? undefined, program_id: scope.programId, group: scope.groupId, idx: day.idx }, { staleTime: 10_000 })
 }
 
 /**
  * A searchable list in a popover: rooms show who holds them in that slot, trainers show when they are busy. Taken entries stay
  * selectable only to explain why — the server refuses a real clash, so they are marked and sorted last.
  */
-export function Picker({ kind, day, value, options, onPick, disabled, placeholder }: {
-  kind: 'room' | 'trainer'; day: Day; value: string | null; options: (Option | RoomOption)[]; onPick: (id: string | null) => void; disabled?: boolean; placeholder: string
+export function Picker({ kind, day, scope, value, options, onPick, disabled, placeholder }: {
+  kind: 'room' | 'trainer'; day: Day; scope: Scope; value: string | null; options: (Option | RoomOption)[]; onPick: (id: string | null) => void; disabled?: boolean; placeholder: string
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -28,7 +31,7 @@ export function Picker({ kind, day, value, options, onPick, disabled, placeholde
   const pop = useRef<HTMLDivElement>(null)
   const [place, setPlace] = useState<CSSProperties>({ position: 'fixed', visibility: 'hidden' })
   const input = useRef<HTMLInputElement>(null)
-  const { data, isFetching } = useAvailability(day, open)
+  const { data, isFetching } = useAvailability(day, open, scope)
   const busy = data?.data
   const current = options.find((o) => o.id === value)
   const close = () => { setOpen(false); setQ(''); setPlace({ position: 'fixed', visibility: 'hidden' }) }
@@ -63,7 +66,7 @@ export function Picker({ kind, day, value, options, onPick, disabled, placeholde
   const takenBy = (id: string): string | null => {
     if (!busy || id === value) return null
     if (kind === 'room') return busy.busy_rooms[id] ? t('saber.day.taken', { by: busy.busy_rooms[id] }) : null
-    return busy.busy_trainers.includes(id) ? t('saber.day.busy') : null
+    return busy.busy_trainers.includes(id) ? (busy.trainer_holders?.[id] ? t('saber.day.taken', { by: busy.trainer_holders[id] }) : t('saber.day.busy')) : null
   }
 
   const list = useMemo(() => {

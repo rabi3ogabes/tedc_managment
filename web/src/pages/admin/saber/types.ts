@@ -1,18 +1,26 @@
 /** Shapes returned by /admin/saber (backend: SaberController). */
 export type Day = {
   idx: number; extra: boolean; session_id: string | null; date: string | null; start_time: string | null; end_time: string | null
-  room_id: string | null; trainer_id: string | null; status: string | null; locked: boolean
+  room_id: string | null; trainer_id: string | null; status: string | null; locked: boolean; changed?: boolean
 }
 
 export type Group = {
   id: string; program_id: string; number: number; title: string | null; color: string | null; term: 'first' | 'second' | 'year' | null
   term_effective: 'first' | 'second' | 'year' | null; status: string; cancelled: boolean; validated_at: string | null; validated_by_name: string | null; days: Day[]
+  live?: boolean; changed?: boolean; supervisor_id?: string | null
 }
 
 export type Program = {
   id: string; code: string; title: string; title_en: string | null; type: string | null; method: string | null; hours: number; days: number; status: string; cancelled: boolean
   kit_ready: boolean; kit_ready_set: boolean; survey_link: string | null; survey_edit_link: string | null; supervisor: { id: string; name: string } | null
   start_date: string | null; end_date: string | null; lights: { total: number; dates: number; rooms: number; trainers: number }; groups: Group[]
+  draft?: DraftInfo | null
+}
+
+export type DraftInfo = {
+  id: string; status: 'draft' | 'submitted' | 'published' | 'discarded'; source: string; program: { id: string; code: string; title: string; status: string }
+  author: string | null; editor: string | null; submitted_by: string | null; reviewed_by: string | null; created_at: string | null; updated_at: string | null
+  submitted_at: string | null; reviewed_at: string | null; review_note: string | null; mine: boolean; counts?: { groups: number; days: number; fields: number } | null
 }
 
 export type Option = { id: string; name: string; pending?: boolean }
@@ -20,7 +28,7 @@ export type RoomOption = Option & { capacity: number | null; building: string | 
 
 export type Overview = {
   stats: { programs_month: number; awaiting_approval: number; booked_rooms: number; trainers: number }
-  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]; offday_pending: number; me: string
+  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]; offday_pending: number; me: string; drafts: { mine: number; submitted: number }
   settings: { supervisor_edit_enabled: boolean; group_delete_enabled: boolean }
   day: { hours: number; day_start: string; day_end: string }
   can: Record<string, boolean>
@@ -28,7 +36,7 @@ export type Overview = {
 
 export type Notice = { type: 'success' | 'warning' | 'info'; text: string }
 
-export type Availability = { day: { training_allowed: boolean; kind: string; entry: { title: string | null } | null }; busy_rooms: Record<string, string>; busy_trainers: string[] }
+export type Availability = { day: { training_allowed: boolean; kind: string; entry: { title: string | null } | null }; busy_rooms: Record<string, string>; busy_trainers: string[]; trainer_holders?: Record<string, string> }
 
 /** Recomputes a programme's status lights after one of its groups changed. */
 export function withGroup(p: Program, g: Group): Program {
