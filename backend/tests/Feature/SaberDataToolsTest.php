@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CalendarDay;
 use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Role;
@@ -73,11 +74,12 @@ class SaberDataToolsTest extends TestCase
 
         $plan = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
         $this->assertSame(3, $plan['cells']);
-        $this->assertCount(1, $plan['tracks']);
-        $this->assertSame($program->groups()->first()->id, $plan['tracks'][0]['group_id'], 'group number 1 of the programme');
-        $this->assertSame('diff', $plan['tracks'][0]['verdict']);
-        $this->assertSame(['2026-11-01', '2026-11-02'], array_column($plan['tracks'][0]['days'], 'date'));
-        $this->assertSame('برنامج غير موجود اطلاقا - 2', $plan['unmatched'][0]['label']);
+        $matched = array_values(array_filter($plan['tracks'], fn ($t) => $t['program_id'] === $program->id));
+        $this->assertCount(1, $matched);
+        $this->assertSame($program->groups()->first()->id, $matched[0]['group_id'], 'group number 1 of the programme');
+        $this->assertSame('diff', $matched[0]['verdict']);
+        $this->assertSame(['2026-11-01', '2026-11-02'], array_column($matched[0]['days'], 'date'));
+        $this->assertSame('برنامج غير موجود اطلاقا', $plan['proposals'][0]['name'], 'a name that matches no programme is proposed as a new draft programme');
         $this->assertSame([true, false], array_column($plan['rooms'], 'exists'));
 
         $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/import/apply', ['type' => 'grid', 'tracks' => $plan['tracks'], 'submit' => true])->assertOk()->json('data');
@@ -88,11 +90,79 @@ class SaberDataToolsTest extends TestCase
         $this->assertSame('calendar_import', $rev->source);
 
         $again = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
-        $this->assertSame('match', $again['tracks'][0]['verdict'], 're-checking the same file finds the plan up to date');
+        $this->assertSame('match', collect($again['tracks'])->firstWhere('program_id', $program->id)['verdict'], 're-checking the same file finds the plan up to date');
 
         $this->asUser($head)->postJson("/api/v1/admin/saber/reviews/{$rev->id}/publish")->assertOk();
         $rooms = $program->groups()->first()->sessions()->orderBy('starts_at')->get()->map(fn ($x) => TrainingRoom::find($x->training_room_id)->name_ar)->all();
         $this->assertSame(['قاعة الريادة', 'قاعة المستقبل'], $rooms);
+    }
+
+    public function test_the_centre_rooms_calendar_layout_is_understood_periods_events_reservations_and_new_programmes(): void
+    {
+        // The shape of the centre's real workbook, with made-up names: priority row, rooms, capacities, dates in D, periods merged in A:B,
+        // a holiday merged across every room, a centre-wide event in every room, a person's standing reservation, group numbers glued to names.
+        TrainingRoom::create(['code' => 'X1', 'name_ar' => 'القاعة 1', 'name_en' => 'Room 1', 'capacity' => 25, 'status' => 'active']);
+        $head = $this->makeUser(Role::SUPER_ADMIN);
+        $file = $this->workbook(function ($s) {
+            $s->setCellValue('D1', 'وقت الاستراحة')->setCellValue('H1', 'الاستراحة الأولى 9:30 - 10:00');
+            $s->mergeCells('H1:J1');
+            foreach (['H' => 'رجال', 'I' => 'نساء', 'J' => 'الكل'] as $c => $v) {
+                $s->setCellValue("{$c}2", $v);
+            }
+            foreach (['H' => 'القاعة 1', 'I' => 'القاعة 2', 'J' => 'معمل الحاسب 1'] as $c => $v) {
+                $s->setCellValue("{$c}3", $v)->setCellValue("{$c}4", '25 متدرب');
+            }
+            $dates = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-08', '2026-11-09', '2026-11-10'];
+            foreach ($dates as $i => $d) {
+                $s->setCellValue('D'.($i + 5), $this->excelDate($d));
+            }
+            // A programme that does not exist yet, two groups written «اسم 1» / «اسم 2» (no dash), and one «- 1» style.
+            $s->setCellValue('H5', 'برنامج الإرشاد المهني 1')->setCellValue('I5', 'برنامج الإرشاد المهني 2');
+            $s->setCellValue('H6', 'برنامج الإرشاد المهني 1')->setCellValue('I6', 'برنامج الإرشاد المهني 2');
+            $s->setCellValue('H7', 'مهارات العرض - 1');
+            // A person's standing reservation in the lab.
+            $s->setCellValue('J5', 'أ.فلانة الفلانية-(ابلاغها عند الحاجه للقاعه)')->setCellValue('J6', 'أ.فلانة الفلانية-(ابلاغها عند الحاجه للقاعه)');
+            // A centre-wide event in every room.
+            foreach (['H', 'I', 'J'] as $c) {
+                $s->setCellValue("{$c}8", 'يوم المعلم');
+            }
+            // Exams written once beside two dates, and a holiday merged across all rooms.
+            $s->setCellValue('A9', 'اختبارات منتصف الفصل')->mergeCells('A9:B10');
+            $s->setCellValue('H11', 'إجازة منتصف العام')->mergeCells('H11:J11');
+        }, 'تقويم القاعات التدريبية');
+        $layout = ['type' => 'grid', 'sheet' => 'تقويم القاعات التدريبية', 'date_col' => 4, 'first_room_col' => 8];
+
+        $plan = $this->upload('/api/v1/admin/saber/data/import/preview', ['file' => $file] + $layout, $head)->assertOk()->json('data');
+
+        $this->assertSame([['يوم المعلم', 'event'], ['اختبارات منتصف الفصل', 'period'], ['إجازة منتصف العام', 'event']], array_map(fn ($p) => [$p['label'], $p['kind']], $plan['periods']));
+        $this->assertSame(['normal', 'exam', 'vacation'], array_column($plan['periods'], 'type'));
+        $this->assertSame(['2026-11-08', '2026-11-09'], [$plan['periods'][1]['from'], $plan['periods'][1]['to']]);
+        $this->assertCount(1, $plan['reservations'], 'a person\'s reservation is not a programme');
+        $this->assertSame(['برنامج الإرشاد المهني', 'مهارات العرض'], array_column($plan['proposals'], 'name'));
+        $this->assertSame([2, 2], [$plan['proposals'][0]['groups'], $plan['proposals'][0]['days']]);
+        $this->assertSame([], $plan['unmatched']);
+        $this->assertSame(['نساء'], array_column(array_values(array_filter($plan['rooms'], fn ($r) => ! $r['exists'])), 'tag'), 'a new room keeps its trainee priority as its tag');
+
+        $tracks = array_values(array_filter($plan['tracks'], fn ($t) => $t['proposal'] === $plan['proposals'][0]['key']));
+        $this->assertSame(['المجموعة 1', 'المجموعة 2'], array_column($tracks, 'group_name'));
+        $res = $this->asUser($head)->postJson('/api/v1/admin/saber/data/import/apply', [
+            'type' => 'grid', 'submit' => true, 'tracks' => $plan['tracks'],
+            'create' => [['key' => $plan['proposals'][0]['key'], 'name' => $plan['proposals'][0]['name'], 'days' => 2]],
+            'periods' => [['label' => 'اختبارات منتصف الفصل', 'from' => '2026-11-08', 'to' => '2026-11-09', 'type' => 'exam']],
+            'rooms' => collect($plan['rooms'])->where('exists', false)->map(fn ($r) => ['name' => $r['name'], 'capacity' => $r['capacity'], 'tag' => $r['tag']])->values()->all(),
+        ])->assertOk()->json('data');
+
+        $this->assertSame(1, $res['programs_created']);
+        $this->assertSame(2, $res['calendar_days']);
+        $program = Program::where('title_ar', 'برنامج الإرشاد المهني')->first();
+        $this->assertSame(Program::STATUS_DRAFT, $program->status);
+        $this->assertSame(1, $program->groups()->count(), 'the second group waits in the draft');
+        $groups = SaberRevision::where('program_id', $program->id)->first()->state['groups'];
+        $this->assertSame(['المجموعة 1', 'المجموعة 2'], array_column($groups, 'title'));
+        $this->assertSame(['2026-11-01', '2026-11-02'], array_column($groups[1]['days'], 'date'));
+        $this->assertSame('نساء', TrainingRoom::where('name_ar', 'القاعة 2')->value('tag'));
+        $this->assertNull(Program::where('title_ar', 'مهارات العرض')->first(), 'a proposal left unticked is not created');
+        $this->assertSame('exam', CalendarDay::whereDate('date', '2026-11-08')->value('type'));
     }
 
     public function test_a_day_per_row_workbook_with_any_column_order_is_mapped_and_planned(): void

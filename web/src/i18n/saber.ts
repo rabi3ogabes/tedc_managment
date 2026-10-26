@@ -154,6 +154,11 @@ export const saberAr = {
     next: 'التالي', back: 'رجوع', preview: 'معاينة', submit: 'إرسال المسودات للمراجعة مباشرة', apply: 'حفظ كمسودات',
     applied: 'حُفظت التعديلات في {{drafts}} مسودة{{sent}}.', sent: ' وأُرسلت للمراجعة', programsApplied: 'برامج جديدة: {{created}} · تحديث: {{updated}} · مجموعات: {{groups}}{{sent}}.',
     missingTrainers: 'مدربون غير موجودين في المنصة', trainerMatch: 'مدرب: {{name}}',
+    proposals: 'برامج غير موجودة في شاهين: {{n}}', proposalsSelected: 'تُنشأ: {{n}}', proposalsHint: 'تُنشأ مسودات برامج (بمجموعاتها وأيامها من الملف) وتظهر في صفحة البرامج للمراجعة قبل النشر. ألغِ تحديد ما لا تريده.',
+    proposalsNoRight: 'إنشاء البرامج يحتاج صلاحية «إنشاء برنامج» في سابر+.', proposalLine: 'المجموعات: {{groups}} · أيام المجموعة: {{days}} · الحجوزات: {{cells}}', closest: 'الأقرب في شاهين: {{name}}',
+    periods: 'التقويم المدرسي في الملف: {{n}}', periodsSelected: 'يُضاف: {{n}}', periodsHint: 'الاختبارات والإجازات والفعاليات المكتوبة في الملف — تُضاف إلى تقويم التدريب فتُغلق تلك الأيام للتدريب (ولا تُغيَّر الأيام المسجلة مسبقاً).',
+    periodsNoRight: 'إضافة أيام إلى تقويم التدريب تحتاج صلاحية إدارة التقويم.', periodTypes: { vacation: 'إجازة', exam: 'اختبارات', normal: 'مغلق للتدريب' }, inCalendar: 'موجود في التقويم', bookedInside: 'حجوزات داخلها: {{n}}',
+    reservations: 'حجوزات قاعات لأشخاص ({{n}} خانة في {{rooms}}) — ليست برامج ولا تُستورد.', extras: 'برامج جديدة (مسودات): {{programs}} · أيام أُضيفت للتقويم: {{days}}.',
   },
   pager: { prev: 'السابق', next: 'التالي', page: 'صفحة {{page}} من {{last}}' },
 }
@@ -313,6 +318,11 @@ export const saberEn: typeof saberAr = {
     next: 'Next', back: 'Back', preview: 'Preview', submit: 'Send the drafts for review now', apply: 'Save as drafts',
     applied: 'Changes saved in {{drafts}} drafts{{sent}}.', sent: ' and sent for review', programsApplied: 'New programmes: {{created}} · updated: {{updated}} · groups: {{groups}}{{sent}}.',
     missingTrainers: 'Trainers not in the platform', trainerMatch: 'Trainer: {{name}}',
+    proposals: 'Programmes not in Shaheen: {{n}}', proposalsSelected: 'To create: {{n}}', proposalsHint: 'Created as draft programmes (with their groups and days from the file) and shown in the Programmes page for review before publishing. Untick what you do not want.',
+    proposalsNoRight: 'Creating programmes needs the SABER+ «create programme» right.', proposalLine: 'Groups: {{groups}} · days per group: {{days}} · bookings: {{cells}}', closest: 'Closest in Shaheen: {{name}}',
+    periods: 'School calendar in the file: {{n}}', periodsSelected: 'To add: {{n}}', periodsHint: 'Exams, holidays and events written in the file — added to the training calendar, closing those days for training (days already in the calendar are not changed).',
+    periodsNoRight: 'Adding days to the training calendar needs the calendar management right.', periodTypes: { vacation: 'Holiday', exam: 'Exams', normal: 'Closed for training' }, inCalendar: 'Already in the calendar', bookedInside: 'Bookings inside: {{n}}',
+    reservations: 'Room reservations for people ({{n}} cells in {{rooms}}) — not programmes, not imported.', extras: 'New programmes (drafts): {{programs}} · days added to the calendar: {{days}}.',
   },
   pager: { prev: 'Previous', next: 'Next', page: 'Page {{page}} of {{last}}' },
 }

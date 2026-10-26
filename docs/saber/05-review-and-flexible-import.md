@@ -53,6 +53,31 @@ One wizard on «أدوات البيانات» replaces the two fixed imports:
 5. **Save as drafts** — never the live programmes — and, by default, **send them for review**. Dates in dd/mm/yyyy, ISO or Excel form and
    times like 08:00, 8:30 ص/م are understood.
 
+## The centre's rooms calendar workbook (2026-10-26, from the real 2026-2027 file)
+
+The centre's own «تقويم القاعات التدريبية» workbook was read in full (counts only — it holds staff names and stays out of the repository):
+29 rooms in row 3 with a men / women / all priority above them and a capacity («25 متدرب») below, dates in column D, 218 booked dates,
+about 1 800 filled cells with 263 distinct labels, the school calendar written once in column A (merged across dates), two centre-wide
+events and a person's standing reservation. The sheet «بيانات اللوحة» is all `#REF!` and is not used. What the rooms-calendar import
+now understands:
+
+- **Header row** — chosen by the most distinct room names, with a bonus when the next row holds capacities; each room keeps its **tag**
+  (the row above) and **capacity** (the row below), used when a missing room is created.
+- **School calendar** — labels merged left of the date column are periods (exams → «اختبارات», holidays / Eid → «إجازة», the rest
+  «مغلق للتدريب»); a label merged across the room columns, or written in most rooms on one date, is an event. They are not bookings:
+  the preview lists them (dates, type to change, «موجود في التقويم», «حجوزات داخلها»), and the ticked ones are added to the training
+  calendar (weekends skipped, days already in the calendar untouched; needs the calendar right).
+- **People's reservations** («أ./د. name – …») are recognised and shown as one information line — not programmes, not imported.
+- **Group numbers glued to the name** («برنامج 1», «برنامج 2») are separate groups of one programme.
+- **Programmes not in Shaheen** — names that match no programme are no longer dead ends: they become **proposals** (name cleaned of the
+  group number, a leading note, a department or a person), ticked by default for holders of `saber.program.create`, with groups, days
+  per group, bookings and the closest existing programme. Applying creates each ticked one as a **draft programme** (next code, days and
+  hours from the file, capacity 25, attendance 80 %) whose groups and days go into its draft for review — nothing is published.
+
+**«The POST method is not supported for route …/data/calendar/preview»** — the page was opened before the release that replaced the old
+calendar import with the wizard, so it called an address that no longer exists. A 405 from an `/admin/…` address now reloads the page
+once (at most every ten minutes), so the new version loads by itself.
+
 ## Data, API, code
 
 Migration `2026_01_01_009100_saber_plus_revisions` (`saber_revisions`); permission `saber.publish` (given to existing roles on deploy).

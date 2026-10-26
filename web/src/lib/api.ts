@@ -62,6 +62,17 @@ api.interceptors.response.use(undefined, async (error: AxiosError) => {
   // The administration team's idle lock: the dashboard asks for the password again.
   if (error.response?.status === 423 && (error.response.data as { code?: string } | undefined)?.code === 'session_locked') window.dispatchEvent(new Event('tedc:locked'))
   const status = error.response?.status
+  // A screen opened before a new release can call an address the release replaced (405 "method not supported"): load the new version once.
+  if (status === 405 && String(error.config?.url ?? '').startsWith('/admin/')) {
+    try {
+      const last = Number(sessionStorage.getItem('tedc.reloaded-405') ?? 0)
+      if (Date.now() - last > 10 * 60_000) {   // at most once every ten minutes, so a real 405 can never loop
+        sessionStorage.setItem('tedc.reloaded-405', String(Date.now()))
+        window.location.reload()
+        return new Promise(() => {})
+      }
+    } catch { /* storage blocked: fall through to the error */ }
+  }
   // Failed server calls are reported (not the reporter's own, not expected 4xx).
   if (status && status >= 500 && !String(error.config?.url ?? '').includes('client-errors')) reportError(new Error(`${error.config?.method?.toUpperCase()} ${error.config?.url} → ${status}`), { status_code: status, context: { response: String(JSON.stringify(error.response?.data ?? '')).slice(0, 300) } })
   const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean; _roleRetried?: boolean }) | undefined

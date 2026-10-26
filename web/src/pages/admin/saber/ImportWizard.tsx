@@ -11,8 +11,11 @@ import { toast } from '@/lib/toast'
 type Sheet = { name: string; rows: string[][]; columns: number; count: number; header_row: number }
 type Kind = 'grid' | 'rows' | 'programs'
 type Step = 'file' | 'layout' | 'map' | 'preview'
-type Track = { key: string; label: string; program_id: string; program: string; score: number; group_name: string; supervisor: string | null; days: Record<string, unknown>[]; group_id: string | null; target: string | null; verdict: 'match' | 'diff' | 'new' }
-type Plan = { type: Kind; cells?: number; tracks?: Track[]; unmatched?: { label: string; count: number; best: string | null }[]; rooms?: { name: string; exists: boolean }[]; supervisors?: { name: string; user: string | null }[]; trainers?: { name: string; match: string | null }[]
+type Track = { key: string; label: string; program_id: string | null; proposal?: string | null; program: string; score: number; group_name: string; supervisor: string | null; days: Record<string, unknown>[]; group_id: string | null; target: string | null; verdict: 'match' | 'diff' | 'new' }
+type Proposal = { key: string; name: string; labels: string[]; cells: number; groups: number; days: number; first: string | null; closest: string | null; closest_score: number }
+type Period = { label: string; from: string; to: string; kind: 'period' | 'event'; type: 'vacation' | 'exam' | 'normal'; booked: number; exists: boolean }
+type Plan = { type: Kind; cells?: number; tracks?: Track[]; unmatched?: { label: string; count: number; best: string | null }[]; rooms?: { name: string; exists: boolean; capacity?: number | null; tag?: string | null }[];
+  proposals?: Proposal[]; periods?: Period[]; reservations?: { label: string; count: number; rooms: string[] }[]; supervisors?: { name: string; user: string | null }[]; trainers?: { name: string; match: string | null }[]
   rows?: { sheet: string; row: number; name: string; method: string | null; hours: number | null; days: number | null; groups: number; kit: string | null; date: string | null; action: 'create' | 'update' }[]; issues?: { sheet: string; row: number; message: string }[] }
 
 const FIELDS: Record<'rows' | 'programs', { key: string; required?: boolean; names: string[] }[]> = {
@@ -50,7 +53,7 @@ function suggest(kind: 'rows' | 'programs', headers: string[]): Record<string, n
  * list), the header row and which column is what; previews what would change; then saves it into the programmes' SABER+ drafts and, if
  * wanted, sends them for review. Layouts can be saved and reused.
  */
-export default function ImportWizard({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+export default function ImportWizard({ onClose, onDone, can = {} }: { onClose: () => void; onDone: () => void; can?: Record<string, boolean> }) {
   const { t } = useTranslation()
   const [step, setStep] = useState<Step>('file')
   const [file, setFile] = useState<File | null>(null)
@@ -64,6 +67,10 @@ export default function ImportWizard({ onClose, onDone }: { onClose: () => void;
   const [columns, setColumns] = useState<Record<string, number | null>>({})
   const [plan, setPlan] = useState<Plan | null>(null)
   const [chosen, setChosen] = useState<Set<string>>(new Set())
+  const [create, setCreate] = useState<Set<string>>(new Set())
+  const [periods, setPeriods] = useState<Record<string, Period['type'] | null>>({})
+  const canCreate = !!can['saber.program.create']
+  const canCalendar = !!can['calendar.manage']
   const [submit, setSubmit] = useState(true)
   const [busy, setBusy] = useState(false)
   const presets = useGet<{ data: Record<string, { type: Kind; header_row?: number; date_col?: number; first_room_col?: number; columns?: Record<string, number | null> }> }>('/admin/saber/data/import/presets', undefined, { staleTime: 60_000 })
@@ -97,17 +104,29 @@ export default function ImportWizard({ onClose, onDone }: { onClose: () => void;
     setBusy(true)
     try {
       const p: Plan = (await api.post('/admin/saber/data/import/preview', body({ type: kind, sheet: sheet?.name, header_row: headerRow, ...(kind === 'grid' ? { date_col: dateCol, first_room_col: firstRoom } : { columns }) }))).data.data
-      setPlan(p); setChosen(new Set((p.tracks ?? []).filter((x) => x.verdict !== 'match').map((x) => x.key))); setStep('preview')
+      setPlan(p); setChosen(new Set((p.tracks ?? []).filter((x) => x.verdict !== 'match').map((x) => x.key)))
+      // Every proposed programme is ticked (it only becomes a draft); calendar periods not yet in the calendar are ticked when the person may add them.
+      setCreate(new Set(canCreate ? (p.proposals ?? []).map((x) => x.key) : []))
+      setPeriods(Object.fromEntries((p.periods ?? []).map((x) => [x.label + x.from, canCalendar && !x.exists ? x.type : null])))
+      setStep('preview')
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const apply = async () => {
     if (!plan) return
     setBusy(true)
     try {
-      const payload = kind === 'programs' ? { type: kind, rows: plan.rows, submit } : { type: kind, submit, tracks: (plan.tracks ?? []).filter((x) => chosen.has(x.key)).map((x) => ({ program_id: x.program_id, group_id: x.group_id, group_name: x.group_name, supervisor: x.supervisor, days: x.days })) }
+      const live = (x: Track) => chosen.has(x.key) && (x.program_id || (x.proposal && create.has(x.proposal)))
+      const payload = kind === 'programs' ? { type: kind, rows: plan.rows, submit } : {
+        type: kind, submit,
+        tracks: (plan.tracks ?? []).filter(live).map((x) => ({ program_id: x.program_id, proposal: x.program_id ? null : x.proposal, group_id: x.group_id, group_name: x.group_name, supervisor: x.supervisor, days: x.days })),
+        create: (plan.proposals ?? []).filter((x) => create.has(x.key)).map((x) => ({ key: x.key, name: x.name, days: x.days })),
+        periods: (plan.periods ?? []).filter((x) => periods[x.label + x.from]).map((x) => ({ label: x.label, from: x.from, to: x.to, type: periods[x.label + x.from] })),
+        rooms: (plan.rooms ?? []).filter((x) => !x.exists).map((x) => ({ name: x.name, capacity: x.capacity ?? null, tag: x.tag ?? null })),
+      }
       const r = (await api.post('/admin/saber/data/import/apply', payload)).data.data
       const sent = submit ? t('saber.wizard.sent') : ''
       toast(kind === 'programs' ? t('saber.wizard.programsApplied', { created: r.created, updated: r.updated, groups: r.groups_added, sent }) : t('saber.wizard.applied', { drafts: r.drafts, sent }))
+      if (r.programs_created || r.calendar_days) toast(t('saber.wizard.extras', { programs: r.programs_created ?? 0, days: r.calendar_days ?? 0 }), 'info')
       if (r.failures?.length) toast(`${r.failures.length} × ${r.failures[0].message}`, 'info')
       onDone(); onClose()
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
@@ -263,12 +282,61 @@ export default function ImportWizard({ onClose, onDone }: { onClose: () => void;
                 {(plan.supervisors ?? []).filter((s) => !s.user).map((s) => <span key={s.name} className="rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">{s.name} — {t('saber.data.calendar.supMissing')}</span>)}
                 {(plan.trainers ?? []).filter((x) => !x.match).map((x) => <span key={x.name} className="rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">{t('saber.wizard.missingTrainers')}: {x.name}</span>)}
               </div>
+              {!!plan.proposals?.length && (
+                <details open className="rounded-xl border border-sky-200 bg-sky-50/40 p-3">
+                  <summary className="cursor-pointer text-sm font-bold text-sky-900">{t('saber.wizard.proposals', { n: plan.proposals.length })} · <span className="font-semibold text-sky-700">{t('saber.wizard.proposalsSelected', { n: create.size })}</span></summary>
+                  <p className="mt-1 text-[11px] text-sky-800">{canCreate ? t('saber.wizard.proposalsHint') : t('saber.wizard.proposalsNoRight')}</p>
+                  <div className="mt-2 flex gap-3 text-[11px] font-bold">
+                    <button type="button" disabled={!canCreate} className="text-navy-700 hover:text-gold-700 disabled:opacity-40" onClick={() => setCreate(new Set(plan.proposals!.map((x) => x.key)))}>{t('saber.data.calendar.selectAll')}</button>
+                    <button type="button" className="text-navy-700 hover:text-gold-700" onClick={() => setCreate(new Set())}>{t('saber.plan.clearAll')}</button>
+                  </div>
+                  <ul className="mt-2 max-h-56 divide-y divide-sky-100 overflow-y-auto rounded-lg bg-white">
+                    {plan.proposals.map((x) => (
+                      <li key={x.key}>
+                        <label className={clsx('flex items-start gap-2.5 px-3 py-2 text-xs', canCreate ? 'cursor-pointer' : 'opacity-60')}>
+                          <input type="checkbox" className="mt-0.5" disabled={!canCreate} checked={create.has(x.key)} onChange={() => setCreate((s0) => { const n = new Set(s0); if (n.has(x.key)) n.delete(x.key); else n.add(x.key); return n })} />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-bold text-navy-900">{x.name}</span>
+                            <span className="block text-[10px] text-slate-500">{t('saber.wizard.proposalLine', { groups: x.groups, days: x.days, cells: x.cells })}{x.closest && x.closest_score >= 0.6 ? ` · ${t('saber.wizard.closest', { name: x.closest })}` : ''}</span>
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              {!!plan.periods?.length && (
+                <details className="rounded-xl border border-gold-200 bg-gold-50/40 p-3">
+                  <summary className="cursor-pointer text-sm font-bold text-navy-900">{t('saber.wizard.periods', { n: plan.periods.length })} · <span className="font-semibold text-gold-800">{t('saber.wizard.periodsSelected', { n: Object.values(periods).filter(Boolean).length })}</span></summary>
+                  <p className="mt-1 text-[11px] text-slate-600">{canCalendar ? t('saber.wizard.periodsHint') : t('saber.wizard.periodsNoRight')}</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {plan.periods.map((x) => {
+                      const k = x.label + x.from
+                      return (
+                        <li key={k} className="flex flex-wrap items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs">
+                          <input type="checkbox" disabled={!canCalendar} checked={!!periods[k]} onChange={(e) => setPeriods((p0) => ({ ...p0, [k]: e.target.checked ? x.type : null }))} />
+                          <span className="min-w-0 flex-1 truncate font-semibold text-navy-900">{x.label}</span>
+                          <span className="tabular-nums text-slate-500" dir="ltr">{x.from}{x.to !== x.from ? ` → ${x.to}` : ''}</span>
+                          <select disabled={!canCalendar || !periods[k]} value={periods[k] ?? x.type} onChange={(e) => setPeriods((p0) => ({ ...p0, [k]: e.target.value as Period['type'] }))} className="h-7 rounded-md border border-navy-100 bg-white px-1 text-[11px]">
+                            {(['vacation', 'exam', 'normal'] as const).map((ty) => <option key={ty} value={ty}>{t(`saber.wizard.periodTypes.${ty}`)}</option>)}
+                          </select>
+                          {x.exists && <span className="rounded-full bg-slate-100 px-1.5 text-[10px] font-bold text-slate-500">{t('saber.wizard.inCalendar')}</span>}
+                          {x.booked > 0 && <span className="rounded-full bg-amber-50 px-1.5 text-[10px] font-bold text-amber-700">{t('saber.wizard.bookedInside', { n: x.booked })}</span>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </details>
+              )}
+              {!!plan.reservations?.length && (
+                <p className="rounded-xl border border-navy-100 bg-white px-3 py-2 text-[11px] text-slate-500">{t('saber.wizard.reservations', { n: plan.reservations.reduce((a, x) => a + x.count, 0), rooms: [...new Set(plan.reservations.flatMap((x) => x.rooms))].join('، ') })}</p>
+              )}
               <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
                 <span>{t('saber.data.calendar.selected', { n: chosen.size })}</span>
                 <button type="button" className="font-bold text-navy-700 hover:text-gold-700" onClick={() => setChosen(new Set((plan.tracks ?? []).map((x) => x.key)))}>{t('saber.data.calendar.selectAll')}</button>
               </div>
               <ul className="max-h-80 divide-y divide-navy-50 overflow-y-auto rounded-xl border border-navy-100">
-                {(plan.tracks ?? []).map((x) => (
+                {(plan.tracks ?? []).filter((x) => x.program_id || (x.proposal && create.has(x.proposal))).map((x) => (
                   <li key={x.key}>
                     <label className="flex cursor-pointer items-start gap-3 px-3 py-2.5">
                       <input type="checkbox" className="mt-1" checked={chosen.has(x.key)} onChange={() => setChosen((s) => { const n = new Set(s); if (n.has(x.key)) n.delete(x.key); else n.add(x.key); return n })} />
@@ -278,7 +346,7 @@ export default function ImportWizard({ onClose, onDone }: { onClose: () => void;
                           <span className={clsx('rounded-full px-2 py-0.5 text-[10px] font-bold', x.verdict === 'match' ? 'bg-emerald-50 text-emerald-700' : x.verdict === 'new' ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700')}>{t(`saber.data.calendar.verdict.${x.verdict}`)}</span>
                           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{t('saber.data.calendar.days', { n: x.days.length })}</span>
                         </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-slate-400">{t('saber.data.calendar.from', { label: x.label })} · {t('saber.data.calendar.score', { n: Math.round(x.score * 100) })}{x.target ? ` · ${t('saber.data.calendar.target', { name: x.target })}` : ''}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-slate-400">{t('saber.data.calendar.from', { label: x.label })}{x.program_id ? ` · ${t('saber.data.calendar.score', { n: Math.round(x.score * 100) })}` : ''}{x.target ? ` · ${t('saber.data.calendar.target', { name: x.target })}` : ''}</span>
                       </span>
                     </label>
                   </li>

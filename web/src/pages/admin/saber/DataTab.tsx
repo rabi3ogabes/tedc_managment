@@ -39,7 +39,7 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
           ))}
         </div>
       )}
-      {open === 'import' && <ImportWizard onClose={() => setOpen(null)} onDone={onChanged} />}
+      {open === 'import' && <ImportWizard can={overview.can} onClose={() => setOpen(null)} onDone={onChanged} />}
       {open === 'links' && <SurveyLinksDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
       {open === 'trainers' && <TrainersManagerDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
     </div>

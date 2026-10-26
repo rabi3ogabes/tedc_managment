@@ -4,6 +4,7 @@ namespace App\Services\Saber;
 
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,6 +18,9 @@ class WorkbookReader
 {
     /** @var array<string, Spreadsheet> */
     private array $books = [];
+
+    /** @var array<string, Spreadsheet> */
+    private array $formatted = [];
 
     /** @return list<array{name: string, rows: list<list<string>>, columns: int, count: int, header_row: int}> */
     public function inspect(string $path): array
@@ -43,6 +47,31 @@ class WorkbookReader
             ?? $book->getSheet(0);
 
         return $ws->toArray(null, true, false, false);
+    }
+
+    /**
+     * The sheet's merged areas as 0-based [row1, col1, row2, col2] with the text of their first cell — a period written once beside a
+     * week of dates, or a holiday written once across every room.
+     *
+     * @return list<array{r1: int, c1: int, r2: int, c2: int, value: string}>
+     */
+    public function merges(string $path, ?string $sheet = null): array
+    {
+        // Merged areas are only read when the workbook is loaded with its structure (not data only).
+        $book = $this->formatted[$path] ??= IOFactory::createReaderForFile($path)->load($path);
+        $ws = ($sheet !== null && $sheet !== '' ? $book->getSheetByName($sheet) : null)
+            ?? collect($book->getWorksheetIterator())->first(fn ($s) => str_contains($s->getTitle(), 'تقويم'))
+            ?? $book->getSheet(0);
+        $out = [];
+        foreach ($ws->getMergeCells() as $range) {
+            [$from, $to] = array_pad(explode(':', $range), 2, null);
+            [$c1, $r1] = Coordinate::coordinateFromString($from);
+            [$c2, $r2] = Coordinate::coordinateFromString($to ?? $from);
+            $out[] = ['r1' => (int) $r1 - 1, 'c1' => Coordinate::columnIndexFromString($c1) - 1, 'r2' => (int) $r2 - 1, 'c2' => Coordinate::columnIndexFromString($c2) - 1,
+                'value' => trim(preg_replace('/\s+/u', ' ', (string) $ws->getCell($from)->getValue()) ?? '')];
+        }
+
+        return $out;
     }
 
     public function date(mixed $v): ?string

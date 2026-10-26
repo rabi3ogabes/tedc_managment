@@ -77,14 +77,27 @@ class SaberDataController extends Controller
             return response()->json(['data' => $programs->apply($d['rows'], $this->user(), $submit)]);
         }
         $d = $request->validate([
-            'tracks' => ['required', 'array', 'min:1', 'max:500'], 'tracks.*.program_id' => ['required', 'uuid', 'exists:programs,id'], 'tracks.*.group_id' => ['nullable', 'uuid'],
+            'tracks' => ['required', 'array', 'min:1', 'max:800'], 'tracks.*.program_id' => ['nullable', 'required_without:tracks.*.proposal', 'uuid', 'exists:programs,id'],
+            'tracks.*.proposal' => ['nullable', 'string', 'max:300'], 'tracks.*.group_id' => ['nullable', 'uuid'],
             'tracks.*.group_name' => ['required', 'string', 'max:160'], 'tracks.*.supervisor' => ['nullable', 'string', 'max:160'],
             'tracks.*.days' => ['required', 'array', 'min:1', 'max:200'], 'tracks.*.days.*.date' => ['required', 'date_format:Y-m-d'], 'tracks.*.days.*.room' => ['nullable', 'string', 'max:255'],
             'tracks.*.days.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000'], 'tracks.*.days.*.trainer' => ['nullable', 'string', 'max:255'],
             'tracks.*.days.*.start_time' => ['nullable', 'date_format:H:i'], 'tracks.*.days.*.end_time' => ['nullable', 'date_format:H:i'],
+            // Names that match no programme, chosen to become draft programmes; calendar periods chosen for the training calendar; room details.
+            'create' => ['nullable', 'array', 'max:300'], 'create.*.key' => ['required', 'string', 'max:300'], 'create.*.name' => ['required', 'string', 'max:255'], 'create.*.days' => ['nullable', 'integer', 'min:1', 'max:200'],
+            'periods' => ['nullable', 'array', 'max:200'], 'periods.*.label' => ['required', 'string', 'max:255'], 'periods.*.from' => ['required', 'date_format:Y-m-d'],
+            'periods.*.to' => ['required', 'date_format:Y-m-d', 'after_or_equal:periods.*.from'], 'periods.*.type' => ['required', Rule::in(['vacation', 'exam', 'normal'])],
+            'rooms' => ['nullable', 'array', 'max:300'], 'rooms.*.name' => ['required', 'string', 'max:255'], 'rooms.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000'], 'rooms.*.tag' => ['nullable', 'string', 'max:60'],
         ]);
+        if (! empty($d['create'])) {
+            abort_unless($this->user()->hasPermission('saber.program.create'), 403);
+        }
+        if (! empty($d['periods'])) {
+            abort_unless($this->user()->hasPermission('calendar.manage'), 403);
+        }
+        $roomsMeta = collect($d['rooms'] ?? [])->keyBy('name')->map(fn ($r) => ['capacity' => $r['capacity'] ?? null, 'tag' => $r['tag'] ?? null])->all();
 
-        return response()->json(['data' => $calendar->apply($d['tracks'], $submit, $this->user(), $type === 'grid' ? 'calendar_import' : 'flexible_import')]);
+        return response()->json(['data' => $calendar->apply($d['tracks'], $submit, $this->user(), $type === 'grid' ? 'calendar_import' : 'flexible_import', $d['create'] ?? [], $d['periods'] ?? [], $roomsMeta)]);
     }
 
     /** The saved column layouts, so a workbook the centre sends every month maps itself. */
