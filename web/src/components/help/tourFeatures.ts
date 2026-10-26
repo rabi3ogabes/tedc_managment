@@ -75,6 +75,7 @@ export const TOUR_FEATURES: Record<string, [string, string]> = {
   '/admin/dashboard-presets': ['قوالب اللوحات: ما يراه كل دور في لوحته.', 'Dashboard presets: what each role sees on its dashboard.'],
   '/admin/appearance/home': ['الصفحة الرئيسية: محتوى الموقع العام وأقسامه.', 'Home page: the public site\'s content and sections.'],
   '/admin/error-log': ['سجل الأخطاء: أخطاء النظام مع شرحها وإصلاحها.', 'Error log: system errors with their explanation and fix.'],
+  '/admin/saber': ['سابر+: كل البرامج ومجموعاتها وأيامها في شاشة واحدة — التاريخ والقاعة والمدرب لكل يوم واعتماد المجموعات.', 'SABER+: every programme with its groups and days on one screen — date, room and trainer per day, and group approval.'],
   '/admin/communities': ['مجتمعات التعلم المهني: ورش وجلسات داخل المدارس ومجتمعاتها.', 'Professional learning communities: workshops and sessions inside schools and their communities.'],
   '/admin/trainer-inbox': ['صندوق المدرب: أسئلة المتدربين للرد عليها.', 'Trainer inbox: trainees\' questions to answer.'],
   '/admin/gamification': ['استوديو التحفيز: شارات ونقاط ومكافآت.', 'Gamification studio: badges, points and rewards.'],

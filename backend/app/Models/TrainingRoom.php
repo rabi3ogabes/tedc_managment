@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['code', 'name_en', 'name_ar', 'office', 'building', 'location', 'floor', 'capacity', 'area_m2', 'layout', 'layouts', 'facilities', 'is_accessible', 'status', 'notes', 'latitude', 'longitude', 'display_token', 'place_id', 'building_id'])]
+#[Fillable(['room_type', 'tag', 'code', 'name_en', 'name_ar', 'office', 'building', 'location', 'floor', 'capacity', 'area_m2', 'layout', 'layouts', 'facilities', 'is_accessible', 'status', 'notes', 'latitude', 'longitude', 'display_token', 'place_id', 'building_id'])]
 class TrainingRoom extends Model
 {
     use Auditable, HasTranslations, HasUuids;

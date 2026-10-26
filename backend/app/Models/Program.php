@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
     'registration_modes', 'status', 'cover_path', 'is_featured', 'created_by', 'audience', 'source_type',
     'survey_mode', 'survey_auto_hours', 'survey_opened_at', 'survey_closed_at', 'registration_announced_at',
     'parent_id', 'kind', 'axes', 'is_emergency', 'emergency_reason', 'owner_type', 'owner_school_id', 'approval_status', 'repeat_policy', 'knowledge_transfer', 'external_platform',
+    'training_days', 'kit_ready', 'survey_link', 'survey_edit_link', 'cancel_reason', 'cancel_requested_by', 'cancel_attachment_path', 'cancelled_at', 'cancelled_by',
     'remote', 'coordinator_id', 'certificate_template_id', 'trainer_certificate_template_id', 'has_course', 'course_sequential', 'course_completion_percent', 'course_auto_certificate',
 ])]
 class Program extends Model
@@ -89,6 +90,8 @@ class Program extends Model
     {
         return [
             'knowledge_transfer' => 'array',
+            'kit_ready' => 'boolean',
+            'cancelled_at' => 'datetime',
             'external_platform' => 'array',
             'objectives' => 'array',
             'axes' => 'array',

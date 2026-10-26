@@ -59,6 +59,22 @@ class RolePermissionSeeder extends Seeder
         'trainers.assign' => ['programs', 'ترشيح المدربين للمجموعات', 'Propose trainers for groups'],
         'trainers.approve' => ['programs', 'اعتماد تكليف المدربين', 'Approve trainer assignments'],
         'rooms.book' => ['programs', 'حجز القاعات لأنشطة غير تدريبية', 'Book rooms for non-training use'],
+        'saber.view' => ['saber', 'عرض سابر+ (جدولة البرامج والمجموعات)', 'View SABER+ (programme & group scheduling)'],
+        'saber.program.create' => ['saber', 'إنشاء برنامج أو حجز قاعة اجتماعات من سابر+', 'Create a programme or book a meeting room in SABER+'],
+        'saber.program.cancel' => ['saber', 'إلغاء برنامج أو مجموعة', 'Cancel a programme or a group'],
+        'saber.program.reactivate' => ['saber', 'إعادة تفعيل برنامج أو مجموعة ملغاة', 'Reactivate a cancelled programme or group'],
+        'saber.meeting.recurring' => ['saber', 'حجز قاعة اجتماعات متكرر', 'Recurring meeting-room booking'],
+        'saber.group.manage' => ['saber', 'إدارة المجموعات (إضافة، ترقيم، لون، فصل، حقيبة)', 'Manage groups (add, number, colour, term, kit)'],
+        'saber.group.rename' => ['saber', 'تسمية المجموعات', 'Rename groups'],
+        'saber.group.validate' => ['saber', 'اعتماد المجموعة (رئيس قسم التدريب)', 'Approve a group (head of training)'],
+        'saber.day.edit' => ['saber', 'تعديل أيام المجموعة وتواريخها', "Edit a group's days and dates"],
+        'saber.room.assign' => ['saber', 'إسناد القاعات لأيام المجموعات', "Assign rooms to groups' days"],
+        'saber.trainer.assign' => ['saber', 'إسناد المدربين لأيام المجموعات', "Assign trainers to groups' days"],
+        'saber.supervisor.assign' => ['saber', 'إسناد المشرف للبرنامج', 'Assign the supervisor of a programme'],
+        'saber.plan.view' => ['saber', 'خطة الأيام القادمة (المحاكاة)', 'Plan of the coming days (simulation)'],
+        'saber.import' => ['saber', 'استيراد تقويم القاعات وقائمة البرامج', 'Import the rooms calendar and the programme list'],
+        'saber.survey_links.manage' => ['saber', 'إدارة روابط الاستمارات الخارجية', 'Manage external survey links'],
+        'trainers.validate' => ['programs', 'اعتماد المدربين الجدد قبل إسنادهم', 'Approve new trainers before they can be assigned'],
         'logistics.manage' => ['programs', 'إدارة الطلبات اللوجستية', 'Manage logistics requests'],
         'plans.view' => ['planning', 'عرض الخطة التدريبية', 'View the training plan'],
         'plans.manage' => ['planning', 'إعداد الخطة التدريبية', 'Prepare the training plan'],
@@ -195,7 +211,7 @@ class RolePermissionSeeder extends Seeder
 
     public const ROLES = [
         Role::SUPER_ADMIN => ['مدير النظام', 'Super Admin', 100, ['*']],
-        Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage', '-roles.create']],
+        Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage', '-roles.create', '-saber.program.reactivate']],
         Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, ['plc.view', 'plc.manage', 'plc.community.manage', 'plc.internal.submit', 'plc.nominate', 'plc.trainers.assign', 'plc.attendance.manage', 'plc.evaluations.manage', 'plc.reports', 'surveys.view', 'surveys.manage', 'surveys.results',
             'packages.manage', 'library.view', 'sharing.manage', 'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
@@ -210,6 +226,8 @@ class RolePermissionSeeder extends Seeder
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports',
+            'saber.view', 'saber.program.create', 'saber.group.manage', 'saber.group.rename', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign',
+            'saber.supervisor.assign', 'saber.plan.view', 'saber.survey_links.manage',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['plc.view', 'surveys.view', 'surveys.results', 'library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
         Role::SCHOOL_ADMIN => ['مدير مدرسة', 'School Admin', 40, ['plc.view', 'plc.internal.submit', 'plc.nominate', 'plc.approve.school', 'plc.attendance.manage', 'plc.reports',
@@ -236,6 +254,8 @@ class RolePermissionSeeder extends Seeder
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports', 'refunds.approve',
+            'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
+            'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, ['plc.view', 'plc.internal.submit', 'plc.nominate', 'plc.attendance.manage', 'plc.reports',
             'dashboard.view', 'schools.view', 'employees.view', 'programs.view', 'calendar.view', 'registrations.view', 'registrations.import', 'nominations.school', 'certificates.view',
@@ -260,6 +280,7 @@ class RolePermissionSeeder extends Seeder
         ]],
         Role::LOGISTICS_OFFICER => ['مسؤول الدعم اللوجستي', 'Logistics Support Officer', 52, [
             'dashboard.view', 'programs.view', 'calendar.view', 'rooms.manage', 'rooms.book', 'logistics.manage', 'search.global',
+            'saber.view', 'saber.room.assign', 'saber.meeting.recurring',
         ]],
     ];
 
@@ -349,5 +370,8 @@ class RolePermissionSeeder extends Seeder
         'privacy.manage',
         // Phase 18
         'help.manage',
+        // سابر+ (docs/saber)
+        'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename',
+        'saber.group.validate', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
     ];
 }

@@ -34,6 +34,7 @@ const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
 const SurveyStudio = lazy(() => import('@/pages/admin/needs/SurveyStudio'))
 const GroupBoard = lazy(() => import('@/pages/admin/GroupBoard'))
+const SaberWorkbench = lazy(() => import('@/pages/admin/saber/SaberWorkbench'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
 const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
@@ -235,6 +236,7 @@ export default function App() {
           <Route path="room-ops" element={<RequireAuth permission="programs.view|rooms.book"><RoomsOps /></RequireAuth>} />
           <Route path="logistics" element={<RequireAuth permission="programs.view|logistics.manage"><Logistics /></RequireAuth>} />
           <Route path="groups" element={<RequireAuth permission="programs.view"><GroupBoard /></RequireAuth>} />
+          <Route path="saber" element={<RequireAuth permission="saber.view"><SaberWorkbench /></RequireAuth>} />
           <Route path="plans" element={<RequireAuth permission="plans.view"><PlanStudio /></RequireAuth>} />
           <Route path="internal-workshops" element={<RequireAuth permission="workshops.internal|workshops.approve"><InternalWorkshops /></RequireAuth>} />
           <Route path="programs" element={<ProgramsAdmin />} />

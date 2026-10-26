@@ -109,6 +109,7 @@ use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
+use App\Http\Controllers\Api\V1\Admin\SaberController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
@@ -922,6 +923,22 @@ Route::prefix('v1')->group(function () {
                     Route::post('{room}/screen-link', 'screenLink');
                     Route::delete('{room}', 'destroy');
                 });
+            });
+
+            // سابر+ — the programmes & groups workbench (docs/saber); each action checks its own saber.* right.
+            Route::middleware('permission:saber.view')->prefix('saber')->group(function () {
+                Route::get('overview', [SaberController::class, 'overview']);
+                Route::get('programs', [SaberController::class, 'programs']);
+                Route::get('availability', [SaberController::class, 'availability']);
+                Route::patch('programs/{program}', [SaberController::class, 'updateProgram'])->whereUuid('program');
+                Route::post('programs/{program}/groups', [SaberController::class, 'addGroup'])->whereUuid('program');
+                Route::patch('groups/{group}', [SaberController::class, 'updateGroup'])->whereUuid('group');
+                Route::delete('groups/{group}', [SaberController::class, 'deleteGroup'])->whereUuid('group');
+                Route::post('groups/{group}/validate', [SaberController::class, 'validateGroup'])->whereUuid('group');
+                Route::post('groups/{group}/reset', [SaberController::class, 'resetGroup'])->whereUuid('group');
+                Route::put('groups/{group}/days/{idx}', [SaberController::class, 'setDay'])->whereUuid('group')->whereNumber('idx');
+                Route::delete('groups/{group}/days/{idx}', [SaberController::class, 'resetDay'])->whereUuid('group')->whereNumber('idx');
+                Route::put('settings', [SaberController::class, 'saveSettings'])->middleware('permission:settings.manage');
             });
 
             // Programs & sessions

@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable([
     'program_id', 'code', 'title_ar', 'title_en', 'sequence', 'delivery_mode', 'start_date', 'end_date', 'registration_opens_at', 'registration_closes_at',
-    'capacity', 'min_attendance_percent', 'supervisor_id', 'default_room_id', 'status', 'status_reason', 'postponed_to', 'plan_item_id', 'is_emergency', 'published_at', 'approval_mode', 'approve_after_window', 'allow_overlap_until_approved',
+    'capacity', 'min_attendance_percent', 'supervisor_id', 'default_room_id', 'status', 'status_reason', 'postponed_to', 'plan_item_id', 'is_emergency', 'published_at', 'color', 'term', 'validated_at', 'validated_by', 'validated_by_name', 'cancel_requested_by', 'cancel_attachment_path', 'cancelled_at', 'cancelled_by',
+    'approval_mode', 'approve_after_window', 'allow_overlap_until_approved',
 ])]
 class TrainingGroup extends Model
 {
@@ -59,7 +60,7 @@ class TrainingGroup extends Model
     {
         return [
             'start_date' => 'date', 'end_date' => 'date', 'postponed_to' => 'date', 'published_at' => 'datetime',
-            'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'is_emergency' => 'boolean', 'approve_after_window' => 'boolean', 'allow_overlap_until_approved' => 'boolean',
+            'registration_opens_at' => 'datetime', 'registration_closes_at' => 'datetime', 'is_emergency' => 'boolean', 'validated_at' => 'datetime', 'cancelled_at' => 'datetime', 'approve_after_window' => 'boolean', 'allow_overlap_until_approved' => 'boolean',
         ];
     }
 
