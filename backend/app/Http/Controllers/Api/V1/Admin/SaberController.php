@@ -10,6 +10,7 @@ use App\Models\CalendarWeeklyRule;
 use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Role;
+use App\Models\RoomBooking;
 use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
@@ -18,6 +19,7 @@ use App\Models\User;
 use App\Services\CalendarService;
 use App\Services\FileStorage;
 use App\Services\RoomService;
+use App\Services\Saber\Meetings;
 use App\Services\Saber\Scheduling;
 use App\Services\Saber\Workbench;
 use App\Services\TrainingDaySettings;
@@ -58,12 +60,13 @@ class SaberController extends Controller
             'supervisors' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::COORDINATOR, Role::TRAINING_HEAD]))->where('status', 'active')->orderBy('name')
                 ->get(['id', 'name', 'name_ar'])->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]),
             'palette' => Workbench::PALETTE,
+            'me' => $user->id,
             'offday_pending' => CalendarRequest::where('status', CalendarRequest::PENDING)->when(! $user->hasPermission('calendar.approve'), fn ($q) => $q->where('requested_by', $user->id))->count(),
             'settings' => $this->settings(),
             'day' => ['hours' => $this->day->hours()] + $this->day->all(),
             'can' => collect(['saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
                 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage',
-                'trainers.manage', 'calendar.manage', 'calendar.approve', 'surveys.export', 'settings.manage'])->mapWithKeys(fn ($p) => [$p => $user->hasPermission($p)]),
+                'trainers.manage', 'calendar.manage', 'calendar.approve', 'surveys.export', 'settings.manage', 'rooms.book', 'rooms.manage', 'programs.manage'])->mapWithKeys(fn ($p) => [$p => $user->hasPermission($p)]),
         ]]);
     }
 
@@ -477,6 +480,70 @@ class SaberController extends Controller
             'requested_by' => $r->requester?->displayName(), 'decided_by' => $r->decider?->displayName(), 'decided_at' => $r->decided_at?->toIso8601String(),
             'decision_note' => $r->decision_note, 'created_at' => $r->created_at?->toIso8601String(),
         ];
+    }
+
+    /** «تقويم القاعات» and «خريطة القاعات»: every room's month, day by day. */
+    public function roomsMonth(Request $request, Meetings $meetings): JsonResponse
+    {
+        $ym = $request->validate(['month' => ['nullable', 'date_format:Y-m']])['month'] ?? now()->format('Y-m');
+
+        return response()->json(['data' => $meetings->month($ym)]);
+    }
+
+    /** The hour slots of a room on a day (free or held, and by what), with whether the day takes events. */
+    public function roomSlots(Request $request, Meetings $meetings): JsonResponse
+    {
+        $d = $request->validate(['room_id' => ['required', 'uuid', 'exists:training_rooms,id'], 'date' => ['required', 'date_format:Y-m-d'], 'except' => ['nullable', 'uuid']]);
+
+        return response()->json(['data' => $meetings->slots($d['room_id'], $d['date'], $d['except'] ?? null)]);
+    }
+
+    /** «حجز قاعة اجتماعات»: by the hour, once or repeated (repeating needs its own right). */
+    public function bookMeeting(Request $request, Meetings $meetings): JsonResponse
+    {
+        abort_unless($this->user()->hasPermission('rooms.book') || $this->user()->hasPermission('saber.program.create') || $this->user()->hasPermission('rooms.manage'), 403);
+        $d = $request->validate([
+            'room_id' => ['required', 'uuid', 'exists:training_rooms,id'], 'title' => ['required', 'string', 'max:200'], 'requested_by' => ['required', 'string', 'max:160'],
+            'reason' => ['required', 'string', 'max:1000'], 'purpose' => ['required', Rule::in(['meeting', 'training', 'event', 'exam', 'other'])], 'date' => ['required', 'date_format:Y-m-d'],
+            'from_hour' => ['required', 'integer', 'between:'.Meetings::FIRST_HOUR.','.(Meetings::LAST_HOUR - 1)], 'to_hour' => ['required', 'integer', 'between:'.(Meetings::FIRST_HOUR + 1).','.Meetings::LAST_HOUR],
+            'recurrence' => ['nullable', Rule::in(['none', ...array_keys(Meetings::STEPS)])], 'count' => ['nullable', 'integer', 'min:1', 'max:60'], 'attendees' => ['nullable', 'integer', 'min:1', 'max:5000'],
+        ]);
+        if (($d['recurrence'] ?? 'none') !== 'none' && (int) ($d['count'] ?? 1) > 1) {
+            $this->need('saber.meeting.recurring');
+        } else {
+            $d['recurrence'] = null;
+            $d['count'] = 1;
+        }
+        $rows = $meetings->book($d, $this->user());
+
+        return response()->json(['data' => ['created' => $rows->count(), 'series_id' => $rows->first()?->series_id]], 201);
+    }
+
+    public function updateMeeting(Request $request, RoomBooking $booking, Meetings $meetings): JsonResponse
+    {
+        $this->ownMeeting($booking);
+        $d = $request->validate([
+            'title' => ['sometimes', 'string', 'max:200'], 'requested_by' => ['sometimes', 'nullable', 'string', 'max:160'], 'reason' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'from_hour' => ['sometimes', 'integer', 'between:'.Meetings::FIRST_HOUR.','.(Meetings::LAST_HOUR - 1)], 'to_hour' => ['sometimes', 'integer', 'between:'.(Meetings::FIRST_HOUR + 1).','.Meetings::LAST_HOUR],
+            'series' => ['sometimes', 'boolean'],
+        ]);
+        $meetings->update($booking, $d);
+
+        return response()->json(['data' => ['updated' => true]]);
+    }
+
+    public function cancelMeeting(Request $request, RoomBooking $booking, Meetings $meetings): JsonResponse
+    {
+        $this->ownMeeting($booking);
+
+        return response()->json(['data' => ['cancelled' => $meetings->cancel($booking, $request->boolean('series'))]]);
+    }
+
+    private function ownMeeting(RoomBooking $b): void
+    {
+        $u = $this->user();
+        abort_unless($b->status === 'confirmed', 422, __('messages.saber.meeting.not_active'));
+        abort_unless($b->booked_by === $u->id || $u->hasPermission('rooms.manage') || $u->hasPermission('logistics.manage'), 403);
     }
 
     public function saveSettings(Request $request): JsonResponse

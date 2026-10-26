@@ -31,6 +31,7 @@ class RoomController extends Controller
             ->when($request->query('office'), fn ($q, $v) => $q->where('office', $v))
             ->when($request->query('floor'), fn ($q, $v) => $q->where('floor', $v))
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
+            ->when($request->query('room_type'), fn ($q, $v) => $q->where('room_type', $v))
             ->when($request->query('min_capacity'), fn ($q, $v) => $q->where('capacity', '>=', (int) $v))
             ->when($request->query('layout'), fn ($q, $v) => $q->whereNotNull("layouts->{$v}"))
             ->orderBy('office')->orderBy('floor')->orderBy('name_ar')
@@ -160,6 +161,8 @@ class RoomController extends Controller
             'facilities.*.qty' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'is_accessible' => ['sometimes', 'boolean'],
             'status' => ['sometimes', Rule::in(RoomCatalog::ROOM_STATUSES)],
+            'room_type' => ['sometimes', Rule::in(['training', 'meeting'])],
+            'tag' => ['nullable', 'string', 'max:60'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],

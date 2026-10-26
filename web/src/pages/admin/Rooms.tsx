@@ -53,7 +53,7 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
   const [form, setForm] = useState(() => ({
     name_ar: room?.name_ar ?? '', name_en: room?.name_en ?? '', code: room?.code ?? '', office: room?.office ?? '', building: room?.building ?? '', floor: room?.floor ?? '',
     location: room?.location ?? '', area_m2: room?.area_m2 ? String(room.area_m2) : '', layout: room?.layout ?? 'classroom', status: room?.status ?? 'active',
-    is_accessible: room?.is_accessible ?? true, notes: room?.notes ?? '',
+    is_accessible: room?.is_accessible ?? true, notes: room?.notes ?? '', room_type: room?.room_type ?? 'training', tag: room?.tag ?? '',
     latitude: room?.latitude != null ? String(room.latitude) : '', longitude: room?.longitude != null ? String(room.longitude) : '',
   }))
   const [locating, setLocating] = useState(false)
@@ -89,6 +89,7 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
     try {
       const body = {
         ...form,
+        tag: form.tag.trim() || null,
         code: form.code || null, office: form.office || null, building: form.building || null, floor: form.floor || null, location: form.location || null, notes: form.notes || null,
         area_m2: form.area_m2 ? Number(form.area_m2) : null,
         latitude: form.latitude.trim() === '' ? null : Number(form.latitude), longitude: form.longitude.trim() === '' ? null : Number(form.longitude),
@@ -138,6 +139,12 @@ function RoomForm({ room, options, onClose, onSaved }: { room: Room | null; opti
               {(['active', 'maintenance', 'inactive'] as const).map((s) => <option key={s} value={s}>{t(`mgmt.rooms.statuses.${s}`)}</option>)}
             </select>
           </Field>
+          <Field label={t('saber.rooms.type')}>
+            <select className="input" value={form.room_type} onChange={(e) => set('room_type', e.target.value as 'training' | 'meeting')}>
+              {(['training', 'meeting'] as const).map((k) => <option key={k} value={k}>{t(`saber.rooms.types.${k}`)}</option>)}
+            </select>
+          </Field>
+          <Field label={t('saber.rooms.tag')} hint={t('saber.rooms.tagHint')}><input className="input" maxLength={60} value={form.tag} onChange={(e) => set('tag', e.target.value)} /></Field>
         </div>
 
         <section>

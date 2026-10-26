@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import {
-  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
+  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Map as MapIcon, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,8 +16,12 @@ import { SaberActionsContext, type SaberActions } from './actions'
 import { OffdayInbox, OffdayRequestDialog, WeeklyHolidays } from './CalendarDialogs'
 import CancelDialog from './CancelDialog'
 import GroupPanel from './GroupPanel'
+import MeetingDialog from './MeetingDialog'
 import PlanDialog from './PlanDialog'
 import { DetailsModal, SurveyLinks } from './ProgramExtras'
+import RoomMap from './RoomMap'
+import { isoToday, type MonthData } from './rooms'
+import RoomsCalendar from './RoomsCalendar'
 import { lightsOf, withGroup, type Group, type Notice, type OffdayTarget, type Overview, type Program } from './types'
 
 type Filters = { q: string; from: string; to: string; term_first: boolean; term_second: boolean; kit_ready: boolean; kit_not_ready: boolean; page: number }
@@ -50,6 +54,11 @@ export default function SaberWorkbench() {
   const [inboxOpen, setInboxOpen] = useState(() => params0.get('inbox') === '1')
   const [weeklyOpen, setWeeklyOpen] = useState(false)
   const [detailsId, setDetailsId] = useState<string | null>(null)
+  const tab = (['calendar', 'map'] as const).find((x) => x === params0.get('tab')) ?? 'programs'
+  const setTab = (next: 'programs' | 'calendar' | 'map') => { if (next === 'programs') params0.delete('tab'); else params0.set('tab', next); setParams0(params0, { replace: true }) }
+  const [cursor, setCursor] = useState(() => isoToday().slice(0, 7))
+  const [mapDate, setMapDate] = useState(isoToday)
+  const [meeting, setMeeting] = useState<{ roomId?: string; date?: string } | null>(null)
 
   useEffect(() => { const id = setTimeout(() => setFilters((f) => (f.q === search ? f : { ...f, q: search, page: 1 })), 300); return () => clearTimeout(id) }, [search])
   useEffect(() => store.set('saber.tools', tools), [tools])
@@ -61,6 +70,7 @@ export default function SaberWorkbench() {
     term_first: filters.term_first ? undefined : 0, term_second: filters.term_second ? undefined : 0, kit_ready: filters.kit_ready ? undefined : 0, kit_not_ready: filters.kit_not_ready ? undefined : 0,
   }), [filters])
   const list = useGet<Page>('/admin/saber/programs', params, { staleTime: 0, placeholderData: (prev) => prev })
+  const month = useGet<{ data: MonthData }>(tab === 'programs' ? null : '/admin/saber/rooms-month', { month: tab === 'map' ? mapDate.slice(0, 7) : cursor }, { staleTime: 0, placeholderData: (prev) => prev })
   const ov = overview.data?.data
   const page = list.data
   const dirty = JSON.stringify({ ...filters, page: 1 }) !== JSON.stringify(NO_FILTERS)
@@ -87,6 +97,8 @@ export default function SaberWorkbench() {
     <div className="space-y-5 pb-8">
       <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {tab !== 'programs' && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
+          {tab === 'programs' && ov?.can['programs.manage'] && <Button variant="outline" size="sm" icon={<Plus className="size-4" />} to="/admin/programs/smart">{t('saber.newProgram')}</Button>}
           {tools.plan && ov?.can['saber.plan.view'] && <Button variant="gold" size="sm" icon={<CalendarRange className="size-4" />} onClick={() => setPlan('new')}>{t('saber.plan.open')}</Button>}
           {tools.cancel && <Button variant="outline" size="sm" icon={<Ban className="size-4" />} onClick={() => setCancel('new')}>{t('saber.cancel.open')}</Button>}
           {tools.inbox && (
@@ -108,6 +120,23 @@ export default function SaberWorkbench() {
         </> : Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
       </div>
 
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-navy-100 bg-white p-1 shadow-sm" role="tablist">
+        {([['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon]] as const).map(([id, label, Icon]) => (
+          <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+            className={clsx('flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition', tab === id ? 'bg-navy-900 text-white shadow' : 'text-slate-500 hover:bg-ivory hover:text-navy-900')}>
+            <Icon className="size-4" />{label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'calendar' && (month.data && ov
+        ? <RoomsCalendar data={month.data.data} overview={ov} cursor={cursor} onCursor={setCursor} onBook={(roomId, date) => setMeeting({ roomId, date })} onChanged={() => month.refetch()} />
+        : <Skeleton className="h-[32rem] rounded-2xl" />)}
+      {tab === 'map' && (month.data && ov
+        ? <RoomMap data={month.data.data} overview={ov} date={mapDate} onDate={setMapDate} onChanged={() => month.refetch()} />
+        : <Skeleton className="h-[32rem] rounded-2xl" />)}
+
+      {tab === 'programs' && <>
       <div className="sticky top-0 z-20 -mx-1 rounded-2xl border border-navy-100 bg-white/90 p-3 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-center gap-2">
           {tools.search && (
@@ -168,6 +197,7 @@ export default function SaberWorkbench() {
           )}
         </>
       )}
+      </>}
 
       <Modal open={toolsOpen} onClose={() => setToolsOpen(false)} title={t('saber.tools.title')}>
         <p className="mb-4 text-sm text-slate-500">{t('saber.tools.hint')}</p>
@@ -186,6 +216,7 @@ export default function SaberWorkbench() {
       {inboxOpen && <OffdayInbox onClose={closeInbox} onChanged={refresh} />}
       {weeklyOpen && <WeeklyHolidays canManage={!!ov?.can['calendar.manage']} onClose={() => setWeeklyOpen(false)} onChanged={refresh} />}
       {detailsId && <DetailsModal programId={detailsId} onClose={() => setDetailsId(null)} />}
+      {ov && meeting && month.data && <MeetingDialog overview={ov} rooms={month.data.data.rooms} initial={meeting} onClose={() => setMeeting(null)} onBooked={() => { month.refetch(); overview.refetch() }} />}
     </div>
     </SaberActionsContext.Provider>
   )

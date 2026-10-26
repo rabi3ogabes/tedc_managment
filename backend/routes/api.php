@@ -955,6 +955,12 @@ Route::prefix('v1')->group(function () {
                 Route::get('weekly-rules', [SaberController::class, 'weeklyRules']);
                 Route::post('weekly-rules', [SaberController::class, 'saveWeeklyRule'])->middleware('permission:calendar.manage');
                 Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
+                // Phase 3 — rooms calendar, room map and meeting-room bookings.
+                Route::get('rooms-month', [SaberController::class, 'roomsMonth']);
+                Route::get('room-slots', [SaberController::class, 'roomSlots']);
+                Route::post('meetings', [SaberController::class, 'bookMeeting']);
+                Route::patch('meetings/{booking}', [SaberController::class, 'updateMeeting'])->whereUuid('booking');
+                Route::delete('meetings/{booking}', [SaberController::class, 'cancelMeeting'])->whereUuid('booking');
             });
 
             // Programs & sessions

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A room booked for something other than a training session (or linked to one). */
-#[Fillable(['room_id', 'purpose', 'title', 'starts_at', 'ends_at', 'booked_by', 'session_id', 'status', 'attendees', 'notes'])]
+#[Fillable(['room_id', 'purpose', 'title', 'starts_at', 'ends_at', 'booked_by', 'session_id', 'status', 'attendees', 'notes', 'requested_by', 'reason', 'series_id', 'recurrence'])]
 class RoomBooking extends Model
 {
     use Auditable, HasUuids;

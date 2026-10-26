@@ -54,15 +54,15 @@ Status: ✅ exists in شاهين · 🟡 partly · 🆕 to build
 | B1 | Plan of the coming days (simulation): programme, group, optional room and trainer, weekday, weekly / every two weeks, count, from date → each date free / busy / holiday; select; apply to the group (replaces its days, with a warning) | ✅ phase 2 |
 | B2 | Cancel a programme or one group: reason, requested by, attachment; frees rooms and trainers; cancelled list; reactivation for the super administrator only | ✅ phase 2 |
 | B3 | Booking on a holiday: request with reason → inbox «طلبات أيام الإجازة» → approve / reject; instant approval for whoever holds the right | ✅ phase 2 |
-| B4 | Holidays: single dates and weekly recurring days, with a label; «allow an exceptional event» on a holiday | ✅ phase 2 (events flag enforced for meetings in phase 3) |
+| B4 | Holidays: single dates and weekly recurring days, with a label; «allow an exceptional event» on a holiday | ✅ phase 2 (events flag enforced for meetings since phase 3) |
 
 ### C. Rooms and meeting bookings
 | # | Feature | Status |
 |---|---|---|
-| C1 | Rooms: name, type (training / meeting), tag, capacity, building, floor, layout | 🟡 type + tag 🆕 |
-| C2 | Meeting-room booking: title, requested by, reason, date, hour slots 7:00–14:00, purpose, recurrence daily / weekly / every two weeks × count (permission), hour conflicts and holidays checked | 🟡 bookings ✅; requester / reason / slots / recurrence 🆕 |
-| C3 | Rooms month calendar: all / free / booked rooms, available / booked filter, calendar or rows view, colour legend, room window with hour slots, edit / cancel a booking, recurring bookings shown together | 🟡 calendar ✅; filters, slots window 🆕 |
-| C4 | Room map: status of every room for a chosen day, booking details | 🟡 |
+| C1 | Rooms: name, type (training / meeting), tag, capacity, building, floor, layout | ✅ phase 3 |
+| C2 | Meeting-room booking: title, requested by, reason, date, hour slots 7:00–14:00, purpose, recurrence daily / weekly / every two weeks × count (permission), hour conflicts and holidays checked | ✅ phase 3 |
+| C3 | Rooms month calendar: all / free / booked rooms, available / booked filter, calendar or rows view, colour legend, room window with hour slots, edit / cancel a booking, recurring bookings shown together | ✅ phase 3 |
+| C4 | Room map: status of every room for a chosen day, booking details | ✅ phase 3 |
 
 ### D. Data tools
 | # | Feature | Status |

@@ -111,9 +111,9 @@ class CalendarService
     /** True when events (meetings, bookings) may take place on the date even though it is closed for training. */
     public function eventsAllowed(CarbonInterface $date): bool
     {
-        $day = $this->describe($date, CalendarDay::whereDate('date', $date->toDateString())->first());
+        $day = $this->describe($date, CalendarDay::whereDate('date', $date->toDateString())->first(), CalendarApproval::whereDate('date', $date->toDateString())->first());
 
-        return $day['kind'] === 'workday' || $day['allow_events'] || in_array($day['kind'], ['exam', 'normal'], true);
+        return $day['training_allowed'] || $day['allow_events'] || in_array($day['kind'], ['exam', 'normal'], true);
     }
 
     /**

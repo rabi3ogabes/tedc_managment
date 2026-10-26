@@ -64,6 +64,28 @@ export const saberAr = {
   survey: {
     title: 'رابط الاستبيان', open: 'فتح', copy: 'نسخ', copied: 'نُسخ الرابط.', qr: 'رمز QR', download: 'تنزيل PNG', edit: 'تعديل الروابط', link: 'رابط الاستبيان', editLink: 'رابط تعديل الاستمارة', none: 'لا رابط بعد', saved: 'حُفظت الروابط.',
   },
+  tabs: { programs: 'البرامج والمجموعات', calendar: 'تقويم القاعات', map: 'خريطة القاعات' },
+  newProgram: 'برنامج جديد',
+  rooms: {
+    type: 'نوع القاعة', types: { training: 'قاعة تدريب', meeting: 'قاعة اجتماعات' }, tag: 'الوسم', tagHint: 'مثل: مختبر، VIP، ورشة — يرتب القاعات في التقويم والخريطة.',
+    capacity: 'المقاعد: {{n}}', building: 'المبنى: {{v}}', floor: 'الطابق: {{v}}',
+  },
+  meeting: {
+    open: 'حجز قاعة اجتماعات', title: 'حجز قاعة اجتماعات', hint: 'اختر القاعة والتاريخ ثم الساعات المتاحة (7 ص – 2 م). تُفحص العطل والحجوزات القائمة.',
+    titleLabel: 'عنوان الاجتماع', requestedBy: 'طالب الحجز', reason: 'سبب الحجز / الوصف', purpose: 'الغرض', purposes: { meeting: 'اجتماع', training: 'تدريب', event: 'فعالية', exam: 'اختبار', other: 'أخرى' },
+    room: 'القاعة', date: 'تاريخ الحجز', hours: 'فترة الحجز بالساعة', hoursHint: 'اختر ساعة أو أكثر متتالية.', attendees: 'عدد الحضور (اختياري)',
+    recurrence: 'التكرار', recur: { none: 'بدون تكرار (يوم واحد)', daily: 'يومياً', weekly: 'أسبوعياً (نفس اليوم)', biweekly: 'كل أسبوعين' }, count: 'عدد المرات', recurOnly: 'التكرار متاح لمن لديه صلاحية «حجز قاعة اجتماعات متكرر».',
+    save: 'تأكيد الحجز', saved: 'تم الحجز.', savedMany: 'تم حجز {{n}} موعداً.', closed: 'هذا اليوم عطلة ({{label}}) لا تُسمح فيه الفعاليات.', taken: 'محجوزة: {{by}}', pickRoomDate: 'اختر القاعة والتاريخ لعرض الساعات.',
+    edit: 'تعديل الحجز', cancel: 'إلغاء الحجز', cancelConfirm: 'يُلغى حجز «{{title}}». متابعة؟', cancelSeries: 'إلغاء كل المواعيد القادمة في هذا التكرار', series: 'حجز متكرر · {{n}} مواعيد', applySeries: 'تطبيق العنوان والطالب والسبب على كل مواعيد التكرار',
+    cancelled: 'أُلغي الحجز.', updated: 'حُفظ الحجز.', from: 'من الساعة', to: 'إلى الساعة', by: 'طالب الحجز: {{v}}', why: 'السبب: {{v}}', bookedBy: 'سجّله {{v}}',
+  },
+  calendar: {
+    prev: 'السابق', today: 'اليوم', next: 'التالي', rooms: { all: 'كل القاعات', free: 'المتاحة', booked: 'المحجوزة' }, roomsHint: 'إظهار القاعات حسب حالتها في اليوم المختار',
+    status: { all: 'الكل', available: 'متاح', booked: 'محجوز' }, view: { calendar: 'تقويم', rows: 'صفوف' }, legend: 'دليل الألوان', legendItems: { free: 'متاح', partial: 'محجوز جزئياً', full: 'محجوز بالكامل', off: 'عطلة', events: 'عطلة تسمح بالفعاليات' },
+    booked: '{{n}}/{{total}} قاعة', dayTitle: 'القاعات يوم {{date}}', noRooms: 'لا قاعات بهذه الحالة.', free: 'متاحة طوال اليوم', training: 'برنامج تدريبي', groupDay: '{{group}} · اليوم {{day}}', trainer: 'المدرب: {{v}}',
+    hoursBooked: 'الساعات المحجوزة: {{n}}/{{total}}', closed: 'لا يمكن الحجز في هذا اليوم', allowEvents: 'مسموح بالفعاليات', pickDay: 'اختر يوماً من التقويم لعرض القاعات.', empty: 'لا حجوزات في هذا الشهر.',
+  },
+  map: { title: 'خريطة القاعات', date: 'اليوم', free: 'متاحة', partial: 'محجوزة جزئياً', full: 'محجوزة', closed: 'عطلة', noBuilding: 'بدون مبنى', summary: 'متاحة {{free}} · جزئياً {{partial}} · محجوزة {{full}}' },
   pager: { prev: 'السابق', next: 'التالي', page: 'صفحة {{page}} من {{last}}' },
 }
 
@@ -132,5 +154,27 @@ export const saberEn: typeof saberAr = {
   survey: {
     title: 'Survey link', open: 'Open', copy: 'Copy', copied: 'Link copied.', qr: 'QR code', download: 'Download PNG', edit: 'Edit links', link: 'Survey link', editLink: 'Form edit link', none: 'No link yet', saved: 'Links saved.',
   },
+  tabs: { programs: 'Programmes & groups', calendar: 'Rooms calendar', map: 'Room map' },
+  newProgram: 'New programme',
+  rooms: {
+    type: 'Room type', types: { training: 'Training room', meeting: 'Meeting room' }, tag: 'Tag', tagHint: 'Such as Lab, VIP, Workshop — orders the rooms in the calendar and the map.',
+    capacity: '{{n}} seats', building: 'Building: {{v}}', floor: 'Floor: {{v}}',
+  },
+  meeting: {
+    open: 'Book a meeting room', title: 'Book a meeting room', hint: 'Choose the room and the date, then the free hours (7:00–14:00). Holidays and existing bookings are checked.',
+    titleLabel: 'Meeting title', requestedBy: 'Requested by', reason: 'Reason / description', purpose: 'Purpose', purposes: { meeting: 'Meeting', training: 'Training', event: 'Event', exam: 'Exam', other: 'Other' },
+    room: 'Room', date: 'Date', hours: 'Hours', hoursHint: 'Choose one or more consecutive hours.', attendees: 'Attendees (optional)',
+    recurrence: 'Repeat', recur: { none: 'No repeat (one day)', daily: 'Daily', weekly: 'Weekly (same day)', biweekly: 'Every two weeks' }, count: 'Times', recurOnly: 'Repeating is for holders of the «recurring meeting booking» right.',
+    save: 'Book', saved: 'Booked.', savedMany: '{{n}} bookings made.', closed: 'This day is a holiday ({{label}}) that does not allow events.', taken: 'Booked: {{by}}', pickRoomDate: 'Choose the room and the date to see the hours.',
+    edit: 'Edit booking', cancel: 'Cancel booking', cancelConfirm: 'The booking “{{title}}” will be cancelled. Continue?', cancelSeries: 'Cancel every upcoming date of this series', series: 'Recurring · {{n}} dates', applySeries: 'Apply the title, requester and reason to the whole series',
+    cancelled: 'Booking cancelled.', updated: 'Booking saved.', from: 'From', to: 'To', by: 'Requested by: {{v}}', why: 'Reason: {{v}}', bookedBy: 'Recorded by {{v}}',
+  },
+  calendar: {
+    prev: 'Previous', today: 'Today', next: 'Next', rooms: { all: 'All rooms', free: 'Free', booked: 'Booked' }, roomsHint: 'Show rooms by their state on the chosen day',
+    status: { all: 'All', available: 'Available', booked: 'Booked' }, view: { calendar: 'Calendar', rows: 'Rows' }, legend: 'Legend', legendItems: { free: 'Free', partial: 'Partly booked', full: 'Fully booked', off: 'Holiday', events: 'Holiday allowing events' },
+    booked: '{{n}}/{{total}} rooms', dayTitle: 'Rooms on {{date}}', noRooms: 'No rooms in this state.', free: 'Free all day', training: 'Training programme', groupDay: '{{group}} · day {{day}}', trainer: 'Trainer: {{v}}',
+    hoursBooked: 'Booked hours: {{n}}/{{total}}', closed: 'No booking on this day', allowEvents: 'Events allowed', pickDay: 'Pick a day in the calendar to see the rooms.', empty: 'No bookings this month.',
+  },
+  map: { title: 'Room map', date: 'Day', free: 'Free', partial: 'Partly booked', full: 'Booked', closed: 'Holiday', noBuilding: 'No building', summary: 'Free {{free}} · partly {{partial}} · booked {{full}}' },
   pager: { prev: 'Previous', next: 'Next', page: 'Page {{page}} of {{last}}' },
 }

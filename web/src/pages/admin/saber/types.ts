@@ -20,7 +20,7 @@ export type RoomOption = Option & { capacity: number | null; building: string | 
 
 export type Overview = {
   stats: { programs_month: number; awaiting_approval: number; booked_rooms: number; trainers: number }
-  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]; offday_pending: number
+  rooms: RoomOption[]; trainers: Option[]; supervisors: Option[]; palette: string[]; offday_pending: number; me: string
   settings: { supervisor_edit_enabled: boolean; group_delete_enabled: boolean }
   day: { hours: number; day_start: string; day_end: string }
   can: Record<string, boolean>
