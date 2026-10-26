@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['user_id', 'name_en', 'name_ar', 'title_en', 'title_ar', 'email', 'phone', 'bio_en', 'bio_ar', 'specializations', 'photo_path', 'is_external', 'organization', 'rating', 'status',
-    'source', 'school_id', 'employee_id', 'partner_id', 'country', 'city', 'languages', 'experience_years', 'hourly_rate', 'currency', 'notes'])]
+    'source', 'school_id', 'employee_id', 'partner_id', 'country', 'city', 'languages', 'experience_years', 'hourly_rate', 'currency', 'notes', 'national_id', 'national_id_hash', 'validated_at', 'validated_by'])]
+#[Hidden(['national_id', 'national_id_hash'])]
 class Trainer extends Model
 {
     use Auditable, HasTranslations, HasUuids;
@@ -42,7 +44,7 @@ class Trainer extends Model
     /** Sources that are not part of the education system. */
     public const OUTSIDE = [self::PARTNER, self::EXTERNAL, self::INTERNATIONAL];
 
-    protected $casts = ['specializations' => 'array', 'languages' => 'array', 'is_external' => 'boolean', 'rating' => 'float', 'experience_years' => 'float', 'hourly_rate' => 'float'];
+    protected $casts = ['specializations' => 'array', 'languages' => 'array', 'is_external' => 'boolean', 'rating' => 'float', 'experience_years' => 'float', 'hourly_rate' => 'float', 'national_id' => 'encrypted', 'validated_at' => 'datetime'];
 
     protected static function booted(): void
     {

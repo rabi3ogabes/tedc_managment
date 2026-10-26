@@ -64,7 +64,7 @@ export const saberAr = {
   survey: {
     title: 'رابط الاستبيان', open: 'فتح', copy: 'نسخ', copied: 'نُسخ الرابط.', qr: 'رمز QR', download: 'تنزيل PNG', edit: 'تعديل الروابط', link: 'رابط الاستبيان', editLink: 'رابط تعديل الاستمارة', none: 'لا رابط بعد', saved: 'حُفظت الروابط.',
   },
-  tabs: { programs: 'البرامج والمجموعات', calendar: 'تقويم القاعات', map: 'خريطة القاعات' },
+  tabs: { programs: 'البرامج والمجموعات', calendar: 'تقويم القاعات', map: 'خريطة القاعات', supervisors: 'المشرفون', data: 'أدوات البيانات' },
   newProgram: 'برنامج جديد',
   rooms: {
     type: 'نوع القاعة', types: { training: 'قاعة تدريب', meeting: 'قاعة اجتماعات' }, tag: 'الوسم', tagHint: 'مثل: مختبر، VIP، ورشة — يرتب القاعات في التقويم والخريطة.',
@@ -86,6 +86,36 @@ export const saberAr = {
     hoursBooked: 'الساعات المحجوزة: {{n}}/{{total}}', closed: 'لا يمكن الحجز في هذا اليوم', allowEvents: 'مسموح بالفعاليات', pickDay: 'اختر يوماً من التقويم لعرض القاعات.', empty: 'لا حجوزات في هذا الشهر.',
   },
   map: { title: 'خريطة القاعات', date: 'اليوم', free: 'متاحة', partial: 'محجوزة جزئياً', full: 'محجوزة', closed: 'عطلة', noBuilding: 'بدون مبنى', summary: 'متاحة {{free}} · جزئياً {{partial}} · محجوزة {{full}}' },
+  data: {
+    title: 'أدوات البيانات', hint: 'استيراد ملفات المركز وتحديث البيانات دفعة واحدة — كل أداة تعرض ما ستفعله قبل أن تكتب شيئاً.',
+    file: 'اختيار ملف Excel', reading: 'جارٍ قراءة الملف…', apply: 'تطبيق', back: 'رجوع', recheck: 'إعادة الفحص', done: 'تم.',
+    calendar: {
+      title: 'استيراد تقويم القاعات التدريبية', desc: 'يقرأ ملف «تقويم القاعات» (القاعات × التواريخ) ويحدّث أيام المجموعات وقاعاتها ومشرفيها للبرامج الموجودة فقط.',
+      hint: 'لا يُنشأ أي برنامج من الملف؛ القاعات غير الموجودة تُضاف، والمشرفون يُطابقون بالاسم مع مشرفي المنصة.', cells: 'حجوزات في الملف', tracks: 'مجموعات مطابقة', rooms: 'قاعات', sups: 'مشرفون',
+      verdict: { match: 'مطابق — جاهز', diff: 'يحتاج تحديث', new: 'مجموعة جديدة' }, days: '{{n}} يوم', from: 'من الملف: {{label}}', target: 'تُحدَّث: {{name}}', score: 'التطابق {{n}}%',
+      approve: 'اعتماد المجموعات التي تُطبَّق دون تعارض', unmatched: 'تسميات لا تطابق أي برنامج — ستُتجاهل ({{n}})', best: 'الأقرب: {{name}}', newRoom: 'قاعة جديدة', supMissing: 'غير موجود في المنصة',
+      result: 'حُدّثت {{updated}} مجموعة، وأُنشئت {{created}}، واعتُمدت {{approved}}، وأُضيفت {{rooms}} قاعة.', failures: 'أيام لم تُطبَّق ({{n}})', selectAll: 'تحديد الكل', selected: 'المحددة: {{n}}',
+    },
+    programs: {
+      title: 'استيراد قائمة البرامج', desc: 'من ملف Excel أو رابط OneDrive: الاسم والنوع والآلية والساعات والأيام والهدف والمجموعات والحقيبة وموعد التنفيذ.',
+      link: 'أو الصق رابط OneDrive / SharePoint', fetch: 'فحص الرابط', rows: 'صفوف صالحة', issues: 'ملاحظات ({{n}})', action: { create: 'برنامج جديد (مسودة)', update: 'تحديث الموجود' },
+      result: 'أُنشئ {{created}} برنامجاً وحُدّث {{updated}}، وأُضيفت {{groups}} مجموعة.', cols: { name: 'البرنامج', method: 'الآلية', hours: 'الساعات', days: 'الأيام', groups: 'المجموعات', kit: 'الحقيبة', date: 'موعد التنفيذ' },
+    },
+    links: {
+      title: 'روابط الاستمارات', desc: 'ارفع ملف الروابط (م، رابط الإستمارة، رابط تعديل الإستمارة) ثم أعطِ كل رابط لبرنامجه.', upload: 'رفع ملف Excel', replace: 'استبدال القائمة الحالية عند الرفع',
+      template: 'تحميل النموذج', clear: 'مسح الكل', clearConfirm: 'تُحذف كل الروابط المرفوعة. متابعة؟', count: 'عدد الروابط: {{n}}', assign: 'إسناد لبرنامج', assigned: 'مسند', unassign: 'إلغاء الإسناد', none: 'لا روابط بعد.',
+      uploaded: 'رُفع {{n}} رابط.', done: 'حُفظ الإسناد.', serial: 'م', link: 'رابط الإستمارة', edit: 'رابط التعديل', program: 'البرنامج',
+    },
+    trainers: {
+      title: 'إدارة المدربين', desc: 'أنواع المدربين، الاستيراد والتصدير بملف Excel، اعتماد المدربين قبل إسنادهم، وتعبئة البريد من سجلات الموظفين برقم الهوية.',
+      add: 'إضافة مدرب', edit: 'تعديل مدرب', name: 'الاسم', nationalId: 'رقم الهوية', email: 'البريد الإلكتروني', phone: 'رقم الجوال', type: 'نوع المدرب', search: 'بحث: الاسم / رقم الهوية / البريد / الجوال…',
+      allTypes: 'جميع الأنواع', pendingOnly: 'بانتظار الاعتماد', pending: 'بانتظار الاعتماد', approved: 'معتمد', approve: 'اعتماد', unapprove: 'سحب الاعتماد', import: 'استيراد من Excel', export: 'تصدير الكل', template: 'تحميل القالب',
+      fill: 'تعبئة البريد من بيانات الموظفين', filled: 'طوبق {{matched}} مدرباً مع سجلاتهم، واكتملت بيانات {{filled}}.', importHint: 'الأعمدة: الاسم، رقم الهوية، البريد الإلكتروني، رقم الجوال، نوع المدرب. المطابقة برقم الهوية أولاً ثم الاسم ثم البريد؛ رقم الهوية الموجود لا يُغيَّر.',
+      imported: 'أُضيف {{created}} وحُدّث {{updated}}.', pendingNote: 'مدربون بانتظار الاعتماد: {{n}} — لا يظهرون للمشرفين قبل اعتمادهم.', saved: 'حُفظ المدرب.', removed: 'حُذف المدرب.', deactivated: 'للمدرب جلسات، فأُوقف بدل حذفه.',
+      removeConfirm: 'يُحذف المدرب «{{name}}». متابعة؟', none: 'لا مدربين.', linked: 'مرتبط بسجل موظف', errors: 'ملاحظات الملف ({{n}})', action: { create: 'جديد', update: 'تحديث' },
+    },
+    supervisors: { title: 'المشرفون', search: 'بحث بالاسم أو البريد…', programs: 'البرامج المسندة', count: 'عدد البرامج', validated: 'معتمدة', pending: 'بانتظار الاعتماد', none: 'لا مشرفين.', noPrograms: 'لا برامج مسندة' },
+  },
   pager: { prev: 'السابق', next: 'التالي', page: 'صفحة {{page}} من {{last}}' },
 }
 
@@ -154,7 +184,7 @@ export const saberEn: typeof saberAr = {
   survey: {
     title: 'Survey link', open: 'Open', copy: 'Copy', copied: 'Link copied.', qr: 'QR code', download: 'Download PNG', edit: 'Edit links', link: 'Survey link', editLink: 'Form edit link', none: 'No link yet', saved: 'Links saved.',
   },
-  tabs: { programs: 'Programmes & groups', calendar: 'Rooms calendar', map: 'Room map' },
+  tabs: { programs: 'Programmes & groups', calendar: 'Rooms calendar', map: 'Room map', supervisors: 'Supervisors', data: 'Data tools' },
   newProgram: 'New programme',
   rooms: {
     type: 'Room type', types: { training: 'Training room', meeting: 'Meeting room' }, tag: 'Tag', tagHint: 'Such as Lab, VIP, Workshop — orders the rooms in the calendar and the map.',
@@ -176,5 +206,35 @@ export const saberEn: typeof saberAr = {
     hoursBooked: 'Booked hours: {{n}}/{{total}}', closed: 'No booking on this day', allowEvents: 'Events allowed', pickDay: 'Pick a day in the calendar to see the rooms.', empty: 'No bookings this month.',
   },
   map: { title: 'Room map', date: 'Day', free: 'Free', partial: 'Partly booked', full: 'Booked', closed: 'Holiday', noBuilding: 'No building', summary: 'Free {{free}} · partly {{partial}} · booked {{full}}' },
+  data: {
+    title: 'Data tools', hint: 'Import the centre files and update data in one go — every tool shows what it will do before it writes anything.',
+    file: 'Choose an Excel file', reading: 'Reading the file…', apply: 'Apply', back: 'Back', recheck: 'Re-check', done: 'Done.',
+    calendar: {
+      title: 'Import the training rooms calendar', desc: 'Reads the «rooms calendar» workbook (rooms × dates) and updates the days, rooms and supervisors of existing programmes’ groups.',
+      hint: 'No programme is ever created from the file; missing rooms are added and supervisors are matched by name to the platform’s supervisors.', cells: 'Bookings in the file', tracks: 'Matched groups', rooms: 'Rooms', sups: 'Supervisors',
+      verdict: { match: 'Up to date', diff: 'Needs updating', new: 'New group' }, days: '{{n}} days', from: 'From the file: {{label}}', target: 'Updates: {{name}}', score: 'Match {{n}}%',
+      approve: 'Approve the groups applied without a problem', unmatched: 'Labels that match no programme — ignored ({{n}})', best: 'Closest: {{name}}', newRoom: 'New room', supMissing: 'Not in the platform',
+      result: '{{updated}} groups updated, {{created}} created, {{approved}} approved, {{rooms}} rooms added.', failures: 'Days not applied ({{n}})', selectAll: 'Select all', selected: 'Selected: {{n}}',
+    },
+    programs: {
+      title: 'Import the programme list', desc: 'From an Excel file or a OneDrive link: name, type, delivery, hours, days, objective, groups, kit and execution date.',
+      link: 'or paste a OneDrive / SharePoint link', fetch: 'Check the link', rows: 'Valid rows', issues: 'Notes ({{n}})', action: { create: 'New programme (draft)', update: 'Update existing' },
+      result: '{{created}} programmes created, {{updated}} updated, {{groups}} groups added.', cols: { name: 'Programme', method: 'Delivery', hours: 'Hours', days: 'Days', groups: 'Groups', kit: 'Kit', date: 'Execution date' },
+    },
+    links: {
+      title: 'Survey links', desc: 'Upload the links workbook (م, survey link, edit link), then give each link to its programme.', upload: 'Upload an Excel file', replace: 'Replace the current list on upload',
+      template: 'Download the template', clear: 'Clear all', clearConfirm: 'Every uploaded link will be deleted. Continue?', count: 'Links: {{n}}', assign: 'Give to a programme', assigned: 'Assigned', unassign: 'Unassign', none: 'No links yet.',
+      uploaded: '{{n}} links uploaded.', done: 'Assignment saved.', serial: 'No.', link: 'Survey link', edit: 'Edit link', program: 'Programme',
+    },
+    trainers: {
+      title: 'Trainers manager', desc: 'Trainer types, Excel import and export, approval before trainers can be assigned, and e-mails filled from the staff records by national ID.',
+      add: 'Add a trainer', edit: 'Edit trainer', name: 'Name', nationalId: 'National ID', email: 'E-mail', phone: 'Mobile', type: 'Trainer type', search: 'Search: name / national ID / e-mail / mobile…',
+      allTypes: 'All types', pendingOnly: 'Waiting for approval', pending: 'Waiting for approval', approved: 'Approved', approve: 'Approve', unapprove: 'Withdraw approval', import: 'Import from Excel', export: 'Export all', template: 'Download the template',
+      fill: 'Fill e-mails from the staff records', filled: '{{matched}} trainers matched their staff records; {{filled}} completed.', importHint: 'Columns: name, national ID, e-mail, mobile, trainer type. Matched by national ID first, then name, then e-mail; an existing national ID is never changed.',
+      imported: '{{created}} added, {{updated}} updated.', pendingNote: 'Trainers waiting for approval: {{n}} — supervisors cannot pick them until approved.', saved: 'Trainer saved.', removed: 'Trainer deleted.', deactivated: 'The trainer has sessions, so they were deactivated instead.',
+      removeConfirm: 'The trainer “{{name}}” will be deleted. Continue?', none: 'No trainers.', linked: 'Linked to a staff record', errors: 'File notes ({{n}})', action: { create: 'New', update: 'Update' },
+    },
+    supervisors: { title: 'Supervisors', search: 'Search by name or e-mail…', programs: 'Programmes', count: 'Programmes', validated: 'Approved', pending: 'Pending', none: 'No supervisors.', noPrograms: 'No programmes' },
+  },
   pager: { prev: 'Previous', next: 'Next', page: 'Page {{page}} of {{last}}' },
 }

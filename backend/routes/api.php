@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
 use App\Http\Controllers\Api\V1\Admin\SaberController;
+use App\Http\Controllers\Api\V1\Admin\SaberDataController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
@@ -955,6 +956,29 @@ Route::prefix('v1')->group(function () {
                 Route::get('weekly-rules', [SaberController::class, 'weeklyRules']);
                 Route::post('weekly-rules', [SaberController::class, 'saveWeeklyRule'])->middleware('permission:calendar.manage');
                 Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
+                // Phase 4 — data tools: imports, survey links workbook, trainers manager, supervisors.
+                Route::prefix('data')->controller(SaberDataController::class)->group(function () {
+                    Route::post('calendar/preview', 'calendarPreview')->middleware('throttle:20,1');
+                    Route::post('calendar/apply', 'calendarApply');
+                    Route::post('programs/preview', 'programsPreview')->middleware('throttle:20,1');
+                    Route::post('programs/apply', 'programsApply');
+                    Route::get('survey-links', 'surveyLinks');
+                    Route::post('survey-links', 'uploadSurveyLinks');
+                    Route::get('survey-links/template', 'surveyLinksTemplate');
+                    Route::delete('survey-links', 'clearSurveyLinks');
+                    Route::post('survey-links/{link}/assign', 'assignSurveyLink')->whereUuid('link');
+                    Route::delete('survey-links/{link}', 'deleteSurveyLink')->whereUuid('link');
+                    Route::get('trainers', 'trainers');
+                    Route::post('trainers', 'saveTrainer');
+                    Route::get('trainers/export', 'trainersExport');
+                    Route::post('trainers/import/preview', 'trainersImportPreview');
+                    Route::post('trainers/import/apply', 'trainersImportApply');
+                    Route::post('trainers/fill-from-staff', 'trainersFill');
+                    Route::put('trainers/{trainer}', 'saveTrainer')->whereUuid('trainer');
+                    Route::delete('trainers/{trainer}', 'deleteTrainer')->whereUuid('trainer');
+                    Route::post('trainers/{trainer}/validate', 'validateTrainer')->whereUuid('trainer');
+                    Route::get('supervisors', 'supervisors');
+                });
                 // Phase 3 — rooms calendar, room map and meeting-room bookings.
                 Route::get('rooms-month', [SaberController::class, 'roomsMonth']);
                 Route::get('room-slots', [SaberController::class, 'roomSlots']);

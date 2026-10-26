@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import {
-  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Map as MapIcon, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
+  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Database, UsersRound, Map as MapIcon, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,6 +13,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
 import { SaberActionsContext, type SaberActions } from './actions'
+import { DataTools, SupervisorsPanel } from './DataTab'
 import { OffdayInbox, OffdayRequestDialog, WeeklyHolidays } from './CalendarDialogs'
 import CancelDialog from './CancelDialog'
 import GroupPanel from './GroupPanel'
@@ -54,8 +55,8 @@ export default function SaberWorkbench() {
   const [inboxOpen, setInboxOpen] = useState(() => params0.get('inbox') === '1')
   const [weeklyOpen, setWeeklyOpen] = useState(false)
   const [detailsId, setDetailsId] = useState<string | null>(null)
-  const tab = (['calendar', 'map'] as const).find((x) => x === params0.get('tab')) ?? 'programs'
-  const setTab = (next: 'programs' | 'calendar' | 'map') => { if (next === 'programs') params0.delete('tab'); else params0.set('tab', next); setParams0(params0, { replace: true }) }
+  const tab = (['calendar', 'map', 'supervisors', 'data'] as const).find((x) => x === params0.get('tab')) ?? 'programs'
+  const setTab = (next: 'programs' | 'calendar' | 'map' | 'supervisors' | 'data') => { if (next === 'programs') params0.delete('tab'); else params0.set('tab', next); setParams0(params0, { replace: true }) }
   const [cursor, setCursor] = useState(() => isoToday().slice(0, 7))
   const [mapDate, setMapDate] = useState(isoToday)
   const [meeting, setMeeting] = useState<{ roomId?: string; date?: string } | null>(null)
@@ -70,7 +71,7 @@ export default function SaberWorkbench() {
     term_first: filters.term_first ? undefined : 0, term_second: filters.term_second ? undefined : 0, kit_ready: filters.kit_ready ? undefined : 0, kit_not_ready: filters.kit_not_ready ? undefined : 0,
   }), [filters])
   const list = useGet<Page>('/admin/saber/programs', params, { staleTime: 0, placeholderData: (prev) => prev })
-  const month = useGet<{ data: MonthData }>(tab === 'programs' ? null : '/admin/saber/rooms-month', { month: tab === 'map' ? mapDate.slice(0, 7) : cursor }, { staleTime: 0, placeholderData: (prev) => prev })
+  const month = useGet<{ data: MonthData }>(tab !== 'calendar' && tab !== 'map' ? null : '/admin/saber/rooms-month', { month: tab === 'map' ? mapDate.slice(0, 7) : cursor }, { staleTime: 0, placeholderData: (prev) => prev })
   const ov = overview.data?.data
   const page = list.data
   const dirty = JSON.stringify({ ...filters, page: 1 }) !== JSON.stringify(NO_FILTERS)
@@ -97,7 +98,7 @@ export default function SaberWorkbench() {
     <div className="space-y-5 pb-8">
       <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {tab !== 'programs' && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
+          {(tab === 'calendar' || tab === 'map') && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
           {tab === 'programs' && ov?.can['programs.manage'] && <Button variant="outline" size="sm" icon={<Plus className="size-4" />} to="/admin/programs/smart">{t('saber.newProgram')}</Button>}
           {tools.plan && ov?.can['saber.plan.view'] && <Button variant="gold" size="sm" icon={<CalendarRange className="size-4" />} onClick={() => setPlan('new')}>{t('saber.plan.open')}</Button>}
           {tools.cancel && <Button variant="outline" size="sm" icon={<Ban className="size-4" />} onClick={() => setCancel('new')}>{t('saber.cancel.open')}</Button>}
@@ -121,7 +122,7 @@ export default function SaberWorkbench() {
       </div>
 
       <div className="flex gap-1 overflow-x-auto rounded-2xl border border-navy-100 bg-white p-1 shadow-sm" role="tablist">
-        {([['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon]] as const).map(([id, label, Icon]) => (
+        {([['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon], ['supervisors', t('saber.tabs.supervisors'), UsersRound], ['data', t('saber.tabs.data'), Database]] as const).map(([id, label, Icon]) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
             className={clsx('flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition', tab === id ? 'bg-navy-900 text-white shadow' : 'text-slate-500 hover:bg-ivory hover:text-navy-900')}>
             <Icon className="size-4" />{label}
@@ -135,6 +136,9 @@ export default function SaberWorkbench() {
       {tab === 'map' && (month.data && ov
         ? <RoomMap data={month.data.data} overview={ov} date={mapDate} onDate={setMapDate} onChanged={() => month.refetch()} />
         : <Skeleton className="h-[32rem] rounded-2xl" />)}
+
+      {tab === 'supervisors' && <SupervisorsPanel onProgram={setDetailsId} />}
+      {tab === 'data' && (ov ? <DataTools overview={ov} onChanged={refresh} /> : <Skeleton className="h-64 rounded-2xl" />)}
 
       {tab === 'programs' && <>
       <div className="sticky top-0 z-20 -mx-1 rounded-2xl border border-navy-100 bg-white/90 p-3 shadow-sm backdrop-blur">

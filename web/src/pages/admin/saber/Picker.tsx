@@ -97,7 +97,7 @@ export function Picker({ kind, day, value, options, onPick, disabled, placeholde
               const room = o as RoomOption
               return (
                 <Row key={o.id} onClick={() => pick(o.id)} active={o.id === value} muted={!!taken} icon={o.id === value ? <Check className="size-4 text-gold-600" /> : <span className={clsx('size-2 rounded-full', taken ? 'bg-rose-400' : busy ? 'bg-emerald-500' : 'bg-slate-200')} />}>
-                  <span className="block truncate font-semibold">{o.name}</span>
+                  <span className="block truncate font-semibold">{o.name}{o.pending && <span className="ms-1.5 rounded-full bg-amber-50 px-1.5 text-[10px] font-bold text-amber-700">{t('saber.data.trainers.pending')}</span>}</span>
                   {(taken || (kind === 'room' && (room.capacity || room.tag))) && (
                     <span className={clsx('block truncate text-[11px]', taken ? 'text-rose-600' : 'text-slate-400')}>
                       {taken ?? [room.capacity ? t('saber.day.capacity', { n: room.capacity }) : null, room.tag, room.building].filter(Boolean).join(' · ')}

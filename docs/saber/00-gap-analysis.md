@@ -67,11 +67,11 @@ Status: ✅ exists in شاهين · 🟡 partly · 🆕 to build
 ### D. Data tools
 | # | Feature | Status |
 |---|---|---|
-| D1 | Import «تقويم القاعات التدريبية» (rooms × dates grid): fuzzy-matches each label to a programme and group/supervisor, adds missing rooms and supervisors, updates groups' days, re-check against what is saved, approve the matched groups; never creates programmes | 🆕 |
-| D2 | Programme list import from Excel (or a OneDrive link): name, type, method, audience, hours, days, objective, groups, kit, execution date, notes; issues listed | 🟡 |
-| D3 | Survey links: upload Excel (م, رابط الإستمارة, رابط تعديل الإستمارة), template, replace / clear, assign a link to each programme | 🆕 |
-| D4 | Trainers manager: trainer types, Excel template / import / export, approval before supervisors can pick a trainer, fill e-mails and details from the staff records by national ID | 🟡 trainers ✅; import/export/approval 🆕 |
-| D5 | Supervisors page: every supervisor with the programmes assigned, approved vs pending groups | 🆕 |
+| D1 | Import «تقويم القاعات التدريبية» (rooms × dates grid): fuzzy-matches each label to a programme and group/supervisor, adds missing rooms and supervisors, updates groups' days, re-check against what is saved, approve the matched groups; never creates programmes | ✅ phase 4 |
+| D2 | Programme list import from Excel (or a OneDrive link): name, type, method, audience, hours, days, objective, groups, kit, execution date, notes; issues listed | ✅ phase 4 |
+| D3 | Survey links: upload Excel (م, رابط الإستمارة, رابط تعديل الإستمارة), template, replace / clear, assign a link to each programme | ✅ phase 4 |
+| D4 | Trainers manager: trainer types, Excel template / import / export, approval before supervisors can pick a trainer, fill e-mails and details from the staff records by national ID | ✅ phase 4 |
+| D5 | Supervisors page: every supervisor with the programmes assigned, approved vs pending groups | ✅ phase 4 |
 
 ### E. Administration
 | # | Feature | Status |
@@ -79,6 +79,10 @@ Status: ✅ exists in شاهين · 🟡 partly · 🆕 to build
 | E1 | 19 fine-grained rights (create / edit / cancel programme, recurring meeting, manage / rename / approve group, edit days, assign room / trainer / supervisor, manage holidays, approve / view holiday requests, view plan, manage / approve trainers, manage supervisors, export survey) | ✅ phase 1 as `saber.*` permissions |
 | E2 | Settings: supervisor editing allowed, group deletion allowed | ✅ phase 1 |
 | E3 | Departments, users & roles, permission groups, workflow rules, notifications, audit log | ✅ (roles & permissions, approvals, notifications, audit) |
+
+## Status
+
+All four phases are built and deployed (reports `01-workbench.md` … `04-data-tools.md`).
 
 ## Build plan (each phase: backend + web + tests on SQLite and PostgreSQL, deployed)
 

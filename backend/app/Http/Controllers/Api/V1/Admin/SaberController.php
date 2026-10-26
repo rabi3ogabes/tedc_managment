@@ -56,7 +56,9 @@ class SaberController extends Controller
             ],
             'rooms' => TrainingRoom::where('room_type', 'training')->where('status', '!=', 'inactive')->orderBy('name_ar')
                 ->get(['id', 'name_ar', 'name_en', 'capacity', 'building', 'floor', 'tag'])->map(fn ($r) => ['id' => $r->id, 'name' => $r->name_ar ?: $r->name_en, 'capacity' => $r->capacity, 'building' => $r->building, 'floor' => $r->floor, 'tag' => $r->tag]),
-            'trainers' => Trainer::where('status', 'active')->orderBy('name_ar')->get(['id', 'name_ar', 'name_en'])->map(fn ($t) => ['id' => $t->id, 'name' => $t->name_ar ?: $t->name_en]),
+            // A new trainer waits for approval before supervisors can pick them; whoever approves trainers sees them, marked.
+            'trainers' => Trainer::where('status', 'active')->when(! $user->hasPermission('trainers.validate'), fn ($q) => $q->whereNotNull('validated_at'))->orderBy('name_ar')
+                ->get(['id', 'name_ar', 'name_en', 'validated_at'])->map(fn ($t) => ['id' => $t->id, 'name' => $t->name_ar ?: $t->name_en, 'pending' => ! $t->validated_at]),
             'supervisors' => User::whereHas('roles', fn ($q) => $q->whereIn('slug', [Role::COORDINATOR, Role::TRAINING_HEAD]))->where('status', 'active')->orderBy('name')
                 ->get(['id', 'name', 'name_ar'])->map(fn ($u) => ['id' => $u->id, 'name' => $u->name_ar ?: $u->name]),
             'palette' => Workbench::PALETTE,

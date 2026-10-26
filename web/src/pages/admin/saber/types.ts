@@ -15,7 +15,7 @@ export type Program = {
   start_date: string | null; end_date: string | null; lights: { total: number; dates: number; rooms: number; trainers: number }; groups: Group[]
 }
 
-export type Option = { id: string; name: string }
+export type Option = { id: string; name: string; pending?: boolean }
 export type RoomOption = Option & { capacity: number | null; building: string | null; floor: string | null; tag: string | null }
 
 export type Overview = {
