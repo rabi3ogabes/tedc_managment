@@ -48,6 +48,7 @@ import 'features/profile/assignments_screen.dart';
 import 'features/profile/needs_screen.dart';
 import 'features/training/my_training_screen.dart';
 import 'features/training/registration_screen.dart';
+import 'features/training/trainee_evaluation_screen.dart';
 import 'features/training/survey_screen.dart';
 import 'features/training/task_screen.dart';
 
@@ -114,6 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/sessions/:id', builder: (_, s) => SessionScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/my-program/:programId', builder: (_, s) => MyProgramRedirect(programId: s.pathParameters['programId']!)),
           GoRoute(path: '/registrations/:id', builder: (_, s) => RegistrationScreen(id: s.pathParameters['id']!)),
+          GoRoute(path: '/registrations/:id/evaluation', builder: (_, s) => TraineeEvaluationScreen(registrationId: s.pathParameters['id']!)),
           GoRoute(path: '/tasks/:id', builder: (_, s) => TaskScreen(taskId: s.pathParameters['id']!)),
           GoRoute(path: '/surveys/:id', builder: (_, s) => SurveyScreen(surveyId: s.pathParameters['id']!)),
           GoRoute(path: '/needs-surveys', builder: (_, _) => const NeedsSurveysScreen()),
