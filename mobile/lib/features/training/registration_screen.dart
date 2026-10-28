@@ -96,8 +96,9 @@ class RegistrationScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               if (r['evaluation_submitted'] != true && r['survey_open'] != false)
                 FilledButton.icon(
-                  onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, builder: (_) => _EvaluationSheet(registrationId: id)),
-                  icon: const Icon(Icons.star_outline),
+                  // The centre's trainee form, rendered from the server (trainee_evaluation_screen.dart).
+                  onPressed: () => context.push('/registrations/$id/evaluation'),
+                  icon: const Icon(Icons.rate_review_outlined),
                   label: Text(s.t('training.evaluate')),
                 ),
               // The program survey is opened by the administrators (by hand, or automatically some hours after the program).
@@ -182,70 +183,6 @@ class _Materials extends ConsumerWidget {
             ),
         ]);
       },
-    );
-  }
-}
-
-class _EvaluationSheet extends ConsumerStatefulWidget {
-  const _EvaluationSheet({required this.registrationId});
-
-  final String registrationId;
-
-  @override
-  ConsumerState<_EvaluationSheet> createState() => _EvaluationSheetState();
-}
-
-class _EvaluationSheetState extends ConsumerState<_EvaluationSheet> {
-  final _ratings = {'content': 5, 'trainer': 5, 'organization': 5, 'relevance': 5};
-  final _comments = TextEditingController();
-  bool _testimonial = false;
-  bool _saving = false;
-
-  Future<void> _submit() async {
-    setState(() => _saving = true);
-    try {
-      await ref.read(apiProvider).post('/me/registrations/${widget.registrationId}/evaluation', {
-        'ratings': _ratings,
-        'comments': _comments.text,
-        'allow_testimonial': _testimonial,
-      });
-      ref.invalidate(getProvider('/me/registrations/${widget.registrationId}'));
-      ref.invalidate(getProvider('/me/registrations'));
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      if (mounted) showSnack(context, ApiException.from(e).message, error: true);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.s;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(s.t('eval.title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 12),
-        for (final key in _ratings.keys)
-          Row(children: [
-            Expanded(child: Text(s.t('eval.$key'))),
-            for (var n = 1; n <= 5; n++)
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () => setState(() => _ratings[key] = n),
-                icon: Icon(n <= _ratings[key]! ? Icons.star : Icons.star_border, color: AppColors.gold500),
-              ),
-          ]),
-        TextField(controller: _comments, maxLines: 3, decoration: InputDecoration(labelText: s.t('eval.comments'))),
-        CheckboxListTile(
-          value: _testimonial,
-          onChanged: (v) => setState(() => _testimonial = v ?? false),
-          title: Text(s.t('eval.testimonial'), style: const TextStyle(fontSize: 13)),
-          contentPadding: EdgeInsets.zero,
-        ),
-        FilledButton(onPressed: _saving ? null : _submit, child: Text(s.t('common.submit'))),
-      ]),
     );
   }
 }
