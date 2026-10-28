@@ -127,4 +127,23 @@ class CentreFormsTest extends TestCase
         $this->assertSame('trainer', $satisfaction->questions[0]['id']);
         $this->assertStringContainsString('أخي المتدرب', $satisfaction->settings['intro_ar']);
     }
+
+    public function test_a_database_that_missed_the_migration_switches_the_first_time_the_forms_are_needed(): void
+    {
+        app(EvaluationService::class)->ensureDefaults();
+        EvaluationForm::where('kind', 'trainer_reflection')->delete();
+        EvaluationForm::create(['kind' => 'trainer_reflection', 'title_ar' => 'تأمل المدرب الذاتي', 'title_en' => 'Trainer self-reflection', 'questions' => [['id' => 'engagement', 'type' => 'rating', 'title' => 'التفاعل', 'required' => true, 'scale' => ['min' => 1, 'max' => 5]]], 'approval_status' => 'approved', 'is_default' => true, 'settings' => []]);
+        EvaluationForm::where('kind', 'satisfaction')->update(['questions' => '[]', 'settings' => '{"evidence":false}']);
+
+        // A group ends: the self-reflection it hands out is already the centre's form.
+        $program = $this->makeProgram();
+        $user = $this->makeUser(Role::TRAINER);
+        $trainer = Trainer::create(['user_id' => $user->id, 'name_ar' => 'مدرب', 'name_en' => 'Trainer', 'status' => 'active', 'source' => 'center']);
+        GroupTrainer::create(['group_id' => $program->groups()->first()->id, 'trainer_id' => $trainer->id, 'status' => 'approved']);
+        app(EvaluationService::class)->assignForGroup($program->groups()->first());
+
+        $assignment = EvaluationAssignment::where('respondent_user_id', $user->id)->firstOrFail();
+        $this->assertSame(EvaluationTemplates::REFLECTION, $assignment->form->settings['template']);
+        $this->assertSame(EvaluationTemplates::TRAINEE, EvaluationForm::where('kind', 'satisfaction')->first()->settings['template']);
+    }
 }

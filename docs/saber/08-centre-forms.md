@@ -35,7 +35,10 @@ mobile app versions keep working until the app is updated.
 
 Assigned to the programme's trainers when their group ends, as before; the grids now count towards the reflection score.
 
-## On deploy (migration `2026_01_01_009200_centre_evaluation_forms`)
+## Switching over (`EvaluationService::adoptCentreForms`)
+
+Run by migration `2026_01_01_009200_centre_evaluation_forms` and again the first time the forms are needed (a trainee opening the form, a
+group ending), so the live site switches even where deploy steps do not run migrations:
 
 - The trainee (satisfaction) form takes the centre's questions and welcome message.
 - «التقييم الذاتي للمدرب» is created, approved, and made the default self-reflection; programmes that used the previous default (or none)

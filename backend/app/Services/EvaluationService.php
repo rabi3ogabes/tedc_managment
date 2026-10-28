@@ -8,6 +8,7 @@ use App\Models\EvaluationAssignment;
 use App\Models\EvaluationForm;
 use App\Models\EvaluationResponse;
 use App\Models\Program;
+use App\Models\ProgramInstrument;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\Survey;
@@ -25,6 +26,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -48,6 +50,8 @@ class EvaluationService
     public function ensureDefaults(): void
     {
         if (EvaluationForm::where('is_default', true)->exists()) {
+            $this->adoptCentreForms();
+
             return;
         }
         $r = fn (string $id, string $ar, string $en, bool $req = true) => ['id' => $id, 'type' => 'rating', 'title' => $ar, 'title_en' => $en, 'required' => $req, 'scale' => ['min' => 1, 'max' => 5], 'mode' => 'competence'];
@@ -81,6 +85,37 @@ class EvaluationService
         $trainee = EvaluationTemplates::trainee();
         EvaluationForm::where('kind', 'satisfaction')->where('is_system', true)->update(['title_ar' => $trainee['title_ar'], 'title_en' => $trainee['title_en'], 'questions' => json_encode(SurveySchema::normalize($trainee['questions']), JSON_UNESCAPED_UNICODE),
             'settings' => json_encode(['evidence' => false, 'template' => EvaluationTemplates::TRAINEE, 'intro_ar' => $trainee['intro_ar'], 'intro_en' => $trainee['intro_en']], JSON_UNESCAPED_UNICODE)]);
+    }
+
+    /**
+     * The centre's own forms (EvaluationTemplates, docs/saber/08-centre-forms.md) on a database set up before them — run by migration 009200
+     * and again the first time the forms are needed, so the switch never waits for a deploy step. The trainee (satisfaction) form takes the
+     * centre's questions; «التقييم الذاتي للمدرب» becomes the default self-reflection and takes over the programmes that used the previous
+     * default (a programme that chose another form keeps it). Earlier forms and answers stay; nothing happens once done.
+     */
+    public function adoptCentreForms(): void
+    {
+        $trainee = EvaluationTemplates::trainee();
+        foreach (EvaluationForm::where('kind', 'satisfaction')->get() as $form) {
+            if (($form->settings['template'] ?? null) !== EvaluationTemplates::TRAINEE) {
+                $form->update(['title_ar' => $trainee['title_ar'], 'title_en' => $trainee['title_en'], 'questions' => SurveySchema::normalize($trainee['questions']),
+                    'settings' => array_merge($form->settings ?? [], ['template' => EvaluationTemplates::TRAINEE, 'intro_ar' => $trainee['intro_ar'], 'intro_en' => $trainee['intro_en']])]);
+            }
+        }
+
+        $reflections = EvaluationForm::where('kind', 'trainer_reflection')->get(['id', 'settings', 'is_default']);
+        if ($reflections->isEmpty() || $reflections->contains(fn ($f) => ($f->settings['template'] ?? null) === EvaluationTemplates::REFLECTION)) {
+            return;
+        }
+        DB::transaction(function () use ($reflections) {
+            $previous = $reflections->where('is_default', true)->pluck('id');
+            $reflection = EvaluationTemplates::trainerReflection();
+            $form = EvaluationForm::create(['kind' => 'trainer_reflection', 'title_ar' => $reflection['title_ar'], 'title_en' => $reflection['title_en'], 'questions' => SurveySchema::normalize($reflection['questions']),
+                'approval_status' => 'approved', 'approved_at' => now(), 'is_default' => false, 'settings' => ['evidence' => false, 'max_files' => 3, 'template' => EvaluationTemplates::REFLECTION]]);
+            EvaluationForm::where('kind', 'trainer_reflection')->whereKeyNot($form->id)->update(['is_default' => false]);
+            $form->update(['is_default' => true]);
+            ProgramInstrument::where('kind', 'trainer_reflection')->where(fn ($q) => $q->whereIn('form_id', $previous)->orWhereNull('form_id'))->update(['form_id' => $form->id]);
+        });
     }
 
     public function defaultFor(string $kind): EvaluationForm
