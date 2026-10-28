@@ -9,6 +9,7 @@ use App\Models\TrainingRoom;
 use App\Services\RoomScreenService;
 use App\Services\RoomScreenSettings;
 use App\Services\RoomService;
+use App\Services\RoomSync;
 use App\Support\RoomCatalog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -91,10 +92,10 @@ class RoomController extends Controller
         return new RoomResource($room->refresh());
     }
 
-    /** A room with sessions is deactivated instead of deleted so history stays intact. */
-    public function destroy(TrainingRoom $room): JsonResponse
+    /** A room in use (training days, bookings, groups, open drafts, seating plans) is deactivated instead of deleted so history stays intact. */
+    public function destroy(TrainingRoom $room, RoomSync $sync): JsonResponse
     {
-        if ($room->sessions()->exists()) {
+        if ($sync->usage([$room->id])[$room->id]['used']) {
             $room->update(['status' => 'inactive']);
 
             return response()->json(['data' => new RoomResource($room), 'meta' => ['deactivated' => true]]);

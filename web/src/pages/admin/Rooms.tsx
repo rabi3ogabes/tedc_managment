@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Armchair, Building2, CalendarCheck, CalendarClock, CalendarOff, Copy, Hourglass, Radio, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
+import { Armchair, Building2, CalendarCheck, CalendarClock, CalendarOff, Copy, FileSpreadsheet, Hourglass, Radio, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
@@ -9,6 +9,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Paginated, Room } from '@/lib/types'
+import RoomSyncDialog from './RoomSync'
 import { Pager } from './shared'
 import { dialogs } from '@/lib/dialogs'
 
@@ -374,6 +375,7 @@ export default function Rooms() {
   const [schedule, setSchedule] = useState<Room | null>(null)
   const [screenLink, setScreenLink] = useState<Room | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
   const options = useGet<{ data: Options }>('/admin/rooms/options')
   const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v))
   const rooms = useGet<Paginated<Room>>('/admin/rooms', { ...params, page }, { refetchInterval: 60_000 })
@@ -395,7 +397,7 @@ export default function Rooms() {
 
   return (
     <>
-      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={<><Button to="/admin/room-screens" variant="outline" icon={<Monitor className="size-4" />}>{t('studio.wall.nav')}</Button>{canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>}</>} />
+      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={<><Button to="/admin/room-screens" variant="outline" icon={<Monitor className="size-4" />}>{t('studio.wall.nav')}</Button>{canManage && <Button variant="outline" icon={<FileSpreadsheet className="size-4" />} onClick={() => setSyncing(true)}>{t('mgmt.rooms.sync.button')}</Button>}{canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>}</>} />
       <Tabs tabs={[{ id: 'list', label: t('mgmt.rooms.tabs.list') }, { id: 'find', label: t('mgmt.rooms.tabs.find') }]} value={tab} onChange={setTab} />
       {notice && <div className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{notice}</div>}
 
@@ -435,6 +437,7 @@ export default function Rooms() {
       {editing && opts && <RoomForm room={editing === 'new' ? null : editing} options={opts} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); rooms.refetch(); options.refetch() }} />}
       {schedule && <ScheduleModal room={schedule} onClose={() => setSchedule(null)} />}
       {screenLink && <ScreenLinkModal room={screenLink} onClose={() => setScreenLink(null)} />}
+      {syncing && <RoomSyncDialog onClose={() => setSyncing(false)} onDone={() => { rooms.refetch(); options.refetch() }} />}
     </>
   )
 }

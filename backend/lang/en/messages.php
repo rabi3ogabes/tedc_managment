@@ -67,6 +67,9 @@ return [
         'emergency_reason' => 'Write why this group is an emergency (unplanned) one.', 'invalid_transition' => 'The group cannot move from “:from” to “:to”.', 'reason_required' => 'A reason is required for this change.',
         'not_of_program' => 'This group does not belong to this program.', 'pattern_start' => 'Choose the date the sessions start.', 'has_registrations' => 'This is not possible because people are registered in the group.', 'not_held' => 'The group ended without attendance recorded for any session.',
     ],
+    'rooms_sync' => [
+        'no_rooms' => 'No rooms were found in the file. Use the rooms calendar workbook or a room list with a «room name» column (download the template).',
+    ],
     'saber' => [
         'day_reset' => 'Day :n was cleared.', 'date_first' => 'Choose the date of the day first.', 'end_after_start' => 'The day must end after it starts.',
         'room_cleared' => 'The room :room is booked on :date, so it was removed from this day. Choose another room.', 'trainer_cleared' => 'The trainer is busy on :date, so they were removed from this day. Choose another trainer.',

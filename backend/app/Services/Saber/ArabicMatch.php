@@ -19,6 +19,15 @@ class ArabicMatch
         return mb_strtolower(trim(preg_replace('/\s+/u', ' ', $s) ?? $s));
     }
 
+    /** A room's identity: «قاعة 3», «القاعة 3» and «القاعة ٣» are one room (the article dropped, Arabic-Indic digits folded). */
+    public static function roomKey(?string $s): string
+    {
+        $s = strtr((string) $s, ['٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+        $words = array_map(fn ($w) => mb_strlen($w) > 3 && str_starts_with($w, 'ال') ? mb_substr($w, 2) : $w, explode(' ', self::normalize($s)));
+
+        return preg_replace('/([^\d\s])(\d)/u', '$1 $2', implode(' ', $words)) ?? '';
+    }
+
     public static function similarity(?string $a, ?string $b): float
     {
         $x = self::normalize($a);

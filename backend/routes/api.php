@@ -109,6 +109,7 @@ use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
 use App\Http\Controllers\Api\V1\Admin\RoomController;
 use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
 use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
+use App\Http\Controllers\Api\V1\Admin\RoomSyncController;
 use App\Http\Controllers\Api\V1\Admin\SaberController;
 use App\Http\Controllers\Api\V1\Admin\SaberDataController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
@@ -919,6 +920,9 @@ Route::prefix('v1')->group(function () {
                     Route::get('{room}/screen', 'screen');
                 });
                 Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::post('sync/preview', [RoomSyncController::class, 'preview']);
+                    Route::post('sync/apply', [RoomSyncController::class, 'apply']);
+                    Route::get('sync/template', [RoomSyncController::class, 'template']);
                     Route::post('/', 'store');
                     Route::put('{room}', 'update');
                     Route::post('{room}/screen-link', 'screenLink');

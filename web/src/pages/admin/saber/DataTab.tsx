@@ -1,15 +1,16 @@
 import clsx from 'clsx'
-import { BadgeCheck, ChevronDown, Clock3, FileSpreadsheet, Link2, Search, Users } from 'lucide-react'
+import { BadgeCheck, Building2, ChevronDown, Clock3, FileSpreadsheet, Link2, Search, Users } from 'lucide-react'
 import { useMemo, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Empty } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
+import RoomSyncDialog from '../RoomSync'
 import ImportWizard from './ImportWizard'
 import { SurveyLinksDialog, TrainersManagerDialog } from './RosterDialogs'
 import type { Overview } from './types'
 
-type Tool = 'import' | 'links' | 'trainers'
+type Tool = 'import' | 'rooms' | 'links' | 'trainers'
 
 /** «أدوات البيانات» (D1–D4): one card per tool, shown to whoever holds its right. */
 export function DataTools({ overview, onChanged }: { overview: Overview; onChanged: () => void }) {
@@ -18,6 +19,7 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
   const can = (p: string) => !!overview.can[p]
   const tools: { id: Tool; icon: ComponentType<{ className?: string }>; allowed: boolean }[] = [
     { id: 'import', icon: FileSpreadsheet, allowed: can('saber.import') },
+    { id: 'rooms', icon: Building2, allowed: can('rooms.manage') },
     { id: 'links', icon: Link2, allowed: can('saber.survey_links.manage') },
     { id: 'trainers', icon: Users, allowed: can('trainers.manage') },
   ]
@@ -32,14 +34,15 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
             <button key={id} type="button" onClick={() => setOpen(id)} className="group flex items-start gap-4 rounded-2xl border border-navy-100 bg-white p-5 text-start shadow-sm transition hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-md">
               <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-gold-50 to-ivory text-gold-700 ring-1 ring-inset ring-gold-200 transition group-hover:scale-105"><Icon className="size-6" /></span>
               <span>
-                <span className="block text-base font-bold text-navy-900">{id === 'import' ? t('saber.wizard.card') : t(`saber.data.${id}.title`)}</span>
-                <span className="mt-1 block text-sm leading-relaxed text-slate-500">{id === 'import' ? t('saber.wizard.cardDesc') : t(`saber.data.${id}.desc`)}</span>
+                <span className="block text-base font-bold text-navy-900">{id === 'import' ? t('saber.wizard.card') : id === 'rooms' ? t('mgmt.rooms.sync.card') : t(`saber.data.${id}.title`)}</span>
+                <span className="mt-1 block text-sm leading-relaxed text-slate-500">{id === 'import' ? t('saber.wizard.cardDesc') : id === 'rooms' ? t('mgmt.rooms.sync.cardDesc') : t(`saber.data.${id}.desc`)}</span>
               </span>
             </button>
           ))}
         </div>
       )}
       {open === 'import' && <ImportWizard can={overview.can} onClose={() => setOpen(null)} onDone={onChanged} />}
+      {open === 'rooms' && <RoomSyncDialog onClose={() => setOpen(null)} onDone={onChanged} />}
       {open === 'links' && <SurveyLinksDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
       {open === 'trainers' && <TrainersManagerDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
     </div>

@@ -44,31 +44,7 @@ class CalendarImport
         $rows = $this->reader->rows($path, $layout['sheet'] ?? null);
         $first = (int) ($layout['first_room_col'] ?? 8) - 1;
         $dateCol = (int) ($layout['date_col'] ?? 4) - 1;
-        // The room-header row has the most distinct texts across the room columns (capacity rows repeat a few values).
-        $header = isset($layout['header_row']) ? (int) $layout['header_row'] - 1 : null;
-        if ($header === null) {
-            $best = 0;
-            $header = 2;
-            foreach (array_slice($rows, 0, 16, true) as $r => $row) {
-                $n = count(array_unique(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', array_slice($row, $first)))));
-                // The room row is the one with capacities («25 متدرب») under it: that wins a tie with the trainee-priority row above.
-                $n += 0.5 * count(array_filter(array_slice($rows[$r + 1] ?? [], $first), fn ($v) => (bool) preg_match('/^\s*\d+\s*(متدرب|متدربا|مقعد|مقاعد)?\s*$/u', (string) $v)));
-                if ($n > $best) {
-                    [$best, $header] = [$n, $r];
-                }
-            }
-        }
-        $rooms = [];
-        $meta = [];
-        foreach ($rows[$header] ?? [] as $c => $name) {
-            if ($c >= $first && is_string($name) && trim($name) !== '') {
-                $roomName = trim(preg_replace('/\s+/u', ' ', $name) ?? $name);
-                $cap = preg_match('/\d+/', (string) ($rows[$header + 1][$c] ?? ''), $m) ? (int) $m[0] : null;
-                $tag = $header > 0 ? trim((string) ($rows[$header - 1][$c] ?? '')) : '';
-                $rooms[$c] = ['name' => $roomName, 'capacity' => $cap];
-                $meta[$roomName] = ['capacity' => $cap, 'tag' => $tag !== '' && mb_strlen($tag) <= 20 && ! preg_match('/\d/', $tag) ? $tag : null];
-            }
-        }
+        ['header' => $header, 'rooms' => $rooms, 'meta' => $meta] = $this->gridRooms($rows, $layout);
         $dateOf = [];
         foreach ($rows as $r => $row) {
             if ($r > $header && ($date = $this->reader->date($row[$dateCol] ?? null))) {
@@ -129,6 +105,46 @@ class CalendarImport
         $cells = array_values(array_filter($cells, fn ($c) => ! in_array(ArabicMatch::normalize($c['label']), $eventLabels, true)));
 
         return ['cells' => $cells, 'periods' => $this->mergePeriods($periods), 'rooms_meta' => $meta];
+    }
+
+    /**
+     * The rooms of a rooms × dates grid: the header row (chosen, or the one with the most distinct names and capacities under them), each
+     * room's capacity from the row below and its trainee priority (رجال / نساء / الكل → tag) from the row above. Also used by the rooms sync.
+     *
+     * @param  list<list<mixed>>  $rows
+     * @param  array{header_row?: ?int, first_room_col?: ?int}  $layout
+     * @return array{header: int, rooms: array<int, array{name: string, capacity: ?int}>, meta: array<string, array{capacity: ?int, tag: ?string}>}
+     */
+    public function gridRooms(array $rows, array $layout = []): array
+    {
+        $first = (int) ($layout['first_room_col'] ?? 8) - 1;
+        // The room-header row has the most distinct texts across the room columns (capacity rows repeat a few values).
+        $header = isset($layout['header_row']) ? (int) $layout['header_row'] - 1 : null;
+        if ($header === null) {
+            $best = 0;
+            $header = 2;
+            foreach (array_slice($rows, 0, 16, true) as $r => $row) {
+                $n = count(array_unique(array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : '', array_slice($row, $first)))));
+                // The room row is the one with capacities («25 متدرب») under it: that wins a tie with the trainee-priority row above.
+                $n += 0.5 * count(array_filter(array_slice($rows[$r + 1] ?? [], $first), fn ($v) => (bool) preg_match('/^\s*\d+\s*(متدرب|متدربا|مقعد|مقاعد)?\s*$/u', (string) $v)));
+                if ($n > $best) {
+                    [$best, $header] = [$n, $r];
+                }
+            }
+        }
+        $rooms = [];
+        $meta = [];
+        foreach ($rows[$header] ?? [] as $c => $name) {
+            if ($c >= $first && is_string($name) && trim($name) !== '') {
+                $roomName = trim(preg_replace('/\s+/u', ' ', $name) ?? $name);
+                $cap = preg_match('/\d+/', (string) ($rows[$header + 1][$c] ?? ''), $m) ? (int) $m[0] : null;
+                $tag = $header > 0 ? trim((string) ($rows[$header - 1][$c] ?? '')) : '';
+                $rooms[$c] = ['name' => $roomName, 'capacity' => $cap];
+                $meta[$roomName] = ['capacity' => $cap, 'tag' => $tag !== '' && mb_strlen($tag) <= 20 && ! preg_match('/\d/', $tag) ? $tag : null];
+            }
+        }
+
+        return ['header' => $header, 'rooms' => $rooms, 'meta' => $meta];
     }
 
     /**
@@ -607,9 +623,9 @@ class CalendarImport
 
     private function findRoom(Collection $rooms, string $name): ?TrainingRoom
     {
-        $n = ArabicMatch::normalize($name);
+        $n = ArabicMatch::roomKey($name);
 
-        return $rooms->first(fn ($r) => ArabicMatch::normalize($r->name_ar) === $n || ArabicMatch::normalize($r->name_en) === $n);
+        return $rooms->first(fn ($r) => ArabicMatch::roomKey($r->name_ar) === $n || ArabicMatch::roomKey($r->name_en) === $n);
     }
 
     private function supervisors(): Collection

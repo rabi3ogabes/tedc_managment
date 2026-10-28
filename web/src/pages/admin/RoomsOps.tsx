@@ -8,9 +8,10 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { pickableRooms } from '@/lib/rooms'
 
 type Tab = 'calendar' | 'places' | 'seating'
-type Room = { id: string; name_ar: string; name_en: string; capacity: number; effective_capacity?: number }
+type Room = { id: string; name_ar: string; name_en: string; capacity: number; effective_capacity?: number; status?: string }
 
 /** Rooms in use: a booking calendar with sessions and bookings together, places → buildings → rooms, and the seating designer. */
 export default function RoomsOps() {
@@ -75,7 +76,7 @@ function CalendarBooking() {
       )}</Card>
       <Modal open={open} onClose={() => setOpen(false)} title={t('ops.rooms.book')}>
         <div className="space-y-4">
-          <Field label={t('ops.devices.room')}><select className="input" value={f.room_id} onChange={(e) => setF({ ...f, room_id: e.target.value })}><option value="" />{rooms.data?.data.rooms.map((x) => <option key={x.id} value={x.id}>{ar ? x.name_ar : x.name_en}</option>)}</select></Field>
+          <Field label={t('ops.devices.room')}><select className="input" value={f.room_id} onChange={(e) => setF({ ...f, room_id: e.target.value })}><option value="" />{pickableRooms(rooms.data?.data.rooms, f.room_id).map((x) => <option key={x.id} value={x.id}>{ar ? x.name_ar : x.name_en}</option>)}</select></Field>
           <div className="grid gap-4 sm:grid-cols-2"><Field label={t('ops.rooms.purpose')}><select className="input" value={f.purpose} onChange={(e) => setF({ ...f, purpose: e.target.value })}>{['meeting', 'exam', 'event', 'maintenance', 'other'].map((p) => <option key={p} value={p}>{t(`ops.rooms.purposes.${p}`)}</option>)}</select></Field><Field label={t('ops.rooms.attendees')}><input type="number" min={1} className="input" value={f.attendees} onChange={(e) => setF({ ...f, attendees: e.target.value })} /></Field></div>
           <Field label={t('ops.rooms.titleField')}><input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></Field>
           <div className="grid gap-4 sm:grid-cols-2"><Field label={t('ops.rooms.from')}><input type="datetime-local" className="input" value={f.starts_at} onChange={(e) => setF({ ...f, starts_at: e.target.value })} /></Field><Field label={t('ops.rooms.to')}><input type="datetime-local" className="input" value={f.ends_at} onChange={(e) => setF({ ...f, ends_at: e.target.value })} /></Field></div>
@@ -139,7 +140,7 @@ function Seating() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
-        <Field label={t('ops.devices.room')}><select className="input w-56" value={roomId} onChange={(e) => { setRoomId(e.target.value); setSessionId(''); setLayout(null) }}><option value="" />{rooms.data?.data.rooms.map((x) => <option key={x.id} value={x.id}>{ar ? x.name_ar : x.name_en}</option>)}</select></Field>
+        <Field label={t('ops.devices.room')}><select className="input w-56" value={roomId} onChange={(e) => { setRoomId(e.target.value); setSessionId(''); setLayout(null) }}><option value="" />{pickableRooms(rooms.data?.data.rooms, roomId).map((x) => <option key={x.id} value={x.id}>{ar ? x.name_ar : x.name_en}</option>)}</select></Field>
         <Field label={t('ops.rooms.pickSession')}><select className="input w-72" value={sessionId} onChange={(e) => { setSessionId(e.target.value); setLayout(null) }}><option value="" />{sessions.data?.data.map((s) => <option key={s.id} value={s.id}>{s.program ?? s.title} · {fmt.dateTime(s.starts_at)}</option>)}</select></Field>
       </div>
       {roomId && sessionId && (

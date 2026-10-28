@@ -7,6 +7,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { pickableRooms } from '@/lib/rooms'
 
 type Tab = 'absence' | 'devices'
 type Alert = { id: string; level: string; absence_percent: number; supervisor_note: string | null; program: string; employee: string; created_at: string }
@@ -58,7 +59,7 @@ function Alerts() {
 function Devices() {
   const { t } = useTranslation()
   const list = useGet<{ data: Device[] }>('/admin/attendance-devices', undefined, { staleTime: 0 })
-  const rooms = useGet<{ data: { rooms: { id: string; name_ar: string; name_en: string }[] } }>('/admin/lookups', undefined, { staleTime: 60_000 })
+  const rooms = useGet<{ data: { rooms: { id: string; name_ar: string; name_en: string; status?: string }[] } }>('/admin/lookups', undefined, { staleTime: 60_000 })
   const [open, setOpen] = useState(false)
   const [f, setF] = useState({ name: '', vendor: 'generic_http', serial: '', location_room_id: '', secret: '' })
   const { i18n } = useTranslation()
@@ -92,7 +93,7 @@ function Devices() {
         <div className="space-y-4">
           <Field label={t('ops.rooms.titleField')}><input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
           <div className="grid gap-4 sm:grid-cols-2"><Field label={t('ops.devices.vendor')}><select className="input" value={f.vendor} onChange={(e) => setF({ ...f, vendor: e.target.value })}>{['generic_http', 'zkteco', 'suprema', 'csv'].map((v) => <option key={v} value={v}>{v}</option>)}</select></Field><Field label={t('ops.devices.serial')}><input className="input" dir="ltr" value={f.serial} onChange={(e) => setF({ ...f, serial: e.target.value })} /></Field></div>
-          <Field label={t('ops.devices.room')}><select className="input" value={f.location_room_id} onChange={(e) => setF({ ...f, location_room_id: e.target.value })}><option value="" />{rooms.data?.data.rooms.map((r) => <option key={r.id} value={r.id}>{ar ? r.name_ar : r.name_en}</option>)}</select></Field>
+          <Field label={t('ops.devices.room')}><select className="input" value={f.location_room_id} onChange={(e) => setF({ ...f, location_room_id: e.target.value })}><option value="" />{pickableRooms(rooms.data?.data.rooms, f.location_room_id).map((r) => <option key={r.id} value={r.id}>{ar ? r.name_ar : r.name_en}</option>)}</select></Field>
           <Field label={t('ops.devices.secret')}><input className="input" dir="ltr" value={f.secret} onChange={(e) => setF({ ...f, secret: e.target.value })} /></Field>
           <Button variant="gold" disabled={!f.name.trim()} onClick={() => void create()}>{t('common.save')}</Button>
         </div>

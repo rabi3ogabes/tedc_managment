@@ -8,6 +8,7 @@ import { api, downloadFile, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import { toast } from '@/lib/toast'
+import { pickableRooms } from '@/lib/rooms'
 import type { Program, Session } from '@/lib/types'
 
 type Report = { expected: number; present: number; late: number; absent: number; rows: { registration_id: string; name: string; school?: string; status: string; check_in_at?: string; check_out_at?: string; minutes: number; attendance_id?: string | null; method?: string | null; participated?: boolean; leave_minutes?: number }[] }
@@ -38,7 +39,7 @@ export default function SessionsTab({ program }: { program: Program }) {
   const { t, i18n } = useTranslation()
   const { can } = useAuth()
   const { data, isLoading, refetch } = useGet<{ data: Session[] }>(`/admin/programs/${program.id}/sessions`)
-  const lookups = useGet<{ data: { rooms: { id: string; name_ar: string; name_en: string }[]; trainers: { id: string; name_ar: string; name_en: string }[] } }>('/admin/lookups')
+  const lookups = useGet<{ data: { rooms: { id: string; name_ar: string; name_en: string; status?: string }[]; trainers: { id: string; name_ar: string; name_en: string }[] } }>('/admin/lookups')
   const [adding, setAdding] = useState(false)
   const [attendanceFor, setAttendanceFor] = useState<Session | null>(null)
   const [form, setForm] = useState({ title_ar: '', title_en: '', starts_at: '', ends_at: '', trainer_id: '', training_room_id: '', location_text: '', online_url: '', mode: program.delivery_mode === 'online' ? 'online' : 'in_person', online_platform: '', online_passcode: '' })
@@ -102,7 +103,7 @@ export default function SessionsTab({ program }: { program: Program }) {
           <Field label={t('common.to')}><input className="input" type="datetime-local" value={form.ends_at} onChange={(e) => setForm({ ...form, ends_at: e.target.value })} /></Field>
           <Field label={t('programs.trainersTitle')}><select className="input" value={form.trainer_id} onChange={(e) => setForm({ ...form, trainer_id: e.target.value })}><option value="">—</option>{lookups.data?.data.trainers.map((x) => <option key={x.id} value={x.id}>{nm(x)}</option>)}</select></Field>
           <Field label={t('studio.sessions.mode')}><select className="input" value={form.mode} onChange={(e) => setForm({ ...form, mode: e.target.value })}><option value="in_person">{t('studio.sessions.inPerson')}</option><option value="online">{t('studio.sessions.online')}</option></select></Field>
-          {form.mode === 'in_person' && <Field label="Room"><select className="input" value={form.training_room_id} onChange={(e) => setForm({ ...form, training_room_id: e.target.value })}><option value="">—</option>{lookups.data?.data.rooms.map((x) => <option key={x.id} value={x.id}>{nm(x)}</option>)}</select></Field>}
+          {form.mode === 'in_person' && <Field label="Room"><select className="input" value={form.training_room_id} onChange={(e) => setForm({ ...form, training_room_id: e.target.value })}><option value="">—</option>{pickableRooms(lookups.data?.data.rooms, form.training_room_id).map((x) => <option key={x.id} value={x.id}>{nm(x)}</option>)}</select></Field>}
           {form.mode === 'in_person' ? <Field label="Location" className="sm:col-span-2"><input className="input" value={form.location_text} onChange={(e) => setForm({ ...form, location_text: e.target.value })} /></Field> : (
             <>
               <Field label={t('studio.delivery.platform')} hint={form.online_platform === 'teams_townhall' ? t('m365.teams.session.hintTownhall') : undefined} className="sm:col-span-2"><select className="input" value={form.online_platform} onChange={(e) => setForm({ ...form, online_platform: e.target.value })}><option value="">—</option>{SESSION_PLATFORMS.map((p) => <option key={p} value={p}>{t(`studio.delivery.platforms.${p}`)}</option>)}</select></Field>
