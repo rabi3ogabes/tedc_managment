@@ -21,6 +21,7 @@ use App\Services\CalendarService;
 use App\Services\FileStorage;
 use App\Services\ProgramCatalogSettings;
 use App\Services\Saber\Drafts;
+use App\Services\Saber\FormLinks;
 use App\Services\Saber\Meetings;
 use App\Services\Saber\Scheduling;
 use App\Services\Saber\Workbench;
@@ -171,17 +172,15 @@ class SaberController extends Controller
         ]]);
     }
 
-    /** Programme fields: kit readiness and survey links change the live programme; the supervisor and the days per group are planned (draft). */
+    /** Programme fields: kit readiness changes the live programme; the supervisor and the days per group are planned (draft). */
     public function updateProgram(Request $request, Program $program): JsonResponse
     {
         $d = $request->validate([
             'kit_ready' => ['sometimes', 'boolean'], 'coordinator_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
             'training_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:200'],
-            'survey_link' => ['sometimes', 'nullable', 'url:https,http', 'max:2048'], 'survey_edit_link' => ['sometimes', 'nullable', 'url:https,http', 'max:2048'],
         ]);
         $this->need(match (true) {
             array_key_exists('coordinator_id', $d) => 'saber.supervisor.assign',
-            array_key_exists('survey_link', $d) || array_key_exists('survey_edit_link', $d) => 'saber.survey_links.manage',
             default => 'saber.group.manage',
         });
         if (array_key_exists('coordinator_id', $d)) {
@@ -419,6 +418,7 @@ class SaberController extends Controller
         $rooms = TrainingRoom::pluck('name_ar', 'id');
         $trainers = Trainer::pluck('name_ar', 'id');
         $row = $this->rowOf($program);
+        $row['forms'] = app(FormLinks::class)->one($program);
         $row['groups'] = collect($row['groups'])->map(function ($g) use ($program, $rooms, $trainers) {
             $model = $program->groups->firstWhere('id', $g['id']);
             $g['registrations'] = $model?->registrations_count ?? 0;
@@ -724,7 +724,7 @@ class SaberController extends Controller
         return [
             'id' => $p->id, 'code' => $p->code, 'title' => $p->title_ar ?: $p->title_en, 'title_en' => $p->title_en, 'type' => $p->program_type, 'method' => $p->delivery_mode,
             'hours' => (float) $p->total_hours, 'days' => $days, 'status' => $p->status, 'cancelled' => $p->status === Program::STATUS_CANCELLED,
-            'kit_ready' => $this->bench->kitReady($p), 'kit_ready_set' => $p->kit_ready !== null, 'survey_link' => $p->survey_link, 'survey_edit_link' => $p->survey_edit_link,
+            'kit_ready' => $this->bench->kitReady($p), 'kit_ready_set' => $p->kit_ready !== null,
             'supervisor' => $supervisor ? ['id' => $supervisor->id, 'name' => $supervisor->name_ar ?: $supervisor->name] : null,
             'start_date' => $dates->first() ?? $p->start_date?->toDateString(), 'end_date' => $dates->last() ?? $p->end_date?->toDateString(),
             'lights' => ['total' => $groups->count() * $days, 'dates' => $all->whereNotNull('date')->count(), 'rooms' => $all->whereNotNull('room_id')->count(), 'trainers' => $all->whereNotNull('trainer_id')->count()],

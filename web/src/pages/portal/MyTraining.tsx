@@ -5,7 +5,7 @@ import { CalendarPlus, Check, Download, FileText, PlayCircle, QrCode, Star } fro
 import { QRCodeSVG } from 'qrcode.react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Card, Empty, Field, Modal, PageHeader, Progress, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
@@ -20,6 +20,11 @@ export default function MyTraining() {
   const { t } = useTranslation()
   const { data, isLoading, refetch } = useGet<{ data: Registration[] }>('/me/registrations')
   const [evaluating, setEvaluating] = useState<Registration | null>(null)
+  // Arriving from a programme's form link (/f/t/{code}): that registration's evaluation opens by itself.
+  const [search, setSearch] = useSearchParams()
+  const wanted = search.get('evaluate')
+  const arrived = wanted ? data?.data.find((r) => r.id === wanted && ['approved', 'completed'].includes(r.status) && !r.evaluation_completed) ?? null : null
+  const current = evaluating ?? arrived
   const [materialsFor, setMaterialsFor] = useState<Registration | null>(null)
 
   const [withdrawing, setWithdrawing] = useState<Registration | null>(null)
@@ -67,7 +72,7 @@ export default function MyTraining() {
       {excusing && <ExcuseModal registration={excusing} onClose={() => setExcusing(null)} />}
       {showQr && <MyQrModal onClose={() => setShowQr(false)} />}
       {withdrawing && <WithdrawModal registration={withdrawing} onClose={(changed) => { setWithdrawing(null); if (changed) refetch() }} />}
-      {evaluating && <EvaluationModal registration={evaluating} onClose={() => { setEvaluating(null); refetch() }} />}
+      {current && <EvaluationModal registration={current} onClose={() => { setEvaluating(null); if (wanted) { search.delete('evaluate'); setSearch(search, { replace: true }) } refetch() }} />}
       {materialsFor && <MaterialsModal registration={materialsFor} onClose={() => setMaterialsFor(null)} />}
     </>
   )

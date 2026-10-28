@@ -71,6 +71,11 @@ return [
         'no_rooms' => 'No rooms were found in the file. Use the rooms calendar workbook or a room list with a «room name» column (download the template).',
     ],
     'saber' => [
+        'forms' => [
+            'status' => ['open' => 'Open', 'scheduled' => 'Scheduled', 'closed' => 'Closed', 'off' => 'Switched off', 'waiting' => 'Waiting for the group to end', 'done' => 'Complete'],
+            'export' => ['code' => 'Code', 'program' => 'Programme', 'start' => 'Start', 'end' => 'End', 'trainee' => 'Trainee form link', 'trainee_status' => 'Status',
+                'trainee_answered' => 'Answered / trainees', 'reflection' => 'Trainer self-reflection link', 'reflection_status' => 'Status', 'reflection_answered' => 'Answered / asked'],
+        ],
         'day_reset' => 'Day :n was cleared.', 'date_first' => 'Choose the date of the day first.', 'end_after_start' => 'The day must end after it starts.',
         'room_cleared' => 'The room :room is booked on :date, so it was removed from this day. Choose another room.', 'trainer_cleared' => 'The trainer is busy on :date, so they were removed from this day. Choose another trainer.',
         'room_spread' => 'The room was applied to :n other days.', 'room_spread_skipped' => 'The room was applied to :n days; it is booked on days :days.',

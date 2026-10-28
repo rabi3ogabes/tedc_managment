@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, Building2, ChevronDown, Clock3, FileSpreadsheet, Link2, Search, Users } from 'lucide-react'
+import { BadgeCheck, Building2, ChevronDown, Clock3, FileSpreadsheet, QrCode, Search, Users } from 'lucide-react'
 import { useMemo, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Empty } from '@/components/ui'
@@ -7,7 +7,8 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import RoomSyncDialog from '../RoomSync'
 import ImportWizard from './ImportWizard'
-import { SurveyLinksDialog, TrainersManagerDialog } from './RosterDialogs'
+import { FormsDialog } from './FormLinks'
+import { TrainersManagerDialog } from './RosterDialogs'
 import type { Overview } from './types'
 
 type Tool = 'import' | 'rooms' | 'links' | 'trainers'
@@ -20,7 +21,7 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
   const tools: { id: Tool; icon: ComponentType<{ className?: string }>; allowed: boolean }[] = [
     { id: 'import', icon: FileSpreadsheet, allowed: can('saber.import') },
     { id: 'rooms', icon: Building2, allowed: can('rooms.manage') },
-    { id: 'links', icon: Link2, allowed: can('saber.survey_links.manage') },
+    { id: 'links', icon: QrCode, allowed: can('saber.survey_links.manage') },
     { id: 'trainers', icon: Users, allowed: can('trainers.manage') },
   ]
   const visible = tools.filter((x) => x.allowed)
@@ -34,8 +35,8 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
             <button key={id} type="button" onClick={() => setOpen(id)} className="group flex items-start gap-4 rounded-2xl border border-navy-100 bg-white p-5 text-start shadow-sm transition hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-md">
               <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-gold-50 to-ivory text-gold-700 ring-1 ring-inset ring-gold-200 transition group-hover:scale-105"><Icon className="size-6" /></span>
               <span>
-                <span className="block text-base font-bold text-navy-900">{id === 'import' ? t('saber.wizard.card') : id === 'rooms' ? t('mgmt.rooms.sync.card') : t(`saber.data.${id}.title`)}</span>
-                <span className="mt-1 block text-sm leading-relaxed text-slate-500">{id === 'import' ? t('saber.wizard.cardDesc') : id === 'rooms' ? t('mgmt.rooms.sync.cardDesc') : t(`saber.data.${id}.desc`)}</span>
+                <span className="block text-base font-bold text-navy-900">{id === 'import' ? t('saber.wizard.card') : id === 'rooms' ? t('mgmt.rooms.sync.card') : id === 'links' ? t('saber.forms.card') : t(`saber.data.${id}.title`)}</span>
+                <span className="mt-1 block text-sm leading-relaxed text-slate-500">{id === 'import' ? t('saber.wizard.cardDesc') : id === 'rooms' ? t('mgmt.rooms.sync.cardDesc') : id === 'links' ? t('saber.forms.cardDesc') : t(`saber.data.${id}.desc`)}</span>
               </span>
             </button>
           ))}
@@ -43,7 +44,7 @@ export function DataTools({ overview, onChanged }: { overview: Overview; onChang
       )}
       {open === 'import' && <ImportWizard can={overview.can} onClose={() => setOpen(null)} onDone={onChanged} />}
       {open === 'rooms' && <RoomSyncDialog onClose={() => setOpen(null)} onDone={onChanged} />}
-      {open === 'links' && <SurveyLinksDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
+      {open === 'links' && <FormsDialog onClose={() => setOpen(null)} />}
       {open === 'trainers' && <TrainersManagerDialog onClose={() => setOpen(null)} onChanged={onChanged} />}
     </div>
   )

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BadgeCheck, Download, FileSpreadsheet, Link2, Pencil, Search, ShieldCheck, Trash2, Upload, UserPlus, Users, X } from 'lucide-react'
+import { Download, FileSpreadsheet, Pencil, Search, ShieldCheck, Trash2, UserPlus, Users } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, Field, Modal } from '@/components/ui'
@@ -7,79 +7,6 @@ import { useGet } from '@/hooks/useApi'
 import { api, downloadFile, errorMessage } from '@/lib/api'
 import { dialogs } from '@/lib/dialogs'
 import { toast } from '@/lib/toast'
-import ProgramSearch from './ProgramSearch'
-import type { Program } from './types'
-
-type Link = { id: string; serial: string; survey_link: string | null; survey_edit_link: string | null; program: { id: string; title: string; code: string } | null }
-
-/** D3 — «روابط الاستمارات»: upload the workbook (or the template), list the links, give each to a programme. */
-export function SurveyLinksDialog({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
-  const { t } = useTranslation()
-  const { data, refetch } = useGet<{ data: Link[] }>('/admin/saber/data/survey-links', undefined, { staleTime: 0 })
-  const [replace, setReplace] = useState(true)
-  const [busy, setBusy] = useState(false)
-  const [assigning, setAssigning] = useState<Link | null>(null)
-  const input = useRef<HTMLInputElement>(null)
-
-  const upload = async (f: File) => {
-    setBusy(true)
-    try {
-      const body = new FormData(); body.append('file', f); body.append('replace', replace ? '1' : '0')
-      toast(t('saber.data.links.uploaded', { n: (await api.post('/admin/saber/data/survey-links', body)).data.data.uploaded })); refetch()
-    } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
-  }
-  const assign = async (link: Link, programId: string | null) => {
-    try { await api.post(`/admin/saber/data/survey-links/${link.id}/assign`, { program_id: programId }); toast(t('saber.data.links.done')); refetch(); onChanged(); setAssigning(null) } catch (e) { toast(errorMessage(e), 'error') }
-  }
-  const clear = async () => {
-    if (!(await dialogs.confirm(t('saber.data.links.clearConfirm')))) return
-    try { await api.delete('/admin/saber/data/survey-links'); refetch() } catch (e) { toast(errorMessage(e), 'error') }
-  }
-
-  return (
-    <Modal open onClose={onClose} title={<span className="flex items-center gap-2"><Link2 className="size-5 text-gold-600" />{t('saber.data.links.title')}</span>} wide>
-      <p className="-mt-2 mb-4 text-sm text-slate-500">{t('saber.data.links.desc')}</p>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Button icon={<Upload className="size-4" />} loading={busy} onClick={() => input.current?.click()}>{t('saber.data.links.upload')}</Button>
-        <input ref={input} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = '' }} />
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} />{t('saber.data.links.replace')}</label>
-        <span className="ms-auto flex gap-1.5">
-          <Button size="sm" variant="ghost" icon={<Download className="size-4" />} onClick={() => downloadFile('/admin/saber/data/survey-links/template', 'survey-links-template.xlsx')}>{t('saber.data.links.template')}</Button>
-          {!!data?.data.length && <Button size="sm" variant="ghost" icon={<Trash2 className="size-4" />} onClick={clear}>{t('saber.data.links.clear')}</Button>}
-        </span>
-      </div>
-      <div className="mb-2 text-xs font-semibold text-slate-500">{t('saber.data.links.count', { n: data?.data.length ?? 0 })}</div>
-      <div className="max-h-96 overflow-auto rounded-xl border border-navy-100">
-        {!data ? <div className="h-24 animate-pulse bg-ivory" /> : data.data.length === 0 ? <p className="py-8 text-center text-sm text-slate-400">{t('saber.data.links.none')}</p> : (
-          <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-ivory text-slate-500"><tr><th className="w-14 px-2 py-2 text-start">{t('saber.data.links.serial')}</th><th className="px-2 text-start">{t('saber.data.links.link')}</th><th className="px-2 text-start">{t('saber.data.links.program')}</th><th /></tr></thead>
-            <tbody className="divide-y divide-navy-50">
-              {data.data.map((l) => (
-                <tr key={l.id}>
-                  <td className="px-2 py-2 font-bold tabular-nums text-navy-900">{l.serial}</td>
-                  <td className="max-w-64 px-2">
-                    {l.survey_link ? <a href={l.survey_link} target="_blank" rel="noopener noreferrer" className="block truncate text-navy-700 underline decoration-gold-400 underline-offset-2" dir="ltr">{l.survey_link}</a> : '—'}
-                    {l.survey_edit_link && <a href={l.survey_edit_link} target="_blank" rel="noopener noreferrer" className="block truncate text-[10px] text-slate-400" dir="ltr">{t('saber.data.links.edit')}: {l.survey_edit_link}</a>}
-                  </td>
-                  <td className="px-2">{l.program ? <span className="inline-flex items-center gap-1 font-semibold text-emerald-700"><BadgeCheck className="size-3.5" />{l.program.title}</span> : <span className="text-slate-400">—</span>}</td>
-                  <td className="whitespace-nowrap px-2 text-end">
-                    <Button size="sm" variant="outline" onClick={() => setAssigning(l)}>{t('saber.data.links.assign')}</Button>
-                    {l.program && <button type="button" onClick={() => assign(l, null)} aria-label={t('saber.data.links.unassign')} title={t('saber.data.links.unassign')} className="ms-1 inline-grid size-7 place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="size-3.5" /></button>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      {assigning && (
-        <Modal open onClose={() => setAssigning(null)} title={`${t('saber.data.links.assign')} · ${assigning.serial}`}>
-          <ProgramSearch value={null} placeholder={t('saber.cancel.search')} onPick={(p: Program) => assign(assigning, p.id)} />
-        </Modal>
-      )}
-    </Modal>
-  )
-}
 
 type TrainerRow = { id: string; name: string; national_id: string | null; has_national_id: boolean; email: string | null; phone: string | null; type: string | null; status: string; validated: boolean; employee_linked: boolean }
 type TrainerList = { data: TrainerRow[]; meta: { counts: Record<string, number>; total: number; pending: number; types: Record<string, string>; can_validate: boolean } }

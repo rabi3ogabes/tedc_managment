@@ -1,3 +1,5 @@
+import type { Forms } from './FormLinks'
+
 /** Shapes returned by /admin/saber (backend: SaberController). */
 export type Day = {
   idx: number; extra: boolean; session_id: string | null; date: string | null; start_time: string | null; end_time: string | null
@@ -12,7 +14,7 @@ export type Group = {
 
 export type Program = {
   id: string; code: string; title: string; title_en: string | null; type: string | null; method: string | null; hours: number; days: number; status: string; cancelled: boolean
-  kit_ready: boolean; kit_ready_set: boolean; survey_link: string | null; survey_edit_link: string | null; supervisor: { id: string; name: string } | null
+  kit_ready: boolean; kit_ready_set: boolean; supervisor: { id: string; name: string } | null
   start_date: string | null; end_date: string | null; lights: { total: number; dates: number; rooms: number; trainers: number }; groups: Group[]
   draft?: DraftInfo | null
 }
@@ -66,6 +68,7 @@ export type DetailDay = Day & { room: string | null; trainer: string | null }
 export type Details = Omit<Program, 'groups'> & {
   summary: string | null; objectives: unknown; audience: unknown; level: string | null; capacity: number | null; category: string | null
   kits: { id: string; title: string; status: string }[]
+  forms?: Forms
   cancel: { at: string; reason: string | null; requested_by: string | null; has_attachment: boolean } | null
   groups: (Omit<Group, 'days'> & { registrations: number; capacity: number | null; status_reason: string | null; days: DetailDay[]; cancel: { at: string; requested_by: string | null; has_attachment: boolean } | null })[]
 }

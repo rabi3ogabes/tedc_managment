@@ -112,6 +112,7 @@ use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
 use App\Http\Controllers\Api\V1\Admin\RoomSyncController;
 use App\Http\Controllers\Api\V1\Admin\SaberController;
 use App\Http\Controllers\Api\V1\Admin\SaberDataController;
+use App\Http\Controllers\Api\V1\Admin\SaberFormsController;
 use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
 use App\Http\Controllers\Api\V1\Admin\SchoolController;
 use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
@@ -171,6 +172,7 @@ use App\Http\Controllers\Api\V1\Me\MyCareerController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyEventsController;
+use App\Http\Controllers\Api\V1\Me\MyFormLinkController;
 use App\Http\Controllers\Api\V1\Me\MyLtiController;
 use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
 use App\Http\Controllers\Api\V1\Me\MyNotificationPreferencesController;
@@ -644,6 +646,9 @@ Route::prefix('v1')->group(function () {
             Route::get('colleagues', [MyCareerController::class, 'colleagues'])->middleware('throttle:60,1');
             Route::get('team/pd-activities', [MyCareerController::class, 'teamActivities'])->middleware('permission:impact.supervise');
             Route::post('team/pd-activities/{activity}/decision', [PdAdminController::class, 'decide'])->middleware('permission:impact.supervise');
+            // A programme's form links (/f/t/{code}, /f/r/{code}): where they take the signed-in trainee or trainer.
+            Route::get('form-links/trainee/{code}', [MyFormLinkController::class, 'trainee'])->middleware('throttle:60,1');
+            Route::get('form-links/reflection/{code}', [MyFormLinkController::class, 'reflection'])->middleware('throttle:60,1');
             Route::get('evaluations', [MyEvaluationController::class, 'index']);
             Route::get('evaluations/{assignment}', [MyEvaluationController::class, 'show']);
             Route::post('evaluations/{assignment}', [MyEvaluationController::class, 'submit'])->middleware('throttle:30,1');
@@ -934,6 +939,10 @@ Route::prefix('v1')->group(function () {
             Route::middleware('permission:saber.view')->prefix('saber')->group(function () {
                 Route::get('overview', [SaberController::class, 'overview']);
                 Route::get('programs', [SaberController::class, 'programs']);
+                // Each programme's trainee survey and trainer self-reflection as generated links (docs/saber/07).
+                Route::get('forms', [SaberFormsController::class, 'index']);
+                Route::get('forms/export', [SaberFormsController::class, 'export']);
+                Route::get('programs/{program}/forms', [SaberFormsController::class, 'show'])->whereUuid('program');
                 Route::get('availability', [SaberController::class, 'availability']);
                 Route::patch('programs/{program}', [SaberController::class, 'updateProgram'])->whereUuid('program');
                 Route::post('programs/{program}/groups', [SaberController::class, 'addGroup'])->whereUuid('program');
@@ -970,19 +979,13 @@ Route::prefix('v1')->group(function () {
                 Route::get('weekly-rules', [SaberController::class, 'weeklyRules']);
                 Route::post('weekly-rules', [SaberController::class, 'saveWeeklyRule'])->middleware('permission:calendar.manage');
                 Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
-                // Phase 4 — data tools: imports, survey links workbook, trainers manager, supervisors.
+                // Phase 4 — data tools: imports, trainers manager, supervisors.
                 Route::prefix('data')->controller(SaberDataController::class)->group(function () {
                     Route::post('import/inspect', 'inspect')->middleware('throttle:30,1');
                     Route::post('import/preview', 'preview')->middleware('throttle:30,1');
                     Route::post('import/apply', 'apply');
                     Route::get('import/presets', 'presets');
                     Route::post('import/presets', 'savePreset');
-                    Route::get('survey-links', 'surveyLinks');
-                    Route::post('survey-links', 'uploadSurveyLinks');
-                    Route::get('survey-links/template', 'surveyLinksTemplate');
-                    Route::delete('survey-links', 'clearSurveyLinks');
-                    Route::post('survey-links/{link}/assign', 'assignSurveyLink')->whereUuid('link');
-                    Route::delete('survey-links/{link}', 'deleteSurveyLink')->whereUuid('link');
                     Route::get('trainers', 'trainers');
                     Route::post('trainers', 'saveTrainer');
                     Route::get('trainers/export', 'trainersExport');

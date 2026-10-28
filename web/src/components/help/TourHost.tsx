@@ -42,7 +42,9 @@ export default function TourHost({ groups = [], portal = false }: { groups?: Tou
   const [min, setMin] = useState(false)
   const [hl, setHl] = useState<string | null>(null)
 
-  const load = () => { api.get('/me/tours').then((r) => { setTour(r.data.data ?? null); setI(0); setMin(false) }).catch(() => undefined) }
+  // Someone who came through a form link (a QR code in the room) fills the form first: the tour waits, minimised, until they resume it.
+  const cameForForm = () => { try { return Date.now() - Number(sessionStorage.getItem('tedc.form-link') ?? 0) < 60_000 } catch { return false } }
+  const load = () => { api.get('/me/tours').then((r) => { setTour(r.data.data ?? null); setI(0); setMin(cameForForm()) }).catch(() => undefined) }
   useEffect(() => {
     load()
     window.addEventListener('tedc:tours-reset', load)

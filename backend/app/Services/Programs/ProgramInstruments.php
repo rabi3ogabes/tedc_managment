@@ -154,6 +154,24 @@ class ProgramInstruments
         return ProgramInstrument::where('program_id', $program->id)->where('kind', $kind)->value('form_id');
     }
 
+    /**
+     * The two forms a programme has from the start (a programme published from SABER+ had none): the trainee survey, opened automatically
+     * some hours after the programme ends, and the trainer's self-reflection. A choice already made for the programme is kept.
+     */
+    public function ensureForms(Program $program, User $by): void
+    {
+        if (! ProgramInstrument::where('program_id', $program->id)->where('kind', 'trainee_survey')->exists()) {
+            $hours = (int) ($program->survey_auto_hours ?: 24);
+            $this->put($program, 'trainee_survey', true, $by, ['form_id' => $this->evaluations->defaultFor('satisfaction')->id, 'meta' => ['auto_hours' => $hours]]);
+            if (! $program->survey_opened_at && $program->survey_mode === 'always') {
+                $program->update(['survey_mode' => 'auto', 'survey_auto_hours' => $hours]);
+            }
+        }
+        if (! ProgramInstrument::where('program_id', $program->id)->where('kind', 'trainer_reflection')->exists()) {
+            $this->put($program, 'trainer_reflection', true, $by, ['form_id' => $this->evaluations->defaultFor('trainer_reflection')->id]);
+        }
+    }
+
     // ───────────────────────────── internals
 
     /** @param  array<string, mixed>  $fields */

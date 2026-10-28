@@ -7,7 +7,6 @@ use App\Models\Employee;
 use App\Models\Program;
 use App\Models\Role;
 use App\Models\SaberRevision;
-use App\Models\SaberSurveyLink;
 use App\Models\Trainer;
 use App\Models\TrainingRoom;
 use App\Services\TrainingGroupService;
@@ -224,26 +223,6 @@ class SaberDataToolsTest extends TestCase
         $this->asUser($head)->postJson('/api/v1/admin/saber/reviews/'.SaberRevision::where('program_id', $existing->id)->first()->id.'/publish')->assertOk();
         $this->assertSame(3, $existing->fresh()->training_days);
         $this->upload('/api/v1/admin/saber/data/import/preview', ['url' => 'https://evil.example.com/list.xlsx', 'type' => 'programs'], $head)->assertUnprocessable();
-    }
-
-    public function test_survey_links_are_uploaded_and_given_to_programmes(): void
-    {
-        $a = $this->makeProgram(['title_ar' => 'برنامج أ']);
-        $b = $this->makeProgram(['title_ar' => 'برنامج ب']);
-        $coordinator = $this->makeUser(Role::COORDINATOR);
-        $file = $this->workbook(fn ($s) => $s->fromArray([['م', 'رابط الإستمارة', 'رابط تعديل الإستمارة'], [1, 'https://forms.example.com/s/1', 'https://forms.example.com/e/1'], [2, 'https://forms.example.com/s/2', '']]));
-
-        $this->asUser($coordinator)->post('/api/v1/admin/saber/data/survey-links', ['file' => $file, 'replace' => 1], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('data.uploaded', 2);
-        $link = SaberSurveyLink::where('serial', '1')->first();
-        $this->asUser($coordinator)->postJson("/api/v1/admin/saber/data/survey-links/{$link->id}/assign", ['program_id' => $a->id])->assertOk();
-        $this->assertSame('https://forms.example.com/s/1', $a->fresh()->survey_link);
-        $this->asUser($coordinator)->postJson("/api/v1/admin/saber/data/survey-links/{$link->id}/assign", ['program_id' => $b->id])->assertOk();
-        $this->assertNull($a->fresh()->survey_link, 'moving the link takes it from the first programme');
-        $this->assertSame('https://forms.example.com/e/1', $b->fresh()->survey_edit_link);
-
-        $this->asUser($coordinator)->getJson('/api/v1/admin/saber/data/survey-links')->assertOk()->assertJsonPath('data.0.program.id', $b->id);
-        $this->asUser($coordinator)->get('/api/v1/admin/saber/data/survey-links/template')->assertOk();
-        $this->asUser($coordinator)->deleteJson('/api/v1/admin/saber/data/survey-links')->assertOk()->assertJsonPath('data.deleted', 2);
     }
 
     public function test_trainers_wait_for_approval_import_by_national_id_fill_from_staff_and_export(): void

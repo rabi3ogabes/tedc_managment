@@ -15,6 +15,7 @@ use App\Models\TrainingRoom;
 use App\Models\User;
 use App\Services\CalendarService;
 use App\Services\NotificationService;
+use App\Services\Programs\ProgramInstruments;
 use App\Services\RoomService;
 use App\Services\TrainerService;
 use App\Services\TrainingDaySettings;
@@ -497,6 +498,8 @@ class Drafts
             if ($wasDraft) {
                 $program->update(['status' => Program::STATUS_PUBLISHED]);
                 TrainingGroup::where('program_id', $program->id)->whereNull('published_at')->update(['published_at' => now()]);
+                // A new programme gets its trainee survey and trainer self-reflection, with their links (FormLinks), from the start.
+                app(ProgramInstruments::class)->ensureForms($program->refresh(), $reviewer);
             }
             $rev->update(['status' => SaberRevision::PUBLISHED, 'published_state' => $state, 'reviewed_by' => $reviewer->id, 'reviewed_at' => now(), 'review_note' => $note]);
             DB::commit();

@@ -4,30 +4,23 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use App\Models\Program;
 use App\Models\Role;
-use App\Models\SaberSurveyLink;
 use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
 use App\Models\User;
-use App\Services\Saber\ArabicMatch;
 use App\Services\Saber\CalendarImport;
 use App\Services\Saber\ProgramListImport;
 use App\Services\Saber\TrainerRoster;
 use App\Services\Saber\WorkbookReader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * سابر+ data tools (docs/saber/04-data-tools.md, D1–D5): the rooms-calendar import, the programme list import, the survey links workbook,
- * the trainers manager and the supervisors page.
+ * سابر+ data tools (docs/saber/04-data-tools.md, D1–D5): the rooms-calendar import, the programme list import, the trainers manager and the
+ * supervisors page. The survey links workbook (D3) gave way to each programme's own form links (SaberFormsController, docs/saber/07).
  */
 class SaberDataController extends Controller
 {
@@ -144,104 +137,6 @@ class SaberDataController extends Controller
         $d = $request->validate(['file' => ['required_without:url', 'file', 'max:20480', 'mimes:xlsx,xls,csv,txt'], 'url' => ['required_without:file', 'nullable', 'url:https', 'max:2048']]);
 
         return $request->hasFile('file') ? $request->file('file')->getRealPath() : $programs->download($d['url']);
-    }
-
-    // ── D3 · survey links ────────────────────────────────────────────────────────────────────────────────────────
-
-    public function surveyLinks(): JsonResponse
-    {
-        $this->need('saber.survey_links.manage');
-        $rows = SaberSurveyLink::with('program:id,title_ar,title_en,code')->get()->sortBy(fn ($l) => [is_numeric($l->serial) ? (int) $l->serial : PHP_INT_MAX, $l->serial])->values();
-
-        return response()->json(['data' => $rows->map(fn ($l) => [
-            'id' => $l->id, 'serial' => $l->serial, 'survey_link' => $l->survey_link, 'survey_edit_link' => $l->survey_edit_link,
-            'program' => $l->program ? ['id' => $l->program->id, 'title' => $l->program->title_ar ?: $l->program->title_en, 'code' => $l->program->code] : null,
-        ])]);
-    }
-
-    public function uploadSurveyLinks(Request $request): JsonResponse
-    {
-        $this->need('saber.survey_links.manage');
-        $d = $request->validate(['file' => self::XLSX, 'replace' => ['sometimes', 'boolean']]);
-        $data = IOFactory::createReaderForFile($request->file('file')->getRealPath())->setReadDataOnly(true)->load($request->file('file')->getRealPath())->getSheet(0)->toArray(null, true, false, false);
-        $norm = fn ($v) => ArabicMatch::normalize((string) $v);
-        $headerAt = collect($data)->take(10)->search(fn ($r) => collect($r)->contains(fn ($v) => in_array($norm($v), [$norm('م'), $norm('رقم'), 'serial', 'no', '#'], true)));
-        abort_if($headerAt === false, 422, __('messages.saber.links.no_header'));
-        $find = fn (array $names) => collect($data[$headerAt])->search(fn ($v) => in_array($norm($v), array_map($norm, $names), true));
-        $cSerial = $find(['م', 'رقم', 'Serial', 'No', '#']);
-        $cLink = $find(['رابط الإستمارة', 'رابط الاستمارة', 'Survey', 'Survey Link']);
-        $cEdit = $find(['رابط تعديل الإستمارة', 'رابط تعديل الاستمارة', 'Edit', 'Edit Link']);
-        $rows = [];
-        foreach (array_slice($data, $headerAt + 1) as $r) {
-            $serial = trim((string) ($r[$cSerial] ?? ''));
-            $link = $cLink !== false ? trim((string) ($r[$cLink] ?? '')) : '';
-            $edit = $cEdit !== false ? trim((string) ($r[$cEdit] ?? '')) : '';
-            if ($serial === '' || ($link === '' && $edit === '')) {
-                continue;
-            }
-            $rows[] = ['serial' => mb_substr($serial, 0, 32), 'survey_link' => filter_var($link, FILTER_VALIDATE_URL) ? $link : null, 'survey_edit_link' => filter_var($edit, FILTER_VALIDATE_URL) ? $edit : null];
-        }
-        abort_if($rows === [], 422, __('messages.saber.links.empty'));
-        DB::transaction(function () use ($rows, $d) {
-            if (! empty($d['replace'])) {
-                SaberSurveyLink::query()->delete();
-            }
-            foreach ($rows as $r) {
-                SaberSurveyLink::updateOrCreate(['serial' => $r['serial']], $r);
-            }
-        });
-
-        return response()->json(['data' => ['uploaded' => count($rows)]], 201);
-    }
-
-    /** Gives a link to a programme (or takes it back): the programme's survey and edit links follow. */
-    public function assignSurveyLink(Request $request, SaberSurveyLink $link): JsonResponse
-    {
-        $this->need('saber.survey_links.manage');
-        $d = $request->validate(['program_id' => ['nullable', 'uuid', 'exists:programs,id']]);
-        DB::transaction(function () use ($link, $d) {
-            if ($link->program_id && $link->program_id !== ($d['program_id'] ?? null)) {
-                Program::whereKey($link->program_id)->update(['survey_link' => null, 'survey_edit_link' => null]);
-            }
-            if (! empty($d['program_id'])) {
-                SaberSurveyLink::where('program_id', $d['program_id'])->where('id', '!=', $link->id)->update(['program_id' => null]);
-                Program::whereKey($d['program_id'])->update(['survey_link' => $link->survey_link, 'survey_edit_link' => $link->survey_edit_link]);
-            }
-            $link->update(['program_id' => $d['program_id'] ?? null]);
-        });
-
-        return response()->json(['data' => ['assigned' => (bool) ($d['program_id'] ?? null)]]);
-    }
-
-    public function deleteSurveyLink(SaberSurveyLink $link): JsonResponse
-    {
-        $this->need('saber.survey_links.manage');
-        $link->delete();
-
-        return response()->json(null, 204);
-    }
-
-    public function clearSurveyLinks(): JsonResponse
-    {
-        $this->need('saber.survey_links.manage');
-
-        return response()->json(['data' => ['deleted' => SaberSurveyLink::query()->delete()]]);
-    }
-
-    public function surveyLinksTemplate(): BinaryFileResponse
-    {
-        $this->need('saber.survey_links.manage');
-        $book = new Spreadsheet;
-        $sheet = $book->getActiveSheet()->setTitle('روابط')->setRightToLeft(true);
-        $sheet->fromArray([['م', 'رابط الإستمارة', 'رابط تعديل الإستمارة'], ['1', 'https://forms.example.com/s/1', 'https://forms.example.com/e/1']]);
-        $sheet->getStyle('A1:C1')->getFont()->setBold(true);
-        foreach (['A', 'B', 'C'] as $c) {
-            $sheet->getColumnDimension($c)->setAutoSize(true);
-        }
-        $path = tempnam(sys_get_temp_dir(), 'links').'.xlsx';
-        (new Xlsx($book))->save($path);
-
-        return response()->download($path, 'survey-links-template.xlsx')->deleteFileAfterSend();
     }
 
     // ── D4 · trainers manager ────────────────────────────────────────────────────────────────────────────────────

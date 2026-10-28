@@ -190,19 +190,16 @@ class SaberSchedulingTest extends TestCase
         $this->asUser($admin)->putJson("/api/v1/admin/saber/programs/{$group->program_id}/groups/{$group->id}/days/1", ['date' => '2026-11-05'])->assertOk();
     }
 
-    public function test_the_details_window_and_survey_links(): void
+    public function test_the_details_window_carries_the_programme_forms(): void
     {
         $program = $this->program(['title_ar' => 'برنامج التفاصيل']);
         $coordinator = $this->makeUser(Role::COORDINATOR);
-
-        $this->asUser($coordinator)->patchJson("/api/v1/admin/saber/programs/{$program->id}", ['survey_link' => 'https://forms.example.com/s/1', 'survey_edit_link' => 'https://forms.example.com/e/1'])->assertOk()
-            ->assertJsonPath('data.survey_link', 'https://forms.example.com/s/1');
-        $this->asUser($coordinator)->patchJson("/api/v1/admin/saber/programs/{$program->id}", ['survey_link' => 'not a link'])->assertUnprocessable();
-        $this->asUser($this->makeUser(Role::LOGISTICS_OFFICER))->patchJson("/api/v1/admin/saber/programs/{$program->id}", ['survey_link' => null])->assertForbidden();
 
         $res = $this->asUser($coordinator)->getJson("/api/v1/admin/saber/programs/{$program->id}/details")->assertOk();
         $this->assertSame('برنامج التفاصيل', $res->json('data.title'));
         $this->assertSame(0, $res->json('data.groups.0.registrations'));
         $this->assertCount(3, $res->json('data.groups.0.days'));
+        $this->assertStringEndsWith('/f/t/'.$program->code, $res->json('data.forms.trainee.url'));
+        $this->assertStringEndsWith('/f/r/'.$program->code, $res->json('data.forms.reflection.url'));
     }
 }

@@ -20,7 +20,8 @@ import CancelDialog from './CancelDialog'
 import GroupPanel from './GroupPanel'
 import MeetingDialog from './MeetingDialog'
 import PlanDialog from './PlanDialog'
-import { DetailsModal, SurveyLinks } from './ProgramExtras'
+import { FormsChip } from './FormLinks'
+import { DetailsModal } from './ProgramExtras'
 import RoomMap from './RoomMap'
 import { isoToday, type MonthData } from './rooms'
 import RoomsCalendar from './RoomsCalendar'
@@ -311,7 +312,7 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onP
                 onBlur={(e) => { const n = Number(e.target.value); if (n && n !== p.days) patch({ training_days: n }) }}
                 className="h-9 w-16 rounded-xl border border-navy-100 bg-white text-center text-sm font-bold text-navy-900" />
             </label>
-            <SurveyLinks program={p} canEdit={can('saber.survey_links.manage')} onSaved={onProgram} />
+            <FormsChip programId={p.id} />
             <div className="ms-auto flex items-center gap-2">
               <Link to={`/admin/programs/${p.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-navy-700 hover:text-gold-700"><ExternalLink className="size-3.5" />{t('saber.program.open')}</Link>
               {can('saber.group.manage') && !p.cancelled && <Button size="sm" variant="gold" icon={<Plus className="size-4" />} loading={adding} onClick={addGroup}>{t('saber.group.add')}</Button>}
