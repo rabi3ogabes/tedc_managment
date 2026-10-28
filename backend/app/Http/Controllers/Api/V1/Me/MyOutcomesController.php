@@ -21,6 +21,7 @@ use App\Services\FileStorage;
 use App\Services\ImpactService;
 use App\Services\SatisfactionAlertService;
 use App\Services\TaskApprovalService;
+use App\Services\TraineeSurvey;
 use App\Services\TrainerCertificateService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -123,7 +124,29 @@ class MyOutcomesController extends MyTrainingController
         return response()->json(['data' => $submission], 201);
     }
 
-    public function submitEvaluation(Request $request, Registration $registration, CertificateService $certificates, ImpactService $impact): JsonResponse
+    /**
+     * The trainee form for one of the trainee's programmes: the centre's questions (TraineeSurvey), what Shaheen already knows (programme,
+     * group, trainers, dates — asked first on the old form), and whether it is open now.
+     */
+    public function evaluationForm(Registration $registration, TraineeSurvey $survey): JsonResponse
+    {
+        $this->own($registration);
+        $registration->loadMissing(['program:id,code,title_ar,title_en,start_date,end_date,survey_mode,survey_opened_at,survey_closed_at', 'trainingGroup.trainers.trainer:id,name_ar,name_en']);
+        $group = $registration->trainingGroup;
+        $en = app()->getLocale() === 'en';
+
+        return response()->json(['data' => $survey->form() + [
+            'context' => [
+                'program' => $registration->program->translate('title'), 'code' => $registration->program->code,
+                'group' => $group?->displayTitle(),
+                'trainers' => $group ? $group->trainers->where('status', 'approved')->map(fn ($gt) => $gt->trainer ? ($en ? ($gt->trainer->name_en ?: $gt->trainer->name_ar) : $gt->trainer->name_ar) : null)->filter()->values() : [],
+                'from' => ($group?->start_date ?? $registration->program->start_date)?->toDateString(), 'to' => ($group?->end_date ?? $registration->program->end_date)?->toDateString(),
+            ],
+            'open' => $registration->program->surveyIsOpen(), 'submitted' => (bool) $registration->evaluation_completed,
+        ]]);
+    }
+
+    public function submitEvaluation(Request $request, Registration $registration, CertificateService $certificates, ImpactService $impact, TraineeSurvey $survey): JsonResponse
     {
         $this->own($registration);
         abort_unless(in_array($registration->status, [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED], true), 422);
@@ -131,21 +154,29 @@ class MyOutcomesController extends MyTrainingController
             throw new BusinessRuleException(__('messages.survey.closed'), 'survey_closed');
         }
 
-        $data = $request->validate([
-            'ratings' => ['required', 'array', 'min:1'],
-            'ratings.*' => ['integer', 'between:1,5'],
-            'pre_test_score' => ['nullable', 'numeric', 'between:0,100'],
-            'post_test_score' => ['nullable', 'numeric', 'between:0,100'],
-            'comments' => ['nullable', 'string', 'max:3000'],
-            'allow_testimonial' => ['sometimes', 'boolean'],
-        ]);
+        if ($request->has('answers')) {
+            // The centre's form: answers to its questions, kept as one rating per statement (TraineeSurvey::record).
+            $request->validate(['answers' => ['required', 'array'], 'allow_testimonial' => ['sometimes', 'boolean']]);
+            $recorded = $survey->record($request->input('answers'));
+            $data = ['ratings' => $recorded['ratings'], 'comments' => $recorded['comments'] ? mb_substr($recorded['comments'], 0, 5000) : null, 'allow_testimonial' => $request->boolean('allow_testimonial')];
+        } else {
+            // The earlier four ratings (older mobile app versions).
+            $data = $request->validate([
+                'ratings' => ['required', 'array', 'min:1'],
+                'ratings.*' => ['integer', 'between:1,5'],
+                'pre_test_score' => ['nullable', 'numeric', 'between:0,100'],
+                'post_test_score' => ['nullable', 'numeric', 'between:0,100'],
+                'comments' => ['nullable', 'string', 'max:3000'],
+                'allow_testimonial' => ['sometimes', 'boolean'],
+            ]);
+        }
 
         // Real tests win over typed numbers: the pre / post scores come from the graded attempts when they exist.
         $real = app(KnowledgeService::class)->scoresFor($registration);
         $data['pre_test_score'] = $real['pre'] ?? ($data['pre_test_score'] ?? null);
         $data['post_test_score'] = $real['post'] ?? ($data['post_test_score'] ?? null);
 
-        $satisfaction = round(collect($data['ratings'])->avg() / 5 * 100, 2);
+        $satisfaction = isset($recorded) && $recorded['satisfaction'] !== null ? $recorded['satisfaction'] : round(collect($data['ratings'])->avg() / 5 * 100, 2);
 
         $evaluation = Evaluation::updateOrCreate(['registration_id' => $registration->id], $data + [
             'program_id' => $registration->program_id,

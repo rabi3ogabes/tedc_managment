@@ -12,6 +12,7 @@ use App\Services\EvaluationSettings;
 use App\Services\NeedsSurveys\SurveyAnalyzer;
 use App\Services\Reports\ReportExporter;
 use App\Services\Reports\SurveyDocument;
+use App\Services\TraineeSurvey;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
@@ -56,7 +57,8 @@ class SurveyExportController extends Controller
         $anonMin = (int) app(EvaluationSettings::class)->get('anonymous_min_responses', 3);
         abort_if($evals->count() > 0 && $evals->count() < $anonMin, 422, __('messages.evaluation.too_few', ['n' => $anonMin]));
         $keys = $evals->flatMap(fn ($e) => array_keys($e->ratings ?? []))->unique()->values();
-        $questions = $keys->map(fn ($k) => ['id' => $k, 'type' => 'rating', 'title' => $k, 'scale' => ['min' => 1, 'max' => 5]])->push(['id' => 'comments', 'type' => 'long_text', 'title' => $lang === 'ar' ? 'ملاحظات' : 'Comments'])->all();
+        $labels = app(TraineeSurvey::class)->labels();
+        $questions = $keys->map(fn ($k) => ['id' => $k, 'type' => 'rating', 'title' => $labels[$k] ?? $k, 'scale' => ['min' => 1, 'max' => 5]])->push(['id' => 'comments', 'type' => 'long_text', 'title' => $lang === 'ar' ? 'ملاحظات' : 'Comments'])->all();
         $responses = $evals->map(fn ($e) => (object) ['answers' => ($e->ratings ?? []) + ['comments' => $e->comments]]);
         $raw = $evals->map(fn ($e) => ['who' => null, 'at' => $e->submitted_at->format('Y-m-d H:i'), 'answers' => ($e->ratings ?? []) + ['comments' => $e->comments]])->all();
         $doc = SurveyDocument::build($lang === 'ar' ? 'استبيان رضا المتدربين' : 'Trainee satisfaction survey', $program->translate('title'), $evals->count(), $this->analyzer->questionStats($questions, $responses), $questions, $raw, $lang);

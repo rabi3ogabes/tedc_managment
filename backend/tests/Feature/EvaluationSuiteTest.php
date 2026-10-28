@@ -112,7 +112,7 @@ class EvaluationSuiteTest extends TestCase
         Storage::fake('local');
         $user = $this->makeUser(Role::TRAINER);
         $program = $this->makeProgram();
-        $a = app(EvaluationService::class)->assign(app(EvaluationService::class)->defaultFor('trainer_reflection'), $program, $this->group($program), $user, 'trainer');
+        $a = app(EvaluationService::class)->assign($this->legacyReflectionForm(), $program, $this->group($program), $user, 'trainer');
         $answers = ['engagement' => 4, 'objectives' => 5, 'content_time' => 4, 'own_delivery' => 5];
 
         $this->asUser($user)->post("/api/v1/me/evaluations/{$a->id}", ['answers' => $answers, 'evidence' => ['difficulty_details' => [UploadedFile::fake()->create('virus.exe', 10, 'application/x-msdownload')]]], ['Accept' => 'application/json'])->assertStatus(422)->assertJsonValidationErrors('evidence.difficulty_details');

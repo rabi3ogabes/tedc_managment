@@ -128,7 +128,7 @@ class SurveyMigrationTest extends TestCase
         $program = $this->makeProgram();
         $group = TrainingGroup::where('program_id', $program->id)->firstOrFail();
         $svc = app(EvaluationService::class);
-        $form = $svc->defaultFor('trainer_reflection');
+        $form = $this->legacyReflectionForm();
         $answers = ['engagement' => 4, 'objectives' => 5, 'content_time' => 4, 'own_delivery' => 5];
 
         // One assignment answered the legacy way, with a file and a link as evidence; one still pending.

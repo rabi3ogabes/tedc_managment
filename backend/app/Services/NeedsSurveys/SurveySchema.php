@@ -87,10 +87,14 @@ class SurveySchema
                 $max = (int) ($q['scale']['max'] ?? 5);
                 $min = max(0, min(1, $min));
                 $max = max($min + 1, min(10, $max));
+                // A name for every point (أوافق بشدة … غير موافق بشدة), from the lowest value up, and the order the points are shown in.
+                $labels = array_map(fn ($l) => self::text($l) ?? '', array_values((array) ($q['scale']['labels'] ?? [])));
                 $item['scale'] = array_filter([
                     'min' => $min, 'max' => $max,
                     'min_label' => self::text($q['scale']['min_label'] ?? null),
                     'max_label' => self::text($q['scale']['max_label'] ?? null),
+                    'labels' => count($labels) === $max - $min + 1 && ! in_array('', $labels, true) ? $labels : null,
+                    'order' => ($q['scale']['order'] ?? null) === 'desc' ? 'desc' : null,
                 ], fn ($v) => $v !== null);
                 // competence: a low score signals a need; need: a high score signals a need.
                 $item['mode'] = ($q['mode'] ?? 'competence') === 'need' ? 'need' : 'competence';
@@ -125,7 +129,8 @@ class SurveySchema
                 $id .= 'x';
             }
             $seen[$id] = true;
-            $out[] = ['id' => $id, 'label' => Str::limit($label, 300, '')] + (is_array($item) ? self::skill($item) : []);
+            $en = is_array($item) ? self::text($item['label_en'] ?? null) : null;
+            $out[] = ['id' => $id, 'label' => Str::limit($label, 300, '')] + ($en !== null ? ['label_en' => Str::limit($en, 300, '')] : []) + (is_array($item) ? self::skill($item) : []);
         }
 
         return $out;

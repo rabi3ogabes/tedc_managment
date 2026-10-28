@@ -21,6 +21,7 @@ use App\Services\FileStorage;
 use App\Services\NeedsSurveys\SurveyAnalyzer;
 use App\Services\SatisfactionAlertService;
 use App\Services\Surveys\SurveyFiles;
+use App\Services\TraineeSurvey;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -126,7 +127,8 @@ class GroupEvaluationController extends Controller
             return ['kind' => 'satisfaction', 'responses' => $s['responses'], 'hidden_until' => $min, 'questions' => []];
         }
         $evals = Evaluation::whereHas('registration', fn ($q) => $q->where('program_id', $program->id)->when($group, fn ($w) => $w->where('training_group_id', $group->id)))->get();
-        $criteria = $evals->flatMap(fn ($e) => collect($e->ratings))->groupBy(fn ($v, $k) => $k)->map(fn ($v, $k) => ['id' => $k, 'type' => 'rating', 'title' => $k, 'answered' => $v->count(), 'average' => round((float) $v->avg(), 2), 'scale' => ['min' => 1, 'max' => 5],
+        $labels = app(TraineeSurvey::class)->labels();
+        $criteria = $evals->flatMap(fn ($e) => collect($e->ratings))->groupBy(fn ($v, $k) => $k)->map(fn ($v, $k) => ['id' => $k, 'type' => 'rating', 'title' => $labels[$k] ?? $k, 'answered' => $v->count(), 'average' => round((float) $v->avg(), 2), 'scale' => ['min' => 1, 'max' => 5],
             'distribution' => collect(range(1, 5))->map(fn ($p) => ['label' => (string) $p, 'value' => $v->filter(fn ($x) => (int) $x === $p)->count()])->all()])->values();
 
         return ['kind' => 'satisfaction', 'responses' => $s['responses'], 'average_score' => $s['average'], 'response_rate' => $s['response_rate'], 'questions' => $criteria, 'comments' => $evals->pluck('comments')->filter()->values()->take(50)];

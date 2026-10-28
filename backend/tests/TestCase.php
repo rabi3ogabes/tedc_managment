@@ -4,6 +4,7 @@ namespace Tests;
 
 use App\Auth\JwtVerifier;
 use App\Models\Employee;
+use App\Models\EvaluationForm;
 use App\Models\JobTitle;
 use App\Models\Program;
 use App\Models\ProgramSession;
@@ -11,6 +12,8 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Services\CalendarService;
+use App\Services\EvaluationService;
+use App\Services\NeedsSurveys\SurveySchema;
 use Database\Seeders\ReferenceDataSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,6 +88,25 @@ abstract class TestCase extends BaseTestCase
             'title_ar' => 'جلسة', 'title_en' => 'Session',
             'starts_at' => $startsAt, 'ends_at' => $startsAt->copy()->addHours($hours),
         ]);
+    }
+
+    /**
+     * The trainer self-reflection as it was before the centre's form (ratings and a long answer with evidence), made the default — for the
+     * tests of evidence uploads and of moving forms to the survey engine.
+     */
+    protected function legacyReflectionForm(): EvaluationForm
+    {
+        app(EvaluationService::class)->ensureDefaults();
+        EvaluationForm::where('kind', 'trainer_reflection')->update(['is_default' => false]);
+        $r = fn (string $id) => ['id' => $id, 'type' => 'rating', 'title' => $id, 'title_en' => $id, 'required' => true, 'scale' => ['min' => 1, 'max' => 5], 'mode' => 'competence'];
+        $t = fn (string $id, bool $evidence = false) => ['id' => $id, 'type' => 'long_text', 'title' => $id, 'title_en' => $id, 'required' => false] + ($evidence ? ['evidence' => true] : []);
+
+        return EvaluationForm::create(['kind' => 'trainer_reflection', 'title_ar' => 'تأمل المدرب الذاتي', 'title_en' => 'Trainer self-reflection', 'approval_status' => 'approved', 'approved_at' => now(), 'is_default' => true,
+            'settings' => ['evidence' => true, 'max_files' => 3], 'questions' => SurveySchema::normalize([
+                $r('engagement'), $r('objectives'), $r('content_time'), $r('own_delivery'),
+                ['id' => 'difficulties', 'type' => 'yes_no', 'title' => 'difficulties', 'title_en' => 'difficulties', 'required' => false],
+                $t('difficulty_details', true), $t('worked'), $t('change'), $t('recommend'),
+            ])])->refresh();
     }
 
     protected function tokenFor(User $user): string

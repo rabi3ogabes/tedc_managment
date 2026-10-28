@@ -715,6 +715,7 @@ Route::prefix('v1')->group(function () {
 
             Route::get('tasks', [MyOutcomesController::class, 'tasks']);
             Route::post('tasks/{task}/submit', [MyOutcomesController::class, 'submitTask']);
+            Route::get('registrations/{registration}/evaluation', [MyOutcomesController::class, 'evaluationForm']);
             Route::post('registrations/{registration}/evaluation', [MyOutcomesController::class, 'submitEvaluation']);
             Route::get('certificates', [MyOutcomesController::class, 'certificates']);
             Route::get('trainer-certificates', [MyOutcomesController::class, 'trainerCertificates']);

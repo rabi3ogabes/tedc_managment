@@ -1,5 +1,6 @@
 import ExternalCourseModal from './ExternalCourseModal'
 import MyProgress from './MyProgress'
+import TraineeEvaluation from './TraineeEvaluation'
 import clsx from 'clsx'
 import { CalendarPlus, Check, Download, FileText, PlayCircle, QrCode, Star } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -72,48 +73,9 @@ export default function MyTraining() {
       {excusing && <ExcuseModal registration={excusing} onClose={() => setExcusing(null)} />}
       {showQr && <MyQrModal onClose={() => setShowQr(false)} />}
       {withdrawing && <WithdrawModal registration={withdrawing} onClose={(changed) => { setWithdrawing(null); if (changed) refetch() }} />}
-      {current && <EvaluationModal registration={current} onClose={() => { setEvaluating(null); if (wanted) { search.delete('evaluate'); setSearch(search, { replace: true }) } refetch() }} />}
+      {current && <TraineeEvaluation registration={current} onClose={() => { setEvaluating(null); if (wanted) { search.delete('evaluate'); setSearch(search, { replace: true }) } refetch() }} />}
       {materialsFor && <MaterialsModal registration={materialsFor} onClose={() => setMaterialsFor(null)} />}
     </>
-  )
-}
-
-function EvaluationModal({ registration, onClose }: { registration: Registration; onClose: () => void }) {
-  const { t, i18n } = useTranslation()
-  const criteria = i18n.language === 'ar'
-    ? { content: 'المحتوى', trainer: 'المدرب', organization: 'التنظيم', relevance: 'ملاءمة البرنامج لعملي' }
-    : { content: 'Content', trainer: 'Trainer', organization: 'Organization', relevance: 'Relevance to my work' }
-  const [ratings, setRatings] = useState<Record<string, number>>({ content: 5, trainer: 5, organization: 5, relevance: 5 })
-  const [comments, setComments] = useState('')
-  const [post, setPost] = useState('')
-  const [allow, setAllow] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const submit = async () => {
-    try {
-      await api.post(`/me/registrations/${registration.id}/evaluation`, { ratings, comments, post_test_score: post ? Number(post) : null, allow_testimonial: allow })
-      onClose()
-    } catch (e) { setError(errorMessage(e)) }
-  }
-
-  return (
-    <Modal open onClose={onClose} title={`${t('portal.evaluate')} — ${registration.program?.title}`}>
-      <div className="space-y-4">
-        {Object.entries(criteria).map(([k, label]) => (
-          <div key={k} className="flex items-center justify-between">
-            <span className="text-sm font-medium text-navy-800">{label}</span>
-            <div className="flex gap-1">{[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} onClick={() => setRatings({ ...ratings, [k]: n })}><Star className={`size-6 ${n <= ratings[k] ? 'fill-gold-500 text-gold-500' : 'text-slate-300'}`} /></button>
-            ))}</div>
-          </div>
-        ))}
-        <Field label="Post-test %"><input className="input" type="number" min={0} max={100} value={post} onChange={(e) => setPost(e.target.value)} /></Field>
-        <Field label={t('contact.message')}><textarea className="input" value={comments} onChange={(e) => setComments(e.target.value)} /></Field>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="accent-gold-600" checked={allow} onChange={(e) => setAllow(e.target.checked)} />{t('home.testimonials')}</label>
-        {error && <p className="text-sm text-danger">{error}</p>}
-        <Button variant="gold" className="w-full" onClick={submit}>{t('common.submit')}</Button>
-      </div>
-    </Modal>
   )
 }
 

@@ -40,7 +40,7 @@ export function MyEvaluationForm() {
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
   const nav = useNavigate()
-  const res = useGet<{ data: Row & { questions: (Question & { title_en?: string })[]; evidence_allowed: boolean; max_files: number; engine?: Engine } }>(`/me/evaluations/${id}`, undefined, { staleTime: 0 })
+  const res = useGet<{ data: Row & { questions: (Question & { title_en?: string })[]; evidence_allowed: boolean; max_files: number; engine?: Engine; context?: Context } }>(`/me/evaluations/${id}`, undefined, { staleTime: 0 })
   const [answers, setAnswers] = useState<Answers>({})
   const [evidence, setEvidence] = useState<Record<string, Evidence>>({})
   const [busy, setBusy] = useState(false)
@@ -61,6 +61,7 @@ export function MyEvaluationForm() {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <PageHeader title={ar ? f.title_ar : f.title_en} subtitle={f.target ? `${f.program ?? ''} · ${ar ? f.target.name_ar : f.target.name_en}` : f.program ?? undefined} />
+      {res.data.data.context && <GeneralInfo context={res.data.data.context} numbered={qs.some((q) => /^ثاني/.test(q.title))} />}
       {qs.filter((q) => isVisible(q, answers)).map((q) => q.type === 'section' ? <h3 key={q.id} className="pt-2 text-lg font-bold text-navy-900">{q.title}</h3> : (
         <Card key={q.id} className="space-y-3">
           <div className="font-semibold text-navy-900">{q.title}{q.required && <span className="text-danger"> *</span>}</div>
@@ -93,6 +94,23 @@ function EngineEvaluation({ id, f, onDone }: { id: string; f: Row & { engine?: E
           onClose={onDone}
         />
       </div>
+    </Card>
+  )
+}
+
+type Context = { name: string; job: string | null; program: string | null; from: string | null; to: string | null }
+
+/** What the old form asked first and Shaheen already knows: name, job title, programme and dates — shown, not asked. */
+function GeneralInfo({ context, numbered }: { context: Context; numbered: boolean }) {
+  const { t } = useTranslation()
+  const dates = context.from ? (context.to && context.to !== context.from ? `${fmt.date(context.from)} – ${fmt.date(context.to)}` : fmt.date(context.from)) : '—'
+  const items: [string, string][] = [[t('evalc.my.name'), context.name], [t('evalc.my.job'), context.job ?? '—'], [t('evalc.my.program'), context.program ?? '—'], [t('evalc.my.dates'), dates]]
+  return (
+    <Card className="space-y-3 border-gold-200 bg-gradient-to-br from-gold-50/60 to-white">
+      <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-base font-bold text-navy-900">{t(numbered ? 'evalc.my.generalFirst' : 'evalc.my.general')}</h3><span className="text-xs text-slate-500">{t('evalc.my.generalHint')}</span></div>
+      <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+        {items.map(([k, v]) => <div key={k}><dt className="text-[11px] font-bold text-slate-400">{k}</dt><dd className="text-sm font-semibold text-navy-900">{v}</dd></div>)}
+      </dl>
     </Card>
   )
 }

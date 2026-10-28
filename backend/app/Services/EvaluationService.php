@@ -20,6 +20,7 @@ use App\Services\Programs\ProgramInstruments;
 use App\Services\Surveys\EvaluationAnswer;
 use App\Services\Surveys\LegacyQuestions;
 use App\Services\Surveys\SurveyCollector;
+use App\Support\EvaluationTemplates;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
@@ -52,11 +53,6 @@ class EvaluationService
         $r = fn (string $id, string $ar, string $en, bool $req = true) => ['id' => $id, 'type' => 'rating', 'title' => $ar, 'title_en' => $en, 'required' => $req, 'scale' => ['min' => 1, 'max' => 5], 'mode' => 'competence'];
         $t = fn (string $id, string $ar, string $en, bool $evidence = false) => ['id' => $id, 'type' => 'long_text', 'title' => $ar, 'title_en' => $en, 'required' => false] + ($evidence ? ['evidence' => true] : []);
         $defaults = [
-            'trainer_reflection' => ['تأمل المدرب الذاتي', 'Trainer self-reflection', [
-                $r('engagement', 'مستوى تفاعل المتدربين', 'Trainee engagement'), $r('objectives', 'مدى تحقق أهداف البرنامج', 'How far the objectives were met'), $r('content_time', 'ملاءمة المحتوى والوقت', 'Fit of content and time'), $r('own_delivery', 'تقييمي لأدائي في التقديم', 'My own delivery'),
-                ['id' => 'difficulties', 'type' => 'yes_no', 'title' => 'هل واجهتك صعوبات تنظيمية أو تقنية؟', 'title_en' => 'Did you face organisational or technical difficulties?', 'required' => false],
-                $t('difficulty_details', 'اشرح الصعوبات (يمكن إرفاق دليل)', 'Describe the difficulties (evidence can be attached)', true), $t('worked', 'ما الذي نجح؟', 'What worked well?'), $t('change', 'ما الذي كنت ستغيّره؟', 'What would you change?'), $t('recommend', 'توصيات لتطوير البرنامج', 'Recommendations to improve the program'),
-            ]],
             'planning_evaluation' => ['تقييم فريق التخطيط', 'Planning-team evaluation', [
                 $r('design', 'جودة تصميم البرنامج', 'Quality of the program design'), $r('materials', 'جودة المواد التدريبية', 'Quality of the training materials'), $r('organisation', 'التنظيم واللوجستيات', 'Organisation and logistics'), $r('trainer', 'أداء المدرب', 'Trainer performance'), $r('alignment', 'التوافق مع الخطة والاحتياج', 'Alignment with the plan and the need'),
                 $t('strengths', 'نقاط القوة', 'Strengths', true), $t('improvements', 'فرص التحسين', 'Improvements'),
@@ -73,10 +69,18 @@ class EvaluationService
         foreach ($defaults as $kind => [$ar, $en, $questions]) {
             EvaluationForm::create(['kind' => $kind, 'title_ar' => $ar, 'title_en' => $en, 'questions' => SurveySchema::normalize($questions), 'approval_status' => 'approved', 'approved_at' => now(), 'is_default' => true, 'settings' => ['evidence' => true, 'max_files' => 3]]);
         }
+        // The trainer's self-reflection is the centre's own form (EvaluationTemplates).
+        $reflection = EvaluationTemplates::trainerReflection();
+        EvaluationForm::create(['kind' => 'trainer_reflection', 'title_ar' => $reflection['title_ar'], 'title_en' => $reflection['title_en'], 'questions' => SurveySchema::normalize($reflection['questions']),
+            'approval_status' => 'approved', 'approved_at' => now(), 'is_default' => true, 'settings' => ['evidence' => false, 'max_files' => 3, 'template' => EvaluationTemplates::REFLECTION]]);
         // The older instruments appear in the list as read-only adapters, so the registry shows all of them.
         foreach ([['satisfaction', 'استبيان رضا المتدربين', 'Trainee satisfaction survey'], ['impact_trainee', 'نموذج أثر التدريب — المتدرب', 'Training impact — trainee'], ['impact_manager', 'نموذج أثر التدريب — المدير المباشر', 'Training impact — direct manager']] as [$kind, $ar, $en]) {
             EvaluationForm::create(['kind' => $kind, 'title_ar' => $ar, 'title_en' => $en, 'questions' => [], 'approval_status' => 'approved', 'approved_at' => now(), 'is_default' => true, 'is_system' => true, 'settings' => ['evidence' => $kind !== 'satisfaction']]);
         }
+        // The trainee form (the satisfaction survey) carries the centre's questions, which the trainee's evaluation window shows.
+        $trainee = EvaluationTemplates::trainee();
+        EvaluationForm::where('kind', 'satisfaction')->where('is_system', true)->update(['title_ar' => $trainee['title_ar'], 'title_en' => $trainee['title_en'], 'questions' => json_encode(SurveySchema::normalize($trainee['questions']), JSON_UNESCAPED_UNICODE),
+            'settings' => json_encode(['evidence' => false, 'template' => EvaluationTemplates::TRAINEE, 'intro_ar' => $trainee['intro_ar'], 'intro_en' => $trainee['intro_en']], JSON_UNESCAPED_UNICODE)]);
     }
 
     public function defaultFor(string $kind): EvaluationForm
@@ -337,6 +341,7 @@ class EvaluationService
             }
             $values[] = match ($q['type']) {
                 'rating', 'scale' => ($v - ($q['scale']['min'] ?? 1)) / max(1, ($q['scale']['max'] ?? 5) - ($q['scale']['min'] ?? 1)) * 100,
+                'matrix' => is_array($v) && $v !== [] ? (array_sum($v) / count($v) - ($q['scale']['min'] ?? 1)) / max(1, ($q['scale']['max'] ?? 5) - ($q['scale']['min'] ?? 1)) * 100 : null,
                 'nps' => $v * 10,
                 'yes_no' => $v === 'yes' ? 100 : 0,
                 default => null,

@@ -4,8 +4,9 @@ export type QuestionType =
   | 'section' | 'short_text' | 'long_text' | 'single' | 'multiple' | 'dropdown' | 'yes_no'
   | 'rating' | 'scale' | 'nps' | 'matrix' | 'ranking' | 'number' | 'date'
 
-export type Choice = { id: string; label: string; skill_id?: string | null; skill_name?: string | null }
-export type Scale = { min: number; max: number; min_label?: string; max_label?: string }
+export type Choice = { id: string; label: string; label_en?: string | null; skill_id?: string | null; skill_name?: string | null }
+/** `labels` names every point from the lowest value up (أوافق بشدة … غير موافق بشدة); `order: 'desc'` shows the highest first. */
+export type Scale = { min: number; max: number; min_label?: string; max_label?: string; labels?: string[]; order?: 'desc' }
 export type Logic = { question: string; op: 'equals' | 'not_equals' | 'includes' | 'gte' | 'lte' | 'answered'; value?: string | number | null }
 
 export type Question = {

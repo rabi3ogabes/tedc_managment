@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Models\EvaluationAssignment;
+use App\Models\Trainer;
+use App\Models\TrainingGroup;
 use App\Services\EvaluationService;
 use App\Services\Surveys\SurveyCollector;
 use App\Services\Surveys\SurveyFiles;
@@ -29,16 +31,16 @@ class MyEvaluationController extends MeController
     public function show(EvaluationAssignment $assignment): JsonResponse
     {
         $this->own($assignment);
-        $assignment->load('form', 'program:id,code,title_ar,title_en', 'response', 'survey.currentVersion', 'trainer:id,name_ar,name_en', 'session:id,sequence,title_ar,title_en,starts_at');
+        $assignment->load('form', 'program:id,code,title_ar,title_en,start_date,end_date', 'response', 'survey.currentVersion', 'trainer:id,name_ar,name_en', 'session:id,sequence,title_ar,title_en,starts_at');
         $survey = $assignment->survey;
         if (! $survey || ! $survey->currentVersion) {
-            return response()->json(['data' => $this->summary($assignment) + ['questions' => $assignment->form->questions, 'answers' => $assignment->response?->answers, 'evidence_allowed' => (bool) ($assignment->form->settings['evidence'] ?? false), 'max_files' => (int) ($assignment->form->settings['max_files'] ?? 3)]]);
+            return response()->json(['data' => $this->summary($assignment) + ['context' => $this->context($assignment)] + ['questions' => $assignment->form->questions, 'answers' => $assignment->response?->answers, 'evidence_allowed' => (bool) ($assignment->form->settings['evidence'] ?? false), 'max_files' => (int) ($assignment->form->settings['max_files'] ?? 3)]]);
         }
         $version = $survey->currentVersion;
         $submission = $this->collector->submissionFor($survey, $this->user(), $assignment->id);
         $draft = $assignment->status === 'pending' ? $this->collector->draftFor($survey, $this->user(), $assignment->id) : null;
 
-        return response()->json(['data' => $this->summary($assignment) + [
+        return response()->json(['data' => $this->summary($assignment) + ['context' => $this->context($assignment)] + [
             // The legacy shape, without file questions, keeps older clients answering; the engine block is for the new form.
             'questions' => array_values(array_filter($version->questions, fn ($q) => $q['type'] !== 'file_upload')),
             'answers' => $submission?->answers, 'evidence_allowed' => false, 'max_files' => 0,
@@ -97,6 +99,26 @@ class MyEvaluationController extends MeController
     private function own(EvaluationAssignment $assignment): void
     {
         abort_unless($assignment->respondent_user_id === $this->user()->id, 404);
+    }
+
+    /**
+     * What the old form asked first and Shaheen already knows — «أولاً: معلومات عامة»: the respondent's name and job title, the programme
+     * and when it ran (the group's dates when there is one).
+     *
+     * @return array{name: string, job: ?string, program: ?string, from: ?string, to: ?string}
+     */
+    private function context(EvaluationAssignment $a): array
+    {
+        $user = $this->user();
+        $en = app()->getLocale() === 'en';
+        $trainer = Trainer::where('user_id', $user->id)->first(['title_ar', 'title_en']);
+        $job = $trainer ? ($en ? ($trainer->title_en ?: $trainer->title_ar) : ($trainer->title_ar ?: $trainer->title_en)) : null;
+        $job ??= $user->employee?->jobTitle?->translate('name');
+        $group = $a->group_id ? TrainingGroup::find($a->group_id, ['id', 'start_date', 'end_date']) : null;
+        $program = $a->program;
+
+        return ['name' => $en ? ($user->name ?: $user->name_ar) : ($user->name_ar ?: $user->name), 'job' => $job, 'program' => $program?->translate('title'),
+            'from' => ($group?->start_date ?? $program?->start_date)?->toDateString(), 'to' => ($group?->end_date ?? $program?->end_date)?->toDateString()];
     }
 
     private function summary(EvaluationAssignment $a): array

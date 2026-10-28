@@ -203,9 +203,13 @@ function Fact({ icon, text }: { icon: ReactNode; text: string }) {
 const choiceClass = (active: boolean) => clsx('flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-start text-sm transition', active ? 'border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_7%,white)] font-semibold text-navy-900 shadow-sm' : 'border-navy-100 bg-white text-slate-600 hover:border-gold-400')
 
 export function QuestionInput({ q, value, onChange, accent }: { q: Question; value: Answer | undefined; onChange: (v: Answer | undefined) => void; accent: string }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const scale = q.scale ?? { min: 1, max: 5 }
-  const points = Array.from({ length: scale.max - scale.min + 1 }, (_, i) => scale.min + i)
+  const ascending = Array.from({ length: scale.max - scale.min + 1 }, (_, i) => scale.min + i)
+  // A named scale is shown the way the form was written: each point by its name, highest first when the form says so.
+  const points = scale.order === 'desc' ? [...ascending].reverse() : ascending
+  const named = scale.labels?.length === ascending.length ? (p: number) => scale.labels![p - scale.min] : null
+  const label = (c: { label: string; label_en?: string | null }) => (i18n.language === 'en' && c.label_en) || c.label
 
   switch (q.type) {
     case 'short_text':
@@ -220,7 +224,7 @@ export function QuestionInput({ q, value, onChange, accent }: { q: Question; val
       return (
         <select className="input" value={(value as string) ?? ''} onChange={(e) => onChange(e.target.value || undefined)}>
           <option value="">{t('surveys.form.selectPlaceholder')}</option>
-          {q.options?.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+          {q.options?.map((o) => <option key={o.id} value={o.id}>{label(o)}</option>)}
         </select>
       )
     case 'single':
@@ -229,7 +233,7 @@ export function QuestionInput({ q, value, onChange, accent }: { q: Question; val
           {q.options?.map((o) => (
             <button type="button" key={o.id} onClick={() => onChange(value === o.id ? undefined : o.id)} className={choiceClass(value === o.id)}>
               <span className={clsx('grid size-5 shrink-0 place-items-center rounded-full border-2', value === o.id ? 'border-[var(--accent)]' : 'border-slate-300')}>{value === o.id && <span className="size-2.5 rounded-full" style={{ background: accent }} />}</span>
-              {o.label}
+              {label(o)}
             </button>
           ))}
         </div>
@@ -263,8 +267,8 @@ export function QuestionInput({ q, value, onChange, accent }: { q: Question; val
     case 'rating':
       return (
         <div className="flex flex-wrap gap-1.5">
-          {points.filter((p) => p > 0).map((p) => (
-            <button type="button" key={p} aria-label={String(p)} onClick={() => onChange(value === p ? undefined : p)} className="rounded-lg p-1 transition hover:scale-110">
+          {ascending.filter((p) => p > 0).map((p) => (
+            <button type="button" key={p} aria-label={named ? named(p) : String(p)} onClick={() => onChange(value === p ? undefined : p)} className="rounded-lg p-1 transition hover:scale-110">
               <Star className="size-9" strokeWidth={1.5} style={{ color: accent }} fill={typeof value === 'number' && p <= value ? accent : 'transparent'} />
             </button>
           ))}
@@ -281,7 +285,7 @@ export function QuestionInput({ q, value, onChange, accent }: { q: Question; val
             {pts.map((p) => {
               const on = value === p
               const npsTone = q.type === 'nps' && !on ? (p <= 6 ? 'hover:border-red-300' : p <= 8 ? 'hover:border-amber-300' : 'hover:border-emerald-300') : ''
-              return <button type="button" key={p} onClick={() => onChange(on ? undefined : p)} className={clsx('h-11 min-w-0 flex-1 rounded-xl border text-sm font-bold transition', on ? 'border-transparent text-white shadow-md' : clsx('border-navy-100 bg-white text-slate-600', npsTone))} style={on ? { background: accent } : undefined}>{p}</button>
+              return <button type="button" key={p} onClick={() => onChange(on ? undefined : p)} className={clsx('min-h-11 min-w-0 flex-1 rounded-xl border px-1 py-1.5 font-bold leading-tight transition', named && q.type !== 'nps' ? 'text-[11px]' : 'text-sm', on ? 'border-transparent text-white shadow-md' : clsx('border-navy-100 bg-white text-slate-600', npsTone))} style={on ? { background: accent } : undefined}>{named && q.type !== 'nps' ? named(p) : p}</button>
             })}
           </div>
           {(low || high) && <div className="mt-2 flex justify-between text-xs text-slate-400"><span>{low}</span><span>{high}</span></div>}
@@ -295,20 +299,24 @@ export function QuestionInput({ q, value, onChange, accent }: { q: Question; val
         <div className="space-y-3">
           <div className="hidden items-end gap-3 text-center text-[11px] font-semibold leading-4 text-slate-400 sm:flex">
             <div className="w-[40%] shrink-0" />
-            <div className="flex flex-1 gap-1.5">{points.map((p) => <span key={p} className="flex-1">{p === scale.min ? scale.min_label ?? p : p === scale.max ? scale.max_label ?? p : p}</span>)}</div>
+            <div className="flex flex-1 gap-1.5">{points.map((p) => <span key={p} className="flex-1">{named ? named(p) : p === scale.min ? scale.min_label ?? p : p === scale.max ? scale.max_label ?? p : p}</span>)}</div>
           </div>
           {q.rows?.map((row) => (
             <div key={row.id} className={clsx('rounded-xl border p-3 transition sm:flex sm:items-center sm:gap-3 sm:border-0 sm:p-0', grid[row.id] ? 'border-navy-100' : 'border-dashed border-navy-100')}>
-              <div className="mb-2 text-sm font-medium text-navy-900 sm:mb-0 sm:w-[40%] sm:shrink-0">{row.label}</div>
+              <div className="mb-2 text-sm font-medium text-navy-900 sm:mb-0 sm:w-[40%] sm:shrink-0">{label(row)}</div>
               <div className="flex flex-1 gap-1.5">
                 {points.map((p) => {
                   const on = grid[row.id] === p
-                  return <button type="button" key={p} aria-label={`${row.label}: ${p}`} onClick={() => setCell(row.id, p)} className={clsx('h-10 flex-1 rounded-lg border text-sm font-bold transition', on ? 'border-transparent text-white shadow' : 'border-navy-100 bg-white text-slate-500 hover:border-gold-400')} style={on ? { background: accent } : undefined}>{p}</button>
+                  return (
+                    <button type="button" key={p} aria-label={`${label(row)}: ${named ? named(p) : p}`} aria-pressed={on} onClick={() => setCell(row.id, p)} className={clsx('min-h-10 min-w-0 flex-1 rounded-lg border px-1 py-1 text-sm font-bold leading-tight transition', on ? 'border-transparent text-white shadow' : 'border-navy-100 bg-white text-slate-500 hover:border-gold-400')} style={on ? { background: accent } : undefined}>
+                      {named ? <><span className="text-[10px] sm:hidden">{named(p)}</span><span className={clsx('mx-auto hidden size-3.5 rounded-full border-2 sm:block', on ? 'border-white bg-white' : 'border-slate-300')} /></> : p}
+                    </button>
+                  )
                 })}
               </div>
             </div>
           ))}
-          <div className="flex justify-between text-[11px] text-slate-400 sm:hidden"><span>{scale.min_label}</span><span>{scale.max_label}</span></div>
+          {!named && <div className="flex justify-between text-[11px] text-slate-400 sm:hidden"><span>{scale.min_label}</span><span>{scale.max_label}</span></div>}
         </div>
       )
     }
