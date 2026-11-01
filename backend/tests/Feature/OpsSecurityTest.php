@@ -15,6 +15,7 @@ use App\Ops\DataClassification;
 use App\Ops\DataSubjectService;
 use App\Security\SecurityEvents;
 use App\Security\Siem\SiemForwarder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -184,6 +185,26 @@ class OpsSecurityTest extends TestCase
         $this->assertSame('29850123456', Employee::find($emp->id)->national_id);
         $this->assertStringNotContainsString('29850123456', (string) DB::table('employees')->where('id', $emp->id)->value('national_id'));
         $this->assertSame(File::get(base_path('../docs/security/data-classification.md')), $c->markdown(), 'Run: php artisan tedc:data-classification --write');
+    }
+
+    public function test_every_encrypted_cast_is_listed_in_the_register(): void
+    {
+        $listed = config('data_classification.app_encrypted');
+        $found = [];
+        foreach (File::allFiles(app_path('Models')) as $file) {
+            $class = 'App\\Models\\'.str_replace(['/', '.php'], ['\\', ''], $file->getRelativePathname());
+            if (! is_subclass_of($class, Model::class) || (new \ReflectionClass($class))->isAbstract()) {
+                continue;
+            }
+            $model = new $class;
+            foreach ($model->getCasts() as $col => $cast) {
+                if (str_starts_with((string) $cast, 'encrypted')) {
+                    $found[] = $key = $model->getTable().'.'.$col;
+                    $this->assertContains($key, $listed, "{$key} is encrypted: add it to data_classification.app_encrypted");
+                }
+            }
+        }
+        $this->assertContains('trainers.national_id', $found);
     }
 
     public function test_the_anonymised_export_drops_secrets_pseudonymises_people_keeps_joins_and_is_approved_and_logged(): void
