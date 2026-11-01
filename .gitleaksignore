@@ -1,2 +1,4 @@
 # The one finding of the contract kit's tests that predates the allowance in .gitleaks.toml: a made-up idempotency key asserted in a test.
 dd22e3b4700a2802afb437022928abf5cf5318c1:backend/tests/Feature/MoeEpayContractTest.php:generic-api-key:56
+# A made-up Supabase user id (a UUID) in PasswordSupabaseSyncTest, before the test generated it at run time.
+af7059c8c86b1a7a9a15a6ee39d86882433a1eeb:backend/tests/Feature/PasswordSupabaseSyncTest.php:generic-api-key:16

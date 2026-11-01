@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Security\PasswordService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /** A password set in the platform reaches Supabase Auth when that is the identity store — at Supabase's full address. */
@@ -13,7 +14,7 @@ class PasswordSupabaseSyncTest extends TestCase
     {
         config(['tedc.auth.driver' => 'supabase', 'tedc.supabase.url' => 'https://project-ref.supabase.co', 'tedc.supabase.service_role_key' => 'sb_secret_test']);
         // Supabase user ids are UUIDs, and users.auth_id is a uuid column on PostgreSQL.
-        $authId = '6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b';
+        $authId = (string) Str::uuid();
         Http::fake(['https://project-ref.supabase.co/auth/v1/admin/users/*' => Http::response(['id' => $authId])]);
         $user = $this->makeUser();
         $user->forceFill(['auth_id' => $authId])->saveQuietly();
