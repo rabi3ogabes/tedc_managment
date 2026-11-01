@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth'
 import Home from '@/pages/public/Home'
 
 const About = lazy(() => import('@/pages/public/About'))
+const Wayfinding = lazy(() => import('@/pages/public/Wayfinding'))
 const Programs = lazy(() => import('@/pages/public/Programs'))
 const ProgramDetail = lazy(() => import('@/pages/public/ProgramDetail'))
 const Trainers = lazy(() => import('@/pages/public/Trainers'))
@@ -29,6 +30,7 @@ const KitsWorkbench = lazy(() => import('@/pages/admin/kits/KitsWorkbench'))
 const FileStudio = lazy(() => import('@/pages/admin/kits/FileStudio'))
 const ProgramWizard = lazy(() => import('@/pages/admin/smart/ProgramWizard'))
 const RoomsAdmin = lazy(() => import('@/pages/admin/Rooms'))
+const RoomMap = lazy(() => import('@/pages/admin/RoomMap'))
 const TrainersAdmin = lazy(() => import('@/pages/admin/Trainers'))
 const TrainingCalendar = lazy(() => import('@/pages/admin/TrainingCalendar'))
 const Registrations = lazy(() => import('@/pages/admin/Registrations'))
@@ -203,6 +205,7 @@ export default function App() {
           <Route path="news/:id" element={<NewsDetail />} />
           <Route path="contact" element={<Contact />} />
         </Route>
+        <Route path="map" element={<Wayfinding />} />
         <Route path="login" element={<Login />} />
         <Route path="sso/callback" element={<SsoCallback />} />
         <Route path="lti/launch" element={<LtiLaunch />} />
@@ -248,6 +251,7 @@ export default function App() {
           <Route path="programs/remote" element={<RequireAuth permission="programs.manage"><ProgramWizard remote /></RequireAuth>} />
           <Route path="programs/smart" element={<RequireAuth permission="programs.manage"><ProgramWizard /></RequireAuth>} />
           <Route path="rooms" element={<RequireAuth permission="programs.view"><RoomsAdmin /></RequireAuth>} />
+          <Route path="rooms/map" element={<RequireAuth permission="rooms.manage"><RoomMap /></RequireAuth>} />
           <Route path="trainers" element={<RequireAuth permission="programs.view"><TrainersAdmin /></RequireAuth>} />
           <Route path="calendar" element={<RequireAuth permission="calendar.view"><TrainingCalendar /></RequireAuth>} />
           <Route path="programs/:id/edit" element={<ProgramEditor />} />

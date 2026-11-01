@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
@@ -232,6 +233,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // A sign-in problem also shows when only the single sign-on button is on screen.
                   if (_error != null && _ssoMandatory(ref) && !_showPassword) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, style: const TextStyle(color: AppColors.danger))),
                 ]),
+              ),
+            ),
+            // Visitors find their way in the centre without an account (docs/wayfinding.md).
+            const SizedBox(height: 18),
+            Center(
+              child: OutlinedButton.icon(
+                key: const ValueKey('centre-guide'),
+                onPressed: () => context.push('/map'),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: BorderSide(color: AppColors.gold300.withValues(alpha: .6)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                icon: Icon(Icons.map_outlined, color: AppColors.gold300),
+                label: Text(s.t('way.open')),
               ),
             ),
             // Demo accounts only where the server is in demo mode (never on a live system by default).

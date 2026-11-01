@@ -143,6 +143,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
 use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
+use App\Http\Controllers\Api\V1\Admin\WayfindingController;
 use App\Http\Controllers\Api\V1\Admin\WebhooksController;
 use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
 use App\Http\Controllers\Api\V1\Ai\AiAdminController;
@@ -196,6 +197,7 @@ use App\Http\Controllers\Api\V1\Public\ExternalFormController;
 use App\Http\Controllers\Api\V1\Public\PublicContentController;
 use App\Http\Controllers\Api\V1\Public\PublicController;
 use App\Http\Controllers\Api\V1\Public\PublicSurveyController;
+use App\Http\Controllers\Api\V1\Public\WayfindingController as PublicWayfindingController;
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SamlController;
 use App\Http\Controllers\Api\V1\SearchController;
@@ -336,6 +338,7 @@ Route::prefix('v1')->group(function () {
         Route::get('stats', 'stats');
         Route::get('theme', [ThemeController::class, 'show']);
         Route::get('mobile-config', MobileConfigController::class);
+        Route::get('wayfinding', PublicWayfindingController::class);
         Route::get('labels', [LabelController::class, 'publicIndex']);
         Route::get('programs', 'programs');
         Route::get('programs/{idOrCode}', 'program');
@@ -916,6 +919,11 @@ Route::prefix('v1')->group(function () {
 
             // Training rooms (locations, layouts, equipment, availability)
             Route::prefix('rooms')->controller(RoomController::class)->group(function () {
+                // «خريطة المركز» (docs/wayfinding.md) — before {room}, which would read "map" as a room.
+                Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::get('map', [WayfindingController::class, 'show']);
+                    Route::put('map', [WayfindingController::class, 'update']);
+                });
                 Route::middleware('permission:programs.view|rooms.manage')->group(function () {
                     Route::get('/', 'index');
                     Route::get('options', 'options');
@@ -926,6 +934,7 @@ Route::prefix('v1')->group(function () {
                     Route::get('{room}/screen', 'screen');
                 });
                 Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::put('{room}/map', [WayfindingController::class, 'room']);
                     Route::post('sync/preview', [RoomSyncController::class, 'preview']);
                     Route::post('sync/apply', [RoomSyncController::class, 'apply']);
                     Route::get('sync/template', [RoomSyncController::class, 'template']);

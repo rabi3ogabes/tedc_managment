@@ -2,7 +2,8 @@
 
 > The full guide, with the PDF and app steps and the licence notes, is in [`docs/FONTS.md`](../../../docs/FONTS.md). Check with `php artisan tedc:fonts-check`.
 
-Lusail is the Ministry's approved Arabic typeface. It is licensed, so it is not bundled in this repository.
+Lusail is the Ministry's approved Arabic typeface and the platform's main font. It is licensed, so it is not bundled in this repository:
+upload its files once in **Admin → Brand Studio → الخطوط** (the font library), or, on a private deployment, place them here.
 
 Place the licensed web fonts in `web/public/fonts/lusail/` with these names:
 

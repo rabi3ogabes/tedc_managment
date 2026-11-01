@@ -29,6 +29,8 @@ class Brand {
     this.latinFont,
     this.arabicFontUrl,
     this.latinFontUrl,
+    this.arabicFontFiles = const [],
+    this.latinFontFiles = const [],
   });
 
   final Color? primary;
@@ -53,10 +55,22 @@ class Brand {
   final String? arabicFontUrl;
   final String? latinFontUrl;
 
+  /// Every weight of the chosen family from the dashboard's font library (OpenType / TrueType addresses).
+  final List<String> arabicFontFiles;
+  final List<String> latinFontFiles;
+
   static const defaultHomeSections = ['hours', 'todo', 'stats', 'scan', 'needs', 'programs', 'dashboard', 'sessions', 'recommended'];
   static const none = Brand();
   static const styles = ['emblem', 'bar', 'dots', 'pulse', 'crescent'];
   static const navStyles = ['classic', 'floating', 'center_fab', 'neumorphism', 'glass', 'outline'];
+
+  /// The https addresses of a family's files, as the server lists them (`[{weight, style, url}]`).
+  static List<String> fontFiles(Object? v) => v is List
+      ? [
+          for (final f in v)
+            if (f is Map && f['url'] is String && (f['url'] as String).startsWith('https://')) f['url'] as String,
+        ]
+      : const [];
 
   /// `#RRGGBB` → colour; anything else is ignored so a bad value can never break the theme.
   static Color? hex(Object? v) {
@@ -95,6 +109,8 @@ class Brand {
       latinFont: text(type['latin_family']),
       arabicFontUrl: text(type['arabic_font_url']),
       latinFontUrl: text(type['latin_font_url']),
+      arabicFontFiles: fontFiles(type['arabic_files']),
+      latinFontFiles: fontFiles(type['latin_files']),
     );
   }
 
