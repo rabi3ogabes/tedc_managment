@@ -33,7 +33,8 @@ export default function Wayfinding() {
   const avoidStairs = params.get('stairs') === '0'
   const origin: Origin = originOf(params.get('from'), data) ?? originOf(data.entrances[0]?.id ?? CENTRE_MAP.entrances[0].id, data)!
   const toKey = params.get('to') ?? (params.get('room') ? `room:${params.get('room')}` : null)
-  const dest = toKey ? destinations.find((d) => d.key === toKey) ?? null : null
+  // A place id finds the room that stands there too (?to=f-room-14 when «القاعة 14» is on the map under its own name).
+  const dest = toKey ? destinations.find((d) => d.key === toKey) ?? destinations.find((d) => d.place?.id === toKey) ?? null : null
   const indoor = dest && dest.place ? dest : null
   const route = useMemo(() => indoor ? engine.route({ floor: origin.floor, at: origin.at }, indoor, { avoidStairs }) : null, [engine, indoor, origin.floor, origin.at, avoidStairs])
   // Where the visitor is in the walk; a new route (another destination, start or step-free choice) starts again from its first step.

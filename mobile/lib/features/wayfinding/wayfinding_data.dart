@@ -88,7 +88,8 @@ class WayData {
     return out;
   }();
 
-  Destination? destination(String? key) => key == null ? null : destinations.where((d) => d.key == key).firstOrNull;
+  /// By its key, or by a place id (`f-room-14` finds «القاعة 14» when that room stands there under its own name).
+  Destination? destination(String? key) => key == null ? null : destinations.where((d) => d.key == key).firstOrNull ?? destinations.where((d) => d.place?.id == key).firstOrNull;
 
   /// A starting point by key: "entrance-west", a sign, "g-room-5", "stairs-west@first", or a tapped "ground:420,610".
   Origin? origin(String? key) {
