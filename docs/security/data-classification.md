@@ -25,6 +25,8 @@
 - `lti_platforms.consumer_secret`
 - `offline_devices.content_key`
 - `employees.national_id`
+- `trainers.national_id`
+- `surveys.pseudonym_key`
 - `attendance_devices.api_config`
 - `users.mfa_secret`
 - `lti_tools.consumer_secret`
@@ -4649,7 +4651,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `closes_at` | Internal | — |
 | `timezone` | Internal | — |
 | `retention_days` | Internal | — |
-| `pseudonym_key` | Restricted | hash / secret / expiring token |
+| `pseudonym_key` | Restricted | application-level encryption |
 | `published_at` | Internal | — |
 | `closed_at` | Internal | — |
 | `archived_at` | Internal | — |
@@ -4865,7 +4867,7 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `hourly_rate` | Confidential | masked in exports |
 | `currency` | Confidential | masked in exports |
 | `notes` | Confidential | masked in exports |
-| `national_id` | Restricted | hash / secret / expiring token |
+| `national_id` | Restricted | application-level encryption |
 | `national_id_hash` | Confidential | masked in exports |
 | `validated_at` | Confidential | masked in exports |
 | `validated_by` | Confidential | masked in exports |
