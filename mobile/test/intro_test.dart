@@ -11,6 +11,9 @@ class _SignedOut extends AuthController {
   Future<Me?> build() async => null;
 }
 
+/// The name the intro spells out under the emblem (the app was renamed from «مركز التدريب والتطوير»).
+const _name = 'شاهين - مشروع بوابة التدريب';
+
 Widget _app(ProviderContainer container) => UncontrolledProviderScope(container: container, child: const MaterialApp(home: SplashScreen()));
 
 void main() {
@@ -25,11 +28,11 @@ void main() {
 
     // Early on the emblem is arriving; the name is not there yet.
     await tester.pump(const Duration(milliseconds: 300));
-    expect(tester.widget<Opacity>(find.ancestor(of: find.text('مركز التدريب والتطوير'), matching: find.byType(Opacity)).first).opacity, 0);
+    expect(tester.widget<Opacity>(find.ancestor(of: find.text(_name), matching: find.byType(Opacity)).first).opacity, 0);
 
     // Mid-way the name has appeared.
     await tester.pump(const Duration(milliseconds: 1900));
-    expect(find.text('مركز التدريب والتطوير'), findsOneWidget);
+    expect(find.text(_name), findsOneWidget);
     expect(container.read(introDoneProvider), isFalse);
 
     // At the end the intro hands over to the app.
@@ -63,7 +66,7 @@ void main() {
 
     await tester.pumpWidget(_app(container));
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.text('مركز التدريب والتطوير'), findsOneWidget, reason: 'the finished picture is shown straight away');
+    expect(find.text(_name), findsOneWidget, reason: 'the finished picture is shown straight away');
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump();
     expect(container.read(introDoneProvider), isTrue);

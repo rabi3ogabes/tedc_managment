@@ -15,10 +15,10 @@
 
 ## Totals
 
-- Public: 802 columns
-- Internal: 2309 columns
-- Confidential: 554 columns
-- Restricted: 27 columns
+- Public: 824 columns
+- Internal: 2358 columns
+- Confidential: 557 columns
+- Restricted: 28 columns
 
 ## Application-level encryption
 
@@ -602,6 +602,38 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `title_ar` | Internal | — |
 | `title_en` | Internal | — |
 | `notes` | Internal | — |
+| `created_by` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+| `allow_events` | Internal | — |
+
+### `calendar_requests`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `date` | Internal | — |
+| `program_id` | Internal | — |
+| `training_group_id` | Internal | — |
+| `day_idx` | Internal | — |
+| `reason` | Internal | — |
+| `status` | Internal | — |
+| `requested_by` | Internal | — |
+| `decided_by` | Internal | — |
+| `decided_at` | Internal | — |
+| `decision_note` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `calendar_weekly_rules`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `weekday` | Internal | — |
+| `title_ar` | Internal | — |
+| `title_en` | Internal | — |
+| `allow_events` | Internal | — |
 | `created_by` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
@@ -3509,6 +3541,16 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `external_platform` | Public | — |
 | `program_type` | Public | — |
 | `registration_announced_at` | Public | — |
+| `training_days` | Public | — |
+| `kit_ready` | Public | — |
+| `survey_link` | Public | — |
+| `survey_edit_link` | Public | — |
+| `cancel_reason` | Public | — |
+| `cancel_requested_by` | Public | — |
+| `cancel_attachment_path` | Public | — |
+| `cancelled_at` | Public | — |
+| `cancelled_by` | Public | — |
+| `status_before_cancel` | Public | — |
 
 ### `public_stats`
 
@@ -3959,6 +4001,42 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `status` | Internal | — |
 | `attendees` | Internal | — |
 | `notes` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+| `requested_by` | Internal | — |
+| `reason` | Internal | — |
+| `series_id` | Internal | — |
+| `recurrence` | Internal | — |
+
+### `saber_revisions`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_id` | Internal | — |
+| `status` | Internal | — |
+| `source` | Internal | — |
+| `state` | Internal | — |
+| `published_state` | Internal | — |
+| `created_by` | Internal | — |
+| `updated_by` | Internal | — |
+| `submitted_by` | Internal | — |
+| `submitted_at` | Internal | — |
+| `reviewed_by` | Internal | — |
+| `reviewed_at` | Internal | — |
+| `review_note` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
+
+### `saber_survey_links`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `serial` | Internal | — |
+| `survey_link` | Internal | — |
+| `survey_edit_link` | Internal | — |
+| `program_id` | Internal | — |
 | `created_at` | Public | — |
 | `updated_at` | Public | — |
 
@@ -4787,6 +4865,10 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `hourly_rate` | Confidential | masked in exports |
 | `currency` | Confidential | masked in exports |
 | `notes` | Confidential | masked in exports |
+| `national_id` | Restricted | hash / secret / expiring token |
+| `national_id_hash` | Confidential | masked in exports |
+| `validated_at` | Confidential | masked in exports |
+| `validated_by` | Confidential | masked in exports |
 
 ### `training_groups`
 
@@ -4819,6 +4901,17 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `approval_mode` | Internal | — |
 | `approve_after_window` | Internal | — |
 | `allow_overlap_until_approved` | Internal | — |
+| `color` | Internal | — |
+| `term` | Internal | — |
+| `validated_at` | Internal | — |
+| `validated_by` | Internal | — |
+| `validated_by_name` | Internal | — |
+| `cancel_requested_by` | Internal | — |
+| `cancel_attachment_path` | Internal | — |
+| `cancelled_at` | Internal | — |
+| `cancelled_by` | Internal | — |
+| `status_before_cancel` | Internal | — |
+| `cancel_snapshot` | Internal | — |
 
 ### `training_kits`
 
@@ -4984,6 +5077,8 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `display_token` | Restricted | hash / secret / expiring token |
 | `place_id` | Internal | — |
 | `building_id` | Internal | — |
+| `room_type` | Internal | — |
+| `tag` | Internal | — |
 
 ### `user_badges`
 
