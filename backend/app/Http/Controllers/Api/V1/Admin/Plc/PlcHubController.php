@@ -25,11 +25,12 @@ class PlcHubController extends Controller
         $user = $this->user();
         $w = fn () => $this->workshops->query($user);
         $n = fn () => $this->needs->query($user);
-        $byState = $w()->toBase()->reorder()->select(DB::raw('workflow_state, count(*) as c'))->groupBy('workflow_state')->pluck('c', 'workflow_state');
-        $bySource = $w()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source');
-        $byScenario = $w()->toBase()->reorder()->select(DB::raw('scenario, count(*) as c'))->groupBy('scenario')->pluck('c', 'scenario');
-        $needsByStatus = $n()->toBase()->reorder()->select(DB::raw('review_status, count(*) as c'))->groupBy('review_status')->pluck('c', 'review_status');
-        $needsBySource = $n()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source');
+        // Sorted by key like the reports tab: PostgreSQL returns GROUP BY rows in no set order.
+        $byState = $w()->toBase()->reorder()->select(DB::raw('workflow_state, count(*) as c'))->groupBy('workflow_state')->pluck('c', 'workflow_state')->sortKeys();
+        $bySource = $w()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source')->sortKeys();
+        $byScenario = $w()->toBase()->reorder()->select(DB::raw('scenario, count(*) as c'))->groupBy('scenario')->pluck('c', 'scenario')->sortKeys();
+        $needsByStatus = $n()->toBase()->reorder()->select(DB::raw('review_status, count(*) as c'))->groupBy('review_status')->pluck('c', 'review_status')->sortKeys();
+        $needsBySource = $n()->toBase()->reorder()->select(DB::raw('source, count(*) as c'))->groupBy('source')->pluck('c', 'source')->sortKeys();
         $pending = $w()->where('workflow_state', 'submitted')->get()->filter(function (PlcWorkshop $x) use ($user) {
             $step = collect($x->approval_path ?? [])->firstWhere('status', 'pending');
 
