@@ -7,14 +7,15 @@ import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { useTheme } from '@/lib/ThemeProvider'
 import { useSettingsTab, useTabDirty } from './settings/tabContext'
-import { contrast, FONT_CHOICES, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
+import { contrast, mergeTheme, patternImage, PRESETS, type PatternType, type Theme } from '@/lib/theme'
 import BrandPreview from './brand/BrandPreview'
 import LoadingPanel from './brand/LoadingPanel'
 import NavigationPanel from './brand/NavigationPanel'
 import AppHomeSettings from './AppHomeSettings'
 import AppThemesSettings from './AppThemesSettings'
 import OccasionsPanel from './brand/OccasionsPanel'
-import { ColorField, FontField, ImageField, Segmented, SliderField } from './brand/controls'
+import { ColorField, ImageField, Segmented, SliderField } from './brand/controls'
+import FontsPanel from './brand/FontsPanel'
 import { dialogs } from '@/lib/dialogs'
 
 type Section = 'presets' | 'identity' | 'typography' | 'colors' | 'buttons' | 'banners' | 'background' | 'shape' | 'occasions' | 'loading' | 'navigation' | 'appthemes' | 'apphome'
@@ -193,32 +194,7 @@ function Studio({ published, reloadBase }: { published: Theme; reloadBase: () =>
 
             {section === 'typography' && (
               <Panel title={t('admin.brand.sections.typography')} hint={t('admin.brand.typography.hint')}>
-                {(['arabic', 'latin'] as const).map((script) => (
-                  <div key={script} className="space-y-3 rounded-2xl border border-navy-100 p-4">
-                    <div className="text-sm font-bold text-navy-900">{t(`admin.brand.typography.${script}`)}</div>
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-500">{t('apa.fontPick')}</span>
-                      <select className="input" value={FONT_CHOICES.some((f) => f.script === (script === 'arabic' ? 'ar' : 'en') && f.family === draft.typography[`${script}_family`]) ? draft.typography[`${script}_family`] : ''} onChange={(e) => e.target.value && update('typography', { [`${script}_family`]: e.target.value, [`${script}_font_url`]: null })}>
-                        <option value="">{t('apa.fontCustom')}</option>
-                        {FONT_CHOICES.filter((f) => f.script === (script === 'arabic' ? 'ar' : 'en')).map((f) => <option key={f.family} value={f.family}>{f.family}{f.note ? ` (${t('apa.bundled')})` : ''}</option>)}
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="mb-1 block text-xs font-semibold text-slate-500">{t('admin.brand.typography.family')}</span>
-                      <input dir="ltr" className="input" value={draft.typography[`${script}_family`]} onChange={(e) => update('typography', { [`${script}_family`]: e.target.value.replace(/[^\p{L}\p{N} -]/gu, '') })} />
-                    </label>
-                    <FontField label={t('admin.brand.typography.file')} value={draft.typography[`${script}_font_url`]} onChange={(url) => update('typography', { [`${script}_font_url`]: url })} />
-                    <div className="rounded-xl bg-ivory p-4" dir={script === 'arabic' ? 'rtl' : 'ltr'} style={{ fontFamily: `"${draft.typography[`${script}_family`]}", ${script === 'arabic' ? 'Tajawal' : 'Inter'}, sans-serif` }}>
-                      <div className="text-xl" style={{ fontWeight: draft.typography.heading_weight }}>{script === 'arabic' ? t('admin.brand.typography.specimenAr') : t('admin.brand.typography.specimenEn')}</div>
-                      <div className="mt-1 text-sm text-slate-500">{script === 'arabic' ? 'أ ب ت ث ج ح خ د ذ ر ز س ش ص ض — 0123456789' : 'Aa Bb Cc Dd Ee Ff Gg — 0123456789'}</div>
-                    </div>
-                  </div>
-                ))}
-                <p className="text-xs text-slate-400">{t('apa.fontNote')}</p>
-                <Field label={t('admin.brand.typography.headingWeight')}>
-                  <Segmented value={String(draft.typography.heading_weight)} onChange={(v) => update('typography', { heading_weight: Number(v) })}
-                    options={['500', '600', '700', '800', '900'].map((w) => ({ id: w, label: <span style={{ fontWeight: Number(w) }}>{w}</span> }))} />
-                </Field>
+                <FontsPanel value={draft.typography} onChange={(patch) => update('typography', patch)} />
               </Panel>
             )}
 

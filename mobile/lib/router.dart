@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'core/biometric.dart';
 import 'core/error_reporter.dart';
 import 'core/providers.dart';
+import 'features/wayfinding/wayfinding_screen.dart';
 import 'features/course/course_screen.dart';
 import 'features/course/lesson_screen.dart';
 import 'features/assessment/assessments_screen.dart';
@@ -68,7 +69,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Every launch starts with the animated intro; the app opens once it has finished and the session is known.
       if (!ref.read(introDoneProvider) || (auth.isLoading && !auth.hasValue)) return location == '/splash' ? null : '/splash';
       final loggedIn = auth.value != null;
-      if (!loggedIn) return location == '/login' ? null : '/login';
+      // The centre guide is for every visitor, signed in or not (docs/wayfinding.md).
+      if (!loggedIn) return location == '/login' || location == '/map' ? null : '/login';
       // Fingerprint sign-in: while locked only the unlock screen can be seen.
       if (ref.read(appLockProvider)) return location == '/unlock' ? null : '/unlock';
       if (location == '/login' || location == '/splash' || location == '/unlock') return '/home';
@@ -77,6 +79,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/map', builder: (_, s) => WayfindingScreen(to: s.uri.queryParameters['to'], from: s.uri.queryParameters['from'])),
       GoRoute(path: '/unlock', builder: (_, _) => const UnlockScreen()),
       // Every screen opened on top of the tabs keeps the footer menu.
       ShellRoute(

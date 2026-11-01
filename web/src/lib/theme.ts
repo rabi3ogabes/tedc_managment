@@ -1,4 +1,5 @@
 import { safeFamily, stacksFor } from './fontStacks'
+import { fontFaceCss, hasFamily, type FontFamily } from './fontLibrary'
 import { lusailOn } from './fonts'
 /**
  * Brand Studio theme engine.
@@ -18,7 +19,7 @@ export type Theme = {
   pattern: { type: PatternType; color: string; opacity: number; size: number; image: string | null; tint?: string | null; repeat?: 'tile' | 'cover' }
   shape: { card_radius: number; glass_blur: number }
   identity: { name_ar: string; name_en: string; logo_ar: string | null; logo_en: string | null; logo_ar_light: string | null; logo_en_light: string | null; show_center_name: boolean }
-  typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number }
+  typography: { arabic_family: string; latin_family: string; arabic_font_url: string | null; latin_font_url: string | null; heading_weight: number; display_family?: string | null; library?: FontFamily[] }
   /** The page shown while the application loads. */
   loading: { style: LoadingStyle; message_ar: string; message_en: string; background: string | null; accent: string | null; show_name: boolean }
   /** How the mobile app's bottom navigation bar looks. */
@@ -63,7 +64,7 @@ export const DEFAULT_THEME: Theme = {
   pattern: { type: 'serrated', color: QATAR_GOV.dune, opacity: 16, size: 40, image: null, tint: null, repeat: 'tile' },
   shape: { card_radius: 14, glass_blur: 18 },
   identity: { name_ar: 'شاهين - مشروع بوابة التدريب', name_en: 'Shaheen – Training Portal Project', logo_ar: null, logo_en: null, logo_ar_light: null, logo_en_light: null, show_center_name: true },
-  typography: { arabic_family: 'Qatar Sans', latin_family: 'Qatar Sans', arabic_font_url: null, latin_font_url: null, heading_weight: 700 },
+  typography: { arabic_family: 'Lusail', latin_family: 'Lusail', arabic_font_url: null, latin_font_url: null, heading_weight: 700, display_family: null, library: [] },
   navigation: { style: 'classic' },
   loading: { style: 'emblem', message_ar: 'جارٍ التحميل…', message_en: 'Loading…', background: null, accent: null, show_name: true },
   occasions: [],
@@ -233,18 +234,20 @@ export function themeVariables(theme: Theme): Record<string, string> {
 
 /** Font stacks for the active language. Brand fonts first, then bundled web fonts; Lusail leads once its licensed files are in place. */
 export function fontStacks(theme: Theme, lang: string) {
-  return stacksFor(theme.typography.arabic_family, theme.typography.latin_family, lang, lusailOn())
+  const t = theme.typography
+  return stacksFor(t.arabic_family, t.latin_family, lang, lusailOn() || hasFamily(t.library, 'Lusail'), t.display_family)
 }
 
-/** Registers uploaded font files (Brand Studio) as @font-face rules. */
+/** Registers uploaded font files (Brand Studio: the font library and the older one-file fields) as @font-face rules. */
 function registerFonts(theme: Theme) {
-  const rules = [
+  const single = [
     [theme.typography.arabic_family, theme.typography.arabic_font_url],
     [theme.typography.latin_family, theme.typography.latin_font_url],
   ]
-    .filter(([, url]) => url)
+    .filter(([family, url]) => url && !hasFamily(theme.typography.library, family!))   // the library's files win over a single file of the same name
     .map(([family, url]) => `@font-face{font-family:"${safeFamily(family!)}";src:url("${encodeURI(url!)}");font-weight:100 900;font-display:swap;}`)
     .join('\n')
+  const rules = [fontFaceCss(theme.typography.library), single].filter(Boolean).join('\n')
 
   let tag = document.getElementById('tedc-brand-fonts') as HTMLStyleElement | null
   if (!tag) {
@@ -353,6 +356,7 @@ export function applyTheme(theme: Theme, lang: string) {
   registerFonts(theme)
   ensureGoogleFont(theme.typography.arabic_family)
   ensureGoogleFont(theme.typography.latin_family)
+  if (theme.typography.display_family) ensureGoogleFont(theme.typography.display_family)
   rememberSplash(theme)
   // An uploaded pattern is processed (opacity, tint) and then replaces the plain image.
   if (theme.pattern.type === 'custom' && theme.pattern.image) void customPatternTile(theme.pattern).then((tile) => root.style.setProperty('--pattern-image', tile))
@@ -375,7 +379,7 @@ export function mergeTheme(input?: Partial<Theme> | null): Theme {
       name_ar: input.identity?.name_ar?.trim() || DEFAULT_THEME.identity.name_ar,
       name_en: input.identity?.name_en?.trim() || DEFAULT_THEME.identity.name_en,
     },
-    typography: { ...DEFAULT_THEME.typography, ...input.typography },
+    typography: { ...DEFAULT_THEME.typography, ...input.typography, library: Array.isArray(input.typography?.library) ? input.typography.library : [] },
     loading: { ...DEFAULT_THEME.loading, ...input.loading },
     navigation: { ...DEFAULT_THEME.navigation, ...input.navigation },
     occasions: Array.isArray(input.occasions) ? input.occasions : [],

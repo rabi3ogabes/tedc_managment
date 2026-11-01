@@ -275,6 +275,16 @@ class ProfileScreen extends ConsumerWidget {
                 child: ListTile(
                   tileColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  leading: Icon(Icons.map_outlined, color: AppColors.gold500),
+                  title: Text(context.tr('way.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  onTap: () => context.push('/map'),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   leading: Icon(Icons.notifications_active_outlined, color: AppColors.gold500),
                   title: Text(context.tr('prefs.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
                   onTap: () => context.push('/notification-preferences'),

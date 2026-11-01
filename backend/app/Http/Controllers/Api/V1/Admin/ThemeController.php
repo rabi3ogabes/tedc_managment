@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Services\FileStorage;
 use App\Services\ThemeOccasions;
 use App\Services\ThemeService;
+use App\Support\FontLibrary;
 use App\Support\SvgGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -96,6 +97,15 @@ class ThemeController extends Controller
             'typography.arabic_font_url' => $asset,
             'typography.latin_font_url' => $asset,
             'typography.heading_weight' => ['sometimes', 'integer', Rule::in([500, 600, 700, 800, 900])],
+            'typography.display_family' => ['nullable', 'string', 'max:60', 'regex:/^[\pL\pN \-]+$/u'],
+            'typography.library' => ['sometimes', 'array', 'max:'.FontLibrary::MAX_FAMILIES],
+            'typography.library.*.id' => ['nullable', 'string', 'max:40'],
+            'typography.library.*.family' => ['required', 'string', 'max:60', 'regex:/^[\pL\pN \-]+$/u'],
+            'typography.library.*.files' => ['required', 'array', 'min:1', 'max:'.FontLibrary::MAX_FILES],
+            'typography.library.*.files.*.weight' => ['required', 'integer', 'between:100,900'],
+            'typography.library.*.files.*.style' => ['nullable', Rule::in(['normal', 'italic'])],
+            'typography.library.*.files.*.format' => ['required', Rule::in(FontLibrary::FORMATS)],
+            'typography.library.*.files.*.url' => ['required', 'string', 'max:500'],
             'navigation' => ['sometimes', 'array'],
             'navigation.style' => ['required_with:navigation', Rule::in(ThemeService::NAV_STYLES)],
             'loading' => ['sometimes', 'array'],

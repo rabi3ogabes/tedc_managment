@@ -12,6 +12,7 @@ use App\Services\ThemeService;
 use App\Support\DemoCredentials;
 use App\Support\DemoGuard;
 use App\Support\Features;
+use App\Support\FontLibrary;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -46,6 +47,9 @@ class MobileConfigController extends Controller
                 'latin_family' => $t['typography']['latin_family'] ?? null,
                 'arabic_font_url' => $t['typography']['arabic_font_url'] ?? null,
                 'latin_font_url' => $t['typography']['latin_font_url'] ?? null,
+                // Every weight of the chosen families from the font library, as files the app can register (TTF / OTF).
+                'arabic_files' => FontLibrary::appFiles($t['typography']['library'] ?? [], $t['typography']['arabic_family'] ?? null),
+                'latin_files' => FontLibrary::appFiles($t['typography']['library'] ?? [], $t['typography']['latin_family'] ?? null),
             ],
             // The cards of the home screen the administrator wants shown, in their order.
             'home' => ['sections' => $home->cards(Role::EMPLOYEE)],

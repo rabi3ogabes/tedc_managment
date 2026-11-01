@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Armchair, Building2, CalendarCheck, CalendarClock, CalendarOff, Copy, FileSpreadsheet, Hourglass, Radio, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench } from 'lucide-react'
+import { Armchair, Building2, CalendarCheck, CalendarClock, CalendarOff, Copy, FileSpreadsheet, Hourglass, Radio, Monitor, RefreshCw, ExternalLink, Layers, LocateFixed, MapPin, Pencil, Plus, Search, Trash2, Users2, Wrench, Map as MapIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, Tabs } from '@/components/ui'
@@ -397,7 +397,7 @@ export default function Rooms() {
 
   return (
     <>
-      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={<><Button to="/admin/room-screens" variant="outline" icon={<Monitor className="size-4" />}>{t('studio.wall.nav')}</Button>{canManage && <Button variant="outline" icon={<FileSpreadsheet className="size-4" />} onClick={() => setSyncing(true)}>{t('mgmt.rooms.sync.button')}</Button>}{canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>}</>} />
+      <PageHeader title={t('mgmt.rooms.title')} subtitle={t('mgmt.rooms.subtitle')} actions={<><Button to="/admin/room-screens" variant="outline" icon={<Monitor className="size-4" />}>{t('studio.wall.nav')}</Button>{canManage && <Button to="/admin/rooms/map" variant="outline" icon={<MapIcon className="size-4" />}>{t('roommap.title')}</Button>}{canManage && <Button variant="outline" icon={<FileSpreadsheet className="size-4" />} onClick={() => setSyncing(true)}>{t('mgmt.rooms.sync.button')}</Button>}{canManage && opts && <Button variant="gold" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>{t('mgmt.rooms.new')}</Button>}</>} />
       <Tabs tabs={[{ id: 'list', label: t('mgmt.rooms.tabs.list') }, { id: 'find', label: t('mgmt.rooms.tabs.find') }]} value={tab} onChange={setTab} />
       {notice && <div className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{notice}</div>}
 

@@ -92,7 +92,7 @@ class ThemeOccasionsTest extends TestCase
         $this->assertSame('bar', $cfg['loading']['style']);
         $this->assertSame('أهلًا بك', $cfg['loading']['message_ar']);
         $this->assertArrayHasKey('occasion', $cfg);
-        $this->assertSame(['arabic_family', 'latin_family', 'arabic_font_url', 'latin_font_url'], array_keys($cfg['typography']));
+        $this->assertSame(['arabic_family', 'latin_family', 'arabic_font_url', 'latin_font_url', 'arabic_files', 'latin_files'], array_keys($cfg['typography']));
     }
 
     public function test_the_navigation_style_defaults_to_classic_is_validated_and_reaches_the_mobile_config(): void

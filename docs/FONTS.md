@@ -1,5 +1,13 @@
 # Lusail — the drop-in guide (UX-03)
 
+> **2026-11-01 — the font library.** Lusail is now the platform's main typeface by default, and administrators manage every font from
+> **Brand Studio → الخطوط (Typography)**: drop a family's files (every weight, WOFF2 for the website and OTF/TTF for the app; family
+> and weight are read from the files), make it the main typeface in one click, pick the family of each role (Arabic text, English
+> text, headings) and the heading weight. The website, dashboard, portal and mobile app follow it (the app downloads the family's
+> OpenType files and keeps them). Uploaded fonts go to the platform's storage, never to the repository, which is public — so **on
+> the live site upload Lusail there once** (the eight files of the Ministry's package: `WOFF/*.woff2` and `OTF/*.otf`). Until then
+> every stack falls back to Qatar Sans → Tajawal. The folder method below still works for private deployments.
+
 > العربية أولًا، ثم English. Check at any time with `php artisan tedc:fonts-check` (`--strict` fails when anything is missing).
 
 ## العربية

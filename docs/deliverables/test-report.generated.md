@@ -6,7 +6,7 @@
 
 ## 1. Automated suite
 
-- Test files: **183**; test methods: **1149**.
+- Test files: **194**; test methods: **1206**.
 - No run was attached. Run `php artisan test` and pass its JSON with `--results=` to record totals here; CI (`.github/workflows/ci.yml`) runs the suite on every push.
 - Code style: `vendor/bin/pint --test`. Web: `npm run lint && npm run build`. Mobile: `flutter analyze && flutter test` in CI.
 
@@ -50,6 +50,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | BundledContractsTest.php | 5 |
 | CalendarTest.php | 6 |
 | CareerAndPdTest.php | 9 |
+| CentreFormsTest.php | 5 |
 | CertificateAccessTest.php | 2 |
 | CertificateSendingTest.php | 4 |
 | ChatAssistantTest.php | 4 |
@@ -79,6 +80,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | FeatureFlagsTest.php | 7 |
 | FeatureSamplesTest.php | 3 |
 | FingerprintTest.php | 4 |
+| FontLibraryTest.php | 4 |
 | FontsCheckTest.php | 5 |
 | ForecastExportTest.php | 4 |
 | GamificationTest.php | 12 |
@@ -134,6 +136,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | OpsSecurityTest.php | 16 |
 | PassingRulesTest.php | 12 |
 | PasswordResetTest.php | 3 |
+| PasswordSupabaseSyncTest.php | 1 |
 | PaymentsTest.php | 25 |
 | PlanRulesEnforcementTest.php | 12 |
 | PlcAssistantTest.php | 1 |
@@ -157,7 +160,7 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | ProgramsForMeTest.php | 3 |
 | ProvidersDriverTest.php | 13 |
 | PublicAndAnalyticsTest.php | 7 |
-| PurgeDemoDataTest.php | 2 |
+| PurgeDemoDataTest.php | 3 |
 | PushNotificationsTest.php | 9 |
 | QnedsContractTest.php | 4 |
 | QtiAndCartridgeTest.php | 4 |
@@ -171,8 +174,15 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | RolesManagementTest.php | 5 |
 | RoomManagementTest.php | 6 |
 | RoomScreenTest.php | 3 |
+| RoomSyncTest.php | 3 |
 | RoomsLogisticsTest.php | 6 |
 | RoutingIntegrityTest.php | 3 |
+| SaberDataToolsTest.php | 7 |
+| SaberFormsTest.php | 4 |
+| SaberMeetingsTest.php | 5 |
+| SaberReviewTest.php | 5 |
+| SaberSchedulingTest.php | 8 |
+| SaberWorkbenchTest.php | 10 |
 | SaeedContractTest.php | 5 |
 | SamlSsoTest.php | 11 |
 | SampleForecastsMondayTest.php | 1 |
@@ -208,4 +218,5 @@ See `docs/security/` and `perf/`. The k6 scripts exist; **no load test has been 
 | TrainingStructureTest.php | 7 |
 | UpcomingNotificationsTest.php | 3 |
 | VercelEnvTest.php | 2 |
+| WayfindingTest.php | 4 |
 | WithdrawalTest.php | 5 |

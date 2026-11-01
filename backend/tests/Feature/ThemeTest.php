@@ -23,7 +23,7 @@ class ThemeTest extends TestCase
             ->assertJsonPath('data.preset', 'qatar_gov')
             ->assertJsonPath('data.colors.primary', '#8A1538')   // Al Adaam
             ->assertJsonPath('data.colors.accent', '#A29475')    // Dune
-            ->assertJsonPath('data.typography.arabic_family', 'Qatar Sans')
+            ->assertJsonPath('data.typography.arabic_family', 'Lusail')
             ->assertJsonPath('data.pattern.type', 'serrated');
     }
 

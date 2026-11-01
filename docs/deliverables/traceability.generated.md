@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | UX-01 | Simple, clear UI; understandable icons with short text labels | ✅ Available | Luxury government design system, labelled lucide icons, glass cards. | — |
 | UX-02 | Approved visual-identity colours and modern design elements | ✅ Available | Qatar Government brand (Al Adaam maroon, Dune) + live Brand Studio. | — |
-| UX-03 | Approved Lusail typeface and readable font sizes | 🟡 Partial | `web/public/fonts/lusail/`, `lib/fonts.ts`, `public/fonts/lusail-README.md` | `FontsCheckTest.php`, `ProgramGrantsTest.php` |
+| UX-03 | Approved Lusail typeface and readable font sizes | 🟡 Partial | `web/public/fonts/lusail/`, `lib/fonts.ts`, `public/fonts/lusail-README.md` | `FontLibraryTest.php`, `FontsCheckTest.php`, `ProgramGrantsTest.php` |
 | UX-04 | Few steps per task, clear navigation, quick search for content & functions | ✅ Available | `components/search/GlobalSearch.tsx`, `features/search` | `ActiveRoleTest.php`, `AiCompletionTest.php`, `AnnouncementsCmsPhase11Test.php`, `AssistantRetrievalTest.php` |
 | UX-05 | Full Arabic/English with instant switch, correct RTL/LTR, professional translation | ✅ Available | i18next (web), Flutter l10n, API X-Locale; all content stored as *_ar / *_en. | — |
 | UX-06 | Each user keeps a preferred language, switchable without re-login or data loss | ✅ Available | users.locale persisted; switching is instant. | — |
@@ -55,7 +55,7 @@
 | TYP-20 | School internal workshops approved by the centre: create, register, attendance, results, certificates | ✅ Available | `/admin/internal-workshops` | `InternalWorkshopTest.php`, `PlcFoundationTest.php`, `AnnualPlanTest.php`, `GroupRegistrationTest.php` |
 | STR-01 | Category level | ✅ Available | Configurable program categories. | — |
 | STR-02 | Main program → optional sub-programs | ✅ Available | `POST /admin/programs/{id}/sub-programs` | `GroupRegistrationTest.php`, `TrainingStructureTest.php`, `AnnualPlanTest.php`, `InternalWorkshopTest.php` |
-| STR-03 | Training groups (cohorts) under a program with own dates, trainers, seats | ✅ Available | Training groups with own dates, seats, supervisor, room, trainers, sessions and status (`training_groups`, `TrainingGroupService`); group-aware registration, wa | `AnnualPlanTest.php`, `GroupRegistrationTest.php`, `InternalWorkshopTest.php`, `SystemEndpointsTest.php` |
+| STR-03 | Training groups (cohorts) under a program with own dates, trainers, seats | ✅ Available | Training groups with own dates, seats, supervisor, room, trainers, sessions and status (`training_groups`, `TrainingGroupService`); group-aware registration, wa | `SaberDataToolsTest.php`, `AnnualPlanTest.php`, `GroupRegistrationTest.php`, `InternalWorkshopTest.php` |
 | STR-04 | Workshop / training-day level | ✅ Available | Program sessions act as training days. | — |
 | STR-05 | Assign trainers and kit developers per group / program with an assignment form and leadership approval | ✅ Available | `POST /admin/programs/{id}/kit-developers` | `TrainerAssignmentTest.php`, `AnnualPlanTest.php`, `GroupRegistrationTest.php`, `InternalWorkshopTest.php` |
 | CAR-01 | Promotion paths linked to experience, grade and annual appraisal | ✅ Available | Promotion/specialisation paths with levels and conditions — docs/rfp/phase-09-career-pd.md | `CareerAndPdTest.php` |

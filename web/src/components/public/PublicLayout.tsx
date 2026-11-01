@@ -17,6 +17,7 @@ const links = [
   { to: '/trainers', key: 'trainers' },
   { to: '/calendar', key: 'calendar' },
   { to: '/news', key: 'news' },
+  { to: '/map', key: 'map' },
   { to: '/verify', key: 'verify' },
   { to: '/contact', key: 'contact' },
 ]

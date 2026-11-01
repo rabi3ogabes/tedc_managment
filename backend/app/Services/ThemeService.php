@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Support\FontLibrary;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -94,12 +95,16 @@ class ThemeService
             'navigation' => ['style' => 'classic'],
             // Occasions are a list of scheduled looks: stored as given, never merged item by item (see get()).
             'occasions' => [],
+            // The Ministry's Lusail leads (its licensed files are uploaded to the font library, docs/FONTS.md); until they are, every
+            // stack falls back to Qatar Sans → Tajawal. Headings use the text family unless display_family names another one.
             'typography' => [
-                'arabic_family' => 'Qatar Sans',
-                'latin_family' => 'Qatar Sans',
+                'arabic_family' => 'Lusail',
+                'latin_family' => 'Lusail',
+                'display_family' => null,
                 'arabic_font_url' => null,
                 'latin_font_url' => null,
                 'heading_weight' => 700,
+                'library' => [],
             ],
         ];
     }
@@ -174,6 +179,8 @@ class ThemeService
             $merged['identity'][$key] = trim((string) ($merged['identity'][$key] ?? '')) ?: self::defaults()['identity'][$key];
         }
         $merged['occasions'] = $this->cleanOccasions($theme['occasions'] ?? $this->base()['occasions']);
+        // The font library is a list of families: replaced as a whole, and kept when the request leaves it out.
+        $merged['typography']['library'] = FontLibrary::clean($theme['typography']['library'] ?? $this->base()['typography']['library'] ?? []);
         // Hero images is a positional list; replace rather than merge.
         $merged['banners']['hero_images'] = array_values(array_pad(array_slice($theme['banners']['hero_images'] ?? [], 0, 4), 4, null));
 

@@ -158,6 +158,16 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   _Note(icon: Icons.info_outline, text: s.t('session.scanLater')),
               ],
               if (cancelled) _Note(icon: Icons.event_busy_outlined, text: s.t('session.cancelledNote'), danger: true),
+              // The centre guide walks the trainee to the room (docs/wayfinding.md).
+              if (!online && !cancelled && d.str('room_id').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/map?to=room:${d.str('room_id')}'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  icon: const Icon(Icons.map_outlined),
+                  label: Text(s.t('way.toRoom')),
+                ),
+              ],
 
               // Attendance so far.
               if (attendance != null) ...[
