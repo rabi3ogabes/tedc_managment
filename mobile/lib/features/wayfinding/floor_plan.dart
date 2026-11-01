@@ -64,9 +64,9 @@ class FloorPlanViewState extends State<FloorPlanView> with TickerProviderStateMi
   }
 
   @override
-  void didUpdateWidget(FloorPlanView old) {
-    super.didUpdateWidget(old);
-    if (_key(old.focus) != _key(widget.focus) || old.floor != widget.floor || old.inset != widget.inset) {
+  void didUpdateWidget(FloorPlanView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_key(oldWidget.focus) != _key(widget.focus) || oldWidget.floor != widget.floor || oldWidget.inset != widget.inset) {
       if (follow || widget.focus == null) WidgetsBinding.instance.addPostFrameCallback((_) => recentre());
     }
   }

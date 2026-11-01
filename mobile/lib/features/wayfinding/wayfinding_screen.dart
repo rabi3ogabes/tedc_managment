@@ -93,10 +93,10 @@ class _WayfindingScreenState extends ConsumerState<WayfindingScreen> {
     final floor = _manualFloor ?? current?.floor ?? (target != null && route == null ? target.floor : origin.floor);
     final leg = route?.legs.where((l) => l.floor == floor).firstOrNull?.points;
     final you = current != null ? (current.floor == floor ? current.at : null) : (origin.floor == floor ? origin.at : null);
-    final next = route == null ? null : route.steps.skip(_step + 1).where((x) => x.floor == floor).firstOrNull;
+    final next = route?.steps.skip(_step + 1).where((x) => x.floor == floor).firstOrNull;
     final goal = target != null && target.floor == floor ? target.at : (leg != null && route!.legs.first.floor == floor ? leg.last : null);
     // The plan frames where the visitor stands and where they are going on this floor; with nothing chosen yet, the whole floor.
-    final focus = route == null ? <Pt>[] : <Pt>[if (you != null) you else if (leg != null) leg.first, if (next != null) next.at, if (goal != null) goal];
+    final focus = route == null ? <Pt>[] : <Pt>[if (you != null) you else if (leg != null) leg.first, if (next != null) next.at, ?goal];
     final h = MediaQuery.of(context).size.height;
     final top = MediaQuery.of(context).padding.top + 70;
 
@@ -711,7 +711,7 @@ class _DistanceState extends State<_Distance> {
   }
 }
 
-/// Scans a "you are here" sign: its QR code carries the spot (…/map?from=<id>).
+/// Scans a "you are here" sign: its QR code carries the spot (`…/map?from=<id>`).
 class _SignScanner extends StatefulWidget {
   const _SignScanner();
   @override

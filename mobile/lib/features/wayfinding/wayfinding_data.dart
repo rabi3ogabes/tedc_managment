@@ -120,7 +120,7 @@ final wayDataProvider = FutureProvider.autoDispose<WayData>((ref) async {
   return WayData(Map<String, dynamic>.from((raw as Map)['data'] as Map));
 });
 
-/// The starting point a "you are here" sign's QR code carries: …/map?from=<id> (or the bare id).
+/// The starting point a "you are here" sign's QR code carries: `…/map?from=<id>` (or the bare id).
 String? signKey(String raw) {
   final uri = Uri.tryParse(raw);
   if (uri != null && uri.hasScheme) return uri.queryParameters['from'];
