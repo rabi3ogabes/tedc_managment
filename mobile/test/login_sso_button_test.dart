@@ -45,6 +45,8 @@ void main() {
       {'key': 'supervisor-1', 'group': 'supervision', 'name': 'Demo supervisor 1'},
       {'key': 'trainee-1', 'group': 'learners', 'name': 'Demo trainee 1'},
     ]);
+    // The sign-in screen is a list built as it scrolls: the panel sits below the form.
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('showcase-accounts')), 300, scrollable: find.byType(Scrollable).first);
     expect(find.byKey(const ValueKey('showcase-accounts')), findsOneWidget);
     expect(find.byKey(const ValueKey('showcase-trainee-1')), findsOneWidget);
     expect(find.text('Demo supervisor 1'), findsOneWidget);
@@ -53,6 +55,7 @@ void main() {
 
   testWidgets('and nothing shows when the server offers none', (tester) async {
     await _pump(tester, false);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('centre-guide')), 300, scrollable: find.byType(Scrollable).first);
     expect(find.byKey(const ValueKey('showcase-accounts')), findsNothing);
   });
 
