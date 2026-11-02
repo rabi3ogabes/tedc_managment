@@ -13,6 +13,13 @@ use Tests\TestCase;
 /** سابر+ phase 3 (docs/saber/03-rooms-and-meetings.md): meeting bookings by the hour, recurrence, holidays, the rooms month. */
 class SaberMeetingsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // The bookings are made for 1 November 2026: the clock stands before it, so they are never in the past.
+        $this->travelTo('2026-10-25 09:00');
+    }
+
     private function meetingRoom(): TrainingRoom
     {
         return TrainingRoom::create(['code' => 'M1', 'name_ar' => 'قاعة الاجتماعات', 'name_en' => 'Meeting room', 'capacity' => 12, 'status' => 'active', 'room_type' => 'meeting', 'tag' => 'VIP']);

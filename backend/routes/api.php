@@ -120,6 +120,7 @@ use App\Http\Controllers\Api\V1\Admin\SchoolTrainingController;
 use App\Http\Controllers\Api\V1\Admin\SecurityPolicyController;
 use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
 use App\Http\Controllers\Api\V1\Admin\SessionController;
+use App\Http\Controllers\Api\V1\Admin\ShowcaseAccountsController;
 use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
 use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
 use App\Http\Controllers\Api\V1\Admin\StandardsController;
@@ -1802,6 +1803,15 @@ Route::prefix('v1')->group(function () {
                 });
                 Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware(['feature:impersonation', 'throttle:20,1']);
                 Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop'])->middleware('feature:impersonation');
+                // Showcase accounts on the live system: the system administrator only (checked in the controller), every opening audited.
+                Route::middleware('feature:showcase_accounts')->prefix('showcase-accounts')->controller(ShowcaseAccountsController::class)->group(function () {
+                    Route::get('/', 'show');
+                    Route::post('/', 'build')->middleware('throttle:10,1');
+                    Route::delete('/', 'destroy')->middleware('throttle:10,1');
+                    Route::post('{key}/open', 'open')->middleware('throttle:30,1');
+                    Route::post('{key}/close', 'close');
+                    Route::post('{key}/app-password', 'appPassword')->middleware('throttle:10,1');
+                });
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);
