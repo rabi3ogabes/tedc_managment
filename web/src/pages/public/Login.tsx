@@ -1,4 +1,4 @@
-import { Building2, Lock, Mail } from 'lucide-react'
+import { ArrowLeft, Building2, ClipboardList, GraduationCap, Loader2, Lock, Mail, Presentation, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
@@ -19,6 +19,10 @@ const DEMO = [
 ]
 
 const TEST_ACCOUNTS: [string, string][] = [['trainee1@tedc.qa', 'متدرب 1'], ['trainee2@tedc.qa', 'متدرب 2'], ['trainee3@tedc.qa', 'متدرب 3'], ['trainee4@tedc.qa', 'متدرب 4'], ['trainer1@tedc.qa', 'مدرب 1'], ['trainer2@tedc.qa', 'مدرب 2']]
+
+/** The showcase accounts the sign-in page offers (Settings → Showcase accounts): supervisors, trainers and trainees only. */
+type Showcase = { key: string; group: 'supervision' | 'training' | 'learners'; name: string }
+const SHOWCASE_ICON = { supervision: ClipboardList, training: Presentation, learners: GraduationCap }
 
 // The demo accounts panel appears only where the server is in demo mode (never on a live system by default; see DemoGuard).
 // A build can still hide it with VITE_SHOW_DEMO_ACCOUNTS=false.
@@ -54,6 +58,8 @@ export default function Login() {
   // The demo password is never part of the app: the server sends it only while demo mode is on (never on a live system).
   const DEMO_PASSWORD = config.data?.data.demo_password ?? ''
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true && DEMO_PASSWORD !== ''
+  const showcase = useGet<{ data: Showcase[] }>('/public/showcase-accounts', undefined, { staleTime: 60_000, retry: false })
+  const showcaseAccounts = showcase.data?.data ?? []
 
   if (user) return <Navigate to={from ?? homeFor(user)} replace />
   const mandatory = !!options.data?.data.sso && !!options.data?.data.sso_mandatory
@@ -91,6 +97,13 @@ export default function Login() {
     void signIn(mail, DEMO_PASSWORD)
   }
 
+  // One tap on a showcase account opens a normal session for it; no password is involved.
+  const openShowcase = async (key: string) => {
+    if (loading) return
+    setLoading(true); setOpening(key); setError(null)
+    try { const { data } = await api.post(`/public/showcase-accounts/${key}/sign-in`); done(data) } catch (err) { setError(errorMessage(err)) } finally { setLoading(false); setOpening(null) }
+  }
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col px-6 py-8 sm:px-12">
@@ -122,6 +135,24 @@ export default function Login() {
               {options.data?.data.ldap && <button type="button" className="text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
             </div>
           </form>}</>)}
+          {!challenge && showcaseAccounts.length > 0 && (
+            <section aria-labelledby="showcase-title" className="mt-8 rounded-3xl border border-gold-300/70 bg-gradient-to-br from-gold-100/60 via-white to-white p-5 shadow-sm">
+              <div className="flex items-center gap-2"><Sparkles className="size-4 text-gold-600" /><h2 id="showcase-title" className="text-sm font-extrabold text-navy-900">{t('auth.showcase.title')}</h2></div>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">{t('auth.showcase.hint')}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {showcaseAccounts.map((a) => {
+                  const Icon = SHOWCASE_ICON[a.group] ?? GraduationCap
+                  return (
+                    <button key={a.key} type="button" disabled={loading} aria-busy={opening === a.key} onClick={() => void openShowcase(a.key)} className="group flex items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-start ring-1 ring-navy-100 transition hover:-translate-y-0.5 hover:shadow-sm hover:ring-gold-400 focus-visible:outline-2 focus-visible:outline-gold-400 disabled:cursor-wait disabled:opacity-60">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-navy-900 text-gold-300"><Icon className="size-4" /></span>
+                      <span className="min-w-0 flex-1"><span className="block text-sm font-bold leading-snug text-navy-900">{a.name}</span><span className="block text-[11px] text-slate-500">{t(`auth.showcase.${a.group}`)}</span></span>
+                      {opening === a.key ? <Loader2 className="size-4 shrink-0 animate-spin text-gold-600" /> : <ArrowLeft className="size-4 shrink-0 text-slate-300 transition group-hover:text-gold-600 ltr:rotate-180" />}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
           {SHOW_DEMO && (
             <div className="mt-8 rounded-2xl border border-dashed border-gold-300 bg-gold-100/40 p-4">
               <p className="text-sm font-bold text-navy-900">{t('auth.demo')}</p>

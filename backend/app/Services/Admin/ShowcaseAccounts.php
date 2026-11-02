@@ -14,6 +14,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\School;
+use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Support\Supabase;
@@ -28,6 +29,8 @@ use Throwable;
  * shown on the live system without touching anyone real. Everything is marked — e-mails on SHOWCASE_DOMAIN, programmes and the
  * school coded TEST-SHOWCASE-* (TEST- codes never reach the public catalogue) — so remove() takes away exactly what build() made.
  * Passwords are random and never shown; the system administrator opens an account from Settings, or sets an app password for one.
+ * The supervisors, trainers and trainees (PUBLIC) can also be opened by anyone in one tap from the sign-in page, on the web and in
+ * the app, while the administrator leaves that on; the leadership accounts never can, since they see the Ministry's real staff.
  */
 class ShowcaseAccounts
 {
@@ -51,6 +54,11 @@ class ShowcaseAccounts
         'trainee-2' => ['learners', [Role::EMPLOYEE], 'المتدرّبة التجريبية الثانية', 'Demo trainee 2', true],
     ];
 
+    /** The accounts anyone may open from the sign-in page: none of them reaches beyond the showcase school's people. */
+    public const PUBLIC = ['supervisor-1', 'supervisor-2', 'trainer-1', 'trainer-2', 'trainee-1', 'trainee-2'];
+
+    private const SETTING = 'showcase_accounts';
+
     /** Who each person reports to (their supervisor's key). */
     private const SUPERVISED_BY = ['trainee-1' => 'supervisor-1', 'trainer-1' => 'supervisor-1', 'trainee-2' => 'supervisor-2', 'trainer-2' => 'supervisor-2'];
 
@@ -68,6 +76,37 @@ class ShowcaseAccounts
     public static function isShowcase(User $user): bool
     {
         return in_array(strtolower($user->email), self::emails(), true);
+    }
+
+    /** Whether the sign-in page offers the PUBLIC accounts (on unless the administrator switched it off). */
+    public function publicSignIn(): bool
+    {
+        return (bool) (SiteSetting::find(self::SETTING)?->value['public_sign_in'] ?? true);
+    }
+
+    public function setPublicSignIn(bool $on, User $by): void
+    {
+        SiteSetting::updateOrCreate(['key' => self::SETTING], ['value' => ['public_sign_in' => $on], 'updated_by' => $by->id]);
+        $this->audit($by, 'showcase_public_sign_in_'.($on ? 'on' : 'off'), []);
+    }
+
+    /** The accounts the sign-in page shows: empty when switched off or not created. @return list<array<string, string>> */
+    public function publicAccounts(): array
+    {
+        if (! $this->publicSignIn()) {
+            return [];
+        }
+        $en = app()->getLocale() === 'en';
+        $users = User::whereIn('email', array_map(fn ($k) => self::email($k), self::PUBLIC))->where('status', 'active')->get()->keyBy(fn (User $u) => strtolower($u->email));
+
+        return collect(self::PUBLIC)->filter(fn ($key) => $users->has(self::email($key)))
+            ->map(fn ($key) => ['key' => $key, 'group' => self::ACCOUNTS[$key][0], 'name' => $users[self::email($key)]->displayName()])->values()->all();
+    }
+
+    /** A PUBLIC account that may be opened from the sign-in page right now, or null. */
+    public function findPublic(string $key): ?User
+    {
+        return in_array($key, self::PUBLIC, true) && $this->publicSignIn() ? User::where('email', self::email($key))->where('status', 'active')->first() : null;
     }
 
     public function exists(): bool
@@ -202,11 +241,12 @@ class ShowcaseAccounts
 
         return [
             'exists' => $users->isNotEmpty(),
+            'public_sign_in' => $this->publicSignIn(),
             'accounts' => collect(self::ACCOUNTS)->map(function ($spec, $key) use ($users, $en) {
                 $user = $users->get(self::email($key));
 
                 return [
-                    'key' => $key, 'group' => $spec[0], 'email' => self::email($key), 'id' => $user?->id,
+                    'key' => $key, 'group' => $spec[0], 'email' => self::email($key), 'id' => $user?->id, 'public' => in_array($key, self::PUBLIC, true),
                     'name' => $user ? $user->displayName() : ($en ? $spec[3] : $spec[2]),
                     // The role that makes the account what it is (a supervisor's or a trainer's employee record goes without saying).
                     'roles' => $user ? $user->roles->reject(fn ($r) => $r->slug === Role::EMPLOYEE && $user->roles->count() > 1)->map(fn ($r) => $en ? $r->name_en : $r->name_ar)->values()->all() : [],

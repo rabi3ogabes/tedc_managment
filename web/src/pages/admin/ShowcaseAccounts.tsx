@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CalendarDays, Check, ClipboardList, Copy, Crown, GraduationCap, LogIn, Presentation, RefreshCcw, ShieldCheck, Smartphone, Sparkles, Trash2, UserRound, UsersRound } from 'lucide-react'
+import { CalendarDays, Check, ClipboardList, Copy, Crown, DoorOpen, GraduationCap, LogIn, Presentation, RefreshCcw, ShieldCheck, Smartphone, Sparkles, Trash2, UserRound, UsersRound } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -12,9 +12,9 @@ import { impersonation } from '@/lib/impersonation'
 import { toast } from '@/lib/toast'
 
 type Group = 'leadership' | 'supervision' | 'training' | 'learners'
-type Account = { key: string; group: Group; email: string; id: string | null; name: string; roles: string[]; app: boolean; app_ready: boolean; last_opened_at: string | null }
+type Account = { key: string; group: Group; email: string; id: string | null; name: string; roles: string[]; public: boolean; app: boolean; app_ready: boolean; last_opened_at: string | null }
 type Program = { id: string; code: string; title: string; status: string; start_date: string | null; end_date: string | null; trainees: number }
-type Payload = { exists: boolean; accounts: Account[]; programs: Program[] }
+type Payload = { exists: boolean; public_sign_in: boolean; accounts: Account[]; programs: Program[] }
 
 const GROUPS: { id: Group; icon: ComponentType<{ className?: string }>; tone: string }[] = [
   { id: 'leadership', icon: Crown, tone: 'from-navy-900 to-navy-800 text-gold-300' },
@@ -27,7 +27,7 @@ const GROUPS: { id: Group; icon: ComponentType<{ className?: string }>; tone: st
 export default function ShowcaseAccounts() {
   const { t } = useTranslation()
   const { data, isLoading, isError, error: loadError, refetch } = useGet<{ data: Payload }>('/admin/showcase-accounts')
-  const [busy, setBusy] = useState<'build' | 'remove' | null>(null)
+  const [busy, setBusy] = useState<'build' | 'remove' | 'public' | null>(null)
   const [opening, setOpening] = useState<string | null>(null)
   const [password, setPassword] = useState<{ key: string; name: string; email: string; password: string } | null>(null)
   const [asking, setAsking] = useState<string | null>(null)
@@ -56,6 +56,10 @@ export default function ShowcaseAccounts() {
   const appPassword = async (a: Account) => {
     setAsking(a.key)
     try { const { data: r } = await api.post(`/admin/showcase-accounts/${a.key}/app-password`); setPassword({ key: a.key, name: a.name, ...r.data }); void refetch() } catch (e) { toast(errorMessage(e), 'error') } finally { setAsking(null) }
+  }
+  const togglePublic = async () => {
+    setBusy('public')
+    try { await api.put('/admin/showcase-accounts/public-sign-in', { enabled: !d.public_sign_in }); await refetch(); toast(t(d.public_sign_in ? 'mgmt.showcase.publicOff' : 'mgmt.showcase.publicOn')) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
   }
   const copy = (text: string) => { void navigator.clipboard?.writeText(text); setCopied(text); setTimeout(() => setCopied(null), 1500) }
 
@@ -87,6 +91,15 @@ export default function ShowcaseAccounts() {
         </Card>
       ) : (
         <>
+          {/* The supervisors, trainers and trainees on the sign-in page, for anyone to open in one tap */}
+          <Card>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gold-100 text-gold-700"><DoorOpen className="size-5" /></span>
+              <div className="min-w-0 flex-1 basis-64"><div className="font-bold text-navy-900">{t('mgmt.showcase.publicTitle')}</div><p className="mt-0.5 text-sm text-slate-600">{t('mgmt.showcase.publicText')}</p></div>
+              <button type="button" role="switch" aria-checked={d.public_sign_in} aria-label={t('mgmt.showcase.publicTitle')} disabled={busy !== null} onClick={togglePublic} className={clsx('relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:opacity-60', d.public_sign_in ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')}><span className="inline-block size-6 rounded-full bg-white shadow" /></button>
+            </div>
+          </Card>
+
           {GROUPS.map(({ id, icon: Icon, tone }) => (
             <section key={id}>
               <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900"><Icon className="size-5 text-gold-600" />{t(`mgmt.showcase.groups.${id}`)}</h2>
@@ -99,7 +112,7 @@ export default function ShowcaseAccounts() {
                         <span className={clsx('grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br shadow-sm', tone)}><Icon className="size-5" /></span>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold leading-snug text-navy-900">{a.name}</div>
-                          <div className="mt-1 flex flex-wrap gap-1">{a.roles.map((r) => <Badge key={r} color={id === 'leadership' ? 'navy' : 'gold'}>{r}</Badge>)}</div>
+                          <div className="mt-1 flex flex-wrap gap-1">{a.roles.map((r) => <Badge key={r} color={id === 'leadership' ? 'navy' : 'gold'}>{r}</Badge>)}{a.public && d.public_sign_in && <Badge color="green">{t('mgmt.showcase.onSignIn')}</Badge>}</div>
                         </div>
                       </div>
                       <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{t(`mgmt.showcase.hints.${a.key}`)}</p>

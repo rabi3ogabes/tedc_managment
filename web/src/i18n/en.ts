@@ -117,6 +117,7 @@ const en: Dictionary = {
   },
   auth: {
     title: 'Sign in', subtitle: 'Access the Training Management & Impact Platform', password: 'Password', signIn: 'Sign in',
+    showcase: { title: 'Try the platform with a showcase account', hint: 'Tap an account to step straight in, with sample training data.', supervision: 'Supervisor', training: 'Trainer', learners: 'Trainee' },
     demo: 'Demo accounts', testAccounts: 'App test accounts (trainees and trainers)', demoHint: 'Tap an account to open it. Password for all accounts:',
   },
   admin: {

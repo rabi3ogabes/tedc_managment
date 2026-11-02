@@ -144,6 +144,12 @@ class AuthController extends AsyncNotifier<Me?> {
     await completeLogin(data);
   }
 
+  /// One tap on a showcase account of the sign-in screen (Settings → Showcase accounts): the server opens its session, no password.
+  Future<void> loginShowcase(String key) async {
+    final data = await ref.read(apiProvider).post('/public/showcase-accounts/$key/sign-in') as Map<String, dynamic>;
+    await completeLogin(data);
+  }
+
   /// "Sign in with your Ministry account" through the system browser; false when the person closed it.
   Future<bool> loginWithSso() async {
     final data = await SsoSignIn(ref.read(apiProvider)).signIn();

@@ -105,6 +105,34 @@ class ShowcaseAccountsTest extends TestCase
         $this->postJson('/api/v1/auth/login', ['email' => ShowcaseAccounts::email('trainer-1'), 'password' => $second])->assertOk();
     }
 
+    public function test_the_sign_in_page_offers_the_supervisors_trainers_and_trainees_in_one_tap_never_the_leadership(): void
+    {
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => []]);   // nothing until they exist
+        $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+
+        $keys = collect($this->getJson('/api/v1/public/showcase-accounts')->assertOk()->json('data'))->pluck('key')->all();
+        $this->assertSame(ShowcaseAccounts::PUBLIC, $keys);
+
+        $res = $this->postJson('/api/v1/public/showcase-accounts/trainee-1/sign-in')->assertOk()->assertJsonPath('user.email', ShowcaseAccounts::email('trainee-1'));
+        $this->assertNotEmpty($res->json('refresh_token'));
+        $this->withToken($res->json('access_token'))->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('data.email', ShowcaseAccounts::email('trainee-1'));
+        $this->assertSame(1, AuditLog::where('action', 'showcase_public_sign_in')->count());
+
+        foreach (['admin', 'centre-head', 'training-head', 'planning-head', 'nobody'] as $key) {
+            $this->postJson("/api/v1/public/showcase-accounts/{$key}/sign-in")->assertNotFound();
+        }
+
+        // Switched off from Settings: the page shows nothing and a tap opens nothing.
+        $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/public-sign-in', ['enabled' => false])->assertOk()->assertJsonPath('data.public_sign_in', false);
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => []]);
+        $this->postJson('/api/v1/public/showcase-accounts/trainee-1/sign-in')->assertNotFound();
+        $this->asUser($this->makeUser(Role::CENTER_ADMIN))->putJson('/api/v1/admin/showcase-accounts/public-sign-in', ['enabled' => true])->assertForbidden();
+    }
+
     public function test_removing_takes_away_exactly_what_was_built(): void
     {
         $real = $this->makeEmployee();
