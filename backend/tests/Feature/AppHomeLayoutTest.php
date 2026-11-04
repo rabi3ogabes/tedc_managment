@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\Trainer;
+use App\Models\TrainingRoom;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
@@ -23,6 +25,21 @@ class AppHomeLayoutTest extends TestCase
         $this->assertSame('dashboard', $exec['sections'][0]);
         // The older mobile config still carries the trainee's cards.
         $this->assertSame($trainee['sections'], $this->getJson('/api/v1/public/mobile-config')->json('data.home.sections'));
+    }
+
+    public function test_a_trainers_day_names_the_room_so_the_app_can_show_the_way_to_it(): void
+    {
+        $user = $this->makeUser(Role::TRAINER);
+        $trainer = Trainer::create(['user_id' => $user->id, 'name_ar' => 'مدرب', 'name_en' => 'Trainer', 'status' => 'active']);
+        $room = TrainingRoom::create(['code' => 'R14', 'name_ar' => 'قاعة التدريب 14', 'name_en' => 'Training Room 14', 'capacity' => 20, 'status' => 'active']);
+        $session = $this->makeSession($this->makeProgram(), now()->setTime(11, 0));
+        $session->update(['trainer_id' => $trainer->id, 'training_room_id' => $room->id, 'mode' => 'in_person']);
+
+        $today = $this->asUser($user)->getJson('/api/v1/me/app-home')->assertOk()->json('data.today');
+        $this->assertCount(1, $today);
+        $this->assertSame($room->id, $today[0]['room_id']);
+        $this->assertSame('in_person', $today[0]['mode']);
+        $this->assertSame('قاعة التدريب 14', $today[0]['location']);
     }
 
     public function test_action_tiles_show_only_what_is_waiting_and_only_to_people_who_can_act_on_it(): void

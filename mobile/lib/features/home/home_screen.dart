@@ -13,6 +13,7 @@ import '../../core/widgets/brand.dart';
 import '../../core/widgets/widgets.dart';
 import '../needs/needs_survey_screen.dart';
 import '../reports/dashboard_section.dart';
+import '../wayfinding/classroom_sheet.dart';
 import 'top_cards.dart';
 import 'upcoming_programs.dart';
 
@@ -346,6 +347,10 @@ class _NextSession extends StatelessWidget {
                 ]),
             ]),
           ),
+          ClassroomMapButton(
+            mode: session.str('mode'),
+            target: ClassroomTarget(roomId: session.str('room_id'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+          ),
         ]),
       ),
       ),
@@ -389,6 +394,10 @@ class _SessionBox extends StatelessWidget {
                 Icon(Icons.place_outlined, size: 14, color: AppColors.gold700),
                 const SizedBox(width: 4),
                 Expanded(child: Text(session.str('location'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, color: AppColors.muted))),
+                ClassroomMapButton(
+                  mode: session.str('mode'),
+                  target: ClassroomTarget(roomId: session.str('room_id'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+                ),
               ]),
           ]),
         ),
