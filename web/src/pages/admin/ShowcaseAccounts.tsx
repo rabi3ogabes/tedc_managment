@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CalendarDays, Check, ClipboardList, Copy, Crown, DoorOpen, GraduationCap, LogIn, Presentation, RefreshCcw, ShieldCheck, Smartphone, Sparkles, Trash2, UserRound, UsersRound } from 'lucide-react'
+import { CalendarDays, Check, ClipboardList, Copy, Crown, DoorOpen, GraduationCap, KeyRound, LogIn, Presentation, RefreshCcw, ShieldCheck, Smartphone, Sparkles, Trash2, UserRound, UsersRound } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -14,7 +14,7 @@ import { toast } from '@/lib/toast'
 type Group = 'leadership' | 'supervision' | 'training' | 'learners'
 type Account = { key: string; group: Group; email: string; id: string | null; name: string; roles: string[]; public: boolean; app: boolean; app_ready: boolean; last_opened_at: string | null }
 type Program = { id: string; code: string; title: string; status: string; start_date: string | null; end_date: string | null; trainees: number }
-type Payload = { exists: boolean; public_sign_in: boolean; accounts: Account[]; programs: Program[] }
+type Payload = { exists: boolean; public_sign_in: boolean; leadership: { enabled: boolean; code: string | null }; accounts: Account[]; programs: Program[] }
 
 const GROUPS: { id: Group; icon: ComponentType<{ className?: string }>; tone: string }[] = [
   { id: 'leadership', icon: Crown, tone: 'from-navy-900 to-navy-800 text-gold-300' },
@@ -27,7 +27,7 @@ const GROUPS: { id: Group; icon: ComponentType<{ className?: string }>; tone: st
 export default function ShowcaseAccounts() {
   const { t } = useTranslation()
   const { data, isLoading, isError, error: loadError, refetch } = useGet<{ data: Payload }>('/admin/showcase-accounts')
-  const [busy, setBusy] = useState<'build' | 'remove' | 'public' | null>(null)
+  const [busy, setBusy] = useState<'build' | 'remove' | 'public' | 'lead' | null>(null)
   const [opening, setOpening] = useState<string | null>(null)
   const [password, setPassword] = useState<{ key: string; name: string; email: string; password: string } | null>(null)
   const [asking, setAsking] = useState<string | null>(null)
@@ -61,6 +61,11 @@ export default function ShowcaseAccounts() {
     setBusy('public')
     try { await api.put('/admin/showcase-accounts/public-sign-in', { enabled: !d.public_sign_in }); await refetch(); toast(t(d.public_sign_in ? 'mgmt.showcase.publicOff' : 'mgmt.showcase.publicOn')) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
   }
+  const leadership = async (body: { enabled?: boolean; regenerate?: boolean }, done: string) => {
+    setBusy('lead')
+    try { await api.put('/admin/showcase-accounts/leadership', body); await refetch(); toast(t(done)) } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(null) }
+  }
+  const newCode = async () => { if (await dialogs.confirm(t('mgmt.showcase.leadNewConfirm'))) await leadership({ regenerate: true }, 'mgmt.showcase.leadNewDone') }
   const copy = (text: string) => { void navigator.clipboard?.writeText(text); setCopied(text); setTimeout(() => setCopied(null), 1500) }
 
   return (
@@ -97,6 +102,27 @@ export default function ShowcaseAccounts() {
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gold-100 text-gold-700"><DoorOpen className="size-5" /></span>
               <div className="min-w-0 flex-1 basis-64"><div className="font-bold text-navy-900">{t('mgmt.showcase.publicTitle')}</div><p className="mt-0.5 text-sm text-slate-600">{t('mgmt.showcase.publicText')}</p></div>
               <button type="button" role="switch" aria-checked={d.public_sign_in} aria-label={t('mgmt.showcase.publicTitle')} disabled={busy !== null} onClick={togglePublic} className={clsx('relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:opacity-60', d.public_sign_in ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')}><span className="inline-block size-6 rounded-full bg-white shadow" /></button>
+            </div>
+          </Card>
+
+          {/* The leadership accounts on the sign-in page, behind a code */}
+          <Card>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-navy-900 text-gold-300"><KeyRound className="size-5" /></span>
+              <div className="min-w-0 flex-1 basis-64">
+                <div className="font-bold text-navy-900">{t('mgmt.showcase.leadTitle')}</div>
+                <p className="mt-0.5 text-sm text-slate-600">{t('mgmt.showcase.leadText')}</p>
+                {d.leadership.code && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={() => copy(d.leadership.code!)} className="inline-flex items-center gap-2 rounded-xl bg-ivory px-4 py-2 ring-1 ring-gold-300 transition hover:ring-gold-500" aria-label={t('mgmt.showcase.leadCode')}>
+                      <span className="text-xs font-semibold text-slate-500">{t('mgmt.showcase.leadCode')}</span><bdi dir="ltr" className="font-mono text-base font-extrabold tracking-widest text-navy-900">{d.leadership.code}</bdi>
+                      {copied === d.leadership.code ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4 text-slate-400" />}
+                    </button>
+                    <Button size="sm" variant="outline" icon={<RefreshCcw className="size-4" />} disabled={busy !== null} onClick={newCode}>{t('mgmt.showcase.leadNew')}</Button>
+                  </div>
+                )}
+              </div>
+              <button type="button" role="switch" aria-checked={d.leadership.enabled} aria-label={t('mgmt.showcase.leadTitle')} disabled={busy !== null} onClick={() => void leadership({ enabled: !d.leadership.enabled }, d.leadership.enabled ? 'mgmt.showcase.leadOff' : 'mgmt.showcase.leadOn')} className={clsx('relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:opacity-60', d.leadership.enabled ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')}><span className="inline-block size-6 rounded-full bg-white shadow" /></button>
             </div>
           </Card>
 

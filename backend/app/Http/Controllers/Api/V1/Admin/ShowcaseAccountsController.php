@@ -74,6 +74,15 @@ class ShowcaseAccountsController extends Controller
         return response()->json(['data' => $this->showcase->overview()]);
     }
 
+    /** Switches the code-protected leadership buttons on or off, and makes a new code. */
+    public function leadership(Request $request): JsonResponse
+    {
+        $data = $request->validate(['enabled' => ['sometimes', 'boolean'], 'regenerate' => ['sometimes', 'boolean']]);
+        $this->showcase->setLeadership($data['enabled'] ?? null, (bool) ($data['regenerate'] ?? false), $this->admin($request));
+
+        return response()->json(['data' => $this->showcase->overview()]);
+    }
+
     public function appPassword(Request $request, string $key): JsonResponse
     {
         $admin = $this->admin($request);

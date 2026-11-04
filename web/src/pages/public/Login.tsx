@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import MfaStep from '@/components/auth/MfaStep'
+import ShowcaseLeadership from '@/components/auth/ShowcaseLeadership'
 import Logo from '@/components/public/Logo'
 import { LanguageToggle } from '@/components/public/PublicLayout'
 import { MinistryOfEducation } from '@/components/public/QatarArt'
@@ -58,8 +59,9 @@ export default function Login() {
   // The demo password is never part of the app: the server sends it only while demo mode is on (never on a live system).
   const DEMO_PASSWORD = config.data?.data.demo_password ?? ''
   const SHOW_DEMO = DEMO_BUILD && config.data?.data.demo_accounts === true && DEMO_PASSWORD !== ''
-  const showcase = useGet<{ data: Showcase[] }>('/public/showcase-accounts', undefined, { staleTime: 60_000, retry: false })
+  const showcase = useGet<{ data: Showcase[]; leadership?: boolean }>('/public/showcase-accounts', undefined, { staleTime: 60_000, retry: false })
   const showcaseAccounts = showcase.data?.data ?? []
+  const showcaseLeadership = showcase.data?.leadership === true
 
   if (user) return <Navigate to={from ?? homeFor(user)} replace />
   const mandatory = !!options.data?.data.sso && !!options.data?.data.sso_mandatory
@@ -135,7 +137,7 @@ export default function Login() {
               {options.data?.data.ldap && <button type="button" className="text-link" onClick={() => setDirectory(!directory)}>{directory ? t('idn.login.local') : t('idn.login.directory')}</button>}
             </div>
           </form>}</>)}
-          {!challenge && showcaseAccounts.length > 0 && (
+          {!challenge && (showcaseAccounts.length > 0 || showcaseLeadership) && (
             <section aria-labelledby="showcase-title" className="mt-8 rounded-3xl border border-gold-300/70 bg-gradient-to-br from-gold-100/60 via-white to-white p-5 shadow-sm">
               <div className="flex items-center gap-2"><Sparkles className="size-4 text-gold-600" /><h2 id="showcase-title" className="text-sm font-extrabold text-navy-900">{t('auth.showcase.title')}</h2></div>
               <p className="mt-1 text-xs leading-relaxed text-slate-500">{t('auth.showcase.hint')}</p>
@@ -151,6 +153,7 @@ export default function Login() {
                   )
                 })}
               </div>
+              {showcaseLeadership && <ShowcaseLeadership onSignedIn={done} />}
             </section>
           )}
           {SHOW_DEMO && (
