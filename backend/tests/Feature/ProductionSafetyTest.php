@@ -30,6 +30,9 @@ class ProductionSafetyTest extends TestCase
         // ...and the sign-in screens still need the test-accounts switch, which starts off in production.
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false);
         app(FeatureSettings::class)->set('test_accounts', true, 'demonstration site', $this->makeUser(Role::SUPER_ADMIN));
+        // ...and the demo accounts themselves: buttons that cannot work are not shown.
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false);
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa']);
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
     }
 
@@ -59,6 +62,7 @@ class ProductionSafetyTest extends TestCase
 
     public function test_the_sign_in_screens_are_told_to_hide_the_demo_accounts_on_a_live_system(): void
     {
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa']);   // a demonstration organisation
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
 
         $this->production();
