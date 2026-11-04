@@ -21,6 +21,26 @@ Signs print a QR code of `…/map?from=<id>`: a phone camera opens the guide fro
 uses what is exact instead — the entrance, the QR signs, or the visitor's tap — and then walks them turn by turn with landmarks. A
 Bluetooth beacon layer can later move the dot automatically without changing the map or the steps.
 
+## The classroom popup (mobile app, trainers and trainees)
+
+A **map icon** sits next to every live session: on the trainee's home (next and upcoming sessions), on each session of a programme and on the
+session page, and on the trainer's sessions of the day. It opens a popup that answers "how do I get to my room?" without leaving the screen:
+
+- **When it shows.** Only for a session at the centre: not online, not cancelled, not over, and its room is on the centre's plans (a room
+  elsewhere keeps the old outdoor-directions link on the session page, and gets no icon elsewhere).
+- **Reading the location.** The popup reads the phone's GPS now and as it changes, against the centre's point: *far* (more than ~800 m: the
+  distance and minutes by car, and a button to the maps app), *near* (park and walk to the entrance), *at the centre* (≤ ~150 m: pick the
+  entrance you came in by or scan a «أنت هنا» sign). A poor reading widens the circle, so someone at the door is never told they are far
+  away; arriving updates the popup by itself. GPS does not work inside the building, so the start inside is the entrance, a scanned sign,
+  or a tap (see above), never a guessed position.
+- **In time?** With the minutes to the start, the drive (when far or near) and the walk from the entrance, the popup says: *the session has
+  begun, go now*, *you have time (N min to spare)*, *set off now (only N min)*, or *you may be N min late*.
+- **The walk.** The plan of the floor with the route drawn on it (a switch between the floors the walk crosses), distance, minutes, the stairs
+  or lift, the first two steps in words, a step-free option, and **Start step-by-step guidance**, which opens the full guide from the chosen start.
+- **Data.** Sessions already carry `training_room_id` and `mode`; the trainer's day list (`/me/app-home` → `today`) now carries `room_id`.
+  The thresholds and the verdict are in `mobile/lib/features/wayfinding/centre_fix.dart` (tested in `mobile/test/centre_fix_test.dart`); the
+  popup is `classroom_sheet.dart` (tested in `mobile/test/classroom_sheet_test.dart`).
+
 ## For administrators — «خريطة المركز» (`/admin/rooms/map`, right `rooms.manage`, button on «القاعات التدريبية»)
 
 - **Rooms on the map:** every room is matched by its name — «قاعة 14», «قاعة التدريب 14», «Training Room 14», «معمل الحاسب 2»,

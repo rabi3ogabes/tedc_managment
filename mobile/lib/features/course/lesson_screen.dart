@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
 import '../../core/models.dart';
 import '../../core/offline/offline_providers.dart';
@@ -19,6 +20,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../community/subject_social.dart';
 import 'fullscreen_video.dart';
+import 'kit_types.dart';
 import 'slides_lesson.dart';
 
 /// One lesson of an online course: a tracked video, slides, a quiz, a survey or an article.
@@ -186,6 +188,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                     'presentation' => SlidesLesson(lesson: l, onConfirm: _markDone, onProgress: _progress, offlineFile: _offline ? _openOffline : null),
                     'quiz' => _QuizLesson(lesson: l, onProgress: _progress),
                     'survey' => _SurveyLesson(lesson: l, onProgress: _progress),
+                    'package' || 'lti' || 'external' => _WebLesson(lesson: l, registrationId: widget.registrationId ?? l.str('registration_id')),
                     _ => _ArticleLesson(lesson: l, done: _completed, onDone: _markDone),
                   },
                   if (_completed) ...[
@@ -574,6 +577,41 @@ class _VideoLessonState extends ConsumerState<_VideoLesson> with WidgetsBindingO
 }
 
 // Article -----------------------------------------------------------------------------------------------------
+
+/// An interactive unit, a learning tool or an external course: these run in the browser, so the app opens them on the web portal.
+class _WebLesson extends StatelessWidget {
+  const _WebLesson({required this.lesson, required this.registrationId});
+
+  final Json lesson;
+  final String registrationId;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final media = lesson.obj('media');
+    final direct = lesson.str('type') == 'external' && media?.str('kind') == 'link' ? media!.str('url') : '';
+    final url = direct.isNotEmpty ? direct : '${AppConfig.webUrl}/portal/learn/$registrationId/${lesson.str('id')}';
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: AppColors.navy100.withValues(alpha: .5), borderRadius: BorderRadius.circular(20)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(kitIcon(lesson.str('type')), color: AppColors.gold700),
+          const SizedBox(width: 10),
+          Expanded(child: Text(s.t('kit.webLesson'), style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900))),
+        ]),
+        const SizedBox(height: 8),
+        Text(s.t('kit.webLessonHint'), style: const TextStyle(color: AppColors.muted, height: 1.6)),
+        const SizedBox(height: 14),
+        FilledButton.icon(
+          onPressed: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+          icon: const Icon(Icons.open_in_new),
+          label: Text(s.t(direct.isNotEmpty ? 'kit.openLink' : 'kit.openWeb')),
+        ),
+      ]),
+    );
+  }
+}
 
 class _ArticleLesson extends StatelessWidget {
   const _ArticleLesson({required this.lesson, required this.done, required this.onDone});

@@ -11,6 +11,7 @@ import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../reports/dashboard_section.dart';
+import '../wayfinding/classroom_sheet.dart';
 import 'home_screen.dart';
 import 'staff_home.dart';
 
@@ -227,6 +228,19 @@ class TodaySessions extends StatelessWidget {
                           ]),
                         ),
                     ]),
+                  ),
+                  if (x.flag('has_course') && x.str('program_id').isNotEmpty)
+                    IconButton.filled(
+                      key: const ValueKey('open-kit'),
+                      tooltip: s.t('kit.title'),
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(backgroundColor: AppColors.navy900, foregroundColor: AppColors.gold300),
+                      icon: const Icon(Icons.inventory_2_outlined, size: 20),
+                      onPressed: () => context.push('/kit/${x.str('program_id')}'),
+                    ),
+                  ClassroomMapButton(
+                    mode: x.str('mode'),
+                    target: ClassroomTarget(roomId: x.str('room_id'), program: x.str('program'), title: x.str('title'), startsAt: x.date('starts_at'), endsAt: x.date('ends_at')),
                   ),
                 ]),
               ),

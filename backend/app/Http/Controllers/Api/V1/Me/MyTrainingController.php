@@ -166,7 +166,7 @@ class MyTrainingController extends MeController
             // The centre guide walks the trainee to this room (docs/wayfinding.md).
             'room_id' => $session->training_room_id,
             'trainer' => $session->trainer?->translate('name'),
-            'program' => ['id' => $session->program->id, 'code' => $session->program->code, 'title' => $session->program->translate('title')],
+            'program' => ['id' => $session->program->id, 'code' => $session->program->code, 'title' => $session->program->translate('title'), 'has_course' => (bool) $session->program->has_course],
             'registration_id' => $registration->id,
             'online' => $online ? [
                 'platform' => $session->online_platform,

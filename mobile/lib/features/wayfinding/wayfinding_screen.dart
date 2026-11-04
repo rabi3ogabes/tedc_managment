@@ -527,7 +527,7 @@ class _WayfindingScreenState extends ConsumerState<WayfindingScreen> {
     }
     if (picked == '__scan') {
       if (!context.mounted) return;
-      final key = await Navigator.of(context).push<String>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const _SignScanner()));
+      final key = await Navigator.of(context).push<String>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const SignScanner()));
       if (key != null && data.origin(key) != null) _start(key);
       return;
     }
@@ -712,13 +712,13 @@ class _DistanceState extends State<_Distance> {
 }
 
 /// Scans a "you are here" sign: its QR code carries the spot (`…/map?from=<id>`).
-class _SignScanner extends StatefulWidget {
-  const _SignScanner();
+class SignScanner extends StatefulWidget {
+  const SignScanner({super.key});
   @override
-  State<_SignScanner> createState() => _SignScannerState();
+  State<SignScanner> createState() => _SignScannerState();
 }
 
-class _SignScannerState extends State<_SignScanner> {
+class _SignScannerState extends State<SignScanner> {
   final _controller = MobileScannerController(detectionSpeed: DetectionSpeed.noDuplicates, formats: const [BarcodeFormat.qrCode]);
   bool _done = false;
 
