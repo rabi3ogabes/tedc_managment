@@ -245,9 +245,16 @@ class _WayfindingScreenState extends ConsumerState<WayfindingScreen> {
       if (_filter == 'lab' && kind != 'lab') return false;
       if (_filter == 'meet' && kind != 'meet') return false;
       if (_filter == 'services' && !const ['public', 'pray', 'wc', 'office'].contains(kind)) return false;
-      final hay = norm('${d.ar} ${d.en} ${d.place?.number ?? ''}');
+      final hay = norm('${d.ar} ${d.en} ${d.place?.number ?? ''} ${d.people.map((p) => p.haystack).join(' ')}');
       return words.every(hay.contains);
     }).toList();
+
+    // Who is here: the person the search matched, else the first; the others as a count.
+    String? who(Destination d) {
+      if (d.people.isEmpty) return null;
+      final hit = words.isEmpty ? null : d.people.where((p) => words.every(norm(p.haystack).contains)).firstOrNull;
+      return '${(hit ?? d.people.first).line(en)}${d.people.length > 1 ? ' +${d.people.length - 1}' : ''}';
+    }
 
     return ListView(controller: scroll, padding: const EdgeInsets.fromLTRB(18, 0, 18, 24), children: [
       _handle(),
@@ -277,10 +284,13 @@ class _WayfindingScreenState extends ConsumerState<WayfindingScreen> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 4),
           leading: _Tile(d: d),
           title: Text(d.name(en), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900)),
-          subtitle: Text(
-            '${d.place != null ? data.map.floor(d.place!.floor).name(en) : s.t('way.outside')}${d.room?.capacity != null ? ' · ${s.t('way.seats').replaceAll('{n}', '${d.room!.capacity}')}' : ''}',
-            style: const TextStyle(fontSize: 12, color: AppColors.muted),
-          ),
+          subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              '${d.place != null ? data.map.floor(d.place!.floor).name(en) : s.t('way.outside')}${d.room?.capacity != null ? ' · ${s.t('way.seats').replaceAll('{n}', '${d.room!.capacity}')}' : ''}',
+              style: const TextStyle(fontSize: 12, color: AppColors.muted),
+            ),
+            if (who(d) != null) Text(who(d)!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.gold700)),
+          ]),
           trailing: Icon(s.isArabic ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, color: AppColors.muted),
           onTap: () {
             HapticFeedback.selectionClick();

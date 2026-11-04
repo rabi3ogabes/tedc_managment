@@ -26,6 +26,9 @@ Bluetooth beacon layer can later move the dot automatically without changing the
 A **map icon** sits next to every live session: on the trainee's home (next and upcoming sessions), on each session of a programme and on the
 session page, and on the trainer's sessions of the day. It opens a popup that answers "how do I get to my room?" without leaving the screen:
 
+- **The room line of a session.** On the session page, the room's name («القاعة التدريبية 3») is a button with a «خريطة القاعة» tag: it opens the
+  popup. A session that names its room only in words (no room record) is found too: the server matches the text to a place of the plans
+  (`map_place` on the session payloads, from `Wayfinding::placeOf`), and a room the administrator marked "not at the centre" is never matched by its name.
 - **When it shows.** Only for a session at the centre: not online, not cancelled, not over, and its room is on the centre's plans (a room
   elsewhere keeps the old outdoor-directions link on the session page, and gets no icon elsewhere).
 - **Reading the location.** The popup reads the phone's GPS now and as it changes, against the centre's point: *far* (more than ~800 m: the
@@ -47,6 +50,12 @@ session page, and on the trainer's sessions of the day. It opens a popup that an
   «المكتبة» — only when the number is the room's whole name (not «قاعة أ-١») and only when one room claims the place. Confirm a
   match, choose another place by clicking it, move a door, mark a room "not in the building", hide it from visitors, or go back to
   automatic. Printable door sign with QR.
+- **Places and people** (tab «الأماكن والموظفون»): every place of the plans, not only training rooms — offices, labs, the library, services.
+  *Main door:* click the exact spot where the place's door meets the corridor; it is where the guide's walk ends (and starts, from that place), and
+  a room that stands on that place takes it unless the room has a door of its own. *People:* put the employees whose office it is on the place —
+  searched among the platform's accounts (name and job title come with them) or typed — with a desk («مكتب 12»). Visitors then type a person's name
+  in the guide (website and app) and are walked to that door; the list shows who sits where. One switch keeps the names from visitors (the guide works
+  as before, and only the administrator sees them); the link to a platform account is never sent to visitors.
 - **Entrances and signs:** rename or move the entrances; add «أنت هنا» signs (in front of the lifts, at junctions) by clicking the plan,
   then print their A4 poster (QR + instructions).
 - **Plans for print:** both floors as SVG or PNG (2×) in the new design, for signage.

@@ -14,6 +14,7 @@ import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../wayfinding/classroom_sheet.dart';
+import '../wayfinding/wayfinding_data.dart';
 
 /// One session: when and where, and the way to be marked present — scan the venue's QR code for an in-person
 /// session, or join the meeting for an online one (the join is the attendance). Notifications about a session
@@ -94,6 +95,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final s = context.s;
     final fmt = Fmt(s.languageCode);
     final value = ref.watch(getProvider(_path));
+    // The centre's plans, for the room line's map (watched here, in build, not inside the page's builder).
+    final way = ref.watch(wayDataProvider).value;
 
     return Scaffold(
       appBar: AppBar(title: Text(s.t('session.title'))),
@@ -111,6 +114,16 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             final end = d.date('ends_at');
             final now = DateTime.now();
             final cancelled = d.str('status') == 'cancelled';
+            // The room as the plans know it: from its record, or from the place the server found for the room written as text.
+            final mapTarget = ClassroomTarget(roomId: d.str('room_id'), placeId: d.str('map_place'), program: d.obj('program')?.str('title') ?? '', title: d.str('title'), startsAt: start, endsAt: end);
+            void openMap() {
+              if (way != null && mapTarget.find(way)?.target != null) {
+                showClassroomSheet(context, mapTarget);
+              } else {
+                context.push(mapTarget.placeId.isNotEmpty ? '/map?to=${mapTarget.placeId}' : '/map');
+              }
+            }
+
             final ended = end != null && end.isBefore(now);
             final live = start != null && end != null && !start.isAfter(now) && !ended;
             final joined = attendance != null && attendance.str('check_in_at').isNotEmpty;
@@ -134,8 +147,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   const SizedBox(height: 14),
                   Text('${fmt.weekdayDate(start)}\n${fmt.time(start)} – ${fmt.time(end)} · ${fmt.number(d.number('duration_minutes'))} ${s.t('session.minutes')}', style: const TextStyle(color: Colors.white70, height: 1.5)),
                   if (!online && d.str('location').isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Row(children: [Icon(Icons.place_outlined, size: 16, color: AppColors.gold300), const SizedBox(width: 6), Expanded(child: Text(d.str('location'), style: const TextStyle(color: Colors.white)))]),
+                    const SizedBox(height: 10),
+                    _LocationCard(text: d.str('location'), onTap: openMap),
                   ],
                   if (d.str('trainer').isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -171,13 +184,13 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                 ),
               ],
               // The classroom popup shows the way to a room at the centre; a room elsewhere keeps the guide's outdoor directions (docs/wayfinding.md).
-              if (!online && !cancelled && d.str('room_id').isNotEmpty) ...[
+              if (!online && !cancelled && mapTarget.hasPlace) ...[
                 const SizedBox(height: 10),
                 ClassroomMapButton(
                   wide: true,
                   mode: d.str('mode'),
                   cancelled: cancelled,
-                  target: ClassroomTarget(roomId: d.str('room_id'), program: d.obj('program')?.str('title') ?? '', title: d.str('title'), startsAt: start, endsAt: end),
+                  target: mapTarget,
                   fallback: OutlinedButton.icon(
                     onPressed: () => context.push('/map?to=room:${d.str('room_id')}'),
                     style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
@@ -285,6 +298,46 @@ class _OnlineCard extends StatelessWidget {
           if (url.isNotEmpty) TextButton.icon(onPressed: () => onOpen(url), icon: const Icon(Icons.open_in_new, size: 18), label: Text(s.t('session.openLink'))),
           if (joined) TextButton.icon(onPressed: busy ? null : onLeave, icon: const Icon(Icons.logout, size: 18), label: Text(s.t('session.leave'))),
         ]),
+      ),
+    );
+  }
+}
+
+/// The room of an in-person session as a button: pressing it opens the map to the room.
+class _LocationCard extends StatelessWidget {
+  const _LocationCard({required this.text, required this.onTap});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    return Material(
+      color: Colors.white.withValues(alpha: .12),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        key: const ValueKey('session-location'),
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(children: [
+            Icon(Icons.place_outlined, size: 18, color: AppColors.gold300),
+            const SizedBox(width: 8),
+            Expanded(child: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, height: 1.3))),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(color: AppColors.gold500, borderRadius: BorderRadius.circular(12)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.map_outlined, size: 16, color: AppColors.navy950),
+                const SizedBox(width: 4),
+                Text(s.t('way.sheet.open'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.navy950)),
+              ]),
+            ),
+          ]),
+        ),
       ),
     );
   }

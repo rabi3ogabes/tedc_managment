@@ -26,13 +26,46 @@ class WayRoom {
   final double? latitude, longitude;
 }
 
+/// Someone whose office a place is: the name and job title as the centre shows them, and the desk («مكتب 12»).
+class WayPerson {
+  WayPerson.fromJson(Map<String, dynamic> j)
+      : id = j['id']?.toString() ?? '',
+        nameAr = j['name_ar'] as String? ?? '',
+        nameEn = j['name_en'] as String? ?? '',
+        titleAr = j['title_ar'] as String? ?? '',
+        titleEn = j['title_en'] as String? ?? '',
+        desk = j['desk'] as String? ?? '';
+  final String id, nameAr, nameEn, titleAr, titleEn, desk;
+
+  String name(bool en) => en ? (nameEn.isNotEmpty ? nameEn : nameAr) : (nameAr.isNotEmpty ? nameAr : nameEn);
+  String title(bool en) => en ? (titleEn.isNotEmpty ? titleEn : titleAr) : (titleAr.isNotEmpty ? titleAr : titleEn);
+
+  /// Name, job title and desk as one line, in the visitor's language.
+  String line(bool en) => [name(en), title(en), desk].where((v) => v.isNotEmpty).join(' · ');
+
+  /// Everything a search can match.
+  String get haystack => '$nameAr $nameEn $titleAr $titleEn $desk';
+}
+
+/// What the administrator set for a place of the plans: its main door (where the walk ends) and its people.
+class PlaceInfo {
+  PlaceInfo.fromJson(Map<String, dynamic> j)
+      : door = j['door'] == null ? null : Pt.of(j['door']),
+        people = (j['people'] as List? ?? const []).map((e) => WayPerson.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+  final Pt? door;
+  final List<WayPerson> people;
+}
+
 /// Something a visitor can go to: a room by its own name, or a place of the plans (the library, a prayer room…).
 class Destination {
-  Destination({required this.key, required this.ar, required this.en, required this.kind, this.place, this.room, this.target});
+  Destination({required this.key, required this.ar, required this.en, required this.kind, this.place, this.room, this.target, this.people = const []});
   final String key, ar, en, kind;
   final Place? place;
   final WayRoom? room;
   final Target? target;
+
+  /// The people whose office this is.
+  final List<WayPerson> people;
   String name(bool en_) => en_ ? en : ar;
 }
 
@@ -49,6 +82,11 @@ class WayData {
       : map = CentreMap.fromJson({...Map<String, dynamic>.from(j['map'] as Map), 'entrances': j['entrances'] ?? const []}),
         signs = (j['signs'] as List? ?? const []).map((e) => Entrance.fromJson(Map<String, dynamic>.from(e as Map))).toList(),
         rooms = (j['rooms'] as List? ?? const []).map((e) => WayRoom.fromJson(Map<String, dynamic>.from(e as Map))).toList(),
+        placeInfo = {
+          // An empty set arrives as a list: only a map has places in it.
+          if (j['places'] is Map)
+            for (final e in (j['places'] as Map).entries) e.key.toString(): PlaceInfo.fromJson(Map<String, dynamic>.from(e.value as Map)),
+        },
         centreLat = ((j['centre'] as Map?)?['lat'] as num?)?.toDouble(),
         centreLng = ((j['centre'] as Map?)?['lng'] as num?)?.toDouble() {
     engine = WayEngine(map);
@@ -57,6 +95,7 @@ class WayData {
   final CentreMap map;
   final List<Entrance> signs;
   final List<WayRoom> rooms;
+  final Map<String, PlaceInfo> placeInfo;
   final double? centreLat, centreLng;
   late final WayEngine engine;
 
@@ -69,14 +108,15 @@ class WayData {
       final place = r.place == null ? null : map.places.where((p) => p.id == r.place).firstOrNull;
       if (place != null && r.door != null && r.floor != null) {
         used.add(place.id);
-        out.add(Destination(key: 'room:${r.id}', ar: r.nameAr, en: r.nameEn, kind: place.kind, place: place, room: r, target: Target(r.floor!, r.door!, rect: place.rect, id: place.id)));
+        out.add(Destination(key: 'room:${r.id}', ar: r.nameAr, en: r.nameEn, kind: place.kind, place: place, room: r, target: Target(r.floor!, r.door!, rect: place.rect, id: place.id), people: placeInfo[place.id]?.people ?? const []));
       } else if (r.latitude != null && r.longitude != null) {
         out.add(Destination(key: 'room:${r.id}', ar: r.nameAr, en: r.nameEn, kind: 'room', room: r));
       }
     }
     for (final p in map.places) {
       if (used.contains(p.id)) continue;
-      out.add(Destination(key: p.id, ar: p.ar, en: p.en, kind: p.kind, place: p, target: Target(p.floor, p.door, rect: p.rect, id: p.id)));
+      final info = placeInfo[p.id];
+      out.add(Destination(key: p.id, ar: p.ar, en: p.en, kind: p.kind, place: p, target: Target(p.floor, info?.door ?? p.door, rect: p.rect, id: p.id), people: info?.people ?? const []));
     }
     int rank(Destination d) => d.room != null ? 0 : const ['train', 'lab', 'meet', 'public', 'pray', 'office', 'wc'].indexOf(d.kind) + 1;
     out.sort((a, b) {
@@ -103,7 +143,7 @@ class WayData {
       if (e.id == key) return Origin(key, e.floor, e.at, e.ar, e.en);
     }
     for (final p in map.places) {
-      if (p.id == key) return Origin(key, p.floor, p.door, p.ar, p.en);
+      if (p.id == key) return Origin(key, p.floor, placeInfo[p.id]?.door ?? p.door, p.ar, p.en);
     }
     final parts = key.split('@');
     for (final c in map.connectors) {

@@ -77,6 +77,18 @@ void main() {
     }
   });
 
+  testWidgets('a session that names its room only in words is found through the place the server worked out', (tester) async {
+    final start = DateTime.now().add(const Duration(minutes: 40));
+    ClassroomMapButton at(String place) => ClassroomMapButton(
+          mode: 'in_person',
+          target: ClassroomTarget(roomId: '', placeId: place, startsAt: start, endsAt: start.add(const Duration(hours: 2))),
+        );
+    await _pump(tester, at('g-room-3'));
+    expect(find.byKey(icon), findsOneWidget);
+    await _pump(tester, at('x-nowhere'));
+    expect(find.byKey(icon), findsNothing);
+  });
+
   testWidgets('a room outside the centre keeps the old link when the screen gives one', (tester) async {
     final start = DateTime.now().add(const Duration(minutes: 40));
     await _pump(

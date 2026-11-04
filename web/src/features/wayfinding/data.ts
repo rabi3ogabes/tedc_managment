@@ -8,8 +8,12 @@ export type WayRoom = {
   place: string | null; floor: FloorId | null; door: Pt | null; auto: boolean; latitude: number | null; longitude: number | null
   hidden?: boolean; custom_door?: boolean
 }
-export type WayData = { entrances: Entrance[]; signs: Entrance[]; rooms: WayRoom[]; centre: { lat: number; lng: number } | null }
-export type Destination = Target & { key: string; title: { ar: string; en: string }; place: Place | null; room: WayRoom | null; kind: Place['kind'] | 'room' }
+/** Someone whose office a place is: the name and job title as the centre shows them, and the desk («مكتب 12»). */
+export type Person = { id: string; name_ar: string; name_en: string; title_ar: string; title_en: string; desk: string; user_id?: string | null }
+/** What the administrator set for a place of the plans: its main door (where the walk ends) and its people. */
+export type PlaceInfo = { door: Pt | null; people: Person[] }
+export type WayData = { entrances: Entrance[]; signs: Entrance[]; rooms: WayRoom[]; centre: { lat: number; lng: number } | null; places?: Record<string, PlaceInfo>; show_people?: boolean }
+export type Destination = Target & { key: string; title: { ar: string; en: string }; place: Place | null; room: WayRoom | null; kind: Place['kind'] | 'room'; people: Person[] }
 
 export const CENTRE_MAP = bundled as unknown as CentreMap
 let engine: ReturnType<typeof createEngine> | null = null
@@ -32,18 +36,22 @@ export function useDestinations(data: WayData): Destination[] {
       const place = r.place ? CENTRE_MAP.places.find((p) => p.id === r.place) ?? null : null
       if (place && r.door && r.floor) {
         used.add(place.id)
-        out.push({ key: `room:${r.id}`, floor: r.floor, at: r.door, rect: place.rect, id: place.id, title: { ar: r.name_ar, en: r.name_en }, place, room: r, kind: place.kind })
+        out.push({ key: `room:${r.id}`, floor: r.floor, at: r.door, rect: place.rect, id: place.id, title: { ar: r.name_ar, en: r.name_en }, place, room: r, kind: place.kind, people: data.places?.[place.id]?.people ?? [] })
       } else if (r.latitude && r.longitude) {
-        out.push({ key: `room:${r.id}`, floor: 'ground', at: [0, 0], title: { ar: r.name_ar, en: r.name_en }, place: null, room: r, kind: 'room' })
+        out.push({ key: `room:${r.id}`, floor: 'ground', at: [0, 0], title: { ar: r.name_ar, en: r.name_en }, place: null, room: r, kind: 'room', people: [] })
       }
     }
     for (const p of CENTRE_MAP.places) {
       if (used.has(p.id)) continue
-      out.push({ key: p.id, floor: p.floor, at: p.door, rect: p.rect, id: p.id, title: { ar: p.ar, en: p.en }, place: p, room: null, kind: p.kind })
+      const info = data.places?.[p.id]
+      out.push({ key: p.id, floor: p.floor, at: info?.door ?? p.door, rect: p.rect, id: p.id, title: { ar: p.ar, en: p.en }, place: p, room: null, kind: p.kind, people: info?.people ?? [] })
     }
     return out
-  }, [data.rooms])
+  }, [data.rooms, data.places])
 }
+
+/** A person as one line: name, job title and desk, in the visitor's language. */
+export const personLine = (p: Person, en: boolean) => [en ? p.name_en || p.name_ar : p.name_ar || p.name_en, en ? p.title_en || p.title_ar : p.title_ar || p.title_en, p.desk].filter(Boolean).join(' · ')
 
 export type Origin = { key: string; floor: FloorId; at: Pt; title: { ar: string; en: string } }
 

@@ -24,17 +24,24 @@ import 'wayfinding_screen.dart' show SignScanner;
 class ClassroomTarget {
   const ClassroomTarget({
     required this.roomId,
+    this.placeId = '',
     this.program = '',
     this.title = '',
     this.startsAt,
     this.endsAt,
   });
 
-  final String roomId, program, title;
+  /// The session's room record, and the place of the plans the server worked out for it (from the room, or from the room named as text).
+  final String roomId, placeId, program, title;
   final DateTime? startsAt, endsAt;
 
-  /// The room as the guide names a destination.
-  String get key => 'room:$roomId';
+  /// Whether the session says where it is at all.
+  bool get hasPlace => roomId.isNotEmpty || placeId.isNotEmpty;
+
+  /// The destination of the guide: the room by its own name when it stands on the plans, else the place.
+  Destination? find(WayData data) =>
+      (roomId.isEmpty ? null : data.destination('room:$roomId')) ??
+      (placeId.isEmpty ? null : data.destination(placeId));
 }
 
 /// The map icon of a session. Shown only for a session at the centre (not online, not cancelled, not over) whose room stands on the
@@ -62,13 +69,13 @@ class ClassroomMapButton extends ConsumerWidget {
     final ends = target.endsAt;
     if (mode == 'online' ||
         cancelled ||
-        target.roomId.isEmpty ||
+        !target.hasPlace ||
         (ends != null && ends.isBefore(DateTime.now()))) {
       return const SizedBox.shrink();
     }
     final data = ref.watch(wayDataProvider).value;
     if (data == null) return const SizedBox.shrink();
-    if (data.destination(target.key)?.target == null) {
+    if (target.find(data)?.target == null) {
       return fallback ?? const SizedBox.shrink();
     }
     final s = context.s;
@@ -231,13 +238,13 @@ class _ClassroomSheetState extends ConsumerState<ClassroomSheet> {
   }
 
   /// The full-screen guide takes over from the chosen start, step by step.
-  void _startGuide(Origin origin) {
+  void _startGuide(Origin origin, String to) {
     final router = GoRouter.of(context);
     Navigator.of(context).pop();
     router.push(
       Uri(
         path: '/map',
-        queryParameters: {'to': widget.target.key, 'from': origin.key},
+        queryParameters: {'to': to, 'from': origin.key},
       ).toString(),
     );
   }
@@ -274,7 +281,7 @@ class _ClassroomSheetState extends ConsumerState<ClassroomSheet> {
   Widget _content(BuildContext context, S s, WayData data) {
     final en = !s.isArabic;
     final fmt = Fmt(s.languageCode);
-    final dest = data.destination(widget.target.key);
+    final dest = widget.target.find(data);
     final target = dest?.target;
     if (dest == null || target == null) {
       return Center(
@@ -401,7 +408,9 @@ class _ClassroomSheetState extends ConsumerState<ClassroomSheet> {
             children: [
               FilledButton.icon(
                 key: const ValueKey('classroom-start'),
-                onPressed: route == null ? null : () => _startGuide(origin),
+                onPressed: route == null
+                    ? null
+                    : () => _startGuide(origin, dest.key),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(54),
                 ),
