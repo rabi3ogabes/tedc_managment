@@ -83,6 +83,9 @@ void main() {
     expect(find.text('Unit 1'), findsOneWidget);
     expect(find.text('Final quiz'), findsOneWidget);
 
+    // The lesson is further down than the test screen is tall.
+    await tester.ensureVisible(find.text('Final quiz'));
+    await tester.pump();
     await tester.tap(find.text('Final quiz'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
