@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-04 — Demo buttons never touch a real account
+The old demo buttons (Super Admin, Trainee 1 …) came back on the live sign-in page and answered «بيانات الدخول غير صحيحة», and each tap tried the shared demo password on the live site's **real administrator account** (`admin@tedc.qa`, the same address as the «Super Admin» button), whose failed tries locked it for 15 minutes. The earlier fix only checked that a demo address *exists*; it now checks that the account really opens with the shared demo password, and shows none of the buttons while any of those addresses belongs to a real account (the answer is kept for five minutes). On the live data: no demo account works, `admin@tedc.qa` is real, so the buttons stay hidden and the shared password is not sent.
 ### 2026-11-04 — Sign-in buttons that cannot work are no longer shown
 On the live site the sign-in page (web) and screen (app) showed the old demo buttons (Super Admin, Coordinator, Trainee 1 … Trainer 2), and every one answered «بيانات الدخول غير صحيحة»: the site is a demonstration site in its hosting settings (`TEDC_DEMO_SITE`), but its demo accounts were removed when it went live with real data. The server now offers those buttons, and the shared demo password they use, only while at least one of their accounts exists. The showcase panel «جرّب المنصة بحساب للعرض» is unaffected. Also worth doing in Vercel: set `TEDC_DEMO_SITE` to `false` (see docs/ops/go-live-real-data.md), so the live site never behaves as a demonstration site.
 ### 2026-11-04 — The room on the session page opens the map; places and people on «خريطة المركز»
