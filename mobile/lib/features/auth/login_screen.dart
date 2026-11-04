@@ -53,7 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   /// One tap on a showcase account (Settings → Showcase accounts on the dashboard): the server opens its session, no password.
-  Future<void> _openShowcase(String key) async {
+  Future<void> _openShowcase(String key, {String? code}) async {
     if (_loading) return;
     setState(() {
       _loading = true;
@@ -61,7 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
-      await ref.read(authProvider.notifier).loginShowcase(key);
+      await ref.read(authProvider.notifier).loginShowcase(key, code: code);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiException.from(e).message)));
     } finally {
@@ -72,6 +72,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       }
     }
+  }
+
+  /// Whether the server offers the locked section of leadership accounts (opened with the showcase code).
+  bool _showcaseLeadership(WidgetRef ref) {
+    final res = ref.watch(getProvider('/public/showcase-accounts')).value;
+    return res is Map && res['leadership'] == true;
+  }
+
+  /// The code is right: the leadership accounts it opens.
+  Future<List<Map<String, dynamic>>> _unlockLeadership(String code) async {
+    final res = await ref.read(apiProvider).post('/public/showcase-accounts/leadership', {'code': code});
+    return [for (final a in (res as Map)['data'] as List) Map<String, dynamic>.from(a as Map)];
   }
 
   /// The showcase accounts the server offers on the sign-in screen (supervisors, trainers and trainees; empty when switched off).
@@ -276,7 +288,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 label: Text(s.t('way.open')),
               ),
             ),
-            if (_showcase(ref).isNotEmpty) _ShowcaseAccounts(accounts: _showcase(ref), opening: _openingShowcase, enabled: !_loading, onPick: _openShowcase),
+            if (_showcase(ref).isNotEmpty || _showcaseLeadership(ref))
+              _ShowcaseAccounts(
+                accounts: _showcase(ref),
+                opening: _openingShowcase,
+                enabled: !_loading,
+                onPick: _openShowcase,
+                leadership: _showcaseLeadership(ref),
+                onUnlock: _unlockLeadership,
+                onLeader: (key, code) => _openShowcase(key, code: code),
+              ),
             // Demo accounts only where the server is in demo mode (never on a live system by default).
             if (AppConfig.showDemoAccounts && _serverShowsDemo(ref)) _DemoAccounts(onPick: _useDemo, password: _demoPassword(ref)!),
           ]),
@@ -320,7 +341,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
 /// One tap on a showcase account: supervisors, trainers and trainees with sample training, offered by the server.
 class _ShowcaseAccounts extends StatelessWidget {
-  const _ShowcaseAccounts({required this.accounts, required this.opening, required this.enabled, required this.onPick});
+  const _ShowcaseAccounts({
+    required this.accounts,
+    required this.opening,
+    required this.enabled,
+    required this.onPick,
+    this.leadership = false,
+    this.onUnlock,
+    this.onLeader,
+  });
 
   static const _icons = {'supervision': Icons.assignment_ind_outlined, 'training': Icons.co_present_outlined, 'learners': Icons.school_outlined};
 
@@ -328,6 +357,11 @@ class _ShowcaseAccounts extends StatelessWidget {
   final String? opening;
   final bool enabled;
   final ValueChanged<String> onPick;
+
+  /// The locked section of leadership accounts: shown when the server offers it, opened with the showcase code.
+  final bool leadership;
+  final Future<List<Map<String, dynamic>>> Function(String code)? onUnlock;
+  final void Function(String key, String code)? onLeader;
 
   @override
   Widget build(BuildContext context) {
@@ -384,6 +418,140 @@ class _ShowcaseAccounts extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
+        if (leadership && onUnlock != null && onLeader != null) _LeadershipLock(unlock: onUnlock!, open: onLeader!, opening: opening, enabled: enabled),
+      ]),
+    );
+  }
+}
+
+/// The leadership accounts (system administrator, head of the centre, of training, of planning): they see the platform's real data, so
+/// they open only after the showcase code the system administrator made is typed. The code stays here and goes with each tap.
+class _LeadershipLock extends StatefulWidget {
+  const _LeadershipLock({required this.unlock, required this.open, required this.opening, required this.enabled});
+
+  final Future<List<Map<String, dynamic>>> Function(String code) unlock;
+  final void Function(String key, String code) open;
+  final String? opening;
+  final bool enabled;
+
+  @override
+  State<_LeadershipLock> createState() => _LeadershipLockState();
+}
+
+class _LeadershipLockState extends State<_LeadershipLock> {
+  final _code = TextEditingController();
+  List<Map<String, dynamic>>? _leaders;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  Future<void> _unlock() async {
+    final code = _code.text.trim();
+    if (code.isEmpty) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final list = await widget.unlock(code);
+      if (mounted) setState(() => _leaders = list);
+    } catch (e) {
+      if (mounted) setState(() => _error = ApiException.from(e).message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final leaders = _leaders;
+    return Container(
+      key: const ValueKey('showcase-leadership'),
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .08), borderRadius: BorderRadius.circular(18)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(leaders == null ? Icons.lock_outline_rounded : Icons.lock_open_rounded, color: AppColors.gold300, size: 18),
+          const SizedBox(width: 6),
+          Expanded(child: Text(s.t('auth.showcase.leadersTitle'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+        ]),
+        if (leaders == null) ...[
+          const SizedBox(height: 4),
+          Text(s.t('auth.showcase.leadersHint'), style: TextStyle(color: Colors.white.withValues(alpha: .75), fontSize: 12.5, height: 1.5)),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(
+              child: TextField(
+                key: const ValueKey('showcase-code'),
+                controller: _code,
+                textCapitalization: TextCapitalization.characters,
+                textDirection: TextDirection.ltr,
+                autocorrect: false,
+                enableSuggestions: false,
+                onSubmitted: (_) => _unlock(),
+                style: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w800, letterSpacing: 2),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  isDense: true,
+                  hintText: s.t('auth.showcase.codePlaceholder'),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              key: const ValueKey('showcase-unlock'),
+              onPressed: _busy || !widget.enabled ? null : _unlock,
+              style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950, minimumSize: const Size(0, 46)),
+              child: _busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Text(s.t('auth.showcase.unlock'), style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ]),
+        ] else ...[
+          const SizedBox(height: 10),
+          for (final a in leaders) ...[
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                key: ValueKey('showcase-leader-${a['key']}'),
+                borderRadius: BorderRadius.circular(16),
+                onTap: widget.enabled ? () => widget.open(a['key'].toString(), _code.text.trim()) : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(12)),
+                      child: Icon(Icons.workspace_premium_outlined, color: AppColors.gold300, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(a['name'].toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w800)),
+                        Text(s.t('auth.showcase.leadership'), style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                      ]),
+                    ),
+                    if (widget.opening == a['key'])
+                      const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    else
+                      Icon(Icons.login_rounded, color: AppColors.gold700, size: 20),
+                  ]),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ],
+        if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: const TextStyle(color: Color(0xFFFFB4AB), fontWeight: FontWeight.w700))),
       ]),
     );
   }

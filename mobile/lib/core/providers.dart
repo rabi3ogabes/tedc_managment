@@ -145,8 +145,10 @@ class AuthController extends AsyncNotifier<Me?> {
   }
 
   /// One tap on a showcase account of the sign-in screen (Settings → Showcase accounts): the server opens its session, no password.
-  Future<void> loginShowcase(String key) async {
-    final data = await ref.read(apiProvider).post('/public/showcase-accounts/$key/sign-in') as Map<String, dynamic>;
+  Future<void> loginShowcase(String key, {String? code}) async {
+    final api = ref.read(apiProvider);
+    // The leadership accounts open only with the showcase code the system administrator gave out.
+    final data = (code == null ? await api.post('/public/showcase-accounts/$key/sign-in') : await api.post('/public/showcase-accounts/leadership/$key/sign-in', {'code': code})) as Map<String, dynamic>;
     await completeLogin(data);
   }
 
