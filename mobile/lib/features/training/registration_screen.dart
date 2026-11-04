@@ -10,6 +10,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../wayfinding/classroom_sheet.dart';
 
 /// A registration: sessions & attendance, materials, evaluation and certificate status.
 class RegistrationScreen extends ConsumerWidget {
@@ -85,9 +86,17 @@ class RegistrationScreen extends ConsumerWidget {
                   leading: Icon(session.str('mode') == 'online' ? Icons.videocam_outlined : Icons.place_outlined, color: AppColors.gold700),
                   title: Text(session.str('title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                   subtitle: Text('${fmt.weekdayDate(session.date('starts_at'))} · ${fmt.time(session.date('starts_at'))}'),
-                  trailing: attendance[session.str('id')] != null
-                      ? StatusChip(attendance[session.str('id')]!.str('status'))
-                      : ((session.date('ends_at') ?? DateTime.now()).isBefore(DateTime.now()) ? StatusChip(_inferredAttendance(r.number('attendance_percent'))) : null),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    ClassroomMapButton(
+                      mode: session.str('mode'),
+                      cancelled: session.str('status') == 'cancelled',
+                      target: ClassroomTarget(roomId: session.str('training_room_id'), program: p.str('title'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+                    ),
+                    if (attendance[session.str('id')] != null)
+                      StatusChip(attendance[session.str('id')]!.str('status'))
+                    else if ((session.date('ends_at') ?? DateTime.now()).isBefore(DateTime.now()))
+                      StatusChip(_inferredAttendance(r.number('attendance_percent'))),
+                  ]),
                 ),
               ),
             if (active) ...[
