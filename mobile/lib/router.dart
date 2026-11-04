@@ -6,6 +6,7 @@ import 'core/biometric.dart';
 import 'core/error_reporter.dart';
 import 'core/providers.dart';
 import 'features/wayfinding/wayfinding_screen.dart';
+import 'features/course/kit_screen.dart';
 import 'features/course/course_screen.dart';
 import 'features/course/lesson_screen.dart';
 import 'features/assessment/assessments_screen.dart';
@@ -114,6 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/assignments', builder: (_, _) => const AssignmentsScreen()),
           GoRoute(path: '/school', builder: (_, _) => const SchoolScreen()),
           GoRoute(path: '/courses/:id', builder: (_, s) => CourseScreen(registrationId: s.pathParameters['id']!)),
+          GoRoute(path: '/kit/:programId', builder: (_, s) => KitScreen(programId: s.pathParameters['programId']!)),
           GoRoute(path: '/lessons/:id', builder: (_, s) => LessonScreen(id: s.pathParameters['id']!, registrationId: s.uri.queryParameters['registration'])),
           GoRoute(path: '/sessions/:id', builder: (_, s) => SessionScreen(id: s.pathParameters['id']!)),
           GoRoute(path: '/my-program/:programId', builder: (_, s) => MyProgramRedirect(programId: s.pathParameters['programId']!)),

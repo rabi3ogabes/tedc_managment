@@ -159,6 +159,17 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   _Note(icon: Icons.info_outline, text: s.t('session.scanLater')),
               ],
               if (cancelled) _Note(icon: Icons.event_busy_outlined, text: s.t('session.cancelledNote'), danger: true),
+              // The programme's kit (videos, presentations, quizzes…) is one tap away from its session.
+              if (d.obj('program')?.flag('has_course') == true && d.str('registration_id').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  key: const ValueKey('open-course'),
+                  onPressed: () => context.push('/courses/${d.str('registration_id')}'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  icon: const Icon(Icons.inventory_2_outlined),
+                  label: Text(s.t('kit.title')),
+                ),
+              ],
               // The classroom popup shows the way to a room at the centre; a room elsewhere keeps the guide's outdoor directions (docs/wayfinding.md).
               if (!online && !cancelled && d.str('room_id').isNotEmpty) ...[
                 const SizedBox(height: 10),
