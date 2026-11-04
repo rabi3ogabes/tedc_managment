@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Role;
+use App\Models\User;
 use App\Services\FeatureSettings;
 use App\Support\DemoCredentials;
 use App\Support\DemoGuard;
@@ -37,7 +38,7 @@ class DemoExposureTest extends TestCase
 
     public function test_outside_production_the_sign_in_screens_get_the_demo_password_from_the_server(): void
     {
-        $this->makeUser(Role::SUPER_ADMIN, ['email' => 'admin@tedc.qa']);   // the demo organisation is seeded
+        $this->makeUser(Role::SUPER_ADMIN, ['email' => 'admin@tedc.qa', 'password' => DemoCredentials::PASSWORD]);   // the demo organisation is seeded
         $this->getJson('/api/v1/public/mobile-config')->assertOk()
             ->assertJsonPath('data.demo_accounts', true)
             ->assertJsonPath('data.demo_password', DemoCredentials::PASSWORD);
@@ -51,9 +52,29 @@ class DemoExposureTest extends TestCase
             ->assertJsonPath('data.demo_accounts', false)
             ->assertJsonPath('data.demo_password', null);
 
-        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa']);
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa', 'password' => DemoCredentials::PASSWORD]);
+        DemoGuard::forgetButtonAccounts();
         $this->assertTrue(DemoGuard::buttonAccountsExist());
         $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
+    }
+
+    public function test_a_real_account_at_a_demo_address_is_never_offered_as_a_button(): void
+    {
+        // The live site's real administrator is admin@…: the shared password tried on it by a visitor's tap would lock it.
+        $real = $this->makeUser(Role::SUPER_ADMIN, ['email' => 'admin@tedc.qa', 'password' => 'A-Real#Passw0rd-2026']);
+        $this->assertFalse(DemoGuard::buttonAccountsExist());
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false)->assertJsonPath('data.demo_password', null);
+
+        // Even when some demo accounts do exist next to it, none of the buttons is offered.
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa', 'password' => DemoCredentials::PASSWORD]);
+        DemoGuard::forgetButtonAccounts();
+        $this->assertSame(['trainee1@tedc.qa'], DemoGuard::buttonAccounts()['working']);
+        $this->assertSame(['admin@tedc.qa'], DemoGuard::buttonAccounts()['real']);
+        $this->assertFalse(DemoGuard::buttonAccountsExist());
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', false);
+
+        // An account that signs in elsewhere (no password here) is a real one too; the real administrator is not touched by any of this.
+        $this->assertTrue(User::find($real->id)->exists);
     }
 
     public function test_the_demo_password_is_not_written_into_the_web_or_app_code(): void
