@@ -99,7 +99,8 @@ void main() {
     expect(find.text('Training Room 14'), findsOneWidget);
     expect(find.text('The way to your room'), findsOneWidget);
     expect(find.byKey(const ValueKey('classroom-start')), findsOneWidget);
-    // Without a location the popup says so and still shows the walk from the entrance.
+    // Without a location the popup still shows the walk from the entrance; the steps are below the plan, further down than the test screen is tall.
+    await tester.scrollUntilVisible(find.text('Your first steps'), 200, scrollable: find.descendant(of: find.byType(ClassroomSheet), matching: find.byType(Scrollable)).first);
     expect(find.text('Your first steps'), findsOneWidget);
   });
 }
