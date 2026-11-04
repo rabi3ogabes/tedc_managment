@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:tedc_mobile/features/wayfinding/classroom_sheet.dart';
 import 'package:tedc_mobile/features/wayfinding/wayfinding_data.dart';
 
@@ -53,6 +54,9 @@ ClassroomMapButton _button({String room = 'r14', String mode = 'in_person', bool
 
 void main() {
   const icon = ValueKey('classroom-map');
+
+  // The app starts with its date formats ready; the popup writes the session's time with them.
+  setUpAll(() => initializeDateFormatting('en'));
 
   testWidgets('a live session in a room at the centre has the map icon', (tester) async {
     await _pump(tester, _button());

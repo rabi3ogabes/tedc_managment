@@ -63,12 +63,14 @@ class ClassroomMapButton extends ConsumerWidget {
     if (mode == 'online' ||
         cancelled ||
         target.roomId.isEmpty ||
-        (ends != null && ends.isBefore(DateTime.now())))
+        (ends != null && ends.isBefore(DateTime.now()))) {
       return const SizedBox.shrink();
+    }
     final data = ref.watch(wayDataProvider).value;
     if (data == null) return const SizedBox.shrink();
-    if (data.destination(target.key)?.target == null)
+    if (data.destination(target.key)?.target == null) {
       return fallback ?? const SizedBox.shrink();
+    }
     final s = context.s;
     if (wide) {
       return OutlinedButton.icon(
@@ -151,11 +153,13 @@ class _ClassroomSheetState extends ConsumerState<ClassroomSheet> {
   Future<void> _locate() async {
     try {
       var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied)
+      if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+      }
       if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever)
+          permission == LocationPermission.deniedForever) {
         throw Exception('denied');
+      }
       final last = await Geolocator.getLastKnownPosition();
       if (!mounted) return;
       if (last != null) setState(() => _fix = last);
@@ -570,13 +574,14 @@ class _ClassroomSheetState extends ConsumerState<ClassroomSheet> {
           ),
         );
       }
-      if (_locating)
+      if (_locating) {
         return _card(
           icon: Icons.my_location_rounded,
           color: AppColors.gold700,
           text: s.t('way.sheet.locating'),
           spinner: true,
         );
+      }
       return const SizedBox.shrink();
     }
     final m = metres!;
