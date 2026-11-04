@@ -9,6 +9,7 @@ import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import 'kit_types.dart';
 import '../offline/offline_course_card.dart';
 
 /// The online course of a program: progress, the modules and lessons with locks, and "continue where you left off".
@@ -19,13 +20,7 @@ class CourseScreen extends ConsumerWidget {
 
   String get _path => '/me/registrations/$registrationId/course';
 
-  static IconData iconFor(String type) => switch (type) {
-        'video' => Icons.play_circle_outline,
-        'presentation' => Icons.slideshow_outlined,
-        'quiz' => Icons.quiz_outlined,
-        'survey' => Icons.rate_review_outlined,
-        _ => Icons.article_outlined,
-      };
+  static IconData iconFor(String type) => kitIcon(type);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,6 +85,13 @@ class CourseScreen extends ConsumerWidget {
                     Padding(padding: const EdgeInsets.only(top: 10), child: Text('${s.t('course.certPending')}: ${(summary.obj('certificate')!['missing'] as List).join(' · ')}', style: TextStyle(color: AppColors.gold300, fontSize: 12.5))),
                   if (summary['completed_course'] == true) Padding(padding: const EdgeInsets.only(top: 12), child: Text('🎉 ${s.t('course.allDone')}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
                 ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 14),
+                child: KitOverview(
+                  counts: kitCounts([for (final m in modules) ...m.list('lessons')]),
+                  minutes: ([for (final m in modules) ...m.list('lessons')].fold<num>(0, (a, l) => a + l.number('duration_seconds')) / 60).ceil(),
+                ),
               ),
               if (offline) OfflineCourseCard(registrationId: registrationId, title: d.obj('program')?.str('title') ?? ''),
               for (final m in modules) ...[

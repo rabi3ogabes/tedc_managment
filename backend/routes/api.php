@@ -187,6 +187,7 @@ use App\Http\Controllers\Api\V1\Me\MySurveyController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Me\RealtimeController;
 use App\Http\Controllers\Api\V1\Me\TeachingController;
+use App\Http\Controllers\Api\V1\Me\TeachingKitController;
 use App\Http\Controllers\Api\V1\MobileConfigController;
 use App\Http\Controllers\Api\V1\Payments\CertificationController;
 use App\Http\Controllers\Api\V1\Payments\GatewayController;
@@ -730,6 +731,8 @@ Route::prefix('v1')->group(function () {
             Route::post('registrations/{registration}/evaluation', [MyOutcomesController::class, 'submitEvaluation']);
             Route::get('certificates', [MyOutcomesController::class, 'certificates']);
             Route::get('trainer-certificates', [MyOutcomesController::class, 'trainerCertificates']);
+            // The kit of an online programme, for its trainers (read-only).
+            Route::get('programs/{program}/kit', [TeachingKitController::class, 'show']);
             Route::get('surveys', [MyOutcomesController::class, 'surveys']);
             Route::post('surveys/{survey}', [MyOutcomesController::class, 'submitSurvey']);
             Route::get('needs-surveys', [MyNeedsSurveyController::class, 'index']);

@@ -228,6 +228,15 @@ class TodaySessions extends StatelessWidget {
                         ),
                     ]),
                   ),
+                  if (x.flag('has_course') && x.str('program_id').isNotEmpty)
+                    IconButton.filled(
+                      key: const ValueKey('open-kit'),
+                      tooltip: s.t('kit.title'),
+                      visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(backgroundColor: AppColors.navy900, foregroundColor: AppColors.gold300),
+                      icon: const Icon(Icons.inventory_2_outlined, size: 20),
+                      onPressed: () => context.push('/kit/${x.str('program_id')}'),
+                    ),
                 ]),
               ),
             ),
