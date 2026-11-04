@@ -88,7 +88,7 @@ class AppActions
 
         return $q->get()->map(fn (ProgramSession $s) => [
             'id' => $s->id, 'title' => $s->translate('title'), 'program' => $s->program?->translate('title'), 'program_id' => $s->program_id, 'has_course' => (bool) $s->program?->has_course, 'starts_at' => $s->starts_at->toIso8601String(), 'ends_at' => $s->ends_at->toIso8601String(),
-            'location' => $s->location_text ?? $s->room?->translate('name'), 'mode' => $s->mode,
+            'location' => $s->location_text ?? $s->room?->translate('name'), 'room_id' => $s->training_room_id, 'mode' => $s->mode,
         ])->all();
     }
 }

@@ -13,6 +13,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../wayfinding/classroom_sheet.dart';
 
 /// One session: when and where, and the way to be marked present — scan the venue's QR code for an in-person
 /// session, or join the meeting for an online one (the join is the attendance). Notifications about a session
@@ -169,14 +170,20 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   label: Text(s.t('kit.title')),
                 ),
               ],
-              // The centre guide walks the trainee to the room (docs/wayfinding.md).
+              // The classroom popup shows the way to a room at the centre; a room elsewhere keeps the guide's outdoor directions (docs/wayfinding.md).
               if (!online && !cancelled && d.str('room_id').isNotEmpty) ...[
                 const SizedBox(height: 10),
-                OutlinedButton.icon(
-                  onPressed: () => context.push('/map?to=room:${d.str('room_id')}'),
-                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                  icon: const Icon(Icons.map_outlined),
-                  label: Text(s.t('way.toRoom')),
+                ClassroomMapButton(
+                  wide: true,
+                  mode: d.str('mode'),
+                  cancelled: cancelled,
+                  target: ClassroomTarget(roomId: d.str('room_id'), program: d.obj('program')?.str('title') ?? '', title: d.str('title'), startsAt: start, endsAt: end),
+                  fallback: OutlinedButton.icon(
+                    onPressed: () => context.push('/map?to=room:${d.str('room_id')}'),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                    icon: const Icon(Icons.map_outlined),
+                    label: Text(s.t('way.toRoom')),
+                  ),
                 ),
               ],
 
