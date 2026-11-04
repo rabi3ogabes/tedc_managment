@@ -40,6 +40,9 @@ class Wayfinding
             'entrances' => is_array($stored['entrances'] ?? null) ? $stored['entrances'] : null,
             'signs' => is_array($stored['signs'] ?? null) ? $stored['signs'] : [],
             'centre' => is_array($stored['centre'] ?? null) ? $stored['centre'] : null,
+            // Per place of the plans: its main door (where the walk ends) and the people whose office it is.
+            'places' => is_array($stored['places'] ?? null) ? $stored['places'] : [],
+            'show_people' => (bool) ($stored['show_people'] ?? true),
         ];
     }
 
@@ -64,7 +67,7 @@ class Wayfinding
             if (! empty($set['hidden']) && ! $admin) {
                 continue;
             }
-            $door = isset($set['door']) && $place ? $set['door'] : ($place['door'] ?? null);
+            $door = isset($set['door']) && $place ? $set['door'] : ($s['places'][$placeId]['door'] ?? $place['door'] ?? null);
             $rooms[] = [
                 'id' => $room->id, 'name_ar' => $room->name_ar, 'name_en' => $room->name_en ?: $room->name_ar, 'code' => $room->code,
                 'capacity' => $room->capacity, 'type' => $room->room_type, 'active' => $room->status === 'active',
@@ -81,7 +84,30 @@ class Wayfinding
             'signs' => array_values($s['signs']),
             'rooms' => $rooms,
             'centre' => $s['centre'] ?? $this->defaultCentre(),
+            'places' => $this->placeInfo($s, $admin),
+            'show_people' => $s['show_people'],
         ];
+    }
+
+    /**
+     * What the administrator set per place: its main door and its people. Visitors get the names only while the centre shows them
+     * (Settings on «خريطة المركز»), and never the link to a platform account.
+     *
+     * @return array<string, array{door: ?array, people: list<array<string, mixed>>}>
+     */
+    private function placeInfo(array $s, bool $admin): array
+    {
+        $known = collect($this->map()['places'])->pluck('id')->flip();
+        $out = [];
+        foreach ($s['places'] as $id => $info) {
+            if (! $known->has($id)) {
+                continue;
+            }
+            $people = $admin || $s['show_people'] ? array_map(fn ($p) => $admin ? $p : Arr::except($p, ['user_id']), $info['people'] ?? []) : [];
+            $out[$id] = ['door' => $info['door'] ?? null, 'people' => array_values($people)];
+        }
+
+        return $out;
     }
 
     /**
@@ -115,6 +141,40 @@ class Wayfinding
         }
 
         return $out;
+    }
+
+    /**
+     * The place of the plans where a session is held: its room's place (the administrator's choice, else the name match), or — when the
+     * session names its room only as text, as «القاعة التدريبية 3» — the place that text means. A room the administrator marked "not at
+     * the centre" has no place, whatever its name says.
+     */
+    public function placeOf(?string $roomId, ?string $text): ?string
+    {
+        if ($roomId) {
+            return $this->roomPlaces()[$roomId] ?? null;
+        }
+
+        return $text ? $this->matchName($text, $this->map()['places']) : null;
+    }
+
+    /** @return array<string, string> room id → place id, for every room that stands on the plans */
+    private function roomPlaces(): array
+    {
+        // Kept for a minute like the visitors' payload, and dropped whenever the map is saved: a list of sessions asks once, not per row.
+        return Cache::remember(self::CACHE.'.rooms', 60, function () {
+            $out = $this->autoMatches();
+            foreach ($this->settings()['rooms'] as $id => $r) {
+                if (array_key_exists('place', $r)) {
+                    if ($r['place']) {
+                        $out[$id] = $r['place'];
+                    } else {
+                        unset($out[$id]);
+                    }
+                }
+            }
+
+            return $out;
+        });
     }
 
     public function matchName(?string $name, array $places): ?string
@@ -185,6 +245,9 @@ class Wayfinding
         if (array_key_exists('signs', $input)) {
             $stored['signs'] = $clean($input['signs'] ?? [], 'sign');
         }
+        if (array_key_exists('show_people', $input)) {
+            $stored['show_people'] = (bool) $input['show_people'];
+        }
         if (array_key_exists('centre', $input)) {
             $c = $input['centre'];
             $stored['centre'] = is_array($c) && isset($c['lat'], $c['lng']) ? ['lat' => round((float) $c['lat'], 6), 'lng' => round((float) $c['lng'], 6)] : null;
@@ -230,6 +293,64 @@ class Wayfinding
         return $this->build(true);
     }
 
+    /**
+     * One place of the plans: its main door (a point; null puts it back where the plan draws it) and the people whose office it is.
+     * An office with nobody and no door of its own leaves no trace.
+     *
+     * @param  array{door?: mixed, people?: mixed}  $input
+     */
+    public function updatePlace(string $placeId, array $input, User $by): array
+    {
+        abort_unless(collect($this->map()['places'])->contains('id', $placeId), 404);
+        $stored = SiteSetting::find(self::KEY)?->value ?? [];
+        $places = is_array($stored['places'] ?? null) ? $stored['places'] : [];
+        $entry = $places[$placeId] ?? [];
+        if (array_key_exists('door', $input)) {
+            $door = $this->point($input['door']);
+            if ($door) {
+                $entry['door'] = $door;
+            } else {
+                unset($entry['door']);
+            }
+        }
+        if (array_key_exists('people', $input)) {
+            $clip = fn ($v, int $n) => Str::limit(trim(strip_tags((string) $v)), $n, '');
+            $entry['people'] = collect($input['people'] ?? [])->take(12)->map(fn ($p) => [
+                'id' => preg_replace('/[^a-z0-9-]/', '', Str::lower((string) ($p['id'] ?? ''))) ?: 'p-'.Str::lower(Str::random(8)),
+                'name_ar' => $clip($p['name_ar'] ?? '', 120), 'name_en' => $clip($p['name_en'] ?? '', 120),
+                'title_ar' => $clip($p['title_ar'] ?? '', 120), 'title_en' => $clip($p['title_en'] ?? '', 120), 'desk' => $clip($p['desk'] ?? '', 60),
+                'user_id' => ! empty($p['user_id']) && Str::isUuid((string) $p['user_id']) ? (string) $p['user_id'] : null,
+            ])->filter(fn ($p) => $p['name_ar'] !== '' || $p['name_en'] !== '')->values()->all();
+        }
+        if (empty($entry['door']) && empty($entry['people'])) {
+            unset($places[$placeId]);
+        } else {
+            $places[$placeId] = $entry;
+        }
+        $stored['places'] = $places;
+        $this->save($stored, $by);
+
+        return $this->build(true);
+    }
+
+    /** Platform users the administrator can put on an office: by name or e-mail, with their job title. @return list<array<string, ?string>> */
+    public function findPeople(string $q): array
+    {
+        $q = trim($q);
+        if (mb_strlen($q) < 2) {
+            return [];
+        }
+        $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $q).'%';
+
+        return User::query()->with('employee.jobTitle:id,name_ar,name_en')->where('status', 'active')
+            ->where(fn ($w) => $w->where('name', 'like', $like)->orWhere('name_ar', 'like', $like)->orWhere('email', 'like', $like))
+            ->orderBy('name')->limit(12)->get(['id', 'name', 'name_ar', 'email'])
+            ->map(fn (User $u) => [
+                'user_id' => $u->id, 'name_ar' => $u->name_ar ?: $u->name, 'name_en' => $u->name, 'email' => $u->email,
+                'title_ar' => $u->employee?->jobTitle?->name_ar, 'title_en' => $u->employee?->jobTitle?->name_en,
+            ])->all();
+    }
+
     private function point(mixed $p): ?array
     {
         $size = $this->map()['size'];
@@ -243,5 +364,6 @@ class Wayfinding
     {
         SiteSetting::updateOrCreate(['key' => self::KEY], ['value' => $value, 'updated_by' => $by->id]);
         Cache::forget(self::CACHE);
+        Cache::forget(self::CACHE.'.rooms');
     }
 }

@@ -240,7 +240,7 @@ class TodaySessions extends StatelessWidget {
                     ),
                   ClassroomMapButton(
                     mode: x.str('mode'),
-                    target: ClassroomTarget(roomId: x.str('room_id'), program: x.str('program'), title: x.str('title'), startsAt: x.date('starts_at'), endsAt: x.date('ends_at')),
+                    target: ClassroomTarget(roomId: x.str('room_id'), placeId: x.str('map_place'), program: x.str('program'), title: x.str('title'), startsAt: x.date('starts_at'), endsAt: x.date('ends_at')),
                   ),
                 ]),
               ),

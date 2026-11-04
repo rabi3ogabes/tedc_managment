@@ -349,7 +349,7 @@ class _NextSession extends StatelessWidget {
           ),
           ClassroomMapButton(
             mode: session.str('mode'),
-            target: ClassroomTarget(roomId: session.str('room_id'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+            target: ClassroomTarget(roomId: session.str('room_id'), placeId: session.str('map_place'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
           ),
         ]),
       ),
@@ -396,7 +396,7 @@ class _SessionBox extends StatelessWidget {
                 Expanded(child: Text(session.str('location'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, color: AppColors.muted))),
                 ClassroomMapButton(
                   mode: session.str('mode'),
-                  target: ClassroomTarget(roomId: session.str('room_id'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+                  target: ClassroomTarget(roomId: session.str('room_id'), placeId: session.str('map_place'), program: session.str('program'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
                 ),
               ]),
           ]),

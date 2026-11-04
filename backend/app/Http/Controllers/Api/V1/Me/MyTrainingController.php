@@ -17,6 +17,7 @@ use App\Services\Notifications\ProgramSurvey;
 use App\Services\RegistrationPriorityService;
 use App\Services\RegistrationService;
 use App\Services\SeatAllocationService;
+use App\Services\Wayfinding;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -165,6 +166,8 @@ class MyTrainingController extends MeController
             'location' => $session->location_text ?? $session->room?->translate('name'),
             // The centre guide walks the trainee to this room (docs/wayfinding.md).
             'room_id' => $session->training_room_id,
+            // The place of the centre's plans this session is held at, from its room or from the room named as text.
+            'map_place' => app(Wayfinding::class)->placeOf($session->training_room_id, $session->location_text),
             'trainer' => $session->trainer?->translate('name'),
             'program' => ['id' => $session->program->id, 'code' => $session->program->code, 'title' => $session->program->translate('title'), 'has_course' => (bool) $session->program->has_course],
             'registration_id' => $registration->id,

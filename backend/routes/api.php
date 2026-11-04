@@ -934,6 +934,8 @@ Route::prefix('v1')->group(function () {
                 Route::middleware('permission:rooms.manage')->group(function () {
                     Route::get('map', [WayfindingController::class, 'show']);
                     Route::put('map', [WayfindingController::class, 'update']);
+                    Route::get('map/people', [WayfindingController::class, 'people']);
+                    Route::put('map/places/{place}', [WayfindingController::class, 'place'])->where('place', '[a-z0-9-]+');
                 });
                 Route::middleware('permission:programs.view|rooms.manage')->group(function () {
                     Route::get('/', 'index');

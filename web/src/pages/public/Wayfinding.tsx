@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNod
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { LogoMark } from '@/components/public/Logo'
-import { CENTRE_MAP, directionsUrl, distanceTo, getEngine, originOf, signKey, stepText, useDestinations, useWayfinding, type Destination, type Origin } from '@/features/wayfinding/data'
+import { CENTRE_MAP, directionsUrl, distanceTo, getEngine, originOf, personLine, signKey, stepText, useDestinations, useWayfinding, type Destination, type Origin } from '@/features/wayfinding/data'
 import type { FloorId, Pt, Step } from '@/features/wayfinding/engine'
 import FloorPlan, { type Marker } from '@/features/wayfinding/FloorPlan'
 
@@ -166,7 +166,7 @@ function Choose({ destinations, origin, onOrigin, onPick, loaded, en }: { destin
     if (filter === 'meet' && kind !== 'meet') return false
     if (filter === 'services' && !['public', 'pray', 'wc', 'office'].includes(kind)) return false
     if (!q.trim()) return true
-    const hay = norm(`${d.title.ar} ${d.title.en} ${d.room?.code ?? ''} ${d.place?.number ?? ''}`)
+    const hay = norm(`${d.title.ar} ${d.title.en} ${d.room?.code ?? ''} ${d.place?.number ?? ''} ${d.people.map((p) => `${p.name_ar} ${p.name_en} ${p.title_ar} ${p.title_en} ${p.desk}`).join(' ')}`)
     return norm(q).split(/\s+/).every((w) => hay.includes(w))
   }).sort((a, b) => rank(a) - rank(b) || Number(a.place?.number ?? 99) - Number(b.place?.number ?? 99) || a.title.ar.localeCompare(b.title.ar, 'ar'))
 
@@ -199,6 +199,13 @@ function Choose({ destinations, origin, onOrigin, onPick, loaded, en }: { destin
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold text-navy-900">{en ? d.title.en : d.title.ar}</span>
                 <span className="block truncate text-xs text-slate-500">{d.place ? floorName(d.floor, en) : t('wayfinding.outside')}{d.room?.capacity ? ` · ${t('wayfinding.seats', { n: d.room.capacity })}` : ''}</span>
+                {d.people.length > 0 && (() => {
+                  // Who is here: the person the search matched, else the first; the others as a count.
+                  const words = norm(q).split(/\s+/).filter(Boolean)
+                  const hit = words.length ? d.people.find((p) => words.every((w) => norm(`${p.name_ar} ${p.name_en} ${p.title_ar} ${p.title_en} ${p.desk}`).includes(w))) : undefined
+                  const shown = hit ?? d.people[0]
+                  return <span className="block truncate text-xs font-semibold text-gold-700">{personLine(shown, en)}{d.people.length > 1 ? ` +${d.people.length - 1}` : ''}</span>
+                })()}
               </span>
               {en ? <ChevronRight className="size-4 text-slate-300 transition group-hover:text-gold-600" /> : <ChevronLeft className="size-4 text-slate-300 transition group-hover:text-gold-600" />}
             </button>
