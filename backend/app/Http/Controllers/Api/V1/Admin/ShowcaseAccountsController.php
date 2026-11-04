@@ -66,6 +66,14 @@ class ShowcaseAccountsController extends Controller
         return response()->json(['message' => 'ok']);
     }
 
+    /** Shows or hides the supervisors, trainers and trainees on the sign-in page (web and app). */
+    public function publicSignIn(Request $request): JsonResponse
+    {
+        $this->showcase->setPublicSignIn($request->validate(['enabled' => ['required', 'boolean']])['enabled'], $this->admin($request));
+
+        return response()->json(['data' => $this->showcase->overview()]);
+    }
+
     public function appPassword(Request $request, string $key): JsonResponse
     {
         $admin = $this->admin($request);

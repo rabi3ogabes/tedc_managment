@@ -26,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure = true;
   bool _showPassword = false;
   String? _error;
+  String? _openingShowcase;
 
   @override
   void dispose() {
@@ -49,6 +50,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// One tap on a showcase account (Settings → Showcase accounts on the dashboard): the server opens its session, no password.
+  Future<void> _openShowcase(String key) async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _openingShowcase = key;
+      _error = null;
+    });
+    try {
+      await ref.read(authProvider.notifier).loginShowcase(key);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ApiException.from(e).message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _openingShowcase = null;
+        });
+      }
+    }
+  }
+
+  /// The showcase accounts the server offers on the sign-in screen (supervisors, trainers and trainees; empty when switched off).
+  List<Map<String, dynamic>> _showcase(WidgetRef ref) {
+    final res = ref.watch(getProvider('/public/showcase-accounts')).value;
+    if (res is! Map || res['data'] is! List) return const [];
+    return [for (final a in res['data'] as List) if (a is Map) Map<String, dynamic>.from(a)];
   }
 
   /// Single sign-on with the Ministry's identity provider, shown when the server offers it.
@@ -246,6 +276,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 label: Text(s.t('way.open')),
               ),
             ),
+            if (_showcase(ref).isNotEmpty) _ShowcaseAccounts(accounts: _showcase(ref), opening: _openingShowcase, enabled: !_loading, onPick: _openShowcase),
             // Demo accounts only where the server is in demo mode (never on a live system by default).
             if (AppConfig.showDemoAccounts && _serverShowsDemo(ref)) _DemoAccounts(onPick: _useDemo, password: _demoPassword(ref)!),
           ]),
@@ -284,6 +315,77 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.invalidate(apiProvider);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.s.t('server.saved'))));
     }
+  }
+}
+
+/// One tap on a showcase account: supervisors, trainers and trainees with sample training, offered by the server.
+class _ShowcaseAccounts extends StatelessWidget {
+  const _ShowcaseAccounts({required this.accounts, required this.opening, required this.enabled, required this.onPick});
+
+  static const _icons = {'supervision': Icons.assignment_ind_outlined, 'training': Icons.co_present_outlined, 'learners': Icons.school_outlined};
+
+  final List<Map<String, dynamic>> accounts;
+  final String? opening;
+  final bool enabled;
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    return Container(
+      key: const ValueKey('showcase-accounts'),
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .07),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.gold300.withValues(alpha: .35)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(Icons.auto_awesome_outlined, color: AppColors.gold300, size: 18),
+          const SizedBox(width: 6),
+          Expanded(child: Text(s.t('auth.showcase.title'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+        ]),
+        const SizedBox(height: 4),
+        Text(s.t('auth.showcase.hint'), style: TextStyle(color: Colors.white.withValues(alpha: .75), fontSize: 12.5)),
+        const SizedBox(height: 12),
+        for (final a in accounts) ...[
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              key: ValueKey('showcase-${a['key']}'),
+              borderRadius: BorderRadius.circular(16),
+              onTap: enabled ? () => onPick(a['key'].toString()) : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(12)),
+                    child: Icon(_icons[a['group']] ?? Icons.person_outline, color: AppColors.gold300, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(a['name'].toString(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w800)),
+                      Text(s.t('auth.showcase.${a['group']}'), style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                    ]),
+                  ),
+                  if (opening == a['key'])
+                    const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  else
+                    Icon(Icons.login_rounded, color: AppColors.gold700, size: 20),
+                ]),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ]),
+    );
   }
 }
 

@@ -202,6 +202,7 @@ use App\Http\Controllers\Api\V1\Public\WayfindingController as PublicWayfindingC
 use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
 use App\Http\Controllers\Api\V1\SamlController;
 use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\ShowcaseSignInController;
 use App\Http\Controllers\Api\V1\Social\CourseSocialController;
 use App\Http\Controllers\Api\V1\Social\GamificationAdminController;
 use App\Http\Controllers\Api\V1\Social\GamificationController;
@@ -331,6 +332,12 @@ Route::prefix('v1')->group(function () {
         Route::get('{conversation}', [PublicChatController::class, 'show']);
         Route::post('{conversation}/messages', [PublicChatController::class, 'send']);
         Route::post('{conversation}/human', [PublicChatController::class, 'human']);
+    });
+
+    // Showcase accounts on the sign-in page (web and app): the supervisors, trainers and trainees only, one tap each.
+    Route::prefix('public/showcase-accounts')->middleware('feature:showcase_accounts')->controller(ShowcaseSignInController::class)->group(function () {
+        Route::get('/', 'index')->middleware('throttle:public');
+        Route::post('{key}/sign-in', 'signIn')->middleware('throttle:30,1');
     });
 
     // Public website ----------------------------------------------------------
@@ -1811,6 +1818,7 @@ Route::prefix('v1')->group(function () {
                     Route::post('{key}/open', 'open')->middleware('throttle:30,1');
                     Route::post('{key}/close', 'close');
                     Route::post('{key}/app-password', 'appPassword')->middleware('throttle:10,1');
+                    Route::put('public-sign-in', 'publicSignIn');
                 });
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
