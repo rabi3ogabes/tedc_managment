@@ -27,8 +27,8 @@ class MobileConfigController extends Controller
 
         return response()->json(['data' => [
             'push' => $push->forMobile(),
-            // The sign-in screens list the demo accounts only where demo mode is on (never on a live system by default).
-            'demo_accounts' => $demo = DemoGuard::allowed() && Features::enabled('test_accounts'),
+            // The sign-in screens list the demo accounts only where demo mode is on (never on a live system by default) and the accounts exist.
+            'demo_accounts' => $demo = DemoGuard::allowed() && Features::enabled('test_accounts') && DemoGuard::buttonAccountsExist(),
             // Never on a live system: the clients no longer carry the password, they learn it here while demo mode is on.
             'demo_password' => $demo ? DemoCredentials::PASSWORD : null,
             'attendance' => ['geofence' => $attendance->all()['geofence_enabled']],

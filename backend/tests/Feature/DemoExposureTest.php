@@ -37,9 +37,23 @@ class DemoExposureTest extends TestCase
 
     public function test_outside_production_the_sign_in_screens_get_the_demo_password_from_the_server(): void
     {
+        $this->makeUser(Role::SUPER_ADMIN, ['email' => 'admin@tedc.qa']);   // the demo organisation is seeded
         $this->getJson('/api/v1/public/mobile-config')->assertOk()
             ->assertJsonPath('data.demo_accounts', true)
             ->assertJsonPath('data.demo_password', DemoCredentials::PASSWORD);
+    }
+
+    public function test_demo_buttons_are_not_offered_where_their_accounts_do_not_exist(): void
+    {
+        // A demonstration site whose demo accounts were removed (a system that went live with real data) shows no buttons that cannot work.
+        $this->assertFalse(DemoGuard::buttonAccountsExist());
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()
+            ->assertJsonPath('data.demo_accounts', false)
+            ->assertJsonPath('data.demo_password', null);
+
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'trainee1@tedc.qa']);
+        $this->assertTrue(DemoGuard::buttonAccountsExist());
+        $this->getJson('/api/v1/public/mobile-config')->assertOk()->assertJsonPath('data.demo_accounts', true);
     }
 
     public function test_the_demo_password_is_not_written_into_the_web_or_app_code(): void
