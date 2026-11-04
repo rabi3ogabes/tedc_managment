@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CircleCheck, CircleDashed, Download, EyeOff, ExternalLink, Map as MapIcon, MapPin, Move, Plus, Printer, RotateCcw, Signpost, Sparkles, Trash2, Wand2 } from 'lucide-react'
+import { Building2, CircleCheck, CircleDashed, DoorOpen, Download, EyeOff, ExternalLink, Map as MapIcon, MapPin, Move, Plus, Printer, RotateCcw, Search, Signpost, Sparkles, Trash2, UserPlus, Users, Wand2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useRef, useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -8,16 +8,17 @@ import { Button, Card, PageHeader } from '@/components/ui'
 import { api, errorMessage } from '@/lib/api'
 import { dialogs } from '@/lib/dialogs'
 import { toast } from '@/lib/toast'
-import { CENTRE_MAP, useWayfinding, type WayRoom } from '@/features/wayfinding/data'
+import { CENTRE_MAP, useWayfinding, type Person, type WayData, type WayRoom } from '@/features/wayfinding/data'
 import type { Entrance, FloorId, Pt } from '@/features/wayfinding/engine'
 import FloorPlan, { type Marker } from '@/features/wayfinding/FloorPlan'
 
-type Tab = 'rooms' | 'signs' | 'export'
-type Mode = { kind: 'place' | 'door'; room: string } | { kind: 'sign'; index: number } | null
+type Tab = 'rooms' | 'places' | 'signs' | 'export'
+type Mode = { kind: 'place' | 'door'; room: string } | { kind: 'placedoor'; place: string } | { kind: 'sign'; index: number } | null
 
 /**
  * «خريطة المركز» (docs/wayfinding.md): the administrator's side of the indoor guide. Which training room is which place on the plans
- * (matched by name until someone decides otherwise), doors that sit elsewhere, rooms hidden from visitors, the entrances and the
+ * (matched by name until someone decides otherwise), doors that sit elsewhere, rooms hidden from visitors, the main door and the people of
+ * every place (the employees whose office it is), the entrances and the
  * "you are here" signs with their printable QR posters, and the redrawn plans as files for print. Right: rooms.manage.
  */
 export default function RoomMap() {
@@ -27,6 +28,7 @@ export default function RoomMap() {
   const [tab, setTab] = useState<Tab>('rooms')
   const [floor, setFloor] = useState<FloorId>('ground')
   const [selected, setSelected] = useState<string | null>(null)
+  const [placeId, setPlaceId] = useState<string | null>(null)
   const [mode, setMode] = useState<Mode>(null)
   const [signs, setSigns] = useState<Entrance[] | null>(null)
   const [entrances, setEntrances] = useState<Entrance[] | null>(null)
@@ -43,6 +45,20 @@ export default function RoomMap() {
       toast(t('roommap.saved'))
     } catch (e) { toast(errorMessage(e), 'error') }
   }
+  const savePlace = async (id: string, body: Record<string, unknown>) => {
+    try {
+      await api.put(`/admin/rooms/map/places/${id}`, body)
+      await refetch()
+      toast(t('roommap.saved'))
+    } catch (e) { toast(errorMessage(e), 'error') }
+  }
+  const saveSetting = async (body: Record<string, unknown>) => {
+    try {
+      await api.put('/admin/rooms/map', body)
+      await refetch()
+      toast(t('roommap.saved'))
+    } catch (e) { toast(errorMessage(e), 'error') }
+  }
   const saveSigns = async (patch: { signs?: Entrance[]; entrances?: Entrance[] }) => {
     try {
       await api.put('/admin/rooms/map', patch)
@@ -55,16 +71,20 @@ export default function RoomMap() {
   const pick = ({ place: hit, at }: { place: (typeof CENTRE_MAP.places)[number] | null; at: Pt }) => {
     if (mode?.kind === 'place' && hit) { void saveRoom(mode.room, { place: hit.id }); setMode(null); return }
     if (mode?.kind === 'door') { void saveRoom(mode.room, { door: [Math.round(at[0]), Math.round(at[1])] }); setMode(null); return }
+    if (mode?.kind === 'placedoor') { void savePlace(mode.place, { door: [Math.round(at[0]), Math.round(at[1])] }); setMode(null); return }
     if (mode?.kind === 'sign') {
       const list = [...editSigns]
       list[mode.index] = { ...list[mode.index], floor, at: [Math.round(at[0]), Math.round(at[1])] }
       setSigns(list); setMode(null); return
     }
     if (tab === 'rooms' && hit) { const r = data.rooms.find((x) => x.place === hit.id); setSelected(r?.id ?? null) }
+    if (tab === 'places' && hit) setPlaceId(hit.id)
   }
 
   const markers: Marker[] = tab === 'rooms'
     ? data.rooms.filter((r) => r.floor === floor && r.door && (r.custom_door || r.id === selected)).map((r) => ({ at: r.door!, kind: 'door', active: r.id === selected }))
+    : tab === 'places'
+      ? CENTRE_MAP.places.filter((p) => p.floor === floor && (data.places?.[p.id]?.door || p.id === placeId)).map((p) => ({ at: data.places?.[p.id]?.door ?? p.door, kind: 'door' as const, active: p.id === placeId }))
     : tab === 'signs'
       ? [...editEntrances.filter((e) => e.floor === floor).map((e) => ({ at: e.at, kind: 'entrance' as const, label: en ? e.en || e.ar : e.ar })), ...editSigns.filter((s) => s.floor === floor).map((s) => ({ at: s.at, kind: 'sign' as const, label: en ? s.en || s.ar : s.ar }))]
       : []
@@ -79,7 +99,7 @@ export default function RoomMap() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        {(['rooms', 'signs', 'export'] as Tab[]).map((x) => (
+        {(['rooms', 'places', 'signs', 'export'] as Tab[]).map((x) => (
           <button key={x} type="button" onClick={() => { setTab(x); setMode(null) }} className={clsx('rounded-xl px-4 py-2 text-sm font-bold transition', tab === x ? 'bg-navy-900 text-white shadow' : 'bg-white text-navy-800 ring-1 ring-navy-100 hover:ring-gold-400')}>{t(`roommap.tab.${x}`)}</button>
         ))}
         <span className="mx-2 h-6 w-px bg-navy-100" />
@@ -90,7 +110,7 @@ export default function RoomMap() {
 
       <div className="grid gap-4 xl:grid-cols-[1fr_400px]">
         <Card padded={false} className="relative h-[68vh] min-h-[460px] overflow-hidden bg-[radial-gradient(circle_at_1px_1px,rgba(26,26,26,.07)_1px,transparent_0)] bg-[length:22px_22px] !bg-[#f3f1ec]">
-          <FloorPlan svgRef={svg} map={CENTRE_MAP} floor={floor} markers={markers} highlight={place?.floor === floor ? place.id : null} onPick={pick} picking={!!mode} className="absolute inset-0">
+          <FloorPlan svgRef={svg} map={CENTRE_MAP} floor={floor} markers={markers} highlight={tab === 'places' ? (CENTRE_MAP.places.find((p) => p.id === placeId)?.floor === floor ? placeId : null) : place?.floor === floor ? place.id : null} onPick={pick} picking={!!mode} className="absolute inset-0">
             {mode && (
               <div className="pointer-events-auto absolute inset-x-4 top-4 mx-auto flex max-w-lg items-center gap-3 rounded-2xl bg-navy-900 px-4 py-3 text-sm font-semibold text-white shadow-glass">
                 <Wand2 className="size-5 shrink-0 text-gold-300" /><span className="flex-1">{t(`roommap.mode.${mode.kind}`)}</span>
@@ -132,6 +152,8 @@ export default function RoomMap() {
             </>
           )}
 
+          {tab === 'places' && <PlacesPanel data={data} en={en} selected={placeId} onSelect={(id) => { setPlaceId(id); setMode(null); const p = CENTRE_MAP.places.find((x) => x.id === id); if (p) setFloor(p.floor) }} onDoor={(id) => setMode({ kind: 'placedoor', place: id })} onSave={savePlace} onSetting={saveSetting} />}
+
           {tab === 'signs' && (
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto">
               <p className="text-xs leading-5 text-slate-500">{t('roommap.signsHint')}</p>
@@ -170,6 +192,138 @@ export default function RoomMap() {
 }
 
 const floorName = (id: FloorId, en: boolean) => { const f = CENTRE_MAP.floors.find((x) => x.id === id); return f ? (en ? f.en : f.ar) : '' }
+
+/**
+ * Every place of the plans (offices, labs, the library, rooms, services): its main door, which is where the guide's walk ends, and the
+ * employees whose office it is, so a visitor can ask for a person and be walked to their door. People are picked from the platform's
+ * accounts (name and job title come with them) or typed; the centre may keep the names from visitors with one switch.
+ */
+const KIND_ORDER = ['office', 'train', 'lab', 'meet', 'public', 'pray', 'wc']
+
+function PlacesPanel({ data, en, selected, onSelect, onDoor, onSave, onSetting }: {
+  data: WayData; en: boolean; selected: string | null; onSelect: (id: string) => void; onDoor: (id: string) => void
+  onSave: (id: string, body: Record<string, unknown>) => Promise<void>; onSetting: (body: Record<string, unknown>) => Promise<void>
+}) {
+  const { t } = useTranslation()
+  const [q, setQ] = useState('')
+  const info = (id: string) => data.places?.[id]
+  const place = CENTRE_MAP.places.find((p) => p.id === selected) ?? null
+  const needle = q.trim().toLowerCase()
+  const list = CENTRE_MAP.places
+    .filter((p) => p.kind !== 'wc' || info(p.id))
+    .filter((p) => !needle || `${p.ar} ${p.en} ${p.number ?? ''} ${(info(p.id)?.people ?? []).map((x) => `${x.name_ar} ${x.name_en}`).join(' ')}`.toLowerCase().includes(needle))
+    .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || Number(a.number ?? 99) - Number(b.number ?? 99) || a.ar.localeCompare(b.ar, 'ar'))
+  const door = place ? info(place.id)?.door : null
+  return (
+    <>
+      <p className="mb-3 text-xs leading-5 text-slate-500">{t('roommap.places.hint')}</p>
+      <label className="mb-3 flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-ivory px-3 py-2.5 ring-1 ring-navy-100">
+        <span className="min-w-0"><span className="block text-sm font-bold text-navy-900">{t('roommap.places.showPeople')}</span><span className="block text-[11px] leading-4 text-slate-500">{t('roommap.places.showPeopleHint')}</span></span>
+        <button type="button" role="switch" aria-checked={data.show_people !== false} onClick={() => void onSetting({ show_people: data.show_people === false })} className={clsx('relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors', data.show_people !== false ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')}><span className="inline-block size-5 rounded-full bg-white shadow" /></button>
+      </label>
+      {place && (
+        <div className="mb-3 space-y-3 rounded-2xl bg-ivory p-3 ring-1 ring-navy-100">
+          <div className="min-w-0"><div className="truncate font-bold text-navy-900">{en ? place.en : place.ar}</div><div className="text-xs text-slate-500">{floorName(place.floor, en)}</div></div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-navy-800"><DoorOpen className="size-4 text-gold-600" />{t('roommap.places.mainDoor')}: <span className={door ? 'text-emerald-700' : 'text-slate-500'}>{door ? t('roommap.places.customDoor') : t('roommap.places.planDoor')}</span></span>
+            <Button size="sm" variant="gold" icon={<Move className="size-4" />} onClick={() => onDoor(place.id)}>{t('roommap.places.setDoor')}</Button>
+            {door && <Button size="sm" variant="ghost" icon={<RotateCcw className="size-4" />} onClick={() => void onSave(place.id, { door: null })}>{t('roommap.places.resetDoor')}</Button>}
+          </div>
+          <PeopleEditor key={`${place.id}:${JSON.stringify(info(place.id)?.people ?? [])}`} initial={info(place.id)?.people ?? []} en={en} onSave={(people) => onSave(place.id, { people })} />
+        </div>
+      )}
+      <label className="relative mb-2 block">
+        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <input className="input !py-2 !ps-9 text-sm" placeholder={t('roommap.places.search')} value={q} onChange={(e) => setQ(e.target.value)} />
+      </label>
+      <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto">
+        {list.map((p) => {
+          const n = info(p.id)?.people.length ?? 0
+          const active = p.id === selected
+          return (
+            <li key={p.id}>
+              <button type="button" onClick={() => onSelect(p.id)} className={clsx('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-start transition', active ? 'bg-navy-900 text-white' : 'hover:bg-gold-50')}>
+                <span className={clsx('grid size-9 shrink-0 place-items-center rounded-xl', active ? 'bg-white/10 text-gold-300' : p.kind === 'office' ? 'bg-gold-50 text-gold-700' : 'bg-slate-100 text-slate-500')}>{p.kind === 'office' ? <Building2 className="size-4" /> : <MapPin className="size-4" />}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold">{en ? p.en : p.ar}</span>
+                  <span className={clsx('block truncate text-[11px]', active ? 'text-white/70' : 'text-slate-500')}>{floorName(p.floor, en)}{info(p.id)?.door ? ` · ${t('roommap.places.customDoor')}` : ''}</span>
+                </span>
+                {n > 0 && <span className={clsx('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold', active ? 'bg-white/15 text-white' : 'bg-gold-50 text-gold-800 ring-1 ring-gold-200')}><Users className="size-3" />{n}</span>}
+              </button>
+            </li>
+          )
+        })}
+        {list.length === 0 && <li className="px-4 py-8 text-center text-sm text-slate-500">{t('wayfinding.none')}</li>}
+      </ul>
+    </>
+  )
+}
+
+type Candidate = { user_id: string; name_ar: string; name_en: string; email: string; title_ar: string | null; title_en: string | null }
+
+const newPerson = (): Person => ({ id: `p-${Date.now().toString(36)}`, name_ar: '', name_en: '', title_ar: '', title_en: '', desk: '' })
+
+/** The people of one place: add from the platform's accounts or by hand, edit the name, job title and desk, remove, save. */
+function PeopleEditor({ initial, en, onSave }: { initial: Person[]; en: boolean; onSave: (people: Person[]) => Promise<void> }) {
+  const { t } = useTranslation()
+  const [list, setList] = useState<Person[]>(initial)
+  const [q, setQ] = useState('')
+  const [found, setFound] = useState<Candidate[]>([])
+  const [saving, setSaving] = useState(false)
+  const timer = useRef<number | undefined>(undefined)
+  const dirty = JSON.stringify(list) !== JSON.stringify(initial)
+  const search = (v: string) => {
+    setQ(v)
+    window.clearTimeout(timer.current)
+    if (v.trim().length < 2) { setFound([]); return }
+    timer.current = window.setTimeout(async () => {
+      try { const { data } = await api.get('/admin/rooms/map/people', { params: { q: v } }); setFound(data.data as Candidate[]) } catch { setFound([]) }
+    }, 250)
+  }
+  const add = (p: Person) => { setList((l) => [...l, p]); setQ(''); setFound([]) }
+  const update = (i: number, patch: Partial<Person>) => setList((l) => l.map((p, k) => (k === i ? { ...p, ...patch } : p)))
+  const save = async () => { setSaving(true); try { await onSave(list) } finally { setSaving(false) } }
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-xs font-bold text-navy-800"><Users className="size-4 text-gold-600" />{t('roommap.places.people')}</div>
+      {list.length === 0 && <p className="rounded-xl bg-white px-3 py-2 text-xs text-slate-500 ring-1 ring-navy-100">{t('roommap.places.noPeople')}</p>}
+      {list.map((p, i) => (
+        <div key={p.id} className="space-y-1.5 rounded-xl bg-white p-2.5 ring-1 ring-navy-100">
+          <div className="flex items-center gap-2">
+            <input className="input !py-1.5 text-sm" placeholder={t('roommap.places.nameAr')} value={p.name_ar} onChange={(e) => update(i, { name_ar: e.target.value })} />
+            <button type="button" onClick={() => setList((l) => l.filter((_, k) => k !== i))} className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-danger" aria-label={t('roommap.places.remove')}><Trash2 className="size-4" /></button>
+          </div>
+          <input className="input !py-1.5 text-sm" dir="ltr" placeholder={t('roommap.places.nameEn')} value={p.name_en} onChange={(e) => update(i, { name_en: e.target.value })} />
+          <div className="grid grid-cols-2 gap-1.5">
+            <input className="input !py-1.5 text-sm" placeholder={t('roommap.places.titleAr')} value={p.title_ar} onChange={(e) => update(i, { title_ar: e.target.value })} />
+            <input className="input !py-1.5 text-sm" dir="ltr" placeholder={t('roommap.places.titleEn')} value={p.title_en} onChange={(e) => update(i, { title_en: e.target.value })} />
+          </div>
+          <input className="input !py-1.5 text-sm" placeholder={t('roommap.places.desk')} value={p.desk} onChange={(e) => update(i, { desk: e.target.value })} />
+        </div>
+      ))}
+      <div className="relative">
+        <UserPlus className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <input className="input !py-2 !ps-9 text-sm" placeholder={t('roommap.places.searchPerson')} value={q} onChange={(e) => search(e.target.value)} />
+        {found.length > 0 && (
+          <ul className="absolute inset-x-0 top-full z-10 mt-1 max-h-56 overflow-y-auto rounded-2xl bg-white p-1 shadow-glass ring-1 ring-navy-100">
+            {found.map((c) => (
+              <li key={c.user_id}>
+                <button type="button" onClick={() => add({ ...newPerson(), name_ar: c.name_ar, name_en: c.name_en, title_ar: c.title_ar ?? '', title_en: c.title_en ?? '', user_id: c.user_id })} className="block w-full rounded-xl px-3 py-2 text-start hover:bg-gold-50">
+                  <span className="block truncate text-sm font-bold text-navy-900">{en ? c.name_en : c.name_ar}</span>
+                  <span className="block truncate text-[11px] text-slate-500">{(en ? c.title_en : c.title_ar) || c.email}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" icon={<Plus className="size-4" />} onClick={() => add(newPerson())}>{t('roommap.places.addManual')}</Button>
+        <Button size="sm" variant="gold" loading={saving} disabled={!dirty} onClick={save}>{t('roommap.places.save')}</Button>
+      </div>
+    </div>
+  )
+}
 
 function Stat({ n, label, tone }: { n: number; label: string; tone: 'emerald' | 'gold' | 'slate' }) {
   return <div className={clsx('rounded-xl p-2 ring-1', tone === 'emerald' ? 'bg-emerald-50 text-emerald-800 ring-emerald-100' : tone === 'gold' ? 'bg-gold-50 text-gold-800 ring-gold-200' : 'bg-slate-50 text-slate-600 ring-slate-200')}><div className="text-xl font-extrabold">{n}</div><div className="font-semibold">{label}</div></div>

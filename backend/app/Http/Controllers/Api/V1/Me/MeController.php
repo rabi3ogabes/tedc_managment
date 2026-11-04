@@ -19,6 +19,7 @@ use App\Services\Eligibility\EmployeeContext;
 use App\Services\FeatureSettings;
 use App\Services\PassportService;
 use App\Services\RecommendationEngine;
+use App\Services\Wayfinding;
 use App\Support\Nationalities;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -55,7 +56,7 @@ class MeController extends Controller
         $current = $upcoming->first(fn (ProgramSession $x) => $x->mode !== 'online' && now()->between($x->starts_at->copy()->subMinutes($opens), $x->ends_at->copy()->addMinutes(30)));
         $card = fn (ProgramSession $x) => [
             'id' => $x->id, 'title' => $x->translate('title'), 'program' => $x->program->translate('title'), 'starts_at' => $x->starts_at->toIso8601String(), 'ends_at' => $x->ends_at->toIso8601String(),
-            'location' => $x->location_text ?? $x->room?->translate('name'), 'room_id' => $x->training_room_id, 'mode' => $x->mode, 'biometric_required' => (bool) $x->program->require_biometric,
+            'location' => $x->location_text ?? $x->room?->translate('name'), 'room_id' => $x->training_room_id, 'map_place' => app(Wayfinding::class)->placeOf($x->training_room_id, $x->location_text), 'mode' => $x->mode, 'biometric_required' => (bool) $x->program->require_biometric,
         ];
 
         $openTasks = TaskSubmission::query()->whereIn('registration_id', (clone $active)->select('id'))->where('status', TaskSubmission::STATUS_CHANGES)->count();

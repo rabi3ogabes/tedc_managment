@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\ProgramSession;
+use App\Services\Wayfinding;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -41,6 +42,7 @@ class SessionResource extends JsonResource
             'trainer_id' => $this->trainer_id,
             'trainer' => $this->whenLoaded('trainer', fn () => $this->trainer ? ['id' => $this->trainer->id, 'name' => $this->trainer->translate('name')] : null),
             'training_room_id' => $this->training_room_id,
+            'map_place' => app(Wayfinding::class)->placeOf($this->training_room_id, $this->location_text),
             'room' => $this->whenLoaded('room', fn () => $this->room ? ['id' => $this->room->id, 'name' => $this->room->translate('name'), 'building' => $this->room->building] : null),
             'attendance_count' => $this->whenCounted('attendance'),
         ];

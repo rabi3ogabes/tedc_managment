@@ -90,7 +90,7 @@ class RegistrationScreen extends ConsumerWidget {
                     ClassroomMapButton(
                       mode: session.str('mode'),
                       cancelled: session.str('status') == 'cancelled',
-                      target: ClassroomTarget(roomId: session.str('training_room_id'), program: p.str('title'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
+                      target: ClassroomTarget(roomId: session.str('training_room_id'), placeId: session.str('map_place'), program: p.str('title'), title: session.str('title'), startsAt: session.date('starts_at'), endsAt: session.date('ends_at')),
                     ),
                     if (attendance[session.str('id')] != null)
                       StatusChip(attendance[session.str('id')]!.str('status'))
