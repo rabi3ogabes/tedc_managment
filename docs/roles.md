@@ -2,6 +2,8 @@
 
 The four showcase accounts (Settings → Showcase accounts) each hold one role. This page says what that role can do, and how the system administrator changes it.
 
+![The four roles at a glance](roles-diagram.png)
+
 | Account (Arabic) | Role (slug) | Lands on | Rights in the catalogue |
 |---|---|---|---|
 | مدير النظام | `super_admin` | `/admin` | all — implicit, cannot be edited |
