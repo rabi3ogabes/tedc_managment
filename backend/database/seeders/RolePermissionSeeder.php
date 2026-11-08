@@ -53,6 +53,7 @@ class RolePermissionSeeder extends Seeder
         'kits.review' => ['kits', 'مراجعة الحقائب (ضمان الجودة)', 'Review training kits (quality assurance)'],
         'kits.publish' => ['kits', 'نشر الحقائب وأرشفتها', 'Publish & archive training kits'],
         'settings.manage' => ['settings', 'الهوية البصرية والمظهر', 'Brand & appearance'],
+        'logs.manage' => ['settings', 'سجل أخطاء النظام', 'System error log'],
         'scopes.manage' => ['security', 'إدارة مجموعات المدارس والنطاقات', 'Manage school groups & scopes'],
         'roles.create' => ['security', 'إنشاء الأدوار المخصصة', 'Create custom roles'],
         'program_grants.manage' => ['programs', 'منح صلاحيات البرنامج (الحضور والإشعارات)', 'Grant program rights (attendance, notifications)'],

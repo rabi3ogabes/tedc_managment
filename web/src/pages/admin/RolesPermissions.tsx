@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Copy, Plus, Save, Search, ShieldCheck, Trash2 } from 'lucide-react'
+import { Copy, LayoutGrid, Network, Plus, Save, Search, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
@@ -8,6 +8,7 @@ import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast } from '@/lib/toast'
 import { dialogs } from '@/lib/dialogs'
+import RoleDiagram from './RoleDiagram'
 
 type Role = { id: string; slug: string; name_ar: string; name_en: string; level: number; is_system: boolean; users_count: number; scope_levels: string[] | null; landing_route: string | null; permissions: { slug: string }[] }
 type Perm = { slug: string; name_ar: string; name_en: string; group: string }
@@ -25,6 +26,7 @@ export default function RolesPermissions() {
   const [perms, setPerms] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState('')
   const [diff, setDiff] = useState(false)
+  const [view, setView] = useState<'matrix' | 'diagram'>('matrix')
   const [creating, setCreating] = useState(false)
   const [busy, setBusy] = useState(false)
   const nm = (o: { name_ar: string; name_en: string }) => (ar ? o.name_ar : o.name_en)
@@ -89,6 +91,16 @@ export default function RolesPermissions() {
               {isSuper && <p className="rounded-xl bg-ivory px-3 py-2 text-xs text-slate-600">{t('rolesAdmin.superNote')}</p>}
               {selected.is_system && !isSuper && <p className="rounded-xl bg-ivory px-3 py-2 text-xs text-slate-600">{t('rolesAdmin.systemNote')}</p>}
 
+              <div role="tablist" aria-label={t('rolesAdmin.title')} className="inline-flex rounded-xl bg-ivory p-1 ring-1 ring-navy-100">
+                {([['matrix', LayoutGrid, 'viewMatrix'], ['diagram', Network, 'viewDiagram']] as const).map(([id, Icon, label]) => (
+                  <button key={id} type="button" role="tab" aria-selected={view === id} onClick={() => setView(id)}
+                    className={clsx('inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold transition', view === id ? 'bg-white text-navy-900 shadow-sm' : 'text-slate-500 hover:text-navy-900')}><Icon className="size-4" />{t(`rolesAdmin.${label}`)}</button>
+                ))}
+              </div>
+
+              {view === 'diagram' ? (
+                <RoleDiagram roleName={nm(selected)} isSuper={isSuper} groups={data.permissions} granted={perms} nameOf={nm} groupName={(g) => t(`rolesAdmin.groups.${g}`, { defaultValue: g })} />
+              ) : (<>
               <div className="relative"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input className="input ps-9" placeholder={t('rolesAdmin.search')} value={filter} onChange={(e) => setFilter(e.target.value)} /></div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -114,6 +126,7 @@ export default function RolesPermissions() {
                   )
                 })}
               </div>
+              </>)}
             </>
           )}
         </Card>
