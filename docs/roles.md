@@ -11,7 +11,7 @@ The four showcase accounts (Settings → Showcase accounts) each hold one role. 
 
 > **Supervisor vs training supervisor.** المشرف (`supervisor`) is the school/department line manager who approves his own staff's training. مشرف التدريب (`program_coordinator`, 21 rights) is a centre role that runs programmes. The showcase "المشرف" is the first.
 
-A *right* is a row of `RolePermissionSeeder::PERMISSIONS` (182 of them, in 23 areas). A route checks it with `permission:<slug>`; the web and the app hide what the signed-in user lacks. The system administrator is the only role that passes every check without holding the rights.
+A *right* is a row of `RolePermissionSeeder::PERMISSIONS` (181 of them, in 23 areas). A route checks it with `permission:<slug>`; the web and the app hide what the signed-in user lacks. The system administrator is the only role that passes every check without holding the rights.
 
 ## How the system administrator changes any role
 
@@ -26,11 +26,12 @@ A *right* is a row of `RolePermissionSeeder::PERMISSIONS` (182 of them, in 23 ar
 
 `RolesCatalogueTest` also fails the build if a route or controller enforces a right that is not in the catalogue, so nothing the system checks can be out of the administrator's reach.
 
-### Three things the matrix does not change (on purpose)
+### Four things the matrix does not change (on purpose)
 
 1. **The system administrator's rights** are implicit (`*`). An empty list would not lock the account out.
 2. **Programme grants** — `attendance.mark`, `notifications.send`, `kits.assign`, `tasks.review` — are given *per programme* by the training head (Programme → Rights), not by a role, so a trainer can mark attendance in one programme only.
-3. **A few actions are tied to the role itself**, not a right: signing in as another user and handing out `super_admin` (system administrator only); loading demo data and the data-import console (system administrator only); school administrators' own-school screens; the centre-staff data scope (`CENTER_STAFF` roles see Ministry-wide data); trainers see only programmes they teach.
+3. **The system error log** (`logs.manage`) is kept out of the catalogue by design: only the system administrator can open it.
+4. **A few actions are tied to the role itself**, not a right: signing in as another user and handing out `super_admin` (system administrator only); loading demo data and the data-import console (system administrator only); school administrators' own-school screens; the centre-staff data scope (`CENTER_STAFF` roles see Ministry-wide data); trainers see only programmes they teach.
 
 ## 1. مدير النظام — System administrator
 

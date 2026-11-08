@@ -39,7 +39,8 @@ class RolesCatalogueTest extends TestCase
         }
 
         // Programme-grant abilities (attendance.mark…) are given per programme from the programme page, not by a role.
-        $known = [...array_keys(RolePermissionSeeder::PERMISSIONS), ...ProgramGrant::ABILITIES];
+        // logs.manage is deliberately not a catalogue right: the error log stays with the system administrator (AuditFixesTest).
+        $known = [...array_keys(RolePermissionSeeder::PERMISSIONS), ...ProgramGrant::ABILITIES, 'logs.manage'];
         $missing = array_diff_key($enforced, array_flip($known));
         $this->assertSame([], $missing, 'Enforced but not in RolePermissionSeeder::PERMISSIONS (the super administrator could never give them out): '.json_encode($missing));
         $this->assertGreaterThan(100, count($enforced));
@@ -102,19 +103,11 @@ class RolesCatalogueTest extends TestCase
         $this->asUser($this->makeUser(Role::TRAINER))->putJson("/api/v1/admin/roles/{$trainer->id}/permissions", ['permissions' => ['saber.view']])->assertForbidden();
     }
 
-    /** The error log right was enforced but missing from the screen, so no one but the super administrator could be given it. */
-    public function test_the_error_log_right_can_be_given_to_a_role(): void
+    /** The error log is the one system-wide screen kept out of the matrix: no role can be given it. */
+    public function test_the_error_log_stays_with_the_system_administrator_even_for_the_centre_administrator(): void
     {
-        $this->assertNotNull(Permission::where('slug', 'logs.manage')->first());
-        $role = Role::where('slug', Role::CENTER_ADMIN)->first();
-        $user = $this->makeUser(Role::CENTER_ADMIN);
-        $admin = $this->makeUser(Role::SUPER_ADMIN);
-
-        $keep = $role->permissions->pluck('slug')->reject(fn ($s) => $s === 'logs.manage')->values()->all();
-        $this->asUser($admin)->putJson("/api/v1/admin/roles/{$role->id}/permissions", ['permissions' => $keep])->assertOk();
-        $this->asUser($user)->getJson('/api/v1/admin/error-logs')->assertForbidden();
-
-        $this->asUser($admin)->putJson("/api/v1/admin/roles/{$role->id}/permissions", ['permissions' => [...$keep, 'logs.manage']])->assertOk();
-        $this->asUser($user)->getJson('/api/v1/admin/error-logs')->assertOk();
+        $this->assertFalse(Permission::where('slug', 'logs.manage')->exists());
+        $this->asUser($this->makeUser(Role::CENTER_ADMIN))->getJson('/api/v1/admin/error-logs')->assertForbidden();
+        $this->asUser($this->makeUser(Role::SUPER_ADMIN))->getJson('/api/v1/admin/error-logs')->assertOk();
     }
 }
