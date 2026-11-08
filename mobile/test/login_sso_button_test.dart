@@ -5,11 +5,11 @@ import 'package:tedc_mobile/core/l10n/strings.dart';
 import 'package:tedc_mobile/core/providers.dart';
 import 'package:tedc_mobile/features/auth/login_screen.dart';
 
-Future<void> _pump(WidgetTester tester, bool sso, {bool mandatory = false, List<Map<String, String>> showcase = const []}) async {
+Future<void> _pump(WidgetTester tester, bool sso, {bool mandatory = false, List<Map<String, String>> showcase = const [], bool leadership = false}) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [
       getProvider('/public/mobile-config').overrideWith((ref) async => {'data': {'sso': sso, 'sso_mandatory': mandatory, 'demo_accounts': false}}),
-      getProvider('/public/showcase-accounts').overrideWith((ref) async => {'data': showcase}),
+      getProvider('/public/showcase-accounts').overrideWith((ref) async => {'data': showcase, 'leadership': leadership}),
     ],
     child: const MaterialApp(home: LoginScreen()),
   ));
@@ -53,6 +53,24 @@ void main() {
     expect(find.text('Trainee'), findsOneWidget);
   });
 
+  testWidgets('the leadership accounts are a locked section: a code field, never their names, until the code is right', (tester) async {
+    await _pump(tester, false, leadership: true);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('showcase-leadership')), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.byKey(const ValueKey('showcase-leadership')), findsOneWidget);
+    expect(find.byKey(const ValueKey('showcase-code')), findsOneWidget);
+    expect(find.byKey(const ValueKey('showcase-unlock')), findsOneWidget);
+    expect(find.byKey(const ValueKey('showcase-leader-admin')), findsNothing);
+    expect(find.text('Leadership accounts (with a code)'), findsOneWidget);
+  });
+
+  testWidgets('and without the server offering it there is no lock', (tester) async {
+    await _pump(tester, false, showcase: const [
+      {'key': 'trainee-1', 'group': 'learners', 'name': 'Demo trainee 1'},
+    ]);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('showcase-accounts')), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.byKey(const ValueKey('showcase-leadership')), findsNothing);
+  });
+
   testWidgets('and nothing shows when the server offers none', (tester) async {
     await _pump(tester, false);
     await tester.scrollUntilVisible(find.byKey(const ValueKey('centre-guide')), 300, scrollable: find.byType(Scrollable).first);
@@ -65,7 +83,7 @@ void main() {
       expect(s.t('session.platform.teams_townhall'), isNot('session.platform.teams_townhall'));
       expect(s.t('session.townhallHint'), isNot('session.townhallHint'));
       expect(s.t('auth.usePassword'), isNot('auth.usePassword'));
-      for (final key in ['auth.showcase.title', 'auth.showcase.hint', 'auth.showcase.supervision', 'auth.showcase.training', 'auth.showcase.learners']) {
+      for (final key in ['auth.showcase.title', 'auth.showcase.hint', 'auth.showcase.supervision', 'auth.showcase.training', 'auth.showcase.learners', 'auth.showcase.leadersTitle', 'auth.showcase.leadersHint', 'auth.showcase.codePlaceholder', 'auth.showcase.unlock', 'auth.showcase.leadership']) {
         expect(s.t(key), isNot(key));
       }
     }

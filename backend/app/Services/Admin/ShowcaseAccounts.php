@@ -18,9 +18,13 @@ use App\Models\SiteSetting;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Support\Supabase;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
@@ -57,7 +61,15 @@ class ShowcaseAccounts
     /** The accounts anyone may open from the sign-in page: none of them reaches beyond the showcase school's people. */
     public const PUBLIC = ['supervisor-1', 'supervisor-2', 'trainer-1', 'trainer-2', 'trainee-1', 'trainee-2'];
 
+    /** The leadership accounts: opened from the sign-in page only with the showcase code, since they see the platform's real data. */
+    public const LEADERSHIP = ['admin', 'centre-head', 'training-head', 'planning-head'];
+
     private const SETTING = 'showcase_accounts';
+
+    private const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+    /** Wrong codes allowed from one address in a quarter of an hour. */
+    private const CODE_TRIES = 8;
 
     /** Who each person reports to (their supervisor's key). */
     private const SUPERVISED_BY = ['trainee-1' => 'supervisor-1', 'trainer-1' => 'supervisor-1', 'trainee-2' => 'supervisor-2', 'trainer-2' => 'supervisor-2'];
@@ -86,8 +98,91 @@ class ShowcaseAccounts
 
     public function setPublicSignIn(bool $on, User $by): void
     {
-        SiteSetting::updateOrCreate(['key' => self::SETTING], ['value' => ['public_sign_in' => $on], 'updated_by' => $by->id]);
+        $this->store(['public_sign_in' => $on], $by);
         $this->audit($by, 'showcase_public_sign_in_'.($on ? 'on' : 'off'), []);
+    }
+
+    /** @param  array<string, mixed>  $patch  what to change; the rest of the setting stays */
+    private function store(array $patch, User $by): void
+    {
+        $value = SiteSetting::find(self::SETTING)?->value ?? [];
+        SiteSetting::updateOrCreate(['key' => self::SETTING], ['value' => $patch + $value, 'updated_by' => $by->id]);
+    }
+
+    /**
+     * The showcase code that unlocks the leadership accounts on the sign-in page: whether it is on, and the code itself (kept encrypted;
+     * only the administrator's page ever reads it back).
+     *
+     * @return array{enabled: bool, code: ?string}
+     */
+    public function leadership(): array
+    {
+        $v = SiteSetting::find(self::SETTING)?->value ?? [];
+        $code = null;
+        try {
+            $code = ! empty($v['leadership_code']) ? Crypt::decryptString($v['leadership_code']) : null;
+        } catch (DecryptException) {
+            $code = null;
+        }
+
+        return ['enabled' => $code !== null && ! empty($v['leadership_enabled']), 'code' => $code];
+    }
+
+    /** Switches the leadership buttons on or off, and makes a new code when asked (or when there is none yet). @return array{enabled: bool, code: ?string} */
+    public function setLeadership(?bool $enabled, bool $regenerate, User $by): array
+    {
+        $patch = [];
+        if ($regenerate || $this->leadership()['code'] === null) {
+            $code = '';
+            for ($i = 0; $i < 8; $i++) {
+                $code .= self::CODE_ALPHABET[random_int(0, strlen(self::CODE_ALPHABET) - 1)];
+            }
+            $patch['leadership_code'] = Crypt::encryptString(substr($code, 0, 4).'-'.substr($code, 4));
+        }
+        if ($enabled !== null) {
+            $patch['leadership_enabled'] = $enabled;
+        }
+        $this->store($patch, $by);
+        $this->audit($by, 'showcase_leadership_code', ['enabled' => $enabled, 'regenerated' => isset($patch['leadership_code'])]);
+
+        return $this->leadership();
+    }
+
+    /** Whether a typed code is the showcase code. Wrong codes are counted per address: too many and the address waits a quarter of an hour. */
+    public function codeIsRight(string $typed, ?string $ip): bool
+    {
+        $stored = $this->leadership();
+        if (! $stored['enabled']) {
+            return false;
+        }
+        $key = 'showcase.code.tries.'.sha1((string) $ip);
+        if ((int) Cache::get($key, 0) >= self::CODE_TRIES) {
+            throw ValidationException::withMessages(['code' => __('messages.showcase.code_wait')])->status(429);
+        }
+        $clean = fn (string $c) => strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $c));
+        if (hash_equals($clean((string) $stored['code']), $clean($typed))) {
+            Cache::forget($key);
+
+            return true;
+        }
+        Cache::put($key, (int) Cache::get($key, 0) + 1, now()->addMinutes(15));
+
+        return false;
+    }
+
+    /** The leadership accounts the sign-in page offers once the code is right. @return list<array<string, string>> */
+    public function leadershipAccounts(): array
+    {
+        $users = User::whereIn('email', array_map(fn ($k) => self::email($k), self::LEADERSHIP))->where('status', 'active')->get()->keyBy(fn (User $u) => strtolower($u->email));
+
+        return collect(self::LEADERSHIP)->filter(fn ($key) => $users->has(self::email($key)))
+            ->map(fn ($key) => ['key' => $key, 'group' => self::ACCOUNTS[$key][0], 'name' => $users[self::email($key)]->displayName()])->values()->all();
+    }
+
+    /** A leadership account, once the code was right. */
+    public function findLeadership(string $key): ?User
+    {
+        return in_array($key, self::LEADERSHIP, true) ? User::where('email', self::email($key))->where('status', 'active')->first() : null;
     }
 
     /** The accounts the sign-in page shows: empty when switched off or not created. @return list<array<string, string>> */
@@ -242,6 +337,7 @@ class ShowcaseAccounts
         return [
             'exists' => $users->isNotEmpty(),
             'public_sign_in' => $this->publicSignIn(),
+            'leadership' => $this->leadership(),
             'accounts' => collect(self::ACCOUNTS)->map(function ($spec, $key) use ($users, $en) {
                 $user = $users->get(self::email($key));
 

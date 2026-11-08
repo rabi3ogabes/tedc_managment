@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Admin\ShowcaseAccounts;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -107,7 +108,7 @@ class ShowcaseAccountsTest extends TestCase
 
     public function test_the_sign_in_page_offers_the_supervisors_trainers_and_trainees_in_one_tap_never_the_leadership(): void
     {
-        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => []]);   // nothing until they exist
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => [], 'leadership' => false]);   // nothing until they exist
         $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
         $this->app['auth']->forgetGuards();
         $this->flushHeaders();
@@ -128,9 +129,73 @@ class ShowcaseAccountsTest extends TestCase
         $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/public-sign-in', ['enabled' => false])->assertOk()->assertJsonPath('data.public_sign_in', false);
         $this->app['auth']->forgetGuards();
         $this->flushHeaders();
-        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => []]);
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertExactJson(['data' => [], 'leadership' => false]);
         $this->postJson('/api/v1/public/showcase-accounts/trainee-1/sign-in')->assertNotFound();
         $this->asUser($this->makeUser(Role::CENTER_ADMIN))->putJson('/api/v1/admin/showcase-accounts/public-sign-in', ['enabled' => true])->assertForbidden();
+    }
+
+    public function test_the_leadership_accounts_open_from_the_sign_in_page_only_with_the_showcase_code(): void
+    {
+        $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        // Nothing is offered until the administrator makes a code and switches it on.
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertJsonPath('leadership', false);
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => 'ANYTHING'])->assertStatus(422);
+        $this->postJson('/api/v1/public/showcase-accounts/leadership/admin/sign-in', ['code' => 'ANYTHING'])->assertStatus(422);
+
+        $overview = $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/leadership', ['enabled' => true])->assertOk()->assertJsonPath('data.leadership.enabled', true)->json('data.leadership');
+        $code = $overview['code'];
+        $this->assertMatchesRegularExpression('/^[A-Z2-9]{4}-[A-Z2-9]{4}$/', $code);
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+
+        $this->getJson('/api/v1/public/showcase-accounts')->assertOk()->assertJsonPath('leadership', true);
+        $this->assertStringNotContainsString($code, $this->getJson('/api/v1/public/showcase-accounts')->getContent());   // the code is never sent out
+
+        // A wrong code opens nothing; the right one (typed any way) lists the four and signs in.
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => 'WRONG-CODE'])->assertStatus(422)->assertJsonValidationErrors('code');
+        $this->postJson('/api/v1/public/showcase-accounts/leadership/admin/sign-in', ['code' => 'WRONG-CODE'])->assertStatus(422);
+        $list = $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => strtolower(str_replace('-', ' ', $code))])->assertOk()->json('data');
+        $this->assertSame(ShowcaseAccounts::LEADERSHIP, array_column($list, 'key'));
+
+        $res = $this->postJson('/api/v1/public/showcase-accounts/leadership/admin/sign-in', ['code' => $code])->assertOk()->assertJsonPath('user.email', ShowcaseAccounts::email('admin'));
+        $this->withToken($res->json('access_token'))->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('data.email', ShowcaseAccounts::email('admin'));
+        $this->assertSame(1, AuditLog::where('action', 'showcase_leadership_sign_in')->count());
+        // Only the four: a supervisor's key is not a leadership key, and a real account's address never is.
+        $this->postJson('/api/v1/public/showcase-accounts/leadership/supervisor-1/sign-in', ['code' => $code])->assertNotFound();
+
+        // A new code replaces the old one at once; switching off closes the section.
+        $new = $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/leadership', ['regenerate' => true])->assertOk()->json('data.leadership.code');
+        $this->assertNotSame($code, $new);
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => $code])->assertStatus(422);
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => $new])->assertOk();
+        $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/leadership', ['enabled' => false])->assertOk()->assertJsonPath('data.leadership.enabled', false);
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => $new])->assertStatus(422);
+        $this->getJson('/api/v1/public/showcase-accounts')->assertJsonPath('leadership', false);
+
+        // Only the system administrator sees or changes the code.
+        $this->asUser($this->makeUser(Role::CENTER_ADMIN))->putJson('/api/v1/admin/showcase-accounts/leadership', ['enabled' => true])->assertForbidden();
+    }
+
+    public function test_too_many_wrong_codes_make_the_address_wait(): void
+    {
+        $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
+        $code = $this->asUser($this->admin)->putJson('/api/v1/admin/showcase-accounts/leadership', ['enabled' => true])->json('data.leadership.code');
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->withoutMiddleware(ThrottleRequests::class);
+
+        for ($i = 0; $i < 8; $i++) {
+            $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => 'NOPE-NOPE'])->assertStatus(422);
+        }
+        // Now even the right code waits: the address is held for a quarter of an hour, and the right code does not lift it.
+        $this->postJson('/api/v1/public/showcase-accounts/leadership', ['code' => $code])->assertStatus(429);
+        $this->postJson('/api/v1/public/showcase-accounts/leadership/admin/sign-in', ['code' => $code])->assertStatus(429);
     }
 
     public function test_removing_takes_away_exactly_what_was_built(): void

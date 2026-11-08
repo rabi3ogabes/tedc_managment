@@ -339,6 +339,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('public/showcase-accounts')->middleware('feature:showcase_accounts')->controller(ShowcaseSignInController::class)->group(function () {
         Route::get('/', 'index')->middleware('throttle:public');
         Route::post('{key}/sign-in', 'signIn')->middleware('throttle:30,1');
+        // The leadership accounts, behind the showcase code.
+        Route::post('leadership', 'leadership')->middleware('throttle:10,1');
+        Route::post('leadership/{key}/sign-in', 'leadershipSignIn')->middleware('throttle:10,1');
     });
 
     // Public website ----------------------------------------------------------
@@ -1824,6 +1827,7 @@ Route::prefix('v1')->group(function () {
                     Route::post('{key}/close', 'close');
                     Route::post('{key}/app-password', 'appPassword')->middleware('throttle:10,1');
                     Route::put('public-sign-in', 'publicSignIn');
+                    Route::put('leadership', 'leadership')->middleware('throttle:10,1');
                 });
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);

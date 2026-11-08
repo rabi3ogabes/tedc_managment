@@ -156,6 +156,7 @@ return [
         'no_clone_super' => 'The super administrator role cannot be copied.', 'group_in_use' => 'The group is the scope of a granted role. Remove the grant first.',
     ],
     'features' => ['disabled' => 'This feature is switched off. A system administrator can switch it on in Settings → Features.', 'fix_suggested' => 'Suggested remedy: :fix. It was not applied because automatic fixing is off.', 'no_remedy' => 'There is no known remedy for this error.', 'reason_required' => 'Write a reason (at least 5 characters): this tool is used with care on a live system.'],
+    'showcase' => ['code_wrong' => 'The showcase code is not right.', 'code_wait' => 'Too many wrong codes; wait a quarter of an hour and try again.'],
     'impersonation' => ['self' => 'You are already signed in with this account.', 'admin' => 'You cannot sign in as another system administrator.', 'inactive' => 'The account is suspended: activate it first.'],
     'theme' => ['unsafe_svg' => 'This SVG contains unsafe parts (scripts or external links). Use a clean copy.'],
     'passing' => [
