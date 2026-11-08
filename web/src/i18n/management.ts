@@ -26,7 +26,7 @@ export const mgmtAr = {
 
   showcase: {
     subtitle: 'حساب جاهز لكل دور — مدير النظام، رئيس مركز التدريب، رئيس قسم التدريب، رئيس قسم التخطيط، مشرفان، مدرّبان ومتدرّبان — حول قصة تدريب تجريبية، لعرض المنصة على الويب وفي التطبيق.',
-    notice: 'تعمل هذه الحسابات على النظام الحي، وحسابات القيادات لا يفتحها إلا أنت بصفتك مدير النظام. بياناتها تجريبية ومعلَّمة فلا تظهر في الموقع العام، وكل دخول إليها يُسجَّل في سجل التدقيق. حسابات القيادات ترى بيانات المنصة كما يراها أصحابها الحقيقيون، فتعامل معها بعناية.',
+    notice: 'تعمل هذه الحسابات على النظام الحي، وحسابات القيادات لا يفتحها إلا أنت بصفتك مدير النظام، أو من يملك رمز العرض. بياناتها تجريبية ومعلَّمة فلا تظهر في الموقع العام، وكل دخول إليها يُسجَّل في سجل التدقيق. حسابات القيادات ترى بيانات المنصة كما يراها أصحابها الحقيقيون، فتعامل معها بعناية.',
     emptyTitle: 'جهّز حسابات العرض', emptyText: 'تُنشأ عشرة حسابات وأربعة برامج تجريبية: برنامج يجري هذا الأسبوع، وآخر مكتمل بتقييماته، وثالث قادم فيه طلب بانتظار الاعتماد، ومسودة لدى التخطيط. كلمات المرور عشوائية لا يعرفها أحد.',
     create: 'إنشاء الحسابات التجريبية', refresh: 'إعادة ضبط البيانات', created: 'أُنشئت الحسابات التجريبية', refreshed: 'أُعيدت البيانات التجريبية إلى بدايتها',
     groups: { leadership: 'القيادات', supervision: 'الإشراف', training: 'التدريب', learners: 'المتدرّبون' },
@@ -48,7 +48,9 @@ export const mgmtAr = {
     appNote: 'تظهر كلمة المرور هذه مرة واحدة. كل طلب جديد ينشئ كلمة أخرى ويُلغي السابقة.',
     programs: 'برامج العرض', programsHint: 'برامج داخلية لا تظهر في الموقع العام، تتحرك تواريخها مع اليوم عند إعادة الضبط.', trainees: 'المتدرّبون: {{count}}',
     removeTitle: 'حذف الحسابات والبيانات التجريبية', removeText: 'يحذف الحسابات العشرة وبرامجها وجلساتها وتسجيلاتها وحضورها وتقييماتها وإشعاراتها، ولا يمسّ أي بيانات حقيقية.',
-    publicTitle: 'على صفحة تسجيل الدخول', publicText: 'المشرفون والمدرّبون والمتدرّبون بضغطة واحدة لأي زائر، على الموقع وفي التطبيق. حسابات القيادات لا تظهر هناك أبداً لأنها ترى بيانات الموظفين الحقيقية.',
+    leadTitle: 'حسابات القيادة على صفحة الدخول (برمز)', leadText: 'مدير النظام ورئيس المركز ورئيسا التدريب والتخطيط يرون بيانات المنصة الحقيقية، فلا يظهر لهم زر مفتوح للجميع: يكتب الزائر رمز العرض ثم يضغط حساباً. أعطِ الرمز لمن تريد وغيّره متى شئت؛ كل دخول به مسجَّل في سجل التدقيق.',
+    leadCode: 'رمز العرض', leadNew: 'رمز جديد', leadNewConfirm: 'إنشاء رمز جديد؟ يبطل الرمز الحالي فوراً.', leadNewDone: 'أُنشئ رمز جديد', leadOn: 'فُعِّل قفل القيادات برمز', leadOff: 'أُوقفت حسابات القيادة على صفحة الدخول',
+    publicTitle: 'على صفحة تسجيل الدخول', publicText: 'المشرفون والمدرّبون والمتدرّبون بضغطة واحدة لأي زائر، على الموقع وفي التطبيق. حسابات القيادات لا تظهر هناك إلا خلف رمز العرض (في البطاقة التالية)، لأنها ترى بيانات الموظفين الحقيقية.',
     publicOn: 'تظهر الحسابات الآن على صفحة الدخول', publicOff: 'أُخفيت الحسابات من صفحة الدخول', onSignIn: 'على صفحة الدخول',
     remove: 'حذف الكل', removeConfirm: 'حذف الحسابات التجريبية العشرة وكل بياناتها نهائياً؟', removed: 'حُذفت الحسابات والبيانات التجريبية',
   },
@@ -328,7 +330,7 @@ export const mgmtEn: MgmtStrings = {
 
   showcase: {
     subtitle: 'A ready account for each role (system administrator, head of the training centre, head of training, head of planning, two supervisors, two trainers and two trainees) around a sample training story, for showing the platform on the web and in the app.',
-    notice: 'These accounts work on the live system, and only you, as system administrator, can open the leadership accounts. Their data is sample data, marked so it never reaches the public website, and every opening is written to the audit log. The leadership accounts see the platform’s data as their real holders do, so handle them with care.',
+    notice: 'These accounts work on the live system, and only you, as system administrator, or whoever has the showcase code, can open the leadership accounts. Their data is sample data, marked so it never reaches the public website, and every opening is written to the audit log. The leadership accounts see the platform’s data as their real holders do, so handle them with care.',
     emptyTitle: 'Prepare the showcase accounts', emptyText: 'Ten accounts and four sample programmes are created: one running this week, one finished with its evaluations, one coming up with a registration awaiting approval, and a draft with planning. Passwords are random and known to nobody.',
     create: 'Create the showcase accounts', refresh: 'Reset the sample data', created: 'The showcase accounts were created', refreshed: 'The sample data is back at its starting point',
     groups: { leadership: 'Leadership', supervision: 'Supervision', training: 'Training', learners: 'Trainees' },
@@ -350,7 +352,9 @@ export const mgmtEn: MgmtStrings = {
     appNote: 'This password is shown once. Each new request creates another one and cancels the previous one.',
     programs: 'Showcase programmes', programsHint: 'Internal programmes that never appear on the public website; their dates move with today when you reset.', trainees: '{{count}} trainees',
     removeTitle: 'Remove the showcase accounts and data', removeText: 'Removes the ten accounts with their programmes, sessions, registrations, attendance, evaluations and notifications. Real data is never touched.',
-    publicTitle: 'On the sign-in page', publicText: 'Supervisors, trainers and trainees in one tap for any visitor, on the website and in the app. The leadership accounts never appear there, because they see real staff data.',
+    leadTitle: 'Leadership accounts on the sign-in page (with a code)', leadText: 'The system administrator, the head of the centre and the heads of training and planning see the platform’s real data, so there is no open button for them: the visitor types the showcase code, then taps an account. Give the code to whoever you like and change it whenever you want; every sign-in with it is written to the audit log.',
+    leadCode: 'Showcase code', leadNew: 'New code', leadNewConfirm: 'Make a new code? The current one stops working at once.', leadNewDone: 'A new code was made', leadOn: 'The leadership accounts are on, behind the code', leadOff: 'The leadership accounts are off the sign-in page',
+    publicTitle: 'On the sign-in page', publicText: 'Supervisors, trainers and trainees in one tap for any visitor, on the website and in the app. The leadership accounts appear there only behind the showcase code (the next card), because they see real staff data.',
     publicOn: 'The accounts now appear on the sign-in page', publicOff: 'The accounts were hidden from the sign-in page', onSignIn: 'On the sign-in page',
     remove: 'Remove all', removeConfirm: 'Permanently remove the ten showcase accounts and all their data?', removed: 'The showcase accounts and data were removed',
   },
