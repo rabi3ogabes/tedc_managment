@@ -156,3 +156,12 @@ body { text-rendering: optimizeLegibility; }
 .wf-pulse { animation: wf-pulse 2.2s ease-in-out infinite; }
 .wf-ping { transform-box: fill-box; transform-origin: center; animation: wf-ping 2s cubic-bezier(.2, .6, .3, 1) infinite; }
 @media (prefers-reduced-motion: reduce) { .wf-flow, .wf-pulse, .wf-ping { animation: none; } }
+
+/* Help window: slides in from the end side (the left in Arabic), exits a little faster. */
+@keyframes help-in-ltr { from { transform: translateX(100%); } }
+@keyframes help-in-rtl { from { transform: translateX(-100%); } }
+@keyframes help-scrim-in { from { opacity: 0; } }
+.help-drawer { animation: help-in-ltr 300ms cubic-bezier(.22, 1, .36, 1) both; }
+[dir="rtl"] .help-drawer { animation-name: help-in-rtl; }
+.help-scrim { animation: help-scrim-in 220ms cubic-bezier(.22, 1, .36, 1) both; }
+@media (prefers-reduced-motion: reduce) { .help-drawer, .help-scrim { animation-duration: 1ms; } }

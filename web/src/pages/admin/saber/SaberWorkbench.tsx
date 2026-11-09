@@ -1,12 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
 import {
-  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Database, UsersRound, Map as MapIcon, Plus, Rows3, Search, Settings2, SlidersHorizontal, UserRound,
+  Ban, BookOpen, CalendarCheck2, CalendarClock, CalendarOff, CalendarRange, CalendarDays, ChevronDown, ChevronsDownUp, ChevronsUpDown, DoorOpen, ExternalLink, FilterX, GraduationCap, Info, LayoutGrid, Database, UsersRound, Map as MapIcon, Ellipsis, PanelTop, Plus, Rows3, Search, Settings2, SlidersHorizontal, Sparkles, UserRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Empty, ErrorState, Modal, PageHeader, StatCard } from '@/components/ui'
+import { HelpTip } from '@/components/help/PageHelp'
+import ActionMenu, { type MenuAction } from '@/components/ui/ActionMenu'
+import { Segmented } from '@/components/ui/Segmented'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -47,6 +50,8 @@ export default function SaberWorkbench() {
   const [search, setSearch] = useState('')
   const [tools, setTools] = useState<Tools>(() => store.get('saber.tools', ALL_TOOLS))
   const [view, setView] = useState<'rows' | 'cards'>(() => store.get('saber.view', { v: 'rows' as 'rows' | 'cards' }).v)
+  // Two ways to move around the page, switched from the page itself and remembered on this device: the tab bar with every button in the header (classic), or a segmented switch with the rest of the actions in one menu (modern).
+  const [nav, setNav] = useState<'classic' | 'modern'>(() => store.get('saber.nav', { v: 'classic' as 'classic' | 'modern' }).v)
   const [open, setOpen] = useState<Set<string>>(new Set())
   const [toolsOpen, setToolsOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -66,6 +71,7 @@ export default function SaberWorkbench() {
   useEffect(() => { const id = setTimeout(() => setFilters((f) => (f.q === search ? f : { ...f, q: search, page: 1 })), 300); return () => clearTimeout(id) }, [search])
   useEffect(() => store.set('saber.tools', tools), [tools])
   useEffect(() => store.set('saber.view', { v: view }), [view])
+  useEffect(() => store.set('saber.nav', { v: nav }), [nav])
 
   const overview = useGet<{ data: Overview }>('/admin/saber/overview', undefined, { staleTime: 60_000 })
   const params = useMemo(() => ({
@@ -97,12 +103,31 @@ export default function SaberWorkbench() {
   }
   const closeInbox = () => { setInboxOpen(false); if (params0.has('inbox')) { params0.delete('inbox'); setParams0(params0, { replace: true }) } }
 
+  const sections = [['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon], ['supervisors', t('saber.tabs.supervisors'), UsersRound], ['data', t('saber.tabs.data'), Database]] as const
+  const pending = !!ov?.offday_pending && <span className="grid min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[11px] font-bold leading-5 text-white">{ov.offday_pending}</span>
+  const moreActions = ([
+    tools.plan && ov?.can['saber.plan.view'] ? { id: 'plan', label: t('saber.plan.open'), icon: <CalendarRange className="size-4" />, onSelect: () => setPlan('new') } : null,
+    tools.cancel ? { id: 'cancel', label: t('saber.cancel.open'), icon: <Ban className="size-4" />, onSelect: () => setCancel('new') } : null,
+    tools.inbox ? { id: 'inbox', label: t('saber.offday.open'), icon: <CalendarClock className="size-4" />, badge: pending || undefined, onSelect: () => setInboxOpen(true) } : null,
+    tools.weekly ? { id: 'weekly', label: t('saber.weekly.open'), icon: <CalendarOff className="size-4" />, onSelect: () => setWeeklyOpen(true) } : null,
+    { id: 'tools', label: t('saber.tools.title'), icon: <SlidersHorizontal className="size-4" />, onSelect: () => setToolsOpen(true) },
+    ov?.can['settings.manage'] ? { id: 'settings', label: t('saber.settings.title'), icon: <Settings2 className="size-4" />, onSelect: () => setSettingsOpen(true) } : null,
+  ] as (MenuAction | null)[]).filter((a): a is MenuAction => a !== null)
+
   if (overview.isError || list.isError) return <ErrorState error={overview.error ?? list.error} onRetry={() => { overview.refetch(); list.refetch() }} />
 
   return (
     <SaberActionsContext.Provider value={actions}>
     <div className="space-y-5 pb-8">
-      <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={
+      <PageHeader title={<span className="flex items-center gap-2">{t('saber.title')}<span className="rounded-full bg-gold-100 px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-800">PLUS</span></span>} subtitle={t('saber.subtitle')} actions={nav === 'modern' ? (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {(tab === 'calendar' || tab === 'map') && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
+          {tab === 'programs' && ov?.can['saber.program.create'] && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} onClick={() => setNewProgram(true)}>{t('saber.newProgram')}</Button>}
+          <ActionMenu title={t('saber.navmode.moreTitle')} label={t('saber.navmode.more')} icon={<Ellipsis className="size-4" />}
+            badge={!!ov?.offday_pending && tools.inbox && <span className="grid min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[11px] font-bold leading-5 text-white">{ov.offday_pending}</span>}
+            actions={moreActions} />
+        </div>
+      ) : (
         <div className="flex flex-wrap items-center justify-end gap-2">
           {(tab === 'calendar' || tab === 'map') && (ov?.can['rooms.book'] || ov?.can['saber.program.create'] || ov?.can['rooms.manage']) && <Button variant="gold" size="sm" icon={<Plus className="size-4" />} disabled={!month.data} onClick={() => setMeeting({})}>{t('saber.meeting.open')}</Button>}
           {tab === 'programs' && ov?.can['saber.program.create'] && <Button variant="outline" size="sm" icon={<Plus className="size-4" />} onClick={() => setNewProgram(true)}>{t('saber.newProgram')}</Button>}
@@ -116,7 +141,7 @@ export default function SaberWorkbench() {
           {tools.weekly && <Button variant="outline" size="sm" icon={<CalendarOff className="size-4" />} onClick={() => setWeeklyOpen(true)}>{t('saber.weekly.open')}</Button>}
           <Button variant="outline" size="sm" icon={<SlidersHorizontal className="size-4" />} onClick={() => setToolsOpen(true)}>{t('saber.tools.title')}</Button>
           {ov?.can['settings.manage'] && <Button variant="outline" size="sm" icon={<Settings2 className="size-4" />} onClick={() => setSettingsOpen(true)}>{t('saber.settings.title')}</Button>}
-        </div>} />
+        </div>)} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {ov ? <>
@@ -135,13 +160,28 @@ export default function SaberWorkbench() {
         </div>
       )}
 
+      <div className="flex flex-wrap items-center gap-3">
+      <div className="min-w-0 flex-1 basis-80">
+      {nav === 'modern' ? (
+        <Segmented label={t('saber.title')} value={tab} onChange={setTab} options={sections.map(([id, label, Icon]) => ({ value: id, label, icon: <Icon className="size-4" /> }))} />
+      ) : (
       <div className="flex gap-1 overflow-x-auto rounded-2xl border border-navy-100 bg-white p-1 shadow-sm" role="tablist">
-        {([['programs', t('saber.tabs.programs'), BookOpen], ['calendar', t('saber.tabs.calendar'), CalendarDays], ['map', t('saber.tabs.map'), MapIcon], ['supervisors', t('saber.tabs.supervisors'), UsersRound], ['data', t('saber.tabs.data'), Database]] as const).map(([id, label, Icon]) => (
+        {sections.map(([id, label, Icon]) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
             className={clsx('flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold transition', tab === id ? 'bg-navy-900 text-white shadow' : 'text-slate-500 hover:bg-ivory hover:text-navy-900')}>
             <Icon className="size-4" />{label}
           </button>
         ))}
+      </div>
+      )}
+      </div>
+      <div role="group" aria-label={t('saber.navmode.style')} className="inline-flex shrink-0 rounded-xl border border-navy-100 bg-white p-1 shadow-sm">
+        {([['classic', t('saber.navmode.classic'), PanelTop], ['modern', t('saber.navmode.modern'), Sparkles]] as const).map(([id, label, Icon]) => (
+          <button key={id} type="button" aria-pressed={nav === id} title={t('saber.navmode.style')} onClick={() => setNav(id)}
+            className={clsx('inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500', nav === id ? 'bg-gold-100 text-gold-800' : 'text-slate-500 hover:text-navy-900')}><Icon className="size-3.5" />{label}</button>
+        ))}
+      </div>
+      <HelpTip slug="saber-navigation" />
       </div>
 
       {tab === 'calendar' && (month.data && ov

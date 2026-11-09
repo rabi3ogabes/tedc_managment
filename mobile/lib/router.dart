@@ -45,6 +45,8 @@ import 'features/security/unlock_screen.dart';
 import 'features/shell/app_nav_bar.dart';
 import 'features/shell/home_shell.dart';
 import 'features/profile/approvals_screen.dart';
+import 'features/attendance/roll_call_screen.dart';
+import 'features/team/team_screen.dart';
 import 'features/profile/my_qr_screen.dart';
 import 'features/profile/assignments_screen.dart';
 import 'features/profile/needs_screen.dart';
@@ -92,6 +94,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
           GoRoute(path: '/my-qr', builder: (_, _) => const MyQrScreen()),
           GoRoute(path: '/approvals', builder: (_, _) => const ApprovalsScreen()),
+          GoRoute(path: '/team', builder: (_, _) => const TeamScreen()),
+          GoRoute(path: '/roll-call/:id', builder: (_, s) => RollCallScreen(sessionId: s.pathParameters['id']!)),
           GoRoute(path: '/my-needs', builder: (_, _) => const NeedsScreen()),
           GoRoute(path: '/my-assessments', builder: (_, _) => const AssessmentsScreen()),
           GoRoute(path: '/my-evaluations', builder: (_, _) => const EvaluationsScreen()),

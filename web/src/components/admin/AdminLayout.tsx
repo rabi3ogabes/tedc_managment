@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
 import HelpButton from '@/components/help/HelpButton'
+import { HelpProvider } from '@/components/help/HelpProvider'
 import TourHost from '@/components/help/TourHost'
 import AssignmentPopup from '@/components/teaching/AssignmentPopup'
 import ReportProblem from './ReportProblem'
@@ -243,6 +244,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   }
 
   return (
+    <HelpProvider portal={portal}>
     <div className="flex min-h-screen bg-ivory">
       <GlobalSearch functions={functions} open={searchOpen} onClose={() => setSearchOpen(false)} />
       <div className="fixed inset-y-0 start-0 z-30 hidden lg:block" onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} onFocus={() => setHovering(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHovering(false) }}>{renderSidebar(!expanded, false)}</div>
@@ -301,6 +303,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         <footer className="border-t border-navy-100/70 px-4 py-3 text-center text-[11px] text-slate-400 sm:px-8"><VersionStamp /></footer>
       </div>
     </div>
+    </HelpProvider>
   )
 }
 

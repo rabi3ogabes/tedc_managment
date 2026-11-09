@@ -56,6 +56,32 @@ class HelpCentreTest extends TestCase
         $this->asUser($trainee)->getJson('/api/v1/me/help/articles/register-for-a-program')->assertOk()->assertJsonPath('data.slug', 'register-for-a-program');
     }
 
+    /** The ⓘ beside a page title is driven by the articles linked to the page: write one, link the page, and it appears (no code per page). */
+    public function test_the_help_beside_a_page_title_follows_the_articles_linked_to_that_page(): void
+    {
+        $admin = $this->makeUser(Role::CENTER_ADMIN);
+        $trainee = $this->makeUser(Role::EMPLOYEE);
+
+        // SABER+ ships with its own article, for the people whose role opens the page, and the explanation of its two navigations for the ⓘ beside the switch.
+        $page = $this->asUser($admin)->getJson('/api/v1/me/help/articles?route=/saber')->assertOk()->json('data');
+        $this->assertSame(['saber-workbench'], array_column($page, 'slug'));
+        $this->assertNotSame('', $this->asUser($admin)->getJson('/api/v1/me/help/articles/saber-navigation')->assertOk()->json('data.body_en'));
+        $this->assertSame([], $this->asUser($trainee)->getJson('/api/v1/me/help/articles?route=/saber')->assertOk()->json('data'));
+
+        // The super administrator writes help for another page in both languages; it is found for that page once published, never before, and goes when deleted.
+        $super = $this->makeUser(Role::SUPER_ADMIN);
+        $made = $this->asUser($super)->postJson('/api/v1/admin/help/articles', [
+            'slug' => 'rooms-map-help', 'title_ar' => 'خريطة القاعات', 'title_en' => 'The room map', 'body_ar' => '<p>اضغط على القاعة.</p>', 'body_en' => '<p>Tap a room.</p>',
+            'roles' => [], 'module' => 'general', 'status' => 'draft', 'related_routes' => ['/room-map'],
+        ])->assertCreated();
+        $this->assertSame([], $this->asUser($trainee)->getJson('/api/v1/me/help/articles?route=/room-map')->json('data'));
+        $this->asUser($super)->putJson('/api/v1/admin/help/articles/'.$made->json('data.id'), ['status' => 'published'])->assertOk();
+        $found = $this->asUser($trainee)->getJson('/api/v1/me/help/articles?route=/room-map')->assertOk()->json('data');
+        $this->assertSame(['rooms-map-help'], array_column($found, 'slug'));
+        $this->asUser($super)->deleteJson('/api/v1/admin/help/articles/'.$made->json('data.id'))->assertOk();
+        $this->assertSame([], $this->asUser($trainee)->getJson('/api/v1/me/help/articles?route=/room-map')->json('data'));
+    }
+
     public function test_search_ranks_title_matches_first_in_both_languages(): void
     {
         $user = $this->makeUser(Role::EMPLOYEE);

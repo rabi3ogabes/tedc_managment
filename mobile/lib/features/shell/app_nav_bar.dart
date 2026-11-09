@@ -15,9 +15,9 @@ int tabIndexFor(String location) {
   for (var i = 0; i < appTabs.length; i++) {
     if (location == appTabs[i] || location.startsWith('${appTabs[i]}/')) return i;
   }
-  const training = ['/sessions', '/registrations', '/courses', '/lessons', '/tasks', '/surveys', '/my-program', '/scan'];
+  const training = ['/sessions', '/registrations', '/courses', '/lessons', '/tasks', '/surveys', '/my-program', '/scan', '/roll-call'];
   if (training.any((p) => location == p || location.startsWith('$p/'))) return 2;
-  if (location.startsWith('/account') || location.startsWith('/assignments') || location.startsWith('/my-needs') || location.startsWith('/approvals') || location.startsWith('/my-qr') || location.startsWith('/school') || location.startsWith('/needs-surveys')) return 4;
+  if (location.startsWith('/account') || location.startsWith('/assignments') || location.startsWith('/my-needs') || location.startsWith('/approvals') || location.startsWith('/team') || location.startsWith('/my-qr') || location.startsWith('/school') || location.startsWith('/needs-surveys')) return 4;
   return 0;   // notifications and anything else belong to home
 }
 

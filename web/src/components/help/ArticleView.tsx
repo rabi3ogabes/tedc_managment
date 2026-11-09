@@ -7,7 +7,7 @@ import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 import { safeHtml } from '@/lib/safeHtml'
 import { toast } from '@/lib/toast'
-import { useLang, type HelpArticle } from './helpApi'
+import { HELP_BODY_CLASS, useLang, type HelpArticle } from './helpApi'
 
 /** One article: the text, screenshots, the video and the «was this helpful?» question. */
 export default function ArticleView({ slug }: { slug: string }) {
@@ -34,7 +34,7 @@ export default function ArticleView({ slug }: { slug: string }) {
     <article className="space-y-4">
       <h2 className="text-xl font-bold text-navy-900">{pick(a, 'title')}</h2>
       <p className="text-xs text-slate-500">{t('hlp.version')} {a.version}{a.updated_at ? ` · ${t('hlp.updated')}: ${fmt.date(a.updated_at)}` : ''}</p>
-      <div className="help-body space-y-3 leading-8 text-slate-800 [&_blockquote]:border-s-4 [&_blockquote]:border-gold-500 [&_blockquote]:bg-ivory [&_blockquote]:px-3 [&_blockquote]:py-1 [&_h3]:pt-2 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-navy-900 [&_li]:ms-1 [&_ol]:list-decimal [&_ol]:ps-6 [&_ul]:list-disc [&_ul]:ps-6" dangerouslySetInnerHTML={{ __html: body }} />
+      <div className={HELP_BODY_CLASS} dangerouslySetInnerHTML={{ __html: body }} />
       {(a.screenshots?.length ?? 0) > 0 && (
         <div className="space-y-3">
           <h3 className="font-bold text-navy-900">{t('hlp.shots')}</h3>
