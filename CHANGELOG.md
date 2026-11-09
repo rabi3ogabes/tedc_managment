@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-09 — Athar Qatar server: the health route answers once the routes are cached; runbook gets the test-mode settings
+`/up` answered 500 on the Athar Qatar server (every other page worked): its two functions shared one line, and after `php artisan optimize` caches the routes the serialiser picked the outer one, which returned a route object instead of the answer. They are on separate lines now. `docs/DEPLOY-ATHAR.md` gains the **test mode** settings (demo site, demo data, local sign-in and storage, the Test accounts feature) with how to create the demo data from the panel and what to revert before the live data is restored, and says where the PostgreSQL PHP extension is switched on for the site.
 ### 2026-11-09 — Ready to run on the Athar Qatar server (tedc.atharqatar.net)
 `scripts/build-release.sh` builds the folder the server runs — the Laravel app at the root with the built web app in `public/` — and the new **Release for Athar** workflow publishes it to the `release/athar` branch on every change to `main`; the server's panel deploys from that branch (`docs/DEPLOY-ATHAR.md`). The PostgreSQL connection also reads the panel's own `PG_DB_*` variable names (they win when present; nothing changes elsewhere).
 ### 2026-11-09 — Home page «رحلة تدريبية داخل المركز»: both floors on stage together, a journey rail, a glowing stairway
