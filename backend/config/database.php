@@ -87,11 +87,12 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            // The Athar Qatar server's panel names a site's PostgreSQL settings PG_DB_* (its first database is MariaDB), so those win when present.
+            'host' => env('PG_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('PG_DB_PORT', env('DB_PORT', '5432')),
+            'database' => env('PG_DB_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('PG_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('PG_DB_PASSWORD', env('DB_PASSWORD', '')),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

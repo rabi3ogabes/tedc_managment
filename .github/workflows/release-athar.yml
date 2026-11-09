@@ -1,0 +1,39 @@
+name: Release for Athar
+
+# Builds what the Athar Qatar server runs (the backend with the built web app in public/) and publishes it to the
+# `release/athar` branch, which the server's panel deploys from (docs/DEPLOY-ATHAR.md).
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'web/**', 'scripts/build-release.sh', '.github/workflows/release-athar.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-athar
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build the release folder
+        run: bash scripts/build-release.sh release-out
+      - name: Publish it to release/athar
+        run: |
+          cd release-out
+          git init -q -b release/athar
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Release ${GITHUB_SHA::7} (built from main)"
+          git push -q --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" release/athar
