@@ -65,6 +65,7 @@ Lands on the portal. Sees his own staff and approves their training. No admin da
 | Impact | view impact, give the supervisor's evaluation (`impact.view`, `impact.supervise`) |
 | Surveys | see surveys and their results (`surveys.view`, `surveys.results`) |
 | Search | global search |
+| App | **My team** (his people and the programmes they finished, with the impact evaluation), approving registrations and individual needs. Requesting programmes for staff and survey results are on the web dashboard. |
 
 ```mermaid
 flowchart LR
@@ -91,7 +92,7 @@ Lands on **My programmes**. Sees only programmes he teaches.
 | Learning | review AI feedback drafts; adaptive-learning rules (`ai.feedback.review`, `adaptive.manage`) |
 | Communities | create professional communities; see PLC workshops (`communities.create`, `plc.view`) |
 | Surveys / library / search | survey results; digital library; global search |
-| App | the session page with the room map, the programme kit (read-only), attendance |
+| App | today's sessions, **roll call** of the trainees (present / late / absent / excused, or everyone present), the room map, the programme kit (read-only), his own check-in. Reviewing task hand-ins and grading assessments is on the web dashboard. |
 
 ```mermaid
 flowchart LR
@@ -146,3 +147,14 @@ flowchart LR
 ```
 
 The role/right counts above are read from the seeded catalogue; re-check them after a change with `php artisan test --filter=RolesCatalogueTest`.
+
+## What each interface offers
+
+| Role | Web dashboard | Mobile app |
+|---|---|---|
+| System administrator | everything above | overview tiles, today's centre sessions, and links into the web dashboard (the other tabs say the account has no trainee profile) |
+| Supervisor | portal + approvals | portal, **My team**, approvals, needs |
+| Trainer | programmes, teaching desk, attendance, tasks, assessments, question banks | today's sessions, **roll call**, room map, kit, own check-in |
+| Trainee | portal | every trainee screen |
+
+The ⓘ beside a page title opens help written for that page (Settings → Help articles).

@@ -103,6 +103,17 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const _AssignmentsEntry(),
               const _ApprovalsEntry(),
+              if (me?.can('impact.supervise') ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListTile(
+                    tileColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    leading: Icon(Icons.groups_2_outlined, color: AppColors.gold500),
+                    title: Text(context.tr('team.title'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    onTap: () => context.push('/team'),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: ListTile(

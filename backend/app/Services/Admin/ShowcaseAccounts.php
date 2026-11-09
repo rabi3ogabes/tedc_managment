@@ -15,6 +15,8 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Models\School;
 use App\Models\SiteSetting;
+use App\Models\Task;
+use App\Models\TaskSubmission;
 use App\Models\Trainer;
 use App\Models\User;
 use App\Support\Supabase;
@@ -266,6 +268,8 @@ class ShowcaseAccounts
             $programs = Program::where('code', 'like', self::PREFIX.'-%')->get();
             foreach ($programs as $program) {
                 $registrations = Registration::where('program_id', $program->id)->pluck('id');
+                DB::table('task_submissions')->whereIn('registration_id', $registrations)->delete();
+                DB::table('tasks')->where('program_id', $program->id)->delete();
                 Evaluation::whereIn('registration_id', $registrations)->delete();
                 Attendance::whereIn('registration_id', $registrations)->delete();
                 Registration::whereIn('id', $registrations)->delete();
@@ -406,6 +410,19 @@ class ShowcaseAccounts
         foreach (['trainee-1' => [], 'trainee-2' => [1]] as $key => $absent) {
             $registration = $this->enrol($running, $employees[$key], Registration::STATUS_APPROVED);
             $this->attend($running, $registration, $absent);
+        }
+        // A task for the running programme: the first trainee has handed in his work (waiting for the trainer's review), the second has not yet.
+        $task = Task::updateOrCreate(['program_id' => $running->id, 'title_en' => 'Plan a lesson with formative assessment'], [
+            'title_ar' => 'خطّة درس بتقويم تكويني', 'instructions_ar' => 'اكتب خطة درس من صفحة واحدة تتضمن نشاطاً تقويمياً قصيراً وكيف ستستفيد من نتيجته.',
+            'instructions_en' => 'Write a one-page lesson plan with a short assessment activity and how you will use its result.', 'due_at' => $today->copy()->addDays(4)->setTime(15, 0),
+            'submission_types' => ['text'], 'is_required' => true, 'created_by' => $trainers['trainer-1']->user_id,
+        ]);
+        $handedIn = Registration::where('program_id', $running->id)->where('employee_id', $employees['trainee-1']->id)->first();
+        if ($handedIn) {
+            TaskSubmission::updateOrCreate(['task_id' => $task->id, 'registration_id' => $handedIn->id], [
+                'employee_id' => $employees['trainee-1']->id, 'status' => 'submitted',
+                'text_response' => 'الهدف: أن يميّز الطالب بين الجمع والطرح. النشاط: بطاقات خروج من ثلاثة أسئلة في آخر خمس دقائق، وأعدّل الحصة القادمة وفق النتيجة.',
+            ]);
         }
         // Last month: completed and evaluated.
         foreach (['trainee-1' => [5, 5, 4, 5, 5], 'trainee-2' => [4, 5, 4, 4, 5]] as $key => $ratings) {

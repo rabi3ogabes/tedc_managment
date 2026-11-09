@@ -200,7 +200,10 @@ class TodaySessions extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Card(
-              child: Padding(
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: trainer && x.str('id').isNotEmpty ? () => context.push('/roll-call/${x.str('id')}') : null,
+                child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(children: [
                   Container(
@@ -244,12 +247,13 @@ class TodaySessions extends StatelessWidget {
                   ),
                 ]),
               ),
+              ),
             ),
           ),
       if (trainer && sessions.isNotEmpty)
         FilledButton.icon(
-          onPressed: () => context.push('/scan?trainer=1'),
-          icon: const Icon(Icons.qr_code_scanner),
+          onPressed: () => context.push('/roll-call/${sessions.first.str('id')}'),
+          icon: const Icon(Icons.fact_check_outlined),
           label: Text(s.t('role.rollCall')),
         ),
     ]);

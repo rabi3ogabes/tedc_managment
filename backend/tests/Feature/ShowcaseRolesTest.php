@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Program;
+use App\Models\ProgramSession;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\ShowcaseAccounts;
@@ -98,6 +99,26 @@ class ShowcaseRolesTest extends TestCase
         ]);
         $mine = $this->asUser($this->account('trainee-1'))->getJson('/api/v1/me/registrations')->assertOk()->json('data');
         $this->assertGreaterThanOrEqual(3, count($mine), 'the running, the finished and the upcoming sample programme');
+    }
+
+    /** The app's roll call and «my team» screens use these: a trainer reads and marks his own session; a supervisor evaluates his people. */
+    public function test_the_trainer_takes_attendance_of_his_session_and_the_supervisor_evaluates_his_people(): void
+    {
+        $trainer = $this->account('trainer-1');
+        $session = ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'like', ShowcaseAccounts::PREFIX.'-%'))->where('trainer_id', $trainer->trainer->id)->orderBy('starts_at')->first()
+            ?? ProgramSession::whereHas('program', fn ($q) => $q->where('code', 'like', ShowcaseAccounts::PREFIX.'-%'))->orderBy('starts_at')->firstOrFail();
+
+        $report = $this->asUser($trainer)->getJson("/api/v1/admin/sessions/{$session->id}/attendance")->assertOk()->json('data');
+        $this->assertGreaterThan(0, $report['expected'], 'the sample programme has trainees to call the roll of');
+        $this->assertNotEmpty($report['rows'][0]['registration_id']);
+        $this->assertContains($report['rows'][0]['status'], ['present', 'late', 'absent', 'excused']);
+
+        // The other demo trainer, who does not teach it, is refused.
+        $this->asUser($this->account('trainer-2'))->getJson("/api/v1/admin/sessions/{$session->id}/attendance")->assertForbidden();
+
+        // The supervisor's people and the programmes they finished, ready to evaluate.
+        $team = $this->asUser($this->account('supervisor-1'))->getJson('/api/v1/me/team')->assertOk()->json('data');
+        $this->assertNotEmpty(collect($team)->flatMap(fn ($p) => $p['completed'])->all(), 'a finished programme to evaluate');
     }
 
     public function test_the_three_heads_open_what_their_role_runs(): void
