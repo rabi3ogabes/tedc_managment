@@ -4,7 +4,7 @@ const ar = {
     pin: 'تثبيت القائمة بالحجم الكامل', unpin: 'إلغاء التثبيت وتصغير القائمة', collapse: 'تصغير القائمة', expand: 'تكبير القائمة', autoExpand: 'تكبير تلقائي عند التمرير',
     home: 'الرئيسية', about: 'عن المركز', programs: 'البرامج التدريبية', trainers: 'المدربون', calendar: 'التقويم التدريبي',
     map: 'دليل المركز', verify: 'التحقق من الشهادات', news: 'الأخبار والإعلانات', contact: 'تواصل معنا', login: 'تسجيل الدخول', dashboard: 'لوحة التحكم',
-    portal: 'بوابتي التدريبية', logout: 'تسجيل الخروج', language: 'English',
+    supervise: 'الإشراف', myStaff: 'موظفو مدرستك', portal: 'بوابتي التدريبية', logout: 'تسجيل الخروج', language: 'English',
   },
   common: {
     add: 'إضافة', remove: 'إزالة', minutes: 'دقيقة',

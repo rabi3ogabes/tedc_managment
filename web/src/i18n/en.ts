@@ -6,7 +6,7 @@ const en: Dictionary = {
     pin: 'Pin the menu at full size', unpin: 'Unpin and shrink the menu', collapse: 'Shrink the menu', expand: 'Expand the menu', autoExpand: 'Expand on hover',
     home: 'Home', about: 'About', programs: 'Programs', trainers: 'Trainers', calendar: 'Training Calendar',
     map: 'Centre guide', verify: 'Verify Certificate', news: 'News', contact: 'Contact', login: 'Sign in', dashboard: 'Dashboard',
-    portal: 'My Training', logout: 'Sign out', language: 'العربية',
+    supervise: 'Supervision', myStaff: 'Your school\'s staff', portal: 'My Training', logout: 'Sign out', language: 'العربية',
   },
   common: {
     add: 'Add', remove: 'Remove', minutes: 'min',
