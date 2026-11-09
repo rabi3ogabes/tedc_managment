@@ -13,3 +13,6 @@ docs/deliverables/export/
 /web/public/fonts/lusail/*.woff2
 /backend/resources/fonts/*.ttf
 /mobile/assets/fonts/Lusail-*.ttf
+
+# Built by scripts/build-release.sh
+release-out/
