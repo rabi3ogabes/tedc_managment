@@ -101,7 +101,17 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
         ],
-      }]
+      },
+      // Working as a supervisor: his people's requests and needs are one tap away (they used to be reachable only from the administration side, so switching role changed nothing he could see).
+      ...(user?.active_role?.slug === 'supervisor' ? [{
+        id: 'supervise',
+        title: t('nav.supervise'),
+        items: [
+          { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
+          { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
+          { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },
+        ],
+      }] : [])]
     : applyLayout(adminCatalog(t, { errors: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined, chats: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined, requests: requests.data?.data.pending }), menuLayout, i18n.language === 'ar' ? 'ar' : 'en')
 
   const flags = useFeatures().data?.data.flags ?? {}

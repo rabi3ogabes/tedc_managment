@@ -121,6 +121,33 @@ class ShowcaseRolesTest extends TestCase
         $this->assertNotEmpty(collect($team)->flatMap(fn ($p) => $p['completed'])->all(), 'a finished programme to evaluate');
     }
 
+    /** «العمل بدور»: a demo supervisor who is also an employee can work as either, and the switch changes what he sees. */
+    public function test_a_demo_account_with_two_roles_can_switch_between_them(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $token = $this->postJson('/api/v1/public/showcase-accounts/supervisor-1/sign-in')->assertOk()->json('access_token');
+
+        $me = $this->withToken($token)->getJson('/api/v1/auth/me')->assertOk()->json('data');
+        $this->assertCount(2, $me['roles'], 'supervisor and employee');
+        $this->assertCount(2, array_unique(array_column($me['roles'], 'id')), 'each grant has its own id');
+        $this->assertSame('supervisor', $me['active_role']['slug']);
+        $employee = collect($me['roles'])->firstWhere('slug', 'employee');
+
+        $switched = $this->withToken($token)->postJson('/api/v1/auth/active-role', ['role_user_id' => $employee['id']])->assertOk()->json('data');
+        $this->assertSame('employee', $switched['active_role']['slug']);
+        $this->assertNotContains('impact.supervise', $switched['permissions'], 'the employee role has no supervisor rights');
+
+        // The next request, with the header the web sends, runs as the employee; without it the remembered role is used.
+        $this->withToken($token)->withHeaders(['X-Active-Role' => $employee['id']])->getJson('/api/v1/me/team')->assertForbidden();
+        $this->withToken($token)->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('data.active_role.slug', 'employee');
+
+        // And back.
+        $supervisor = collect($me['roles'])->firstWhere('slug', 'supervisor');
+        $this->withToken($token)->postJson('/api/v1/auth/active-role', ['role_user_id' => $supervisor['id']])->assertOk()->assertJsonPath('data.active_role.slug', 'supervisor');
+        $this->withToken($token)->withHeaders(['X-Active-Role' => $supervisor['id']])->getJson('/api/v1/me/team')->assertOk();
+    }
+
     public function test_the_three_heads_open_what_their_role_runs(): void
     {
         $this->expect('centre-head', ['admin/saber/overview', 'admin/programs', 'admin/registrations', 'admin/reports', 'admin/employees', 'admin/users'], ['admin/error-logs', 'admin/showcase-accounts']);
