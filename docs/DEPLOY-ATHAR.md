@@ -33,7 +33,7 @@ push to main ──▶ GitHub Action "Release for Athar" ──▶ branch `relea
 | Deploy command | `php artisan tedc:deploy` |
 | Scheduled task | every minute: `cd /var/www/_sites/tedc-managment/app && php artisan schedule:run --no-interaction` |
 | Database | PostgreSQL `site_tedc_managment_pg` (the panel names its variables `PG_DB_*`; `config/database.php` reads them first) |
-| PHP extensions | `pdo_pgsql` and `pgsql` must be **on for the web PHP** (Software → PHP → 8.5 → Extensions) |
+| PHP extensions | `pdo_pgsql` and `pgsql` must be **on for this website's PHP** (SixPanel → Websites → the site → PHP → Extensions). The command line having them is not enough: without them every API call answers 500 (`could not find driver`). |
 
 Environment (the site's `.env`, edited in the panel): `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `TEDC_WEB_URL` and
 `CORS_ALLOWED_ORIGINS` = `https://tedc.atharqatar.net`, `DB_CONNECTION=pgsql`, `CACHE_STORE=file`, `SESSION_DRIVER=cookie`,
@@ -43,7 +43,27 @@ values, and the secrets **`APP_KEY`**, **`SUPABASE_SECRET_KEY`** and **`CRON_SEC
 > **`APP_KEY` must be the live site's key** before real data is restored: encrypted columns (national ids and others)
 > cannot be read with another key. Anything written under a different key is lost when the live database is restored.
 
+## Test mode (what the site runs with until the live data is moved)
+
+While the site holds only a test database, the login page offers the demo accounts. That needs these settings (the site's
+`.env`) — **all of them are reverted before real data is restored**:
+
+| Setting | Test mode | Real data |
+|---|---|---|
+| `TEDC_DEMO_SITE` | `true` (production mode otherwise never shows demo accounts) | remove / `false` |
+| `TEDC_SEED_DEMO` | `true` | `false` |
+| `TEDC_AUTH_DRIVER` | `local` (the demo accounts have no Supabase sign-in) | `supabase` |
+| `TEDC_STORAGE_DRIVER` | `local` | `supabase` |
+| Feature **Test accounts** (Settings → Features, or `FeatureSettings::set('test_accounts', true, …)`) | on (production keeps it off by default) | off |
+
+Creating the demo data once (as the site's own user, from the site's **Cron jobs** page: add a task, press Run, read the
+output file under `logs/`): `cd /var/www/_sites/tedc-managment/app && TEDC_SEED_DEMO=true php artisan db:seed --force > logs/seed.log 2>&1`.
+The variable is given on the command line because `env()` returns nothing once the configuration is cached
+(`tedc:deploy` runs `optimize`), so the seeder cannot read it from `.env`. It takes a few minutes.
+
 ## Moving the live data (do it once, at a quiet hour)
+
+0. **Leave test mode**: revert the table above (the restore below replaces the whole database, so the demo data goes with it).
 
 1. **Freeze** the old site: stop people using it (an announcement, or switch off sign-in on the old site) so nothing changes
    during the copy.
@@ -85,5 +105,6 @@ Files are untouched by the move; only the database is copied. The Supabase proje
 |---|---|
 | Pages load but `/api/...` and `/up` answer 500; log says `could not find driver` | Switch on `pdo_pgsql` and `pgsql` for the web PHP (see above), then deploy again or reload PHP. |
 | Deploy fails at "Run the deploy commands" | The panel prints the first failing line (a migration, the database connection, a missing variable). |
+| `/up` answers 500 although pages work | Fixed in `bootstrap/app.php` (two closures on one line broke route caching). If it returns after an edit there, keep the closures on separate lines. |
 | Blank page after a deploy | The release has no `public/app.html`: run the Release workflow (or `scripts/build-release.sh`) again. |
 | Scheduled tasks do not run | The site's Cron jobs page shows the last answer of `schedule:run`. |

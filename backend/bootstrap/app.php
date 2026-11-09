@@ -31,7 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         // Liveness probe for load balancers: plain JSON outside the web middleware group
         // (no session, cookies or views), so it answers wherever PHP runs.
-        then: fn () => Route::get('/up', fn () => response()->json(['status' => 'up']))->name('health'),
+        // The two functions must not share a line: once the routes are cached (php artisan optimize) the serialiser
+        // finds a closure by its line, and on one line it picked the outer one, which returned a Route (a 500).
+        then: function () {
+            Route::get('/up', function () {
+                return response()->json(['status' => 'up']);
+            })->name('health');
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Behind Railway's / any load balancer's TLS proxy: trust X-Forwarded-* so URLs are https.
