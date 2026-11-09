@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Empty, ErrorState, Modal, PageHeader, StatCard } from '@/components/ui'
+import { HelpTip } from '@/components/help/PageHelp'
 import ActionMenu, { type MenuAction } from '@/components/ui/ActionMenu'
 import { Segmented } from '@/components/ui/Segmented'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -180,6 +181,7 @@ export default function SaberWorkbench() {
             className={clsx('inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500', nav === id ? 'bg-gold-100 text-gold-800' : 'text-slate-500 hover:text-navy-900')}><Icon className="size-3.5" />{label}</button>
         ))}
       </div>
+      <HelpTip slug="saber-navigation" />
       </div>
 
       {tab === 'calendar' && (month.data && ov

@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Plus, Trash2, Upload } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { useLang } from '@/components/help/helpApi'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
+import RichText from '@/components/ui/RichText'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
 import { toast } from '@/lib/toast'
@@ -21,14 +24,34 @@ export default function HelpArticles() {
   const list = useGet<{ data: any[]; roles: any[] }>('/admin/help/articles', undefined, { staleTime: 0 })
   const stats = useGet<{ data: any[] }>(tab === 'feedback' ? '/admin/help/analytics' : null, undefined, { staleTime: 0 })
 
-  const open = async (id?: string) => {
-    if (!id) { setEditing({ ...blank }); return }
+  const [params, setParams] = useSearchParams()
+  const handled = useRef(false)
+  const open = async (id?: string, preset?: Partial<typeof blank>) => {
+    if (!id) { setEditing({ ...blank, ...preset }); return }
     try {
       const { data } = await api.get(`/admin/help/articles/${id}`)
       const a = data.data
       setEditing({ ...a, related: (a.related_routes ?? []).join('\n'), roles: a.roles ?? [] })
     } catch (e) { toast(errorMessage(e), 'error') }
   }
+
+  // Coming from the ⓘ of a page (new=1&route=…) or from an article being read (edit=<slug>): the editor opens by itself.
+  useEffect(() => {
+    if (handled.current || !list.data) return
+    const route = params.get('route')
+    const edit = params.get('edit')
+    if (params.get('new') === '1' && route) {
+      handled.current = true
+      const slug = route.replace(/^\/+/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'page-help'
+      const taken = list.data.data.some((a) => a.slug === slug)
+      void open(undefined, { slug: taken ? `${slug}-help` : slug, related: route, status: 'published', title_ar: '', title_en: '' })
+    } else if (edit) {
+      handled.current = true
+      const found = list.data.data.find((a) => a.slug === edit)
+      if (found) void open(found.id)
+    } else return
+    setParams({}, { replace: true })
+  }, [list.data]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -72,6 +95,10 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
   const [f, setF] = useState(article)
   const [busy, setBusy] = useState(false)
   const [shot, setShot] = useState({ ar: '', en: '' })
+  const [bodyLang, setBodyLang] = useState<'ar' | 'en'>('ar')
+  const qc = useQueryClient()
+  // What readers see (the ⓘ beside a page title, the help window) is refreshed as soon as an article is saved, deleted or rolled back.
+  const readersSee = () => qc.invalidateQueries({ predicate: (q) => String(q.queryKey[0] ?? '').startsWith('/me/help') })
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }))
   const toggleRole = (slug: string) => set('roles', f.roles.includes(slug) ? f.roles.filter((r: string) => r !== slug) : [...f.roles, slug])
 
@@ -83,12 +110,12 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
         related_routes: String(f.related ?? '').split('\n').map((x) => x.trim()).filter(Boolean), video_url: f.video_url || null,
       }
       if (f.id) await api.put(`/admin/help/articles/${f.id}`, body); else await api.post('/admin/help/articles', body)
-      toast(String(t('hlp.admin.saved'))); onSaved()
+      toast(String(t('hlp.admin.saved'))); void readersSee(); onSaved()
     } catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const remove = async () => {
     if (!await dialogs.confirm(String(t('hlp.admin.confirmDelete')))) return
-    try { await api.delete(`/admin/help/articles/${f.id}`); toast(String(t('hlp.admin.deleted'))); onSaved() } catch (e) { toast(errorMessage(e), 'error') }
+    try { await api.delete(`/admin/help/articles/${f.id}`); toast(String(t('hlp.admin.deleted'))); void readersSee(); onSaved() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const upload = async (kind: 'screenshots' | 'video', file: File | undefined) => {
     if (!file) return
@@ -98,7 +125,7 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
     try { await api.post(`/admin/help/articles/${f.id}/${kind}`, body); setShot({ ar: '', en: '' }); onReload(f.id) } catch (e) { toast(errorMessage(e), 'error') }
   }
   const dropShot = async (i: number) => { try { await api.delete(`/admin/help/articles/${f.id}/screenshots/${i}`); onReload(f.id) } catch (e) { toast(errorMessage(e), 'error') } }
-  const rollback = async (v: number) => { try { await api.post(`/admin/help/articles/${f.id}/rollback/${v}`); toast(String(t('hlp.admin.rolledBack'))); onReload(f.id) } catch (e) { toast(errorMessage(e), 'error') } }
+  const rollback = async (v: number) => { try { await api.post(`/admin/help/articles/${f.id}/rollback/${v}`); toast(String(t('hlp.admin.rolledBack'))); void readersSee(); onReload(f.id) } catch (e) { toast(errorMessage(e), 'error') } }
 
   return (
     <Modal open onClose={onClose} title={f.id ? t('hlp.admin.edit') : t('hlp.admin.new')} wide>
@@ -112,8 +139,17 @@ function Editor({ article, roles, onClose, onSaved, onReload }: { article: any; 
           </div>
           <Field label={t('hlp.admin.titleAr')}><input className="input" dir="rtl" value={f.title_ar} onChange={(e) => set('title_ar', e.target.value)} /></Field>
           <Field label={t('hlp.admin.titleEn')}><input className="input" dir="ltr" value={f.title_en} onChange={(e) => set('title_en', e.target.value)} /></Field>
-          <Field label={t('hlp.admin.bodyAr')}><textarea className="input min-h-48 font-mono text-xs" dir="ltr" lang="ar" value={f.body_ar ?? ''} onChange={(e) => set('body_ar', e.target.value)} /></Field>
-          <Field label={t('hlp.admin.bodyEn')}><textarea className="input min-h-48 font-mono text-xs" dir="ltr" value={f.body_en ?? ''} onChange={(e) => set('body_en', e.target.value)} /></Field>
+          <div className="space-y-2 sm:col-span-2">
+            <div role="tablist" aria-label={t('hlp.admin.bodyAr') + ' / ' + t('hlp.admin.bodyEn')} className="inline-flex rounded-xl bg-ivory p-1 ring-1 ring-navy-100">
+              {(['ar', 'en'] as const).map((k) => (
+                <button key={k} type="button" role="tab" aria-selected={bodyLang === k} onClick={() => setBodyLang(k)}
+                  className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-4 text-sm font-bold transition ${bodyLang === k ? 'bg-white text-navy-900 shadow-sm' : 'text-slate-500 hover:text-navy-900'}`}>
+                  {t(k === 'ar' ? 'hlp.admin.langAr' : 'hlp.admin.langEn')}{!String(k === 'ar' ? f.body_ar : f.body_en).trim() && <span className="size-2 rounded-full bg-rose-500" aria-label="empty" />}
+                </button>
+              ))}
+            </div>
+            <RichText key={bodyLang} dir={bodyLang === 'ar' ? 'rtl' : 'ltr'} label={String(t(bodyLang === 'ar' ? 'hlp.admin.bodyAr' : 'hlp.admin.bodyEn'))} value={(bodyLang === 'ar' ? f.body_ar : f.body_en) ?? ''} onChange={(html) => set(bodyLang === 'ar' ? 'body_ar' : 'body_en', html)} />
+          </div>
           <Field label={t('hlp.admin.routes')}><textarea className="input min-h-24 font-mono text-xs" dir="ltr" value={f.related ?? ''} onChange={(e) => set('related', e.target.value)} placeholder="/programs&#10;/learn/*" /></Field>
           <Field label={t('hlp.admin.videoUrl')}><input className="input" dir="ltr" value={f.video_url ?? ''} onChange={(e) => set('video_url', e.target.value)} placeholder="https://" /></Field>
         </div>

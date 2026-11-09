@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCloseOnBack } from '@/hooks/useCloseOnBack'
 
 export type MenuAction = { id: string; label: ReactNode; icon?: ReactNode; badge?: ReactNode; destructive?: boolean; disabled?: boolean; onSelect: () => void }
 
@@ -10,26 +11,6 @@ function useIsPhone() {
     () => window.matchMedia('(max-width: 767px)').matches,
     () => false,
   )
-}
-
-/** The phone's Back button closes the sheet instead of leaving the page (one history entry while it is open). */
-function useCloseOnBack(open: boolean, close: () => void) {
-  const closeRef = useRef(close)
-  useEffect(() => { closeRef.current = close })
-  useEffect(() => {
-    if (!open) return
-    let pushed = false
-    let popped = false
-    const depth = (((window.history.state as { __menu?: number } | null)?.__menu) ?? 0) + 1
-    const timer = window.setTimeout(() => { window.history.pushState({ ...(window.history.state ?? {}), __menu: depth }, ''); pushed = true }, 0)
-    const onPop = () => { if (pushed && (((window.history.state as { __menu?: number } | null)?.__menu) ?? 0) < depth) { popped = true; closeRef.current() } }
-    window.addEventListener('popstate', onPop)
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('popstate', onPop)
-      if (pushed && !popped && (window.history.state as { __menu?: number } | null)?.__menu === depth) window.history.back()
-    }
-  }, [open])
 }
 
 /**
