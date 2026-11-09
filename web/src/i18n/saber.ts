@@ -90,6 +90,7 @@ export const saberAr = {
     },
   },
   tabs: { programs: 'البرامج والمجموعات', calendar: 'تقويم القاعات', map: 'خريطة القاعات', supervisors: 'المشرفون', data: 'أدوات البيانات' },
+  navmode: { style: 'شكل التنقل', classic: 'كلاسيكي', modern: 'عصري', more: 'المزيد', moreTitle: 'إجراءات سابر+' },
   newProgram: 'برنامج جديد',
   rooms: {
     type: 'نوع القاعة', types: { training: 'قاعة تدريب', meeting: 'قاعة اجتماعات' }, tag: 'الوسم', tagHint: 'مثل: مختبر، VIP، ورشة — يرتب القاعات في التقويم والخريطة.',
@@ -274,6 +275,7 @@ export const saberEn: typeof saberAr = {
     },
   },
   tabs: { programs: 'Programmes & groups', calendar: 'Rooms calendar', map: 'Room map', supervisors: 'Supervisors', data: 'Data tools' },
+  navmode: { style: 'Navigation style', classic: 'Classic', modern: 'Modern', more: 'More', moreTitle: 'SABER+ actions' },
   newProgram: 'New programme',
   rooms: {
     type: 'Room type', types: { training: 'Training room', meeting: 'Meeting room' }, tag: 'Tag', tagHint: 'Such as Lab, VIP, Workshop — orders the rooms in the calendar and the map.',
