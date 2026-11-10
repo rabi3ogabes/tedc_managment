@@ -176,4 +176,21 @@ class AppKeyRotationTest extends TestCase
         $this->artisan('tedc:rotate-app-key', ['--mode' => 'dry', '--new-key' => $this->newKey])->assertSuccessful();   // nothing left to move
         $this->artisan('tedc:rotate-app-key', ['--mode' => 'run', '--new-key' => (string) config('app.key'), '--yes' => true])->assertFailed();
     }
+
+    public function test_a_malformed_new_key_is_explained_without_showing_it(): void
+    {
+        config(['tedc.cron_secret' => 'right-secret']);
+        $headers = ['Authorization' => 'Bearer right-secret'];
+        $bad = base64_encode(random_bytes(32));   // right size, but missing the "base64:" form
+
+        config(['tedc.rotation.new_app_key' => $bad]);
+        $res = $this->postJson('/api/v1/system/rotate-key', ['mode' => 'dry'], $headers)->assertStatus(422);
+        $this->assertStringContainsString('does not start with base64:', (string) $res->json('message'));
+        $this->assertStringNotContainsString($bad, $res->getContent());
+
+        // Quotes or a trailing newline around a good key (as pasted into a hosting panel) are tolerated.
+        config(['tedc.rotation.new_app_key' => '"'.$this->newKey.'"
+']);
+        $this->postJson('/api/v1/system/rotate-key', ['mode' => 'dry'], $headers)->assertOk()->assertJsonPath('data.finished', true);
+    }
 }

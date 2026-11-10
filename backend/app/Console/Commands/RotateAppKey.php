@@ -19,7 +19,7 @@ class RotateAppKey extends Command
     public function handle(): int
     {
         $mode = (string) $this->option('mode');
-        $new = (string) ($this->option('new-key') ?: config('tedc.rotation.new_app_key'));
+        $new = (string) preg_replace('/^[\s"\']+|[\s"\']+$/', '', (string) ($this->option('new-key') ?: config('tedc.rotation.new_app_key')));
         if ($mode === 'verify' && $new === '') {
             $new = (string) config('app.key');
         }
