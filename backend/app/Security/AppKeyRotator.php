@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
+use RuntimeException;
 use stdClass;
 use Throwable;
 
@@ -55,7 +56,13 @@ final class AppKeyRotator
         if ($newKey === '' || ($mode !== 'verify' && hash_equals((string) config('app.key'), $newKey))) {
             throw new InvalidArgumentException('The new key must be set and different from the current APP_KEY.');
         }
-        $this->new = new Encrypter(self::decode($newKey), (string) config('app.cipher'));   // throws when it is not a valid AES-256 key
+        try {
+            $this->new = new Encrypter(self::decode($newKey), (string) config('app.cipher'));
+        } catch (RuntimeException) {
+            // Say what is wrong with the key without ever showing it: its form and size only.
+            $decoded = str_starts_with($newKey, 'base64:') ? strlen((string) base64_decode(substr($newKey, 7), true)) : strlen($newKey);
+            throw new InvalidArgumentException(sprintf('The new key is not a valid AES-256 key: %s, %d characters, %d bytes after decoding (32 bytes are needed). Generate one with "php artisan key:generate --show": it starts with base64: and is 51 characters, with no quotes or spaces.', str_starts_with($newKey, 'base64:') ? 'it starts with base64:' : 'it does not start with base64:', strlen($newKey), $decoded));
+        }
         $this->deadline = microtime(true) + max(5, $seconds);
     }
 

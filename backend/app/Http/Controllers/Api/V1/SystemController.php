@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use InvalidArgumentException;
+use Throwable;
 
 /**
  * Operations for serverless hosting (Vercel), where there is no shell, no long-running scheduler and no
@@ -59,7 +60,7 @@ class SystemController extends Controller
     public function rotateKey(Request $request): JsonResponse
     {
         $this->authorizeSecret($request);
-        $new = (string) config('tedc.rotation.new_app_key');
+        $new = (string) preg_replace('/^[\s"\']+|[\s"\']+$/', '', (string) config('tedc.rotation.new_app_key'));   // a pasted value often carries quotes or a trailing newline
         abort_if($new === '', 404);
         $data = $request->validate(['mode' => ['required', 'in:dry,run,verify'], 'confirm' => ['nullable', 'string'], 'seconds' => ['nullable', 'integer', 'min:5', 'max:240']]);
         abort_if($data['mode'] === 'run' && ($data['confirm'] ?? null) !== 'ROTATE-APP-KEY', 422, 'Confirm with ROTATE-APP-KEY to write.');
@@ -69,6 +70,14 @@ class SystemController extends Controller
             $report = (new AppKeyRotator($new, $data['mode'], (int) ($data['seconds'] ?? 200)))->handle();
         } catch (InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (Throwable $e) {
+            report($e);
+
+            // Names the failure without echoing SQL, bindings or values: the class, the SQLSTATE and the first line of the driver's message.
+            $driver = $e->getPrevious() ?? $e;
+            $line = preg_split('/\R|\(Connection:|LINE \d+:/', $driver->getMessage())[0] ?? '';
+
+            return response()->json(['message' => 'The rotation failed before it finished; nothing further was changed.', 'error' => class_basename($e), 'detail' => mb_substr(trim((string) $line), 0, 200)], 500);
         }
 
         return response()->json(['data' => $report]);
