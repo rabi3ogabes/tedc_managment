@@ -16,6 +16,10 @@ return [
     // Bearer token for /api/v1/system/* (Vercel Cron sends it automatically). Empty disables the endpoints.
     'cron_secret' => env('CRON_SECRET'),
 
+    // The key the platform is being moved to, set ONLY for the duration of an APP_KEY rotation (docs/KEY-ROTATION.md). While it is
+    // empty the rotation endpoint does not exist; remove it again afterwards.
+    'rotation' => ['new_app_key' => env('TEDC_NEW_APP_KEY')],
+
     /*
     | Training calendar. Weekend days use Carbon's numbering (0 = Sunday ... 5 = Friday, 6 = Saturday);
     | Qatar's weekend is Friday and Saturday. Weekends are closed for training unless approved.

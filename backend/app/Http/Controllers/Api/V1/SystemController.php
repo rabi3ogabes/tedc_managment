@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Security\AppKeyRotator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use InvalidArgumentException;
 
 /**
  * Operations for serverless hosting (Vercel), where there is no shell, no long-running scheduler and no
@@ -47,6 +49,29 @@ class SystemController extends Controller
         }
 
         return response()->json(['data' => ['status' => $status === 0 ? 'ok' : 'failed', 'output' => $output]], $status === 0 ? 200 : 500);
+    }
+
+    /**
+     * Moves everything locked with APP_KEY to the key in TEDC_NEW_APP_KEY (see docs/KEY-ROTATION.md). Does not exist while
+     * that variable is empty. `mode` is dry (count only), run (write; needs `confirm` = ROTATE-APP-KEY) or verify.
+     * Answers with counts only; call it again while `finished` is false.
+     */
+    public function rotateKey(Request $request): JsonResponse
+    {
+        $this->authorizeSecret($request);
+        $new = (string) config('tedc.rotation.new_app_key');
+        abort_if($new === '', 404);
+        $data = $request->validate(['mode' => ['required', 'in:dry,run,verify'], 'confirm' => ['nullable', 'string'], 'seconds' => ['nullable', 'integer', 'min:5', 'max:240']]);
+        abort_if($data['mode'] === 'run' && ($data['confirm'] ?? null) !== 'ROTATE-APP-KEY', 422, 'Confirm with ROTATE-APP-KEY to write.');
+        set_time_limit(0);
+
+        try {
+            $report = (new AppKeyRotator($new, $data['mode'], (int) ($data['seconds'] ?? 200)))->handle();
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['data' => $report]);
     }
 
     private function authorizeSecret(Request $request): void
