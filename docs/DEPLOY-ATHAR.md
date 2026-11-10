@@ -42,6 +42,8 @@ values, and the secrets **`APP_KEY`**, **`SUPABASE_SECRET_KEY`** and **`CRON_SEC
 
 > **`APP_KEY` must be the live site's key** before real data is restored: encrypted columns (national ids and others)
 > cannot be read with another key. Anything written under a different key is lost when the live database is restored.
+> Check a key with `php artisan tedc:app-key-check` (counts only). If the live key cannot be read any more (Vercel hides
+> "Sensitive" values), move the data to a new key from the old site instead: `docs/KEY-ROTATION.md`.
 
 ## Test mode (what the site runs with until the live data is moved)
 
@@ -107,4 +109,5 @@ Files are untouched by the move; only the database is copied. The Supabase proje
 | Deploy fails at "Run the deploy commands" | The panel prints the first failing line (a migration, the database connection, a missing variable). |
 | `/up` answers 500 although pages work | Fixed in `bootstrap/app.php` (two closures on one line broke route caching). If it returns after an edit there, keep the closures on separate lines. |
 | Blank page after a deploy | The release has no `public/app.html`: run the Release workflow (or `scripts/build-release.sh`) again. |
+| Every page answers 500 right after saving a variable in the panel; the log says `Timezone ID '' is invalid` | The panel adds an empty line for every setting of `.env.example` when a field is saved. An empty `APP_TIMEZONE=` stops the whole app. Remove the empty lines (set_env `unset`), keep only the values you set. |
 | Scheduled tasks do not run | The site's Cron jobs page shows the last answer of `schedule:run`. |

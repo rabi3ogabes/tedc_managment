@@ -325,6 +325,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
         Route::get('cron', 'cron');
         Route::post('setup', 'setup');
+        Route::post('rotate-key', 'rotateKey');
     });
 
     // Website chat assistant (never cached; the visitor's secret token is the credential) --------

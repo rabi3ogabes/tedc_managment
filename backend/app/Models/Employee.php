@@ -29,9 +29,9 @@ class Employee extends Model
     }
 
     /** The blind index of a national ID: the ID itself is encrypted (so it cannot be searched), this keyed hash can. */
-    public static function nationalIdHash(string $id): string
+    public static function nationalIdHash(string $id, ?string $key = null): string
     {
-        return hash_hmac('sha256', preg_replace('/\D/', '', $id) ?? $id, (string) config('app.key'));
+        return hash_hmac('sha256', preg_replace('/\D/', '', $id) ?? $id, $key ?? (string) config('app.key'));
     }
 
     /** Age in whole years, or null when the birth date is unknown. */
