@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\EmployeeResource;
+use App\Http\Resources\RegistrationResource;
+use App\Models\Employee;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\Account\HrProfileRouting;
+use App\Services\PassportService;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
+class EmployeeController extends Controller
+{
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->user();
+        $scope = $this->scope();
+        $supervisorOnly = $scope->isMinistryWide() && ! $this->isCenterStaff($user) && ! $user->hasRole(Role::EXECUTIVE) && $user->hasRole(Role::SUPERVISOR);
+
+        $employees = Employee::with(['user', 'school', 'jobTitle', 'department'])
+            ->tap(fn ($q) => $scope->constrainEmployees($q))
+            ->when($supervisorOnly, fn ($q) => $q->where('supervisor_id', $user->employee?->id ?? '00000000-0000-0000-0000-000000000000'))
+            ->when($request->query('school_id'), fn ($q, $id) => $q->where('school_id', $id))
+            ->when($request->query('job_title_id'), fn ($q, $id) => $q->where('job_title_id', $id))
+            // By name, e-mail, any employee number the person has had, or (a full 11-digit number) the national ID — found through its blind index. A number-only search does not scan names.
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('employee_no', "%{$term}%")
+                ->orWhereHas('numbers', fn ($n) => $n->whereLike('employee_no', "%{$term}%"))
+                ->when(preg_match('/^\d{11}$/', trim((string) $term)) === 1, fn ($x) => $x->orWhere('national_id_hash', Employee::nationalIdHash(trim((string) $term))))
+                ->unless(ctype_digit(trim((string) $term)), fn ($x) => $x->orWhereHas('user', fn ($u) => $u->whereLike('name', "%{$term}%")->orWhereLike('name_ar', "%{$term}%")->orWhereLike('email', "%{$term}%")))))
+            ->orderBy('employee_no')
+            ->paginate($this->perPage($request, 25));
+
+        return EmployeeResource::collection($employees);
+    }
+
+    public function show(Employee $employee, PassportService $passport): JsonResponse
+    {
+        $this->authorizeView($employee);
+
+        return response()->json(['data' => [
+            'employee' => new EmployeeResource($employee->load(['user', 'school', 'jobTitle', 'department', 'skills', 'numbers'])),
+            'training_history' => $this->trainingHistory($employee),
+            'passport' => $passport->build($employee),
+            'registrations' => RegistrationResource::collection($employee->registrations()->with('program')->latest()->get()),
+        ]]);
+    }
+
+    /** The courses recorded for the person (the Ministry's extract and approved outside activities): the latest hundred, and the totals by year. @return array<string, mixed> */
+    private function trainingHistory(Employee $employee): array
+    {
+        $all = $employee->pdActivities()->where('status', 'approved');
+        $rows = (clone $all)->orderByDesc('starts_on')->limit(100)->get(['id', 'title', 'provider', 'track', 'course_type', 'starts_on', 'ends_on', 'duration_hours', 'approved_hours', 'location', 'source_system']);
+        $byYear = (clone $all)->get(['starts_on', 'approved_hours', 'computed_hours'])->groupBy(fn ($a) => $a->starts_on->year)
+            ->map(fn ($g, $y) => ['year' => (int) $y, 'courses' => $g->count(), 'hours' => round((float) $g->sum(fn ($a) => $a->approved_hours ?? $a->computed_hours), 1)])->sortByDesc('year')->values();
+
+        return ['totals' => ['courses' => $byYear->sum('courses'), 'hours' => round((float) $byYear->sum('hours'), 1), 'by_year' => $byYear],
+            'rows' => $rows->map(fn ($a) => ['id' => $a->id, 'title' => $a->title, 'provider' => $a->provider, 'track' => $a->track, 'type' => $a->course_type, 'starts_on' => $a->starts_on?->toDateString(), 'ends_on' => $a->ends_on?->toDateString(),
+                'hours' => (float) ($a->approved_hours ?? $a->duration_hours), 'country' => $a->location, 'source' => $a->source_system])->values()];
+    }
+
+    public function store(Request $request): EmployeeResource
+    {
+        $data = $this->validated($request);
+
+        $employee = DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'name_ar' => $data['name_ar'] ?? null,
+                'email' => strtolower($data['email']),
+                'phone' => $data['phone'] ?? null,
+                'password' => $data['password'] ?? null,
+                'locale' => 'ar',
+            ]);
+            $user->roles()->attach(Role::whereIn('slug', $data['roles'] ?? [Role::EMPLOYEE])->pluck('id'));
+
+            return Employee::create(collect($data)->except(['name', 'name_ar', 'email', 'phone', 'password', 'roles'])->all() + ['user_id' => $user->id]);
+        });
+
+        return new EmployeeResource($employee->load(['user', 'school', 'jobTitle', 'department']));
+    }
+
+    public function update(Request $request, Employee $employee): EmployeeResource
+    {
+        $data = $this->validated($request, $employee);
+        // What HR masters is read-only here while HR wins: it is changed through HR (a change request from My account), not around it.
+        $locked = app(HrProfileRouting::class)->lockedChanges($employee->loadMissing('user'), $data);
+        if ($locked !== []) {
+            throw new HttpResponseException(response()->json(['message' => __('messages.hr.locked'), 'fields' => $locked], 422));
+        }
+
+        DB::transaction(function () use ($employee, $data) {
+            $employee->user->update(collect($data)->only(['name', 'name_ar', 'email', 'phone'])->all());
+            $employee->update(collect($data)->except(['name', 'name_ar', 'email', 'phone', 'password', 'roles'])->all());
+        });
+
+        return new EmployeeResource($employee->refresh()->load(['user', 'school', 'jobTitle', 'department']));
+    }
+
+    public function skills(Request $request, Employee $employee): EmployeeResource
+    {
+        $data = $request->validate([
+            'skills' => ['required', 'array'],
+            'skills.*.id' => ['required', 'uuid', 'exists:skills,id'],
+            'skills.*.level' => ['required', 'integer', 'between:1,5'],
+        ]);
+
+        foreach ($data['skills'] as $skill) {
+            $employee->skills()->syncWithoutDetaching([$skill['id'] => ['level' => $skill['level'], 'source' => 'supervisor', 'verified_at' => now()]]);
+        }
+
+        return new EmployeeResource($employee->load(['user', 'skills']));
+    }
+
+    private function authorizeView(Employee $employee): void
+    {
+        $user = $this->user();
+        if ($this->isCenterStaff($user) || $user->hasRole(Role::EXECUTIVE)) {
+            return;
+        }
+        $allowed = (! $this->scope()->isMinistryWide() && $this->scope()->allowsEmployee($employee))
+            || ($user->employee && $employee->supervisor_id === $user->employee->id);
+        abort_unless($allowed, 403, __('auth.forbidden'));
+    }
+
+    private function validated(Request $request, ?Employee $employee = null): array
+    {
+        $required = $employee ? 'sometimes' : 'required';
+
+        return $request->validate([
+            'name' => [$required, 'string', 'max:120'],
+            'name_ar' => ['nullable', 'string', 'max:120'],
+            'email' => [$required, 'email', Rule::unique('users', 'email')->ignore($employee?->user_id)],
+            'phone' => ['nullable', 'string', 'max:32'],
+            'password' => ['nullable', 'string', 'min:10'],
+            'roles' => ['sometimes', 'array'],
+            'roles.*' => [Rule::in([Role::EMPLOYEE, Role::SUPERVISOR, Role::SCHOOL_ADMIN, Role::TRAINER])],
+            'employee_no' => [$required, 'string', 'max:32', Rule::unique('employees', 'employee_no')->ignore($employee?->id)],
+            'national_id' => ['nullable', 'string', 'max:32'],
+            'school_id' => ['nullable', 'uuid', 'exists:schools,id'],
+            'department_id' => ['nullable', 'uuid', 'exists:departments,id'],
+            'job_title_id' => ['nullable', 'uuid', 'exists:job_titles,id'],
+            'supervisor_id' => ['nullable', 'uuid', 'exists:employees,id'],
+            'gender' => ['nullable', Rule::in(['male', 'female'])],
+            'nationality' => ['nullable', 'string', 'max:64'],
+            'birth_date' => ['nullable', 'date', 'before:-15 years', 'after:1930-01-01'],
+            'hire_date' => ['nullable', 'date'],
+            'experience_years' => ['sometimes', 'numeric', 'between:0,60'],
+            'experience_moe_years' => ['sometimes', 'nullable', 'numeric', 'between:0,60'],
+            'experience_outside_years' => ['sometimes', 'nullable', 'numeric', 'between:0,60'],
+            'current_title_since' => ['sometimes', 'nullable', 'date'],
+            'grade_level' => ['sometimes', 'nullable', 'string', 'max:24'],
+            'subjects' => ['sometimes', 'nullable', 'array', 'max:20'],
+            'subjects.*' => ['string', 'max:80'],
+            'grades_taught' => ['sometimes', 'nullable', 'array', 'max:20'],
+            'grades_taught.*' => ['string', 'max:12'],
+            'education_stage' => ['nullable', 'string', 'max:32'],
+            'qualification' => ['nullable', 'string', 'max:64'],
+            'specialization' => ['nullable', 'string', 'max:255'],
+            'status' => ['sometimes', Rule::in(['active', 'inactive'])],
+        ]);
+    }
+}

@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\HasTranslations;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+#[Fillable(['program_id', 'module_id', 'type', 'title_ar', 'title_en', 'description_ar', 'description_en', 'body_ar', 'body_en', 'sort_order', 'is_required', 'status', 'duration_seconds', 'package_id', 'package_item_id', 'lti_tool_id', 'external_course_id', 'version', 'source', 'file_path', 'file_name', 'file_mime', 'file_size', 'external_url', 'slide_count', 'settings', 'file_sha256'])]
+class CourseLesson extends Model
+{
+    use HasTranslations, HasUuids;
+
+    protected $casts = ['settings' => 'array', 'is_required' => 'boolean'];
+
+    protected static function booted(): void
+    {
+        // A new file needs a new checksum for the offline manifest (worked out on the next request).
+        static::saving(function (CourseLesson $lesson) {
+            if ($lesson->isDirty('file_path') && ! $lesson->isDirty('file_sha256')) {
+                $lesson->file_sha256 = null;
+            }
+            // A review lesson reaches only the learners it is assigned to, so it can never be required of everyone.
+            if ($lesson->isRemedial()) {
+                $lesson->is_required = false;
+            }
+        });
+    }
+
+    public const VIDEO = 'video';
+
+    public const PRESENTATION = 'presentation';
+
+    public const QUIZ = 'quiz';
+
+    public const SURVEY = 'survey';
+
+    public const ARTICLE = 'article';
+
+    public const PACKAGE = 'package';
+
+    public const LTI = 'lti';
+
+    public const EXTERNAL = 'external';
+
+    public const TYPES = [self::VIDEO, self::PRESENTATION, self::QUIZ, self::SURVEY, self::ARTICLE, self::PACKAGE, self::LTI, self::EXTERNAL];
+
+    public function module(): BelongsTo
+    {
+        return $this->belongsTo(CourseModule::class, 'module_id');
+    }
+
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(QuizQuestion::class, 'lesson_id')->orderBy('sort_order');
+    }
+
+    public function surveyQuestions(): HasMany
+    {
+        return $this->hasMany(SurveyQuestion::class, 'lesson_id')->orderBy('sort_order');
+    }
+
+    public function progress(): HasMany
+    {
+        return $this->hasMany(LessonProgress::class, 'lesson_id');
+    }
+
+    /** A setting with its default. */
+    public function setting(string $key, mixed $default = null): mixed
+    {
+        return $this->settings[$key] ?? $default;
+    }
+
+    /** A review lesson for one competency (drafted by RemedialBuilder): shown only to the learners it is assigned to. */
+    public function isRemedial(): bool
+    {
+        return (bool) $this->setting('remedial', false) && filled($this->setting('skill_id'));
+    }
+}

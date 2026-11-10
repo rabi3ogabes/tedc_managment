@@ -1,0 +1,2313 @@
+<?php
+
+use App\Http\Controllers\Api\V1\Admin\AbsenceController;
+use App\Http\Controllers\Api\V1\Admin\AdmissionController;
+use App\Http\Controllers\Api\V1\Admin\AdmissionRulesController;
+use App\Http\Controllers\Api\V1\Admin\AiAssistantController;
+use App\Http\Controllers\Api\V1\Admin\AiModelsController;
+use App\Http\Controllers\Api\V1\Admin\AnalyticsController;
+use App\Http\Controllers\Api\V1\Admin\AnnouncementController;
+use App\Http\Controllers\Api\V1\Admin\AnnualPlanController;
+use App\Http\Controllers\Api\V1\Admin\AppHomeController;
+use App\Http\Controllers\Api\V1\Admin\AppThemesController;
+use App\Http\Controllers\Api\V1\Admin\AssessmentController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceAttemptsController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceDeviceController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceMethodsController;
+use App\Http\Controllers\Api\V1\Admin\AttendanceSettingsController;
+use App\Http\Controllers\Api\V1\Admin\CalendarController;
+use App\Http\Controllers\Api\V1\Admin\CareerAdminController;
+use App\Http\Controllers\Api\V1\Admin\CatalogController;
+use App\Http\Controllers\Api\V1\Admin\CertificateController;
+use App\Http\Controllers\Api\V1\Admin\CertificateTemplateController;
+use App\Http\Controllers\Api\V1\Admin\ChatController as AdminChatController;
+use App\Http\Controllers\Api\V1\Admin\CmsController;
+use App\Http\Controllers\Api\V1\Admin\CompetencyController;
+use App\Http\Controllers\Api\V1\Admin\ContentImportController;
+use App\Http\Controllers\Api\V1\Admin\ContentLifecycleController;
+use App\Http\Controllers\Api\V1\Admin\CourseController;
+use App\Http\Controllers\Api\V1\Admin\DemoAccountsController;
+use App\Http\Controllers\Api\V1\Admin\DemoDataController;
+use App\Http\Controllers\Api\V1\Admin\EKitController;
+use App\Http\Controllers\Api\V1\Admin\EligibilityRuleController;
+use App\Http\Controllers\Api\V1\Admin\EmployeeController;
+use App\Http\Controllers\Api\V1\Admin\ErrorLogController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationFormController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationInsightsController;
+use App\Http\Controllers\Api\V1\Admin\EvaluationReportController;
+use App\Http\Controllers\Api\V1\Admin\ExternalLearningController;
+use App\Http\Controllers\Api\V1\Admin\ExternalRequestController;
+use App\Http\Controllers\Api\V1\Admin\GapController;
+use App\Http\Controllers\Api\V1\Admin\GroupEvaluationController;
+use App\Http\Controllers\Api\V1\Admin\GroupTraineeController;
+use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
+use App\Http\Controllers\Api\V1\Admin\ImportRunController;
+use App\Http\Controllers\Api\V1\Admin\IntegrationContractController;
+use App\Http\Controllers\Api\V1\Admin\IntegrationsController;
+use App\Http\Controllers\Api\V1\Admin\InternalWorkshopController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitAiController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitAssetController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitCommentController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitFileController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitProtectionController;
+use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
+use App\Http\Controllers\Api\V1\Admin\KpiController;
+use App\Http\Controllers\Api\V1\Admin\LabelController;
+use App\Http\Controllers\Api\V1\Admin\LearningProvidersController;
+use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
+use App\Http\Controllers\Api\V1\Admin\LtiPlatformController;
+use App\Http\Controllers\Api\V1\Admin\LtiToolController;
+use App\Http\Controllers\Api\V1\Admin\MaterialController;
+use App\Http\Controllers\Api\V1\Admin\MenuLayoutController;
+use App\Http\Controllers\Api\V1\Admin\MigrationController;
+use App\Http\Controllers\Api\V1\Admin\MinistrySiteController;
+use App\Http\Controllers\Api\V1\Admin\NeedsCycleController;
+use App\Http\Controllers\Api\V1\Admin\NeedsSurveyController;
+use App\Http\Controllers\Api\V1\Admin\NeedsToolsController;
+use App\Http\Controllers\Api\V1\Admin\NotificationChannelsController;
+use App\Http\Controllers\Api\V1\Admin\NotificationDeliveriesController;
+use App\Http\Controllers\Api\V1\Admin\NotificationRulesController;
+use App\Http\Controllers\Api\V1\Admin\NotificationTemplateController;
+use App\Http\Controllers\Api\V1\Admin\NotificationTrackingController;
+use App\Http\Controllers\Api\V1\Admin\PackageController;
+use App\Http\Controllers\Api\V1\Admin\PartnerOrganizationController;
+use App\Http\Controllers\Api\V1\Admin\PassingController;
+use App\Http\Controllers\Api\V1\Admin\PdAdminController;
+use App\Http\Controllers\Api\V1\Admin\Plc\CommunityController as PlcCommunityController;
+use App\Http\Controllers\Api\V1\Admin\Plc\NeedController as PlcNeedController;
+use App\Http\Controllers\Api\V1\Admin\Plc\PlcHubController;
+use App\Http\Controllers\Api\V1\Admin\Plc\PlcReportController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAssistantController as PlcWorkshopAssistantController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopAttendanceController as PlcWorkshopAttendanceController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopController as PlcWorkshopController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopEvaluationController as PlcWorkshopEvaluationController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopPeopleController as PlcWorkshopPeopleController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopScheduleController as PlcWorkshopScheduleController;
+use App\Http\Controllers\Api\V1\Admin\Plc\WorkshopSchoolController as PlcWorkshopSchoolController;
+use App\Http\Controllers\Api\V1\Admin\PresenceController;
+use App\Http\Controllers\Api\V1\Admin\ProcessController;
+use App\Http\Controllers\Api\V1\Admin\ProctoringSettingsController;
+use App\Http\Controllers\Api\V1\Admin\ProfileRequestController;
+use App\Http\Controllers\Api\V1\Admin\ProgramAssistantController;
+use App\Http\Controllers\Api\V1\Admin\ProgramBuilderController;
+use App\Http\Controllers\Api\V1\Admin\ProgramCatalogSettingsController;
+use App\Http\Controllers\Api\V1\Admin\ProgramController;
+use App\Http\Controllers\Api\V1\Admin\ProgramGrantController;
+use App\Http\Controllers\Api\V1\Admin\ProgramInstrumentController;
+use App\Http\Controllers\Api\V1\Admin\ProgramScheduleController;
+use App\Http\Controllers\Api\V1\Admin\ProgramStructureController;
+use App\Http\Controllers\Api\V1\Admin\ProgramSurveyController;
+use App\Http\Controllers\Api\V1\Admin\PushSettingsController;
+use App\Http\Controllers\Api\V1\Admin\QuestionBankController;
+use App\Http\Controllers\Api\V1\Admin\RegistrationController;
+use App\Http\Controllers\Api\V1\Admin\RemoteProgramController;
+use App\Http\Controllers\Api\V1\Admin\ReportBuilderController;
+use App\Http\Controllers\Api\V1\Admin\ReportController;
+use App\Http\Controllers\Api\V1\Admin\RfpStatusController;
+use App\Http\Controllers\Api\V1\Admin\RoleAdminController;
+use App\Http\Controllers\Api\V1\Admin\RoomController;
+use App\Http\Controllers\Api\V1\Admin\RoomScreenSettingsController;
+use App\Http\Controllers\Api\V1\Admin\RoomsOpsController;
+use App\Http\Controllers\Api\V1\Admin\RoomSyncController;
+use App\Http\Controllers\Api\V1\Admin\SaberController;
+use App\Http\Controllers\Api\V1\Admin\SaberDataController;
+use App\Http\Controllers\Api\V1\Admin\SaberFormsController;
+use App\Http\Controllers\Api\V1\Admin\ScheduledNotificationsController;
+use App\Http\Controllers\Api\V1\Admin\SchoolController;
+use App\Http\Controllers\Api\V1\Admin\SchoolGroupController;
+use App\Http\Controllers\Api\V1\Admin\SchoolTrainingController;
+use App\Http\Controllers\Api\V1\Admin\SecurityPolicyController;
+use App\Http\Controllers\Api\V1\Admin\SecuritySettingsController;
+use App\Http\Controllers\Api\V1\Admin\SessionController;
+use App\Http\Controllers\Api\V1\Admin\ShowcaseAccountsController;
+use App\Http\Controllers\Api\V1\Admin\SmsSandboxController;
+use App\Http\Controllers\Api\V1\Admin\SsoAdminController;
+use App\Http\Controllers\Api\V1\Admin\StandardsController;
+use App\Http\Controllers\Api\V1\Admin\SupportSettingsController;
+use App\Http\Controllers\Api\V1\Admin\SurveyAiController;
+use App\Http\Controllers\Api\V1\Admin\SurveyController;
+use App\Http\Controllers\Api\V1\Admin\SurveyDistributionController;
+use App\Http\Controllers\Api\V1\Admin\SurveyExportController;
+use App\Http\Controllers\Api\V1\Admin\SurveyMigrationController;
+use App\Http\Controllers\Api\V1\Admin\SurveyPrivacyController;
+use App\Http\Controllers\Api\V1\Admin\SurveyResultsController;
+use App\Http\Controllers\Api\V1\Admin\TaskController;
+use App\Http\Controllers\Api\V1\Admin\TeamsController;
+use App\Http\Controllers\Api\V1\Admin\TestAccountsController;
+use App\Http\Controllers\Api\V1\Admin\ThemeController;
+use App\Http\Controllers\Api\V1\Admin\TrainerAssignmentController;
+use App\Http\Controllers\Api\V1\Admin\TrainerController;
+use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
+use App\Http\Controllers\Api\V1\Admin\TrainingGroupController;
+use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
+use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\UserRoleController;
+use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
+use App\Http\Controllers\Api\V1\Admin\WayfindingController;
+use App\Http\Controllers\Api\V1\Admin\WebhooksController;
+use App\Http\Controllers\Api\V1\Admin\WithdrawalController;
+use App\Http\Controllers\Api\V1\Ai\AiAdminController;
+use App\Http\Controllers\Api\V1\Ai\AiLearnerController;
+use App\Http\Controllers\Api\V1\Ai\ForecastExportController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AuthSecurityController;
+use App\Http\Controllers\Api\V1\ClientErrorController;
+use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\FeaturesController;
+use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\HealthProbeController;
+use App\Http\Controllers\Api\V1\Help\HelpAdminController;
+use App\Http\Controllers\Api\V1\Help\HelpController;
+use App\Http\Controllers\Api\V1\HudhudReceiptController;
+use App\Http\Controllers\Api\V1\InboundWebhookController;
+use App\Http\Controllers\Api\V1\LibraryController;
+use App\Http\Controllers\Api\V1\LtiController;
+use App\Http\Controllers\Api\V1\LtiToolEndpointController;
+use App\Http\Controllers\Api\V1\Me\AccountController;
+use App\Http\Controllers\Api\V1\Me\AppHomeController as AppHomeMeController;
+use App\Http\Controllers\Api\V1\Me\DeviceController;
+use App\Http\Controllers\Api\V1\Me\MeController;
+use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
+use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
+use App\Http\Controllers\Api\V1\Me\MyCareerController;
+use App\Http\Controllers\Api\V1\Me\MyCourseController;
+use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
+use App\Http\Controllers\Api\V1\Me\MyEventsController;
+use App\Http\Controllers\Api\V1\Me\MyFormLinkController;
+use App\Http\Controllers\Api\V1\Me\MyLtiController;
+use App\Http\Controllers\Api\V1\Me\MyNeedsSurveyController;
+use App\Http\Controllers\Api\V1\Me\MyNotificationPreferencesController;
+use App\Http\Controllers\Api\V1\Me\MyOfflineController;
+use App\Http\Controllers\Api\V1\Me\MyOutcomesController;
+use App\Http\Controllers\Api\V1\Me\MyPackageController;
+use App\Http\Controllers\Api\V1\Me\MyPassingController;
+use App\Http\Controllers\Api\V1\Me\MyReportsController;
+use App\Http\Controllers\Api\V1\Me\MySurveyController;
+use App\Http\Controllers\Api\V1\Me\MyTrainingController;
+use App\Http\Controllers\Api\V1\Me\RealtimeController;
+use App\Http\Controllers\Api\V1\Me\TeachingController;
+use App\Http\Controllers\Api\V1\Me\TeachingKitController;
+use App\Http\Controllers\Api\V1\MobileConfigController;
+use App\Http\Controllers\Api\V1\Payments\CertificationController;
+use App\Http\Controllers\Api\V1\Payments\GatewayController;
+use App\Http\Controllers\Api\V1\Payments\PaymentsAdminController;
+use App\Http\Controllers\Api\V1\Payments\ShopController;
+use App\Http\Controllers\Api\V1\PrivacyController;
+use App\Http\Controllers\Api\V1\Public\ChatController as PublicChatController;
+use App\Http\Controllers\Api\V1\Public\ExternalFormController;
+use App\Http\Controllers\Api\V1\Public\PublicContentController;
+use App\Http\Controllers\Api\V1\Public\PublicController;
+use App\Http\Controllers\Api\V1\Public\PublicSurveyController;
+use App\Http\Controllers\Api\V1\Public\WayfindingController as PublicWayfindingController;
+use App\Http\Controllers\Api\V1\ReportSignedDownloadController;
+use App\Http\Controllers\Api\V1\SamlController;
+use App\Http\Controllers\Api\V1\SearchController;
+use App\Http\Controllers\Api\V1\ShowcaseSignInController;
+use App\Http\Controllers\Api\V1\Social\CourseSocialController;
+use App\Http\Controllers\Api\V1\Social\GamificationAdminController;
+use App\Http\Controllers\Api\V1\Social\GamificationController;
+use App\Http\Controllers\Api\V1\Social\PostController;
+use App\Http\Controllers\Api\V1\Social\SocialFileController;
+use App\Http\Controllers\Api\V1\Social\SpaceController;
+use App\Http\Controllers\Api\V1\SystemController;
+use App\Http\Controllers\Api\V1\TeamsConnectController;
+use App\Http\Controllers\Api\V1\TicketsController;
+use App\Http\Controllers\Api\V1\XapiController;
+use App\Models\TrainingRoom;
+use App\Services\FileStorage;
+use App\Services\LobbyScreenService;
+use App\Services\LobbyScreenSettings;
+use App\Services\RoomScreenService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| TEDC REST API — v1
+|--------------------------------------------------------------------------
+| Public website  : /api/v1/public/*
+| Authentication  : /api/v1/auth/*
+| Self-service    : /api/v1/me/*          (employees, supervisors — web & mobile)
+| Administration  : /api/v1/admin/*       (RBAC protected via `permission:` middleware)
+*/
+
+Route::prefix('v1')->group(function () {
+    // LTI platform endpoints (the tool authenticates itself: signed JWTs, bearer tokens, OAuth 1.0a).
+    Route::prefix('lti')->group(function () {
+        Route::get('jwks', [LtiController::class, 'jwks']);
+        Route::match(['GET', 'POST'], 'auth', [LtiController::class, 'auth'])->middleware('throttle:120,1');
+        Route::post('token', [LtiController::class, 'token'])->middleware('throttle:120,1');
+        Route::get('ags/{lesson}/lineitems', [LtiController::class, 'lineItems']);
+        Route::get('ags/{lesson}/lineitems/{id}', [LtiController::class, 'lineItem']);
+        Route::post('ags/{lesson}/lineitems/{id}/scores', [LtiController::class, 'score']);
+        Route::get('nrps/{program}/memberships', [LtiController::class, 'memberships']);
+        Route::post('deep-link/return', [LtiController::class, 'deepLinkReturn']);
+        Route::post('outcomes', [LtiController::class, 'outcomes']);
+    });
+    // TEDC as an LTI tool: other LMSs launch TEDC (the platform proves itself: signed id_token, single-use state, OAuth 1.0a).
+    Route::prefix('lti/tool')->group(function () {
+        Route::get('jwks', [LtiToolEndpointController::class, 'jwks']);
+        Route::match(['GET', 'POST'], 'login', [LtiToolEndpointController::class, 'login'])->middleware('throttle:120,1');
+        Route::post('launch', [LtiToolEndpointController::class, 'launch'])->middleware('throttle:120,1');
+        Route::post('launch11', [LtiToolEndpointController::class, 'launch11'])->middleware('throttle:120,1');
+        Route::post('deep-link', [LtiToolEndpointController::class, 'deepLink'])->middleware('throttle:60,1');
+    });
+    // The xAPI learning record store (its own Basic authentication).
+    Route::prefix('xapi')->group(function () {
+        Route::get('about', [XapiController::class, 'about']);
+        Route::match(['GET', 'POST', 'PUT'], 'statements', [XapiController::class, 'statements']);
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'activities/state', [XapiController::class, 'documents'])->defaults('kind', 'state');
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'activities/profile', [XapiController::class, 'documents'])->defaults('kind', 'profile');
+        Route::match(['GET', 'PUT', 'POST', 'DELETE'], 'agents/profile', [XapiController::class, 'documents'])->defaults('kind', 'agent-profile');
+        Route::post('cmi5/fetch/{cmi5Session}', [XapiController::class, 'cmi5Fetch']);
+    });
+
+    // Events, feeds for the Ministry website, published pages and the centre's statistics (not edge-cached: pages differ for signed-in visitors).
+    Route::prefix('public')->middleware('throttle:public')->controller(PublicContentController::class)->group(function () {
+        Route::get('events', 'events');
+        Route::get('events/{id}', 'event')->whereUuid('id');
+        Route::get('events/{id}/event.ics', 'eventIcs')->whereUuid('id');
+        Route::get('calendar.ics', 'calendarIcs');
+        Route::get('feeds/{name}', 'feed')->where('name', '[a-z-]+\.(json|xml|csv)');
+        Route::get('pages/{page}', 'page');
+        Route::get('defined-stats', 'stats');
+    });
+    // The link in a scheduled report's e-mail: signed and expiring.
+    Route::get('report-runs/{run}/download', ReportSignedDownloadController::class)->name('report-runs.signed')->middleware(['signed', 'throttle:30,1']);
+    // Messages from the Ministry systems: signed, idempotent.
+    Route::post('integrations/{key}/inbound', InboundWebhookController::class)->where('key', '[a-z_]+')->middleware('throttle:120,1');
+    // Microsoft Teams: the organiser account's sign-in comes back here (the state, single-use, says who started it); the tab page TEDC shows inside Teams.
+    Route::get('integrations/teams/organizer/callback', [TeamsConnectController::class, 'callback'])->middleware('throttle:login');
+    Route::get('teams/tab', [TeamsConnectController::class, 'tab'])->middleware('throttle:public');
+    // Hudhud posts delivery receipts here; the body is signed with the shared secret.
+    Route::post('integrations/sms/hudhud/receipt', HudhudReceiptController::class)->middleware('throttle:public');
+
+    // Deployment diagnostics: no rate limiter here, because it needs the (possibly broken) database cache.
+    Route::get('public/health', HealthController::class);
+    Route::get('public/health/live', [HealthProbeController::class, 'live']);
+    Route::get('public/health/ready', [HealthProbeController::class, 'ready']);
+
+    // The screen at a classroom door: reached by its secret token, no sign-in.
+    Route::get('public/room-screen/{token}', function (string $token, Request $request, RoomScreenService $screen) {
+        $room = TrainingRoom::where('display_token', $token)->firstOrFail();
+        $data = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+
+        return response()->json(['data' => $screen->day($room, $data['date'] ?? null)]);
+    })->middleware('throttle:120,1');
+
+    // The portrait lobby screen: today's programs and the administrator's slides, reached by a secret token.
+    Route::get('public/lobby-screen/{token}', function (string $token, LobbyScreenSettings $settings, LobbyScreenService $screen) {
+        abort_unless($settings->validToken($token) && $settings->all()['enabled'], 404);
+
+        return response()->json(['data' => $screen->payload()]);
+    })->middleware('throttle:120,1');
+
+    // Browser uploads of big course files with the local storage driver (Supabase has its own signed upload URLs).
+    Route::put('uploads/{bucket}/{path}', function (string $bucket, string $path, FileStorage $files) {
+        abort_if(str_contains($path, '..'), 422);
+        $files->putStream($bucket, $path, fopen('php://input', 'rb'));
+
+        return response()->json(['message' => 'ok']);
+    })->where('path', '.*')->middleware('signed')->name('uploads.local');
+
+    // Errors reported by the website and the app themselves.
+    Route::post('client-errors', [ClientErrorController::class, 'store'])->middleware('throttle:30,1');
+
+    // Serverless operations (Vercel Cron / one-time setup), protected by CRON_SECRET ---
+    // Payments: the gateway's signed callback and the buyer's return are public (the callback is authenticated by its signature).
+    Route::prefix('payments')->middleware('feature:payments')->group(function () {
+        Route::post('callback/{gateway}', [GatewayController::class, 'callback'])->where('gateway', 'moe_epay|fake')->middleware('throttle:120,1');
+        Route::get('return', [GatewayController::class, 'return'])->middleware('throttle:60,1');
+        Route::post('fake/{ref}/complete', [GatewayController::class, 'fakeComplete'])->middleware('throttle:30,1');
+    });
+
+    Route::prefix('system')->controller(SystemController::class)->middleware('throttle:10,1')->group(function () {
+        Route::get('cron', 'cron');
+        Route::post('setup', 'setup');
+        Route::post('rotate-key', 'rotateKey');
+    });
+
+    // Website chat assistant (never cached; the visitor's secret token is the credential) --------
+    Route::prefix('public/chat')->middleware('throttle:40,1')->group(function () {
+        Route::post('/', [PublicChatController::class, 'start']);
+        Route::get('{conversation}', [PublicChatController::class, 'show']);
+        Route::post('{conversation}/messages', [PublicChatController::class, 'send']);
+        Route::post('{conversation}/human', [PublicChatController::class, 'human']);
+    });
+
+    // Showcase accounts on the sign-in page (web and app): the supervisors, trainers and trainees only, one tap each.
+    Route::prefix('public/showcase-accounts')->middleware('feature:showcase_accounts')->controller(ShowcaseSignInController::class)->group(function () {
+        Route::get('/', 'index')->middleware('throttle:public');
+        Route::post('{key}/sign-in', 'signIn')->middleware('throttle:30,1');
+        // The leadership accounts, behind the showcase code.
+        Route::post('leadership', 'leadership')->middleware('throttle:10,1');
+        Route::post('leadership/{key}/sign-in', 'leadershipSignIn')->middleware('throttle:10,1');
+    });
+
+    // Public website ----------------------------------------------------------
+    Route::prefix('public')->middleware(['throttle:public', 'edge.cache:60'])->controller(PublicController::class)->group(function () {
+        Route::get('home', 'home');
+        Route::get('stats', 'stats');
+        Route::get('theme', [ThemeController::class, 'show']);
+        Route::get('mobile-config', MobileConfigController::class);
+        Route::get('wayfinding', PublicWayfindingController::class);
+        Route::get('labels', [LabelController::class, 'publicIndex']);
+        Route::get('programs', 'programs');
+        Route::get('programs/{idOrCode}', 'program');
+        Route::get('categories', 'categories');
+        Route::get('trainers', 'trainers');
+        Route::get('calendar', 'calendar');
+        Route::get('news', 'news');
+        Route::get('news/{id}', 'newsShow');
+        Route::get('certificates/verify/{code}', 'verifyCertificate')->middleware('throttle:verify');
+        Route::post('contact', 'contact')->middleware('throttle:contact');
+    });
+
+    // External registration forms (public, never cached) ----------------------
+    Route::prefix('public/forms')->middleware('throttle:public')->controller(ExternalFormController::class)->group(function () {
+        Route::get('{slug}', 'show');
+        Route::post('{slug}/verify-email', 'verifyEmail')->middleware('throttle:external-code');
+        Route::post('{slug}/submit', 'submit')->middleware('throttle:external-submit');
+    });
+
+    // Survey Studio v2 public links and invitations (no session; a pseudonymous key per device, verified e-mail or token).
+    Route::prefix('public/surveys')->middleware(['feature:survey_studio_v2', 'throttle:public'])->controller(PublicSurveyController::class)->group(function () {
+        Route::get('i/{token}', 'showInvitation')->where('token', '[A-Za-z0-9]{48}');
+        Route::put('i/{token}/draft', 'draftInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::post('i/{token}/files', 'uploadInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::post('i/{token}', 'submitInvitation')->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:external-submit');
+        Route::get('{slug}', 'show')->where('slug', '[a-z0-9]{10}');
+        Route::post('{slug}/code', 'sendCode')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-code');
+        Route::post('{slug}/verify', 'verifyCode')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-code');
+        Route::post('{slug}/resume', 'resume')->where('slug', '[a-z0-9]{10}');
+        Route::put('{slug}/draft', 'draft')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
+        Route::post('{slug}/files', 'upload')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
+        Route::post('{slug}', 'submit')->where('slug', '[a-z0-9]{10}')->middleware('throttle:external-submit');
+    });
+
+    // Fingerprint devices push signed punches (no user session).
+    Route::post('integrations/fingerprint/{device}/punches', [AttendanceDeviceController::class, 'webhook'])->middleware('throttle:public');
+
+    // Authentication ----------------------------------------------------------
+    Route::prefix('auth')->controller(AuthController::class)->group(function () {
+        Route::post('login', 'login')->middleware('throttle:login');
+        Route::post('refresh', 'refresh')->middleware('throttle:login');
+        Route::post('activate', 'activate')->middleware('throttle:10,1');
+        // Self-service password reset: a link by e-mail, then a new password (the account's other sessions end).
+        Route::post('forgot', 'forgot')->middleware('throttle:5,1');
+        Route::post('reset', 'reset')->middleware('throttle:10,1');
+        // Second factor, single sign-on and directory sign-in (before there is a session).
+        Route::controller(AuthSecurityController::class)->group(function () {
+            Route::get('options', 'options')->middleware('throttle:public');
+            Route::post('mfa/send', 'mfaSend')->middleware('throttle:login');
+            Route::post('mfa/verify', 'mfaVerify')->middleware('throttle:login');
+            Route::post('mfa/totp/setup', 'mfaSetupPending')->middleware('throttle:login');
+            Route::post('mfa/totp/confirm', 'mfaConfirmPending')->middleware('throttle:login');
+            Route::get('sso/start', 'ssoStart')->middleware('throttle:login');
+            Route::get('sso/callback', 'ssoCallback')->middleware('throttle:login');
+            Route::post('sso/exchange', 'ssoExchange')->middleware('throttle:login');
+            Route::post('ldap/login', 'ldapLogin')->middleware('throttle:login');
+        });
+        // SAML 2.0 service provider (NFR-07): metadata for the IdP, the assertion consumer service and single logout.
+        Route::get('saml/metadata', [SamlController::class, 'metadata'])->middleware('throttle:public');
+        Route::get('saml/login', [SamlController::class, 'login'])->middleware('throttle:login');
+        Route::post('saml/acs', [SamlController::class, 'acs'])->middleware('throttle:login');
+        Route::match(['get', 'post'], 'saml/slo', [SamlController::class, 'slo'])->middleware('throttle:login');
+        Route::middleware(['auth:api', 'active.role'])->group(function () {
+            Route::post('logout', [AuthSecurityController::class, 'logout']);
+            Route::post('step-up', [AuthSecurityController::class, 'stepUp'])->middleware('throttle:10,1');
+            Route::get('me', 'me');
+            Route::post('active-role', 'switchRole');
+            Route::patch('me', 'updateProfile');
+            Route::post('lock', 'lock');
+            Route::post('unlock', 'unlock')->middleware('throttle:10,1');
+        });
+    });
+
+    Route::middleware(['auth:api', 'active.role', 'throttle:api'])->group(function () {
+
+        Route::get('search', SearchController::class)->middleware('throttle:60,1');
+
+        // Role dashboards: layout, widget data, personal order.
+        Route::get('dashboard', [DashboardController::class, 'layout']);
+        Route::put('dashboard/layout', [DashboardController::class, 'saveLayout']);
+        Route::get('dashboard/widgets/{key}', [DashboardController::class, 'widget'])->where('key', '[a-z_]+');
+
+        // Which features are on (web and app read this once and cache it).
+        Route::get('features', [FeaturesController::class, 'map']);
+
+        // Buying courses (Phase 16) ---------------------------------------------------------------------
+        Route::middleware('feature:payments')->group(function () {
+            Route::prefix('me')->group(function () {
+                Route::get('cart', [ShopController::class, 'cart']);
+                Route::post('cart/items', [ShopController::class, 'addItem'])->middleware('throttle:60,1');
+                Route::delete('cart/items/{group}', [ShopController::class, 'removeItem'])->whereUuid('group');
+                Route::post('cart/discount', [ShopController::class, 'discount'])->middleware('throttle:20,1');
+                Route::post('checkout', [ShopController::class, 'checkout'])->middleware('throttle:10,1');
+                Route::get('orders', [ShopController::class, 'orders']);
+                Route::get('orders/{shopOrder}', [ShopController::class, 'showOrder']);
+                Route::get('orders/{shopOrder}/invoice', [ShopController::class, 'invoice']);
+                Route::get('refunds/{shopRefund}/credit-note', [ShopController::class, 'creditNote']);
+                Route::post('orders/{shopOrder}/refund-request', [ShopController::class, 'refundRequest'])->middleware('throttle:10,1');
+                Route::post('vouchers/redeem', [ShopController::class, 'redeem'])->middleware('throttle:10,1');
+                Route::get('vouchers', [ShopController::class, 'myVouchers']);
+            });
+            Route::prefix('entity')->group(function () {
+                Route::get('accounts', [ShopController::class, 'myEntities']);
+                Route::get('cart', [ShopController::class, 'cart']);
+                Route::post('cart', [ShopController::class, 'addItem'])->middleware('throttle:60,1');
+                Route::delete('cart/{group}', [ShopController::class, 'removeItem'])->whereUuid('group');
+                Route::post('cart/discount', [ShopController::class, 'discount'])->middleware('throttle:20,1');
+                Route::post('checkout', [ShopController::class, 'checkout'])->middleware('throttle:10,1');
+                Route::get('orders', [ShopController::class, 'orders']);
+                Route::get('vouchers', [ShopController::class, 'entityVouchers']);
+                Route::post('vouchers/assign', [ShopController::class, 'assign'])->middleware('throttle:30,1');
+            });
+        });
+
+        // Collaboration: communities, forums, channels, notes, ask-the-trainer, ratings (Phase 14) ---------------
+        Route::prefix('social')->group(function () {
+            Route::get('spaces', [SpaceController::class, 'index']);
+            Route::post('spaces', [SpaceController::class, 'store'])->middleware('throttle:20,1');
+            Route::get('spaces/resolve', [SpaceController::class, 'resolve']);
+            Route::get('materials/{material}/thread', [SpaceController::class, 'materialThread']);
+            Route::get('people', [SpaceController::class, 'people'])->middleware('throttle:60,1');
+            Route::get('spaces/{space}', [SpaceController::class, 'show']);
+            Route::patch('spaces/{space}', [SpaceController::class, 'update']);
+            Route::post('spaces/{space}/archive', [SpaceController::class, 'archive']);
+            Route::post('spaces/{space}/join', [SpaceController::class, 'join'])->middleware('throttle:30,1');
+            Route::delete('spaces/{space}/leave', [SpaceController::class, 'leave']);
+            Route::patch('spaces/{space}/me', [SpaceController::class, 'preference']);
+            Route::get('spaces/{space}/members', [SpaceController::class, 'members']);
+            Route::put('spaces/{space}/members/{user}', [SpaceController::class, 'updateMember']);
+            Route::delete('spaces/{space}/members/{user}', [SpaceController::class, 'removeMember']);
+            Route::get('spaces/{space}/events', [SpaceController::class, 'events']);
+            Route::post('spaces/{space}/events', [SpaceController::class, 'createEvent']);
+            Route::post('space-events/{spaceEvent}/rsvp', [SpaceController::class, 'rsvp']);
+            Route::get('spaces/{space}/posts', [PostController::class, 'index']);
+            Route::post('spaces/{space}/posts', [PostController::class, 'store'])->middleware('throttle:30,1');
+            Route::get('spaces/{space}/reports', [PostController::class, 'reports']);
+            Route::get('posts/{post}', [PostController::class, 'show']);
+            Route::patch('posts/{post}', [PostController::class, 'update']);
+            Route::delete('posts/{post}', [PostController::class, 'destroy']);
+            Route::post('posts/{post}/moderate', [PostController::class, 'moderate']);
+            Route::post('posts/{post}/accept', [PostController::class, 'accept']);
+            Route::post('posts/{post}/comments', [PostController::class, 'comment'])->middleware('throttle:60,1');
+            Route::patch('comments/{postComment}', [PostController::class, 'updateComment']);
+            Route::delete('comments/{postComment}', [PostController::class, 'destroyComment']);
+            Route::post('reactions', [PostController::class, 'react'])->middleware('throttle:120,1');
+            Route::post('polls/{spacePoll}/vote', [PostController::class, 'vote'])->middleware('throttle:60,1');
+            Route::post('reports', [PostController::class, 'report'])->middleware('throttle:20,1');
+            Route::post('reports/{abuseReport}/resolve', [PostController::class, 'resolveReport']);
+
+            Route::post('uploads', [SocialFileController::class, 'store'])->middleware('throttle:30,10');
+            Route::post('uploads/sign', [SocialFileController::class, 'sign'])->middleware('throttle:30,10');
+            Route::post('uploads/{upload}/complete', [SocialFileController::class, 'complete'])->middleware('throttle:30,10');
+            Route::delete('uploads/{upload}', [SocialFileController::class, 'destroy']);
+            Route::get('files/{upload}', [SocialFileController::class, 'show'])->middleware('throttle:120,1');
+            Route::get('notes', [CourseSocialController::class, 'subjectNotes']);
+            Route::post('notes', [CourseSocialController::class, 'addSubjectNote'])->middleware('throttle:60,1');
+            Route::delete('notes/{lessonNote}', [CourseSocialController::class, 'deleteNote']);
+            Route::get('lesson-notes', [CourseSocialController::class, 'notes']);
+            Route::post('lesson-notes', [CourseSocialController::class, 'addNote'])->middleware('throttle:60,1');
+            Route::delete('lesson-notes/{lessonNote}', [CourseSocialController::class, 'deleteNote']);
+            Route::get('questions', [CourseSocialController::class, 'myQuestions']);
+            Route::post('questions', [CourseSocialController::class, 'ask'])->middleware('throttle:20,1');
+            Route::get('trainer-inbox', [CourseSocialController::class, 'inbox']);
+            Route::post('questions/{courseQuestion}/answer', [CourseSocialController::class, 'answer']);
+            Route::post('questions/{courseQuestion}/close', [CourseSocialController::class, 'close']);
+            Route::get('ratings/{type}/{id}', [CourseSocialController::class, 'ratingSummary'])->where('type', '[a-z]+');
+            Route::post('ratings', [CourseSocialController::class, 'rate'])->middleware('throttle:60,1');
+            Route::get('reviews', [CourseSocialController::class, 'reviews'])->middleware('permission:ratings.moderate');
+            Route::post('ratings/{rating}/moderate', [CourseSocialController::class, 'moderateRating'])->middleware('permission:ratings.moderate');
+            Route::get('settings', [CourseSocialController::class, 'settings'])->middleware('permission:forums.moderate|communities.moderate');
+            Route::put('settings', [CourseSocialController::class, 'saveSettings'])->middleware('permission:forums.moderate|communities.moderate');
+        });
+
+        Route::prefix('gamification')->middleware('feature:gamification')->group(function () {
+            Route::get('me', [GamificationController::class, 'me']);
+            Route::put('me/privacy', [GamificationController::class, 'privacy']);
+            Route::get('leaderboard', [GamificationController::class, 'leaderboard']);
+            Route::get('badges', [GamificationController::class, 'badges']);
+            Route::get('challenges', [GamificationController::class, 'challenges']);
+            Route::post('challenges/{challenge}/join', [GamificationController::class, 'join']);
+            Route::get('rewards', [GamificationController::class, 'rewards']);
+            Route::post('rewards/{reward}/redeem', [GamificationController::class, 'redeem'])->middleware('throttle:10,1');
+            Route::middleware('permission:gamification.manage')->prefix('admin')->group(function () {
+                Route::get('overview', [GamificationAdminController::class, 'overview']);
+                Route::put('rules/{event}', [GamificationAdminController::class, 'saveRule'])->where('event', '[a-z_]+');
+                Route::put('levels', [GamificationAdminController::class, 'saveLevels']);
+                Route::post('badges', [GamificationAdminController::class, 'saveBadge']);
+                Route::put('badges/{badge}', [GamificationAdminController::class, 'saveBadge']);
+                Route::delete('badges/{badge}', [GamificationAdminController::class, 'deleteBadge']);
+                Route::post('badges/{badge}/award', [GamificationAdminController::class, 'awardBadge']);
+                Route::post('adjust', [GamificationAdminController::class, 'adjust'])->middleware('throttle:60,1');
+                Route::get('people', [GamificationAdminController::class, 'people'])->middleware('throttle:60,1');
+                Route::get('users/{user}/ledger', [GamificationAdminController::class, 'ledger']);
+                Route::post('challenges', [GamificationAdminController::class, 'saveChallenge']);
+                Route::put('challenges/{challenge}', [GamificationAdminController::class, 'saveChallenge']);
+                Route::delete('challenges/{challenge}', [GamificationAdminController::class, 'deleteChallenge']);
+                Route::put('settings', [GamificationAdminController::class, 'saveSettings']);
+            });
+            Route::middleware('permission:rewards.manage')->prefix('admin')->group(function () {
+                Route::post('rewards', [GamificationAdminController::class, 'saveReward']);
+                Route::put('rewards/{reward}', [GamificationAdminController::class, 'saveReward']);
+                Route::get('redemptions', [GamificationAdminController::class, 'redemptions']);
+                Route::post('redemptions/{redemption}/status', [GamificationAdminController::class, 'fulfil']);
+            });
+        });
+
+        // Employee self-service -----------------------------------------------
+        Route::prefix('me')->group(function () {
+            Route::get('home', [MeController::class, 'home']);
+            Route::get('recommendations', [MeController::class, 'recommendations']);
+            Route::get('programs-for-me', [MeController::class, 'programsForMe']);
+            Route::get('menu-layout', [MenuLayoutController::class, 'show']);
+            Route::get('app-theme', [AppThemesController::class, 'mine']);
+            Route::get('app-home', AppHomeMeController::class);
+            Route::get('passport', [MeController::class, 'passport']);
+            Route::put('skills', [MeController::class, 'updateSkills']);
+            Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
+            // My account: read-only profile + change requests
+            Route::get('account', [AccountController::class, 'show']);
+            Route::get('account/requests', [AccountController::class, 'requests']);
+            Route::post('account/requests', [AccountController::class, 'store'])->middleware('throttle:20,1');
+            Route::delete('account/requests/{changeRequest}', [AccountController::class, 'cancel']);
+            Route::post('devices', [DeviceController::class, 'store']);
+            Route::delete('devices', [DeviceController::class, 'destroy']);
+            Route::get('tickets', [TicketsController::class, 'mine']);
+            Route::post('tickets', [TicketsController::class, 'store'])->middleware('throttle:10,1');
+            Route::get('mfa', [AuthSecurityController::class, 'mfaStatus']);
+            Route::post('mfa/totp/setup', [AuthSecurityController::class, 'mfaSetup'])->middleware('throttle:10,1');
+            Route::post('mfa/totp/confirm', [AuthSecurityController::class, 'mfaConfirm'])->middleware('throttle:10,1');
+            Route::post('mfa/disable', [AuthSecurityController::class, 'mfaDisable'])->middleware('throttle:10,1');
+            Route::post('mfa/recovery-codes', [AuthSecurityController::class, 'mfaRecovery'])->middleware('throttle:10,1');
+            Route::get('sessions', [AuthSecurityController::class, 'sessions']);
+            Route::delete('sessions/{sid}', [AuthSecurityController::class, 'endSession'])->whereUuid('sid');
+            Route::post('password', [AuthSecurityController::class, 'changePassword'])->middleware('throttle:10,1');
+            Route::get('reports', [MyReportsController::class, 'index']);
+            Route::get('reports/{key}', [MyReportsController::class, 'show']);
+            Route::get('reports/{key}/export', [MyReportsController::class, 'export']);
+            Route::get('help/articles', [HelpController::class, 'index']);
+            Route::get('help/articles/{slug}', [HelpController::class, 'show']);
+            Route::post('help/articles/{slug}/feedback', [HelpController::class, 'feedback'])->middleware('throttle:30,1');
+            Route::get('help/manuals', [HelpController::class, 'manuals']);
+            Route::get('help/manuals/{manual}/pdf', [HelpController::class, 'manualPdf'])->middleware('throttle:20,1');
+            Route::get('tours', [HelpController::class, 'tour']);
+            Route::post('tours', [HelpController::class, 'finishTour']);
+            Route::delete('tours', [HelpController::class, 'resetTours']);
+            Route::get('realtime/config', [RealtimeController::class, 'config']);
+            Route::get('realtime/stream', [RealtimeController::class, 'stream'])->middleware('throttle:30,1');
+            Route::get('privacy/requests', [PrivacyController::class, 'mine']);
+            Route::post('privacy/requests', [PrivacyController::class, 'store'])->middleware('throttle:10,60');
+            Route::get('privacy/export', [PrivacyController::class, 'export'])->middleware(['step_up', 'throttle:5,60']);
+            Route::get('notification-preferences', [MyNotificationPreferencesController::class, 'show']);
+            Route::put('notification-preferences', [MyNotificationPreferencesController::class, 'update']);
+            Route::get('events', [MyEventsController::class, 'events']);
+            Route::get('announcements', [MyEventsController::class, 'announcements']);
+            Route::post('events/{announcement}/rsvp', [MyEventsController::class, 'rsvp']);
+            Route::get('notifications', [MeController::class, 'notifications']);
+            Route::post('notifications/read-all', [MeController::class, 'readAllNotifications']);
+            Route::post('notifications/seen', [MeController::class, 'seenNotifications']);
+            Route::post('notifications/{notification}/read', [MeController::class, 'readNotification']);
+
+            Route::get('competencies', [NeedsToolsController::class, 'catalog']);
+            Route::get('needs', [NeedsToolsController::class, 'mine']);
+            Route::post('needs', [NeedsToolsController::class, 'declare']);
+            Route::post('registrations/{registration}/withdraw', [WithdrawalController::class, 'withdraw']);
+            Route::get('withdrawals', [WithdrawalController::class, 'mine']);
+            Route::get('withdrawal-reasons', [WithdrawalController::class, 'activeReasons']);
+            Route::post('registrations/{registration}/excuses', [AbsenceController::class, 'submitExcuse']);
+            Route::get('excuses', [AbsenceController::class, 'myExcuses']);
+            Route::get('registrations/{registration}/progress', [MyPassingController::class, 'progress']);
+            Route::post('programs/{program}/test-out/start', [MyPassingController::class, 'testOut'])->middleware('throttle:30,1');
+            Route::post('packages/{lesson}/scorm/start', [MyPackageController::class, 'scormStart'])->middleware('throttle:60,1');
+            Route::match(['PUT', 'POST'], 'scorm/{attempt}/commit', [MyPackageController::class, 'scormCommit'])->middleware('throttle:240,1');
+            Route::post('scorm/{attempt}/finish', [MyPackageController::class, 'scormFinish']);
+            Route::post('packages/{lesson}/cmi5/launch', [MyPackageController::class, 'cmi5Launch'])->middleware('throttle:60,1');
+            Route::post('packages/{lesson}/launch', [MyPackageController::class, 'launch'])->middleware('throttle:60,1');
+            Route::post('packages/{lesson}/complete', [MyPackageController::class, 'complete']);
+            Route::post('packages/{lesson}/xapi', [MyPackageController::class, 'xapi'])->middleware('throttle:240,1');
+            Route::post('lti/{lesson}/launch', [MyPackageController::class, 'ltiLaunch'])->middleware('throttle:60,1');
+            Route::post('lti/tool/link', [MyLtiController::class, 'link'])->middleware('throttle:20,1');
+            Route::get('courses/{registration}/offline-manifest', [MyOfflineController::class, 'manifest'])->middleware('feature:offline_mobile');
+            Route::post('sync', [MyOfflineController::class, 'sync'])->middleware(['feature:offline_mobile', 'throttle:60,1']);
+            Route::get('offline-devices', [MyOfflineController::class, 'devices'])->middleware('feature:offline_mobile');
+            Route::delete('offline-devices/{offlineDevice}', [MyOfflineController::class, 'revokeDevice'])->middleware('feature:offline_mobile');
+            Route::post('assessments/{assessment}/offline-token', [MyAssessmentController::class, 'offlineToken'])->middleware(['feature:offline_mobile', 'throttle:20,1']);
+            Route::post('attempts/offline', [MyAssessmentController::class, 'submitOffline'])->middleware(['feature:offline_mobile', 'throttle:30,1']);
+            Route::post('registrations/{registration}/external-launch', [MyOfflineController::class, 'launch']);
+            Route::post('registrations/{registration}/external-completion', [MyOfflineController::class, 'evidence'])->middleware('throttle:20,1');
+            Route::get('library', [LibraryController::class, 'index']);
+            Route::get('library/shelf', [LibraryController::class, 'myShelf']);
+            Route::get('library/{item}', [LibraryController::class, 'show']);
+            Route::get('library/{item}/read', [LibraryController::class, 'read']);
+            Route::get('library/{item}/download', [LibraryController::class, 'download'])->middleware('throttle:30,1');
+            Route::post('library/{item}/review', [LibraryController::class, 'review']);
+            Route::put('library/{item}/shelf', [LibraryController::class, 'shelf']);
+            Route::get('shared', [LibraryController::class, 'sharedWithMe']);
+            Route::get('paths', [MyCareerController::class, 'paths']);
+            Route::get('paths/{path}', [MyCareerController::class, 'showPath']);
+            Route::get('licences', [MyCareerController::class, 'licences']);
+            Route::get('pd-hours', [MyCareerController::class, 'hoursSummary']);
+            Route::get('pd-activity-types', [MyCareerController::class, 'types']);
+            Route::get('pd-activities', [MyCareerController::class, 'activities']);
+            Route::post('pd-activities/preview', [MyCareerController::class, 'preview']);
+            Route::post('pd-activities', [MyCareerController::class, 'saveActivity']);
+            Route::post('pd-activities/{activity}', [MyCareerController::class, 'saveActivity']);
+            Route::post('pd-activities/{activity}/submit', [MyCareerController::class, 'submitActivity']);
+            Route::get('knowledge-transfers', [MyCareerController::class, 'transfers']);
+            Route::post('knowledge-transfers/{transfer}', [MyCareerController::class, 'submitTransfer'])->middleware('throttle:30,1');
+            Route::get('colleagues', [MyCareerController::class, 'colleagues'])->middleware('throttle:60,1');
+            Route::get('team/pd-activities', [MyCareerController::class, 'teamActivities'])->middleware('permission:impact.supervise');
+            Route::post('team/pd-activities/{activity}/decision', [PdAdminController::class, 'decide'])->middleware('permission:impact.supervise');
+            // A programme's form links (/f/t/{code}, /f/r/{code}): where they take the signed-in trainee or trainer.
+            Route::get('form-links/trainee/{code}', [MyFormLinkController::class, 'trainee'])->middleware('throttle:60,1');
+            Route::get('form-links/reflection/{code}', [MyFormLinkController::class, 'reflection'])->middleware('throttle:60,1');
+            Route::get('evaluations', [MyEvaluationController::class, 'index']);
+            Route::get('evaluations/{assignment}', [MyEvaluationController::class, 'show']);
+            Route::post('evaluations/{assignment}', [MyEvaluationController::class, 'submit'])->middleware('throttle:30,1');
+            Route::put('evaluations/{assignment}/draft', [MyEvaluationController::class, 'draft'])->middleware('throttle:60,1');
+            Route::post('evaluations/{assignment}/files', [MyEvaluationController::class, 'upload'])->middleware('throttle:30,1');
+            Route::get('assessments', [MyAssessmentController::class, 'index']);
+            Route::post('assessments/{assessment}/start', [MyAssessmentController::class, 'start'])->middleware('throttle:30,1');
+            Route::put('attempts/{attempt}/answers', [MyAssessmentController::class, 'answers'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/adaptive-answer', [MyAssessmentController::class, 'adaptiveAnswer'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/events', [MyAssessmentController::class, 'event'])->middleware('throttle:120,1');
+            Route::post('attempts/{attempt}/snapshot', [MyAssessmentController::class, 'snapshot'])->middleware('throttle:60,1');
+            Route::post('attempts/{attempt}/submit', [MyAssessmentController::class, 'submit']);
+            Route::get('attempts/{attempt}/result', [MyAssessmentController::class, 'result']);
+            Route::middleware('feature:ai')->group(function () {
+                Route::post('recommendations/{program}/feedback', [AiLearnerController::class, 'recommendationFeedback'])->middleware('throttle:60,1');
+                Route::get('attempts/{attempt}/smart-feedback', [AiLearnerController::class, 'smartFeedback']);
+                Route::get('courses/{registration}/path', [AiLearnerController::class, 'path']);
+                Route::post('assistant/messages', [AiLearnerController::class, 'ask'])->middleware('throttle:20,1');
+                Route::get('assistant/conversations', [AiLearnerController::class, 'conversations']);
+                Route::get('assistant/conversations/{conversation}', [AiLearnerController::class, 'conversation']);
+                Route::post('assistant/messages/{message}/feedback', [AiLearnerController::class, 'messageFeedback'])->middleware('throttle:60,1');
+                Route::post('assistant/messages/{message}/escalate', [AiLearnerController::class, 'escalate'])->middleware('throttle:10,1');
+            });
+            Route::get('lessons/{lesson}/interactions', [VideoInteractionController::class, 'mine']);
+            Route::post('lessons/{lesson}/interactions/{interaction}/answer', [VideoInteractionController::class, 'answer']);
+            // The trainer's teaching desk: programmes, the protected kit reader and presenter (no download route exists), popup notices, starting a session.
+            Route::prefix('teaching')->controller(TeachingController::class)->scopeBindings()->group(function () {
+                Route::get('/', 'home');
+                Route::get('notices', 'notices');
+                Route::post('notices/dismiss-all', 'dismissAll');
+                Route::post('notices/{notice}/dismiss', 'dismiss');
+                Route::get('programs/{program}', 'program');
+                Route::post('sessions/{session}/start', 'startSession')->middleware('throttle:30,1');
+                Route::get('kits/{kit}', 'kit');
+                Route::post('kits/{kit}/acknowledge', 'acknowledge');
+                Route::post('kits/{kit}/events', 'event')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/files/{file}', 'view')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/files/{file}/stream', 'stream')->middleware('throttle:120,1');
+                Route::get('kits/{kit}/assets/{asset}', 'asset')->middleware('throttle:600,1');
+            });
+            Route::get('assignments', [MyAssignmentsController::class, 'index']);
+            Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
+            Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
+            Route::post('programs/{program}/register', [MyTrainingController::class, 'register']);
+            Route::get('registrations', [MyTrainingController::class, 'registrations']);
+            Route::get('registrations/{registration}', [MyTrainingController::class, 'registration']);
+            Route::get('registrations/{registration}/materials', [MyTrainingController::class, 'materials']);
+            Route::get('materials/{material}/download', [MyTrainingController::class, 'downloadMaterial']);
+            Route::get('calendar', [MyTrainingController::class, 'calendar']);
+            Route::get('calendar.ics', [MyTrainingController::class, 'ics']);
+            Route::get('registrations/{registration}/course', [MyCourseController::class, 'outline']);
+            Route::get('lessons/{lesson}', [MyCourseController::class, 'lesson']);
+            Route::post('lessons/{lesson}/heartbeat', [MyCourseController::class, 'heartbeat'])->middleware('throttle:120,1');
+            Route::post('lessons/{lesson}/slide', [MyCourseController::class, 'slide'])->middleware('throttle:240,1');
+            Route::post('lessons/{lesson}/complete', [MyCourseController::class, 'complete']);
+            Route::post('lessons/{lesson}/quiz', [MyCourseController::class, 'quiz'])->middleware('throttle:30,1');
+            Route::post('lessons/{lesson}/survey', [MyCourseController::class, 'survey']);
+            Route::get('sessions/{session}', [MyTrainingController::class, 'session']);
+            Route::post('sessions/{session}/join', [MyTrainingController::class, 'joinSession'])->middleware('throttle:scan');
+            Route::post('sessions/{session}/leave', [MyTrainingController::class, 'leaveSession'])->middleware('throttle:scan');
+            Route::post('attendance/scan', [MyTrainingController::class, 'scan'])->middleware('throttle:scan');
+            Route::get('attendance-qr', [AttendanceMethodsController::class, 'myQr']);
+            Route::post('trainer-attendance/scan', [AttendanceMethodsController::class, 'trainerScan'])->middleware('throttle:scan');
+
+            Route::get('tasks', [MyOutcomesController::class, 'tasks']);
+            Route::post('tasks/{task}/submit', [MyOutcomesController::class, 'submitTask']);
+            Route::get('registrations/{registration}/evaluation', [MyOutcomesController::class, 'evaluationForm']);
+            Route::post('registrations/{registration}/evaluation', [MyOutcomesController::class, 'submitEvaluation']);
+            Route::get('certificates', [MyOutcomesController::class, 'certificates']);
+            Route::get('trainer-certificates', [MyOutcomesController::class, 'trainerCertificates']);
+            // The kit of an online programme, for its trainers (read-only).
+            Route::get('programs/{program}/kit', [TeachingKitController::class, 'show']);
+            Route::get('surveys', [MyOutcomesController::class, 'surveys']);
+            Route::post('surveys/{survey}', [MyOutcomesController::class, 'submitSurvey']);
+            Route::get('needs-surveys', [MyNeedsSurveyController::class, 'index']);
+            Route::get('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'show']);
+            Route::post('needs-surveys/{needsSurvey}', [MyNeedsSurveyController::class, 'submit']);
+            // Survey Studio v2 (Gate 2): the participant's side. Takes over `me/surveys` when the legacy engines are migrated (Gate 5).
+            Route::middleware('feature:survey_studio_v2')->prefix('studio-surveys')->controller(MySurveyController::class)->group(function () {
+                Route::get('/', 'index');
+                Route::get('{studioSurvey}', 'show');
+                Route::put('{studioSurvey}/draft', 'draft')->middleware('throttle:60,1');
+                Route::post('{studioSurvey}/logic', 'logic');
+                Route::post('{studioSurvey}', 'submit')->middleware('throttle:20,1');
+                Route::post('{studioSurvey}/files', 'upload')->middleware('throttle:30,1');
+            });
+
+            Route::get('team', [MyOutcomesController::class, 'team'])->middleware('permission:impact.supervise');
+            Route::post('team/registrations/{registration}/evaluation', [MyOutcomesController::class, 'supervisorEvaluation'])->middleware('permission:impact.supervise');
+        });
+
+        Route::get('certificates/{certificate}/download', [MyOutcomesController::class, 'downloadCertificate'])->name('api.certificates.download');
+        Route::get('trainer-certificates/{certificate}/download', [MyOutcomesController::class, 'downloadTrainerCertificate'])->name('api.trainer-certificates.download');
+
+        // Administration --------------------------------------------------------
+        Route::prefix('admin')->middleware('unlocked')->group(function () {
+            // Reference lists for the admin forms (schools, trainers, coordinators): staff only, never an ordinary trainee.
+            Route::get('lookups', [CatalogController::class, 'lookups'])->middleware('permission:programs.view|schools.view|employees.view|registrations.view|kits.view|announcements.manage|settings.manage|reports.view');
+
+            Route::get('dashboard', [AnalyticsController::class, 'dashboard'])->middleware('permission:dashboard.view');
+            Route::get('process', ProcessController::class)->middleware('permission:dashboard.view');
+            Route::get('analytics/executive', [AnalyticsController::class, 'executive'])->middleware('permission:analytics.executive');
+            // Chat inbox (conversations with the website assistant)
+            Route::middleware('permission:announcements.manage')->prefix('chats')->group(function () {
+                Route::get('/', [AdminChatController::class, 'index']);
+                Route::get('badge', [AdminChatController::class, 'badge']);
+                Route::get('{conversation}', [AdminChatController::class, 'show']);
+                Route::post('{conversation}/messages', [AdminChatController::class, 'reply']);
+                Route::post('{conversation}/mode', [AdminChatController::class, 'mode']);
+                Route::post('{conversation}/status', [AdminChatController::class, 'status']);
+                Route::get('{conversation}/export', [AdminChatController::class, 'export']);
+            });
+
+            // Data-change requests from users
+            Route::middleware('permission:employees.manage')->prefix('profile-requests')->group(function () {
+                Route::get('/', [ProfileRequestController::class, 'index']);
+                Route::get('summary', [ProfileRequestController::class, 'summary']);
+                Route::post('{changeRequest}/approve', [ProfileRequestController::class, 'approve']);
+                Route::post('{changeRequest}/reject', [ProfileRequestController::class, 'reject']);
+                Route::post('{changeRequest}/resend', [ProfileRequestController::class, 'resend'])->middleware('throttle:30,1');
+            });
+
+            // Notification templates, sending to a program's trainees, tracking
+            // E-mail / SMS channels: anyone who sends notifications may see what is usable; only settings managers change it.
+            Route::get('notification-channels/status', [NotificationChannelsController::class, 'status'])->middleware('permission:announcements.manage|registrations.manage|programs.manage');
+            // Settings → Help & support: the contacts and service levels the help centre, the app and the e-mails show (UTR-03).
+            Route::middleware('permission:settings.manage')->prefix('settings/support')->group(function () {
+                Route::get('/', [SupportSettingsController::class, 'show']);
+                Route::put('/', [SupportSettingsController::class, 'update']);
+            });
+            Route::middleware('permission:settings.manage')->prefix('notification-channels')->group(function () {
+                Route::get('/', [NotificationChannelsController::class, 'show']);
+                Route::put('/', [NotificationChannelsController::class, 'update']);
+                Route::post('test', [NotificationChannelsController::class, 'test'])->middleware('throttle:10,1');
+            });
+            // Notifying one program's trainees is also open to people the head of training granted that right on the program.
+            Route::middleware('can_or_grant:announcements.manage,notifications.send')->prefix('notifications')->group(function () {
+                Route::post('send', [NotificationTrackingController::class, 'send']);
+                Route::get('audience', [NotificationTrackingController::class, 'audience']);
+            });
+            Route::middleware('permission:announcements.manage')->prefix('notifications')->group(function () {
+                Route::get('templates', [NotificationTemplateController::class, 'index']);
+                Route::post('templates', [NotificationTemplateController::class, 'store']);
+                Route::post('templates/preview', [NotificationTemplateController::class, 'preview']);
+                Route::put('templates/{template}', [NotificationTemplateController::class, 'update']);
+                Route::delete('templates/{template}', [NotificationTemplateController::class, 'destroy']);
+                Route::post('templates/{template}/reset', [NotificationTemplateController::class, 'reset']);
+                Route::get('campaigns', [NotificationTrackingController::class, 'campaigns']);
+                Route::get('campaigns/{campaign}', [NotificationTrackingController::class, 'campaign']);
+                Route::get('campaigns/{campaign}/export', [NotificationTrackingController::class, 'exportCampaign']);
+                Route::get('tracking', [NotificationTrackingController::class, 'tracking']);
+                Route::get('upcoming', [NotificationTrackingController::class, 'upcoming']);
+            });
+            Route::middleware('permission:programs.manage')->prefix('programs/{program}/survey')->group(function () {
+                Route::get('/', [ProgramSurveyController::class, 'show']);
+                Route::put('/', [ProgramSurveyController::class, 'update']);
+                Route::post('open', [ProgramSurveyController::class, 'open']);
+                Route::post('close', [ProgramSurveyController::class, 'close']);
+                Route::post('notify', [ProgramSurveyController::class, 'notify']);
+            });
+            Route::get('presence/live', [PresenceController::class, 'live'])->middleware('permission:analytics.view');
+            Route::put('presence/settings', [PresenceController::class, 'updateSettings'])->middleware('permission:settings.manage');
+            Route::get('presence/report', [PresenceController::class, 'report'])->middleware('permission:analytics.view');
+            Route::get('presence/export', [PresenceController::class, 'export'])->middleware('permission:analytics.view');
+            Route::get('analytics/geographic', [AnalyticsController::class, 'geographic'])->middleware('permission:analytics.view');
+
+            // Training calendar (working / off days, vacations, exam days, approvals)
+            Route::prefix('calendar')->controller(CalendarController::class)->group(function () {
+                Route::get('/', 'index')->middleware('permission:calendar.view|calendar.manage');
+                Route::middleware('permission:calendar.manage')->group(function () {
+                    Route::post('days', 'store');
+                    Route::put('days/{day}', 'update');
+                    Route::delete('days/{day}', 'destroy');
+                });
+                Route::middleware('permission:calendar.approve')->group(function () {
+                    Route::post('approvals', 'approve');
+                    Route::delete('approvals/{date}', 'revoke');
+                });
+            });
+
+            // Training Kit Studio (الحقيبة التدريبية)
+            Route::prefix('kits')->middleware('permission:kits.view')->scopeBindings()->group(function () {
+                Route::get('/', [KitController::class, 'index']);
+                Route::get('board', [KitController::class, 'board']);
+                Route::get('stats', [KitController::class, 'stats']);
+                Route::get('samples', [KitSampleController::class, 'index']);
+                Route::post('samples', [KitSampleController::class, 'store'])->middleware(['permission:kits.manage', 'throttle:60,1']);
+                Route::get('people', [KitController::class, 'people']);
+                Route::get('ai/status', [KitAiController::class, 'status']);
+                Route::post('/', [KitController::class, 'store']);
+                // Protection of the kits in the trainer's reader and presenter: switches, and the trail of who opened, presented or tried to capture what.
+                Route::get('protection', [KitProtectionController::class, 'show']);
+                Route::put('protection', [KitProtectionController::class, 'update']);
+
+                Route::prefix('{kit}')->group(function () {
+                    Route::get('access-events', [KitProtectionController::class, 'events']);
+                    Route::get('/', [KitController::class, 'show']);
+                    Route::put('/', [KitController::class, 'update']);
+                    Route::delete('/', [KitController::class, 'destroy']);
+                    Route::put('members', [KitController::class, 'updateMembers']);
+                    Route::get('activity', [KitController::class, 'activity']);
+                    Route::get('reviews', [KitController::class, 'reviews']);
+                    Route::get('suggestions', [KitController::class, 'suggestions']);
+                    Route::post('submit', [KitController::class, 'submit']);
+                    Route::post('request-changes', [KitController::class, 'requestChanges']);
+                    Route::post('approve', [KitController::class, 'approve']);
+                    Route::post('publish', [KitController::class, 'publish']);
+                    Route::post('reopen', [KitController::class, 'reopen']);
+                    Route::post('archive', [KitController::class, 'archive']);
+
+                    Route::get('files', [KitFileController::class, 'index']);
+                    Route::post('files', [KitFileController::class, 'store']);
+                    Route::post('files/create', [KitFileController::class, 'create']);
+                    Route::prefix('files/{file}')->group(function () {
+                        Route::get('/', [KitFileController::class, 'show']);
+                        Route::put('/', [KitFileController::class, 'update']);
+                        Route::delete('/', [KitFileController::class, 'destroy']);
+                        Route::get('download', [KitFileController::class, 'download']);
+                        Route::get('deck', [KitFileController::class, 'deck']);
+                        Route::put('deck', [KitFileController::class, 'saveDeck']);
+                        Route::post('deck/import', [KitFileController::class, 'importDeck']);
+                        Route::post('export', [KitFileController::class, 'exportDeck']);
+                        Route::get('versions', [KitFileController::class, 'versions']);
+                        Route::post('versions', [KitFileController::class, 'snapshot']);
+                        Route::get('versions/{version}', [KitFileController::class, 'showVersion']);
+                        Route::post('versions/{version}/restore', [KitFileController::class, 'restore']);
+                        Route::post('heartbeat', [KitFileController::class, 'heartbeat']);
+                        Route::delete('presence', [KitFileController::class, 'leave']);
+                        Route::post('analyze', [KitFileController::class, 'analyze']);
+                        Route::post('ai/slides', [KitAiController::class, 'slides'])->middleware('permission:kits.generate');
+                    });
+
+                    Route::get('comments', [KitCommentController::class, 'index']);
+                    Route::post('comments', [KitCommentController::class, 'store']);
+                    Route::post('comments/bulk', [KitCommentController::class, 'bulk']);
+                    Route::put('comments/{comment}', [KitCommentController::class, 'update']);
+                    Route::post('comments/{comment}/status', [KitCommentController::class, 'setStatus']);
+                    Route::delete('comments/{comment}', [KitCommentController::class, 'destroy']);
+
+                    Route::get('assets', [KitAssetController::class, 'index']);
+                    Route::post('assets', [KitAssetController::class, 'store']);
+                    Route::post('assets/upload-url', [KitAssetController::class, 'uploadUrl'])->middleware('throttle:60,1');
+                    Route::post('assets/complete', [KitAssetController::class, 'complete']);
+                    Route::post('assets/from-file', [KitAssetController::class, 'fromFile']);
+
+                    Route::middleware('throttle:ai')->group(function () {
+                        Route::post('ai/deck', [KitAiController::class, 'deck'])->middleware('permission:kits.generate');
+                        Route::post('ai/image', [KitAiController::class, 'image'])->middleware('permission:kits.generate');
+                        Route::post('ai/audio', [KitAiController::class, 'audio'])->middleware(['permission:kits.generate', 'throttle:20,1']);
+                        Route::post('ai/storyboard', [KitAiController::class, 'storyboard'])->middleware('permission:kits.generate');
+                        Route::post('ai/rewrite', [KitAiController::class, 'rewrite']);
+                    });
+                });
+            });
+
+            // Smart program creation (from needs or audience filters)
+            Route::prefix('program-builder')->controller(ProgramBuilderController::class)->middleware('permission:programs.manage')->group(function () {
+                Route::get('options', 'options');
+                Route::post('draft', 'draft');
+                Route::post('schedule', 'schedule');
+                Route::post('audience/preview', 'preview');
+                Route::post('/', 'store');
+            });
+            Route::get('programs/{program}/audience', [ProgramBuilderController::class, 'showAudience'])->middleware('permission:programs.view|programs.manage');
+            Route::put('programs/{program}/audience', [ProgramBuilderController::class, 'updateAudience'])->middleware('permission:programs.manage');
+            Route::post('programs/{program}/audience/nominate', [ProgramBuilderController::class, 'nominateAudience'])->middleware('permission:nominations.center');
+
+            // Training rooms (locations, layouts, equipment, availability)
+            Route::prefix('rooms')->controller(RoomController::class)->group(function () {
+                // «خريطة المركز» (docs/wayfinding.md) — before {room}, which would read "map" as a room.
+                Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::get('map', [WayfindingController::class, 'show']);
+                    Route::put('map', [WayfindingController::class, 'update']);
+                    Route::get('map/people', [WayfindingController::class, 'people']);
+                    Route::put('map/places/{place}', [WayfindingController::class, 'place'])->where('place', '[a-z0-9-]+');
+                });
+                Route::middleware('permission:programs.view|rooms.manage')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('options', 'options');
+                    Route::get('availability', 'availability');
+                    Route::get('wall', 'wall');
+                    Route::get('{room}', 'show');
+                    Route::get('{room}/schedule', 'schedule');
+                    Route::get('{room}/screen', 'screen');
+                });
+                Route::middleware('permission:rooms.manage')->group(function () {
+                    Route::put('{room}/map', [WayfindingController::class, 'room']);
+                    Route::post('sync/preview', [RoomSyncController::class, 'preview']);
+                    Route::post('sync/apply', [RoomSyncController::class, 'apply']);
+                    Route::get('sync/template', [RoomSyncController::class, 'template']);
+                    Route::post('/', 'store');
+                    Route::put('{room}', 'update');
+                    Route::post('{room}/screen-link', 'screenLink');
+                    Route::delete('{room}', 'destroy');
+                });
+            });
+
+            // سابر+ — the programmes & groups workbench (docs/saber); each action checks its own saber.* right.
+            Route::middleware('permission:saber.view')->prefix('saber')->group(function () {
+                Route::get('overview', [SaberController::class, 'overview']);
+                Route::get('programs', [SaberController::class, 'programs']);
+                // Each programme's trainee survey and trainer self-reflection as generated links (docs/saber/07).
+                Route::get('forms', [SaberFormsController::class, 'index']);
+                Route::get('forms/export', [SaberFormsController::class, 'export']);
+                Route::get('programs/{program}/forms', [SaberFormsController::class, 'show'])->whereUuid('program');
+                Route::get('availability', [SaberController::class, 'availability']);
+                Route::patch('programs/{program}', [SaberController::class, 'updateProgram'])->whereUuid('program');
+                Route::post('programs/{program}/groups', [SaberController::class, 'addGroup'])->whereUuid('program');
+                // Review workflow — SABER+ edits are drafts until a reviewer publishes them (docs/saber/05).
+                Route::post('programs', [SaberController::class, 'createProgram']);
+                Route::get('programs/{program}/draft', [SaberController::class, 'draftDiff'])->whereUuid('program');
+                Route::post('programs/{program}/draft/submit', [SaberController::class, 'submitDraft'])->whereUuid('program');
+                Route::delete('programs/{program}/draft', [SaberController::class, 'discardDraft'])->whereUuid('program');
+                Route::get('reviews', [SaberController::class, 'reviews']);
+                Route::get('reviews/{revision}', [SaberController::class, 'review'])->whereUuid('revision');
+                Route::post('reviews/{revision}/publish', [SaberController::class, 'publishReview'])->whereUuid('revision');
+                Route::post('reviews/{revision}/return', [SaberController::class, 'returnReview'])->whereUuid('revision');
+                Route::post('reviews/{revision}/discard', [SaberController::class, 'discardReview'])->whereUuid('revision');
+                Route::patch('programs/{program}/groups/{key}', [SaberController::class, 'updateGroup'])->whereUuid(['program', 'key']);
+                Route::delete('programs/{program}/groups/{key}', [SaberController::class, 'deleteGroup'])->whereUuid(['program', 'key']);
+                Route::post('groups/{group}/validate', [SaberController::class, 'validateGroup'])->whereUuid('group');
+                Route::post('programs/{program}/groups/{key}/reset', [SaberController::class, 'resetGroup'])->whereUuid(['program', 'key']);
+                Route::put('programs/{program}/groups/{key}/days/{idx}', [SaberController::class, 'setDay'])->whereUuid(['program', 'key'])->whereNumber('idx');
+                Route::delete('programs/{program}/groups/{key}/days/{idx}', [SaberController::class, 'resetDay'])->whereUuid(['program', 'key'])->whereNumber('idx');
+                Route::put('settings', [SaberController::class, 'saveSettings'])->middleware('permission:settings.manage');
+                // Phase 2 — details, plan of the coming days, cancellation, closed-day requests, weekly holidays.
+                Route::get('programs/{program}/details', [SaberController::class, 'details'])->whereUuid('program');
+                Route::post('programs/{program}/groups/{key}/plan/preview', [SaberController::class, 'planPreview'])->whereUuid(['program', 'key']);
+                Route::post('programs/{program}/groups/{key}/plan/apply', [SaberController::class, 'planApply'])->whereUuid(['program', 'key']);
+                Route::post('programs/{program}/cancel', [SaberController::class, 'cancelProgram'])->whereUuid('program');
+                Route::post('groups/{group}/cancel', [SaberController::class, 'cancelGroup'])->whereUuid('group');
+                Route::post('programs/{program}/reactivate', [SaberController::class, 'reactivateProgram'])->whereUuid('program');
+                Route::post('groups/{group}/reactivate', [SaberController::class, 'reactivateGroup'])->whereUuid('group');
+                Route::get('cancelled', [SaberController::class, 'cancelled']);
+                Route::get('cancellations/{type}/{id}/attachment', [SaberController::class, 'cancellationAttachment'])->whereIn('type', ['program', 'group'])->whereUuid('id');
+                Route::get('offday-requests', [SaberController::class, 'offdayRequests']);
+                Route::post('offday-requests', [SaberController::class, 'requestOffday']);
+                Route::post('offday-requests/{calendarRequest}/decide', [SaberController::class, 'decideOffday'])->whereUuid('calendarRequest')->middleware('permission:calendar.approve');
+                Route::get('weekly-rules', [SaberController::class, 'weeklyRules']);
+                Route::post('weekly-rules', [SaberController::class, 'saveWeeklyRule'])->middleware('permission:calendar.manage');
+                Route::delete('weekly-rules/{rule}', [SaberController::class, 'deleteWeeklyRule'])->whereUuid('rule')->middleware('permission:calendar.manage');
+                // Phase 4 — data tools: imports, trainers manager, supervisors.
+                Route::prefix('data')->controller(SaberDataController::class)->group(function () {
+                    Route::post('import/inspect', 'inspect')->middleware('throttle:30,1');
+                    Route::post('import/preview', 'preview')->middleware('throttle:30,1');
+                    Route::post('import/apply', 'apply');
+                    Route::get('import/presets', 'presets');
+                    Route::post('import/presets', 'savePreset');
+                    Route::get('trainers', 'trainers');
+                    Route::post('trainers', 'saveTrainer');
+                    Route::get('trainers/export', 'trainersExport');
+                    Route::post('trainers/import/preview', 'trainersImportPreview');
+                    Route::post('trainers/import/apply', 'trainersImportApply');
+                    Route::post('trainers/fill-from-staff', 'trainersFill');
+                    Route::put('trainers/{trainer}', 'saveTrainer')->whereUuid('trainer');
+                    Route::delete('trainers/{trainer}', 'deleteTrainer')->whereUuid('trainer');
+                    Route::post('trainers/{trainer}/validate', 'validateTrainer')->whereUuid('trainer');
+                    Route::get('supervisors', 'supervisors');
+                });
+                // Phase 3 — rooms calendar, room map and meeting-room bookings.
+                Route::get('rooms-month', [SaberController::class, 'roomsMonth']);
+                Route::get('room-slots', [SaberController::class, 'roomSlots']);
+                Route::post('meetings', [SaberController::class, 'bookMeeting']);
+                Route::patch('meetings/{booking}', [SaberController::class, 'updateMeeting'])->whereUuid('booking');
+                Route::delete('meetings/{booking}', [SaberController::class, 'cancelMeeting'])->whereUuid('booking');
+            });
+
+            // Programs & sessions
+            // The program list is a picker for registrations, certificates and impact screens too (it is the public catalogue plus status).
+            Route::get('programs', [ProgramController::class, 'index'])->middleware('permission:programs.view|programs.manage|registrations.view|certificates.view|impact.view');
+            Route::middleware('permission:programs.view|programs.manage')->group(function () {
+                Route::get('programs/{program}', [ProgramController::class, 'show']);
+                Route::get('programs/{program}/sessions', [SessionController::class, 'index']);
+                Route::get('programs/{program}/instruments', [ProgramInstrumentController::class, 'show']);
+                Route::get('programs/{program}/materials', [MaterialController::class, 'index']);
+                Route::get('programs/{program}/tasks', [TaskController::class, 'index']);
+                Route::get('programs/{program}/eligibility-rules', [EligibilityRuleController::class, 'index']);
+                Route::get('programs/{program}/impact', [ProgramController::class, 'impact']);
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                // The spoken / typed order to create a programme (fixed paths, registered before {program}).
+                Route::get('programs/next-code', [ProgramController::class, 'nextCode']);
+                Route::post('programs/group-names', [TrainingGroupController::class, 'suggestNames'])->middleware('permission:programs.manage|groups.manage');
+                Route::get('programs/kit-options', [ProgramInstrumentController::class, 'kits']);
+                Route::post('programs/schedule-plan', [ProgramScheduleController::class, 'plan'])->middleware('throttle:90,1');
+                Route::get('programs/assistant', [ProgramAssistantController::class, 'status']);
+                Route::post('programs/assistant/parse', [ProgramAssistantController::class, 'parse'])->middleware('throttle:30,1');
+                Route::post('programs', [ProgramController::class, 'store']);
+                Route::put('programs/{program}', [ProgramController::class, 'update']);
+                Route::put('programs/{program}/instruments', [ProgramInstrumentController::class, 'update']);
+                Route::patch('programs/{program}/status', [ProgramController::class, 'updateStatus']);
+                Route::post('programs/{program}/cover', [ProgramController::class, 'uploadCover']);
+                Route::delete('programs/{program}', [ProgramController::class, 'destroy']);
+                Route::post('programs/{program}/sessions', [SessionController::class, 'store']);
+                Route::put('sessions/{session}', [SessionController::class, 'update']);
+                Route::delete('sessions/{session}', [SessionController::class, 'destroy']);
+                Route::put('programs/{program}/eligibility-rules', [EligibilityRuleController::class, 'sync']);
+            });
+            Route::get('programs/{program}/eligibility/{employee}', [EligibilityRuleController::class, 'check'])->middleware('permission:registrations.view');
+
+            Route::middleware('permission:materials.manage')->group(function () {
+                Route::post('programs/{program}/materials', [MaterialController::class, 'store']);
+                Route::delete('materials/{material}', [MaterialController::class, 'destroy']);
+            });
+
+            // Attendance (trainers & coordinators)
+            // Online course builder (video, presentations, quizzes, surveys, articles) and learning analytics
+            Route::middleware('permission:programs.view')->group(function () {
+                Route::get('programs/{program}/course', [CourseController::class, 'show']);
+                Route::get('programs/{program}/course/analytics', [CourseController::class, 'analytics']);
+                Route::get('programs/{program}/course/starters', [CourseController::class, 'starters']);
+                Route::get('course-starters', [CourseController::class, 'starters']);
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::put('programs/{program}/course/settings', [CourseController::class, 'updateSettings']);
+                Route::post('programs/{program}/course/blueprint', [CourseController::class, 'applyBlueprint']);
+                Route::post('programs/{program}/course/import-kit', [CourseController::class, 'importKit']);
+                Route::post('programs/{program}/course/modules', [CourseController::class, 'storeModule']);
+                Route::put('programs/{program}/course/reorder', [CourseController::class, 'reorder']);
+                Route::put('course/modules/{module}', [CourseController::class, 'updateModule']);
+                Route::delete('course/modules/{module}', [CourseController::class, 'destroyModule']);
+                Route::post('course/modules/{module}/lessons', [CourseController::class, 'storeLesson']);
+                Route::put('course/lessons/{lesson}', [CourseController::class, 'updateLesson']);
+                Route::delete('course/lessons/{lesson}', [CourseController::class, 'destroyLesson']);
+                Route::post('course/lessons/{lesson}/upload-url', [CourseController::class, 'uploadUrl'])->middleware('throttle:60,1');
+                Route::post('course/lessons/{lesson}/file', [CourseController::class, 'fileComplete']);
+                Route::put('course/lessons/{lesson}/link', [CourseController::class, 'setLink']);
+                Route::delete('course/lessons/{lesson}/file', [CourseController::class, 'removeFile']);
+                Route::put('course/lessons/{lesson}/questions', [CourseController::class, 'saveQuestions']);
+                Route::put('course/lessons/{lesson}/survey-questions', [CourseController::class, 'saveSurveyQuestions']);
+            });
+            Route::get('programs/{program}/remote-tracking', [RemoteProgramController::class, 'tracking'])->middleware('permission:programs.view');
+            Route::post('program-builder/slots', [RemoteProgramController::class, 'slots'])->middleware('permission:programs.manage');
+            Route::post('sessions/{session}/remind', [RemoteProgramController::class, 'remind'])->middleware('can_or_grant:attendance.manage,attendance.mark');
+            Route::middleware('can_or_grant:attendance.manage,attendance.mark')->group(function () {
+                Route::get('sessions/{session}/qr', [SessionController::class, 'qr']);
+                Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
+                Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
+                Route::post('sessions/{session}/attendance', [SessionController::class, 'mark']);
+                Route::get('sessions/{session}/attendance/export', [AttendanceMethodsController::class, 'exportSession']);
+                Route::get('groups/{group}/attendance/export', [AttendanceMethodsController::class, 'exportGroup']);
+                Route::get('sessions/{session}/sheet.pdf', [AttendanceMethodsController::class, 'blankSheet']);
+                Route::get('sessions/{session}/kiosk', [AttendanceMethodsController::class, 'kiosk']);
+                Route::post('sessions/{session}/signatures', [AttendanceMethodsController::class, 'sign']);
+                Route::post('sessions/{session}/staff-scan', [AttendanceMethodsController::class, 'staffScan'])->middleware('throttle:scan');
+                Route::get('sessions/{session}/trainer-attendance', [AttendanceMethodsController::class, 'trainerRows']);
+                Route::post('sessions/{session}/trainer-attendance', [AttendanceMethodsController::class, 'markTrainer']);
+            });
+
+            // Tasks
+            Route::middleware('permission:tasks.manage')->group(function () {
+                Route::post('programs/{program}/tasks', [TaskController::class, 'store']);
+                Route::put('tasks/{task}', [TaskController::class, 'update']);
+                Route::delete('tasks/{task}', [TaskController::class, 'destroy']);
+            });
+            Route::middleware('can_or_grant:tasks.review,tasks.review')->group(function () {
+                Route::get('tasks/{task}/submissions', [TaskController::class, 'submissions']);
+                Route::post('submissions/{submission}/review', [TaskController::class, 'review']);
+                Route::post('submissions/{submission}/trainer-decision', [TaskController::class, 'trainerDecision']);
+                Route::get('submissions/{submission}/file', [TaskController::class, 'file'])->name('api.submissions.file');
+            });
+
+            // Registrations & nominations
+            Route::get('registrations/import/template', [RegistrationController::class, 'template'])->middleware('permission:registrations.import');
+            Route::post('employees/hours-last-year', [GroupTraineeController::class, 'hours'])->middleware('permission:registrations.view|employees.view|programs.view|nominations.center|nominations.school');
+            Route::middleware('permission:registrations.view')->group(function () {
+                Route::get('registrations', [RegistrationController::class, 'index']);
+                Route::get('registrations/{registration}', [RegistrationController::class, 'show']);
+            });
+            Route::middleware('permission:registrations.manage')->group(function () {
+                Route::patch('registrations/{registration}/status', [RegistrationController::class, 'updateStatus']);
+                Route::post('registrations/bulk-status', [RegistrationController::class, 'bulkStatus']);
+                Route::post('registrations/assign-group', [RegistrationController::class, 'assignGroup']);
+            });
+            Route::middleware('permission:nominations.center|nominations.school')->group(function () {
+                Route::post('programs/{program}/nominations', [RegistrationController::class, 'nominate']);
+                // Adding trainees to a group: by employee number or from a school's staff — target audience only.
+                Route::get('groups/{group}/trainee-candidates', [GroupTraineeController::class, 'candidates']);
+                Route::post('groups/{group}/trainees/check', [GroupTraineeController::class, 'check']);
+                Route::post('groups/{group}/trainees', [GroupTraineeController::class, 'store']);
+                Route::get('programs/{program}/candidates', [RegistrationController::class, 'candidates']);
+                Route::post('programs/{program}/registrations/import', [RegistrationController::class, 'import'])->middleware('permission:registrations.import');
+            });
+
+            // Certificates
+            Route::middleware('permission:certificates.view')->group(function () {
+                Route::get('certificates', [CertificateController::class, 'index']);
+                Route::get('registrations/{registration}/certificate-requirements', [CertificateController::class, 'requirements']);
+            });
+            // Certificate designer (templates made from an uploaded PDF / picture)
+            Route::prefix('certificate-templates')->controller(CertificateTemplateController::class)->group(function () {
+                Route::middleware('permission:certificates.view')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('{template}', 'show');
+                    Route::get('{template}/file/{name}', 'file');
+                    Route::post('preview', 'preview');
+                });
+                Route::middleware('permission:certificates.issue')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{template}', 'update');
+                    Route::delete('{template}', 'destroy');
+                    Route::post('{template}/default', 'makeDefault');
+                    Route::post('{template}/background', 'background');
+                    Route::delete('{template}/background', 'removeBackground');
+                    Route::post('{template}/assets', 'asset');
+                });
+            });
+            Route::post('registrations/{registration}/certificate', [CertificateController::class, 'issue'])->middleware('permission:certificates.issue');
+            Route::post('certificates/send', [CertificateController::class, 'send'])->middleware('permission:certificates.issue');
+            Route::post('programs/{program}/certificates', [CertificateController::class, 'issueForProgram'])->middleware('permission:certificates.issue');
+            Route::post('certificates/{certificate}/revoke', [CertificateController::class, 'revoke'])->middleware('permission:certificates.revoke');
+
+            // Organization
+            Route::middleware('permission:schools.view|schools.manage')->group(function () {
+                Route::get('schools/map', [SchoolController::class, 'map']);
+                Route::get('schools', [SchoolController::class, 'index']);
+                Route::get('schools/{school}', [SchoolController::class, 'show']);
+                // The school's page: its staff and the history of their training as a timeline (staff data, so it also needs the employees permission).
+                Route::middleware('permission:employees.view|employees.manage')->group(function () {
+                    Route::get('schools/{school}/staff', [SchoolTrainingController::class, 'staff']);
+                    Route::get('schools/{school}/timeline', [SchoolTrainingController::class, 'timeline']);
+                });
+            });
+            Route::middleware('permission:schools.manage')->group(function () {
+                Route::post('schools/sync', [SchoolController::class, 'sync'])->middleware('throttle:6,1');
+                Route::post('schools', [SchoolController::class, 'store']);
+                Route::put('schools/{school}', [SchoolController::class, 'update']);
+                Route::post('schools/{school}/logo', [SchoolController::class, 'logo']);
+            });
+            Route::middleware('permission:employees.view|employees.manage')->group(function () {
+                Route::get('employees', [EmployeeController::class, 'index']);
+                Route::get('employees/{employee}', [EmployeeController::class, 'show']);
+            });
+            Route::middleware('permission:employees.manage')->group(function () {
+                Route::post('employees', [EmployeeController::class, 'store']);
+                Route::put('employees/{employee}', [EmployeeController::class, 'update']);
+                Route::put('employees/{employee}/skills', [EmployeeController::class, 'skills']);
+            });
+
+            // Catalog
+            Route::prefix('trainers')->controller(TrainerController::class)->group(function () {
+                Route::middleware('permission:programs.view|trainers.manage')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('options', 'options');
+                    Route::get('candidates', 'candidates');
+                    Route::get('suggest', 'suggest');
+                    Route::get('{trainer}', 'show');
+                    Route::get('{trainer}/schedule', 'schedule');
+                });
+                Route::middleware('permission:trainers.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{trainer}', 'update');
+                    Route::post('{trainer}/photo', 'photo');
+                    Route::delete('{trainer}', 'destroy');
+                });
+            });
+            Route::prefix('partners')->controller(PartnerOrganizationController::class)->group(function () {
+                Route::get('/', 'index')->middleware('permission:programs.view|trainers.manage');
+                Route::middleware('permission:trainers.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::put('{partner}', 'update');
+                    Route::delete('{partner}', 'destroy');
+                });
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::post('categories', [CatalogController::class, 'storeCategory']);
+                Route::put('categories/{programCategory}', [CatalogController::class, 'updateCategory']);
+                Route::post('skills', [CatalogController::class, 'storeSkill']);
+                Route::post('job-titles', [CatalogController::class, 'storeJobTitle']);
+            });
+
+            // Training needs
+            Route::get('training-needs', [TrainingNeedController::class, 'index'])->middleware('permission:needs.view|needs.submit');
+            Route::post('training-needs', [TrainingNeedController::class, 'store'])->middleware('permission:needs.submit');
+            Route::patch('training-needs/{need}', [TrainingNeedController::class, 'update'])->middleware('permission:needs.manage');
+            Route::get('training-needs/analytics', [TrainingNeedController::class, 'analytics'])->middleware('permission:needs.view');
+
+            // Training-needs assessment surveys
+            Route::middleware('permission:needs.manage')->prefix('needs-surveys')->group(function () {
+                Route::get('/', [NeedsSurveyController::class, 'index']);
+                Route::post('/', [NeedsSurveyController::class, 'store']);
+                Route::get('templates', [NeedsSurveyController::class, 'templates']);
+                Route::get('audience/options', [NeedsSurveyController::class, 'audienceOptions']);
+                Route::post('audience/preview', [NeedsSurveyController::class, 'audiencePreview']);
+                Route::get('{needsSurvey}', [NeedsSurveyController::class, 'show']);
+                Route::put('{needsSurvey}', [NeedsSurveyController::class, 'update']);
+                Route::delete('{needsSurvey}', [NeedsSurveyController::class, 'destroy']);
+                Route::post('{needsSurvey}/duplicate', [NeedsSurveyController::class, 'duplicate']);
+                Route::post('{needsSurvey}/publish', [NeedsSurveyController::class, 'publish']);
+                Route::post('{needsSurvey}/remind', [NeedsSurveyController::class, 'remind']);
+                Route::post('{needsSurvey}/close', [NeedsSurveyController::class, 'close']);
+                Route::post('{needsSurvey}/reopen', [NeedsSurveyController::class, 'reopen']);
+                Route::get('{needsSurvey}/report', [NeedsSurveyController::class, 'report']);
+                Route::get('{needsSurvey}/export', [NeedsSurveyController::class, 'export']);
+                Route::post('{needsSurvey}/generate-needs', [NeedsSurveyController::class, 'generateNeeds']);
+                Route::post('{needsSurvey}/migrate', [NeedsSurveyController::class, 'migrate'])->middleware('feature:survey_studio_v2');
+            });
+
+            // Professional learning communities (PLC), Phase 1: the hub, communities, the needs register and workshops on the programme engine.
+            Route::middleware('feature:plc')->prefix('plc')->group(function () {
+                Route::middleware('permission:plc.view')->group(function () {
+                    Route::get('dashboard', [PlcHubController::class, 'dashboard']);
+                    Route::get('lookup/{kind}', [PlcHubController::class, 'lookup'])->whereIn('kind', ['schools', 'users']);
+                    Route::get('communities', [PlcCommunityController::class, 'index']);
+                    Route::get('communities/{plcCommunity}', [PlcCommunityController::class, 'show']);
+                    Route::get('needs', [PlcNeedController::class, 'index']);
+                    Route::get('needs/{plcNeed}', [PlcNeedController::class, 'show']);
+                    Route::get('workshops', [PlcWorkshopController::class, 'index']);
+                    Route::get('workshops/catalog', [PlcWorkshopController::class, 'catalog']);
+                    Route::get('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'show']);
+                    Route::get('workshops/{plcWorkshop}/schools', [PlcWorkshopSchoolController::class, 'index']);
+                    Route::get('workshops/{plcWorkshop}/schools/search', [PlcWorkshopSchoolController::class, 'search']);
+                    Route::get('workshops/{plcWorkshop}/schools/suggest', [PlcWorkshopSchoolController::class, 'suggest']);
+                    Route::get('workshops/{plcWorkshop}/people/eligible', [PlcWorkshopPeopleController::class, 'eligible']);
+                    Route::get('workshops/{plcWorkshop}/nominations', [PlcWorkshopPeopleController::class, 'nominations']);
+                    Route::get('workshops/{plcWorkshop}/trainers', [PlcWorkshopPeopleController::class, 'trainers']);
+                    Route::get('workshops/{plcWorkshop}/trainers/suggest', [PlcWorkshopPeopleController::class, 'suggestTrainers']);
+                    Route::get('calendar', [PlcWorkshopScheduleController::class, 'calendar']);
+                    Route::get('workshops/{plcWorkshop}/sessions', [PlcWorkshopScheduleController::class, 'index']);
+                    Route::get('workshops/{plcWorkshop}/assistant', [PlcWorkshopAssistantController::class, 'show']);
+                });
+                Route::middleware('permission:plc.nominate|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/nominations', [PlcWorkshopPeopleController::class, 'nominate']);
+                    Route::post('workshops/{plcWorkshop}/nominations/{plcNomination}', [PlcWorkshopPeopleController::class, 'decide'])->whereUuid('plcNomination');
+                    Route::post('workshops/{plcWorkshop}/nominations-materialise', [PlcWorkshopPeopleController::class, 'materialise']);
+                });
+                Route::middleware('permission:plc.trainers.assign|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/trainers', [PlcWorkshopPeopleController::class, 'propose']);
+                    Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/confirm', [PlcWorkshopPeopleController::class, 'confirm'])->whereUuid('plcAssignment');
+                    Route::post('workshops/{plcWorkshop}/trainers/{plcAssignment}/replace', [PlcWorkshopPeopleController::class, 'replace'])->whereUuid('plcAssignment');
+                    Route::delete('workshops/{plcWorkshop}/trainers/{plcAssignment}', [PlcWorkshopPeopleController::class, 'withdraw'])->whereUuid('plcAssignment');
+                });
+                Route::middleware('permission:plc.attendance.manage|plc.manage|attendance.manage|attendance.mark')->group(function () {
+                    Route::get('workshops/{plcWorkshop}/attendance', [PlcWorkshopAttendanceController::class, 'report']);
+                    Route::get('workshops/{plcWorkshop}/attendance/export', [PlcWorkshopAttendanceController::class, 'export']);
+                    Route::get('workshops/{plcWorkshop}/sessions/{plcSession}/attendance', [PlcWorkshopAttendanceController::class, 'roster'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/code', [PlcWorkshopAttendanceController::class, 'code'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/revoke', [PlcWorkshopAttendanceController::class, 'revoke'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/correct', [PlcWorkshopAttendanceController::class, 'correct'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/lock', [PlcWorkshopAttendanceController::class, 'lock'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/sessions/{plcSession}/attendance/unlock', [PlcWorkshopAttendanceController::class, 'unlock'])->whereUuid('plcSession');
+                });
+                Route::middleware('permission:plc.reports')->group(function () {
+                    Route::get('reports', [PlcReportController::class, 'show']);
+                    Route::get('reports/options', [PlcReportController::class, 'options']);
+                    Route::get('reports/export', [PlcReportController::class, 'export']);
+                    Route::get('reports/decisions', [PlcReportController::class, 'decisions']);
+                });
+                Route::middleware('permission:plc.evaluations.manage|plc.manage|plc.reports')->group(function () {
+                    Route::get('workshops/{plcWorkshop}/evaluation', [PlcWorkshopEvaluationController::class, 'show']);
+                    Route::get('workshops/{plcWorkshop}/evaluation/export', [PlcWorkshopEvaluationController::class, 'export']);
+                });
+                Route::middleware('permission:plc.evaluations.manage|plc.manage')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/evaluation/send', [PlcWorkshopEvaluationController::class, 'send']);
+                    Route::post('workshops/{plcWorkshop}/evaluation/remind', [PlcWorkshopEvaluationController::class, 'remind']);
+                    Route::post('workshops/{plcWorkshop}/evaluation/close', [PlcWorkshopEvaluationController::class, 'close']);
+                    Route::post('workshops/{plcWorkshop}/assistant/themes', [PlcWorkshopAssistantController::class, 'themes']);
+                });
+                Route::middleware('permission:plc.community.manage')->group(function () {
+                    Route::post('communities', [PlcCommunityController::class, 'store']);
+                    Route::put('communities/{plcCommunity}', [PlcCommunityController::class, 'update']);
+                    Route::delete('communities/{plcCommunity}', [PlcCommunityController::class, 'destroy']);
+                });
+                Route::middleware('permission:plc.manage|plc.internal.submit')->group(function () {
+                    Route::post('needs', [PlcNeedController::class, 'store']);
+                    Route::put('needs/{plcNeed}', [PlcNeedController::class, 'update']);
+                    Route::post('needs/{plcNeed}/convert', [PlcNeedController::class, 'convert']);
+                    Route::post('workshops', [PlcWorkshopController::class, 'store']);
+                    Route::put('workshops/{plcWorkshop}', [PlcWorkshopController::class, 'update']);
+                    Route::post('workshops/{plcWorkshop}/sessions', [PlcWorkshopScheduleController::class, 'store']);
+                    Route::post('workshops/{plcWorkshop}/sessions/alternatives', [PlcWorkshopScheduleController::class, 'alternatives']);
+                    Route::put('workshops/{plcWorkshop}/sessions/{plcSession}', [PlcWorkshopScheduleController::class, 'update'])->whereUuid('plcSession');
+                    Route::delete('workshops/{plcWorkshop}/sessions/{plcSession}', [PlcWorkshopScheduleController::class, 'destroy'])->whereUuid('plcSession');
+                    Route::post('workshops/{plcWorkshop}/schedule', [PlcWorkshopScheduleController::class, 'schedule']);
+                    Route::post('workshops/{plcWorkshop}/submit', [PlcWorkshopController::class, 'submit']);
+                    Route::post('workshops/{plcWorkshop}/cancel', [PlcWorkshopController::class, 'cancel']);
+                    Route::put('workshops/{plcWorkshop}/schools/host', [PlcWorkshopSchoolController::class, 'host']);
+                    Route::post('workshops/{plcWorkshop}/schools', [PlcWorkshopSchoolController::class, 'store']);
+                    Route::put('workshops/{plcWorkshop}/schools/{school}/seats', [PlcWorkshopSchoolController::class, 'seats'])->whereUuid('school');
+                    Route::post('workshops/{plcWorkshop}/schools/{school}/exclude', [PlcWorkshopSchoolController::class, 'exclude'])->whereUuid('school');
+                    Route::delete('workshops/{plcWorkshop}/schools/{school}', [PlcWorkshopSchoolController::class, 'destroy'])->whereUuid('school');
+                });
+                Route::middleware('permission:plc.approve|plc.approve.school')->group(function () {
+                    Route::post('workshops/{plcWorkshop}/approve', [PlcWorkshopController::class, 'approve']);
+                    Route::post('workshops/{plcWorkshop}/request-changes', [PlcWorkshopController::class, 'requestChanges']);
+                    Route::post('workshops/{plcWorkshop}/reject', [PlcWorkshopController::class, 'reject']);
+                });
+                Route::middleware('permission:plc.settings')->group(function () {
+                    Route::get('settings', [PlcHubController::class, 'settings']);
+                    Route::put('settings', [PlcHubController::class, 'updateSettings']);
+                });
+            });
+
+            // Survey Studio v2 (Gate 2): the unified survey engine. Reading needs surveys.view; every write names its permission.
+            Route::middleware('feature:survey_studio_v2')->prefix('surveys')->controller(SurveyController::class)->group(function () {
+                // Fixed paths first, so the survey id parameter never swallows them (Gate 5 migration panel).
+                Route::get('compare', [SurveyResultsController::class, 'compare'])->middleware('permission:surveys.results');
+                Route::get('retention', [SurveyPrivacyController::class, 'retention'])->middleware('permission:surveys.manage|privacy.manage');
+                Route::post('retention', [SurveyPrivacyController::class, 'runRetention'])->middleware('permission:surveys.manage|privacy.manage');
+                Route::middleware('permission:surveys.manage')->prefix('migration')->controller(SurveyMigrationController::class)->group(function () {
+                    Route::get('/', 'index');
+                    Route::post('/', 'run');
+                    Route::post('rollback', 'rollback');
+                });
+                Route::middleware('permission:surveys.view')->group(function () {
+                    Route::get('/', 'index');
+                    Route::get('catalog', 'catalog');
+                    Route::get('overview', [SurveyResultsController::class, 'overview']);
+                    Route::get('{studioSurvey}', 'show');
+                    Route::get('{studioSurvey}/versions', 'versions');
+                    Route::get('{studioSurvey}/versions/{number}', 'version')->whereNumber('number');
+                    Route::get('{studioSurvey}/events', 'events');
+                    Route::post('{studioSurvey}/preview-logic', 'previewLogic');
+                    Route::get('{studioSurvey}/distributions', [SurveyDistributionController::class, 'index']);
+                    Route::get('{studioSurvey}/distributions/{distribution}/qr.{format}', [SurveyDistributionController::class, 'qr'])->whereIn('format', ['svg', 'png']);
+                });
+                Route::middleware('permission:surveys.results')->group(function () {
+                    Route::get('{studioSurvey}/results', [SurveyResultsController::class, 'results']);
+                    Route::get('{studioSurvey}/answers', [SurveyResultsController::class, 'answers']);
+                    Route::get('{studioSurvey}/files/{surveyFile}', [SurveyDistributionController::class, 'file']);
+                    Route::post('{studioSurvey}/generate-needs', [SurveyResultsController::class, 'generateNeeds'])->middleware('permission:needs.manage');
+                });
+                Route::get('{studioSurvey}/export', [SurveyResultsController::class, 'export'])->middleware('permission:surveys.export');
+                Route::get('{studioSurvey}/ai', [SurveyAiController::class, 'status'])->middleware('permission:surveys.results|surveys.manage');
+                Route::post('{studioSurvey}/ai/summaries', [SurveyAiController::class, 'summarise'])->middleware(['permission:surveys.results', 'throttle:20,1']);
+                Route::post('{studioSurvey}/ai/suggestions', [SurveyAiController::class, 'suggest'])->middleware(['permission:surveys.manage', 'throttle:20,1']);
+                Route::middleware('permission:surveys.manage')->group(function () {
+                    Route::post('/', 'store');
+                    Route::post('audience/preview', 'audiencePreview');
+                    Route::get('audience/options', 'audienceOptions');
+                    Route::put('{studioSurvey}', 'update');
+                    Route::delete('{studioSurvey}', 'destroy');
+                    Route::post('{studioSurvey}/duplicate', 'duplicate');
+                    Route::post('{studioSurvey}/submit-review', 'submitReview');
+                    Route::post('{studioSurvey}/remind', 'remind');
+                    Route::post('{studioSurvey}/distributions/public', [SurveyDistributionController::class, 'storePublic']);
+                    Route::put('{studioSurvey}/distributions/{distribution}', [SurveyDistributionController::class, 'update']);
+                    Route::post('{studioSurvey}/distributions/{distribution}/regenerate', [SurveyDistributionController::class, 'regenerate']);
+                    Route::post('{studioSurvey}/invitations', [SurveyDistributionController::class, 'invite']);
+                    Route::post('{studioSurvey}/invitations/remind', [SurveyDistributionController::class, 'remind']);
+                });
+                Route::middleware('permission:surveys.approve')->group(function () {
+                    Route::post('{studioSurvey}/approve', 'approve');
+                    Route::post('{studioSurvey}/return', 'returnToDraft');
+                });
+                Route::middleware('permission:surveys.publish')->group(function () {
+                    Route::post('{studioSurvey}/publish', 'publish');
+                    Route::post('{studioSurvey}/close', 'close');
+                    Route::post('{studioSurvey}/reopen', 'reopen');
+                });
+            });
+
+            Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
+                Route::get('tickets', [TicketsController::class, 'index']);
+                Route::post('tickets/{ticket}/resend', [TicketsController::class, 'resend'])->whereUuid('ticket');
+            });
+
+            // Data migration toolkit.
+            Route::middleware('permission:migration.run')->prefix('migration')->group(function () {
+                Route::get('kinds', [MigrationController::class, 'kinds']);
+                Route::get('templates/{kind}', [MigrationController::class, 'template'])->where('kind', '[a-z]+');
+                Route::get('batches', [MigrationController::class, 'index']);
+                Route::post('batches', [MigrationController::class, 'store'])->middleware('throttle:10,1');
+                Route::get('batches/{batch}', [MigrationController::class, 'show'])->whereUuid('batch');
+                Route::put('batches/{batch}/mapping', [MigrationController::class, 'mapping'])->whereUuid('batch');
+                Route::post('batches/{batch}/validate', [MigrationController::class, 'validateBatch'])->whereUuid('batch');
+                Route::post('batches/{batch}/dry-run', [MigrationController::class, 'dryRun'])->whereUuid('batch');
+                Route::post('batches/{batch}/import', [MigrationController::class, 'import'])->whereUuid('batch')->middleware(['throttle:6,1', 'step_up']);
+                Route::post('batches/{batch}/rollback', [MigrationController::class, 'rollback'])->whereUuid('batch')->middleware('step_up');
+                Route::get('batches/{batch}/rows', [MigrationController::class, 'rows'])->whereUuid('batch');
+                Route::get('batches/{batch}/errors', [MigrationController::class, 'errors'])->whereUuid('batch');
+            });
+
+            // Microsoft Teams integration card: permissions checklist, the organiser account for town halls, the Teams app package.
+            Route::middleware('permission:integrations.manage')->prefix('teams')->group(function () {
+                Route::get('overview', [TeamsController::class, 'overview'])->middleware('throttle:20,1');
+                Route::get('app-package', [TeamsController::class, 'appPackage'])->middleware('throttle:10,1');
+                Route::post('organizer', [TeamsConnectController::class, 'connect'])->middleware(['step_up', 'throttle:10,1']);
+                Route::delete('organizer', [TeamsConnectController::class, 'disconnect'])->middleware('step_up');
+            });
+
+            // Microsoft Teams: meeting and attendance on the session, team and files on the group, Forms quizzes on an assessment.
+            Route::middleware('permission:groups.manage|attendance.manage')->group(function () {
+                Route::get('sessions/{session}/teams', [TeamsController::class, 'session']);
+                Route::post('sessions/{session}/teams', [TeamsController::class, 'createMeeting'])->middleware('throttle:30,1');
+                Route::delete('sessions/{session}/teams', [TeamsController::class, 'cancelMeeting']);
+                Route::post('sessions/{session}/teams/attendance', [TeamsController::class, 'syncAttendance'])->middleware('throttle:20,1');
+                Route::get('groups/{group}/teams', [TeamsController::class, 'group'])->whereUuid('group');
+                Route::post('groups/{group}/teams', [TeamsController::class, 'syncGroup'])->whereUuid('group')->middleware('throttle:10,1');
+            });
+            Route::middleware('permission:assessments.manage')->group(function () {
+                Route::put('assessments/{assessment}/forms', [TeamsController::class, 'linkForms']);
+                Route::post('assessments/{assessment}/forms/import', [TeamsController::class, 'importForms'])->middleware('throttle:10,1');
+            });
+
+            // Security: password policy, MFA, sessions, unlocking.
+            Route::get('security/demo-accounts', [DemoAccountsController::class, 'show'])->middleware('permission:security.policy');
+            Route::post('security/demo-accounts/neutralise', [DemoAccountsController::class, 'neutralise'])->middleware(['permission:security.policy', 'step_up']);
+            Route::get('security-policy', [SecurityPolicyController::class, 'show'])->middleware('permission:security.policy|sessions.manage');
+            Route::put('security-policy', [SecurityPolicyController::class, 'update'])->middleware(['permission:security.policy', 'step_up']);
+            Route::middleware('permission:sessions.manage')->group(function () {
+                Route::get('auth-sessions', [SecurityPolicyController::class, 'sessions']);
+                Route::delete('auth-sessions/{authSession}', [SecurityPolicyController::class, 'terminate'])->middleware('step_up');
+                Route::post('users/{user}/sessions/terminate', [SecurityPolicyController::class, 'terminateAll'])->middleware('step_up');
+                Route::post('users/{user}/unlock', [SecurityPolicyController::class, 'unlock']);
+                Route::post('users/{user}/mfa/reset', [SecurityPolicyController::class, 'resetMfa'])->middleware('step_up');
+            });
+
+            // Integration hub, webhooks and the event bus.
+            Route::middleware('permission:integrations.manage|integrations.logs')->group(function () {
+                Route::get('integrations', [IntegrationsController::class, 'index']);
+                Route::get('integrations/{key}/logs', [IntegrationsController::class, 'logs'])->where('key', '[a-z_]+');
+            });
+            Route::put('integrations/{key}', [IntegrationsController::class, 'update'])->where('key', '[a-z_]+')->middleware(['permission:integrations.manage|sso.manage', 'step_up']);
+            // Settings → Single sign-on (SAML): keys and the IdP's metadata.
+            Route::middleware(['permission:integrations.manage|sso.manage'])->group(function () {
+                Route::get('sso/saml', [SsoAdminController::class, 'show']);
+                Route::post('sso/saml/keys', [SsoAdminController::class, 'keys'])->middleware(['step_up', 'throttle:10,1']);
+                Route::post('sso/saml/metadata', [SsoAdminController::class, 'metadata'])->middleware(['step_up', 'throttle:20,1']);
+                Route::post('sso/test', [SsoAdminController::class, 'test'])->middleware(['step_up', 'throttle:20,1']);
+                Route::get('sso/test/{id}', [SsoAdminController::class, 'testResult'])->where('id', '[A-Za-z0-9]{40}');
+            });
+            Route::middleware('permission:integrations.manage')->group(function () {
+                Route::post('integrations/{key}/check', [IntegrationsController::class, 'check'])->where('key', '[a-z_]+')->middleware('throttle:20,1');
+                Route::post('integrations/{key}/sync', [IntegrationsController::class, 'sync'])->where('key', '[a-z_]+')->middleware('throttle:6,1');
+            });
+            // Contract kit: the contract and mapping of a Ministry system (versioned, audited), its test cases and its go-live checklist.
+            Route::middleware('permission:integrations.manage')->where(['key' => '[a-z_]+', 'item' => '[a-z0-9_]+'])->group(function () {
+                Route::get('integrations/{key}/contract', [IntegrationContractController::class, 'show']);
+                Route::put('integrations/{key}/contract', [IntegrationContractController::class, 'save'])->middleware(['step_up', 'throttle:30,1']);
+                Route::get('integrations/{key}/contract/diff', [IntegrationContractController::class, 'diff']);
+                Route::post('integrations/{key}/contract/rollback', [IntegrationContractController::class, 'rollback'])->middleware(['step_up', 'throttle:30,1']);
+                Route::post('integrations/{key}/contract/reset', [IntegrationContractController::class, 'reset'])->middleware(['step_up', 'throttle:30,1']);
+                Route::post('integrations/{key}/contract/preview', [IntegrationContractController::class, 'preview'])->middleware('throttle:60,1');
+                Route::post('integrations/{key}/test-case', [IntegrationContractController::class, 'testCase'])->middleware('throttle:30,1');
+                Route::post('integrations/{key}/test-case/live', [IntegrationContractController::class, 'testCaseLive'])->middleware(['step_up', 'throttle:6,1']);
+                Route::get('integrations/{key}/reconciliation', [IntegrationContractController::class, 'reconciliation'])->middleware('throttle:6,1');
+                Route::post('payments/certification', CertificationController::class)->middleware('throttle:3,1');
+                Route::get('sms/presets', [SmsSandboxController::class, 'presets']);
+                Route::post('sms/sandbox-send', [SmsSandboxController::class, 'send'])->middleware('throttle:6,1');
+                Route::get('integrations/{key}/checklist', [IntegrationContractController::class, 'checklist']);
+                Route::put('integrations/{key}/checklist/{item}', [IntegrationContractController::class, 'tick'])->middleware('throttle:60,1');
+            });
+            Route::middleware('permission:webhooks.manage')->group(function () {
+                Route::get('webhooks', [WebhooksController::class, 'index']);
+                Route::post('webhooks', [WebhooksController::class, 'store']);
+                Route::put('webhooks/{subscription}', [WebhooksController::class, 'update']);
+                Route::delete('webhooks/{subscription}', [WebhooksController::class, 'destroy']);
+                Route::post('webhooks/{subscription}/rotate-secret', [WebhooksController::class, 'rotate']);
+                Route::post('webhooks/{subscription}/test', [WebhooksController::class, 'test'])->middleware('throttle:10,1');
+                Route::get('webhook-deliveries', [WebhooksController::class, 'deliveries']);
+                Route::post('webhook-deliveries/{delivery}/replay', [WebhooksController::class, 'replay']);
+            });
+
+            // Reports: the hub (everyone who can open the admin area sees the reports meant for their role), the builder, schedules, KPIs.
+            Route::get('report-datasets', [ReportBuilderController::class, 'datasets'])->middleware('permission:reports.builder');
+            Route::get('report-definitions', [ReportBuilderController::class, 'index']);
+            Route::get('report-definitions/{definition}', [ReportBuilderController::class, 'show']);
+            Route::post('report-definitions/{definition}/preview', [ReportBuilderController::class, 'preview']);
+            Route::post('report-definitions/{definition}/run', [ReportBuilderController::class, 'run'])->middleware('throttle:20,1');
+            Route::post('report-definitions/{definition}/favorite', [ReportBuilderController::class, 'favorite']);
+            Route::middleware('permission:reports.builder')->group(function () {
+                Route::post('report-definitions', [ReportBuilderController::class, 'store']);
+                Route::post('report-definitions/preview', [ReportBuilderController::class, 'previewDraft']);
+                Route::put('report-definitions/{definition}', [ReportBuilderController::class, 'update']);
+                Route::delete('report-definitions/{definition}', [ReportBuilderController::class, 'destroy']);
+                Route::post('report-definitions/{definition}/copy', [ReportBuilderController::class, 'copy']);
+            });
+            Route::get('report-runs', [ReportBuilderController::class, 'runs']);
+            Route::get('report-runs/{run}', [ReportBuilderController::class, 'showRun']);
+            Route::get('report-runs/{run}/download', [ReportBuilderController::class, 'download']);
+            Route::middleware('permission:reports.schedule')->group(function () {
+                Route::get('report-schedules', [ReportBuilderController::class, 'schedules']);
+                Route::post('report-schedules', [ReportBuilderController::class, 'storeSchedule']);
+                Route::put('report-schedules/{schedule}', [ReportBuilderController::class, 'updateSchedule']);
+                Route::delete('report-schedules/{schedule}', [ReportBuilderController::class, 'destroySchedule']);
+            });
+            Route::middleware('permission:kpi.view')->group(function () {
+                Route::get('kpis', [KpiController::class, 'index']);
+                Route::post('kpis/refresh', [KpiController::class, 'refresh'])->middleware('throttle:6,1');
+                Route::get('kpis/integrity', [KpiController::class, 'integrity']);
+                Route::get('kpis/report', [KpiController::class, 'report']);
+                Route::put('kpi-targets', [KpiController::class, 'targets'])->middleware('permission:dashboards.manage');
+            });
+            Route::middleware('permission:dashboards.manage')->group(function () {
+                Route::get('dashboard-presets', [DashboardController::class, 'presets']);
+                Route::put('dashboard-presets/{slug}', [DashboardController::class, 'savePreset']);
+            });
+
+            // Communication center
+            Route::middleware('permission:announcements.manage|announcements.publish')->group(function () {
+                Route::get('announcements', [AnnouncementController::class, 'index']);
+                Route::get('announcements/archive', [AnnouncementController::class, 'archive']);
+                Route::post('announcements', [AnnouncementController::class, 'store']);
+                Route::put('announcements/pins/order', [AnnouncementController::class, 'reorderPins']);
+                Route::put('announcements/{announcement}', [AnnouncementController::class, 'update']);
+                Route::post('announcements/{announcement}/publish', [AnnouncementController::class, 'publish']);
+                Route::post('announcements/{announcement}/pin', [AnnouncementController::class, 'pin']);
+                Route::post('announcements/{announcement}/archive', [AnnouncementController::class, 'archiveOne']);
+                Route::post('announcements/{announcement}/unarchive', [AnnouncementController::class, 'unarchive']);
+                Route::post('announcements/{announcement}/republish', [AnnouncementController::class, 'republish']);
+                Route::post('announcements/{announcement}/media', [AnnouncementController::class, 'media']);
+                Route::delete('announcements/{announcement}/media', [AnnouncementController::class, 'removeMedia']);
+                Route::get('announcements/{announcement}/rsvps', [AnnouncementController::class, 'rsvps']);
+                Route::delete('announcements/{announcement}', [AnnouncementController::class, 'destroy']);
+            });
+            Route::post('announcements/{announcement}/export-ministry', [AnnouncementController::class, 'exportMinistry'])->middleware('permission:ministry_feed.manage');
+            Route::middleware('permission:ministry_feed.manage')->prefix('settings/ministry-site')->group(function () {
+                Route::get('/', [MinistrySiteController::class, 'show']);
+                Route::put('/', [MinistrySiteController::class, 'update']);
+                Route::post('run', [MinistrySiteController::class, 'run'])->middleware('throttle:10,1');
+                Route::get('file', [MinistrySiteController::class, 'file']);
+            });
+            Route::middleware('permission:notifications.rules')->group(function () {
+                Route::get('notification-rules', [NotificationRulesController::class, 'index']);
+                Route::post('notification-rules', [NotificationRulesController::class, 'store']);
+                Route::put('notification-rules/{rule}', [NotificationRulesController::class, 'update']);
+                Route::delete('notification-rules/{rule}', [NotificationRulesController::class, 'destroy']);
+            });
+            Route::middleware('permission:notifications.schedule')->group(function () {
+                Route::get('scheduled-notifications', [ScheduledNotificationsController::class, 'index']);
+                Route::post('scheduled-notifications', [ScheduledNotificationsController::class, 'store']);
+                Route::put('scheduled-notifications/{scheduled}', [ScheduledNotificationsController::class, 'update']);
+                Route::delete('scheduled-notifications/{scheduled}', [ScheduledNotificationsController::class, 'destroy']);
+            });
+            Route::post('notifications/audience/preview', [ScheduledNotificationsController::class, 'previewAudience'])->middleware('permission:announcements.manage|announcements.publish|notifications.schedule');
+            Route::middleware('permission:notifications.reports')->group(function () {
+                Route::get('notifications/deliveries', [NotificationDeliveriesController::class, 'index']);
+                Route::get('notifications/deliveries/export', [NotificationDeliveriesController::class, 'export']);
+            });
+            Route::middleware('permission:cms.manage')->group(function () {
+                Route::get('pages/{page}/layouts', [CmsController::class, 'layouts']);
+                Route::get('pages/{page}/blocks', [CmsController::class, 'blocks']);
+                Route::put('pages/{page}/blocks', [CmsController::class, 'saveBlocks']);
+                Route::get('pages/{page}/preview', [CmsController::class, 'preview']);
+                Route::post('pages/{page}/publish', [CmsController::class, 'publish']);
+                Route::get('pages/{page}/versions', [CmsController::class, 'versions']);
+                Route::post('pages/{page}/rollback/{version}', [CmsController::class, 'rollback'])->whereNumber('version');
+                Route::get('public-stats', [CmsController::class, 'stats']);
+                Route::put('public-stats', [CmsController::class, 'saveStats']);
+            });
+
+            // Interactive e-kits: publish as e-courses, export as SCORM (Phase 18)
+            Route::middleware('permission:packages.manage')->prefix('ekits')->group(function () {
+                Route::get('/', [EKitController::class, 'index']);
+                Route::post('{code}/build', [EKitController::class, 'build'])->where('code', '[A-Za-z0-9_-]+');
+                Route::get('{code}/scorm', [EKitController::class, 'scorm'])->where('code', '[A-Za-z0-9_-]+');
+            });
+
+            // Help-centre articles and feedback analytics (Phase 18)
+            Route::middleware('permission:help.manage')->prefix('help')->group(function () {
+                Route::get('articles', [HelpAdminController::class, 'index']);
+                Route::post('articles', [HelpAdminController::class, 'store']);
+                Route::get('articles/{article}', [HelpAdminController::class, 'show'])->whereUuid('article');
+                Route::put('articles/{article}', [HelpAdminController::class, 'update'])->whereUuid('article');
+                Route::delete('articles/{article}', [HelpAdminController::class, 'destroy'])->whereUuid('article');
+                Route::post('articles/{article}/rollback/{version}', [HelpAdminController::class, 'rollback'])->whereUuid('article')->whereNumber('version');
+                Route::post('articles/{article}/screenshots', [HelpAdminController::class, 'screenshot'])->whereUuid('article');
+                Route::delete('articles/{article}/screenshots/{index}', [HelpAdminController::class, 'removeScreenshot'])->whereUuid('article')->whereNumber('index');
+                Route::post('articles/{article}/video', [HelpAdminController::class, 'video'])->whereUuid('article');
+                Route::get('analytics', [HelpAdminController::class, 'analytics']);
+            });
+
+            // Data-subject requests (Phase 17)
+            Route::middleware('permission:privacy.manage')->group(function () {
+                Route::get('privacy/requests', [PrivacyController::class, 'index']);
+                Route::put('privacy/requests/{dsr}', [PrivacyController::class, 'decide']);
+                Route::get('privacy/subjects/{user}/surveys', [SurveyPrivacyController::class, 'subject']);
+                Route::post('privacy/subjects/{user}/surveys/erase', [SurveyPrivacyController::class, 'erase']);
+            });
+
+            // Payments: prices, orders, refunds, discount codes, entities, finance (Phase 16)
+            Route::middleware('feature:payments')->group(function () {
+                Route::middleware('permission:pricing.manage')->group(function () {
+                    Route::get('groups/{group}/price-list', [PaymentsAdminController::class, 'priceList'])->whereUuid('group');
+                    Route::put('groups/{group}/price-list', [PaymentsAdminController::class, 'savePriceList'])->whereUuid('group');
+                    Route::delete('groups/{group}/price-list', [PaymentsAdminController::class, 'deletePriceList'])->whereUuid('group');
+                    Route::get('programs/{program}/price-list', [PaymentsAdminController::class, 'priceList']);
+                    Route::put('programs/{program}/price-list', [PaymentsAdminController::class, 'savePriceList']);
+                    Route::delete('programs/{program}/price-list', [PaymentsAdminController::class, 'deletePriceList']);
+                    Route::get('discount-codes', [PaymentsAdminController::class, 'codes']);
+                    Route::post('discount-codes', [PaymentsAdminController::class, 'saveCode']);
+                    Route::put('discount-codes/{discountCode}', [PaymentsAdminController::class, 'saveCode']);
+                    Route::get('payment-settings', [PaymentsAdminController::class, 'settings']);
+                    Route::put('payment-settings', [PaymentsAdminController::class, 'saveSettings']);
+                });
+                Route::middleware('permission:orders.view')->group(function () {
+                    Route::get('orders', [PaymentsAdminController::class, 'orders']);
+                    Route::get('payments', [PaymentsAdminController::class, 'payments']);
+                    Route::get('refunds', [PaymentsAdminController::class, 'refundQueue']);
+                    Route::get('orders/{shopOrder}/invoice', [ShopController::class, 'invoice']);
+                    Route::get('refunds/{shopRefund}/credit-note', [ShopController::class, 'creditNote']);
+                    Route::get('payment-reconciliations', [PaymentsAdminController::class, 'reconciliations']);
+                });
+                Route::post('refunds/{shopRefund}/decision', [PaymentsAdminController::class, 'decideRefund'])->middleware('permission:refunds.approve');
+                Route::post('payment-reconciliations/run', [PaymentsAdminController::class, 'reconcile'])->middleware(['permission:refunds.approve|finance.reports', 'throttle:6,1']);
+                Route::post('payment-reconciliations/import', [PaymentsAdminController::class, 'importStatement'])->middleware(['permission:refunds.approve|finance.reports', 'throttle:6,1']);
+                Route::middleware('permission:entity_accounts.manage')->group(function () {
+                    Route::get('entity-accounts', [PaymentsAdminController::class, 'entities']);
+                    Route::post('entity-accounts', [PaymentsAdminController::class, 'saveEntity']);
+                    Route::put('entity-accounts/{entityAccount}', [PaymentsAdminController::class, 'saveEntity']);
+                });
+                Route::middleware('permission:finance.reports')->group(function () {
+                    Route::get('finance/report', [PaymentsAdminController::class, 'report']);
+                    Route::get('finance/report/{format}', [PaymentsAdminController::class, 'export'])->where('format', 'xlsx|pdf|csv');
+                });
+            });
+
+            // AI: settings, drafts, adaptive rules, forecasts (Phase 15)
+            Route::middleware('feature:ai')->group(function () {
+                Route::middleware('permission:ai.settings')->group(function () {
+                    Route::get('settings/ai', [AiAdminController::class, 'settings']);
+                    Route::put('settings/ai', [AiAdminController::class, 'saveSettings']);
+                    Route::get('ai/logs', [AiAdminController::class, 'logs']);
+                    Route::get('ai/recommendation-stats', [AiAdminController::class, 'recommendationStats']);
+                    Route::post('assistant/reindex', [AiAdminController::class, 'reindex'])->middleware('throttle:6,1');
+                    Route::get('ai/retrieval', [AiAdminController::class, 'retrieval']);
+                    Route::post('ai/reindex', [AiAdminController::class, 'startReindex'])->middleware('throttle:6,1');
+                    Route::post('ai/reindex/{aiIndexRun}/continue', [AiAdminController::class, 'continueReindex'])->middleware('throttle:60,1');
+                    Route::get('ai/eval', [AiAdminController::class, 'evals']);
+                    Route::post('ai/eval', [AiAdminController::class, 'evaluate'])->middleware('throttle:6,1');
+                });
+                Route::middleware('permission:ai.feedback.review|assessments.grade')->group(function () {
+                    Route::get('attempts/{attempt}/ai-feedback', [AiAdminController::class, 'drafts']);
+                    Route::post('ai-feedback/{aiDraft}/{action}', [AiAdminController::class, 'review'])->where('action', 'accept|edit|reject');
+                });
+                Route::middleware('permission:adaptive.manage')->group(function () {
+                    Route::get('adaptive/skills', [AiAdminController::class, 'skills']);
+                    Route::get('programs/{program}/adaptive-rules', [AiAdminController::class, 'rules']);
+                    Route::put('programs/{program}/adaptive-rules', [AiAdminController::class, 'saveRules']);
+                    Route::post('programs/{program}/adaptive/remedial', [AiAdminController::class, 'remedial'])->middleware('throttle:20,1');
+                });
+                Route::middleware('permission:ai.forecasts.view')->group(function () {
+                    Route::get('forecasts', [AiAdminController::class, 'forecasts']);
+                    Route::get('risks', [AiAdminController::class, 'risks']);
+                    Route::get('forecasts/export/{format}', [ForecastExportController::class, 'forecasts'])->whereIn('format', ['xlsx', 'pdf', 'docx'])->middleware('throttle:20,1');
+                    Route::get('risks/export/{format}', [ForecastExportController::class, 'risks'])->whereIn('format', ['xlsx', 'pdf', 'docx'])->middleware('throttle:20,1');
+                    Route::post('risks/{riskFlag}/resolve', [AiAdminController::class, 'resolveRisk']);
+                    Route::post('forecasts/run', [AiAdminController::class, 'runForecasts'])->middleware('throttle:6,1');
+                    Route::post('forecasts/to-plan', [AiAdminController::class, 'toPlan'])->middleware('permission:plans.manage');
+                });
+            });
+
+            // AI assistant
+            Route::middleware('permission:ai.assistant')->group(function () {
+                Route::get('ai/status', [AiAssistantController::class, 'status']);
+                Route::post('ai/ask', [AiAssistantController::class, 'ask'])->middleware('throttle:ai');
+                Route::get('ai/history', [AiAssistantController::class, 'history']);
+            });
+
+            // Reports
+            Route::middleware('permission:reports.view')->group(function () {
+                Route::get('reports', [ReportController::class, 'index']);
+                Route::get('reports/programs/{program}', [ReportController::class, 'program']);
+                Route::post('reports/executive-snapshot', [ReportController::class, 'snapshot']);
+            });
+
+            // Brand Studio (appearance)
+            // Settings → Data: the Ministry's trainee extract imported from the browser, and the demo data removed (super administrators only).
+            Route::middleware('permission:settings.manage')->group(function () {
+                Route::get('imports', [ImportRunController::class, 'index']);
+                Route::post('imports/trainee-history', [ImportRunController::class, 'store'])->middleware('throttle:10,1');
+                Route::get('imports/{importRun}', [ImportRunController::class, 'show'])->whereUuid('importRun');
+                Route::post('imports/{importRun}/uploaded', [ImportRunController::class, 'uploaded'])->whereUuid('importRun');
+                Route::post('imports/{importRun}/step', [ImportRunController::class, 'step'])->whereUuid('importRun');
+                Route::get('system/demo-data', [DemoDataController::class, 'show']);
+                Route::post('system/demo-data/purge', [DemoDataController::class, 'purge'])->middleware('throttle:3,10');
+            });
+            Route::middleware('permission:settings.manage')->group(function () {
+                Route::get('app-themes', [AppThemesController::class, 'show']);
+                Route::put('app-themes', [AppThemesController::class, 'update']);
+                Route::delete('app-themes', [AppThemesController::class, 'reset']);
+                Route::get('app-home', [AppHomeController::class, 'show']);
+                Route::put('app-home', [AppHomeController::class, 'update']);
+                Route::delete('app-home', [AppHomeController::class, 'reset']);
+                Route::put('menu-layout', [MenuLayoutController::class, 'update']);
+                Route::delete('menu-layout', [MenuLayoutController::class, 'reset']);
+                Route::put('theme', [ThemeController::class, 'update']);
+                Route::post('theme/reset', [ThemeController::class, 'reset']);
+                Route::get('theme/occasions/catalog', [ThemeController::class, 'catalog']);
+                Route::get('theme/occasions/standard', [ThemeController::class, 'standardList']);
+                Route::post('theme/occasions/standard', [ThemeController::class, 'standardOccasions']);
+                Route::post('theme/assets', [ThemeController::class, 'upload']);
+
+                // Labels, security and attendance rules
+                Route::get('settings/labels', [LabelController::class, 'show']);
+                Route::put('settings/labels', [LabelController::class, 'update']);
+                Route::get('settings/security', [SecuritySettingsController::class, 'show']);
+                Route::put('settings/security', [SecuritySettingsController::class, 'update']);
+                Route::get('settings/proctoring', [ProctoringSettingsController::class, 'show']);
+                Route::put('settings/proctoring', [ProctoringSettingsController::class, 'update']);
+                // Attendance rules (location check)
+                Route::get('rfp-status', RfpStatusController::class);
+                Route::get('features', [FeaturesController::class, 'index']);
+                Route::put('features/{key}', [FeaturesController::class, 'update'])->middleware('throttle:30,1');
+                Route::get('settings/ai-models', [AiModelsController::class, 'show']);
+                Route::post('settings/ai-models/connections', [AiModelsController::class, 'saveConnection']);
+                Route::put('settings/ai-models/connections/{id}', [AiModelsController::class, 'saveConnection']);
+                Route::delete('settings/ai-models/connections/{id}', [AiModelsController::class, 'deleteConnection']);
+                Route::get('settings/ai-models/connections/{id}/catalog', [AiModelsController::class, 'catalog'])->middleware('throttle:20,1');
+                Route::post('settings/ai-models/models', [AiModelsController::class, 'saveModel']);
+                Route::put('settings/ai-models/models/{id}', [AiModelsController::class, 'saveModel']);
+                Route::delete('settings/ai-models/models/{id}', [AiModelsController::class, 'deleteModel']);
+                Route::put('settings/ai-models/assignments', [AiModelsController::class, 'assign']);
+                Route::post('settings/ai-models/models/{id}/test', [AiModelsController::class, 'test'])->middleware('throttle:20,1');
+                Route::get('settings/lobby-screen', [LobbyScreenController::class, 'show']);
+                Route::put('settings/lobby-screen', [LobbyScreenController::class, 'update']);
+                Route::post('settings/lobby-screen/slides', [LobbyScreenController::class, 'addSlide'])->middleware('throttle:30,1');
+                Route::put('settings/lobby-screen/slides/order', [LobbyScreenController::class, 'order']);
+                Route::put('settings/lobby-screen/slides/{slide}', [LobbyScreenController::class, 'updateSlide']);
+                Route::delete('settings/lobby-screen/slides/{slide}', [LobbyScreenController::class, 'destroySlide']);
+                Route::post('settings/lobby-screen/token', [LobbyScreenController::class, 'regenerateToken']);
+                Route::get('settings/room-screen', [RoomScreenSettingsController::class, 'show']);
+                Route::put('settings/room-screen', [RoomScreenSettingsController::class, 'update']);
+                Route::post('settings/room-screen/reset', [RoomScreenSettingsController::class, 'reset']);
+                Route::get('settings/program-catalog', [ProgramCatalogSettingsController::class, 'show']);
+                Route::put('settings/program-catalog', [ProgramCatalogSettingsController::class, 'update']);
+                Route::get('settings/training-day', [TrainingDaySettingsController::class, 'show']);
+                Route::put('settings/training-day', [TrainingDaySettingsController::class, 'update']);
+                Route::get('settings/attendance', [AttendanceSettingsController::class, 'show']);
+                Route::put('settings/attendance', [AttendanceSettingsController::class, 'update']);
+
+                // Push notifications (Firebase)
+                Route::get('settings/push', [PushSettingsController::class, 'show']);
+                Route::put('settings/push', [PushSettingsController::class, 'update']);
+                Route::get('settings/push/recipients', [PushSettingsController::class, 'recipients']);
+                Route::post('settings/push/verify', [PushSettingsController::class, 'verify']);
+                Route::post('settings/push/test', [PushSettingsController::class, 'test'])->middleware('throttle:10,1');
+            });
+
+            // Error log — system administrator only (the permission is held by no role but the super admin's all-access)
+            Route::middleware('permission:logs.manage')->prefix('error-logs')->controller(ErrorLogController::class)->group(function () {
+                Route::get('/', 'index');
+                Route::get('badge', 'badge');
+                Route::get('prompt', 'prompt');
+                Route::get('settings', 'settings');
+                Route::put('settings', 'updateSettings');
+                Route::post('bulk', 'bulk');
+                Route::get('{log}', 'show');
+                Route::put('{log}', 'update');
+                Route::post('{log}/fix', 'fix');
+                Route::post('{log}/diagnose', 'diagnose')->middleware('throttle:ai');
+                Route::delete('{log}', 'destroy');
+            });
+
+            // Users, roles, audit
+            Route::middleware('permission:users.manage')->group(function () {
+                Route::middleware('feature:test_accounts')->group(function () {
+                    Route::get('test-accounts', [TestAccountsController::class, 'show']);
+                    Route::post('test-accounts', [TestAccountsController::class, 'seed']);
+                    Route::post('test-accounts/scenario', [TestAccountsController::class, 'scenario'])->middleware(['feature:demo_scenarios', 'throttle:30,1']);
+                });
+                Route::post('users/{user}/impersonate', [ImpersonationController::class, 'start'])->middleware(['feature:impersonation', 'throttle:20,1']);
+                Route::post('users/{user}/impersonate/stop', [ImpersonationController::class, 'stop'])->middleware('feature:impersonation');
+                // Showcase accounts on the live system: the system administrator only (checked in the controller), every opening audited.
+                Route::middleware('feature:showcase_accounts')->prefix('showcase-accounts')->controller(ShowcaseAccountsController::class)->group(function () {
+                    Route::get('/', 'show');
+                    Route::post('/', 'build')->middleware('throttle:10,1');
+                    Route::delete('/', 'destroy')->middleware('throttle:10,1');
+                    Route::post('{key}/open', 'open')->middleware('throttle:30,1');
+                    Route::post('{key}/close', 'close');
+                    Route::post('{key}/app-password', 'appPassword')->middleware('throttle:10,1');
+                    Route::put('public-sign-in', 'publicSignIn');
+                    Route::put('leadership', 'leadership')->middleware('throttle:10,1');
+                });
+                Route::get('users', [UserController::class, 'index']);
+                Route::post('users', [UserController::class, 'store']);
+                Route::put('users/{user}', [UserController::class, 'update']);
+                Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
+                Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
+                Route::delete('users/{user}/roles/{roleUser}', [UserRoleController::class, 'destroy']);
+                Route::get('roles', [UserController::class, 'roles']);
+            });
+            // Role names only (no permission lists): for the screens that share content with a role.
+            Route::get('role-options', [UserController::class, 'roleOptions'])->middleware('permission:users.manage|sharing.manage|job_groups.manage|library.manage|kits.manage');
+            Route::put('roles/{role}/permissions', [UserController::class, 'updateRolePermissions'])->middleware('permission:roles.manage');
+            Route::middleware('permission:roles.create')->group(function () {
+                Route::post('roles', [RoleAdminController::class, 'store']);
+                Route::put('roles/{role}', [RoleAdminController::class, 'update']);
+                Route::delete('roles/{role}', [RoleAdminController::class, 'destroy']);
+            });
+            Route::get('staff-lookup', [UserRoleController::class, 'lookup'])->middleware('permission:program_grants.manage|users.manage');
+            // School internal workshops: school submits and runs them, the centre approves.
+            Route::middleware('permission:workshops.internal|workshops.approve')->group(function () {
+                Route::get('internal-workshops', [InternalWorkshopController::class, 'index']);
+            });
+            Route::middleware('permission:workshops.internal')->group(function () {
+                Route::post('internal-workshops', [InternalWorkshopController::class, 'store']);
+                Route::post('internal-workshops/{program}/register', [InternalWorkshopController::class, 'register']);
+            });
+            Route::post('internal-workshops/{program}/decision', [InternalWorkshopController::class, 'decision'])->middleware('permission:workshops.approve');
+            // Needs cycle: window, department proposals, manager requests.
+            Route::get('needs-cycles', [NeedsCycleController::class, 'index'])->middleware('permission:needs.cycles|needs.propose|needs.request');
+            Route::middleware('permission:needs.cycles')->group(function () {
+                Route::post('needs-cycles', [NeedsCycleController::class, 'store']);
+                Route::get('needs-cycles/{cycle}', [NeedsCycleController::class, 'show']);
+                Route::put('needs-cycles/{cycle}', [NeedsCycleController::class, 'update']);
+                Route::post('needs-cycles/{cycle}/open', [NeedsCycleController::class, 'open']);
+                Route::post('needs-cycles/{cycle}/close', [NeedsCycleController::class, 'close']);
+                Route::post('proposals/{proposal}/review', [NeedsCycleController::class, 'reviewProposal']);
+                Route::post('institutional-requests/{institutionalRequest}/review', [NeedsCycleController::class, 'reviewRequest']);
+            });
+            Route::middleware('permission:needs.propose|needs.cycles')->group(function () {
+                Route::get('needs-cycles/{cycle}/proposals', [NeedsCycleController::class, 'proposals']);
+                Route::post('needs-cycles/{cycle}/proposals', [NeedsCycleController::class, 'storeProposal']);
+                Route::put('proposals/{proposal}', [NeedsCycleController::class, 'updateProposal']);
+            });
+            Route::middleware('permission:needs.request|needs.cycles')->group(function () {
+                Route::get('institutional-requests', [NeedsCycleController::class, 'requests']);
+                Route::post('institutional-requests', [NeedsCycleController::class, 'storeRequest']);
+            });
+            // Competency framework and gap analysis.
+            Route::middleware('permission:competencies.manage|gaps.view|needs.view')->group(function () {
+                Route::get('competency-domains', [CompetencyController::class, 'domains']);
+                Route::get('competencies', [CompetencyController::class, 'index']);
+                Route::get('competencies/export', [CompetencyController::class, 'export']);
+                Route::get('competencies/weights', [CompetencyController::class, 'weights']);
+                Route::get('job-titles/{jobTitle}/requirements', [CompetencyController::class, 'requirements']);
+            });
+            Route::middleware('permission:competencies.manage')->group(function () {
+                Route::post('competency-domains', [CompetencyController::class, 'storeDomain']);
+                Route::put('competency-domains/{domain}', [CompetencyController::class, 'updateDomain']);
+                Route::post('competencies', [CompetencyController::class, 'store']);
+                Route::post('competencies/import', [CompetencyController::class, 'import'])->middleware('throttle:20,1');
+                Route::put('competencies/weights', [CompetencyController::class, 'weights']);
+                Route::put('competencies/{competency}', [CompetencyController::class, 'update']);
+                Route::put('job-titles/{jobTitle}/requirements', [CompetencyController::class, 'syncRequirements']);
+            });
+            Route::middleware('permission:gaps.view')->group(function () {
+                Route::get('gaps', [GapController::class, 'index']);
+                Route::get('gaps/employees/{employee}', [GapController::class, 'employee']);
+            });
+            Route::post('gaps/to-plan', [GapController::class, 'toPlan'])->middleware('permission:plans.manage');
+            // Individual needs, rules, performance data, instrument approval.
+            Route::middleware('permission:needs.approve_individual|needs.cycles')->group(function () {
+                Route::get('individual-needs', [NeedsToolsController::class, 'index']);
+                Route::post('individual-needs/decide', [NeedsToolsController::class, 'decide']);
+            });
+            Route::middleware('permission:needs.cycles')->group(function () {
+                Route::put('individual-needs/settings', [NeedsToolsController::class, 'settings']);
+                Route::get('needs-rules', [NeedsToolsController::class, 'rules']);
+                Route::post('needs-rules', [NeedsToolsController::class, 'storeRule']);
+                Route::post('needs-rules/run', [NeedsToolsController::class, 'runRules']);
+                Route::put('needs-rules/{rule}', [NeedsToolsController::class, 'updateRule']);
+                Route::delete('needs-rules/{rule}', [NeedsToolsController::class, 'destroyRule']);
+            });
+            Route::middleware('permission:performance.import')->prefix('performance')->group(function () {
+                Route::post('appraisals/import', [NeedsToolsController::class, 'importAppraisals'])->middleware('throttle:20,1');
+                Route::post('observations/import', [NeedsToolsController::class, 'importObservations'])->middleware('throttle:20,1');
+                Route::get('weak', [NeedsToolsController::class, 'weak']);
+                Route::post('weak/target', [NeedsToolsController::class, 'targetWeak']);
+            });
+            Route::post('needs-surveys/{needsSurvey}/submit-approval', [NeedsToolsController::class, 'submitApproval'])->middleware('permission:needs.manage');
+            Route::post('needs-surveys/{needsSurvey}/approve', [NeedsToolsController::class, 'approve'])->middleware('permission:instruments.approve');
+            Route::post('needs-surveys/{needsSurvey}/return', [NeedsToolsController::class, 'returnSurvey'])->middleware('permission:instruments.approve');
+            // Places, buildings, bookings, seating plans and logistics.
+            Route::middleware('permission:programs.view|rooms.book|logistics.manage')->group(function () {
+                Route::get('places', [RoomsOpsController::class, 'places']);
+                Route::get('room-bookings', [RoomsOpsController::class, 'bookings']);
+                Route::get('rooms/calendar', [RoomsOpsController::class, 'calendar']);
+                Route::get('rooms/{room}/seating', [RoomsOpsController::class, 'seat']);
+            });
+            Route::middleware('permission:places.manage')->group(function () {
+                Route::post('places', [RoomsOpsController::class, 'savePlace']);
+                Route::put('places/{place}', [RoomsOpsController::class, 'savePlace']);
+                Route::post('buildings', [RoomsOpsController::class, 'saveBuilding']);
+                Route::put('buildings/{building}', [RoomsOpsController::class, 'saveBuilding']);
+            });
+            Route::middleware('permission:rooms.book|rooms.manage')->group(function () {
+                Route::post('room-bookings', [RoomsOpsController::class, 'storeBooking']);
+                Route::put('room-bookings/{booking}', [RoomsOpsController::class, 'updateBooking']);
+                Route::delete('room-bookings/{booking}', [RoomsOpsController::class, 'cancelBooking']);
+            });
+            Route::middleware('permission:seating.manage')->group(function () {
+                Route::put('rooms/{room}/seating', [RoomsOpsController::class, 'saveSeating']);
+                Route::post('rooms/{room}/seating/auto', [RoomsOpsController::class, 'autoSeat']);
+            });
+            Route::middleware('permission:programs.view|logistics.manage')->group(function () {
+                Route::get('logistics-requests', [RoomsOpsController::class, 'logisticsIndex']);
+                Route::post('logistics-requests', [RoomsOpsController::class, 'logisticsStore']);
+                Route::put('logistics-requests/{logisticsRequest}', [RoomsOpsController::class, 'logisticsUpdate']);
+            });
+            Route::get('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'index'])->middleware('permission:programs.view');
+            Route::put('course/lessons/{lesson}/interactions', [VideoInteractionController::class, 'save'])->middleware('permission:programs.manage');
+            // Content packages and the standards settings.
+            Route::middleware('permission:packages.manage')->group(function () {
+                Route::get('packages', [PackageController::class, 'index']);
+                Route::get('packages/{package}', [PackageController::class, 'show']);
+                Route::post('packages', [PackageController::class, 'store'])->middleware('throttle:20,1');
+                Route::post('packages/sign', [PackageController::class, 'sign']);
+                Route::post('packages/process', [PackageController::class, 'process'])->middleware('throttle:20,1');
+                Route::delete('packages/{package}', [PackageController::class, 'destroy']);
+                Route::put('course/lessons/{lesson}/package', [PackageController::class, 'attach']);
+            });
+            Route::middleware('permission:packages.manage')->group(function () {
+                Route::get('packages/{package}/cc/preview', [ContentImportController::class, 'ccPreview']);
+                Route::post('packages/{package}/cc/import', [ContentImportController::class, 'ccImport']);
+                Route::get('content-imports', [ContentImportController::class, 'imports']);
+            });
+            Route::middleware('permission:banks.manage|assessments.manage')->group(function () {
+                Route::post('question-banks/{bank}/qti/import', [ContentImportController::class, 'qtiImport'])->middleware('throttle:20,1');
+                Route::get('question-banks/{bank}/qti/export', [ContentImportController::class, 'qtiExport']);
+            });
+            Route::middleware('permission:library.manage')->group(function () {
+                Route::post('library-items', [LibraryController::class, 'store']);
+                Route::put('library-items/{item}', [LibraryController::class, 'update']);
+                Route::delete('library-items/{item}', [LibraryController::class, 'destroy']);
+                Route::post('library-items/{item}/files', [LibraryController::class, 'upload'])->middleware('throttle:30,1');
+                Route::get('library-collections', [LibraryController::class, 'collections']);
+                Route::post('library-collections', [LibraryController::class, 'saveCollection']);
+                Route::put('library-collections/{collection}', [LibraryController::class, 'saveCollection']);
+                Route::delete('library-collections/{collection}', [LibraryController::class, 'deleteCollection']);
+                Route::get('external-libraries/search', [LibraryController::class, 'externalSearch'])->middleware('throttle:30,1');
+                Route::post('external-libraries/import', [LibraryController::class, 'externalImport']);
+                Route::match(['GET', 'PUT'], 'settings/external-libraries', [LibraryController::class, 'externalSettings']);
+            });
+            Route::middleware('permission:providers.manage')->group(function () {
+                Route::post('content-providers/sync', [ExternalLearningController::class, 'sync'])->middleware('throttle:6,1');
+                Route::get('learning-providers', [LearningProvidersController::class, 'index']);
+                Route::put('learning-providers/{provider}', [LearningProvidersController::class, 'update'])->middleware('step_up');   // credentials: as confirming as on the integration card
+                Route::post('learning-providers/{provider}/check', [LearningProvidersController::class, 'check'])->middleware('throttle:20,1');
+                Route::post('learning-providers/{provider}/sync', [LearningProvidersController::class, 'sync'])->middleware('throttle:6,1');
+                Route::get('learning-providers-courses', [LearningProvidersController::class, 'courses']);
+                Route::get('learning-providers-runs', [LearningProvidersController::class, 'runs']);
+                Route::get('learning-providers-issues', [LearningProvidersController::class, 'issues']);
+                Route::post('learning-providers-issues/{issue}/dismiss', [LearningProvidersController::class, 'dismiss']);
+                Route::post('external-courses/{course}/program', [ExternalLearningController::class, 'createProgram']);
+            });
+            Route::middleware('permission:providers.manage|programs.manage')->group(function () {
+                Route::get('external-completions', [ExternalLearningController::class, 'completions']);
+                Route::post('external-completions/{completion}/decision', [ExternalLearningController::class, 'review']);
+            });
+            Route::middleware('permission:sharing.manage|library.view')->group(function () {
+                Route::post('shares', [LibraryController::class, 'share']);
+                Route::get('shares', [LibraryController::class, 'shares']);
+                Route::delete('shares/{share}', [LibraryController::class, 'unshare']);
+            });
+            Route::middleware('permission:sharing.manage')->group(function () {
+                Route::get('sharing-policies', [ContentLifecycleController::class, 'policies']);
+                Route::post('sharing-policies', [ContentLifecycleController::class, 'savePolicy']);
+                Route::delete('sharing-policies/{policy}', [ContentLifecycleController::class, 'deletePolicy']);
+            });
+            Route::middleware('permission:job_groups.manage|sharing.manage')->group(function () {
+                Route::get('job-groups', [ContentLifecycleController::class, 'jobGroups']);
+                Route::post('job-groups', [ContentLifecycleController::class, 'saveJobGroup']);
+                Route::put('job-groups/{group}', [ContentLifecycleController::class, 'saveJobGroup']);
+                Route::delete('job-groups/{group}', [ContentLifecycleController::class, 'deleteJobGroup']);
+                Route::get('job-groups/{group}/members', [ContentLifecycleController::class, 'jobGroupMembers']);
+            });
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::get('course/lessons/{lesson}/versions', [ContentLifecycleController::class, 'versions']);
+                Route::post('course/lessons/{lesson}/versions', [ContentLifecycleController::class, 'publish']);
+                Route::get('course/lessons/{lesson}/versions/diff', [ContentLifecycleController::class, 'diff']);
+                Route::post('course/lessons/{lesson}/versions/{version}/restore', [ContentLifecycleController::class, 'restore'])->whereNumber('version');
+                Route::put('course/lessons/{lesson}/versions/{version}/archive', [ContentLifecycleController::class, 'archive'])->whereNumber('version');
+                Route::get('kits/{kit}/programs', [ContentLifecycleController::class, 'kitPrograms']);
+                Route::put('kits/{kit}/programs', [ContentLifecycleController::class, 'syncKitPrograms']);
+            });
+            Route::middleware('permission:lti.manage')->group(function () {
+                Route::get('lti-platforms/tool-config', [LtiPlatformController::class, 'toolConfig']);
+                Route::get('lti-platforms', [LtiPlatformController::class, 'index']);
+                Route::post('lti-platforms', [LtiPlatformController::class, 'store']);
+                Route::put('lti-platforms/{ltiPlatform}', [LtiPlatformController::class, 'update']);
+                Route::delete('lti-platforms/{ltiPlatform}', [LtiPlatformController::class, 'destroy']);
+                Route::post('lti-platforms/{ltiPlatform}/test', [LtiPlatformController::class, 'test'])->middleware('throttle:20,1');
+                Route::get('lti-platforms/{ltiPlatform}/roster', [LtiPlatformController::class, 'roster'])->middleware('throttle:20,1');
+                Route::get('lti-tools', [LtiToolController::class, 'index']);
+                Route::post('lti-tools', [LtiToolController::class, 'save']);
+                Route::put('lti-tools/{tool}', [LtiToolController::class, 'save']);
+                Route::delete('lti-tools/{tool}', [LtiToolController::class, 'destroy']);
+                Route::post('lti-tools/rotate-keys', [LtiToolController::class, 'rotate']);
+                Route::post('lti-tools/{tool}/deep-link', [LtiToolController::class, 'deepLink']);
+            });
+            Route::middleware('permission:standards.manage')->group(function () {
+                Route::get('settings/standards', [StandardsController::class, 'show']);
+                Route::put('settings/standards', [StandardsController::class, 'update']);
+                Route::post('settings/standards/lrs-credentials', [StandardsController::class, 'addCredential']);
+                Route::delete('settings/standards/lrs-credentials/{key}', [StandardsController::class, 'removeCredential']);
+                Route::post('caliper/flush', [StandardsController::class, 'flushCaliper']);
+            });
+            // Career paths, licences, professional development and knowledge transfer.
+            Route::middleware('permission:paths.manage|licences.manage')->group(function () {
+                Route::get('career-paths', [CareerAdminController::class, 'index']);
+                Route::get('career-paths/{path}/compliance', [CareerAdminController::class, 'compliance']);
+            });
+            Route::middleware('permission:paths.manage')->group(function () {
+                Route::post('career-paths', [CareerAdminController::class, 'store']);
+                Route::put('career-paths/{path}', [CareerAdminController::class, 'update']);
+                Route::put('career-paths/{path}/levels', [CareerAdminController::class, 'levels']);
+                Route::post('career-paths/evaluate', [CareerAdminController::class, 'evaluate']);
+                Route::post('career-paths/{path}/achieve', [CareerAdminController::class, 'achieve']);
+            });
+            Route::middleware('permission:licences.manage')->group(function () {
+                Route::get('licences', [CareerAdminController::class, 'licences']);
+                Route::post('licences', [CareerAdminController::class, 'saveLicence']);
+                Route::put('licences/{licence}', [CareerAdminController::class, 'saveLicence']);
+                Route::post('licences/import', [CareerAdminController::class, 'importLicences'])->middleware('throttle:20,1');
+            });
+            Route::middleware('permission:pd.types.manage')->group(function () {
+                Route::post('pd-activity-types', [PdAdminController::class, 'saveType']);
+                Route::put('pd-activity-types/{type}', [PdAdminController::class, 'saveType']);
+            });
+            Route::get('pd-activity-types', [PdAdminController::class, 'types'])->middleware('permission:pd.types.manage|pd.recognise');
+            Route::middleware('permission:pd.recognise|pd.approve')->group(function () {
+                Route::get('pd-activities', [PdAdminController::class, 'activities']);
+                Route::post('pd-activities/{activity}/decision', [PdAdminController::class, 'decide']);
+                Route::get('pd-recognitions', [PdAdminController::class, 'recognitions']);
+                Route::get('pd-reports', [PdAdminController::class, 'report']);
+            });
+            Route::post('pd-recognitions/{recognition}/decision', [PdAdminController::class, 'recognise'])->middleware('permission:pd.recognise');
+            Route::get('pd-targets', [PdAdminController::class, 'targets'])->middleware('permission:pd.targets.manage|pd.recognise');
+            Route::put('pd-targets', [PdAdminController::class, 'saveTargets'])->middleware('permission:pd.targets.manage');
+            Route::middleware('permission:knowledge_transfer.review')->group(function () {
+                Route::get('knowledge-transfers', [PdAdminController::class, 'transfers']);
+                Route::post('knowledge-transfers/{transfer}/decision', [PdAdminController::class, 'decideTransfer']);
+                Route::get('programs/{program}/knowledge-transfer', [PdAdminController::class, 'reach']);
+            });
+            Route::put('programs/{program}/knowledge-transfer', [PdAdminController::class, 'saveKnowledgeTransferSetting'])->middleware('permission:programs.manage');
+            // Evaluation: forms and approval, settings, the evaluation centre, interviews, reports, alerts and exports.
+            Route::middleware('permission:evaluations.manage')->group(function () {
+                Route::get('evaluation-forms', [EvaluationFormController::class, 'index']);
+                Route::post('evaluation-forms', [EvaluationFormController::class, 'store']);
+                Route::put('evaluation-forms/{form}', [EvaluationFormController::class, 'update']);
+                Route::delete('evaluation-forms/{form}', [EvaluationFormController::class, 'destroy']);
+                Route::post('evaluation-forms/{form}/submit-approval', [EvaluationFormController::class, 'submitApproval']);
+                Route::post('evaluation-forms/{form}/migrate', [EvaluationFormController::class, 'migrate'])->middleware('feature:survey_studio_v2');
+                Route::get('settings/evaluation', [EvaluationFormController::class, 'settings']);
+                Route::put('settings/evaluation', [EvaluationFormController::class, 'updateSettings']);
+                Route::post('programs/{program}/evaluations/assign', [GroupEvaluationController::class, 'assign']);
+                Route::post('evaluation-assignments/{assignment}/remind', [GroupEvaluationController::class, 'remind']);
+                Route::get('evaluations/assignable-users', [GroupEvaluationController::class, 'assignable']);
+            });
+            Route::post('evaluation-forms/{form}/{decision}', [EvaluationFormController::class, 'decide'])->where('decision', 'approve|return')->middleware('permission:instruments.approve');
+            Route::middleware('permission:evaluations.manage|evaluation_reports.prepare|impact.view')->group(function () {
+                Route::get('programs/{program}/evaluations', [GroupEvaluationController::class, 'board']);
+                Route::get('programs/{program}/evaluations/{kind}/results', [GroupEvaluationController::class, 'results']);
+                Route::get('evaluation-responses/{response}/evidence/{question}/{index}', [GroupEvaluationController::class, 'evidenceUrl']);
+                Route::get('programs/{program}/comparative', [EvaluationInsightsController::class, 'comparative']);
+                Route::get('programs/{program}/satisfaction-alerts', [EvaluationInsightsController::class, 'alerts']);
+                Route::get('evaluations/satisfaction-ranking', [GroupEvaluationController::class, 'ranking']);
+                Route::get('programs/{program}/evaluation-reports', [EvaluationReportController::class, 'index']);
+                Route::get('programs/{program}/evaluation-reports/preview', [EvaluationReportController::class, 'preview']);
+                Route::get('evaluation-reports/{report}/export', [EvaluationReportController::class, 'export']);
+                Route::get('programs/{program}/satisfaction/export', [SurveyExportController::class, 'satisfaction']);
+                Route::get('evaluation-forms/{form}/export', [SurveyExportController::class, 'form']);
+            });
+            Route::middleware('permission:evaluation_reports.prepare')->group(function () {
+                Route::post('programs/{program}/evaluation-reports', [EvaluationReportController::class, 'store']);
+                Route::put('evaluation-reports/{report}', [EvaluationReportController::class, 'update']);
+            });
+            Route::post('evaluation-reports/{report}/approve', [EvaluationReportController::class, 'approve'])->middleware('permission:evaluation_reports.approve');
+            Route::middleware('permission:interviews.manage')->group(function () {
+                Route::get('programs/{program}/interviews', [EvaluationInsightsController::class, 'interviews']);
+                Route::post('programs/{program}/interviews', [EvaluationInsightsController::class, 'storeInterview']);
+                Route::put('interviews/{interview}', [EvaluationInsightsController::class, 'updateInterview']);
+                Route::delete('interviews/{interview}', [EvaluationInsightsController::class, 'destroyInterview']);
+            });
+            Route::get('surveys/{needsSurvey}/export', [SurveyExportController::class, 'needs'])->middleware('permission:needs.view|needs.manage');
+            // Passing policies, exceptions and the final approval of tasks.
+            Route::middleware('permission:passing.manage')->group(function () {
+                Route::get('passing-policies/{scope}/{id?}', [PassingController::class, 'show'])->where('scope', 'global|program|group');
+                Route::put('passing-policies/{scope}/{id?}', [PassingController::class, 'save'])->where('scope', 'global|program|group');
+                Route::delete('passing-policies/{scope}/{id?}', [PassingController::class, 'destroy'])->where('scope', 'global|program|group');
+                Route::post('passing-policies/preview', [PassingController::class, 'preview']);
+            });
+            Route::get('registrations/{registration}/pass-status', [PassingController::class, 'status'])->middleware('permission:registrations.view');
+            Route::post('registrations/{registration}/exceptions', [PassingController::class, 'grantException'])->middleware('permission:pass_exceptions.grant');
+            Route::delete('pass-exceptions/{exception}', [PassingController::class, 'revokeException'])->middleware('permission:pass_exceptions.grant');
+            Route::get('pass-exceptions/{exception}/file', [PassingController::class, 'exceptionFile'])->middleware('permission:registrations.view');
+            Route::post('submissions/{submission}/final-decision', [TaskController::class, 'finalDecision'])->middleware('permission:tasks.final_approve');
+            Route::put('sessions/{session}/participation', [PassingController::class, 'participation'])->middleware('permission:attendance.manage');
+            // Assessments.
+            Route::middleware('permission:assessments.manage')->group(function () {
+                Route::get('programs/{program}/assessments', [AssessmentController::class, 'index']);
+                Route::post('programs/{program}/assessments', [AssessmentController::class, 'store']);
+                Route::get('assessments/{assessment}', [AssessmentController::class, 'show']);
+                Route::put('assessments/{assessment}', [AssessmentController::class, 'update']);
+                Route::delete('assessments/{assessment}', [AssessmentController::class, 'destroy']);
+                Route::put('assessments/{assessment}/sections', [AssessmentController::class, 'sections']);
+                Route::post('assessments/{assessment}/validate', [AssessmentController::class, 'validateAssessment']);
+                Route::post('assessments/{assessment}/publish', [AssessmentController::class, 'publish']);
+                Route::post('assessments/{assessment}/access-codes', [AssessmentController::class, 'accessCode']);
+                Route::post('assessments/{assessment}/regrade', [AssessmentController::class, 'regrade']);
+                Route::post('assessments/{assessment}/release', [AssessmentController::class, 'release']);
+            });
+            Route::middleware('permission:assessments.invigilate|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/live', [AssessmentController::class, 'live']);
+                Route::post('attempts/{attempt}/extend', [AssessmentController::class, 'extend']);
+                Route::post('attempts/{attempt}/void', [AssessmentController::class, 'void']);
+            });
+            Route::get('attempts/{attempt}/review', [AssessmentController::class, 'review'])->middleware('permission:assessments.grade|assessments.manage|assessments.invigilate');
+            Route::post('attempts/{attempt}/flags/{flag}/review', [AssessmentController::class, 'reviewFlag'])->where('flag', '[a-z_]+')->middleware(['permission:assessments.grade|assessments.manage|assessments.invigilate', 'throttle:60,1']);
+            Route::middleware('permission:assessments.grade|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/grading', [AssessmentController::class, 'grading']);
+                Route::post('attempts/{attempt}/grade', [AssessmentController::class, 'grade']);
+            });
+            Route::middleware('permission:assessments.analytics|assessments.manage')->group(function () {
+                Route::get('assessments/{assessment}/analytics', [AssessmentController::class, 'analytics']);
+                Route::get('programs/{program}/knowledge-gain', [AssessmentController::class, 'knowledgeGain']);
+            });
+            // Question banks.
+            Route::middleware('permission:banks.manage|assessments.manage')->group(function () {
+                Route::get('question-types', [QuestionBankController::class, 'types']);
+                Route::get('question-banks', [QuestionBankController::class, 'index']);
+                Route::post('question-banks', [QuestionBankController::class, 'store']);
+                Route::put('question-banks/{bank}', [QuestionBankController::class, 'update']);
+                Route::delete('question-banks/{bank}', [QuestionBankController::class, 'destroy']);
+                Route::get('question-banks/{bank}/categories', [QuestionBankController::class, 'categories']);
+                Route::post('question-banks/{bank}/categories', [QuestionBankController::class, 'saveCategory']);
+                Route::put('question-banks/{bank}/categories/{category}', [QuestionBankController::class, 'saveCategory']);
+                Route::get('question-banks/{bank}/questions', [QuestionBankController::class, 'questions']);
+                Route::post('question-banks/{bank}/questions', [QuestionBankController::class, 'storeQuestion']);
+                Route::post('question-banks/{bank}/questions/bulk', [QuestionBankController::class, 'bulk']);
+                Route::post('question-banks/{bank}/import', [QuestionBankController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('question-banks/{bank}/export', [QuestionBankController::class, 'export']);
+                Route::put('questions/{question}', [QuestionBankController::class, 'updateQuestion']);
+                Route::delete('questions/{question}', [QuestionBankController::class, 'destroyQuestion']);
+            });
+            // Absence alerts, excuses and leaves.
+            Route::get('absence-alerts', [AbsenceController::class, 'alerts'])->middleware('permission:attendance.manage');
+            Route::put('absence-alerts/{alert}', [AbsenceController::class, 'updateAlert'])->middleware('permission:attendance.manage');
+            Route::get('excuses', [AbsenceController::class, 'excuses'])->middleware('permission:registrations.approve_manager|excuses.decide');
+            Route::post('excuses/{excuse}/decision', [AbsenceController::class, 'decideExcuse']);
+            Route::post('attendance/{attendance}/leaves', [AbsenceController::class, 'storeLeave'])->middleware('permission:leaves.manage|attendance.manage');
+            Route::delete('attendance-leaves/{leave}', [AbsenceController::class, 'destroyLeave'])->middleware('permission:leaves.manage|attendance.manage');
+            // Attendance devices (fingerprint / badge).
+            Route::middleware('permission:attendance.devices')->group(function () {
+                Route::get('attendance-devices', [AttendanceDeviceController::class, 'index']);
+                Route::post('attendance-devices', [AttendanceDeviceController::class, 'save']);
+                Route::put('attendance-devices/{device}', [AttendanceDeviceController::class, 'save']);
+                Route::delete('attendance-devices/{device}', [AttendanceDeviceController::class, 'destroy']);
+                Route::post('attendance-devices/{device}/test', [AttendanceDeviceController::class, 'test']);
+                Route::post('attendance-devices/{device}/import', [AttendanceDeviceController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('attendance-devices/{device}/log', [AttendanceDeviceController::class, 'log']);
+            });
+            // Admission: seats per entity and the two approval stages.
+            Route::middleware('permission:programs.view')->get('groups/{group}/seats', [AdmissionController::class, 'seats']);
+            Route::middleware('permission:seats.manage|groups.manage')->put('groups/{group}/seats', [AdmissionController::class, 'updateSeats']);
+            Route::middleware('permission:priority.manage')->group(function () {
+                Route::get('priority-rules', [AdmissionRulesController::class, 'rules']);
+                Route::post('priority-rules', [AdmissionRulesController::class, 'saveRule']);
+                Route::put('priority-rules/{rule}', [AdmissionRulesController::class, 'saveRule']);
+                Route::delete('priority-rules/{rule}', [AdmissionRulesController::class, 'deleteRule']);
+                Route::post('priority-rules/preview', [AdmissionRulesController::class, 'preview']);
+            });
+            Route::get('programs/{program}/equivalences', [AdmissionRulesController::class, 'equivalences'])->middleware('permission:programs.view');
+            Route::put('programs/{program}/equivalences', [AdmissionRulesController::class, 'syncEquivalences'])->middleware('permission:programs.manage');
+            Route::get('groups/{group}/candidates', [AdmissionRulesController::class, 'candidates'])->middleware('permission:registrations.view');
+            Route::post('groups/{group}/accept', [AdmissionRulesController::class, 'accept'])->middleware('permission:registrations.manage|registrations.approve_center');
+            // External registration: form builder and review queue.
+            Route::middleware('permission:external_forms.manage')->group(function () {
+                Route::get('registration-forms', [ExternalRequestController::class, 'forms']);
+                Route::post('registration-forms', [ExternalRequestController::class, 'saveForm']);
+                Route::put('registration-forms/{form}', [ExternalRequestController::class, 'saveForm']);
+            });
+            Route::middleware('permission:external_requests.review')->group(function () {
+                Route::get('registration-requests', [ExternalRequestController::class, 'requests']);
+                Route::get('registration-requests/{registrationRequest}', [ExternalRequestController::class, 'show']);
+                Route::get('registration-requests/{registrationRequest}/snapshot', [ExternalRequestController::class, 'snapshot']);
+                Route::post('registration-requests/{registrationRequest}/approve', [ExternalRequestController::class, 'approve']);
+                Route::post('registration-requests/{registrationRequest}/reject', [ExternalRequestController::class, 'reject']);
+                Route::post('registration-requests/{registrationRequest}/request-info', [ExternalRequestController::class, 'requestInfo']);
+            });
+            // Withdrawal queues, policy and reasons.
+            Route::get('withdrawals', [WithdrawalController::class, 'index'])->middleware('permission:registrations.approve_manager|withdrawals.decide');
+            Route::post('withdrawals/{withdrawal}/decision', [WithdrawalController::class, 'decision'])->middleware('permission:registrations.approve_manager|withdrawals.decide');
+            Route::middleware('permission:withdrawals.policy')->group(function () {
+                Route::get('settings/withdrawal-policy', [WithdrawalController::class, 'policy']);
+                Route::put('settings/withdrawal-policy', [WithdrawalController::class, 'policy']);
+                Route::get('withdrawal-reasons', [WithdrawalController::class, 'reasons']);
+                Route::post('withdrawal-reasons', [WithdrawalController::class, 'saveReason']);
+                Route::put('withdrawal-reasons/{reason}', [WithdrawalController::class, 'saveReason']);
+            });
+            Route::get('approvals/{stage}', [AdmissionController::class, 'queue'])->middleware('permission:registrations.approve_manager|registrations.manage');
+            Route::post('registrations/{registration}/manager-decision', [AdmissionController::class, 'managerDecision']);
+            Route::get('program-types', [CatalogController::class, 'programTypes'])->middleware('permission:plans.view|programs.view|programs.manage');
+            // Annual training plan.
+            Route::middleware('permission:plans.view')->group(function () {
+                Route::get('plans', [AnnualPlanController::class, 'index']);
+                Route::get('plans/{plan}', [AnnualPlanController::class, 'show']);
+                Route::get('plans/{plan}/execution', [AnnualPlanController::class, 'execution']);
+                Route::get('plans/{plan}/changes', [AnnualPlanController::class, 'changes']);
+                Route::get('plans/{plan}/export', [AnnualPlanController::class, 'export']);
+                Route::get('plans/{plan}/compliance', [AnnualPlanController::class, 'compliance']);
+            });
+            Route::middleware('permission:plans.manage')->group(function () {
+                Route::post('plans', [AnnualPlanController::class, 'store']);
+                Route::put('plans/{plan}', [AnnualPlanController::class, 'update']);
+                Route::put('plans/{plan}/rules', [AnnualPlanController::class, 'rules']);
+                Route::post('plans/{plan}/generate', [AnnualPlanController::class, 'generate']);
+                Route::post('plans/{plan}/items', [AnnualPlanController::class, 'storeItem']);
+                Route::put('plans/{plan}/items/{item}', [AnnualPlanController::class, 'updateItem']);
+                Route::delete('plans/{plan}/items/{item}', [AnnualPlanController::class, 'destroyItem']);
+                Route::post('plans/{plan}/submit', [AnnualPlanController::class, 'submit']);
+            });
+            Route::middleware('permission:plans.approve')->group(function () {
+                Route::post('plans/{plan}/return', [AnnualPlanController::class, 'return']);
+                Route::post('plans/{plan}/approve', [AnnualPlanController::class, 'approve']);
+                Route::post('plans/{plan}/activate', [AnnualPlanController::class, 'activate']);
+                Route::post('plans/{plan}/close', [AnnualPlanController::class, 'close']);
+            });
+            // Training groups: every program runs as one or more groups.
+            Route::middleware('permission:programs.view')->group(function () {
+                Route::get('programs/{program}/groups', [TrainingGroupController::class, 'index']);
+                Route::get('groups/board', [TrainingGroupController::class, 'board']);
+                Route::get('groups/{group}', [TrainingGroupController::class, 'show']);
+                Route::get('groups/{group}/sessions', [TrainingGroupController::class, 'sessions']);
+                Route::get('groups/{group}/participants', [TrainingGroupController::class, 'participants']);
+            });
+            Route::middleware('permission:groups.manage')->group(function () {
+                Route::post('programs/{program}/groups', [TrainingGroupController::class, 'store']);
+                Route::post('programs/{program}/groups/preview', [TrainingGroupController::class, 'preview']);
+                Route::put('groups/{group}', [TrainingGroupController::class, 'update']);
+                Route::delete('groups/{group}', [TrainingGroupController::class, 'destroy']);
+                Route::post('groups/{group}/clone', [TrainingGroupController::class, 'clone']);
+                Route::post('groups/{group}/publish', [TrainingGroupController::class, 'publish']);
+                Route::post('groups/{group}/unpublish', [TrainingGroupController::class, 'unpublish']);
+                Route::post('groups/{group}/trainers', [TrainerAssignmentController::class, 'store']);
+                Route::delete('group-trainers/{groupTrainer}', [TrainerAssignmentController::class, 'destroy']);
+                Route::post('programs/{program}/kit-developers', [TrainerAssignmentController::class, 'kitDevelopers']);
+            });
+            Route::post('group-trainers/{groupTrainer}/decision', [TrainerAssignmentController::class, 'decision'])->middleware('permission:trainers.approve|groups.status');
+            Route::post('groups/{group}/status', [TrainingGroupController::class, 'status'])->middleware('permission:groups.status');
+            Route::middleware('permission:programs.manage')->group(function () {
+                Route::post('programs/{program}/sub-programs', [ProgramStructureController::class, 'storeSub']);
+                Route::put('programs/{program}/units', [ProgramStructureController::class, 'syncUnits']);
+            });
+            Route::get('programs/{program}/tree', [ProgramStructureController::class, 'tree'])->middleware('permission:programs.view');
+            Route::middleware('permission:program_grants.manage')->group(function () {
+                Route::get('programs/{program}/grants', [ProgramGrantController::class, 'index']);
+                Route::post('programs/{program}/grants', [ProgramGrantController::class, 'store']);
+                Route::delete('programs/{program}/grants/{grant}', [ProgramGrantController::class, 'destroy']);
+            });
+            Route::middleware('permission:scopes.manage')->group(function () {
+                Route::post('school-groups/import', [SchoolGroupController::class, 'import'])->middleware('throttle:20,1');
+                Route::get('school-groups', [SchoolGroupController::class, 'index']);
+                Route::post('school-groups', [SchoolGroupController::class, 'store']);
+                Route::get('school-groups/{schoolGroup}', [SchoolGroupController::class, 'show']);
+                Route::put('school-groups/{schoolGroup}', [SchoolGroupController::class, 'update']);
+                Route::delete('school-groups/{schoolGroup}', [SchoolGroupController::class, 'destroy']);
+                Route::put('school-groups/{schoolGroup}/schools', [SchoolGroupController::class, 'syncSchools']);
+            });
+            Route::get('audit-logs', [UserController::class, 'audit'])->middleware('permission:audit.view');
+        });
+    });
+});

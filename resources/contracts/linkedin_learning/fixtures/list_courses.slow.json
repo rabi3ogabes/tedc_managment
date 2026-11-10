@@ -1,0 +1,116 @@
+{
+  "status": 200,
+  "delay_ms": 3000,
+  "body": {
+    "elements": [
+      {
+        "urn": "urn:li:lyndaCourse:187499",
+        "type": "COURSE",
+        "title": {
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "value": "Collaborative Design: Process and Efficiency"
+        },
+        "details": {
+          "level": "BEGINNER",
+          "availability": "AVAILABLE",
+          "shortDescription": {
+            "locale": {
+              "country": "US",
+              "language": "en"
+            },
+            "value": "<p>Collaborative Design: Process and Efficiency — a short course.</p>"
+          },
+          "timeToComplete": {
+            "duration": 95,
+            "unit": "MINUTE"
+          },
+          "urls": {
+            "webLaunch": "https://www.linkedin.example.test/learning/collaborative-design-process-and-efficiency",
+            "ssoLaunch": "https://www.linkedin.example.test/learning-login/share/collaborative-design-process-and-efficiency"
+          },
+          "images": {
+            "primary": "https://media.example.test/187499.jpg"
+          },
+          "lastUpdatedAt": 1791619200000
+        }
+      },
+      {
+        "urn": "urn:li:lyndaCourse:187500",
+        "type": "COURSE",
+        "title": {
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "value": "Collaborative Design: Vision and Strategy"
+        },
+        "details": {
+          "level": "INTERMEDIATE",
+          "availability": "AVAILABLE",
+          "shortDescription": {
+            "locale": {
+              "country": "US",
+              "language": "en"
+            },
+            "value": "<p>Collaborative Design: Vision and Strategy — a short course.</p>"
+          },
+          "timeToComplete": {
+            "duration": 2,
+            "unit": "HOUR"
+          },
+          "urls": {
+            "webLaunch": "https://www.linkedin.example.test/learning/collaborative-design-vision-and-strategy"
+          },
+          "images": {
+            "primary": "https://media.example.test/187500.jpg"
+          },
+          "lastUpdatedAt": 1791619200000
+        }
+      },
+      {
+        "urn": "urn:li:lyndaCourse:144562",
+        "type": "COURSE",
+        "title": {
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "value": "Classroom Technology Essential Training"
+        },
+        "details": {
+          "level": "BEGINNER",
+          "availability": "RETIRED",
+          "shortDescription": {
+            "locale": {
+              "country": "US",
+              "language": "en"
+            },
+            "value": "<p>Classroom Technology Essential Training — a short course.</p>"
+          },
+          "timeToComplete": {
+            "duration": 3,
+            "unit": "HOUR"
+          },
+          "urls": {
+            "webLaunch": "https://www.linkedin.example.test/learning/classroom-technology-essential-training",
+            "ssoLaunch": "https://www.linkedin.example.test/learning-login/share/classroom-technology-essential-training"
+          },
+          "images": {
+            "primary": "https://media.example.test/144562.jpg"
+          },
+          "lastUpdatedAt": 1791619200000
+        }
+      }
+    ],
+    "paging": {
+      "total": 3,
+      "count": 3,
+      "start": 0,
+      "links": []
+    },
+    "metadata": {}
+  }
+}

@@ -1,0 +1,188 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\SessionResource;
+use App\Models\Program;
+use App\Models\ProgramSession;
+use App\Models\Registration;
+use App\Services\AttendanceService;
+use App\Services\CalendarService;
+use App\Services\ProgramGrantService;
+use App\Services\RoomService;
+use App\Services\Teaching\TrainerNotices;
+use App\Services\TrainerCertificateService;
+use App\Services\TrainerService;
+use App\Services\TrainingDaySettings;
+use App\Support\RemoteProgramRules;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
+
+class SessionController extends Controller
+{
+    public function __construct(private readonly AttendanceService $attendance, private readonly CalendarService $calendar, private readonly RoomService $rooms, private readonly TrainerService $trainers) {}
+
+    public function index(Program $program): AnonymousResourceCollection
+    {
+        return SessionResource::collection($program->sessions()->with(['trainer', 'room'])->withCount('attendance')->get());
+    }
+
+    public function store(Request $request, Program $program): JsonResponse
+    {
+        $data = $this->validated($request);
+        $this->guardCalendar($request, $data['starts_at'], $data['ends_at']);
+        $this->guardResources($data['starts_at'], $data['ends_at'], $data['training_room_id'] ?? null, $data['trainer_id'] ?? null, null, $program->id);
+        // A session of a remote program is an online meeting using the program's link unless it has its own.
+        $remote = $program->delivery_mode === 'online' || ($data['mode'] ?? null) === 'online';
+        if ($remote) {
+            $data = ['mode' => 'online', 'online_url' => $program->remote['join_url'] ?? null, 'online_platform' => $program->remote['platform'] ?? null, 'online_passcode' => $program->remote['passcode'] ?? null] + array_filter($data, fn ($v) => $v !== null);
+        }
+        $session = $program->sessions()->create(Arr::except($data, 'calendar_approval_reason'));
+        if ($session->trainer_id) {
+            app(TrainerNotices::class)->sync($program);
+        }
+
+        return (new SessionResource($session->load(['trainer', 'room'])))->response()->setStatusCode(201);
+    }
+
+    public function update(Request $request, ProgramSession $session): SessionResource
+    {
+        $data = $this->validated($request, true);
+        $moved = isset($data['starts_at']) || isset($data['ends_at']);
+        $cancelled = ($data['status'] ?? $session->status) === 'cancelled';
+        $roomId = array_key_exists('training_room_id', $data) ? $data['training_room_id'] : $session->training_room_id;
+        $trainerId = array_key_exists('trainer_id', $data) ? $data['trainer_id'] : $session->trainer_id;
+        $resourceChanged = ($roomId && $roomId !== $session->training_room_id) || ($trainerId && $trainerId !== $session->trainer_id);
+        if (! $cancelled && ($moved || $resourceChanged)) {
+            $start = $data['starts_at'] ?? $session->starts_at;
+            $end = $data['ends_at'] ?? $session->ends_at;
+            if ($moved) {
+                $this->guardCalendar($request, $start, $end);
+            }
+            $this->guardResources($start, $end, $roomId, $trainerId, $session->id, $session->program_id);
+        }
+        $session->update(Arr::except($data, 'calendar_approval_reason'));
+        if ($session->wasChanged('trainer_id') && $session->trainer_id) {
+            app(TrainerNotices::class)->sync($session->program);
+        }
+        // Marking a session delivered can complete a trainer's hours: issue their certificate straight away.
+        if (($data['status'] ?? null) === 'completed') {
+            app(TrainerCertificateService::class)->sync($session->program);
+        }
+
+        return new SessionResource($session->load(['trainer', 'room']));
+    }
+
+    public function destroy(ProgramSession $session): JsonResponse
+    {
+        $session->delete();
+
+        return response()->json(null, 204);
+    }
+
+    /**
+     * Current rotating QR payload for the trainer's attendance screen.
+     */
+    public function qr(ProgramSession $session): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+
+        return response()->json(['data' => $this->attendance->currentQr($session) + [
+            'session' => ['id' => $session->id, 'title' => $session->translate('title'), 'starts_at' => $session->starts_at->toIso8601String(), 'ends_at' => $session->ends_at->toIso8601String()],
+        ]]);
+    }
+
+    public function attendance(ProgramSession $session): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+
+        return response()->json(['data' => $this->attendance->sessionReport($session)]);
+    }
+
+    public function mark(Request $request, ProgramSession $session): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+
+        $data = $request->validate([
+            'registration_id' => ['required', 'uuid'],
+            'status' => ['required', Rule::in(['present', 'late', 'absent', 'excused'])],
+            'minutes' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $registration = Registration::where('program_id', $session->program_id)->findOrFail($data['registration_id']);
+
+        return response()->json(['data' => $this->attendance->mark($session, $registration, $data['status'], $this->user(), $data['minutes'] ?? null)]);
+    }
+
+    /**
+     * Sessions may only run on days open for training. A closed day (weekend, vacation, exam or
+     * restricted normal day) needs an approval; users allowed to approve can do it in the same
+     * request by sending `calendar_approval_reason`.
+     */
+    private function guardCalendar(Request $request, mixed $startsAt, mixed $endsAt): void
+    {
+        $start = Carbon::parse($startsAt);
+        $end = Carbon::parse($endsAt);
+
+        if ($request->filled('calendar_approval_reason') && $this->user()->hasPermission('calendar.approve')) {
+            $this->calendar->approveSpan($start, $end, (string) $request->input('calendar_approval_reason'), $this->user()->id);
+        }
+
+        $this->calendar->assertTrainingAllowed($start, $end);
+    }
+
+    /** The room and the trainer must be active and free for the whole session. */
+    private function guardResources(mixed $startsAt, mixed $endsAt, ?string $roomId, ?string $trainerId, ?string $exceptSessionId = null, ?string $programId = null): void
+    {
+        $start = Carbon::parse($startsAt);
+        $end = Carbon::parse($endsAt);
+        app(TrainingDaySettings::class)->assertWithinDay($start, $end);
+        if ($roomId) {
+            $attendees = $programId ? Registration::where('program_id', $programId)->where('status', Registration::STATUS_APPROVED)->count() : null;
+            $this->rooms->assertBookable($roomId, $start, $end, $exceptSessionId, $attendees);
+        }
+        if ($trainerId) {
+            $this->trainers->assertAssignable($trainerId, $start, $end, $exceptSessionId);
+        }
+    }
+
+    private function authorizeTrainer(ProgramSession $session): void
+    {
+        $user = $this->user();
+        if ($this->isCenterStaff($user)) {
+            return;
+        }
+
+        $trainerId = $user->trainer?->id;
+        $delivers = $trainerId && ($session->trainer_id === $trainerId || $session->program->trainers()->where('trainers.id', $trainerId)->exists());
+        // Or the head of training gave this person the attendance right on this program.
+        $granted = app(ProgramGrantService::class)->allows($user, $session->program_id, 'attendance.mark');
+        abort_unless($delivers || $granted, 403, __('messages.grants.attendance_denied'));
+    }
+
+    private function validated(Request $request, bool $partial = false): array
+    {
+        $required = $partial ? 'sometimes' : 'required';
+
+        return $request->validate([
+            'title_ar' => [$required, 'string', 'max:255'],
+            'title_en' => [$required, 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'sequence' => ['sometimes', 'integer', 'min:1'],
+            'starts_at' => [$required, 'date'],
+            'ends_at' => [$required, 'date', 'after:starts_at'],
+            'trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
+            'training_room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'],
+            'location_text' => ['nullable', 'string', 'max:255'],
+            'activities' => ['nullable', 'array'],
+            'activities.*' => ['string', 'max:255'],
+            'status' => ['sometimes', Rule::in(['scheduled', 'live', 'completed', 'cancelled'])],
+            'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
+        ] + RemoteProgramRules::sessionRules());
+    }
+}

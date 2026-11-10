@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "entities": {
+    "indicator": {
+      "fields": {
+        "school_code": "$.school_code",
+        "year": "$.year",
+        "trained_staff": "$.trained_staff",
+        "completed_programs": "$.completed_programs",
+        "training_hours": "$.training_hours"
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+<?php
+
+use App\Ai\Rag\Embedders;
+use App\Ai\Rag\LocalEmbedder;
+use App\Ops\DataSubjectService;
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('tedc:program-lifecycle')->hourly()->withoutOverlapping();
+Schedule::command('tedc:group-lifecycle')->hourly()->withoutOverlapping();
+Schedule::command('tedc:operations-hourly')->hourly()->withoutOverlapping();
+Schedule::command('tedc:caliper-flush')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:evaluations-hourly')->hourly()->withoutOverlapping();
+// Exam integrity: snapshots, event logs and timelines leave after the retention period (Settings → Security).
+Schedule::command('tedc:proctoring-retention')->dailyAt('02:40')->withoutOverlapping();
+Schedule::command('tedc:surveys-retention')->dailyAt('03:30')->withoutOverlapping();
+Schedule::command('tedc:sso-metadata-refresh')->dailyAt('04:20')->withoutOverlapping();
+Schedule::command('tedc:seats-release')->hourly()->withoutOverlapping();
+Schedule::command('tedc:career-daily')->dailyAt('01:00')->withoutOverlapping();
+Schedule::command('tedc:needs-daily')->dailyAt('02:00')->withoutOverlapping();
+Schedule::command('tedc:plc-tick')->hourly()->withoutOverlapping();
+Schedule::command('tedc:needs-cycles')->dailyAt('06:30')->withoutOverlapping();
+Schedule::command('tedc:plan-deviations')->dailyAt('07:00')->withoutOverlapping();
+Schedule::command('tedc:session-reminders')->everyThirtyMinutes()->withoutOverlapping();
+Schedule::command('tedc:dispatch-surveys')->dailyAt('08:00')->withoutOverlapping();
+Schedule::command('tedc:attendance-nudges')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:open-surveys')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:trainer-certificates')->everyThirtyMinutes()->withoutOverlapping();
+Schedule::command('tedc:self-heal')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:course-nudges')->dailyAt('10:00')->withoutOverlapping();
+Schedule::command('tedc:scenario-advance')->dailyAt('00:10')->withoutOverlapping();
+Schedule::command('tedc:deliver-notifications')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:announcements-tick')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:ministry-push')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:stats-refresh')->everyTenMinutes()->withoutOverlapping();
+Schedule::call(fn () => app(DataSubjectService::class)->sweep())->dailyAt('08:00')->name('dsr-sweep');
+Schedule::command('tedc:siem-flush')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:payments-tick')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:payments-daily')->dailyAt('03:15')->withoutOverlapping();
+Schedule::command('tedc:ai-nightly')->dailyAt('02:30')->withoutOverlapping();
+// Pieces an embeddings model missed while it could not be reached catch up each night (the local vectors never miss any).
+Schedule::command('tedc:ai-reindex')->dailyAt('03:45')->withoutOverlapping()->when(fn () => ! app(Embedders::class)->active() instanceof LocalEmbedder);
+Schedule::command('tedc:social-tick')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:kpi-collect')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('tedc:reports-run')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:integrations-tick')->everyMinute()->withoutOverlapping();
+Schedule::command('tedc:integrations-health')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('tedc:teams-sync')->everyTenMinutes()->withoutOverlapping();
+Schedule::command('tedc:tickets-sync')->everyTenMinutes()->withoutOverlapping();
+Schedule::command('tedc:ministry-sync')->hourly()->withoutOverlapping();
+// Learning providers: the catalogue and the completions each night, the completions again every six hours (a provider's reports arrive late), and the tidying of what they keep.
+Schedule::command('tedc:learning-providers-sync')->dailyAt('01:45')->withoutOverlapping();
+Schedule::command('tedc:learning-providers-sync --completions')->cron('15 */6 * * *')->withoutOverlapping();
+Schedule::command('tedc:learning-providers-sync --prune')->dailyAt('04:05')->withoutOverlapping();
+Schedule::command('tedc:migration-purge')->dailyAt('03:15')->withoutOverlapping();

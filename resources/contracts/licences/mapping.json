@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "entities": {
+    "licence": {
+      "fields": {
+        "employee_no": "$.employee_no",
+        "path_id": "$.path_id",
+        "path_title": "$.path_title",
+        "licence_no": "$.licence_no",
+        "level_no": "$.level_no",
+        "issued_at": "$.issued_at",
+        "expires_at": "$.expires_at",
+        "status": "$.status"
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "employee_no": "E-1001",
+        "name": "Sara Al-Kuwari",
+        "name_ar": "سارة الكواري",
+        "email": "sara.kuwari@example.test",
+        "status": "active",
+        "job_title_code": "TEACHER",
+        "school_code": "S-001",
+        "department_code": "ARABIC",
+        "gender": "female",
+        "nationality": "QA",
+        "hire_date": "2016-09-01",
+        "experience_years": 10,
+        "qualification": "Master",
+        "specialization": "Arabic language",
+        "grade_level": "G5",
+        "education_stage": "secondary"
+      },
+      {
+        "employee_no": "E-1002",
+        "name": "Khalid Al-Naimi",
+        "name_ar": "خالد النعيمي",
+        "email": "khalid.naimi@example.test",
+        "status": "active",
+        "job_title_code": "SUBJECT_COORD",
+        "school_code": "S-001",
+        "supervisor_employee_no": "E-1001",
+        "gender": "male",
+        "nationality": "QA",
+        "hire_date": "2012-02-15",
+        "experience_years": 14,
+        "qualification": "Bachelor",
+        "specialization": "Mathematics"
+      },
+      {
+        "employee_no": "E-0900",
+        "name": "Mona Al-Hajri",
+        "name_ar": "منى الهاجري",
+        "email": "mona.hajri@example.test",
+        "status": "left"
+      }
+    ]
+  },
+  "delay_ms": 3000
+}

@@ -1,0 +1,1 @@
+import{t as e}from"./i18n-CbGDfktX.js";import{$ as t}from"./index-DG1SEv4J.js";import{n}from"./PassingTab-C85xEF3G.js";import{l as r}from"./query-DT8AsW_o.js";var i=r();function a(){let{t:r}=e();return(0,i.jsxs)(i.Fragment,{children:[(0,i.jsx)(t,{title:r(`passing.global`),subtitle:r(`passing.globalHint`)}),(0,i.jsx)(n,{scope:`global`})]})}export{a as default};

@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "entities": {
+    "course": {
+      "fields": {
+        "id": {
+          "template": "{{ contentType }}~{{ contentId }}"
+        },
+        "title": {
+          "path": "$.name",
+          "transform": [
+            "trim"
+          ]
+        },
+        "description": {
+          "path": "$.description",
+          "transform": [
+            "strip_tags"
+          ]
+        },
+        "url": {
+          "template": "https://www.coursera.org/{{ contentType|map:Course=learn,Specialization=specializations }}/{{ slug }}"
+        },
+        "hours": {
+          "path": "$.extraMetadata.definition.estimatedLearningTime",
+          "transform": [
+            "hours:seconds"
+          ]
+        },
+        "level": {
+          "path": "$.difficultyLevel",
+          "transform": [
+            "lower"
+          ]
+        },
+        "language": {
+          "path": "$.languageCode",
+          "transform": [
+            "lower"
+          ]
+        },
+        "image": "$.extraMetadata.definition.promoPhoto",
+        "kind": {
+          "path": "$.contentType",
+          "transform": [
+            "lower"
+          ]
+        }
+      }
+    },
+    "completion": {
+      "fields": {
+        "course_id": {
+          "template": "{{ contentType }}~{{ contentId }}"
+        },
+        "employee_no": {
+          "path": "$.externalId",
+          "transform": [
+            "trim"
+          ]
+        },
+        "email": {
+          "path": "$.email",
+          "transform": [
+            "trim",
+            "lower"
+          ]
+        },
+        "completed": {
+          "path": "$.isCompleted",
+          "transform": [
+            "bool"
+          ]
+        },
+        "completed_at": {
+          "path": "$.completedAt",
+          "transform": [
+            "epoch_ms"
+          ]
+        },
+        "progress": {
+          "path": "$.overallProgress",
+          "transform": [
+            "int"
+          ]
+        },
+        "grade": "$.grade",
+        "certificate_url": "$.contentCertificateUrl"
+      }
+    }
+  }
+}

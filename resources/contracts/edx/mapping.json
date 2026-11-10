@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "entities": {
+    "course": {
+      "fields": {
+        "id": {
+          "paths": [
+            "$.id",
+            "$.course_id"
+          ]
+        },
+        "title": {
+          "path": "$.name",
+          "transform": [
+            "trim"
+          ]
+        },
+        "description": {
+          "path": "$.short_description",
+          "transform": [
+            "strip_tags"
+          ]
+        },
+        "url": {
+          "template": "/courses/{{ id }}/about"
+        },
+        "image": {
+          "paths": [
+            "$.media.image.large",
+            "$.media.image.raw"
+          ]
+        },
+        "starts_at": "$.start",
+        "ends_at": "$.end",
+        "pacing": "$.pacing",
+        "organization": "$.org"
+      }
+    },
+    "completion": {
+      "fields": {
+        "course_id": "$.course_id",
+        "username": "$.username",
+        "completed": {
+          "path": "$.is_passing",
+          "transform": [
+            "bool"
+          ]
+        },
+        "completed_at": "$.created_date",
+        "grade": "$.grade",
+        "certificate_url": "$.download_url",
+        "certificate_type": "$.certificate_type"
+      }
+    }
+  }
+}

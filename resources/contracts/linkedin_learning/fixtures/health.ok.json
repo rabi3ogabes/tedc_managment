@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "body": {
+    "elements": [
+      {
+        "urn": "urn:li:lyndaCourse:187499"
+      }
+    ],
+    "paging": {
+      "total": 9782,
+      "count": 1,
+      "start": 0,
+      "links": []
+    }
+  }
+}

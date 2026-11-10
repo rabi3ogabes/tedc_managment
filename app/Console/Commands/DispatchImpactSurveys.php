@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Services\EvaluationService;
+use App\Services\ImpactService;
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
+use Illuminate\Console\Command;
+
+#[Signature('tedc:dispatch-surveys')]
+#[Description('Send due 30/60/90-day impact surveys and expire unanswered ones')]
+class DispatchImpactSurveys extends Command
+{
+    public function handle(ImpactService $impact): int
+    {
+        $result = $impact->dispatchDue();
+        $managers = app(EvaluationService::class)->dispatchManagerImpact();
+        $this->info("Sent {$result['sent']} surveys, expired {$result['expired']}, asked {$managers} manager(s).");
+
+        return self::SUCCESS;
+    }
+}

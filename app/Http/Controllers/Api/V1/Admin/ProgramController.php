@@ -1,0 +1,276 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\ProgramResource;
+use App\Models\Program;
+use App\Models\ProgramCategory;
+use App\Models\Registration;
+use App\Models\Role;
+use App\Services\AudienceRules;
+use App\Services\FileStorage;
+use App\Services\ImpactService;
+use App\Services\ProgramCatalogSettings;
+use App\Services\Programs\GroupNamer;
+use App\Services\Programs\ProgramAnnouncer;
+use App\Services\Programs\ProgramInstruments;
+use App\Services\Programs\ProgramSessionWriter;
+use App\Services\Teaching\TrainerNotices;
+use App\Services\TrainingGroupService;
+use App\Support\ProgramTypes;
+use App\Support\RemoteProgramRules;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
+class ProgramController extends Controller
+{
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $user = $this->user();
+
+        // Everything except the delivery type, so the three type tabs can show how many programs each one holds.
+        $scope = fn () => Program::query()
+            // Trainers only see programs they deliver.
+            ->when($user->hasRole(Role::TRAINER) && ! $this->isCenterStaff($user), fn ($q) => $q->whereHas('trainers', fn ($t) => $t->where('trainers.user_id', $user->id)))
+            ->when($request->query('status'), fn ($q, $status) => $q->whereIn('status', explode(',', $status)))
+            ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$term}%")->orWhereLike('title_en', "%{$term}%")->orWhereLike('code', "%{$term}%")));
+
+        $programs = $scope()->with(['category', 'trainers'])
+            ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)])
+            ->when(in_array($request->query('delivery_mode'), ['in_person', 'online', 'hybrid'], true), fn ($q) => $q->where('delivery_mode', $request->query('delivery_mode')))
+            ->latest()
+            ->paginate($this->perPage($request));
+
+        $counts = $scope()->selectRaw('delivery_mode, count(*) as total')->groupBy('delivery_mode')->pluck('total', 'delivery_mode');
+
+        return ProgramResource::collection($programs)->additional(['types' => [
+            'in_person' => (int) ($counts['in_person'] ?? 0), 'online' => (int) ($counts['online'] ?? 0), 'hybrid' => (int) ($counts['hybrid'] ?? 0),
+        ]]);
+    }
+
+    public function show(Program $program): ProgramResource
+    {
+        $program->load(['category', 'coordinator:id,name,name_ar', 'skills', 'trainers', 'sessions.trainer', 'sessions.room', 'targetGroups.jobTitle', 'eligibilityRules', 'units.skills'])
+            ->loadCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)]);
+
+        return new ProgramResource($program);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $data = $this->validated($request);
+
+        $data = $this->withEnglishFallback($data);
+        $data = $this->withGeneratedCode($data);
+        $plan = $request->validate([
+            'sessions' => ['sometimes', 'array', 'max:60'], 'sessions.*.starts_at' => ['required', 'date'], 'sessions.*.ends_at' => ['required', 'date'],
+            'sessions.*.training_room_id' => ['nullable', 'uuid', 'exists:training_rooms,id'], 'sessions.*.trainer_id' => ['nullable', 'uuid', 'exists:trainers,id'],
+            'sessions.*.title_ar' => ['nullable', 'string', 'max:255'], 'sessions.*.title_en' => ['nullable', 'string', 'max:255'], 'sessions.*.mode' => ['nullable', Rule::in(['in_person', 'online'])],
+            'calendar_approval_reason' => ['nullable', 'string', 'min:3', 'max:1000'],
+        ]);
+        $approval = $this->user()->hasPermission('calendar.approve') ? ($plan['calendar_approval_reason'] ?? null) : null;
+        $groups = $request->validate(['groups' => ['sometimes', 'array', 'max:30'], 'groups.*.title_ar' => ['nullable', 'string', 'max:255'], 'groups.*.title_en' => ['nullable', 'string', 'max:255'], 'groups.*.capacity' => ['nullable', 'integer', 'min:1', 'max:5000']])['groups'] ?? [];
+        abort_if(count($groups) > 1 && ! $this->user()->hasPermission('groups.manage'), 403, __('auth.forbidden'));
+        $program = DB::transaction(function () use ($data, $request, $plan, $approval, $groups) {
+            $program = Program::create(collect($data)->except('audience')->all() + ['created_by' => $this->user()->id]);
+            $this->syncRelations($program, $request);
+            // The generated session plan lands on the first group, with every calendar, room and trainer rule enforced; one refused session rolls everything back.
+            $this->syncKits($program, $request);
+            $this->applyGroups($program, $groups, $request);
+            if (! empty($plan['sessions'])) {
+                app(ProgramSessionWriter::class)->write($program, $plan['sessions'], ['delivery_mode' => $data['delivery_mode'] ?? 'in_person', 'trainers' => $request->input('trainers', [])], $this->user(), $approval);
+            }
+
+            return $program;
+        });
+
+        // Created already open for registration: the trainers and the schools' system administrators are told now that everything is in place.
+        app(ProgramAnnouncer::class)->registrationOpened($program->fresh());
+        // Everyone attached as a trainer is told once: when, for which group, in which room and under whom.
+        app(TrainerNotices::class)->sync($program->fresh());
+
+        return (new ProgramResource($program->load(['category', 'skills', 'trainers', 'targetGroups'])))->response()->setStatusCode(201);
+    }
+
+    public function update(Request $request, Program $program): ProgramResource
+    {
+        DB::transaction(function () use ($request, $program) {
+            $program->update(collect($this->withEnglishFallback($this->validated($request, $program), $program))->except('audience')->all());
+            $this->syncRelations($program, $request);
+            $this->syncKits($program, $request);
+        });
+        app(TrainerNotices::class)->sync($program->fresh());
+
+        return $this->show($program);
+    }
+
+    public function updateStatus(Request $request, Program $program): ProgramResource
+    {
+        $data = $request->validate(['status' => ['required', Rule::in(Program::STATUSES)]]);
+        $program->update($data);
+
+        return $this->show($program);
+    }
+
+    public function uploadCover(Request $request, Program $program, FileStorage $storage): ProgramResource
+    {
+        $request->validate(['cover' => ['required', 'image', 'max:5120']]);
+        $program->update(['cover_path' => $storage->uploadPublic($request->file('cover'), 'programs')]);
+
+        return $this->show($program);
+    }
+
+    public function destroy(Program $program): JsonResponse
+    {
+        $program->delete();
+
+        return response()->json(null, 204);
+    }
+
+    public function impact(Program $program, ImpactService $impact): JsonResponse
+    {
+        return response()->json(['data' => $impact->programImpact($program)]);
+    }
+
+    private function validated(Request $request, ?Program $program = null): array
+    {
+        $required = $program ? 'sometimes' : 'required';
+
+        return $request->validate([
+            'code' => [$program ? 'sometimes' : 'nullable', 'string', 'max:32', Rule::unique('programs', 'code')->ignore($program?->id)],
+            'category_id' => ['nullable', 'uuid', 'exists:program_categories,id'],
+            'program_type' => ['nullable', Rule::in(ProgramTypes::ALL)],
+            'coordinator_id' => ['nullable', 'uuid', 'exists:users,id'],
+            'title_ar' => [$required, 'string', 'max:255'],
+            'title_en' => ['nullable', 'string', 'max:255'],
+            'summary_ar' => ['nullable', 'string', 'max:500'],
+            'summary_en' => ['nullable', 'string', 'max:500'],
+            'description_ar' => ['nullable', 'string'],
+            'description_en' => ['nullable', 'string'],
+            'objectives' => ['nullable', 'array'],
+            'objectives.*' => ['string', 'max:500'],
+            'delivery_mode' => ['sometimes', Rule::in(['in_person', 'online', 'hybrid'])],
+            'level' => ['sometimes', Rule::in(['beginner', 'intermediate', 'advanced'])],
+            'total_hours' => ['sometimes', 'numeric', 'min:0', 'max:1000'],
+            'capacity' => ['sometimes', 'integer', 'min:1', 'max:5000'],
+            'min_attendance_percent' => ['sometimes', 'integer', 'min:0', 'max:100'],
+            'require_biometric' => ['sometimes', 'boolean'],
+            'requires_tasks' => ['sometimes', 'boolean'],
+            'requires_evaluation' => ['sometimes', 'boolean'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'registration_opens_at' => ['nullable', 'date'],
+            'registration_closes_at' => ['nullable', 'date', 'after:registration_opens_at'],
+            'registration_modes' => ['nullable', 'array'],
+            'registration_modes.*' => [Rule::in(Program::MODES)],
+            'status' => ['sometimes', Rule::in(Program::STATUSES)],
+            'is_featured' => ['sometimes', 'boolean'],
+            'skills' => ['sometimes', 'array'],
+            'skills.*.id' => ['required', 'uuid', 'exists:skills,id'],
+            'skills.*.target_level' => ['required', 'integer', 'between:1,5'],
+            'trainers' => ['sometimes', 'array'],
+            'trainers.*.id' => ['required', 'uuid', 'exists:trainers,id'],
+            'trainers.*.role' => ['nullable', Rule::in(['lead', 'assistant'])],
+            'audience' => ['nullable', 'array'],
+            'target_groups' => ['sometimes', 'array'],
+            'target_groups.*.job_title_id' => ['nullable', 'uuid', 'exists:job_titles,id'],
+            'target_groups.*.department_id' => ['nullable', 'uuid', 'exists:departments,id'],
+            'target_groups.*.school_type' => ['nullable', 'string', 'max:32'],
+            'target_groups.*.education_stage' => ['nullable', 'string', 'max:32'],
+            'target_groups.*.description' => ['nullable', 'string', 'max:255'],
+        ] + RemoteProgramRules::rules());
+    }
+
+    /**
+     * The groups named on a new programme's form: the first names the group every programme starts with, the others are added with the
+     * programme's dates. A group left without a name is named from the audience («معلمون 1»), else «المجموعة 1» — so every new programme
+     * has at least one named group. @param list<array<string, mixed>> $groups
+     */
+    private function applyGroups(Program $program, array $groups, Request $request): void
+    {
+        $groups = $groups === [] ? [[]] : array_values($groups);
+        $titles = collect($request->input('target_groups', []))->pluck('job_title_id')->merge((array) $request->input('audience.job_title_ids', []))->filter()->unique()->values()->all();
+        $suggested = app(GroupNamer::class)->suggest($titles, (array) $request->input('audience.genders', []), 1, count($groups));
+        $first = $program->groups()->orderBy('sequence')->first();
+        $service = app(TrainingGroupService::class);
+        foreach ($groups as $i => $g) {
+            $ar = trim((string) ($g['title_ar'] ?? '')) ?: ($titles !== [] ? $suggested[$i]['title_ar'] : null);
+            $names = ['title_ar' => $ar, 'title_en' => trim((string) ($g['title_en'] ?? '')) ?: ($titles !== [] && ! trim((string) ($g['title_ar'] ?? '')) ? $suggested[$i]['title_en'] : $ar)];
+            if ($i === 0 && $first) {
+                if ($names['title_ar']) {
+                    $service->update($first, $names);
+                }
+
+                continue;
+            }
+            $service->create($program->fresh(), $names + ['start_date' => $program->start_date?->toDateString(), 'end_date' => $program->end_date?->toDateString(), 'capacity' => $g['capacity'] ?? $program->capacity], $this->user());
+        }
+    }
+
+    /** The kits chosen on the form and the instruments generated from them (only when the form sent them). */
+    private function syncKits(Program $program, Request $request): void
+    {
+        if (! $request->has('kit_ids')) {
+            return;
+        }
+        $d = $request->validate(['kit_ids' => ['array', 'max:20'], 'kit_ids.*' => ['uuid', 'exists:training_kits,id'], 'instruments' => ['sometimes', 'array'],
+            'instruments.trainee_survey' => ['sometimes', 'boolean'], 'instruments.trainer_reflection' => ['sometimes', 'boolean'], 'instruments.pre_test' => ['sometimes', 'boolean'], 'instruments.post_test' => ['sometimes', 'boolean'], 'instruments.survey_auto_hours' => ['sometimes', 'integer', 'min:0', 'max:720']]);
+        $service = app(ProgramInstruments::class);
+        $service->attachKits($program, $d['kit_ids'] ?? []);
+        $service->generate($program->fresh(), $d['instruments'] ?? [], $this->user());
+    }
+
+    /** The next code for a programme of this type (the form shows it before saving). */
+    public function nextCode(Request $request, ProgramCatalogSettings $catalog): JsonResponse
+    {
+        $type = ProgramTypes::normalize($request->query('program_type')) ?: ($request->query('category_id') ? ProgramCategory::find($request->query('category_id'))?->program_type : null);
+
+        return response()->json(['data' => ['code' => $catalog->nextCode($type), 'prefix' => $catalog->prefixFor($type), 'program_type' => $type]]);
+    }
+
+    /** An empty code is stamped from the programme type's prefix (LIC-00001 …), or the category's type, or the default prefix. */
+    private function withGeneratedCode(array $data): array
+    {
+        if (trim((string) ($data['code'] ?? '')) === '') {
+            $type = $data['program_type'] ?? (! empty($data['category_id']) ? ProgramCategory::find($data['category_id'])?->program_type : null);
+            $data['code'] = app(ProgramCatalogSettings::class)->nextCode($type);
+        }
+
+        return $data;
+    }
+
+    /** Most programmes are Arabic only: an empty English title falls back to the Arabic one so every screen has a name to show. */
+    private function withEnglishFallback(array $data, ?Program $program = null): array
+    {
+        if (($program === null || array_key_exists('title_en', $data)) && trim((string) ($data['title_en'] ?? '')) === '') {
+            $data['title_en'] = $data['title_ar'] ?? $program?->title_ar ?? '';
+        }
+
+        return $data;
+    }
+
+    private function syncRelations(Program $program, Request $request): void
+    {
+        if ($request->has('skills')) {
+            $program->skills()->sync(collect($request->input('skills'))->mapWithKeys(fn ($s) => [$s['id'] => ['target_level' => $s['target_level']]]));
+        }
+        if ($request->has('trainers')) {
+            $program->trainers()->sync(collect($request->input('trainers'))->mapWithKeys(fn ($t) => [$t['id'] => ['role' => $t['role'] ?? 'lead']]));
+        }
+        if ($request->has('audience')) {
+            // The audience (gender, experience, job titles …) becomes generated eligibility rules; manual rules are kept.
+            app(AudienceRules::class)->apply($program, (array) $request->input('audience'));
+        }
+        if ($request->has('target_groups')) {
+            $program->targetGroups()->delete();
+            foreach ($request->input('target_groups') as $group) {
+                $program->targetGroups()->create(collect($group)->only(['job_title_id', 'department_id', 'school_type', 'education_stage', 'description'])->all());
+            }
+        }
+    }
+}

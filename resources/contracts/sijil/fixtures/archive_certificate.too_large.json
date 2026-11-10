@@ -1,0 +1,6 @@
+{
+  "status": 422,
+  "body": {
+    "message": "The file is larger than 5 MB"
+  }
+}

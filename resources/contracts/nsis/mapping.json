@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "entities": {
+    "teacher": {
+      "fields": {
+        "employee_no": "$.employee_no",
+        "grades": "$.grades",
+        "subjects": "$.subjects"
+      }
+    }
+  }
+}

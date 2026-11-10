@@ -1,0 +1,1 @@
+var e={draft:`gray`,submitted:`amber`,needs_changes:`amber`,approved:`green`,scheduled:`blue`,ready:`blue`,in_progress:`gold`,completed:`green`,awaiting_evaluation:`amber`,closed:`navy`,archived:`gray`,rejected:`red`,cancelled:`red`},t=(e,t=`ar`)=>e?new Date(e).toLocaleDateString(t===`en`?`en-GB`:`ar-QA`,{year:`numeric`,month:`short`,day:`numeric`}):``;export{t as n,e as t};

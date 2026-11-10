@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "entities": {
+    "employee": {
+      "fields": {
+        "employee_no": "$.employee_no",
+        "name": "$.name",
+        "name_ar": "$.name_ar",
+        "email": "$.email",
+        "status": "$.status",
+        "job_title_code": "$.job_title_code",
+        "school_code": "$.school_code",
+        "department_code": "$.department_code",
+        "supervisor_employee_no": "$.supervisor_employee_no",
+        "gender": "$.gender",
+        "nationality": "$.nationality",
+        "hire_date": "$.hire_date",
+        "experience_years": "$.experience_years",
+        "qualification": "$.qualification",
+        "specialization": "$.specialization",
+        "grade_level": "$.grade_level",
+        "education_stage": "$.education_stage",
+        "birth_date": "$.birth_date",
+        "national_id": "$.national_id"
+      }
+    }
+  }
+}

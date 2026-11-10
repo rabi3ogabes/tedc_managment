@@ -1,0 +1,1 @@
+import{t as e}from"./useApi-DulZlC3f.js";function t(){return e(`/admin/program-types`,void 0,{staleTime:36e5}).data?.data??[]}export{t};

@@ -1,0 +1,8 @@
+{
+  "status": 403,
+  "body": {
+    "serviceErrorCode": 100,
+    "message": "Not enough permissions to access: learningActivityReports",
+    "status": 403
+  }
+}

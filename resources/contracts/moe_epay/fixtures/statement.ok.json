@@ -1,0 +1,17 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "payment_id": "P-1001",
+        "status": "SUCCESS",
+        "amount": "150.00"
+      },
+      {
+        "payment_id": "P-1002",
+        "status": "FAILED",
+        "amount": "25.00"
+      }
+    ]
+  }
+}

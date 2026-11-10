@@ -1,0 +1,1 @@
+var e=[`draft`,`in_development`,`in_review`,`changes_requested`,`approved`,`published`],t=[`presentation`,`trainer_guide`,`handout`,`assessment`,`activity`,`media`,`other`],n=[`info`,`minor`,`major`,`critical`],r=[`content`,`design`,`language`,`accuracy`,`alignment`,`accessibility`,`other`];export{n as i,t as n,e as r,r as t};

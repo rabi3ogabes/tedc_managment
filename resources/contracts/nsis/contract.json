@@ -1,0 +1,257 @@
+{
+  "system": "nsis",
+  "version": "1.0",
+  "title": {
+    "ar": "النظام الوطني لمعلومات الطلبة (NSIS)",
+    "en": "National Student Information System (NSIS)"
+  },
+  "description": {
+    "ar": "الصفوف والمواد التي يدرّسها كل معلم، للاستهداف فقط. لا تُقرأ أي بيانات للطلبة.",
+    "en": "The grades and subjects each teacher teaches, for targeting only. No student data is read."
+  },
+  "auth": {
+    "type": "bearer",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "fetch_teacher_assignments": {
+      "title": {
+        "ar": "إسناد المعلمين للصفوف والمواد",
+        "en": "Teacher assignments"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "teacher",
+      "path": "/teachers",
+      "response": {
+        "records": "$.data",
+        "error": "$.message"
+      },
+      "pagination": {
+        "type": "none"
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "employee_no"
+              ],
+              "properties": {
+                "employee_no": {
+                  "type": "string"
+                },
+                "grades": {
+                  "type": "array"
+                },
+                "subjects": {
+                  "type": "array"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "{{ settings.health_path|default:/health|raw }}",
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Assignments: two teachers",
+      "operation": "fetch_teacher_assignments",
+      "fixture": "fetch_teacher_assignments.ok",
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/teachers"
+        },
+        "records": 2,
+        "schema": true,
+        "mapped": {
+          "1": {
+            "employee_no": "E-1002",
+            "grades": [
+              "9",
+              "10",
+              "11"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Assignments: the key is refused",
+      "operation": "fetch_teacher_assignments",
+      "fixture": "fetch_teacher_assignments.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised"
+        }
+      }
+    },
+    {
+      "name": "Assignments: the system is down",
+      "operation": "fetch_teacher_assignments",
+      "fixture": "fetch_teacher_assignments.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "assignments",
+      "group": "ministry_provides",
+      "ar": "مسار إسناد المعلمين (الرقم الوظيفي، الصفوف، المواد) وتأكيد خلوه من بيانات الطلبة",
+      "en": "The teacher assignment path (employee number, grades, subjects), confirmed to carry no student data"
+    },
+    {
+      "id": "grade_codes",
+      "group": "ministry_provides",
+      "ar": "رموز الصفوف والمواد المستخدمة في النظام",
+      "en": "The grade and subject codes the system uses"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "assignment_sync",
+      "group": "joint_tests",
+      "ar": "مزامنة الإسناد لمعلمين تجريبيين ومطابقة الصفوف والمواد في ملفاتهم",
+      "en": "An assignment sync for test teachers, grades and subjects matching on their files"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ]
+}

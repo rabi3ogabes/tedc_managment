@@ -1,0 +1,6 @@
+{
+  "status": 422,
+  "body": {
+    "message": "The qualification needs a supporting document"
+  }
+}
