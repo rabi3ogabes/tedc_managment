@@ -75,3 +75,14 @@ call() { curl -sS -X POST https://tedc-managment.vercel.app/api/v1/system/rotate
 - **After step 9** the old key no longer exists anywhere; the new key is the only one. This is why step 3 comes first.
 - A value reported `unreadable` was already unreadable before (written under a key that is neither the old nor the new one); it
   is left as it was.
+
+## What the first real run showed (2026-11-10)
+
+- **Size and time:** 31,504 locked values (31,502 national IDs and 2 settings values), found in 18 s by a dry run and re-locked in 128 s by the run. Zero unreadable, zero blocked. A second dry run right after showed every value "already new".
+- **The window:** from the end of the run until Vercel is redeployed with the new `APP_KEY` (3–5 minutes), the old site cannot read national IDs: screens that show them and the search by national ID fail. Do the run in a quiet hour and have the Vercel variables page open.
+- **Hosting pitfalls met on the way:**
+  - A **Sensitive** Vercel variable keeps its old value when edited. Delete it and add it again, then Redeploy. The route answers 422 with the key's form and length (never its value) when `TEDC_NEW_APP_KEY` is not `base64:` + 44 characters.
+  - The `CRON_SECRET` on Vercel cannot be read back either; set a new value (Vercel's own cron job picks up the current one by itself).
+  - The panel adds an empty line for every setting of `.env.example` each time a field is saved, and an empty `APP_TIMEZONE=` takes the whole site down: remove those lines after every save.
+- **Generate the key without clipboard mix-ups:** `php artisan key:generate --show > file`, check the file is 51 characters starting with `base64:`, copy from the file, store it in a password manager and on paper, then delete the file.
+- **Checking the Athar server afterwards:** `php artisan config:clear` (the panel caches the configuration), then `tedc:app-key-check --sample=500` and `tedc:rotate-app-key --mode=verify`; both must report success.

@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-10 — APP_KEY moved to a new key on the live data; runbook records the real run
+The live APP_KEY could not be read any more, so every locked value of the live database (31,504: employee national IDs and settings secrets) was re-locked with a new key from inside the old site, and the national-ID fingerprints were recomputed; checked on the Athar server (all values open, sample of 500 IDs decrypts and matches, nothing unreadable). `docs/KEY-ROTATION.md` now records the timings, the short window before the host is switched, and the hosting pitfalls met.
 ### 2026-11-10 — Key rotation: a malformed new key is explained, and a failure names itself
 The first dry run on the old site answered a bare 500. The rotation route now says what is wrong without showing anything secret: a new key that is not in the `base64:` form or the right size is reported with its form and length (and quotes or a trailing newline around a pasted key are ignored), and any unexpected failure answers with its class and the first line of the database's message (no SQL, no values).
 ### 2026-11-10 — A safe way to change the APP_KEY when the old one cannot be read
