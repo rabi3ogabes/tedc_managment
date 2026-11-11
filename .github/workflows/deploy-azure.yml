@@ -46,7 +46,7 @@ jobs:
       - name: Smoke load test
         run: k6 run -e BASE_URL="${{ vars.STAGING_URL }}/api/v1" -e PERF_PASSWORD="${{ secrets.PERF_PASSWORD }}" perf/smoke.js
       - name: OWASP ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with: { target: '${{ vars.STAGING_URL }}', fail_action: true }
   prod:
     needs: [build, staging]
