@@ -27,7 +27,7 @@ jobs:
       - name: composer audit
         working-directory: backend
         run: composer audit --locked --no-interaction
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
       - name: npm audit (high and critical fail the build)
         working-directory: web
