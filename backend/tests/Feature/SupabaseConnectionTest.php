@@ -10,6 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use OpenSSLAsymmetricKey;
 use Tests\TestCase;
 
 /**
@@ -38,13 +39,30 @@ class SupabaseConnectionTest extends TestCase
         ]);
         Cache::flush();
 
-        // ES256 key pair, like Supabase's default asymmetric JWT signing key.
-        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+        $this->signWith($this->newSigningKey());
+    }
+
+    /** ES256 key pair, like Supabase's default asymmetric JWT signing key. */
+    private function newSigningKey(): OpenSSLAsymmetricKey
+    {
+        return openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+    }
+
+    /**
+     * Signs the test's tokens with this key and publishes its public half as Supabase does.
+     *
+     * A JWK carries each P-256 coordinate as exactly 32 bytes (RFC 7518 §6.2.1.2). OpenSSL returns
+     * a coordinate without its leading zero bytes, so about one key in 128 comes back a byte short;
+     * published like that, the key cannot be read and every token it signed is refused.
+     */
+    private function signWith(OpenSSLAsymmetricKey $key): void
+    {
         openssl_pkey_export($key, $this->privateKey);
         $ec = openssl_pkey_get_details($key)['ec'];
+        $coordinate = fn (string $bytes) => JWT::urlsafeB64Encode(str_pad($bytes, 32, "\0", STR_PAD_LEFT));
         $this->jwk = [
             'kty' => 'EC', 'crv' => 'P-256', 'alg' => 'ES256', 'use' => 'sig', 'kid' => 'test-key',
-            'x' => JWT::urlsafeB64Encode($ec['x']), 'y' => JWT::urlsafeB64Encode($ec['y']),
+            'x' => $coordinate($ec['x']), 'y' => $coordinate($ec['y']),
         ];
     }
 
@@ -78,6 +96,27 @@ class SupabaseConnectionTest extends TestCase
 
         // Publishable key goes in `apikey` only; never as a Bearer token.
         Http::assertSent(fn (Request $r) => str_contains($r->url(), '/auth/v1/token') && $r->hasHeader('apikey', 'sb_publishable_test') && ! $r->hasHeader('Authorization'));
+    }
+
+    public function test_a_signing_key_with_a_coordinate_that_starts_with_a_zero_byte_is_accepted(): void
+    {
+        // The rare key that used to fail this suite about once in 128 runs, found on purpose every time.
+        do {
+            $key = $this->newSigningKey();
+            $ec = openssl_pkey_get_details($key)['ec'];
+        } while (strlen($ec['x']) === 32 && strlen($ec['y']) === 32);
+        $this->signWith($key);
+
+        $this->assertSame(32, strlen(JWT::urlsafeB64Decode($this->jwk['x'])));
+        $this->assertSame(32, strlen(JWT::urlsafeB64Decode($this->jwk['y'])));
+
+        $authId = '6b2a1c9e-1111-4a3b-9c1d-000000000002';
+        $this->makeUser(Role::EMPLOYEE, ['email' => 'zero@tedc.qa'])->forceFill(['auth_id' => $authId])->save();
+        Http::fake([self::URL.'/auth/v1/.well-known/jwks.json' => Http::response(['keys' => [$this->jwk]])]);
+
+        $me = $this->withHeader('Authorization', 'Bearer '.$this->supabaseToken($authId, 'zero@tedc.qa'))->getJson('/api/v1/auth/me');
+        $this->assertSame(200, $me->status(), 'me answered: '.$me->getContent());
+        $me->assertJsonPath('data.email', 'zero@tedc.qa');
     }
 
     public function test_token_signed_by_another_key_is_rejected(): void
