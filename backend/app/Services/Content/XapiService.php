@@ -82,14 +82,23 @@ class XapiService
     {
         $this->validate($s);
         $s['id'] = $s['id'] ?? (string) Str::uuid();
-        $s['timestamp'] = $s['timestamp'] ?? now()->toIso8601String();
-        $s['stored'] = now()->toIso8601String();
+        $now = now();
+        $sentTimestamp = isset($s['timestamp']);
+        $s['stored'] = $now->toIso8601String();
+        $s['timestamp'] = $s['timestamp'] ?? $s['stored'];       // xAPI: a statement without a timestamp takes the stored time
         $s['version'] = self::VERSION;
 
         if ($existing = XapiStatement::find($s['id'])) {
             $a = $existing->statement;
             $b = $s;
-            foreach (['stored', 'authority', 'version'] as $k) {
+            // What the record store sets is not part of the statement. That includes the timestamp when neither
+            // the stored statement nor this one came with its own: the same statement sent again a second later
+            // is still the same statement. A timestamp the client sent is compared like any other property.
+            $set = ['stored', 'authority', 'version'];
+            if (! $sentTimestamp && ($a['timestamp'] ?? null) === ($a['stored'] ?? null)) {
+                $set[] = 'timestamp';
+            }
+            foreach ($set as $k) {
                 unset($a[$k], $b[$k]);
             }
             if ($a != $b) {
@@ -109,7 +118,7 @@ class XapiService
             }
             $target->update(['voided' => true]);
         }
-        XapiStatement::create(['id' => $s['id'], 'statement' => $s, 'actor_key' => $this->actorKey($s['actor']) ?? ($s['actor']['objectType'] ?? 'Group'), 'verb' => $s['verb']['id'], 'object_id' => (string) ($s['object']['id'] ?? ''), 'registration_id' => $registrationId, 'lesson_id' => $lessonId, 'voided' => false, 'stored' => now()]);
+        XapiStatement::create(['id' => $s['id'], 'statement' => $s, 'actor_key' => $this->actorKey($s['actor']) ?? ($s['actor']['objectType'] ?? 'Group'), 'verb' => $s['verb']['id'], 'object_id' => (string) ($s['object']['id'] ?? ''), 'registration_id' => $registrationId, 'lesson_id' => $lessonId, 'voided' => false, 'stored' => $now]);
 
         return ['id' => $s['id'], 'created' => true];
     }
