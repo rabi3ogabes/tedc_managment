@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { BellOff, BellRing, CalendarDays, ChevronLeft, ChevronRight, DoorOpen, Expand, GraduationCap, LightbulbOff, Minus, PackageOpen, Plus, Radio, RotateCcw, ShieldCheck, Shrink, Users, Video } from 'lucide-react'
+import { BellOff, BellRing, Boxes, CalendarDays, ChevronLeft, ChevronRight, DoorOpen, Expand, GraduationCap, LayoutGrid, LightbulbOff, Minus, PackageOpen, Plus, Radio, RotateCcw, ShieldCheck, Shrink, Users, Video } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -10,6 +10,8 @@ import { playChime } from '@/lib/chime'
 import { fmt, intlLocale } from '@/lib/format'
 import { relativeTime } from '@/lib/relativeTime'
 import { todayIso } from '../RoomScreen'
+import { lastBoundary, pollEvery, roomsOnTheClock, sessionOnTheClock, trainersCheckIn } from './liveTraining/live'
+import RoomBoard from './liveTraining/RoomBoard'
 import Stage, { type StageHandle } from './liveTraining/Stage'
 import { StateChip } from './liveTraining/StateChip'
 import { trainedText } from './liveTraining/text'
@@ -18,6 +20,7 @@ import type { Board, BoardRoom, RoomState, SceneRoom, SessionBrief } from './liv
 
 const STAGE_HEIGHT = 'h-[clamp(520px,calc(100dvh-17.5rem),900px)]'
 const STATE_ORDER: Record<RoomState, number> = { live: 0, soon: 1, later: 2, ended: 3, idle: 4 }
+type View = 'boxes' | 'model'
 const DOT: Record<RoomState, string> = { live: 'bg-emerald-500', soon: 'bg-amber-400', later: 'bg-navy-300', ended: 'bg-slate-400', idle: 'bg-slate-300' }
 
 const shiftDay = (iso: string, days: number) => {
@@ -35,28 +38,45 @@ const stateFor = (room: BoardRoom, s: SessionBrief | null): RoomState =>
   !s ? 'idle' : s.id === room.focus_session_id ? room.state : s.state === 'live' ? 'live' : s.state === 'ended' ? 'ended' : 'later'
 
 /**
- * Live training: the centre's classrooms of one day drawn in 3D. A lit room has training in it, a dark one has none; the trainer
- * stands at the board, the supervisor by the door, and every trainee who checks in takes a seat. Pressing a room opens its training card.
+ * Live training: the centre's classrooms of one day, as a board of boxes or drawn in 3D. A lit room has training in it, a dark one has
+ * none; every trainee who checks in takes a seat. Pressing a room opens its training card. The clock runs on the page: a room lights up,
+ * counts down and goes dark on the second, and the server is asked again as often as the day needs (see `pollEvery`).
  */
 export default function LiveTraining() {
   const { t, i18n } = useTranslation()
   const { can } = useAuth()
   const rtl = i18n.dir() === 'rtl'
-  const [date, setDate] = useState(todayIso())
+  // No day chosen means today, and stays today when midnight passes on a screen left open.
+  const [day, setDay] = useState<string | null>(null)
+  const [view, setView] = useState<View>(() => { try { return localStorage.getItem('tedc.liveTraining.view') === 'model' ? 'model' : 'boxes' } catch { return 'boxes' } })
   const [selected, setSelected] = useState<string | null>(null)
   const [picked, setPicked] = useState<Record<string, string>>({})
   const [tip, setTip] = useState<{ id: string; x: number; y: number } | null>(null)
-  const [now, setNow] = useState(() => new Date())
+  const [tick, setTick] = useState(() => Date.now())
   const [full, setFull] = useState(false)
   const [sound, setSound] = useState(() => { try { return localStorage.getItem('tedc.liveTraining.sound') === '1' } catch { return false } })
   const root = useRef<HTMLDivElement>(null)
   const stage = useRef<StageHandle>(null)
-  const isToday = date === todayIso()
+  const today = todayIso()
+  const date = day ?? today
+  const isToday = date === today
 
-  const { data, isLoading, isFetching, error, refetch } = useGet<{ data: Board }>('/admin/live-training', { date }, { refetchInterval: isToday ? 5_000 : false, staleTime: 0, placeholderData: keepPreviousData })
+  const { data, isLoading, isFetching, isError, error, refetch, dataUpdatedAt } = useGet<{ data: Board }>('/admin/live-training', { date }, {
+    // As often as the day needs: every 5 seconds around a session, slower away from one, never for a day that is not today.
+    refetchInterval: (query) => {
+      const b = query.state.data?.data
+      if (!isToday) return false
+      return b ? pollEvery(b.rooms, b.unplaced, Date.now() + (Date.parse(b.now) - query.state.dataUpdatedAt)) : 5_000
+    },
+    staleTime: 0, placeholderData: keepPreviousData,
+  })
   const board = data?.data
 
-  useEffect(() => { const id = setInterval(() => setNow(new Date()), 20_000); return () => clearInterval(id) }, [])
+  // The clock of the page moves every second, set to the server's time so a browser that is a few minutes off still counts down right.
+  useEffect(() => { const id = setInterval(() => setTick(Date.now()), 1_000); return () => clearInterval(id) }, [])
+  const offset = useMemo(() => (board && dataUpdatedAt ? Date.parse(board.now) - dataUpdatedAt : 0), [board, dataUpdatedAt])
+  const nowMs = tick + offset
+  const now = useMemo(() => new Date(nowMs), [nowMs])
   useEffect(() => { const f = () => setFull(!!document.fullscreenElement); document.addEventListener('fullscreenchange', f); return () => document.removeEventListener('fullscreenchange', f) }, [])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !document.fullscreenElement) setSelected(null) }
@@ -64,7 +84,10 @@ export default function LiveTraining() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const goTo = useCallback((day: string) => { setDate(day); setPicked({}); setTip(null) }, [])
+  const goTo = useCallback((to: string) => { setDay(to === todayIso() ? null : to); setPicked({}); setTip(null) }, [])
+  const show = (next: View) => { setView(next); setTip(null); try { localStorage.setItem('tedc.liveTraining.view', next) } catch { /* storage unavailable */ } }
+  const toggleSound = () => { const on = !sound; setSound(on); try { localStorage.setItem('tedc.liveTraining.sound', on ? '1' : '0') } catch { /* storage unavailable */ } if (on) playChime() }
+  const toggleFull = () => void (document.fullscreenElement ? document.exitFullscreen() : root.current?.requestFullscreen())
 
   // A soft chime when somebody new checks in (only for today, and only when the administrator switched it on).
   const seen = useRef<{ date: string; ids: Set<string> } | null>(null)
@@ -85,7 +108,17 @@ export default function LiveTraining() {
   const fresh = board && board.date === date ? board : undefined
   // While another day is on its way the rooms stay where they are with their lights off, instead of vanishing and coming back.
   const loadingDay = !!board && board.date !== date
-  const rooms = useMemo<BoardRoom[]>(() => fresh?.rooms ?? (board?.rooms ?? []).map((r) => ({ ...r, state: 'idle', focus_session_id: null, sessions: [] })), [fresh, board])
+  const served = useMemo<BoardRoom[]>(() => fresh?.rooms ?? (board?.rooms ?? []).map((r) => ({ ...r, state: 'idle', focus_session_id: null, sessions: [] })), [fresh, board])
+  // Today the rooms are read on the clock: a session that starts or ends between two answers of the server changes its room at once.
+  // `epoch` moves only when something changes state, so the rooms are not worked out again every second.
+  const clocked = !!fresh && fresh.is_today && isToday
+  const epoch = clocked ? lastBoundary(served, fresh.unplaced, nowMs) : -1
+  const rooms = useMemo(() => (epoch < 0 ? served : roomsOnTheClock(served, epoch)), [served, epoch])
+  const unplaced = useMemo(() => (fresh?.unplaced ?? []).map((s) => (epoch < 0 ? s : sessionOnTheClock(s, epoch))), [fresh, epoch])
+  const checkIns = useMemo(() => trainersCheckIn(rooms, unplaced), [rooms, unplaced])
+  // A start or an end has just passed: ask the server now instead of waiting for the next round.
+  const lastEpoch = useRef(epoch)
+  useEffect(() => { if (epoch > 0 && lastEpoch.current > 0 && epoch !== lastEpoch.current) void refetch(); lastEpoch.current = epoch }, [epoch, refetch])
   const sceneRooms = useMemo<SceneRoom[]>(() => rooms.map((room) => {
     const s = sessionOf(room, picked[room.id])
     const state = stateFor(room, s)
@@ -106,6 +139,10 @@ export default function LiveTraining() {
   const dayName = (iso: string) => iso === todayIso() ? t('liveT.day.today') : iso === shiftDay(todayIso(), -1) ? t('liveT.day.yesterday') : iso === shiftDay(todayIso(), 1) ? t('liveT.day.tomorrow') : fmt.date(`${iso}T12:00:00`, { weekday: 'long' })
   const Prev = rtl ? ChevronRight : ChevronLeft
   const Next = rtl ? ChevronLeft : ChevronRight
+  const lightBtn = 'grid size-9 place-items-center rounded-xl text-navy-900 transition hover:bg-navy-50'
+  // How fresh the picture is: seconds since the server last answered, and whether it has stopped answering.
+  const age = dataUpdatedAt ? Math.max(0, Math.round((tick - dataUpdatedAt) / 1000)) : 0
+  const lost = isToday && !!board && (isError || age > 45)
   const iconBtn = 'grid size-9 place-items-center rounded-xl bg-white/10 text-white backdrop-blur transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-300'
 
   return (
@@ -116,7 +153,7 @@ export default function LiveTraining() {
         actions={totals && (
           <dl className="flex flex-wrap items-stretch divide-x divide-navy-100 rounded-2xl border border-navy-100 bg-white rtl:divide-x-reverse">
             {([
-              [isToday ? t('liveT.stats.roomsLive') : t('liveT.stats.roomsUsed'), isToday ? totals.rooms_live : active.length, t('liveT.stats.of', { n: totals.rooms })],
+              [isToday ? t('liveT.stats.roomsLive') : t('liveT.stats.roomsUsed'), isToday ? rooms.filter((r) => r.state === 'live').length : active.length, t('liveT.stats.of', { n: totals.rooms })],
               [t('liveT.stats.sessions'), totals.sessions, null],
               [isToday ? t('liveT.stats.inRooms') : t('liveT.stats.attended'), isToday ? totals.in_rooms_now : totals.present, t('liveT.stats.of', { n: totals.expected })],
               [t('liveT.stats.attendance'), fmt.percent(totals.percent), null],
@@ -158,10 +195,27 @@ export default function LiveTraining() {
         </label>
         {!isToday && <Button variant="outline" size="sm" onClick={() => goTo(todayIso())}>{t('liveT.day.backToday')}</Button>}
 
-        <span className={clsx('ms-auto inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold', isToday ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600')} role="status">
-          <span className={clsx('size-2 rounded-full', isToday ? 'bg-emerald-500' : 'bg-slate-400', isToday && isFetching && 'animate-ping')} />
-          {isToday ? t('liveT.liveNow') : t('liveT.frozen')}
-        </span>
+        <div className="ms-auto flex flex-wrap items-center gap-2">
+          <span className={clsx('inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold tabular-nums', !isToday ? 'bg-slate-100 text-slate-600' : lost ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')} role="status">
+            <span className={clsx('size-2 rounded-full', !isToday ? 'bg-slate-400' : lost ? 'bg-amber-500' : 'bg-emerald-500', isToday && isFetching && 'motion-safe:animate-ping')} />
+            {!isToday ? t('liveT.frozen') : lost ? t('liveT.live.lost') : age < 2 ? t('liveT.live.now') : t('liveT.live.ago', { s: age })}
+          </span>
+
+          <div className="flex items-center gap-1 rounded-2xl border border-navy-100 bg-white p-1" role="group" aria-label={String(t('liveT.view.label'))}>
+            {([['boxes', LayoutGrid], ['model', Boxes]] as const).map(([key, Icon]) => (
+              <button key={key} type="button" aria-pressed={view === key} onClick={() => show(key)}
+                className={clsx('inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-bold transition', view === key ? 'bg-navy-900 text-white' : 'text-navy-900 hover:bg-navy-50')}>
+                <Icon className="size-4" />{t(`liveT.view.${key}`)}
+              </button>
+            ))}
+          </div>
+          {view === 'boxes' && (
+            <div className="flex items-center gap-1 rounded-2xl border border-navy-100 bg-white p-1">
+              <button type="button" className={lightBtn} aria-pressed={sound} onClick={toggleSound} aria-label={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))} title={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))}>{sound ? <BellRing className="size-4 text-gold-600" /> : <BellOff className="size-4" />}</button>
+              <button type="button" className={lightBtn} onClick={toggleFull} aria-label={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))} title={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))}>{full ? <Shrink className="size-4" /> : <Expand className="size-4" />}</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {isLoading && !board ? <Spinner /> : error && !board ? <Card><ErrorState error={error} onRetry={() => void refetch()} home="/admin" /></Card> : rooms.length === 0 && fresh ? (
@@ -170,6 +224,18 @@ export default function LiveTraining() {
           <p className="mx-auto mt-4 max-w-sm text-sm leading-7 text-slate-600">{t('liveT.rail.noRooms')}</p>
           {can('programs.view') && <Button to="/admin/rooms" variant="outline" size="sm" className="mt-4">{t('liveT.rail.manageRooms')}</Button>}
         </Card>
+      ) : view === 'boxes' ? (
+        <div className={clsx('grid items-start gap-4', selectedRoom && 'xl:grid-cols-[minmax(0,1fr)_25rem]')}>
+          {/* The rooms as boxes; on a narrow screen the training card takes their place while it is open */}
+          <div className={clsx('min-w-0', selectedRoom && 'hidden xl:block')}>
+            <RoomBoard rooms={rooms} unplaced={unplaced} arrivals={fresh?.arrivals ?? []} picked={picked} nowMs={nowMs} today={clocked} checkIns={checkIns} selected={selected} loading={loadingDay} narrow={!!selectedRoom} onOpen={setSelected} />
+          </div>
+          {selectedRoom && (
+            <div className="xl:sticky xl:top-4 xl:max-h-[calc(100dvh-2rem)] xl:overflow-y-auto xl:pe-1">
+              <TrainingCard key={selectedRoom.id} room={selectedRoom} session={sessionOf(selectedRoom, picked[selectedRoom.id])} date={date} now={now} onBack={() => setSelected(null)} onPick={(id) => setPicked((p) => ({ ...p, [selectedRoom.id]: id }))} />
+            </div>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_25rem]">
           {/* The 3D stage */}
@@ -187,8 +253,8 @@ export default function LiveTraining() {
                 <button type="button" className={iconBtn} onClick={() => stage.current?.zoom(0.8)} aria-label={String(t('liveT.stage.zoomIn'))} title={String(t('liveT.stage.zoomIn'))}><Plus className="size-4" /></button>
                 <button type="button" className={iconBtn} onClick={() => stage.current?.zoom(1.25)} aria-label={String(t('liveT.stage.zoomOut'))} title={String(t('liveT.stage.zoomOut'))}><Minus className="size-4" /></button>
                 <button type="button" className={iconBtn} onClick={() => stage.current?.reset()} aria-label={String(t('liveT.stage.reset'))} title={String(t('liveT.stage.reset'))}><RotateCcw className="size-4" /></button>
-                <button type="button" className={iconBtn} aria-pressed={sound} onClick={() => { const on = !sound; setSound(on); try { localStorage.setItem('tedc.liveTraining.sound', on ? '1' : '0') } catch { /* storage unavailable */ } if (on) playChime() }} aria-label={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))} title={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))}>{sound ? <BellRing className="size-4 text-gold-300" /> : <BellOff className="size-4" />}</button>
-                <button type="button" className={iconBtn} onClick={() => void (document.fullscreenElement ? document.exitFullscreen() : root.current?.requestFullscreen())} aria-label={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))} title={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))}>{full ? <Shrink className="size-4" /> : <Expand className="size-4" />}</button>
+                <button type="button" className={iconBtn} aria-pressed={sound} onClick={toggleSound} aria-label={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))} title={String(t(sound ? 'liveT.stage.soundOn' : 'liveT.stage.soundOff'))}>{sound ? <BellRing className="size-4 text-gold-300" /> : <BellOff className="size-4" />}</button>
+                <button type="button" className={iconBtn} onClick={toggleFull} aria-label={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))} title={String(t(full ? 'liveT.stage.exitFullscreen' : 'liveT.stage.fullscreen'))}>{full ? <Shrink className="size-4" /> : <Expand className="size-4" />}</button>
               </div>
             </div>
 
@@ -221,16 +287,16 @@ export default function LiveTraining() {
             ) : (
               <Card padded={false} className="overflow-hidden">
                 <h2 className="px-5 pb-2 pt-4 text-sm font-bold text-navy-900">{t('liveT.rail.title')}</h2>
-                {loadingDay ? <Spinner className="!py-8" /> : active.length === 0 && (fresh?.unplaced.length ?? 0) === 0 && <p className="px-5 pb-4 text-sm leading-7 text-slate-600">{t('liveT.rail.nothing')}</p>}
+                {loadingDay ? <Spinner className="!py-8" /> : active.length === 0 && unplaced.length === 0 && <p className="px-5 pb-4 text-sm leading-7 text-slate-600">{t('liveT.rail.nothing')}</p>}
                 <ul>
                   {active.map((room) => <RoomRow key={room.id} room={room} session={sessionOf(room, picked[room.id])} onOpen={() => setSelected(room.id)} />)}
                 </ul>
 
-                {(fresh?.unplaced.length ?? 0) > 0 && (
+                {unplaced.length > 0 && (
                   <div className="border-t border-navy-100/70 px-5 py-3">
                     <h3 className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-600"><Video className="size-3.5" />{t('liveT.rail.outside')}</h3>
                     <ul className="space-y-2">
-                      {fresh!.unplaced.map((s) => (
+                      {unplaced.map((s) => (
                         <li key={s.id} className="text-sm">
                           <p className="truncate font-semibold text-ink">{s.program.title}</p>
                           <p className="flex items-center gap-2 text-xs text-slate-500"><span className="tabular-nums">{fmt.time(s.starts_at)} – {fmt.time(s.ends_at)}</span><span>{s.mode === 'online' ? t('liveT.rail.online') : s.location ?? t('liveT.rail.noRoom')}</span><span className="ms-auto tabular-nums">{t('liveT.rail.count', { present: s.counts.present, expected: s.counts.expected })}</span></p>
@@ -255,7 +321,7 @@ export default function LiveTraining() {
       )}
 
       {/* The small details of a room, under the pointer */}
-      {tipRoom && tip && tipRoom.id !== selected && <HoverTip room={tipRoom} session={sessionOf(tipRoom, picked[tipRoom.id])} x={tip.x} y={tip.y} />}
+      {view === 'model' && tipRoom && tip && tipRoom.id !== selected && <HoverTip room={tipRoom} session={sessionOf(tipRoom, picked[tipRoom.id])} x={tip.x} y={tip.y} />}
     </div>
   )
 }
