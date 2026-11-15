@@ -31,6 +31,7 @@ class RolePermissionSeeder extends Seeder
         'nominations.center' => ['registrations', 'ترشيح مباشر من المركز', 'Training-center nomination'],
         'nominations.school' => ['registrations', 'ترشيح من المدرسة', 'School nomination'],
         'attendance.manage' => ['attendance', 'إدارة الحضور', 'Manage attendance'],
+        'live_training.view' => ['attendance', 'متابعة التدريب المباشرة (القاعات بالأبعاد الثلاثية)', 'Live training board (classrooms in 3D)'],
         'tasks.manage' => ['tasks', 'إدارة المهام', 'Manage tasks'],
         'tasks.review' => ['tasks', 'مراجعة المهام', 'Review submissions'],
         'certificates.view' => ['certificates', 'عرض الشهادات', 'View certificates'],
@@ -213,7 +214,7 @@ class RolePermissionSeeder extends Seeder
     public const ROLES = [
         Role::SUPER_ADMIN => ['مدير النظام', 'Super Admin', 100, ['*']],
         Role::CENTER_ADMIN => ['مدير مركز التدريب', 'Training Center Admin', 90, ['*', '-roles.manage', '-roles.create', '-saber.program.reactivate']],
-        Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, ['plc.view', 'plc.manage', 'plc.community.manage', 'plc.internal.submit', 'plc.nominate', 'plc.trainers.assign', 'plc.attendance.manage', 'plc.evaluations.manage', 'plc.reports', 'surveys.view', 'surveys.manage', 'surveys.results',
+        Role::COORDINATOR => ['مشرف التدريب', 'Training Supervisor', 70, ['live_training.view', 'plc.view', 'plc.manage', 'plc.community.manage', 'plc.internal.submit', 'plc.nominate', 'plc.trainers.assign', 'plc.attendance.manage', 'plc.evaluations.manage', 'plc.reports', 'surveys.view', 'surveys.manage', 'surveys.results',
             'packages.manage', 'library.view', 'sharing.manage', 'knowledge_transfer.review', 'pd.recognise', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage',
             'trainers.manage', 'rooms.manage', 'calendar.view', 'registrations.view', 'registrations.manage', 'registrations.import', 'nominations.center', 'attendance.manage',
             'tasks.manage', 'tasks.review', 'certificates.view', 'certificates.issue', 'impact.view', 'needs.view', 'needs.manage',
@@ -237,14 +238,14 @@ class RolePermissionSeeder extends Seeder
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
         Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['surveys.view', 'surveys.results', 'employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
-        Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, ['plc.view', 'plc.reports', 'surveys.view', 'surveys.results',
+        Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, ['live_training.view', 'plc.view', 'plc.reports', 'surveys.view', 'surveys.results',
             'kpi.view', 'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global', 'ai.forecasts.view',
         ]],
         Role::KIT_DEVELOPER => ['معد الحقيبة', 'Kit Developer', 60, ['packages.manage', 'library.view', 'programs.view', 'kits.view', 'kits.manage', 'kits.generate', 'banks.manage', 'search.global']],
         Role::QA_REVIEWER => ['فريق ضمان الجودة', 'Quality Assurance', 55, ['programs.view', 'kits.view', 'kits.manage', 'kits.review', 'search.global']],
         Role::EMPLOYEE => ['موظف', 'Employee', 10, ['search.global']],
-        Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, ['plc.view', 'plc.manage', 'plc.approve', 'plc.exceptions', 'plc.reports', 'plc.community.manage', 'surveys.view', 'surveys.manage', 'surveys.approve', 'surveys.publish', 'surveys.results', 'surveys.export',
+        Role::TRAINING_HEAD => ['رئيس قسم التدريب', 'Head of Training', 75, ['live_training.view', 'plc.view', 'plc.manage', 'plc.approve', 'plc.exceptions', 'plc.reports', 'plc.community.manage', 'surveys.view', 'surveys.manage', 'surveys.approve', 'surveys.publish', 'surveys.results', 'surveys.export',
             'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view', 'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage', 'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage', 'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review', 'evaluations.manage', 'evaluation_reports.prepare', 'interviews.manage', 'satisfaction_alerts.manage', 'dashboard.view', 'analytics.view', 'schools.view', 'employees.view', 'programs.view', 'programs.manage', 'materials.manage', 'trainers.manage', 'trainers.assign', 'rooms.manage',
             'calendar.view', 'registrations.view', 'registrations.manage', 'attendance.manage', 'tasks.review', 'certificates.view', 'impact.view', 'needs.view', 'announcements.manage',
             'reports.view', 'kits.view', 'kits.manage', 'kits.review', 'kits.publish', 'program_grants.manage', 'plans.view', 'search.global',
@@ -263,7 +264,7 @@ class RolePermissionSeeder extends Seeder
             'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'pd.approve', 'workshops.internal', 'plans.view', 'search.global', 'communities.create',
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
-        Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, ['plc.view', 'plc.reports', 'surveys.view', 'surveys.results',
+        Role::CENTER_LEADERSHIP => ['قيادات المركز وواضعو السياسات', 'Centre Leadership & Policy Makers', 82, ['live_training.view', 'plc.view', 'plc.reports', 'surveys.view', 'surveys.results',
             'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view', 'impact.view', 'needs.view', 'ai.assistant',
             'reports.view', 'trainers.approve', 'plans.view', 'plans.approve', 'gaps.view', 'search.global',
         ]],
@@ -335,6 +336,8 @@ class RolePermissionSeeder extends Seeder
      * Every phase appends its new permissions here.
      */
     private const ADDITIVE = [
+        // Live training board
+        'live_training.view',
         // Phase 01
         'scopes.manage', 'roles.create', 'program_grants.manage', 'trainers.assign', 'trainers.approve', 'rooms.book', 'logistics.manage', 'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'pd.approve', 'workshops.internal', 'search.global',
         // Phase 02

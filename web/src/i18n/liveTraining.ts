@@ -1,0 +1,86 @@
+/** Live training board: the classrooms of a day drawn in 3D, with the training card of each classroom. */
+export const liveTAr = {
+  liveT: {
+    nav: 'متابعة التدريب المباشرة', title: 'متابعة التدريب المباشرة',
+    subtitle: 'قاعات المركز كما هي الآن. القاعة المضيئة فيها تدريب، ومن يسجّل حضوره يجلس في مقعده فوراً.',
+    day: { today: 'اليوم', yesterday: 'أمس', tomorrow: 'غداً', prev: 'اليوم السابق', next: 'اليوم التالي', pick: 'اختر يوماً من التقويم', backToday: 'العودة إلى اليوم', sessions: '{{n}} جلسة', none: 'لا جلسات' },
+    liveNow: 'يتحدّث كل 5 ثوانٍ', frozen: 'يوم غير اليوم: يُعرض كما سُجّل', updating: 'يتحدّث الآن',
+    stats: { roomsLive: 'قاعات فيها تدريب الآن', roomsUsed: 'قاعات فيها تدريب', sessions: 'جلسات هذا اليوم', inRooms: 'متدربون داخل القاعات الآن', attended: 'متدربون حضروا', attendance: 'نسبة الحضور', of: 'من {{n}}' },
+    state: { live: 'تدريب جارٍ', soon: 'يبدأ قريباً', later: 'تدريب لاحق', ended: 'انتهى التدريب', idle: 'لا تدريب' },
+    tag: { live: 'مباشر', starts: 'يبدأ {{time}}', ended: 'انتهى {{time}}', off: 'القاعة مطفأة' },
+    legend: { on: 'مضيئة: تدريب جارٍ', dim: 'خافتة: تدريب لاحق أو منتهٍ', off: 'مطفأة: لا تدريب' },
+    stage: {
+      loading: 'نبني القاعات…', failed: 'تعذّر عرض المجسّم على هذا الجهاز. قائمة القاعات المجاورة تعرض المعلومات نفسها.',
+      hint: 'اسحب للتدوير، مرّر للتكبير، واضغط قاعة لفتح بطاقتها التدريبية.', all: 'كل القاعات', zoomIn: 'تكبير', zoomOut: 'تصغير', reset: 'إعادة ضبط المنظر',
+      fullscreen: 'ملء الشاشة', exitFullscreen: 'إنهاء ملء الشاشة', soundOn: 'التنبيه الصوتي عند الحضور يعمل', soundOff: 'التنبيه الصوتي عند الحضور متوقف',
+      label: 'مجسّم ثلاثي الأبعاد لقاعات المركز', floor: 'الطابق {{name}}',
+    },
+    arrivals: { title: 'آخر من حضر', none: 'لم يسجّل أحد حضوره بعد.', late: 'متأخر', into: 'إلى {{room}}' },
+    rail: {
+      title: 'قاعات هذا اليوم', dark: 'قاعات بلا تدريب', outside: 'خارج القاعات وعن بُعد', noRooms: 'لا قاعات نشطة بعد. أضف القاعات أولاً ثم عُد إلى هنا.', manageRooms: 'إدارة القاعات',
+      nothing: 'لا تدريب في أي قاعة هذا اليوم. اختر يوماً آخر من الشريط أعلاه.', count: '{{present}} من {{expected}}', online: 'عن بُعد', noRoom: 'بلا قاعة',
+    },
+    tip: {
+      trainees: '{{present}} حاضر من {{expected}} متوقع', expectedOnly: '{{expected}} متدرباً متوقعاً', trainer: 'المدرب', supervisor: 'المشرف', kit: 'الحقيبة التدريبية',
+      noTrainer: 'لم يُسند مدرب بعد', noSupervisor: 'لم يُحدَّد مشرف', noKit: 'لا حقيبة مرفقة', press: 'اضغط لفتح البطاقة التدريبية', dark: 'لا تدريب في هذه القاعة هذا اليوم.', capacity: 'تتسع لـ {{n}} متدرباً',
+    },
+    trained: { none: 'أول برنامج يدرّبه في المركز', one: 'درّب برنامجاً واحداً في المركز', two: 'درّب برنامجين في المركز', few: 'درّب {{n}} برامج في المركز', many: 'درّب {{n}} برنامجاً في المركز' },
+    card: {
+      title: 'البطاقة التدريبية', back: 'كل القاعات', dayOf: 'اليوم {{n}} من {{of}}', minutes: '{{n}} دقيقة', remaining: 'بقي {{m}} دقيقة', startsIn: 'تبدأ بعد {{m}} دقيقة', endedAt: 'انتهت {{time}}',
+      attendance: 'الحضور', expected: 'المتوقع', present: 'حضر', inRoom: 'داخل القاعة', late: 'متأخر', left: 'غادر', absent: 'غائب',
+      people: 'القائمون على التدريب', trainer: 'المدرب', coTrainer: 'مدرب مشارك', checkedIn: 'سجّل حضوره', notYet: 'لم يسجّل حضوره', rating: 'تقييمه {{n}} من 5',
+      supervisor: 'المشرف', noSupervisor: 'لم يُحدَّد مشرف لهذه المجموعة.', noTrainer: 'لم يُسند مدرب لهذه الجلسة.',
+      kit: 'الحقيبة التدريبية', version: 'الإصدار {{n}}', openKit: 'افتح الحقيبة', noKit: 'لم تُرفق حقيبة تدريبية بهذا البرنامج.',
+      program: 'البرنامج', type: 'النوع', level: 'المستوى', hours: 'الساعات', hoursN: '{{n}} ساعة', mode: 'طريقة التقديم', dates: 'من — إلى', group: 'المجموعة', capacity: 'السعة', category: 'المجال',
+      objectives: 'أهداف البرنامج', units: 'الوحدات التدريبية', room: 'القاعة', floor: 'الطابق', seats: '{{n}} مقعداً', equipment: 'التجهيزات',
+      schedule: 'أيام البرنامج', roster: 'المتدربون', search: 'ابحث باسم المتدرب', noMatch: 'لا متدرب بهذا الاسم.', noRoster: 'لا متدربين معتمدين في هذه المجموعة بعد.', seat: 'مقعد {{n}}',
+      openProgram: 'صفحة البرنامج', openQr: 'رمز الحضور', bookRoom: 'حجوزات القاعات', sessionsToday: 'جلسات القاعة في هذا اليوم',
+      darkTitle: 'القاعة مطفأة', darkText: 'لا تدريب في هذه القاعة يوم {{date}}. يمكن حجزها أو جدولة جلسة فيها.', loadFailed: 'تعذّر تحميل البطاقة التدريبية.', retry: 'أعد المحاولة',
+      locked: 'الحضور مقفل',
+    },
+    roster: { present: 'حاضر', late: 'متأخر', left: 'غادر', excused: 'معذور', expected: 'لم يحضر بعد', absent: 'غائب' },
+  },
+}
+
+export const liveTEn = {
+  liveT: {
+    nav: 'Live training', title: 'Live training',
+    subtitle: 'The centre\'s classrooms as they are now. A lit room has training in it, and a trainee who checks in takes a seat straight away.',
+    day: { today: 'Today', yesterday: 'Yesterday', tomorrow: 'Tomorrow', prev: 'Previous day', next: 'Next day', pick: 'Pick a day from the calendar', backToday: 'Back to today', sessions: '{{n}} sessions', none: 'No sessions' },
+    liveNow: 'Refreshes every 5 seconds', frozen: 'Not today: shown as recorded', updating: 'Refreshing',
+    stats: { roomsLive: 'Rooms with training now', roomsUsed: 'Rooms with training', sessions: 'Sessions this day', inRooms: 'Trainees in the rooms now', attended: 'Trainees who attended', attendance: 'Attendance', of: 'of {{n}}' },
+    state: { live: 'Training now', soon: 'Starting soon', later: 'Training later', ended: 'Training ended', idle: 'No training' },
+    tag: { live: 'Live', starts: 'Starts {{time}}', ended: 'Ended {{time}}', off: 'Lights off' },
+    legend: { on: 'Lit: training now', dim: 'Dim: training later or ended', off: 'Off: no training' },
+    stage: {
+      loading: 'Building the rooms…', failed: 'The 3D view cannot be shown on this device. The room list beside it shows the same information.',
+      hint: 'Drag to turn, scroll to zoom, and press a room to open its training card.', all: 'All rooms', zoomIn: 'Zoom in', zoomOut: 'Zoom out', reset: 'Reset the view',
+      fullscreen: 'Full screen', exitFullscreen: 'Leave full screen', soundOn: 'Sound on arrival is on', soundOff: 'Sound on arrival is off',
+      label: '3D model of the centre\'s classrooms', floor: '{{name}} floor',
+    },
+    arrivals: { title: 'Latest arrivals', none: 'Nobody has checked in yet.', late: 'Late', into: 'into {{room}}' },
+    rail: {
+      title: 'Rooms on this day', dark: 'Rooms without training', outside: 'Outside the rooms and online', noRooms: 'No active rooms yet. Add the rooms first, then come back here.', manageRooms: 'Manage rooms',
+      nothing: 'No training in any room on this day. Pick another day from the strip above.', count: '{{present}} of {{expected}}', online: 'Online', noRoom: 'No room',
+    },
+    tip: {
+      trainees: '{{present}} present of {{expected}} expected', expectedOnly: '{{expected}} trainees expected', trainer: 'Trainer', supervisor: 'Supervisor', kit: 'Training kit',
+      noTrainer: 'No trainer assigned yet', noSupervisor: 'No supervisor set', noKit: 'No kit attached', press: 'Press to open the training card', dark: 'No training in this room on this day.', capacity: 'Seats {{n}} trainees',
+    },
+    trained: { none: 'First programme at the centre', one: 'Has delivered 1 programme at the centre', two: 'Has delivered 2 programmes at the centre', few: 'Has delivered {{n}} programmes at the centre', many: 'Has delivered {{n}} programmes at the centre' },
+    card: {
+      title: 'Training card', back: 'All rooms', dayOf: 'Day {{n}} of {{of}}', minutes: '{{n}} minutes', remaining: '{{m}} minutes left', startsIn: 'Starts in {{m}} minutes', endedAt: 'Ended {{time}}',
+      attendance: 'Attendance', expected: 'Expected', present: 'Attended', inRoom: 'In the room', late: 'Late', left: 'Left', absent: 'Absent',
+      people: 'The people running it', trainer: 'Trainer', coTrainer: 'Co-trainer', checkedIn: 'Checked in', notYet: 'Not checked in', rating: 'Rated {{n}} of 5',
+      supervisor: 'Supervisor', noSupervisor: 'No supervisor is set for this group.', noTrainer: 'No trainer is assigned to this session.',
+      kit: 'Training kit', version: 'Version {{n}}', openKit: 'Open the kit', noKit: 'No training kit is attached to this programme.',
+      program: 'Programme', type: 'Type', level: 'Level', hours: 'Hours', hoursN: '{{n}} hours', mode: 'Delivery', dates: 'From — to', group: 'Group', capacity: 'Capacity', category: 'Field',
+      objectives: 'Programme objectives', units: 'Training units', room: 'Room', floor: 'Floor', seats: '{{n}} seats', equipment: 'Equipment',
+      schedule: 'Programme days', roster: 'Trainees', search: 'Search by trainee name', noMatch: 'No trainee with that name.', noRoster: 'No approved trainees in this group yet.', seat: 'Seat {{n}}',
+      openProgram: 'Programme page', openQr: 'Attendance code', bookRoom: 'Room bookings', sessionsToday: 'This room\'s sessions on this day',
+      darkTitle: 'Lights off', darkText: 'No training in this room on {{date}}. It can be booked, or a session scheduled in it.', loadFailed: 'The training card could not be loaded.', retry: 'Try again',
+      locked: 'Attendance locked',
+    },
+    roster: { present: 'Present', late: 'Late', left: 'Left', excused: 'Excused', expected: 'Not here yet', absent: 'Absent' },
+  },
+}

@@ -66,6 +66,7 @@ const PortalAssessments = lazy(() => import('@/pages/portal/Assessments'))
 const ExamRunner = lazy(() => import('@/pages/portal/ExamRunner'))
 const AttemptResult = lazy(() => import('@/pages/portal/ExamRunner').then((m) => ({ default: m.AttemptResult })))
 const LiveNow = lazy(() => import('@/pages/admin/LiveNow'))
+const LiveTraining = lazy(() => import('@/pages/admin/LiveTraining'))
 const AttendanceAttempts = lazy(() => import('@/pages/admin/AttendanceAttempts'))
 const ProfileRequests = lazy(() => import('@/pages/admin/ProfileRequests'))
 const ChatInbox = lazy(() => import('@/pages/admin/ChatInbox'))
@@ -276,6 +277,7 @@ export default function App() {
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
           <Route path="analytics" element={<Executive />} />
           <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />
+          <Route path="live-training" element={<RequireAuth permission="live_training.view"><LiveTraining /></RequireAuth>} />
           <Route path="attendance-attempts" element={<RequireAuth permission="attendance.manage"><AttendanceAttempts /></RequireAuth>} />
           <Route path="geo" element={<Geographic />} />
           <Route path="ai" element={<AiAssistant />} />

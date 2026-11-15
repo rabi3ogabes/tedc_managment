@@ -55,6 +55,7 @@ use App\Http\Controllers\Api\V1\Admin\Kits\KitSampleController;
 use App\Http\Controllers\Api\V1\Admin\KpiController;
 use App\Http\Controllers\Api\V1\Admin\LabelController;
 use App\Http\Controllers\Api\V1\Admin\LearningProvidersController;
+use App\Http\Controllers\Api\V1\Admin\LiveTrainingController;
 use App\Http\Controllers\Api\V1\Admin\LobbyScreenController;
 use App\Http\Controllers\Api\V1\Admin\LtiPlatformController;
 use App\Http\Controllers\Api\V1\Admin\LtiToolController;
@@ -824,6 +825,11 @@ Route::prefix('v1')->group(function () {
                 Route::post('open', [ProgramSurveyController::class, 'open']);
                 Route::post('close', [ProgramSurveyController::class, 'close']);
                 Route::post('notify', [ProgramSurveyController::class, 'notify']);
+            });
+            // Live training board: the classrooms of a day in 3D, and the training card of one classroom.
+            Route::middleware('permission:live_training.view')->prefix('live-training')->controller(LiveTrainingController::class)->group(function () {
+                Route::get('/', 'board');
+                Route::get('sessions/{session}', 'card')->whereUuid('session');
             });
             Route::get('presence/live', [PresenceController::class, 'live'])->middleware('permission:analytics.view');
             Route::put('presence/settings', [PresenceController::class, 'updateSettings'])->middleware('permission:settings.manage');
