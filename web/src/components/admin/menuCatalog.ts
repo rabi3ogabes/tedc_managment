@@ -1,5 +1,5 @@
 import {
-  Award, Bug, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
+  Award, Boxes, Bug, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
@@ -14,6 +14,7 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
   return [
     { id: 'overview', title: m('groups.overview'), items: [
       { to: '/admin', label: m('dashboard'), icon: LayoutDashboard, permission: 'dashboard.view', end: true },
+      { to: '/admin/live-training', label: t('liveT.nav'), icon: Boxes, permission: 'live_training.view' },
       { to: '/admin/analytics', label: m('analytics'), icon: LineChart, permission: 'analytics.executive' },
     ] },
     { id: 'lifecycle', title: m('groups.lifecycle'), items: [
