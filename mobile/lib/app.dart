@@ -29,7 +29,9 @@ class TedcApp extends ConsumerWidget {
         supportedLocales: const [Locale('ar'), Locale('en')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         // Plugins that still draw with the Flutter SDK's own Material library (the scanner, the PDF reader, the video player)
-        // read the app's theme and translations through this bridge until they move to material_ui themselves.
+        // read the app's theme and translations through this bridge until they move to material_ui themselves. The package marks
+        // the bridge as deprecated to say it is temporary; it is the documented way to carry those plugins meanwhile.
+        // ignore: deprecated_member_use
         builder: (context, child) => MaterialUiCompatibilityBridge(child: child!),
         routerConfig: router,
       ),
