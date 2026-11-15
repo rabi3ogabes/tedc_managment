@@ -53,7 +53,7 @@ export const TOUR_FEATURES: Record<string, [string, string]> = {
   '/admin/certificates': ['الشهادات: الإصدار والتحقق والإلغاء.', 'Certificates: issue, verify and revoke.'],
   '/admin/room-screens': ['شاشات القاعات: ما يُعرض على بابها وفي ردهة المركز.', 'Room screens: what is shown at each door and in the lobby.'],
   '/admin/certificate-templates': ['قوالب الشهادات: تصميم الشهادات بالعربية والإنجليزية.', 'Certificate templates: design certificates in Arabic and English.'],
-  '/admin/live-training': ['متابعة التدريب المباشرة: قاعات المركز بالأبعاد الثلاثية، المضيئة فيها تدريب، ومن يسجّل حضوره يجلس في مقعده. اضغط قاعة لفتح بطاقتها التدريبية.', 'Live training: the classrooms in 3D; a lit room has training, and whoever checks in takes a seat. Press a room for its training card.'],
+  '/admin/live-training': ['متابعة التدريب المباشرة: قاعات المركز لوحةً من المربعات أو مجسّماً ثلاثي الأبعاد. المضيئة فيها تدريب الآن بكل تفاصيله ووقته المتبقي، ومن يسجّل حضوره يجلس في مقعده. اضغط قاعة لفتح بطاقتها التدريبية.', 'Live training: the classrooms as a board of boxes or in 3D. A lit room has training now, with all its details and the time left, and whoever checks in takes a seat. Press a room for its training card.'],
   '/admin/live': ['الآن مباشرة: الجلسات الجارية وحضورها لحظة بلحظة.', 'Live now: running sessions and their attendance moment by moment.'],
   '/admin/absence': ['الغياب والأعذار: متابعة الغياب وقرارات الأعذار.', 'Absence and excuses: follow absences and excuse decisions.'],
   '/admin/attendance-attempts': ['محاولات الحضور: ما رُفض وسببه ومراجعته.', 'Attendance attempts: what was refused, why, and review.'],
