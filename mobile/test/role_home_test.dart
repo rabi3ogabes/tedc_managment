@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tedc_mobile/core/l10n/strings.dart';
 import 'package:tedc_mobile/features/home/role_home.dart';
@@ -7,7 +6,7 @@ import 'package:tedc_mobile/features/home/role_home.dart';
 Widget _wrap(Widget child) => MaterialApp(
       locale: const Locale('en'),
       supportedLocales: const [Locale('ar'), Locale('en')],
-      localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(20), child: child)),
     );
 

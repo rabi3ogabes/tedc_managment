@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tedc_mobile/core/l10n/strings.dart';
 import 'package:tedc_mobile/core/widgets/widgets.dart';
@@ -7,7 +6,7 @@ import 'package:tedc_mobile/core/widgets/widgets.dart';
 Widget _wrap(Widget child, {Locale locale = const Locale('ar')}) => MaterialApp(
       locale: locale,
       supportedLocales: const [Locale('ar'), Locale('en')],
-      localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: Scaffold(body: child),
     );
 

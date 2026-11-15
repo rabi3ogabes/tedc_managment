@@ -25,8 +25,6 @@ dependencies:
   video_player: ^2.9.0
   file_picker: ^13.1.0
   supabase_flutter: ^2.17.2
-  flutter_localizations:
-    sdk: flutter
   path_provider: ^2.1.6
   open_filex: ^4.7.0
   firebase_core: ^4.15.0
@@ -37,6 +35,8 @@ dependencies:
   pdfx: ^2.11.0
   connectivity_plus: ^7.3.1
   flutter_appauth: ^12.1.0
+  # Material widgets and their translations (moved out of the Flutter SDK in 3.47, the SDK's own copy is deprecated since 3.50).
+  material_ui: ^1.11.0
 
 dev_dependencies:
   flutter_test:

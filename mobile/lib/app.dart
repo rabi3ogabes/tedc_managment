@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
@@ -28,11 +27,12 @@ class TedcApp extends ConsumerWidget {
         theme: AppTheme.light(locale),
         locale: locale,
         supportedLocales: const [Locale('ar'), Locale('en')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        // Plugins that still draw with the Flutter SDK's own Material library (the scanner, the PDF reader, the video player)
+        // read the app's theme and translations through this bridge until they move to material_ui themselves. The package marks
+        // the bridge as deprecated to say it is temporary; it is the documented way to carry those plugins meanwhile.
+        // ignore: deprecated_member_use
+        builder: (context, child) => MaterialUiCompatibilityBridge(child: child!),
         routerConfig: router,
       ),
     );

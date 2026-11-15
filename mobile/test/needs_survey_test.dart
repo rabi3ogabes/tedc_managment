@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tedc_mobile/core/providers.dart';
@@ -72,7 +71,7 @@ Future<void> _pumpForm(WidgetTester tester) async {
     child: const MaterialApp(
       locale: Locale('ar'),
       supportedLocales: [Locale('ar'), Locale('en')],
-      localizationsDelegates: [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: NeedsSurveyScreen(id: 'x'),
     ),
   ));
