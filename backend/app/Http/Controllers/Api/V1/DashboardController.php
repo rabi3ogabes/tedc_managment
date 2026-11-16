@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Services\Dashboards\DashboardService;
+use App\Support\RoleCharter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,15 @@ class DashboardController extends Controller
     public function layout(): JsonResponse
     {
         return response()->json(['data' => $this->dashboards->layout($this->user())]);
+    }
+
+    /**
+     * What the person's active role may do and what it answers for, in the words of the Ministry's roles document. Null for a role
+     * the document does not describe.
+     */
+    public function charter(): JsonResponse
+    {
+        return response()->json(['data' => RoleCharter::for($this->dashboards->roleSlug($this->user()))]);
     }
 
     public function saveLayout(Request $request): JsonResponse

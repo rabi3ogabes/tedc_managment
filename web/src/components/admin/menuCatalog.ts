@@ -13,7 +13,7 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
   const m = (k: string) => t(`admin.menu.${k}`)
   return [
     { id: 'overview', title: m('groups.overview'), items: [
-      { to: '/admin', label: m('dashboard'), icon: LayoutDashboard, permission: 'dashboard.view', end: true },
+      { to: '/admin', label: m('dashboard'), icon: LayoutDashboard, end: true },
       { to: '/admin/live-training', label: t('liveT.nav'), icon: Boxes, permission: 'live_training.view' },
       { to: '/admin/analytics', label: m('analytics'), icon: LineChart, permission: 'analytics.executive' },
     ] },

@@ -39,10 +39,10 @@ class DashboardService
         Role::TRAINER => ['my_trainer_courses', 'participation', 'attendance_rate', 'pass_rates'],
         Role::CENTER_ADMIN => ['executive_kpis', 'courses_overview', 'participation', 'attendance_rate', 'pass_rates', 'plan_execution', 'integration_health', 'pending_approvals'],
         Role::SUPER_ADMIN => ['executive_kpis', 'courses_overview', 'participation', 'attendance_rate', 'pass_rates', 'plan_execution', 'integration_health', 'pending_approvals'],
-        Role::KIT_DEVELOPER => ['kits_by_status', 'kits_overdue'],
+        Role::KIT_DEVELOPER => ['kits_programs', 'kits_by_status', 'kits_overdue'],
         Role::QA_REVIEWER => ['kits_by_status', 'kits_overdue'],
-        Role::PLANNING_HEAD => ['executive_kpis', 'needs_progress', 'gap_heatmap', 'plan_execution', 'pending_approvals'],
-        Role::PLANNING_SPECIALIST => ['needs_progress', 'gap_heatmap', 'plan_execution'],
+        Role::PLANNING_HEAD => ['executive_kpis', 'needs_progress', 'gap_heatmap', 'plan_execution', 'pending_approvals', 'kits_programs'],
+        Role::PLANNING_SPECIALIST => ['needs_progress', 'gap_heatmap', 'plan_execution', 'kits_programs'],
         Role::LOGISTICS_OFFICER => ['rooms_utilisation', 'logistics_status'],
     ];
 
@@ -71,6 +71,7 @@ class DashboardService
         'workload_by_supervisor' => ['عبء المشرفين', 'Supervisors workload', 'bar', 'groups_supervised'],
         'kits_by_status' => ['الحقائب حسب الحالة', 'Kits by status', 'bar', 'kits_programs_supervisors'],
         'kits_overdue' => ['حقائب متأخرة', 'Overdue kits', 'list', 'my_kits'],
+        'kits_programs' => ['الحقائب التدريبية والبرامج المرتبطة بها', 'Training kits and the programmes linked to them', 'table', 'kits_programs_supervisors'],
         'needs_progress' => ['تقدم حصر الاحتياجات', 'Needs collection progress', 'bar', null],
         'gap_heatmap' => ['خريطة حرارية للفجوات', 'Gap heat map', 'heatmap', null],
         'rooms_utilisation' => ['استخدام القاعات', 'Room utilisation', 'bar', null],
@@ -391,6 +392,28 @@ class DashboardService
         $rows = DB::table('training_kits')->whereNotNull('due_at')->where('due_at', '<', now())->whereNotIn('status', ['approved', 'published', 'archived'])->orderBy('due_at')->limit(8)->get(['code', 'title_ar', 'title_en', 'due_at', 'status']);
 
         return ['items' => $rows->map(fn ($x) => ['title' => ['ar' => $x->code.' — '.$x->title_ar, 'en' => $x->code.' — '.$x->title_en], 'subtitle' => substr((string) $x->due_at, 0, 10).' · '.$x->status])->all()];
+    }
+
+    /**
+     * The kits with the programmes each one is linked to. A kit developer sees the kits they own or made; the other roles see every
+     * kit. Only the name, the state and the linked programmes: the content of a kit stays behind «الحقائب التدريبية».
+     */
+    private function w_kits_programs(User $u, AccessScope $s, array $r): array
+    {
+        $own = $this->roleSlug($u) === Role::KIT_DEVELOPER;
+        $kits = DB::table('training_kits as k')->where('k.status', '!=', 'archived')
+            ->when($own, fn ($q) => $q->where(fn ($w) => $w->where('k.owner_id', $u->id)->orWhere('k.created_by', $u->id)))
+            ->orderByDesc('k.updated_at')->limit(12)->get(['k.id', 'k.code', 'k.title_ar', 'k.title_en', 'k.status']);
+        $linked = DB::table('kit_program as kp')->join('programs as p', 'p.id', '=', 'kp.program_id')->whereIn('kp.kit_id', $kits->pluck('id'))->whereNull('p.deleted_at')
+            ->orderBy('p.code')->get(['kp.kit_id', 'p.code', 'p.title_ar', 'p.title_en'])->groupBy('kit_id');
+        $ar = app()->getLocale() !== 'en';
+
+        return ['columns' => [['key' => 'kit', 'label' => ['ar' => 'الحقيبة', 'en' => 'Kit']], ['key' => 'status', 'label' => ['ar' => 'الحالة', 'en' => 'Status']], ['key' => 'programs', 'label' => ['ar' => 'البرامج المرتبطة', 'en' => 'Linked programmes']]],
+            'rows' => $kits->map(fn ($k) => [
+                'kit' => trim(($k->code ? $k->code.' — ' : '').($ar ? $k->title_ar : ($k->title_en ?: $k->title_ar))),
+                'status' => $k->status,
+                'programs' => ($linked->get($k->id) ?? collect())->map(fn ($p) => $ar ? $p->title_ar : ($p->title_en ?: $p->title_ar))->implode('، ') ?: '—',
+            ])->all()];
     }
 
     private function w_needs_progress(User $u, AccessScope $s, array $r): array

@@ -2,6 +2,7 @@ import { Award, BookOpen, CalendarClock, ClipboardList, Clock, MapPin, Sparkles,
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import RoleCharter from '@/components/dashboard/RoleCharter'
 import RoleDashboard from '@/components/dashboard/RoleDashboard'
 import { ProgramCover } from '@/components/public/ProgramCard'
 import { PendingSurveysBanner } from '@/components/surveys/NeedsSurveys'
@@ -31,6 +32,7 @@ export default function PortalHome() {
     <>
       <PageHeader title={<>{t('portal.welcome')} {d.greeting_name}</>} />
       <PendingSurveysBanner />
+      <RoleCharter />
       <RoleDashboard />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard accent label={t('portal.totalHours')} value={fmt.number(d.stats.training_hours)} icon={<Clock className="size-5" />} />
