@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "entities": {
+    "receipt": {
+      "fields": {
+        "message_id": {
+          "paths": [
+            "$.message_id",
+            "$.id"
+          ]
+        },
+        "status": {
+          "path": "$.status",
+          "transform": [
+            "lower",
+            "table:status"
+          ]
+        },
+        "reason": "$.reason"
+      },
+      "tables": {
+        "status": {
+          "delivered": "delivered",
+          "failed": "failed",
+          "undelivered": "failed",
+          "rejected": "failed",
+          "expired": "failed"
+        }
+      }
+    }
+  }
+}

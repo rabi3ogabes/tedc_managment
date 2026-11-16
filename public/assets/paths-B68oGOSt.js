@@ -1,0 +1,1 @@
+function e(e){return e&&e.startsWith(`/`)&&!e.startsWith(`//`)&&!e.startsWith(`/\\`)?e:void 0}export{e as t};

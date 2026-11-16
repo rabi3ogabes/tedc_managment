@@ -1,0 +1,20 @@
+{
+  "status": 200,
+  "body": {
+    "receipts": [
+      {
+        "message_id": "MSG-1",
+        "status": "delivered"
+      },
+      {
+        "message_id": "MSG-2",
+        "status": "failed",
+        "reason": "handset off"
+      },
+      {
+        "message_id": "MSG-3",
+        "status": "queued"
+      }
+    ]
+  }
+}

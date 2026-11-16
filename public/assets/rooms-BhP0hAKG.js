@@ -1,0 +1,1 @@
+var e=(e,t)=>(e??[]).filter(e=>e.status!==`inactive`||e.id===t),t=e=>e.invalidateQueries({predicate:e=>[`/admin/rooms`,`/admin/lookups`,`/admin/room`,`/admin/saber`,`/admin/places`].some(t=>String(e.queryKey[0]??``).startsWith(t))});export{t as n,e as t};

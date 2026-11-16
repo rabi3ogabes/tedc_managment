@@ -1,0 +1,1 @@
+import{t as e}from"./useApi-w0ZwcVi7.js";function t(){return e(`/features`,void 0,{staleTime:3e5,retry:!1})}function n(e){return t().data?.data.flags[e]??!1}export{t as n,n as t};

@@ -1,0 +1,67 @@
+{
+  "status": 200,
+  "body": {
+    "elements": [
+      {
+        "contentId": "aRxESQNMEeuH3Q6N8dCjzw",
+        "id": "Course~aRxESQNMEeuH3Q6N8dCjzw",
+        "contentType": "Course",
+        "name": "Interaction Design Foundations",
+        "slug": "interaction-design-foundations",
+        "description": "<p>Learn how to design digital products that bring people joy rather than frustration.</p>",
+        "difficultyLevel": "BEGINNER",
+        "languageCode": "en",
+        "lastUpdatedAt": 1791619200,
+        "extraMetadata": {
+          "typeName": "courseMetadata",
+          "definition": {
+            "estimatedLearningTime": 15689,
+            "promoPhoto": "https://courses.example.test/photos/interaction-design.jpg"
+          }
+        }
+      },
+      {
+        "contentId": "r0GnHOZaEees-Q6jQMxlrg",
+        "id": "Course~r0GnHOZaEees-Q6jQMxlrg",
+        "contentType": "Course",
+        "name": "Project Management Principles",
+        "slug": "project-management-principles",
+        "description": "<p>Plan, run and close a project: scope, schedule, risk and communication.</p>",
+        "difficultyLevel": "INTERMEDIATE",
+        "languageCode": "en",
+        "lastUpdatedAt": 1791183600,
+        "extraMetadata": {
+          "typeName": "courseMetadata",
+          "definition": {
+            "estimatedLearningTime": 28800,
+            "promoPhoto": "https://courses.example.test/photos/project-management.jpg"
+          }
+        }
+      },
+      {
+        "contentId": "ZxUbYRX3EeWXAyIAC0mP-A",
+        "id": "Specialization~ZxUbYRX3EeWXAyIAC0mP-A",
+        "contentType": "Specialization",
+        "name": "Leadership Essentials",
+        "slug": "leadership-essentials",
+        "description": "<p>Four courses on leading teams in a changing organization.</p>",
+        "difficultyLevel": "BEGINNER",
+        "languageCode": "en",
+        "lastUpdatedAt": 1789886700,
+        "extraMetadata": {
+          "typeName": "specializationMetadata",
+          "definition": {
+            "courseIds": [
+              "aRxESQNMEeuH3Q6N8dCjzw",
+              "r0GnHOZaEees-Q6jQMxlrg"
+            ]
+          }
+        }
+      }
+    ],
+    "paging": {
+      "total": 3
+    },
+    "linked": {}
+  }
+}

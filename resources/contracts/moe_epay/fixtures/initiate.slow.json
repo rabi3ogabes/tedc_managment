@@ -1,0 +1,8 @@
+{
+  "status": 201,
+  "body": {
+    "payment_id": "P-1001",
+    "redirect_url": "https://pay.moe.example/redirect/P-1001"
+  },
+  "delay_ms": 3000
+}

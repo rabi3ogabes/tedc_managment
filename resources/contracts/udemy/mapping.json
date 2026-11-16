@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "entities": {
+    "course": {
+      "fields": {
+        "id": "$.id",
+        "title": {
+          "path": "$.title",
+          "transform": [
+            "trim"
+          ]
+        },
+        "description": {
+          "path": "$.description",
+          "transform": [
+            "strip_tags"
+          ]
+        },
+        "url": "$.url",
+        "hours": {
+          "path": "$.estimated_content_length",
+          "transform": [
+            "hours:minutes"
+          ]
+        },
+        "image": "$.images.size_480x270",
+        "categories": {
+          "path": "$.categories",
+          "transform": [
+            "join:, "
+          ]
+        },
+        "instructors": {
+          "path": "$.instructors",
+          "transform": [
+            "join:, "
+          ]
+        }
+      }
+    },
+    "completion": {
+      "fields": {
+        "course_id": "$.course_id",
+        "employee_no": {
+          "path": "$.user_external_id",
+          "transform": [
+            "trim"
+          ]
+        },
+        "email": {
+          "path": "$.user_email",
+          "transform": [
+            "trim",
+            "lower"
+          ]
+        },
+        "completed_at": {
+          "path": "$.course_completion_date"
+        },
+        "progress": {
+          "path": "$.completion_ratio",
+          "transform": [
+            "int"
+          ]
+        },
+        "minutes_watched": {
+          "path": "$.num_video_consumed_minutes",
+          "transform": [
+            "int"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "body": {
+    "event_id": "evt-1",
+    "payment_id": "P-1001",
+    "status": "SUCCESS",
+    "amount": "150.00",
+    "order_number": "ORD-2610-AB12CD"
+  }
+}

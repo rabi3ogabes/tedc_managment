@@ -1,0 +1,1 @@
+import{t as e}from"./useApi-w0ZwcVi7.js";import{t}from"./useFeature-BkhAW3Aq.js";var n=`tedc:cart-open`;function r(n){let r=t(`payments`),i=e(r?n?`/entity/cart`:`/me/cart`:null,n?{entity_id:n}:void 0,{staleTime:0,retry:!1});return{on:r,cart:i.data?.data??null,refetch:i.refetch,isLoading:i.isLoading}}export{r as n,n as t};

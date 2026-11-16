@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "entities": {
+    "item": {
+      "fields": {
+        "id": "$.id",
+        "type": "$.type",
+        "title": "$.title",
+        "url": "$.url"
+      }
+    }
+  }
+}

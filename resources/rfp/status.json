@@ -1,0 +1,2791 @@
+{
+    "totals": {
+        "total": 278,
+        "available": 241,
+        "partial": 37,
+        "missing": 0,
+        "mandatory": 108,
+        "open": 37
+    },
+    "phases": [
+        {
+            "phase": 0,
+            "title": "Foundation & Traceability",
+            "open": 1,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 1,
+            "title": "Roles, Scopes & UX Essentials",
+            "open": 11,
+            "items": 1,
+            "done": 0
+        },
+        {
+            "phase": 2,
+            "title": "Training Structure & Annual Plan",
+            "open": 11,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 3,
+            "title": "Needs Assessment & Gap Analysis",
+            "open": 7,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 4,
+            "title": "Enrollment, Withdrawal & External Users",
+            "open": 15,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 5,
+            "title": "Attendance, Rooms & Logistics",
+            "open": 10,
+            "items": 1,
+            "done": 0
+        },
+        {
+            "phase": 6,
+            "title": "Assessment Engine & Interactive Learning",
+            "open": 16,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 7,
+            "title": "Passing Rules & Certificates",
+            "open": 6,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 8,
+            "title": "Evaluation, Surveys & Impact",
+            "open": 11,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 9,
+            "title": "Career Paths, Licences & CPD",
+            "open": 11,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 10,
+            "title": "Content Standards, Library & Offline",
+            "open": 15,
+            "items": 3,
+            "done": 0
+        },
+        {
+            "phase": 11,
+            "title": "Notifications, Announcements & CMS",
+            "open": 12,
+            "items": 1,
+            "done": 0
+        },
+        {
+            "phase": 12,
+            "title": "Reports, Dashboards & KPIs",
+            "open": 12,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 13,
+            "title": "Integrations & Enterprise Identity",
+            "open": 12,
+            "items": 4,
+            "done": 0
+        },
+        {
+            "phase": 14,
+            "title": "Collaboration, PLCs & Gamification",
+            "open": 17,
+            "items": 0,
+            "done": 0
+        },
+        {
+            "phase": 15,
+            "title": "AI Completion",
+            "open": 6,
+            "items": 1,
+            "done": 0
+        },
+        {
+            "phase": 16,
+            "title": "Course Purchasing & Payments",
+            "open": 4,
+            "items": 1,
+            "done": 0
+        },
+        {
+            "phase": 17,
+            "title": "Azure Qatar, Security & Compliance",
+            "open": 19,
+            "items": 15,
+            "done": 0
+        },
+        {
+            "phase": 18,
+            "title": "Adoption, Help Centre & Deliverables",
+            "open": 11,
+            "items": 10,
+            "done": 0
+        }
+    ],
+    "modules": [
+        {
+            "code": "UX",
+            "title_en": "User Interface & Experience",
+            "title_ar": "واجهة المستخدم",
+            "items": [
+                {
+                    "id": "UX-01",
+                    "mandatory": false,
+                    "requirement": "Simple, clear UI; understandable icons with short text labels",
+                    "status": "available",
+                    "evidence": "Luxury government design system, labelled lucide icons, glass cards.",
+                    "phase": null
+                },
+                {
+                    "id": "UX-02",
+                    "mandatory": false,
+                    "requirement": "Approved visual-identity colours and modern design elements",
+                    "status": "available",
+                    "evidence": "Qatar Government brand (Al Adaam maroon, Dune) + live Brand Studio.",
+                    "phase": null
+                },
+                {
+                    "id": "UX-03",
+                    "mandatory": false,
+                    "requirement": "Approved Lusail typeface and readable font sizes",
+                    "status": "partial",
+                    "evidence": "Lusail is first in every font stack and registered automatically from `web/public/fonts/lusail/` when the licensed files are added (see `lib/fonts.ts`, `public/fonts/lusail-README.md`); falls back to Qatar Sans → Tajawal. Body line height ≥ 1.65. **The Ministry must supply the font files** (web, mPDF, app).",
+                    "phase": 1
+                },
+                {
+                    "id": "UX-04",
+                    "mandatory": false,
+                    "requirement": "Few steps per task, clear navigation, quick search for content & functions",
+                    "status": "available",
+                    "evidence": "Ctrl/⌘ K global search on every page (`components/search/GlobalSearch.tsx`, `GET /search`): programs, people, trainers, kits, certificates, news and functions, permission- and scope-aware, with recent searches; app search screen (`features/search`).",
+                    "phase": null
+                },
+                {
+                    "id": "UX-05",
+                    "mandatory": true,
+                    "requirement": "Full Arabic/English with instant switch, correct RTL/LTR, professional translation",
+                    "status": "available",
+                    "evidence": "i18next (web), Flutter l10n, API X-Locale; all content stored as *_ar / *_en.",
+                    "phase": null
+                },
+                {
+                    "id": "UX-06",
+                    "mandatory": true,
+                    "requirement": "Each user keeps a preferred language, switchable without re-login or data loss",
+                    "status": "available",
+                    "evidence": "users.locale persisted; switching is instant.",
+                    "phase": null
+                },
+                {
+                    "id": "UX-07",
+                    "mandatory": true,
+                    "requirement": "Responsive on desktop, tablet and phone, all browsers",
+                    "status": "available",
+                    "evidence": "Tailwind responsive web + Flutter mobile app.",
+                    "phase": null
+                },
+                {
+                    "id": "UX-08",
+                    "mandatory": true,
+                    "requirement": "Seamless switching between a user’s roles (trainer / trainee / manager)",
+                    "status": "available",
+                    "evidence": "Role switcher in the account menu (web) and on the profile screen (app): `POST /auth/active-role`, `X-Active-Role` header, only the active role's permissions and scope count (`ActiveRole`, `ResolveActiveRole`); remembered per device; `ActiveRoleTest`.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "HOM",
+            "title_en": "Portal Homepage & Dashboards",
+            "title_ar": "الصفحة الرئيسية للبوابة",
+            "items": [
+                {
+                    "id": "HOM-01",
+                    "mandatory": false,
+                    "requirement": "Add / edit / delete news, activities and events",
+                    "status": "available",
+                    "evidence": "News, circulars, activities and events managed in one board; events have date, venue, online and registration links, capacity, in-platform RSVP with waiting list, reminders, public events page and ICS calendar (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "HOM-02",
+                    "mandatory": false,
+                    "requirement": "Signed-in users see news and events",
+                    "status": "available",
+                    "evidence": "Public news pages and portal notification centre.",
+                    "phase": null
+                },
+                {
+                    "id": "HOM-03",
+                    "mandatory": false,
+                    "requirement": "Export news / events to the Ministry website (API or file)",
+                    "status": "available",
+                    "evidence": "Public JSON, RSS, Atom and CSV feeds (only items flagged for export), manual export files, and an automatic push adapter with retries, log and failure alerts. The push needs the Ministry site's real endpoint and key (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "HOM-04",
+                    "mandatory": false,
+                    "requirement": "Fully dynamic homepage editable by admin (texts, images, links, ads)",
+                    "status": "available",
+                    "evidence": "Block-based homepage and About editor (hero, statistics, programs, news, events, rich text, call to action, logos, FAQ, video, safe HTML) with visibility windows, audience, live desktop/phone preview in both languages, versioned publish and restore; the built-in design stays until the first publish (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "HOM-05",
+                    "mandatory": false,
+                    "requirement": "Dynamic public statistics (users, courses, centre-defined figures)",
+                    "status": "available",
+                    "evidence": "Public statistics from built-in sources (users, programs, groups held, certificates, hours, schools) or values and named indicators the centre defines; cached and refreshed every ten minutes (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "HOM-06",
+                    "mandatory": true,
+                    "requirement": "Dashboards for every user category, driven by role",
+                    "status": "available",
+                    "evidence": "A dashboard for every role from a widget registry (trainee, principal, deputy, head of training, supervisor, leadership, executive, trainer, admin, kit developer, QA, planning, logistics): scope-aware, date range, drill-down to the report, personal hide/reorder, presets editable by administrators; on web and in the app home (Phase 12).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "RBA",
+            "title_en": "Roles, Responsibilities & Permissions",
+            "title_ar": "الأدوار والمسؤوليات والصلاحيات",
+            "items": [
+                {
+                    "id": "RBA-01",
+                    "mandatory": false,
+                    "requirement": "Trainee",
+                    "status": "available",
+                    "evidence": "Employee role + self-service web portal and mobile app.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-02",
+                    "mandatory": false,
+                    "requirement": "School Principal",
+                    "status": "available",
+                    "evidence": "School Admin role, school-scoped data.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-03",
+                    "mandatory": false,
+                    "requirement": "PD Officer (Academic Deputy): approve PD records & nominations, run internal workshops",
+                    "status": "available",
+                    "evidence": "Role `academic_deputy` at school / school-group / department scope: approves PD records (`pd.approve` on `/admin/pd-activities`), approves staff registrations as direct manager, nominates, and runs internal workshops (`workshops.internal`).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-04",
+                    "mandatory": false,
+                    "requirement": "Head of Training Department",
+                    "status": "available",
+                    "evidence": "Role `training_head`: assigns the program supervisor, grants per-program rights (`program_grants.manage`), approves kits (`kits.review`, `kits.publish`); `RolesManagementTest`, `ProgramGrantsTest`.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-05",
+                    "mandatory": false,
+                    "requirement": "Training Supervisor",
+                    "status": "available",
+                    "evidence": "Role renamed «مشرف التدريب / Training Supervisor»; per-program grants for attendance, notifications, task review and kit assignment (Program → Staff & grants, `ProgramGrantService`).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-06",
+                    "mandatory": false,
+                    "requirement": "Centre Leadership & Policy Makers",
+                    "status": "available",
+                    "evidence": "Role `center_leadership`: leadership dashboards, plan approval (`plans.approve`), trainer-assignment approval (`trainers.approve` on `/admin/group-trainers/{id}/decision`) and low-satisfaction alerts (default alert recipients).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-07",
+                    "mandatory": false,
+                    "requirement": "Trainer",
+                    "status": "available",
+                    "evidence": "Attendance, materials, task review.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-08",
+                    "mandatory": false,
+                    "requirement": "System Administrator",
+                    "status": "available",
+                    "evidence": "Super Admin / Centre Admin with full permissions.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-09",
+                    "mandatory": false,
+                    "requirement": "Kit Developer and Quality Assurance",
+                    "status": "available",
+                    "evidence": "Dedicated roles with the full kit review workflow.",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-10",
+                    "mandatory": false,
+                    "requirement": "Head of Planning and Planning Specialist",
+                    "status": "available",
+                    "evidence": "Roles `planning_head` and `planning_specialist`: needs cycles and proposals, competency framework and gaps, annual plan (head approves), instrument approval (`instruments.approve`), evaluation forms, interviews and evaluation reports (specialist prepares, head approves).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-11",
+                    "mandatory": false,
+                    "requirement": "Logistics Support Officer",
+                    "status": "available",
+                    "evidence": "Role `logistics_officer`: room data (`rooms.manage`), non-training room bookings (`rooms.book`) and the logistics-request queue (`logistics.manage`).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-12",
+                    "mandatory": false,
+                    "requirement": "Create new roles and permissions when needed",
+                    "status": "available",
+                    "evidence": "Settings → Roles & permissions: create a role from scratch or clone one, edit its scopes and landing page, permission matrix with diff preview, delete when unused (`RoleAdminController`, audited).",
+                    "phase": null
+                },
+                {
+                    "id": "RBA-13",
+                    "mandatory": true,
+                    "requirement": "Permission scope: Ministry / school group / single school",
+                    "status": "available",
+                    "evidence": "Roles are granted at Ministry / school group / school / department scope with an optional end date (`role_user` scope columns, `AccessScope`); school groups managed in Settings → School groups (CSV import); every list, dashboard and search is scoped (`AccessScopeTest`).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "TYP",
+            "title_en": "Training Types",
+            "title_ar": "إدارة أنواع التدريب",
+            "items": [
+                {
+                    "id": "TYP-01",
+                    "mandatory": false,
+                    "requirement": "In-person: registration, acceptance, attendance",
+                    "status": "available",
+                    "evidence": "Full lifecycle with QR attendance.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-02",
+                    "mandatory": false,
+                    "requirement": "In-person: training-room allocation",
+                    "status": "available",
+                    "evidence": "Room conflict check and best-fit room suggestion.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-03",
+                    "mandatory": false,
+                    "requirement": "In-person: pass recording and certificates",
+                    "status": "available",
+                    "evidence": "Smart Certificate Engine.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-04",
+                    "mandatory": true,
+                    "requirement": "Pre- and post-program assessment of the trainee’s level",
+                    "status": "available",
+                    "evidence": "Pre- and post-tests built from the question bank (assessment kinds `pre_test` / `post_test`); knowledge gain per trainee, group and skill against the 35 % target (`KnowledgeService`).",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-05",
+                    "mandatory": true,
+                    "requirement": "Synchronous remote training via Microsoft Teams",
+                    "status": "available",
+                    "evidence": "Teams meetings created automatically for online sessions, updated and cancelled with the schedule, join link delivered to trainees, group teams and files. Built on the documented Graph API; not run against a live tenant (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-06",
+                    "mandatory": false,
+                    "requirement": "E-learning hierarchy: categories, programs, chapters, topics, recorded video",
+                    "status": "available",
+                    "evidence": "Category → Program → Module → Lesson (video, slides, quiz, survey, article).",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-07",
+                    "mandatory": true,
+                    "requirement": "Interactive video: in-video questions / comments, pop-up control, progress gating",
+                    "status": "available",
+                    "evidence": "Interactive video interactions with blocking and anti-distraction rules",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-08",
+                    "mandatory": false,
+                    "requirement": "Chapter quizzes from a random bank, auto-graded, gate the next chapter",
+                    "status": "available",
+                    "evidence": "Assessment builder: sections, random draw, difficulty mix, timer, attempts",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-09",
+                    "mandatory": false,
+                    "requirement": "Final exams with retry rules and re-study after failure",
+                    "status": "available",
+                    "evidence": "Final exams with attempt limits, a cooldown between attempts and a re-study rule: after a failed attempt the linked lessons must be studied again before the next try (`restudy_on_fail`, `cooldown_hours`).",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-10",
+                    "mandatory": false,
+                    "requirement": "Contact the trainer and ask questions from inside the course",
+                    "status": "available",
+                    "evidence": "Ask the trainer from any lesson (web and app): routed to the group's trainers with a reply deadline, trainer inbox, answer notifies the learner. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-11",
+                    "mandatory": true,
+                    "requirement": "Exams taken remotely or in-centre via a secret access code",
+                    "status": "available",
+                    "evidence": "Static and rotating secret access codes for exams taken remotely or in the centre (`POST /admin/assessments/{id}/access-codes`); the code is checked when the attempt starts.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-12",
+                    "mandatory": false,
+                    "requirement": "Offline learning: watched content offline, sync on reconnect, resume exams",
+                    "status": "available",
+                    "evidence": "Encrypted, resumable, checksum-verified downloads in the app (AES-256-GCM, a key per phone kept in its keystore) with expiry; offline video from a private temporary copy, PDF slides and articles; offline exams (signed single-use package bound to the phone, encrypted answers, monotonic timer, handed in later with the server's timing checks); Downloads screen (space, expiry, remove, Wi-Fi only); safe idempotent sync with purge and revocation; everything deleted on sign-out. Phase 21.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-13",
+                    "mandatory": true,
+                    "requirement": "Anti-distraction: prevent pause, seek or minimise during video",
+                    "status": "available",
+                    "evidence": "Seek lock, maximum speed, minimum watched share, automatic pause and no credited time while the page is hidden, a full-screen requirement (no time counts outside full screen) and a pause limit counted on the server (`lock_pause`, survives reloads); the app enforces the pause limit — full screen is a web-player rule.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-14",
+                    "mandatory": false,
+                    "requirement": "Integrate external platforms (Coursera, edX, Udemy, LinkedIn Learning) via APIs",
+                    "status": "partial",
+                    "evidence": "External provider courses become programs with completion sync; needs real provider access",
+                    "phase": 10
+                },
+                {
+                    "id": "TYP-15",
+                    "mandatory": true,
+                    "requirement": "SCORM and H5P support with tracking and reuse",
+                    "status": "available",
+                    "evidence": "SCORM 1.2/2004 and H5P packages upload, play, track — docs/rfp/phase-10-content-standards.md (generated-package tests; vendor packages to be tried)",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-16",
+                    "mandatory": false,
+                    "requirement": "Admin suggests / assigns programs by history, job title or job group",
+                    "status": "available",
+                    "evidence": "Recommendation engine, audience builder, centre nomination.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-17",
+                    "mandatory": false,
+                    "requirement": "Advertise and register for programs on other platforms (e.g., I-earn)",
+                    "status": "available",
+                    "evidence": "Programs on other platforms: launch, evidence upload, centre review, hours counted",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-18",
+                    "mandatory": true,
+                    "requirement": "Blended programs (in-person + synchronous + self-paced)",
+                    "status": "available",
+                    "evidence": "Per-session mode (in-person / online) plus an attached e-course.",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-19",
+                    "mandatory": false,
+                    "requirement": "Indirect training (knowledge transfer): indirect beneficiaries, transferred hours, evidence uploads within a deadline",
+                    "status": "available",
+                    "evidence": "Knowledge transfer with beneficiaries, hours, evidence, deadline and review",
+                    "phase": null
+                },
+                {
+                    "id": "TYP-20",
+                    "mandatory": false,
+                    "requirement": "School internal workshops approved by the centre: create, register, attendance, results, certificates",
+                    "status": "available",
+                    "evidence": "Internal workshops (`/admin/internal-workshops`): the school submits, the centre approves with a reason (`workshops.approve`), the school registers its own staff and receives attendance and notification rights on the workshop; results and certificates go through the centre's passing and certificate engine, and the hours count as internal PD hours.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "STR",
+            "title_en": "Training Structure",
+            "title_ar": "هيكلية التدريب",
+            "items": [
+                {
+                    "id": "STR-01",
+                    "mandatory": false,
+                    "requirement": "Category level",
+                    "status": "available",
+                    "evidence": "Configurable program categories.",
+                    "phase": null
+                },
+                {
+                    "id": "STR-02",
+                    "mandatory": false,
+                    "requirement": "Main program → optional sub-programs",
+                    "status": "available",
+                    "evidence": "Main program → sub-program (one level, enforced) with roll-ups: `POST /admin/programs/{id}/sub-programs`, `GET .../tree`; program page → Structure tab.",
+                    "phase": null
+                },
+                {
+                    "id": "STR-03",
+                    "mandatory": false,
+                    "requirement": "Training groups (cohorts) under a program with own dates, trainers, seats",
+                    "status": "available",
+                    "evidence": "Training groups with own dates, seats, supervisor, room, trainers, sessions and status (`training_groups`, `TrainingGroupService`); group-aware registration, waiting list, attendance and certificates; program page → Groups tab; mobile group picker.",
+                    "phase": null
+                },
+                {
+                    "id": "STR-04",
+                    "mandatory": false,
+                    "requirement": "Workshop / training-day level",
+                    "status": "available",
+                    "evidence": "Program sessions act as training days.",
+                    "phase": null
+                },
+                {
+                    "id": "STR-05",
+                    "mandatory": false,
+                    "requirement": "Assign trainers and kit developers per group / program with an assignment form and leadership approval",
+                    "status": "available",
+                    "evidence": "Trainer proposal per group → trainer fills the assignment form (web + app) → leadership approves with the competent authority reference (`TrainerAssignmentService`); kit developers assigned with a due date (`POST /admin/programs/{id}/kit-developers`).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "CAR",
+            "title_en": "Career Paths & Professional Licences",
+            "title_ar": "المسارات التدريبية والترقي الوظيفي",
+            "items": [
+                {
+                    "id": "CAR-01",
+                    "mandatory": true,
+                    "requirement": "Promotion paths linked to experience, grade and annual appraisal",
+                    "status": "available",
+                    "evidence": "Promotion/specialisation paths with levels and conditions — docs/rfp/phase-09-career-pd.md",
+                    "phase": null
+                },
+                {
+                    "id": "CAR-02",
+                    "mandatory": false,
+                    "requirement": "Professional-licence programs for the four licence levels",
+                    "status": "available",
+                    "evidence": "Four-level licence paths with validity and renewal",
+                    "phase": null
+                },
+                {
+                    "id": "CAR-03",
+                    "mandatory": false,
+                    "requirement": "Conditions per program / licence block progress until met",
+                    "status": "available",
+                    "evidence": "Conditions engine in eligibility syntax; blocks level-restricted programs",
+                    "phase": null
+                },
+                {
+                    "id": "CAR-04",
+                    "mandatory": false,
+                    "requirement": "Path-compliance dashboards with automatic gain/loss notifications",
+                    "status": "available",
+                    "evidence": "Compliance funnel/matrix with export; gain and loss notifications to employee and manager",
+                    "phase": null
+                },
+                {
+                    "id": "CAR-05",
+                    "mandatory": false,
+                    "requirement": "HR integration for experience, grades and appraisals",
+                    "status": "partial",
+                    "evidence": "HR / Mawared full and delta sync with conflict policy, leaver deactivation and signed inbound changes. Routing profile change requests to HR is not built; needs the HR interface specification (Phase 13).",
+                    "phase": 13
+                }
+            ]
+        },
+        {
+            "code": "EXT",
+            "title_en": "External User Registration",
+            "title_ar": "نموذج تسجيل مستخدمين من خارج الوزارة",
+            "items": [
+                {
+                    "id": "EXT-01",
+                    "mandatory": true,
+                    "requirement": "Public e-form for non-Ministry users, shareable by link",
+                    "status": "available",
+                    "evidence": "Public form `/join/{slug}` for people outside the Ministry: bilingual, step by step, with e-mail verification code (rate limited), conditions (allowed domains) and a shareable link.",
+                    "phase": null
+                },
+                {
+                    "id": "EXT-02",
+                    "mandatory": true,
+                    "requirement": "Approval workflow: notify admin, review, approve / reject with reason, email result",
+                    "status": "available",
+                    "evidence": "Requests are reviewed with all their data: approve (creates the account and, for trainers, the trainer profile with an activation link), reject with a reason, or ask for more information; applicants are told by e-mail at every step and each submission keeps a number and an immutable PDF snapshot.",
+                    "phase": null
+                },
+                {
+                    "id": "EXT-03",
+                    "mandatory": false,
+                    "requirement": "Configurable form fields, target categories and extra conditions",
+                    "status": "available",
+                    "evidence": "Form designer per audience (`/admin/registration-forms`: trainee, trainer, other): fields of 10 types with Arabic/English labels and options, required flags, allowed e-mail domains, opening and closing dates and a shareable link.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "NDS",
+            "title_en": "Needs Assessment & Annual Plan",
+            "title_ar": "حصر الاحتياجات وبناء الخطة التدريبية السنوية",
+            "items": [
+                {
+                    "id": "NDS-01",
+                    "mandatory": true,
+                    "requirement": "Needs-assessment toolset that feeds the annual plan",
+                    "status": "available",
+                    "evidence": "Needs workspace (`/admin/needs-hub`): cycle + proposals, manager requests, staff needs, performance data, rules, gap analysis and the competency framework; accepted items and gaps flow into the annual plan draft.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-02",
+                    "mandatory": false,
+                    "requirement": "Department program-proposal form in a time window (groups, axes, days/hours, kit, trainers, priority)",
+                    "status": "available",
+                    "evidence": "Yearly needs cycle with an opening and closing window (`needs_cycles`); department/school proposals carry every RFP field (groups, axes, target jobs, days, hours, kit availability, trainer nominations, importance, justification); submissions outside the window are refused; reminders and auto-close (`tedc:needs-cycles`).",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-03",
+                    "mandatory": false,
+                    "requirement": "Manager request form for institutional needs with objectives",
+                    "status": "available",
+                    "evidence": "Direct-manager requests for their own staff (`institutional_requests`): need degree, objectives, employees, preferred window; reviewed (accept / merge / reject) and converted to plan items.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-04",
+                    "mandatory": false,
+                    "requirement": "Individual needs surveys linked to job competencies + manager approval",
+                    "status": "available",
+                    "evidence": "Employees declare needs (`POST /me/needs`) and surveys create needs from low self-ratings; the direct manager approves or rejects in bulk with a note, and a configurable auto-approval after N days is audited.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-05",
+                    "mandatory": false,
+                    "requirement": "Rule-based needs: new hires, annual appraisals, classroom observations, specialisation, competencies",
+                    "status": "available",
+                    "evidence": "Needs rules (`needs_rules`) run nightly and on demand for new hires, appraisals, classroom observations and specialisation/stage; every need carries an explanation and re-runs never duplicate. Licence and test triggers are wired for Phases 06 and 09.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-06",
+                    "mandatory": false,
+                    "requirement": "Automatic gap analysis vs competency framework & licence requirements, prioritised",
+                    "status": "available",
+                    "evidence": "Competency framework with level descriptors and required levels per job (stage/subject overrides); current level blended from verified level, manager rating, observations and self rating with editable weights and shown evidence; gaps ranked by gap × people × licence weight with explanations, uncovered gaps listed and sent to the plan.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-07",
+                    "mandatory": true,
+                    "requirement": "Generate the annual plan (program, audience, priority) with review and approval",
+                    "status": "available",
+                    "evidence": "Annual plan (`training_plans`): generated from approved needs with an explained score per item, reviewed, returned or approved by the right role, baseline snapshot, signed copy reference, Excel/PDF export (`AnnualPlanService`, `/admin/plans`).",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-08",
+                    "mandatory": false,
+                    "requirement": "Yearly planning rules and program types (ترخيص، تمكين، تمهين، تخصيص، تخيير)",
+                    "status": "available",
+                    "evidence": "The five programme types (ترخيص، تمكين، تمهين، تخصيص، تخيير) on categories, programmes and plan items; generation keeps only the year's types (others listed with the reason), adds placeholders for mandatory categories and keeps items in priority order within the seat and hour caps (the rest deferred with the reason); submission is refused while a rule is broken unless the head of planning records an audited exception; compliance on the plan page and in its export (PlanRulesEnforcementTest). Phase 20.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-09",
+                    "mandatory": false,
+                    "requirement": "Program objectives, axes, units, competencies and summary",
+                    "status": "available",
+                    "evidence": "Program axes, objectives and units with hours (`program_units`), edited on the program Structure tab; competencies through the existing skills.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-10",
+                    "mandatory": false,
+                    "requirement": "Program & group catalogue with tabs per category and full details",
+                    "status": "available",
+                    "evidence": "Public catalogue with categories, details and eligibility check.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-11",
+                    "mandatory": false,
+                    "requirement": "Publish / cancel programs and edit group details",
+                    "status": "available",
+                    "evidence": "Groups are created, edited, cloned, published/unpublished and cancelled with a mandatory reason and notifications to registrants, supervisor and managers; the public catalogue lists only published groups.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-12",
+                    "mandatory": false,
+                    "requirement": "Flag emergency (unplanned) programs for reporting",
+                    "status": "available",
+                    "evidence": "Groups and plan items can be flagged emergency with a reason; the plan execution view splits planned and emergency work and lists unplanned groups as deviations.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-13",
+                    "mandatory": false,
+                    "requirement": "Central status board: planned, ongoing, incomplete, postponed, cancelled, completed",
+                    "status": "available",
+                    "evidence": "Status board (`/admin/groups`): planned, registration open, ongoing, incomplete, postponed, cancelled, completed; drag a card to change status with the reason dialog; table view and filters; hourly lifecycle job.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-14",
+                    "mandatory": false,
+                    "requirement": "Real-time plan execution tracking and deviation detection",
+                    "status": "available",
+                    "evidence": "Plan execution (`GET /admin/plans/{id}/execution`): planned vs created vs executed groups, seats and hours, % execution, % changed after approval, emergency share and a deviation list (late, under-filled, cancelled, postponed, unplanned); daily job `tedc:plan-deviations` notifies planning staff.",
+                    "phase": null
+                },
+                {
+                    "id": "NDS-15",
+                    "mandatory": false,
+                    "requirement": "Approve needs and evaluation instruments before they are distributed",
+                    "status": "available",
+                    "evidence": "Needs surveys cannot be published until the planning head approves them (`instruments.approve`); returned with a note, audited and notified. Evaluation forms join the same flow in Phase 08.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "ENR",
+            "title_en": "Course Management & Admission Rules",
+            "title_ar": "إدارة الدورات التدريبية وضوابط الالتحاق",
+            "items": [
+                {
+                    "id": "ENR-01",
+                    "mandatory": true,
+                    "requirement": "Beneficiary entities per program and seat allocation per entity",
+                    "status": "available",
+                    "evidence": "Seats per group split across schools, school groups, departments and job groups with an open pool (`group_seat_allocations`, `SeatAllocationService`); the total never exceeds capacity, full entities fall back to the open pool then the waiting list, and unused seats are released hourly (`tedc:seats-release`). Program page → Admission tab.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-02",
+                    "mandatory": true,
+                    "requirement": "Configurable registration-priority rules",
+                    "status": "available",
+                    "evidence": "Configurable priority rules (`registration_priority_rules`: plan-targeted, approved need, time without training, appraisal, entity priority, job titles, registration date) rank applicants and promote the waiting list, with an explanation per person and a live preview in Admission rules.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-03",
+                    "mandatory": true,
+                    "requirement": "Waiting list with automatic promotion",
+                    "status": "available",
+                    "evidence": "FIFO waiting list, auto-promotion when a seat frees up.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-04",
+                    "mandatory": false,
+                    "requirement": "Block repeated or equivalent courses; configurable equivalents",
+                    "status": "available",
+                    "evidence": "Equivalent programs (one- or two-way) and a per-program repeat policy (block / warn / allow); staff can override with a reason.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-05",
+                    "mandatory": false,
+                    "requirement": "Prerequisites per course, editable by admin",
+                    "status": "available",
+                    "evidence": "Eligibility rules completed / not-completed.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-06",
+                    "mandatory": true,
+                    "requirement": "Prevent time-conflicting registrations (switchable per course)",
+                    "status": "available",
+                    "evidence": "Time clashes are blocked at registration against approved programs and at approval of a second overlapping one; the group setting `allow_overlap_until_approved` controls registering in two overlapping groups before either is approved.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-07",
+                    "mandatory": true,
+                    "requirement": "Target criteria: gender, entity, school, job title, job group, experience, nationality, stage, specialisation",
+                    "status": "available",
+                    "evidence": "Smart Eligibility Engine with per-rule explanations.",
+                    "phase": null
+                },
+                {
+                    "id": "ENR-08",
+                    "mandatory": false,
+                    "requirement": "Extra criteria: experience in/out Ministry & in current title, licence, grade/subject, 3-year appraisal",
+                    "status": "available",
+                    "evidence": "Rule editor and audience builder gained Ministry / outside experience, years in the current title, job grade, subjects, grades taught, appraisal min/avg over 3 years and an equivalent-completed field; the licence criterion is hooked for Phase 09.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "REG",
+            "title_en": "Registration Mechanisms",
+            "title_ar": "آليات التسجيل في البرامج التدريبية",
+            "items": [
+                {
+                    "id": "REG-01",
+                    "mandatory": true,
+                    "requirement": "Employee self-registration within the registration window",
+                    "status": "available",
+                    "evidence": "Window enforced, eligibility explained.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-02",
+                    "mandatory": false,
+                    "requirement": "Two-stage approval: direct manager (within entity seats) → training centre",
+                    "status": "available",
+                    "evidence": "Self-registration goes to the direct manager (supervisor, else the school's academic deputy) and then the training centre; manager registrations skip the first stage; admin imports are approved; the group `approval_mode` can be center_only or auto; the approval path is shown to the trainee on web and in the app.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-03",
+                    "mandatory": true,
+                    "requirement": "Registration by direct manager, then centre approval",
+                    "status": "available",
+                    "evidence": "School nomination → pending → centre approval.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-04",
+                    "mandatory": true,
+                    "requirement": "Registration by system admin, auto-approved, status editable later",
+                    "status": "available",
+                    "evidence": "Centre nomination with audited override.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-05",
+                    "mandatory": false,
+                    "requirement": "Bulk registration by Excel import",
+                    "status": "available",
+                    "evidence": "Excel / CSV import through the same rules.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-06",
+                    "mandatory": false,
+                    "requirement": "Acceptance tools: priority and prior-training analysis",
+                    "status": "available",
+                    "evidence": "Candidate list per group with priority score and explanation, completed programs in 12 months, hours this year vs the annual minimum, same-category completions and attendance; bulk acceptance stops at the seats.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-07",
+                    "mandatory": false,
+                    "requirement": "No approval before the registration period closes",
+                    "status": "available",
+                    "evidence": "Centre approval of self-registrations is blocked until the registration window closes (`approve_after_window`), with a clear message and an audited override reason.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-08",
+                    "mandatory": false,
+                    "requirement": "Approval / cancellation notices with program details and pass conditions",
+                    "status": "available",
+                    "evidence": "Event templates per status.",
+                    "phase": null
+                },
+                {
+                    "id": "REG-09",
+                    "mandatory": false,
+                    "requirement": "Configurable automatic notification rules (register, cancel, missing tasks, completion)",
+                    "status": "available",
+                    "evidence": "Template per event with channel toggles.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "ATT",
+            "title_en": "Attendance, Leave & Absence",
+            "title_ar": "الحضور والانصراف والاستئذان",
+            "items": [
+                {
+                    "id": "ATT-01",
+                    "mandatory": false,
+                    "requirement": "Paper sign-in sheets, then manual entry by an authorised supervisor",
+                    "status": "available",
+                    "evidence": "Manual marking with recorded_by.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-02",
+                    "mandatory": true,
+                    "requirement": "Direct marking by trainer / supervisor, audited",
+                    "status": "available",
+                    "evidence": "Session attendance screen.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-03",
+                    "mandatory": false,
+                    "requirement": "Electronic signature on a tablet",
+                    "status": "available",
+                    "evidence": "Tablet kiosk (`/kiosk/sessions/{id}`): large touch targets, the trainee finds their name and signs on screen to check in or out; signatures are stored privately with the record, the kiosk opening is audited, and manual entry by non-centre staff can be limited to the first N minutes.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-04",
+                    "mandatory": false,
+                    "requirement": "QR code per workshop / day with a configurable time window",
+                    "status": "available",
+                    "evidence": "HMAC-signed QR rotating every 30 s, check-in/out, lateness.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-05",
+                    "mandatory": false,
+                    "requirement": "Fingerprint attendance-system integration (trainees and trainers)",
+                    "status": "partial",
+                    "evidence": "Fingerprint gateway (`FingerprintGateway`): signed webhook (generic HTTP and the ZKTeco ADMS ATTLOG push format) and CSV import match punches to the person and the session running in the device's room, ignore duplicates and report unmatched ones; device registry, test and log on `/admin/absence`. A vendor-specific pull SDK needs the Ministry's device model and network access.",
+                    "phase": 5
+                },
+                {
+                    "id": "ATT-06",
+                    "mandatory": false,
+                    "requirement": "Trainer attendance and staff scanning of trainee / trainer QR",
+                    "status": "available",
+                    "evidence": "Trainers record attendance by the session QR, by a staff scan of their personal QR (`/me/attendance-qr`, rotates daily), or by the supervisor; staff scan trainees the same way (grant `attendance.mark` required); QR check-in/out windows per session or globally; trainer minutes feed the hours report.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-07",
+                    "mandatory": true,
+                    "requirement": "Teams attendance % from total participation time",
+                    "status": "available",
+                    "evidence": "Attendance computed from time in the Teams call (intervals, leave and re-join, minimum presence, late), feeding the attendance percentage and absence rules; trainer marks are kept (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-08",
+                    "mandatory": false,
+                    "requirement": "Absence-threshold alert to supervisor; email to trainee & manager with notes",
+                    "status": "available",
+                    "evidence": "After each session the hourly job computes absence per trainee, announces a warning and a breach once each (levels configurable), tells the supervisor and the trainee and, on breach, the direct manager; the supervisor adds a note and resends from the Absence page.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-09",
+                    "mandatory": false,
+                    "requirement": "Absence excuses with documents and manager approval workflow",
+                    "status": "available",
+                    "evidence": "Trainees send absence excuses with documents (web and app); the direct manager approves or rejects; approved excuses mark the days `excused` and, by policy, either leave them out of the maths or count them as attended.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-10",
+                    "mandatory": false,
+                    "requirement": "Leave / permission (استئذان) entry with attachments and notification",
+                    "status": "available",
+                    "evidence": "Supervisors record late arrival, early leave or temporary leave with minutes, reason and attachments; the minutes are deducted from attendance, the trainee is notified (policy) and a leave can be removed to restore them.",
+                    "phase": null
+                },
+                {
+                    "id": "ATT-11",
+                    "mandatory": false,
+                    "requirement": "Attendance records and reports; Excel and PDF export",
+                    "status": "available",
+                    "evidence": "Detailed attendance and absence per trainee, per group with leave minutes, printable group sheets and the trainee's own attendance, all exportable to Excel, PDF and Word (Phase 12).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "CNT",
+            "title_en": "Content Management & Digital Library",
+            "title_ar": "إدارة المحتوى التدريبي",
+            "items": [
+                {
+                    "id": "CNT-01",
+                    "mandatory": false,
+                    "requirement": "SCORM and xAPI compliance for upload and playback",
+                    "status": "available",
+                    "evidence": "SCORM runtime and xAPI LRS with native activity recorded as xAPI",
+                    "phase": null
+                },
+                {
+                    "id": "CNT-02",
+                    "mandatory": true,
+                    "requirement": "Dedicated content admin panel: create, edit, share with permissions",
+                    "status": "available",
+                    "evidence": "Online course builder + Training Kit Studio.",
+                    "phase": null
+                },
+                {
+                    "id": "CNT-03",
+                    "mandatory": false,
+                    "requirement": "Content versioning, periodic updates and long-term archiving",
+                    "status": "available",
+                    "evidence": "Lesson versions: publish, keep/move learners, diff, restore, archive (quiz questions not pinned)",
+                    "phase": null
+                },
+                {
+                    "id": "CNT-04",
+                    "mandatory": false,
+                    "requirement": "Digital library (books, journals, AV, kits) with IP rights, audience rules, search, download",
+                    "status": "available",
+                    "evidence": "Digital library with rights, audience rules, Arabic search, reader, shelves, ratings",
+                    "phase": null
+                },
+                {
+                    "id": "CNT-05",
+                    "mandatory": false,
+                    "requirement": "External libraries: Maktabati and Qatar National Library",
+                    "status": "partial",
+                    "evidence": "External library search (deep link / JSON API) and import; real Maktabati/QNL endpoints to be configured",
+                    "phase": 10
+                }
+            ]
+        },
+        {
+            "code": "PAS",
+            "title_en": "Passing & Certificates",
+            "title_ar": "اجتياز البرامج التدريبية وإصدار الشهادات",
+            "items": [
+                {
+                    "id": "PAS-01",
+                    "mandatory": true,
+                    "requirement": "Pass criteria with relative weights (attendance, participation, tasks, tests)",
+                    "status": "available",
+                    "evidence": "Weighted/all-required passing policy per group, program or global — docs/rfp/phase-07-passing-rules.md",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-02",
+                    "mandatory": false,
+                    "requirement": "Test builder: MC, multi-select, dropdown, matrix, image/video, drag-and-drop",
+                    "status": "available",
+                    "evidence": "Test builder with 14 question types: single choice, multiple select, true/false, dropdown, matrix, image hotspot, ordering, matching, drag-and-drop categorisation, fill in the blanks, numeric, short answer, essay and H5P, all with media.",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-03",
+                    "mandatory": false,
+                    "requirement": "Required tasks set per course and submitted electronically",
+                    "status": "available",
+                    "evidence": "Tasks with file / text submissions and versions.",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-04",
+                    "mandatory": false,
+                    "requirement": "Trainer approves, rejects or returns tasks with notes",
+                    "status": "available",
+                    "evidence": "Submission review.",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-05",
+                    "mandatory": false,
+                    "requirement": "Final approval by course supervisor; auto-approval for self-learning",
+                    "status": "available",
+                    "evidence": "Trainer-then-supervisor task approval; automatic for self-assessed tasks",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-06",
+                    "mandatory": false,
+                    "requirement": "Objective questions auto-graded; essays graded manually",
+                    "status": "available",
+                    "evidence": "Manual grading queue, regrade with replacement, release of results",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-07",
+                    "mandatory": false,
+                    "requirement": "Pass via a comprehensive skills test without attending",
+                    "status": "available",
+                    "evidence": "Pass by the comprehensive skills test without attending (test-out)",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-08",
+                    "mandatory": true,
+                    "requirement": "Certificate designer: logos, background, watermark, text, e-signature",
+                    "status": "available",
+                    "evidence": "Designer from PDF / image templates, bilingual PDF (mPDF).",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-09",
+                    "mandatory": false,
+                    "requirement": "Certificate hours: total vs actually attended",
+                    "status": "available",
+                    "evidence": "Total or actual attended hours on the certificate",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-10",
+                    "mandatory": true,
+                    "requirement": "Attendance certificate vs pass certificate (or both)",
+                    "status": "available",
+                    "evidence": "Attendance, pass or both certificate types with their own templates",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-11",
+                    "mandatory": false,
+                    "requirement": "Satisfaction survey required before viewing / printing",
+                    "status": "available",
+                    "evidence": "Download unlocked after the survey.",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-12",
+                    "mandatory": false,
+                    "requirement": "Keep graduates’ records after they leave; archive and reprint",
+                    "status": "available",
+                    "evidence": "Records retained; certificates re-renderable.",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-13",
+                    "mandatory": false,
+                    "requirement": "Manual exception from the attendance condition, documented",
+                    "status": "available",
+                    "evidence": "Documented, audited, revocable exceptions with reason and attachment",
+                    "phase": null
+                },
+                {
+                    "id": "PAS-14",
+                    "mandatory": true,
+                    "requirement": "Public verification by certificate number or QR",
+                    "status": "available",
+                    "evidence": "/verify page with QR.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "ROM",
+            "title_en": "Training Rooms & Logistics",
+            "title_ar": "إدارة القاعات التدريبية",
+            "items": [
+                {
+                    "id": "ROM-01",
+                    "mandatory": false,
+                    "requirement": "Training places with map / website link",
+                    "status": "available",
+                    "evidence": "Coordinates and location details.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-02",
+                    "mandatory": false,
+                    "requirement": "Room details: name, type, capacity, description, floor/building, equipment",
+                    "status": "available",
+                    "evidence": "Rich room catalogue.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-03",
+                    "mandatory": false,
+                    "requirement": "Allocate rooms to workshops by schedule",
+                    "status": "available",
+                    "evidence": "Session room assignment.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-04",
+                    "mandatory": false,
+                    "requirement": "Book rooms for non-training use by authorised users",
+                    "status": "available",
+                    "evidence": "Authorised staff book rooms for meetings, exams, events or maintenance (`/admin/room-bookings`); conflicts are checked against sessions and other bookings and show who holds the room; the occupancy calendar shows sessions and bookings together.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-05",
+                    "mandatory": false,
+                    "requirement": "Block double booking and show the occupying program",
+                    "status": "available",
+                    "evidence": "Conflict error lists the occupying sessions.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-06",
+                    "mandatory": false,
+                    "requirement": "Never approve more trainees than room capacity; capacity per room / place / building",
+                    "status": "available",
+                    "evidence": "Effective capacity = the lowest of the room, its building and its place; assigning a room to a session and approving registrations both refuse to exceed it (override with a reason); places → buildings → rooms hierarchy.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-07",
+                    "mandatory": false,
+                    "requirement": "Seating plan inside the room",
+                    "status": "available",
+                    "evidence": "Seating designer per room and session or group: grid with blocked seats, manual assignment, automatic assignment (alphabetical, by school, random) with an 'insufficient seats' check, and a printable plan.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-08",
+                    "mandatory": true,
+                    "requirement": "Weekly / monthly occupancy calendar, live free / booked view",
+                    "status": "available",
+                    "evidence": "Room wall, availability view, door screens.",
+                    "phase": null
+                },
+                {
+                    "id": "ROM-09",
+                    "mandatory": false,
+                    "requirement": "Logistics requirements routed automatically to the logistics team",
+                    "status": "available",
+                    "evidence": "Logistics requests (equipment, catering, printing, IT, arrangement) go to the logistics team's queue, are tracked New → In progress → Done with notifications to the requester, and overdue ones escalate hourly.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "WDR",
+            "title_en": "Withdrawal Paths",
+            "title_ar": "مسارات الانسحاب",
+            "items": [
+                {
+                    "id": "WDR-01",
+                    "mandatory": true,
+                    "requirement": "After manager approval, withdrawal needs the manager’s approval",
+                    "status": "available",
+                    "evidence": "After the direct manager approved a registration, withdrawing becomes a request that the manager decides.",
+                    "phase": null
+                },
+                {
+                    "id": "WDR-02",
+                    "mandatory": true,
+                    "requirement": "After centre acceptance: manager then supervisor approval + reason form with attachments",
+                    "status": "available",
+                    "evidence": "After the centre accepted the seat, the request goes to the manager and then the program supervisor, with a reason form, optional attachments and rejection notes.",
+                    "phase": null
+                },
+                {
+                    "id": "WDR-03",
+                    "mandatory": false,
+                    "requirement": "Record timing: during window / before start / after start",
+                    "status": "available",
+                    "evidence": "The timing of every withdrawal is recorded (during the registration window / before the start / after the start) and late withdrawals are flagged.",
+                    "phase": null
+                },
+                {
+                    "id": "WDR-04",
+                    "mandatory": false,
+                    "requirement": "Free withdrawal while not yet approved",
+                    "status": "available",
+                    "evidence": "A trainee withdraws freely before the manager approved while registration is open; the seat is released and the waiting list promoted.",
+                    "phase": null
+                },
+                {
+                    "id": "WDR-05",
+                    "mandatory": true,
+                    "requirement": "Withdrawal rules configurable without code",
+                    "status": "available",
+                    "evidence": "Withdrawal policy and reasons are settings, no code: minimum days before the start, whether withdrawal after the start is allowed, and which reasons require attachments.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "SRV",
+            "title_en": "Surveys & Questionnaires",
+            "title_ar": "إدارة استطلاعات الرأي والاستبيانات",
+            "items": [
+                {
+                    "id": "SRV-01",
+                    "mandatory": true,
+                    "requirement": "Trainee satisfaction survey",
+                    "status": "available",
+                    "evidence": "Program survey (auto / manual opening) + evaluation.",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-02",
+                    "mandatory": true,
+                    "requirement": "Training-impact surveys",
+                    "status": "available",
+                    "evidence": "30 / 60 / 90-day surveys.",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-03",
+                    "mandatory": false,
+                    "requirement": "Planning-team program evaluation form",
+                    "status": "available",
+                    "evidence": "Planning-team evaluation form assigned by the planning head — docs/rfp/phase-08-evaluation.md",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-04",
+                    "mandatory": false,
+                    "requirement": "Trainer self-reflection form",
+                    "status": "available",
+                    "evidence": "Trainer self-reflection assigned at group end; results notify planning",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-05",
+                    "mandatory": false,
+                    "requirement": "Edit questions; create surveys for any purpose",
+                    "status": "available",
+                    "evidence": "Survey Studio with templates.",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-06",
+                    "mandatory": false,
+                    "requirement": "Question types: choice, rating / stars, open, etc.",
+                    "status": "available",
+                    "evidence": "Rating, NPS, choice, multiple, text.",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-07",
+                    "mandatory": true,
+                    "requirement": "Results per option with charts and tables",
+                    "status": "available",
+                    "evidence": "Survey report with charts.",
+                    "phase": null
+                },
+                {
+                    "id": "SRV-08",
+                    "mandatory": true,
+                    "requirement": "Export results to Excel, PDF and Word",
+                    "status": "available",
+                    "evidence": "Excel / PDF / Word / CSV export for satisfaction, evaluation forms and needs surveys",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "EXM",
+            "title_en": "Exams & Question Banks",
+            "title_ar": "إدارة الاختبارات",
+            "items": [
+                {
+                    "id": "EXM-01",
+                    "mandatory": true,
+                    "requirement": "Final, short and diagnostic tests",
+                    "status": "available",
+                    "evidence": "Assessment kinds: quiz, final, diagnostic, pre-test, post-test, comprehensive skills test and practice.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-02",
+                    "mandatory": true,
+                    "requirement": "Timed and open-duration tests",
+                    "status": "available",
+                    "evidence": "Time limit per quiz.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-03",
+                    "mandatory": true,
+                    "requirement": "Question types: multiple choice, multi-select, true/false",
+                    "status": "available",
+                    "evidence": "Supported.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-04",
+                    "mandatory": true,
+                    "requirement": "Question types: essay, matching, ordering, fill-in, categorisation, H5P, extensible",
+                    "status": "available",
+                    "evidence": "Essay, matching, ordering, fill in the blanks, categorisation, hotspot, numeric, matrix, dropdown, short answer and H5P items; new kinds plug into the `QuestionType` registry.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-05",
+                    "mandatory": true,
+                    "requirement": "Question banks by course / unit / difficulty, reusable, with media",
+                    "status": "available",
+                    "evidence": "Question banks by course, unit, category and difficulty with tags, versions, media, reuse across assessments and import/export (QTI).",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-06",
+                    "mandatory": false,
+                    "requirement": "Random selection from a bank",
+                    "status": "available",
+                    "evidence": "Random draw from a bank by category and difficulty mix, with shuffling of questions and options.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-07",
+                    "mandatory": false,
+                    "requirement": "Auto + manual grading, immediate / deferred feedback, question weights",
+                    "status": "available",
+                    "evidence": "Automatic grading of objective items, a manual grading queue for essays and short answers, per-question points, regrade, and immediate or deferred release of results.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-08",
+                    "mandatory": false,
+                    "requirement": "Attempts, time limit, show / hide results",
+                    "status": "available",
+                    "evidence": "Supported.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-09",
+                    "mandatory": false,
+                    "requirement": "Access codes and submission timestamps",
+                    "status": "available",
+                    "evidence": "Static and rotating access codes; the server stamps start, every autosave and submission (server-owned timer, resume, extra time).",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-10",
+                    "mandatory": true,
+                    "requirement": "Anti-cheating: activity tracking, face recognition",
+                    "status": "available",
+                    "evidence": "Activity tracking (page switches, focus, full screen, copy/paste, tabs, devtools) with flag or auto-submit, live invigilation, optional snapshots with consent, and since Phase 22 **face presence detection** (never identification): counting faces and noticing looking away in the browser's Web Worker (MediaPipe BlazeFace, served by TEDC), explicit consent with an in-centre or flagged alternative, debounced events and flags reviewed by people with a reason (audited), a minute-by-minute timeline, retention (90 days) and a DPIA note. `FacePresenceTest`, web unit tests, browser smoke test with a fake camera.",
+                    "phase": null
+                },
+                {
+                    "id": "EXM-11",
+                    "mandatory": false,
+                    "requirement": "Result analytics per trainee, group and program",
+                    "status": "available",
+                    "evidence": "Item analysis, difficulty and discrimination, distractors, by group",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "NTF",
+            "title_en": "Notifications & Announcements",
+            "title_ar": "إدارة الإشعارات",
+            "items": [
+                {
+                    "id": "NTF-01",
+                    "mandatory": true,
+                    "requirement": "In-app inbox and pop-up notifications",
+                    "status": "available",
+                    "evidence": "Notification centre, Supabase realtime, Firebase push.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-02",
+                    "mandatory": true,
+                    "requirement": "Email notifications",
+                    "status": "available",
+                    "evidence": "SMTP channel.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-03",
+                    "mandatory": true,
+                    "requirement": "SMS through the Hudhud system",
+                    "status": "partial",
+                    "evidence": "Hudhud driver with Arabic UCS-2 encoding, signed delivery-receipt webhook, test button, per-event SMS switches (Phase 11). The request/receipt shape follows a configurable assumption (base URL, path, key or user, receipt secret) and must be matched to the Ministry's Hudhud interface document before go-live.",
+                    "phase": 11
+                },
+                {
+                    "id": "NTF-04",
+                    "mandatory": false,
+                    "requirement": "Templates with branding and dynamic variables",
+                    "status": "available",
+                    "evidence": "Bilingual templates with variables and preview.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-05",
+                    "mandatory": true,
+                    "requirement": "Target by user type, job title, program, school",
+                    "status": "available",
+                    "evidence": "Audience builder: roles, job titles, schools, school groups, program participants (by registration status), trainers, supervisors, named people; live count and sample; senders only reach their own scope (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-06",
+                    "mandatory": false,
+                    "requirement": "Scheduled notifications and allowed send times / days",
+                    "status": "available",
+                    "evidence": "One-off and daily/weekly/monthly scheduled sends processed every minute; per-rule and per-channel allowed days and hours (Doha time) defer SMS, e-mail and push to the next window; delay minutes (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-07",
+                    "mandatory": true,
+                    "requirement": "Automatic event-driven notifications",
+                    "status": "available",
+                    "evidence": "Event catalogue + scheduler jobs.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-08",
+                    "mandatory": false,
+                    "requirement": "Manual notifications by admins",
+                    "status": "available",
+                    "evidence": "Send dialog with audience picker.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-09",
+                    "mandatory": false,
+                    "requirement": "Sound or visual alert on a new notification",
+                    "status": "available",
+                    "evidence": "Web: pop-up with the soft chime (per-user switch) and pulsing bell. App: the TEDC chime on Android channel tedc_alerts / silent tedc_quiet chosen per person, APNs tedc_chime.caf, and a foreground chime that respects the preference and silent mode, with a preview (MaterialSocialTest, push_sound_test.dart). The iOS build was not run in this phase (no Xcode on the build machine). Phase 19.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-10",
+                    "mandatory": false,
+                    "requirement": "Enable / disable types per user category; rules per program",
+                    "status": "available",
+                    "evidence": "Notification rules per event, program category, program and audience (most specific wins), channel limits, switch-off; users choose optional channels per event group; mandatory events ignore opt-out (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-11",
+                    "mandatory": false,
+                    "requirement": "Read / unread centre and sent log (recipient, date, type)",
+                    "status": "available",
+                    "evidence": "Campaign tracking.",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-12",
+                    "mandatory": false,
+                    "requirement": "Delivery status sent / read / failed; export PDF / Excel",
+                    "status": "available",
+                    "evidence": "Delivery tracking per person and channel (queued, sent, delivered, read, failed, skipped, with reasons), filters, drill-down by campaign, donut summary, Excel and PDF export in Arabic and English (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-13",
+                    "mandatory": false,
+                    "requirement": "Announcements: start/end window, several at once, pin, archive, republish, search",
+                    "status": "available",
+                    "evidence": "Announcement lifecycle draft, scheduled, published, expired, archived with display window, several live at once, ordered pinning, searchable archive, republish with media copied and window reset, push/e-mail on publish (Phase 11).",
+                    "phase": null
+                },
+                {
+                    "id": "NTF-14",
+                    "mandatory": true,
+                    "requirement": "Multimedia announcements (link, video, audio, text, image)",
+                    "status": "available",
+                    "evidence": "Announcements carry images, video, audio (player on web and mobile), files and links; audience filters; optional push and e-mail (Phase 11).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "KIT",
+            "title_en": "Training Kits & Content Sharing",
+            "title_ar": "أرشفة الحقائب التدريبية ومشاركة المحتوى",
+            "items": [
+                {
+                    "id": "KIT-01",
+                    "mandatory": true,
+                    "requirement": "Archive kits with all versions, linked to related courses",
+                    "status": "available",
+                    "evidence": "Versions, restore, archive.",
+                    "phase": null
+                },
+                {
+                    "id": "KIT-02",
+                    "mandatory": false,
+                    "requirement": "Kit-developer account uploads Word, PDF, PowerPoint, video, images, audio",
+                    "status": "available",
+                    "evidence": "Training Kit Studio.",
+                    "phase": null
+                },
+                {
+                    "id": "KIT-03",
+                    "mandatory": false,
+                    "requirement": "Supervisor approval, then assignment to one or more programs",
+                    "status": "available",
+                    "evidence": "Kits assigned to several programs with pinned version",
+                    "phase": null
+                },
+                {
+                    "id": "KIT-04",
+                    "mandatory": false,
+                    "requirement": "Upload and view many resource types incl. web links",
+                    "status": "available",
+                    "evidence": "PDF, DOCX, PPTX, media viewers.",
+                    "phase": null
+                },
+                {
+                    "id": "KIT-05",
+                    "mandatory": false,
+                    "requirement": "Share resources per course and with job groups (principals, teachers…)",
+                    "status": "available",
+                    "evidence": "Job groups as sharing targets",
+                    "phase": null
+                },
+                {
+                    "id": "KIT-06",
+                    "mandatory": false,
+                    "requirement": "Sharing-permission settings that protect IP",
+                    "status": "available",
+                    "evidence": "Per-role sharing policies, view-only protection, audited shares",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "PLC",
+            "title_en": "Professional Learning Communities",
+            "title_ar": "إدارة مجتمعات التعلم المهنية",
+            "items": [
+                {
+                    "id": "PLC-01",
+                    "mandatory": true,
+                    "requirement": "Create flexible communities by subject, interest or team",
+                    "status": "available",
+                    "evidence": "Communities by subject, interest or team, with visibility and join policy, behind the `plc` flag. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "PLC-02",
+                    "mandatory": true,
+                    "requirement": "Member roles (manager, moderator, member) with permissions",
+                    "status": "available",
+                    "evidence": "Owner / manager / moderator / member roles, approval, ban, staff override permissions. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "PLC-03",
+                    "mandatory": true,
+                    "requirement": "Votes, polls, open questions, comments, file sharing",
+                    "status": "available",
+                    "evidence": "Polls, questions, comments, reactions and real file sharing: uploads checked by content (EXIF stripped, thumbnails), private signed links, limits in settings and per space; web composer with drag-drop/paste/progress/cancel and the app with file picker and camera (SocialFilesTest, collaboration_test.dart). Phase 19.",
+                    "phase": null
+                },
+                {
+                    "id": "PLC-04",
+                    "mandatory": true,
+                    "requirement": "Meetings and events scheduling with automatic notifications",
+                    "status": "available",
+                    "evidence": "Space events with RSVP, notification on creation and a reminder 24 h before. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "PLC-05",
+                    "mandatory": true,
+                    "requirement": "Instant alerts on new topics and updates",
+                    "status": "available",
+                    "evidence": "Instant notification on new posts, comments, mentions, join requests, plus a daily digest; each person chooses all / mentions / none. Phase 14.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "EVL",
+            "title_en": "Training Evaluation & Impact",
+            "title_ar": "تقييم التدريب وقياس الأثر",
+            "items": [
+                {
+                    "id": "EVL-01",
+                    "mandatory": true,
+                    "requirement": "Trainee impact form after ≥ 1.5 months, with evidence uploads",
+                    "status": "available",
+                    "evidence": "Trainee impact form at 45 days (configurable) with evidence",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-02",
+                    "mandatory": true,
+                    "requirement": "Manager impact form with evidence",
+                    "status": "available",
+                    "evidence": "Manager impact form requested at 60 days (configurable) with evidence",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-03",
+                    "mandatory": true,
+                    "requirement": "Trainee satisfaction",
+                    "status": "available",
+                    "evidence": "Program survey.",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-04",
+                    "mandatory": false,
+                    "requirement": "Program-supervisor feedback",
+                    "status": "available",
+                    "evidence": "Program supervisor feedback form",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-05",
+                    "mandatory": false,
+                    "requirement": "Planning-specialist feedback",
+                    "status": "available",
+                    "evidence": "Planning specialist feedback form",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-06",
+                    "mandatory": true,
+                    "requirement": "Pre / post comparative analysis (knowledge gain)",
+                    "status": "available",
+                    "evidence": "Pre/post comparison, knowledge gain vs 35% target, distribution, per-skill, significance hint",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-07",
+                    "mandatory": false,
+                    "requirement": "Personal interviews log",
+                    "status": "available",
+                    "evidence": "Interviews log with sentiment and attachments",
+                    "phase": null
+                },
+                {
+                    "id": "EVL-08",
+                    "mandatory": false,
+                    "requirement": "Evaluation report: KPIs + classification (successful / needs review / weak) + recommendations",
+                    "status": "available",
+                    "evidence": "Program evaluation report with classification, recommendations, approval and export",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "CPD",
+            "title_en": "Comprehensive Professional Development",
+            "title_ar": "منظومة التطوير المهني الشامل",
+            "items": [
+                {
+                    "id": "CPD-01",
+                    "mandatory": true,
+                    "requirement": "Log external PD activities with details and evidence",
+                    "status": "available",
+                    "evidence": "External PD records with evidence",
+                    "phase": null
+                },
+                {
+                    "id": "CPD-02",
+                    "mandatory": true,
+                    "requirement": "Hours calculated by activity type and participation level",
+                    "status": "available",
+                    "evidence": "Hour rules per type and participation level with caps",
+                    "phase": null
+                },
+                {
+                    "id": "CPD-03",
+                    "mandatory": true,
+                    "requirement": "Direct-manager approval of activities",
+                    "status": "available",
+                    "evidence": "Direct-manager approval (approve / reject / return)",
+                    "phase": null
+                },
+                {
+                    "id": "CPD-04",
+                    "mandatory": false,
+                    "requirement": "Reports: total hours, distribution by domain / competency, approval rates",
+                    "status": "available",
+                    "evidence": "PD reports: hours, domain, approval rates, shortfalls; Excel/PDF/Word",
+                    "phase": null
+                },
+                {
+                    "id": "CPD-05",
+                    "mandatory": false,
+                    "requirement": "Annual minimum-hours tracking per employee",
+                    "status": "available",
+                    "evidence": "Annual minimum hours with alerts, calendar or fiscal year",
+                    "phase": null
+                },
+                {
+                    "id": "CPD-06",
+                    "mandatory": false,
+                    "requirement": "Request recognition of external courses (centre sets hours / equivalent programs)",
+                    "status": "available",
+                    "evidence": "Recognition requests with recognised hours and equivalent programs",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "RPT",
+            "title_en": "Reports & Analytics",
+            "title_ar": "التقارير والإحصائيات",
+            "items": [
+                {
+                    "id": "RPT-01",
+                    "mandatory": false,
+                    "requirement": "Role-specific reports + self-service dynamic report builder",
+                    "status": "available",
+                    "evidence": "Report builder for non-technical people: whitelisted datasets, columns with aggregates, plain-word filters, grouping, sorting, chart, live preview, save and share, schedule; nothing typed by a user reaches SQL (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-02",
+                    "mandatory": false,
+                    "requirement": "Export reports to Excel, PDF and Word",
+                    "status": "available",
+                    "evidence": "Excel (RTL, totals, one sheet per table), PDF (shaped Arabic, charts) and Word from one document model; large runs are produced by the minute job; downloads of personal data are audited; signed expiring links for scheduled sends (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-03",
+                    "mandatory": false,
+                    "requirement": "System-admin reports (employees, courses, paths, lookup, attendance, licence matrix, trainers, results, hours, periodic stats)",
+                    "status": "available",
+                    "evidence": "Employee data (entity type, workplace, licence, job title, experience, annual appraisal), employee courses (training path, programme, entity, job title, qualification, period), programmes with career paths, courses by employee number, attendance, licence matrix, trainers, results, hours, and yearly, quarterly and monthly statistics, in Excel, PDF and Word with coded values as words (RfpReportsTest). Phase 20.",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-04",
+                    "mandatory": false,
+                    "requirement": "Supervisor reports (printable sheets, workshop calendar, supervised programs, attendance & leave)",
+                    "status": "available",
+                    "evidence": "Printable attendance sheets per group, weekly/monthly workshop calendar, groups supervised in a period, attendance/absence/leave per group (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-05",
+                    "mandatory": false,
+                    "requirement": "Trainer reports (workshop calendar, delivered programs, process tracking)",
+                    "status": "available",
+                    "evidence": "Trainer's workshop calendar, statistics of programs and groups delivered, process tracking of their groups (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-06",
+                    "mandatory": false,
+                    "requirement": "Direct-manager reports (team courses, nominations & approval flow, attendance)",
+                    "status": "available",
+                    "evidence": "Courses obtained by staff in a period, nominations and approval flow, staff attendance and absence — limited to the manager's own staff (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-07",
+                    "mandatory": false,
+                    "requirement": "Trainee reports (calendar, annual / fiscal hours dashboard, eligible programs, history)",
+                    "status": "available",
+                    "evidence": "Approved workshop calendar, courses and hours by year or academic year, programs I can apply for, completed courses, my attendance, statement of courses in a period (PDF) — always about the person asking; also in the app (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-08",
+                    "mandatory": false,
+                    "requirement": "QA and kit-developer reports",
+                    "status": "available",
+                    "evidence": "Approved kits with their programs and supervisors (QA) and a kit developer's own kits and approval status (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-09",
+                    "mandatory": false,
+                    "requirement": "Leadership dashboard: plan execution %, plan changes %, high / low satisfaction groups",
+                    "status": "available",
+                    "evidence": "Leadership dashboard: plan execution %, changes after approval %, achievement by school and job category, highest and lowest satisfaction, low-satisfaction alerts, drill-down to reports (Phase 12).",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-10",
+                    "mandatory": false,
+                    "requirement": "Low-satisfaction alert (< 50 % once ≥ 80 % responded, editable thresholds)",
+                    "status": "available",
+                    "evidence": "Low-satisfaction alert (response ≥80% and average <50%, editable), once per group",
+                    "phase": null
+                },
+                {
+                    "id": "RPT-11",
+                    "mandatory": false,
+                    "requirement": "Predictive analytics and reports",
+                    "status": "available",
+                    "evidence": "Forecast and risk pages with explanations and plan hand-off, exported to Excel, PDF and Word (range, trend, confidence, explanation; risks with reasons), Arabic right to left and English (ForecastExportTest). Phase 20.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "UTR",
+            "title_en": "User Training, Help & Support",
+            "title_ar": "تدريب المستخدمين والدعم الفني",
+            "items": [
+                {
+                    "id": "UTR-01",
+                    "mandatory": false,
+                    "requirement": "Role-tailored manuals with screenshots, videos and a downloadable PDF",
+                    "status": "partial",
+                    "evidence": "Help centre with 28 bilingual articles for 17 roles, contextual «?» panel by page, versioned editor with screenshot/video upload, role manuals as branded PDF (Arabic or English) built from current versions, guided tours, mobile help (`pages/HelpCentre.tsx`, `components/help/*`, `HelpService`, `HelpCentreTest`). **Not done:** real annotated screenshots and screen-recording videos have not been captured; someone must produce them with the centre (see `docs/rfp/phase-18-adoption-help-deliverables.md`).",
+                    "phase": 18
+                },
+                {
+                    "id": "UTR-02",
+                    "mandatory": false,
+                    "requirement": "Staff training and Train-the-Trainer plan",
+                    "status": "available",
+                    "evidence": "Staff training and Train-the-Trainer plan (`docs/deliverables/05-training-adoption-plan.md`): audiences, schedule, materials, assessments, adoption KPIs, change and communication plan, risks. The sessions themselves are delivered as a service with the centre.",
+                    "phase": null
+                },
+                {
+                    "id": "UTR-03",
+                    "mandatory": false,
+                    "requirement": "Support channels (phone, email, Saaed)",
+                    "status": "partial",
+                    "evidence": "Help centre lists phone, email and Saaed portal with working hours and the P1–P4 service levels; «Report a problem» creates a Saaed ticket and shows its status. **The centre must supply the phone, email and Saaed link** (`TEDC_SUPPORT_PHONE`, `TEDC_SUPPORT_EMAIL`, `TEDC_SUPPORT_SAAED_URL`); until then the page says «Set by the centre».",
+                    "phase": 18
+                },
+                {
+                    "id": "UTR-04",
+                    "mandatory": false,
+                    "requirement": "In-portal issue-reporting page linked to Saaed",
+                    "status": "available",
+                    "evidence": "Report-a-problem on web and in the app: category, priority, description, screenshot, page and context captured; tickets reach Saaed (queued and retried), status and number come back as notifications. Saaed's API shape is assumed (Phase 13).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "EKT",
+            "title_en": "Interactive e-Learning Kits",
+            "title_ar": "الحقائب الإلكترونية",
+            "items": [
+                {
+                    "id": "EKT-01",
+                    "mandatory": false,
+                    "requirement": "Two interactive e-learning kits produced with the centre for phase 1",
+                    "status": "partial",
+                    "evidence": "Two interactive kits in `backend/resources/ekits/kits.json` (portal use; effective classroom questioning) with trainer/trainee guides and session plan; `tedc:ekits-build` publishes them as e-courses (chapter reading + knowledge checks, final assessment drawn from a question bank, certificate) and exports SCORM 2004 packages in Arabic and English (`EKitsTest`: published and completed end to end as a trainee; manifest parsed). **Not done:** the topics are proposals to agree with the centre; content is a compact first version; no H5P interactions, interactive video, drag-and-drop, captions or xAPI; the package was not run in a real LMS.",
+                    "phase": 18
+                }
+            ]
+        },
+        {
+            "code": "APP",
+            "title_en": "Phase 2 · Multi-platform App",
+            "title_ar": "المرحلة الثانية · توفير تطبيق",
+            "items": [
+                {
+                    "id": "APP-01",
+                    "mandatory": false,
+                    "requirement": "Fast multi-platform app, fully responsive on phones, tablets, computers",
+                    "status": "available",
+                    "evidence": "Flutter app (Android APK via CI, iOS-ready) + responsive web.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "PAY",
+            "title_en": "Phase 2 · Course Purchasing",
+            "title_ar": "المرحلة الثانية · شراء الدورات",
+            "items": [
+                {
+                    "id": "PAY-01",
+                    "mandatory": false,
+                    "requirement": "Browse catalogue, add courses to a cart, check out",
+                    "status": "available",
+                    "evidence": "Catalogue prices, cart with seat holds, discount codes, VAT, checkout, invoices, receipts, orders and refund requests (web and app). Phase 16.",
+                    "phase": null
+                },
+                {
+                    "id": "PAY-02",
+                    "mandatory": false,
+                    "requirement": "Pay through the Ministry e-payment gateway",
+                    "status": "partial",
+                    "evidence": "Hosted-page redirect with signed server-to-server callback (idempotent), refunds, reconciliation, training gateway; the Ministry gateway's real specification is assumed and has been tested against a mock only. Phase 16.",
+                    "phase": 16
+                },
+                {
+                    "id": "PAY-03",
+                    "mandatory": false,
+                    "requirement": "Entities buy course bundles for their staff",
+                    "status": "available",
+                    "evidence": "Entity accounts buy seats, receive vouchers, assign them by employee number or e-mail, staff redeem them (eligibility checked); expiry, reminders, usage dashboard. Phase 16.",
+                    "phase": null
+                },
+                {
+                    "id": "PAY-04",
+                    "mandatory": false,
+                    "requirement": "Paid / free pricing per trainee category",
+                    "status": "available",
+                    "evidence": "Price lists per group or programme with ordered rules per trainee category (free for ministry staff, paid for others, per-seat for entities), preview as each category. Phase 16.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "COL",
+            "title_en": "Phase 2 · Collaboration & Knowledge Sharing",
+            "title_ar": "المرحلة الثانية · التعاون والتواصل المعرفي",
+            "items": [
+                {
+                    "id": "COL-01",
+                    "mandatory": false,
+                    "requirement": "Discussion forums per program and per group",
+                    "status": "available",
+                    "evidence": "Forums per programme and per group, membership following registrations; trainers moderate. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "COL-02",
+                    "mandatory": false,
+                    "requirement": "Comments and notes on lessons and materials",
+                    "status": "available",
+                    "evidence": "Discussion threads and private notes on lessons and on every material (material_thread spaces, notes by subject); web materials window and app material screen with Discussion / My notes / Rating (MaterialSocialTest). Phase 19.",
+                    "phase": null
+                },
+                {
+                    "id": "COL-03",
+                    "mandatory": false,
+                    "requirement": "Content rating and reviews by trainees and trainers",
+                    "status": "available",
+                    "evidence": "One rating card (average, 5→1 spread, newest reviews, own rating) on lessons, materials, kits, library items and programmes on web and app; who may rate follows registration, audience and kit access; moderators hide with an audited reason, and edits keep a hidden review hidden (MaterialSocialTest, collaboration_test.dart). Phase 19.",
+                    "phase": null
+                },
+                {
+                    "id": "COL-04",
+                    "mandatory": false,
+                    "requirement": "File sharing inside discussions",
+                    "status": "available",
+                    "evidence": "Files and links inside posts and comments (up to 4 MB through the API, bigger straight to storage), readable only by people who may read the post or comment; galleries, viewer, players and file cards on web and app (SocialFilesTest). Phase 19.",
+                    "phase": null
+                },
+                {
+                    "id": "COL-05",
+                    "mandatory": false,
+                    "requirement": "Private trainers’ knowledge channel",
+                    "status": "available",
+                    "evidence": "Private trainers' channel for active trainers, moderated by the training team. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "COL-06",
+                    "mandatory": false,
+                    "requirement": "Instant notifications on posts; permissions per role and level",
+                    "status": "available",
+                    "evidence": "Notifications on posts, per-person preferences, permissions per role (`communities.*`, `forums.moderate`). Phase 14.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "AI",
+            "title_en": "Phase 2 · Artificial Intelligence",
+            "title_ar": "المرحلة الثانية · الذكاء الاصطناعي",
+            "items": [
+                {
+                    "id": "AI-01",
+                    "mandatory": true,
+                    "requirement": "Behavioural analytics and personalised recommendations",
+                    "status": "available",
+                    "evidence": "Hybrid recommender: rule score + colleagues' completions (item similarity) + own behaviour + same-job ratings + date clashes; explained; weights, A/B test and feedback loop; falls back to the rule engine. Phase 15.",
+                    "phase": null
+                },
+                {
+                    "id": "AI-02",
+                    "mandatory": true,
+                    "requirement": "Smart assessment with instant feedback from answer analysis",
+                    "status": "available",
+                    "evidence": "Instant objective feedback (distractor analysis, competency, what to review) and essay drafts for the grader (rubric criteria, suggested score); a draft never becomes a grade by itself. Phase 15.",
+                    "phase": null
+                },
+                {
+                    "id": "AI-03",
+                    "mandatory": true,
+                    "requirement": "Adaptive content that adjusts to each learner",
+                    "status": "available",
+                    "evidence": "Adaptive practice and quizzes: difficulty per competency from mastery, up after two correct answers and down after a wrong one, the reason for every question shown to the learner (web and app) and the difficulty path to the teacher; review lessons assigned below the mastery threshold, visible only to that learner and cleared when mastered; thresholds in Settings → AI. Phase 21.",
+                    "phase": null
+                },
+                {
+                    "id": "AI-04",
+                    "mandatory": true,
+                    "requirement": "Predictive reports on future PD needs",
+                    "status": "available",
+                    "evidence": "Next-year forecasts by competency, job title and school (Holt smoothing with range and explanation) and risk lists (hours, licences, under-filled groups, satisfaction); suggested items added to a draft plan. Phase 15.",
+                    "phase": null
+                },
+                {
+                    "id": "AI-05",
+                    "mandatory": true,
+                    "requirement": "ML assistant that answers trainees’ questions",
+                    "status": "partial",
+                    "evidence": "**Ready — waiting for:** the in-country model endpoint (Azure OpenAI in Qatar or the Ministry's approved provider) and a golden-set run against it. Built in Phase 21: pgvector store (HNSW per embedder) with the JSON fallback, model embeddings with resumable re-embedding, answers streamed with Stop, and a 40-question Arabic/English golden set measured in CI (hit@3, hit@5, citations, refusals); assistant answering from permitted content with citations since Phase 15.",
+                    "phase": 15
+                }
+            ]
+        },
+        {
+            "code": "GAM",
+            "title_en": "Phase 2 · Gamification",
+            "title_ar": "المرحلة الثانية · التلعيب",
+            "items": [
+                {
+                    "id": "GAM-01",
+                    "mandatory": false,
+                    "requirement": "Points system and leaderboard",
+                    "status": "available",
+                    "evidence": "Points ledger with rules, caps and reversals; weekly / monthly / term leaderboards by ministry, school, region, programme; opt-out. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "GAM-02",
+                    "mandatory": false,
+                    "requirement": "Badges and achievements",
+                    "status": "available",
+                    "evidence": "Rule-based and manual badges with safe SVG icons. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "GAM-03",
+                    "mandatory": false,
+                    "requirement": "Levels (beginner → expert)",
+                    "status": "available",
+                    "evidence": "Six editable levels from newcomer to pioneer; level-up notification. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "GAM-04",
+                    "mandatory": false,
+                    "requirement": "Timed challenges and rewards",
+                    "status": "available",
+                    "evidence": "Timed challenges with audience, goal and reward; rewards shop with level, stock and refunds. Phase 14.",
+                    "phase": null
+                },
+                {
+                    "id": "GAM-05",
+                    "mandatory": false,
+                    "requirement": "Personal progress dashboard; admin-configurable; can be switched on / off",
+                    "status": "available",
+                    "evidence": "Personal achievements page; studio for admins; master flag plus per-role and per-programme switches. Phase 14.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "NFR",
+            "title_en": "Infrastructure, Security & Backup",
+            "title_ar": "المتطلبات غير الوظيفية",
+            "items": [
+                {
+                    "id": "NFR-01",
+                    "mandatory": true,
+                    "requirement": "Secure, scalable, resilient multi-layer HA design (99.9 % SLA)",
+                    "status": "partial",
+                    "evidence": "HA design and zone-redundant IaC (gateway, Container Apps, PostgreSQL HA, Redis), probes and blue-green release script; nothing deployed or failover-tested yet. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-02",
+                    "mandatory": true,
+                    "requirement": "Hosting on Azure Qatar (data residency, Law 13/2016)",
+                    "status": "partial",
+                    "evidence": "Bicep for Azure Qatar Central with a location policy, Azure Blob driver (Azurite-tested), health probes, Azure OpenAI support; not deployed — needs the Ministry's subscription. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-03",
+                    "mandatory": true,
+                    "requirement": "Production, staging (prod-identical) and development environments",
+                    "status": "partial",
+                    "evidence": "dev / staging / prod parameter files with identical topology and separate vaults and databases; not provisioned. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-04",
+                    "mandatory": true,
+                    "requirement": "HLD / LLD, bill of materials, sizing and bandwidth design",
+                    "status": "partial",
+                    "evidence": "HLD, LLD, BOM and sizing, environment matrix written (English with Arabic summaries); full Arabic translation and priced BOM outstanding. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-05",
+                    "mandatory": true,
+                    "requirement": "Encryption at rest and in transit; joint data classification",
+                    "status": "available",
+                    "evidence": "Data classification of every column with generated register and a drift test; application-level encryption for national IDs and secrets; TLS/HSTS; Key Vault in IaC. Phase 17.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-06",
+                    "mandatory": true,
+                    "requirement": "Role-based access control",
+                    "status": "available",
+                    "evidence": "10 roles, 43 permissions, Supabase RLS.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-07",
+                    "mandatory": true,
+                    "requirement": "Single sign-on and IAM integration",
+                    "status": "partial",
+                    "evidence": "**Ready — waiting for:** the Ministry's Entra ID tenant (app registration) or its identity provider's metadata, and a real sign-in test. Built in Phase 23 and tested against test identity providers: OpenID Connect and SAML 2.0 on the web (the signed assertion is the one used, audience, recipient, destination, time within 3 minutes, request id, replay register, encrypted assertions, signed single logout both ways, signing-key rollover, daily metadata refresh with certificate expiry warnings), single sign-on in the app (system browser, PKCE, a one-time code bound to the app's verifier, only the registered address accepted), a test sign-in that shows the claims, the account and the roles without signing anyone in, safe account linking (domain or verified e-mail only) and a mandatory switch for staff with the super administrator's break-glass sign-in. Go-live checklist: docs/rfp/phase-23-identity-and-microsoft-365.md; guide: docs/security/identity-methods.md.",
+                    "phase": 13
+                },
+                {
+                    "id": "NFR-08",
+                    "mandatory": true,
+                    "requirement": "Auth schemes: AD, LDAP, Kerberos, certificates, tokens, OTP",
+                    "status": "available",
+                    "evidence": "LDAP / Active Directory verified against OpenLDAP in CI (job `backend-ldap`, LDAPS and STARTTLS with a CA made by the job): bind-and-search, wrong password, disabled account, nested groups mapped to roles, plain LDAP and untrusted or misnamed certificates refused, injection-safe filters, timeout. The ldap extension is in the image (the image scan stayed clean). TOTP, e-mail and SMS codes with recovery codes since Phase 13. Kerberos, certificates and smart cards, FIDO2, and mutual TLS for partner systems are written up in docs/security/identity-methods.md (Arabic and English): what the Ministry configures for each and how TEDC receives the result. The Ministry's own Active Directory connection is a go-live checklist item. Phase 23.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-09",
+                    "mandatory": true,
+                    "requirement": "Configurable password policy and account lockout",
+                    "status": "available",
+                    "evidence": "Configurable password policy (length, classes, history, expiry, breach check) and lockout with administrator unlock, audited, applied to activation and password change (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-10",
+                    "mandatory": true,
+                    "requirement": "User-specific administration accounts",
+                    "status": "available",
+                    "evidence": "Per-user admin accounts with roles.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-11",
+                    "mandatory": true,
+                    "requirement": "Automatic session termination after inactivity",
+                    "status": "available",
+                    "evidence": "Server-side sessions with idle and absolute lifetime; expired, ended or terminated sessions are refused immediately and cannot be refreshed; administrators list and terminate sessions (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-12",
+                    "mandatory": true,
+                    "requirement": "Secure audit logs with permission-based access; login trail",
+                    "status": "available",
+                    "evidence": "Append-only audit log + presence sessions.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-13",
+                    "mandatory": true,
+                    "requirement": "Forward logs to SIEM (e.g., Splunk)",
+                    "status": "available",
+                    "evidence": "Audit and security events queued and forwarded to Splunk HEC or Microsoft Sentinel, JSON logs with request ids; the Ministry's SIEM endpoint is needed to go live. Phase 17.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-14",
+                    "mandatory": true,
+                    "requirement": "No production data in dev / test / training; masking",
+                    "status": "available",
+                    "evidence": "tedc:anonymise-export with approver, reason and audit; synthetic seed for lower environments; policy and docs forbid copying production data. Phase 17.",
+                    "phase": null
+                },
+                {
+                    "id": "NFR-15",
+                    "mandatory": true,
+                    "requirement": "VAPT, accredited code review, threat model, risk assessment, security docs",
+                    "status": "partial",
+                    "evidence": "VAPT readiness checklist, scope document, remediation tracker, threat model and clearance pack contents; the accredited test itself has not been done. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-16",
+                    "mandatory": true,
+                    "requirement": "Secure SDLC: secure coding, threat modelling, code analysis",
+                    "status": "partial",
+                    "evidence": "SSDLC document and pipeline (gitleaks, audits, OSV, Semgrep, Trivy, ZAP baseline template, Dependabot); scans not yet run to a clean result and Larastan max level not reached. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-17",
+                    "mandatory": true,
+                    "requirement": "API security: encryption, validation, auth, API gateway",
+                    "status": "partial",
+                    "evidence": "Throttles, WAF policy with a login rate rule and partner-API gateway (APIM) in the IaC; API definitions and quotas for partners not configured. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-18",
+                    "mandatory": true,
+                    "requirement": "Patch and vulnerability management incl. third-party libraries",
+                    "status": "partial",
+                    "evidence": "Patching SLAs, weekly image rebuild and Dependabot defined; no operating history yet. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-19",
+                    "mandatory": true,
+                    "requirement": "Enterprise backup and recovery in-country (RPO / RTO)",
+                    "status": "partial",
+                    "evidence": "PITR 35 d, 7-year monthly vault, blob soft delete/versioning in IaC, DR runbook and monthly restore-test workflow; no restore has been executed. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-20",
+                    "mandatory": true,
+                    "requirement": "Monitoring with real-time alerts",
+                    "status": "partial",
+                    "evidence": "Probes, action group and alerts (availability, 5xx, p95, queue lag, DB CPU/storage) in IaC; not deployed. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "NFR-21",
+                    "mandatory": true,
+                    "requirement": "Third-party risk management",
+                    "status": "available",
+                    "evidence": "Third-party register with purpose, data, residency, contract status, risk, mitigation and kill-switch for each service. Phase 17.",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "TEC",
+            "title_en": "Technical Requirements & Integrations",
+            "title_ar": "المتطلبات التقنية والتكامل",
+            "items": [
+                {
+                    "id": "TEC-01",
+                    "mandatory": true,
+                    "requirement": "Stable 24/7",
+                    "status": "partial",
+                    "evidence": "Designed for 24/7 (zones, probes, autoscale, rollbacks); not proven in operation. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "TEC-02",
+                    "mandatory": true,
+                    "requirement": "10,000 concurrent users; response time < 1.5 s",
+                    "status": "partial",
+                    "evidence": "k6 scenarios to 10,000 users with p95 < 1.5 s thresholds and a sizing model; the test has NOT been run, so no result is claimed. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "TEC-03",
+                    "mandatory": true,
+                    "requirement": "20–30 % yearly user growth without performance loss",
+                    "status": "partial",
+                    "evidence": "Capacity and cost-growth model for +20–30 % a year with autoscale limits; to be re-run on measured data. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "TEC-04",
+                    "mandatory": true,
+                    "requirement": "Central browser-based architecture for internal and external users",
+                    "status": "available",
+                    "evidence": "SPA + REST API.",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-05",
+                    "mandatory": true,
+                    "requirement": "Disaster recovery and business continuity with automation",
+                    "status": "partial",
+                    "evidence": "DR/BCP runbooks, monthly restore-test and release rollback automation templates; no drill performed. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "TEC-06",
+                    "mandatory": true,
+                    "requirement": "Real-time message-based sync between systems",
+                    "status": "available",
+                    "evidence": "Outbox of domain events delivered as signed webhooks with retries, dead-letter and replay; signed idempotent inbound messages; subscriptions managed in the hub. A broker adapter (Azure Service Bus) follows in Phase 17 (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-07",
+                    "mandatory": true,
+                    "requirement": "Ministry integrations: Licences, NSIS, QNEDS, HR / Mawared, AD, Saaed, Sijil, Ministry website",
+                    "status": "partial",
+                    "evidence": "Integration hub with monitored adapters (health, logs, retries, circuit breaker) for HR, Mawared, licences, NSIS, QNEDS, Saaed, Sijil and the Ministry site. The real system specifications are needed; none was run against the real systems (Phase 13).",
+                    "phase": 13
+                },
+                {
+                    "id": "TEC-08",
+                    "mandatory": true,
+                    "requirement": "LTI 1.1 and LTI 1.3 with Deep Linking",
+                    "status": "available",
+                    "evidence": "TEDC is an LTI platform (Phase 10) and now also an LTI tool: LTI 1.3 (OIDC login, id_token checks, Deep Linking 2.0, AGS, NRPS) and LTI 1.1 (OAuth 1.0a, outcomes), safe account linking (trusted domains, confirmation, staff never signed in by a launch), a registry with configuration to copy and a setup test; loopback tests. Phase 21.",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-09",
+                    "mandatory": true,
+                    "requirement": "xAPI, IMS Caliper, SCORM, QTI 1.1 / 2 / 2.1, cmi5",
+                    "status": "available",
+                    "evidence": "xAPI LRS, Caliper 1.2, SCORM, QTI 2.1/1.2, cmi5 implemented (ADL conformance suite still to run)",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-10",
+                    "mandatory": true,
+                    "requirement": "HTML5 content",
+                    "status": "available",
+                    "evidence": "HTML5 video, slides and articles.",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-11",
+                    "mandatory": true,
+                    "requirement": "Common Cartridge import (full or selected parts)",
+                    "status": "available",
+                    "evidence": "Common Cartridge 1.1-1.3 / thin CC preview and selective import",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-12",
+                    "mandatory": true,
+                    "requirement": "Advanced Teams: Office 365 forms, structure sync, file sharing, live streaming",
+                    "status": "partial",
+                    "evidence": "**Ready — waiting for:** the Ministry's tenant, admin consent for the Graph permissions listed in the Teams card, connecting the organiser account, and uploading the Teams app. Meetings, attendance by duration, a Team per group with membership sync, channel files and Forms results import since Phase 13; Phase 23 adds **town halls** (Graph virtualEvents, created through the connected organiser account, published, invited from the registrations, attendance by the same duration rules, taken down when the session leaves Teams), the **Teams activity-feed channel** (notification rules, opt-outs, deep link, retries that never block other channels) and the downloadable **Teams app package** (manifest 1.29 validated against Microsoft's schema). Tested with Graph fakes; not seen in a real tenant.",
+                    "phase": 13
+                },
+                {
+                    "id": "TEC-13",
+                    "mandatory": true,
+                    "requirement": "Trusted content-provider integration",
+                    "status": "partial",
+                    "evidence": "Provider adapter framework (generic REST + demo driver); real Coursera/edX/Udemy/LinkedIn APIs need credentials",
+                    "phase": 10
+                },
+                {
+                    "id": "TEC-14",
+                    "mandatory": true,
+                    "requirement": "Compatible with phones and tablets",
+                    "status": "available",
+                    "evidence": "Responsive web + Flutter app.",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-15",
+                    "mandatory": true,
+                    "requirement": "Cost-effective licensing (perpetual preferred)",
+                    "status": "available",
+                    "evidence": "Custom-built, owned source code; no per-user licence.",
+                    "phase": null
+                },
+                {
+                    "id": "TEC-16",
+                    "mandatory": true,
+                    "requirement": "Automatic patching without user impact",
+                    "status": "partial",
+                    "evidence": "Revision-based blue-green release with automatic rollback and weekly image rebuilds; not exercised on Azure. Phase 17.",
+                    "phase": 17
+                },
+                {
+                    "id": "TEC-17",
+                    "mandatory": false,
+                    "requirement": "Live KPI dashboard: response time, concurrency, uptime, completion, active users, satisfaction, knowledge gain, security",
+                    "status": "available",
+                    "evidence": "Live KPI dashboard of the twelve RFP indicators against editable targets with 30-day trends, breach alerts to administrators, data-integrity detail and a monthly PDF/Word report. Concurrency shows current and peak users, not a proven capacity; uptime comes from an in-app probe (Phase 12).",
+                    "phase": null
+                }
+            ]
+        },
+        {
+            "code": "DLV",
+            "title_en": "Project Deliverables",
+            "title_ar": "مخرجات المشروع والمتسلمات",
+            "items": [
+                {
+                    "id": "DLV-01",
+                    "mandatory": false,
+                    "requirement": "As-Is and To-Be process analysis documents",
+                    "status": "partial",
+                    "evidence": "As-Is / To-Be document drafted in Arabic with an English copy (`docs/deliverables/01-as-is-to-be.md`): every automated workflow described. **As-Is items are marked ⚑ and need confirming in workshops with the centre.**",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-02",
+                    "mandatory": false,
+                    "requirement": "Needs assessment, scope document, project plan, BRD",
+                    "status": "partial",
+                    "evidence": "Needs assessment, scope and project plan drafted (`02-needs-scope-plan.md`); BRD generated from the register by `php artisan tedc:deliverables` (`brd.generated.md`: a section per module, acceptance criteria, open items). The needs assessment must be validated with the centre's data.",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-03",
+                    "mandatory": false,
+                    "requirement": "UX design and system architecture",
+                    "status": "partial",
+                    "evidence": "UX design and architecture document (`03-ux-and-architecture.md`) linking the Phase 17 HLD/LLD and security docs. It contains no screenshots yet.",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-04",
+                    "mandatory": false,
+                    "requirement": "Alpha, Beta and Final releases",
+                    "status": "partial",
+                    "evidence": "Alpha / Beta / Final gates, exit criteria and sign-off defined (`04-release-management.md`), `CHANGELOG.md`. **No release has been tagged**: tags are cut at each milestone with the centre.",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-05",
+                    "mandatory": false,
+                    "requirement": "User manuals and training & adoption plan",
+                    "status": "partial",
+                    "evidence": "User manuals = help-centre PDFs per role (always current); training and adoption plan with Train-the-Trainer (`05-training-adoption-plan.md`). Training has not been delivered; manuals have no real screenshots yet.",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-06",
+                    "mandatory": false,
+                    "requirement": "Test plan, test reports, bug tracker",
+                    "status": "partial",
+                    "evidence": "Test plan (`06-test-plan.md`), generated test report and traceability matrix (`test-report.generated.md`, `traceability.generated.md`), UAT script template, bug-tracker conventions aligned to the SLA matrix. **UAT has not been executed, no load test has been run, no independent VAPT yet.**",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-07",
+                    "mandatory": false,
+                    "requirement": "Go-live plan, handover report, QA certificate, SLA",
+                    "status": "partial",
+                    "evidence": "Go-live plan, handover report outline, QA certificate template and the SLA (P1–P4 response and resolution, penalty formula, escalation) drafted (`07-go-live-handover-sla.md`); they are completed with real dates, names and evidence at go-live.",
+                    "phase": 18
+                },
+                {
+                    "id": "DLV-08",
+                    "mandatory": false,
+                    "requirement": "Data-migration strategy and tooling (validation, cleansing, transformation, secure transfer)",
+                    "status": "available",
+                    "evidence": "Data-migration toolkit for employees, trainers, programs, registrations, attendance, certificates and PD: templates, mapping and value conversion, Arabic-aware cleansing, validation report, dry run, chunked import, reconciliation and rollback, audited and secured; strategy in docs/rfp/data-migration.md (Phase 13).",
+                    "phase": null
+                },
+                {
+                    "id": "DLV-09",
+                    "mandatory": false,
+                    "requirement": "Compliance sheet and RFP traceability matrix",
+                    "status": "available",
+                    "evidence": "Settings → RFP Compliance (`pages/admin/RfpCompliance.tsx`, `GET /admin/rfp-status`), `docs/rfp/compliance-sheet.md`, `php artisan tedc:rfp-status`, `RfpStatusTest`.",
+                    "phase": null
+                }
+            ]
+        }
+    ],
+    "mandatory31": [
+        {
+            "no": 1,
+            "requirement": "Ready, customisable product",
+            "status": "vendor",
+            "notes": "Vendor qualification — answered in the proposal, not by the software."
+        },
+        {
+            "no": 2,
+            "requirement": "Support team, developers and PM based in Qatar",
+            "status": "vendor",
+            "notes": "Vendor qualification."
+        },
+        {
+            "no": 3,
+            "requirement": "≥ 10 years’ experience with ministry-scale clients",
+            "status": "vendor",
+            "notes": "Vendor qualification."
+        },
+        {
+            "no": 4,
+            "requirement": "≥ 5 similar projects delivered",
+            "status": "vendor",
+            "notes": "Vendor qualification."
+        },
+        {
+            "no": 5,
+            "requirement": "Core business is digital solutions",
+            "status": "vendor",
+            "notes": "Vendor qualification."
+        },
+        {
+            "no": 6,
+            "requirement": "Company office in Qatar",
+            "status": "vendor",
+            "notes": "Vendor qualification."
+        },
+        {
+            "no": 7,
+            "requirement": "Bilingual, responsive, all browsers, seamless role switching",
+            "status": "available",
+            "notes": "UX-05, UX-06, UX-07, UX-08 — all available."
+        },
+        {
+            "no": 8,
+            "requirement": "Role-based dashboards with interactive indicators",
+            "status": "available",
+            "notes": "HOM-06 — all available."
+        },
+        {
+            "no": 9,
+            "requirement": "Pre/post assessment of trainee level (in-person)",
+            "status": "available",
+            "notes": "TYP-04 — all available."
+        },
+        {
+            "no": 10,
+            "requirement": "Synchronous training via Microsoft Teams",
+            "status": "available",
+            "notes": "TYP-05 — all available."
+        },
+        {
+            "no": 11,
+            "requirement": "Interactive video, access-code exams, anti-distraction, SCORM / H5P",
+            "status": "available",
+            "notes": "TYP-07, TYP-11, TYP-13, TYP-15 — all available."
+        },
+        {
+            "no": 12,
+            "requirement": "Blended training",
+            "status": "available",
+            "notes": "TYP-18 — all available."
+        },
+        {
+            "no": 13,
+            "requirement": "Tool to build career-promotion training paths",
+            "status": "available",
+            "notes": "CAR-01 — all available."
+        },
+        {
+            "no": 14,
+            "requirement": "E-form to register users from outside the Ministry",
+            "status": "available",
+            "notes": "EXT-01, EXT-02, EXT-03 — all available."
+        },
+        {
+            "no": 15,
+            "requirement": "Individual & institutional needs tools + annual plan",
+            "status": "available",
+            "notes": "NDS-01, NDS-02, NDS-03, NDS-04, NDS-07 — all available."
+        },
+        {
+            "no": 16,
+            "requirement": "Entities, seats, priority, waiting list, targeting, time-conflict prevention",
+            "status": "available",
+            "notes": "ENR-01, ENR-02, ENR-03, ENR-06, ENR-07 — all available."
+        },
+        {
+            "no": 17,
+            "requirement": "Self, manager and admin registration",
+            "status": "available",
+            "notes": "REG-01, REG-03, REG-04, REG-05 — all available."
+        },
+        {
+            "no": 18,
+            "requirement": "Direct attendance by trainer + Teams duration-based attendance",
+            "status": "available",
+            "notes": "ATT-02, ATT-07 — all available."
+        },
+        {
+            "no": 19,
+            "requirement": "Content admin panel: create, edit, share",
+            "status": "available",
+            "notes": "CNT-02 — all available."
+        },
+        {
+            "no": 20,
+            "requirement": "Pass rules, multiple certificate types, QR / number verification",
+            "status": "available",
+            "notes": "PAS-01, PAS-10, PAS-14 — all available."
+        },
+        {
+            "no": 21,
+            "requirement": "Room occupancy calendar (week / month)",
+            "status": "available",
+            "notes": "ROM-08 — all available."
+        },
+        {
+            "no": 22,
+            "requirement": "Flexible withdrawal rules",
+            "status": "available",
+            "notes": "WDR-01, WDR-02, WDR-03, WDR-04, WDR-05 — all available."
+        },
+        {
+            "no": 23,
+            "requirement": "Survey types, per-option analytics, Excel / PDF / Word export",
+            "status": "available",
+            "notes": "SRV-01, SRV-02, SRV-03, SRV-04, SRV-05, SRV-06, SRV-07, SRV-08 — all available."
+        },
+        {
+            "no": 24,
+            "requirement": "Kit archiving with versions linked to courses",
+            "status": "available",
+            "notes": "KIT-01 — all available."
+        },
+        {
+            "no": 25,
+            "requirement": "Professional learning communities",
+            "status": "available",
+            "notes": "PLC-01, PLC-02, PLC-03, PLC-04, PLC-05 — all available."
+        },
+        {
+            "no": 26,
+            "requirement": "Impact measurement with trainee & manager forms, pre/post comparison",
+            "status": "available",
+            "notes": "EVL-01, EVL-02, EVL-06 — all available."
+        },
+        {
+            "no": 27,
+            "requirement": "Exam variety, categorised banks, anti-cheating",
+            "status": "available",
+            "notes": "EXM-01, EXM-03, EXM-04, EXM-05, EXM-10 — all available."
+        },
+        {
+            "no": 28,
+            "requirement": "Integrated notifications + multimedia scheduled announcements",
+            "status": "partial",
+            "notes": "Open: NTF-03 (partial); NTF-01, NTF-02, NTF-05, NTF-06, NTF-13, NTF-14 available."
+        },
+        {
+            "no": 29,
+            "requirement": "Comprehensive PD records outside the Ministry",
+            "status": "available",
+            "notes": "CPD-01, CPD-02, CPD-03, CPD-04, CPD-05, CPD-06 — all available."
+        },
+        {
+            "no": 30,
+            "requirement": "Permissions at Ministry / school-group / school level",
+            "status": "available",
+            "notes": "RBA-13 — all available."
+        },
+        {
+            "no": 31,
+            "requirement": "AI: behaviour analytics, smart feedback, adaptive content, predictive reports, ML assistant",
+            "status": "partial",
+            "notes": "Open: AI-05 (partial); AI-01, AI-02, AI-03, AI-04 available."
+        }
+    ],
+    "generated_at": "2026-10-14T12:51:03+03:00"
+}

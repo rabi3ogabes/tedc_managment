@@ -1,0 +1,446 @@
+{
+  "system": "edx",
+  "version": "1.0",
+  "title": {
+    "ar": "منصة Open edX",
+    "en": "Open edX"
+  },
+  "description": {
+    "ar": "دورات منصة Open edX التي تراها حسابات الخدمة، وشهادات المتعلمين فيها لمعرفة من أتمّ الدورة واحتساب ساعاتها في السجل.",
+    "en": "The courses of an Open edX platform that the service account can see, and the learners' certificates, to see who completed a course and count its hours in the record."
+  },
+  "party": {
+    "ar": "المزوّد",
+    "en": "the provider"
+  },
+  "headings": {
+    "ministry_provides": {
+      "ar": "ما يقدّمه المزوّد",
+      "en": "What the provider gives you"
+    },
+    "joint_tests": {
+      "ar": "اختبارات الإطلاق مع المزوّد",
+      "en": "Tests to run with the provider"
+    }
+  },
+  "sources": [
+    {
+      "title": "Open edX: how to use the REST API (JWT access tokens)",
+      "url": "https://docs.openedx.org/projects/edx-platform/en/latest/how-tos/use_the_api.html",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Open edX Course API (course_api views and serializers)",
+      "url": "https://docs.openedx.org/projects/edx-platform/en/latest/references/docstrings/lms/lms.djangoapps.course_api.html",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Open edX Certificates API v0",
+      "url": "https://docs.openedx.org/projects/edx-platform/en/ulmo/references/docstrings/lms/lms.djangoapps.certificates.apis.v0.html",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "edx-platform source: lms/djangoapps/course_api and certificates/apis/v0",
+      "url": "https://github.com/openedx/edx-platform",
+      "checked": "2026-10-14"
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "token_path": "/oauth2/access_token",
+    "token_url_setting": "token_url",
+    "client_id_setting": "client_id",
+    "client_secret_setting": "client_secret",
+    "client_auth": "basic",
+    "token_params": {
+      "token_type": "jwt"
+    },
+    "header_scheme": "JWT"
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض المزوّد الطلب لأن بياناته غير صحيحة",
+        "en": "The provider rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض المزوّد بيانات الاعتماد أو انتهت صلاحية الرمز",
+        "en": "The provider refused the credentials, or the token has expired"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية لدى المزوّد",
+        "en": "The account is not allowed to do this at the provider"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا العنصر لدى المزوّد",
+        "en": "The provider has no such item"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب المزوّد التمهّل في الطلبات",
+        "en": "The provider asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ لدى المزوّد",
+        "en": "The provider had an error"
+      }
+    }
+  },
+  "operations": {
+    "list_courses": {
+      "title": {
+        "ar": "دورات المنصة",
+        "en": "Courses of the platform"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "course",
+      "path": "/api/courses/v1/courses/",
+      "query": {
+        "username": "{{ settings.username }}",
+        "org?": "{{ settings.org }}",
+        "search_term?": "{{ q }}"
+      },
+      "pagination": {
+        "type": "page",
+        "param": "page",
+        "start": 1,
+        "size_param": "page_size",
+        "size": 100,
+        "max_pages": 300
+      },
+      "response": {
+        "records": "$.results",
+        "next_page": "$.pagination.next",
+        "error": [
+          "$.developer_message",
+          "$.detail",
+          "$.message",
+          "$.error_description"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "learner_completions": {
+      "title": {
+        "ar": "شهادات متعلم واحد",
+        "en": "One learner's certificates"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "completion",
+      "path": "/api/certificates/v0/certificates/{{ username }}/",
+      "response": {
+        "error": [
+          "$.developer_message",
+          "$.detail",
+          "$.message",
+          "$.error_description"
+        ]
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "/api/courses/v1/courses/",
+      "query": {
+        "username": "{{ settings.username }}",
+        "page_size": "1"
+      },
+      "response": {
+        "records": "$.results",
+        "error": [
+          "$.developer_message",
+          "$.detail",
+          "$.message",
+          "$.error_description"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Courses: two courses",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "settings": {
+        "username": "tedc-service"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/courses/v1/courses/",
+          "query": {
+            "username": "tedc-service"
+          }
+        },
+        "records": 2,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "id": "course-v1:MOE+TEACH101+2026",
+            "title": "Classroom Management",
+            "url": "/courses/course-v1:MOE+TEACH101+2026/about"
+          },
+          "1": {
+            "id": "course-v1:MOE+DIGI201+2026",
+            "title": "Digital Teaching Tools"
+          }
+        }
+      }
+    },
+    {
+      "name": "Courses: a search and one organization",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "settings": {
+        "username": "tedc-service",
+        "org": "MOE"
+      },
+      "params": {
+        "q": "teaching"
+      },
+      "expect": {
+        "request": {
+          "query": {
+            "org": "MOE",
+            "search_term": "teaching"
+          }
+        },
+        "records": 2
+      }
+    },
+    {
+      "name": "Courses: the token is refused",
+      "operation": "list_courses",
+      "fixture": "list_courses.unauthorised",
+      "settings": {
+        "username": "tedc-service"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Courses: the platform is down",
+      "operation": "list_courses",
+      "fixture": "list_courses.server_error",
+      "settings": {
+        "username": "tedc-service"
+      },
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Certificates: one learner has two",
+      "operation": "learner_completions",
+      "fixture": "learner_completions.ok",
+      "params": {
+        "username": "E-1001"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/certificates/v0/certificates/E-1001/"
+        },
+        "records": 2,
+        "mapped": {
+          "0": {
+            "course_id": "course-v1:MOE+TEACH101+2026",
+            "username": "E-1001",
+            "completed": true,
+            "completed_at": "2026-10-12T09:30:00Z",
+            "grade": "0.92"
+          }
+        }
+      }
+    },
+    {
+      "name": "Certificates: no permission to read another learner's",
+      "operation": "learner_completions",
+      "fixture": "learner_completions.forbidden",
+      "params": {
+        "username": "E-1001"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Connection check: the platform answers",
+      "operation": "health",
+      "fixture": "health.ok",
+      "settings": {
+        "username": "tedc-service"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/courses/v1/courses/",
+          "query": {
+            "page_size": "1"
+          }
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "platform",
+      "group": "ministry_provides",
+      "ar": "عنوان منصة Open edX (LMS) كما يراه المتعلمون، مثل https://lms.example.org",
+      "en": "The address of the Open edX platform (the LMS) as learners see it, such as https://lms.example.org"
+    },
+    {
+      "id": "oauth_app",
+      "group": "ministry_provides",
+      "ar": "تطبيق OAuth (Django OAuth Toolkit) من نوع «client credentials» أُنشئ في بوابة المسؤول /admin/oauth2_provider/application/ ويملك حسابًا خدميًا من العاملين (staff)",
+      "en": "An OAuth application (Django OAuth Toolkit) of the “client credentials” type created in the admin portal /admin/oauth2_provider/application/, owned by a staff service account"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "Client ID وClient Secret للتطبيق",
+      "en": "The application's Client ID and Client Secret"
+    },
+    {
+      "id": "service_user",
+      "group": "ministry_provides",
+      "ar": "اسم حساب الخدمة الذي تُسرد دورات المنصة بصلاحياته (username)",
+      "en": "The username of the service account whose visible courses are listed"
+    },
+    {
+      "id": "certificates",
+      "group": "ministry_provides",
+      "ar": "شهادات المنصة مفعّلة في دوراتها (تُقرأ الشهادات المجتازة فقط)، وصلاحية قراءتها لحساب الخدمة (certificates:read)",
+      "en": "Certificates are enabled in the courses (only passing ones are read), and the service account may read them (certificates:read)"
+    },
+    {
+      "id": "usernames",
+      "group": "ministry_provides",
+      "ar": "اسم المستخدم في المنصة هو الرقم الوظيفي (الافتراضي)، أو البريد الإلكتروني؛ عبر الدخول الموحد أو حسابات أُنشئت لهذا الغرض",
+      "en": "The username on the platform is the employee number (the default) or the e-mail address, through single sign-on or accounts made for this"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة بالوصول إلى المنصة عبر المنفذ 443",
+      "en": "TEDC's outbound addresses allowed to reach the platform on port 443"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة base_url وclient_id وclient_secret وusername (واختياريًا org وdefault_hours) في بطاقة التكامل",
+      "en": "base_url, client_id, client_secret and username (and optionally org and default_hours) filled in the integration card"
+    },
+    {
+      "id": "health",
+      "group": "tedc_settings",
+      "ar": "الضغط على «فحص الاتصال» والحصول على «سليم»",
+      "en": "Press “Check connection” and get “ok”"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مقارنة العقد بإصدار المنصة المثبّت (تختلف الحقول قليلًا بين الإصدارات) وتعديل ما يختلف",
+      "en": "Compare the contract with the installed release of the platform (fields differ a little between releases) and edit what differs"
+    },
+    {
+      "id": "hours",
+      "group": "tedc_settings",
+      "ar": "تحديد default_hours: تذكر منصة Open edX جهدًا أسبوعيًا فقط، لا ساعات إجمالية للدورة",
+      "en": "Set default_hours: Open edX states a weekly effort only, not the total hours of a course"
+    },
+    {
+      "id": "first_sync",
+      "group": "tedc_settings",
+      "ar": "تشغيل مزامنة الكتالوج وفحص قائمة الدورات في شاشة مزوّدي التعلم",
+      "en": "Run the catalogue sync and check the course list in the Learning providers screen"
+    },
+    {
+      "id": "catalogue",
+      "group": "joint_tests",
+      "ar": "تظهر دورات المنصة المرئية لحساب الخدمة ويفتح رابط كل دورة صفحتها في المنصة",
+      "en": "The courses the service account can see appear, and each course's link opens its page on the platform"
+    },
+    {
+      "id": "programme",
+      "group": "joint_tests",
+      "ar": "إنشاء برنامج من دورة وتسجيل موظف تجريبي فيه",
+      "en": "Make a programme from one course and register a test employee"
+    },
+    {
+      "id": "completion",
+      "group": "joint_tests",
+      "ar": "إتمام دورة بمتعلم تجريبي حتى تصدر شهادته، ثم التأكد من وصول الإتمام في المزامنة التالية وصدور شهادة TEDC",
+      "en": "Complete a course with a test learner until the certificate is issued, then check the completion arrives in the next sync and TEDC's certificate is issued"
+    },
+    {
+      "id": "unknown_learner",
+      "group": "joint_tests",
+      "ar": "موظف مسجّل في برنامج لكن اسم مستخدمه غير موجود في المنصة يظهر في «أخطاء مزامنة الإتمام» بسببه",
+      "en": "An employee registered in a programme whose username is not on the platform shows in “Completion sync errors” with its reason"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "إيقاف البطاقة يوقف كل الاستدعاءات؛ البرامج المنشأة تبقى وتعمل بمسار «إثبات الإتمام» اليدوي",
+      "en": "Switching the card off stops every call; the programmes already made stay and work with the manual “evidence of completion” route"
+    },
+    {
+      "id": "training_mode",
+      "group": "rollback",
+      "ar": "العودة إلى وضع التدريب (driver: fake) للعمل ببيانات تجريبية دون اتصال",
+      "en": "Go back to the training mode (driver: fake) to work with sample data and no connection"
+    }
+  ]
+}
