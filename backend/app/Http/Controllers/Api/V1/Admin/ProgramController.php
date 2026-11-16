@@ -14,12 +14,15 @@ use App\Services\ImpactService;
 use App\Services\ProgramCatalogSettings;
 use App\Services\Programs\GroupNamer;
 use App\Services\Programs\ProgramAnnouncer;
+use App\Services\Programs\ProgramDays;
 use App\Services\Programs\ProgramInstruments;
 use App\Services\Programs\ProgramSessionWriter;
 use App\Services\Teaching\TrainerNotices;
 use App\Services\TrainingGroupService;
 use App\Support\ProgramTypes;
 use App\Support\RemoteProgramRules;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -28,29 +31,69 @@ use Illuminate\Validation\Rule;
 
 class ProgramController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request, ProgramDays $days): AnonymousResourceCollection
     {
-        $user = $this->user();
+        // `on` narrows the list to the programmes that train on that day (a session of theirs touches it).
+        $on = $request->validate(['on' => ['sometimes', 'nullable', 'date_format:Y-m-d']])['on'] ?? null;
+        $day = $on ? CarbonImmutable::parse($on) : null;
 
         // Everything except the delivery type, so the three type tabs can show how many programs each one holds.
-        $scope = fn () => Program::query()
-            // Trainers only see programs they deliver.
-            ->when($user->hasRole(Role::TRAINER) && ! $this->isCenterStaff($user), fn ($q) => $q->whereHas('trainers', fn ($t) => $t->where('trainers.user_id', $user->id)))
-            ->when($request->query('status'), fn ($q, $status) => $q->whereIn('status', explode(',', $status)))
-            ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
-            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$term}%")->orWhereLike('title_en', "%{$term}%")->orWhereLike('code', "%{$term}%")));
+        $scope = fn () => $this->listing($request)->when($day, fn ($q) => $days->onDay($q, $day));
 
         $programs = $scope()->with(['category', 'trainers'])
             ->withCount(['registrations as seats_taken' => fn ($q) => $q->whereIn('status', Registration::SEAT_HOLDING)])
-            ->when(in_array($request->query('delivery_mode'), ['in_person', 'online', 'hybrid'], true), fn ($q) => $q->where('delivery_mode', $request->query('delivery_mode')))
-            ->latest()
+            ->when($this->deliveryMode($request), fn ($q, $mode) => $q->where('delivery_mode', $mode))
+            // A day reads like its agenda: the programme that starts first comes first.
+            ->when($day, fn ($q) => $days->byFirstSession($q, $day), fn ($q) => $q->latest())
             ->paginate($this->perPage($request));
+
+        if ($day) {
+            $sessions = $days->sessionsOn($programs->pluck('id'), $day);
+            $programs->getCollection()->each(fn (Program $p) => $p->setAttribute('day_sessions', $sessions->get($p->id, [])));
+        }
 
         $counts = $scope()->selectRaw('delivery_mode, count(*) as total')->groupBy('delivery_mode')->pluck('total', 'delivery_mode');
 
         return ProgramResource::collection($programs)->additional(['types' => [
             'in_person' => (int) ($counts['in_person'] ?? 0), 'online' => (int) ($counts['online'] ?? 0), 'hybrid' => (int) ($counts['hybrid'] ?? 0),
         ]]);
+    }
+
+    /**
+     * The row of days of the programme list: how many programmes train on each day around a date, days off left out
+     * (see ProgramDays). It follows the same filters as the list, so a lit day always has something to show.
+     */
+    public function days(Request $request, ProgramDays $days): JsonResponse
+    {
+        $data = $request->validate([
+            'around' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'before' => ['sometimes', 'integer', 'min:0', 'max:'.ProgramDays::MAX_BEFORE],
+            'after' => ['sometimes', 'integer', 'min:0', 'max:'.ProgramDays::MAX_AFTER],
+        ]);
+        $around = CarbonImmutable::parse($data['around'] ?? now()->toDateString());
+        $programs = $this->listing($request)->when($this->deliveryMode($request), fn ($q, $mode) => $q->where('delivery_mode', $mode));
+
+        return response()->json(['data' => $days->window($programs, $around, (int) ($data['before'] ?? 5), (int) ($data['after'] ?? 9))]);
+    }
+
+    /** The programmes the reader may list, narrowed by the status, the field and the search text of the request. */
+    private function listing(Request $request): Builder
+    {
+        $user = $this->user();
+
+        return Program::query()
+            // Trainers only see programs they deliver.
+            ->when($user->hasRole(Role::TRAINER) && ! $this->isCenterStaff($user), fn ($q) => $q->whereHas('trainers', fn ($t) => $t->where('trainers.user_id', $user->id)))
+            ->when($request->query('status'), fn ($q, $status) => $q->whereIn('status', explode(',', $status)))
+            ->when($request->query('category_id'), fn ($q, $id) => $q->where('category_id', $id))
+            ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w->whereLike('title_ar', "%{$term}%")->orWhereLike('title_en', "%{$term}%")->orWhereLike('code', "%{$term}%")));
+    }
+
+    private function deliveryMode(Request $request): ?string
+    {
+        $mode = $request->query('delivery_mode');
+
+        return in_array($mode, ['in_person', 'online', 'hybrid'], true) ? $mode : null;
     }
 
     public function show(Program $program): ProgramResource

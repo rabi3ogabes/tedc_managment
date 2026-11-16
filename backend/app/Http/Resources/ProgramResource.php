@@ -77,6 +77,8 @@ class ProgramResource extends JsonResource
             'total_hours' => $this->total_hours,
             'capacity' => $this->capacity,
             'seats_taken' => $seatsTaken,
+            // Only when the list was asked for one day: the programme's sessions on that day (hours, room, trainer).
+            'day_sessions' => $this->when(array_key_exists('day_sessions', $this->resource->getAttributes()), fn () => $this->resource->getAttribute('day_sessions')),
             'seats_available' => $seatsTaken !== null ? max(0, $this->capacity - $seatsTaken) : null,
             'min_attendance_percent' => $this->min_attendance_percent,
             'require_biometric' => (bool) $this->require_biometric,

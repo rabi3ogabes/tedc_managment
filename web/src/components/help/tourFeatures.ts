@@ -26,7 +26,7 @@ export const TOUR_FEATURES: Record<string, [string, string]> = {
   '/admin': ['لوحة القيادة: مؤشرات اليوم والجلسات القادمة والبرامج الأعلى أثراً.', 'The dashboard: today\'s indicators, upcoming sessions and the programs with the most impact.'],
   '/admin/analytics': ['التحليلات التنفيذية: تغطية ورضا وأثر مع تفصيل حتى المدرسة.', 'Executive analytics: coverage, satisfaction and impact, down to the school.'],
   // ── the training lifecycle
-  '/admin/programs': ['البرامج: إنشاء برنامج جديد بالصوت أو الكتابة، بجلساته وقاعاته وحقائبه، وإدارة التسجيل والتنفيذ.', 'Programs: create one by voice or text with its sessions, rooms and kits, and manage registration and delivery.'],
+  '/admin/programs': ['البرامج: إنشاء برنامج جديد بالصوت أو الكتابة، بجلساته وقاعاته وحقائبه، وإدارة التسجيل والتنفيذ. اختر يوماً من شريط الأيام، أو اكتب تاريخاً في البحث، لترى برامج ذلك اليوم.', 'Programs: create one by voice or text with its sessions, rooms and kits, and manage registration and delivery. Pick a day from the row of days, or type a date in the search, to see the programmes of that day.'],
   '/admin/programs/remote': ['البرامج عن بُعد: اجتماعات الجلسات وروابطها وتسجيل الحضور المباشر.', 'Remote programs: session meetings, their links and live attendance.'],
   '/admin/kits': ['الحقائب التدريبية: استوديو إعداد العروض والأدلة ومراجعتها واعتمادها ونشرها.', 'Training kits: the studio to build, review, approve and publish presentations and guides.'],
   '/admin/teaching': ['مكتب التدريس: برامجك وقاعاتك وحقائبك المحمية، وبدء الجلسة والعرض من الموقع.', 'Teaching desk: your programs, rooms and protected kits, starting a session and presenting from the site.'],

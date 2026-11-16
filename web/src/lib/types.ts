@@ -58,6 +58,8 @@ export type Program = {
   description?: string | null; description_ar?: string | null; description_en?: string | null; objectives: string[]
   category?: { id: string; slug: string; name: string; color?: string; icon?: string } | null; category_id?: string | null
   delivery_mode: 'in_person' | 'online' | 'hybrid'; level: 'beginner' | 'intermediate' | 'advanced'; total_hours: number; capacity: number
+  /** Only when the list was asked for one day: the programme's sessions on that day. */
+  day_sessions?: { id: string; title: string | null; starts_at: string; ends_at: string; mode: string | null; room: string | null; location: string | null; trainer: string | null }[]
   seats_taken?: number | null; seats_available?: number | null; min_attendance_percent: number; require_biometric?: boolean; requires_tasks: boolean; requires_evaluation: boolean
   start_date?: string | null; end_date?: string | null; registration_opens_at?: string | null; registration_closes_at?: string | null
   registration_open: boolean; registration_modes: string[]; status: string; is_featured: boolean; cover_url?: string | null
