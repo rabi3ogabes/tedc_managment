@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-16 — «متابعة التدريب المباشرة»: the rooms board in the colours of the brand
+On the rooms board a room with training now carries the brand's maroon across its head, a room whose session comes later or has ended has a pale dune head, and a room without training is the brand's light dune all over, instead of amber and near-black. The filters, the bar of the time already behind and the ring of the chosen room use the same palette. The marks that carry a meaning of their own keep their colours (late in amber, something wrong in red, checked in and just arrived in green). The 3D drawing is unchanged: there a room with training is drawn with its lights on. Colours only.
 ### 2026-11-16 — «البرامج»: the row of days in the colours of the brand
 In the row of days above the programme list, a day with training is now the brand's maroon and a day without is the brand's light dune, instead of amber and near-black: the two states read at a glance and follow the palette of the Brand Studio. The panel of a day without training and the legend («مضيء: فيه تدريب», «مطفأ: لا تدريب») use the same two colours. Colours only; nothing else changed.
 ### 2026-11-16 — «البرامج»: the programmes of a day of training
