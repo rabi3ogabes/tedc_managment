@@ -198,6 +198,35 @@ class ContentPackagesTest extends TestCase
         $this->getJson('/api/v1/xapi/statements', $this->lrs($ro['key'], $ro['secret']))->assertOk();
     }
 
+    public function test_a_statement_sent_again_later_is_the_same_statement_and_a_changed_one_is_still_a_conflict(): void
+    {
+        $cred = app(StandardsSettings::class)->addCredential('tool', 'readwrite');
+        $h = $this->lrs($cred['key'], $cred['secret']);
+        $put = fn (string $id, array $over = []) => $this->putJson("/api/v1/xapi/statements?statementId={$id}", $this->statement(['id' => $id] + $over), $h);
+
+        // No timestamp from the client: the record store sets it, so a retry in a later second is the same statement.
+        $id = '0b6f1d5e-8a55-4c0e-9d0a-5f1f3c6f2a10';
+        $put($id)->assertStatus(204);
+        $first = XapiStatement::find($id)->statement;
+        $this->assertSame($first['stored'], $first['timestamp']);
+        $this->travel(90)->seconds();
+        $put($id)->assertStatus(204);
+        $this->assertSame($first, XapiStatement::find($id)->statement, 'the stored statement keeps its first timestamp');
+        $this->assertSame(1, XapiStatement::count());
+        $put($id, ['object' => ['id' => 'http://example.org/other']])->assertStatus(409);
+        $put($id, ['result' => ['completion' => true]])->assertStatus(409);
+        $put($id, ['timestamp' => '2020-01-01T00:00:00+00:00'])->assertStatus(409);
+
+        // A timestamp from the client is part of the statement: the same one is fine, another one or none is a conflict.
+        $own = '7c1d2b7a-3f43-4a55-8f0e-2a4b9c1d6e22';
+        $put($own, ['timestamp' => '2026-03-01T10:00:00+00:00'])->assertStatus(204);
+        $this->travel(90)->seconds();
+        $put($own, ['timestamp' => '2026-03-01T10:00:00+00:00'])->assertStatus(204);
+        $put($own, ['timestamp' => '2026-03-01T10:00:01+00:00'])->assertStatus(409);
+        $put($own)->assertStatus(409);
+        $this->assertSame(2, XapiStatement::count());
+    }
+
     public function test_state_documents_round_trip(): void
     {
         $c = app(StandardsSettings::class)->addCredential('t', 'readwrite');
