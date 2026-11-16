@@ -27,7 +27,7 @@ const TONE: Record<Signal['tone'], string> = {
 }
 
 /**
- * The rooms of the day as boxes, floor by floor: a lit box has training in it now, a dark one has none. Each box carries the details of
+ * The rooms of the day as boxes, floor by floor, in the colours of the brand: a box with training now is maroon-headed, one without is dune. Each box carries the details of
  * its session (programme, time left, who is in the room, trainer, supervisor, training kit) and what deserves a look. The clock runs on
  * the page, so a box lights up, counts down and goes dark on the second; pressing one opens its training card.
  */
@@ -73,10 +73,10 @@ export default function RoomBoard({ rooms, unplaced, arrivals, picked, nowMs, to
 
   const now = new Date(nowMs)
   const chips: [Filter, string, string][] = [
-    ['all', String(t('liveT.box.filter.all')), 'bg-navy-900'],
-    ['on', String(t(today ? 'liveT.box.filter.on' : 'liveT.box.filter.used')), 'bg-amber-400'],
+    ['all', String(t('liveT.box.filter.all')), 'bg-gold-500'],
+    ['on', String(t(today ? 'liveT.box.filter.on' : 'liveT.box.filter.used')), 'bg-navy-900'],
     ['attention', String(t('liveT.box.filter.attention')), 'bg-red-500'],
-    ['off', String(t(today ? 'liveT.box.filter.off' : 'liveT.box.filter.unused')), 'bg-slate-400'],
+    ['off', String(t(today ? 'liveT.box.filter.off' : 'liveT.box.filter.unused')), 'bg-gold-100 ring-1 ring-inset ring-gold-400'],
   ]
 
   return (
@@ -87,7 +87,7 @@ export default function RoomBoard({ rooms, unplaced, arrivals, picked, nowMs, to
           {chips.filter(([k]) => k !== 'attention' || (today && count.attention > 0)).map(([k, label, dot]) => (
             <button key={k} type="button" aria-pressed={active === k} onClick={() => setFilter(k)}
               className={clsx('inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-bold transition', active === k ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-900 hover:border-gold-400')}>
-              <span className={clsx('size-2 rounded-full', active === k && k === 'all' ? 'bg-gold-300' : dot, k === 'attention' && 'motion-safe:animate-pulse')} />{label}
+              <span className={clsx('size-2.5 rounded-full', active === k && (k === 'all' || k === 'on') ? 'bg-gold-300' : dot, k === 'attention' && 'motion-safe:animate-pulse')} />{label}
               <span className={clsx('tabular-nums', active === k ? 'text-white/75' : 'text-slate-500')}>{count[k]}</span>
             </button>
           ))}
@@ -190,29 +190,28 @@ function RoomBox({ room, session, state, signals, look, attention, loading, nowM
   return (
     <button type="button" onClick={onOpen} aria-pressed={selected} aria-label={label} title={String(t('liveT.tip.press'))}
       className={clsx('group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border p-4 text-start transition duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 motion-safe:hover:-translate-y-0.5',
-        look === 'lit' && 'border-amber-300/80 bg-[radial-gradient(130%_80%_at_50%_0%,#fff3cf_0%,#fffaf0_38%,#ffffff_72%)] shadow-[0_22px_44px_-26px_rgb(180_120_20/0.75)]',
-        look === 'dim' && 'border-navy-100 bg-white hover:border-gold-400',
-        dark && 'border-white/5 bg-[radial-gradient(120%_90%_at_50%_0%,#2e1422_0%,#1d0c15_55%,#150910_100%)] text-white/80 hover:border-white/25',
-        selected && 'ring-2 ring-navy-900 ring-offset-2',
+        // The colours of the brand: a room with training now carries the maroon across its head, a room whose session is later or
+        // over has a pale dune head, and a room without training is the light dune all over.
+        look === 'lit' && 'border-navy-900 bg-white shadow-[0_22px_44px_-28px_color-mix(in_oklab,var(--color-navy-950)_80%,transparent)]',
+        look === 'dim' && 'border-gold-200 bg-white hover:border-gold-400',
+        dark && 'border-gold-200 bg-gold-100 hover:border-gold-400',
+        selected && 'ring-[3px] ring-gold-500 ring-offset-2',
         fresh && 'motion-safe:animate-[lt-arrive_1.6s_ease-out_both]')}>
-      {/* The ceiling light: glowing, switched off, or gone dark. */}
-      <span aria-hidden className={clsx('absolute inset-x-6 top-0 h-1 rounded-b-full', look === 'lit' ? 'bg-amber-400 shadow-[0_0_18px_4px_rgb(251_191_36/0.65)]' : look === 'dim' ? 'bg-slate-200' : 'bg-white/10')} />
-
-      <span className="flex items-start gap-3">
-        <span className={clsx('grid size-9 shrink-0 place-items-center rounded-xl', look === 'lit' ? 'bg-amber-400 text-navy-950 shadow-[0_0_0_4px_rgb(251_191_36/0.22)]' : look === 'dim' ? 'bg-slate-100 text-slate-500' : 'bg-white/5 text-white/45')}>
+      <span className={clsx('-mx-4 -mt-4 flex items-start gap-3 px-4 py-3.5', look === 'lit' ? 'bg-navy-900' : look === 'dim' ? 'border-b border-gold-200 bg-gold-50' : '')}>
+        <span className={clsx('grid size-9 shrink-0 place-items-center rounded-xl', look === 'lit' ? 'bg-gold-300 text-navy-950' : 'bg-white text-gold-600 ring-1 ring-inset ring-gold-200')}>
           {look === 'lit' ? <Lightbulb className="size-[18px]" /> : <LightbulbOff className="size-[18px]" />}
         </span>
         <span className="min-w-0 flex-1">
-          <span className={clsx('block truncate text-base font-bold leading-tight', dark ? 'text-white' : 'text-navy-900')}>{room.name}</span>
-          {place.length > 0 && <span className={clsx('mt-0.5 block truncate text-[11px]', dark ? 'text-white/45' : 'text-slate-500')}>{place.join(' · ')}</span>}
+          <span className={clsx('block truncate text-base font-bold leading-tight', look === 'lit' ? 'text-white' : dark ? 'text-gold-900' : 'text-navy-900')}>{room.name}</span>
+          {place.length > 0 && <span className={clsx('mt-0.5 block truncate text-[11px]', look === 'lit' ? 'text-white/75' : dark ? 'text-gold-800' : 'text-slate-500')}>{place.join(' · ')}</span>}
         </span>
         {dark
-          ? !loading && <span className="shrink-0 rounded-full bg-white/8 px-2.5 py-0.5 text-xs font-bold text-white/60 ring-1 ring-inset ring-white/10">{t('liveT.box.off')}</span>
+          ? !loading && <span className="shrink-0 rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-gold-800 ring-1 ring-inset ring-gold-300">{t('liveT.box.off')}</span>
           : <span className="shrink-0"><StateChip state={state} label={stateLabel} /></span>}
       </span>
 
       {!session || !time ? (
-        loading ? <span className="mt-5 block h-2.5 w-2/3 animate-pulse rounded-full bg-white/10" /> : <span className="mt-4 block text-[13px] leading-6 text-white/50">{t('liveT.tip.dark')}</span>
+        loading ? <span className="mt-2 block h-2.5 w-2/3 animate-pulse rounded-full bg-gold-200" /> : <span className="mt-1 block text-[13px] leading-6 text-gold-800">{t('liveT.tip.dark')}</span>
       ) : (
         <>
           <span className="mt-3.5 block">
@@ -228,7 +227,7 @@ function RoomBox({ room, session, state, signals, look, attention, loading, nowM
               : <span className="text-xs text-slate-500">{t(time.phase === 'live' ? 'liveT.box.left' : 'liveT.box.startsIn')} <bdi dir="ltr" className={clsx('font-display text-base font-bold tabular-nums', time.phase === 'live' ? 'text-navy-900' : 'text-slate-700')}>{countdown(time.leftMs)}</bdi></span>}
           </span>
           <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-navy-100/70" role="presentation">
-            <span className={clsx('block h-full rounded-full', time.phase === 'live' ? 'bg-amber-500' : 'bg-slate-300')} style={{ width: `${time.share * 100}%` }} />
+            <span className={clsx('block h-full rounded-full', time.phase === 'live' ? 'bg-navy-900' : 'bg-gold-300')} style={{ width: `${time.share * 100}%` }} />
           </span>
 
           {/* Who is in the room */}
@@ -283,7 +282,7 @@ function RoomBox({ room, session, state, signals, look, attention, loading, nowM
           )}
         </>
       )}
-      {attention && <span aria-hidden className="absolute end-3 top-3 size-2 rounded-full bg-red-500 motion-safe:animate-ping" />}
+      {attention && <span aria-hidden className="absolute end-2 top-2 size-2.5 rounded-full bg-red-500 ring-2 ring-white motion-safe:animate-pulse" />}
     </button>
   )
 }

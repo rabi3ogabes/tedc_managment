@@ -29,9 +29,9 @@ to the 3D drawing, and the choice is remembered on that browser.
 
 | | |
 | --- | --- |
-| A lit box | Training in the room now: the programme and its group, the hours with a clock counting down to the end and a bar of the time already behind, attended of expected with the rate, late and left, the trainer (with a green dot once they have checked in) and how many programmes they have delivered at the centre, the supervisor, the training kit. |
+| A lit box | The brand's maroon across its head. Training in the room now: the programme and its group, the hours with a clock counting down to the end and a bar of the time already behind, attended of expected with the rate, late and left, the trainer (with a green dot once they have checked in) and how many programmes they have delivered at the centre, the supervisor, the training kit. |
 | The seats | One small square per expected trainee, filled for each trainee in the room (amber for a late arrival). A trainee who checks in fills a square that pops in with a green ring; the box is ringed for a moment and says «حضر الآن» with the name. |
-| A box with its light off | A room whose session comes later (with a clock counting down to the start) or has ended (with who attended), in white. A room with no training that day is dark and shows its code and seats. |
+| A box with its light off | A room whose session comes later (with a clock counting down to the start) or has ended (with who attended), in white with a pale dune head. A room with no training that day is the brand's light dune all over and shows its code and seats. |
 | What deserves a look | No trainer for the session; the trainer has not checked in five minutes after the start; nobody in the room ten minutes after the start; fewer than half of the expected trainees fifteen minutes after the start; more expected trainees than seats; a start within fifteen minutes or an end within ten. A room with something wrong carries a red dot, and «تحتاج نظرة» above the board shows only those rooms. |
 | The filters | All rooms, lit now, need a look, off now, each with its count. On another day: rooms with training and rooms without. |
 | A press on a box | The training card opens beside the board (in place of the board on a narrow screen). |
