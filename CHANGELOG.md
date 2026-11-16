@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-16 — «التقويم التدريبي»: today is named, and one press opens it
+Today now says so on the training calendar. In the month it carries «اليوم» beside its number, inside a maroon frame; in the year its square is maroon and its month says «هذا الشهر»; in the table its row carries «اليوم»; and the details of a day say when that day is today. A new **«اليوم» button** beside the month names the date and what kind of day it is (or how many sessions it has): a press comes back to the current month from wherever the calendar stands **and opens today's details**; it works from the year and from the table too. The seven-day strip of «متابعة التدريب المباشرة» also writes «اليوم» on today. The title of the year view reads 2026, no longer 2,026.
 ### 2026-11-16 — «متابعة التدريب المباشرة»: the rooms board in the colours of the brand
 On the rooms board a room with training now carries the brand's maroon across its head, a room whose session comes later or has ended has a pale dune head, and a room without training is the brand's light dune all over, instead of amber and near-black. The filters, the bar of the time already behind and the ring of the chosen room use the same palette. The marks that carry a meaning of their own keep their colours (late in amber, something wrong in red, checked in and just arrived in green). The 3D drawing is unchanged: there a room with training is drawn with its lights on. Colours only.
 ### 2026-11-16 — «البرامج»: the row of days in the colours of the brand

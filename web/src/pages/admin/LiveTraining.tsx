@@ -182,7 +182,7 @@ export default function LiveTraining() {
           {(fresh?.strip ?? board?.strip ?? []).map((d) => (
             <button key={d.date} type="button" aria-pressed={d.date === date} onClick={() => goTo(d.date)} title={d.sessions ? String(t('liveT.day.sessions', { n: d.sessions })) : String(t('liveT.day.none'))}
               className={clsx('flex w-12 shrink-0 flex-col items-center rounded-xl py-1.5 transition', d.date === date ? 'bg-navy-900 text-white' : 'text-navy-900 hover:bg-navy-50', d.date === todayIso() && d.date !== date && 'ring-1 ring-inset ring-gold-400')}>
-              <span className={clsx('text-[10px] font-semibold', d.date === date ? 'text-white/75' : 'text-slate-500')}>{fmt.date(`${d.date}T12:00:00`, { weekday: 'short' })}</span>
+              <span className={clsx('text-[10px] font-semibold', d.date === date ? 'text-white/75' : 'text-slate-500')}>{d.date === todayIso() ? t('liveT.day.today') : fmt.date(`${d.date}T12:00:00`, { weekday: 'short' })}</span>
               <span className="text-sm font-bold tabular-nums">{fmt.date(`${d.date}T12:00:00`, { day: 'numeric' })}</span>
               <span className={clsx('mt-0.5 h-1 rounded-full transition-all', d.sessions ? (d.date === date ? 'w-4 bg-gold-300' : 'w-4 bg-gold-500') : 'w-1 bg-slate-200')} />
             </button>

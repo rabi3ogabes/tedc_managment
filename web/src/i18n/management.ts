@@ -239,7 +239,7 @@ export const mgmtAr = {
   },
   calendar: {
     title: 'التقويم التدريبي', subtitle: 'أيام العمل والإجازات وأيام الاختبارات، ومتى يُسمح بالتدريب', views: { month: 'شهري', year: 'سنوي', table: 'جدول' },
-    add: 'إضافة يوم', addTitle: 'إضافة إجازة أو يوم اختبار', editTitle: 'تعديل اليوم', today: 'اليوم', prev: 'السابق', next: 'التالي',
+    add: 'إضافة يوم', addTitle: 'إضافة إجازة أو يوم اختبار', editTitle: 'تعديل اليوم', today: 'اليوم', openToday: 'اذهب إلى اليوم وافتح تفاصيله', thisMonth: 'هذا الشهر', prev: 'السابق', next: 'التالي',
     kinds: { workday: 'يوم عمل', weekend: 'عطلة أسبوعية', vacation: 'إجازة', exam: 'يوم اختبارات', normal: 'يوم عادي (مغلق للتدريب)' },
     types: { vacation: 'إجازة', exam: 'يوم اختبارات', normal: 'يوم عادي (لا تدريب إلا بموافقة)' },
     typeHelp: { vacation: 'يوم إجازة رسمية أو للمركز — لا عمل ولا تدريب.', exam: 'يوم عمل لكنه مغلق للتدريب بسبب اختبارات المدارس.', normal: 'يوم عمل عادي لا يُسمح فيه بالتدريب إلا بعد اعتماد الإدارة.' },
@@ -543,7 +543,7 @@ export const mgmtEn: MgmtStrings = {
   },
   calendar: {
     title: 'Training calendar', subtitle: 'Working days, vacations and exam days - and when training is allowed', views: { month: 'Month', year: 'Year', table: 'Table' },
-    add: 'Add day', addTitle: 'Add a vacation or exam day', editTitle: 'Edit day', today: 'Today', prev: 'Previous', next: 'Next',
+    add: 'Add day', addTitle: 'Add a vacation or exam day', editTitle: 'Edit day', today: 'Today', openToday: 'Go to today and open its details', thisMonth: 'This month', prev: 'Previous', next: 'Next',
     kinds: { workday: 'Working day', weekend: 'Weekend', vacation: 'Vacation', exam: 'Exam day', normal: 'Normal day (closed for training)' },
     types: { vacation: 'Vacation', exam: 'Exam day', normal: 'Normal day (no training without approval)' },
     typeHelp: { vacation: 'An official or center holiday - no work, no training.', exam: 'A working day that is closed for training because schools are examining.', normal: 'A regular working day where training needs management approval.' },
