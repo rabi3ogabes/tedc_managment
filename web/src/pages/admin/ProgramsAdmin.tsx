@@ -164,26 +164,26 @@ function DaySessions({ program }: { program: Program }) {
   )
 }
 
-/** A day without training: the lights are off, and the nearest days that do have training are one press away. */
+/** A day without training, in the colour of a day that is off; the nearest days that do have training are one press away. */
 function DarkDay({ on, win, off, filtered, onPick }: { on: string; win: DayWindow | undefined; off: boolean; filtered: boolean; onPick: (date: string, move?: boolean) => void }) {
   const { t } = useTranslation()
   const near = win ? nearestLit(win, on) : { before: null, after: null }
   const day = fullDay(on)
   const offer = (d: DayCell, side: 'before' | 'after') => (
-    <button key={d.date} type="button" onClick={() => onPick(d.date)} className="rounded-2xl border border-amber-300/50 bg-white/5 px-4 py-2.5 text-start transition hover:bg-white/10">
-      <span className="block text-[11px] text-white/55">{t(`progDay.empty.${side}`)}</span>
-      <span className="block text-sm font-bold text-white">{fmt.date(noon(d.date), { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-      <span className="block text-xs font-semibold text-amber-300">{programsText(d.programs, t)}</span>
+    <button key={d.date} type="button" onClick={() => onPick(d.date)} className="rounded-2xl bg-navy-900 px-4 py-2.5 text-start text-white transition hover:bg-navy-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500">
+      <span className="block text-[11px] text-white/70">{t(`progDay.empty.${side}`)}</span>
+      <span className="block text-sm font-bold">{fmt.date(noon(d.date), { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+      <span className="block text-xs font-semibold text-gold-200">{programsText(d.programs, t)}</span>
     </button>
   )
   return (
-    <div className="m-4 rounded-3xl bg-[radial-gradient(120%_90%_at_50%_0%,#2e1422_0%,#1d0c15_55%,#150910_100%)] px-6 py-10 text-center text-white">
-      <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white/5 text-white/50"><LightbulbOff className="size-7" /></span>
-      <h3 className="mt-4 text-lg font-bold">{t('progDay.empty.title')}</h3>
-      <p className="mx-auto mt-1.5 max-w-md text-sm leading-7 text-white/65">{off ? t('progDay.empty.offDay', { day }) : filtered ? t('progDay.empty.filtered', { day }) : t('progDay.empty.text', { day })}</p>
+    <div className="m-4 rounded-3xl border border-gold-200 bg-gold-100 px-6 py-10 text-center">
+      <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white text-gold-600"><LightbulbOff className="size-7" /></span>
+      <h3 className="mt-4 text-lg font-bold text-navy-900">{t('progDay.empty.title')}</h3>
+      <p className="mx-auto mt-1.5 max-w-md text-sm leading-7 text-gold-900">{off ? t('progDay.empty.offDay', { day }) : filtered ? t('progDay.empty.filtered', { day }) : t('progDay.empty.text', { day })}</p>
       {(near.before || near.after) && (
         <div className="mt-6">
-          <p className="mb-2.5 text-xs font-bold text-amber-300">{t('progDay.empty.nearest')}</p>
+          <p className="mb-2.5 text-xs font-bold text-gold-800">{t('progDay.empty.nearest')}</p>
           <div className="flex flex-wrap justify-center gap-2.5">{near.before && offer(near.before, 'before')}{near.after && offer(near.after, 'after')}</div>
         </div>
       )}
