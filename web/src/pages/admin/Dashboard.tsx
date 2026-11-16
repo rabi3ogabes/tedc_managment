@@ -6,6 +6,7 @@ import { Card, CardTitle, ErrorState, PageHeader, Spinner } from '@/components/u
 import { useGet } from '@/hooks/useApi'
 import { useAuth, homeFor } from '@/lib/auth'
 import { fmt } from '@/lib/format'
+import RoleCharter from '@/components/dashboard/RoleCharter'
 import RoleDashboard from '@/components/dashboard/RoleDashboard'
 import JourneyTracker from './dashboard/JourneyTracker'
 
@@ -20,19 +21,28 @@ type DashboardData = {
 
 export default function Dashboard() {
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { data, isLoading, error, refetch } = useGet<{ data: DashboardData }>('/admin/dashboard')
-  if (isLoading) return <Spinner />
-  if (error || !data) return <ErrorState error={error} onRetry={refetch} home={user ? homeFor(user) : '/'} />
+  const { user, can } = useAuth()
+  // Every role has a dashboard of its own (its charter and its widgets). The centre-wide figures below are for the roles that
+  // hold «عرض لوحة التحكم»; a trainer or a kit developer sees the first two parts only.
+  const centre = can('dashboard.view')
+  const { data, isLoading, error, refetch } = useGet<{ data: DashboardData }>(centre ? '/admin/dashboard' : null)
+  const head = (
+    <>
+      <PageHeader title={<>{t('admin.dashboard.welcome')} {user?.name}</>} subtitle={t('admin.dashboard.subtitle')} />
+      <RoleCharter />
+      <RoleDashboard />
+    </>
+  )
+  if (!centre) return head
+  if (isLoading) return <>{head}<Spinner /></>
+  if (error || !data) return <>{head}<ErrorState error={error} onRetry={refetch} home={user ? homeFor(user) : '/'} /></>
   const d = data.data
 
   const trend = d.trend.registrations.map((r, i) => ({ label: fmt.month(r.month), registrations: r.total, completions: d.trend.completions[i]?.total ?? 0 }))
 
   return (
     <>
-      <PageHeader title={<>{t('admin.dashboard.welcome')} {user?.name}</>} subtitle={t('admin.dashboard.subtitle')} />
-
-      <RoleDashboard />
+      {head}
 
       <JourneyTracker />
 

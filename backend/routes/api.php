@@ -432,6 +432,7 @@ Route::prefix('v1')->group(function () {
 
         // Role dashboards: layout, widget data, personal order.
         Route::get('dashboard', [DashboardController::class, 'layout']);
+        Route::get('dashboard/charter', [DashboardController::class, 'charter']);
         Route::put('dashboard/layout', [DashboardController::class, 'saveLayout']);
         Route::get('dashboard/widgets/{key}', [DashboardController::class, 'widget'])->where('key', '[a-z_]+');
 

@@ -37,6 +37,7 @@ import { trnAr, trnEn } from './trainees'
 import { datasetAr, datasetEn } from './dataset'
 import { liveTAr, liveTEn } from './liveTraining'
 import { progDayAr, progDayEn } from './programDays'
+import { charterAr, charterEn } from './roleCharter'
 
 export type Locale = 'ar' | 'en'
 
@@ -57,7 +58,7 @@ export function applyDocumentLocale(locale: Locale) {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { ar: { translation: { ...ar, surveys: surveysAr, plc: plcAr, saber: saberAr, ss: ssAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr, ...structureAr, ...assessAr, ...passAr, ...evalAr, ...careerAr, ...contentAr, ...commAr, ...reportsAr, ...idnAr, ...socAr, ...aiAr, ...payAr, ...prvAr, ...hlpAr, ...apaAr, ...cmpAr, ...ltiAr, ...m365Ar, ...minAr, ...teachAr, ...tourAr, ...trnAr, ...datasetAr, ...liveTAr, ...progDayAr } }, en: { translation: { ...en, surveys: surveysEn, plc: plcEn, saber: saberEn, ss: ssEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn, ...structureEn, ...assessEn, ...passEn, ...evalEn, ...careerEn, ...contentEn, ...commEn, ...reportsEn, ...idnEn, ...socEn, ...aiEn, ...payEn, ...prvEn, ...hlpEn, ...apaEn, ...cmpEn, ...ltiEn, ...m365En, ...minEn, ...teachEn, ...tourEn, ...trnEn, ...datasetEn, ...liveTEn, ...progDayEn } } },
+  resources: { ar: { translation: { ...ar, surveys: surveysAr, plc: plcAr, saber: saberAr, ss: ssAr, mgmt: mgmtAr, kits: kitsAr, studio: studioAr, course: courseAr, learn: courseAr.learn, ...opsAr, ...accessAr, ...structureAr, ...assessAr, ...passAr, ...evalAr, ...careerAr, ...contentAr, ...commAr, ...reportsAr, ...idnAr, ...socAr, ...aiAr, ...payAr, ...prvAr, ...hlpAr, ...apaAr, ...cmpAr, ...ltiAr, ...m365Ar, ...minAr, ...teachAr, ...tourAr, ...trnAr, ...datasetAr, ...liveTAr, ...progDayAr, ...charterAr } }, en: { translation: { ...en, surveys: surveysEn, plc: plcEn, saber: saberEn, ss: ssEn, mgmt: mgmtEn, kits: kitsEn, studio: studioEn, course: courseEn, learn: courseEn.learn, ...opsEn, ...accessEn, ...structureEn, ...assessEn, ...passEn, ...evalEn, ...careerEn, ...contentEn, ...commEn, ...reportsEn, ...idnEn, ...socEn, ...aiEn, ...payEn, ...prvEn, ...hlpEn, ...apaEn, ...cmpEn, ...ltiEn, ...m365En, ...minEn, ...teachEn, ...tourEn, ...trnEn, ...datasetEn, ...liveTEn, ...progDayEn, ...charterEn } } },
   lng: initialLocale,
   fallbackLng: 'ar',
   interpolation: { escapeValue: false },
