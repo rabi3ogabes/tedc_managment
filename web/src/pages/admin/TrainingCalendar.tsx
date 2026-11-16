@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AlertTriangle, BadgeCheck, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Lock, Pencil, Plus, Table2, Trash2, Unlock } from 'lucide-react'
+import { AlertTriangle, BadgeCheck, CalendarCheck, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Lock, Pencil, Plus, Table2, Trash2, Unlock } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner, StatCard } from '@/components/ui'
@@ -43,11 +43,16 @@ function DayCell({ day, inMonth, onOpen }: { day: CalendarDayInfo; inMonth: bool
     <button
       type="button"
       onClick={() => onOpen(day)}
-      className={clsx('relative flex min-h-[4.75rem] flex-col items-stretch rounded-xl border border-navy-100 p-1.5 text-start transition sm:min-h-24 sm:p-2', style.cell, !inMonth && 'opacity-35', isToday && 'ring-2 ring-gold-500')}
-      aria-label={`${day.date} ${t(`mgmt.calendar.kinds.${day.kind}`)}`}
+      className={clsx('relative flex min-h-[4.75rem] flex-col items-stretch rounded-xl border border-navy-100 p-1.5 text-start transition sm:min-h-24 sm:p-2', style.cell, !inMonth && 'opacity-35', isToday && 'border-navy-900 ring-2 ring-navy-900')}
+      aria-label={`${isToday ? `${t('mgmt.calendar.today')}: ` : ''}${day.date} ${t(`mgmt.calendar.kinds.${day.kind}`)}`}
+      aria-current={isToday ? 'date' : undefined}
     >
-      <span className="flex items-center justify-between">
-        <span className={clsx('text-sm font-bold', isToday && 'grid size-6 place-items-center rounded-full bg-navy-900 text-xs text-white')}>{fmt.number(number)}</span>
+      <span className="flex items-center justify-between gap-1">
+        <span className="flex min-w-0 items-center gap-1">
+          <span className={clsx('text-sm font-bold', isToday && 'grid size-6 shrink-0 place-items-center rounded-full bg-navy-900 text-xs text-white')}>{fmt.number(number)}</span>
+          {/* Today says so in words: a ring alone is easy to miss on a full month. */}
+          {isToday && <span className="truncate rounded-full bg-navy-900 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">{t('mgmt.calendar.today')}</span>}
+        </span>
         <span className="flex items-center gap-1">
           {day.approval && <BadgeCheck className="size-4 text-emerald-600" aria-label={t('mgmt.calendar.approvedBadge')} />}
           {!day.training_allowed && <Lock className="size-3.5 opacity-60" aria-label={t('mgmt.calendar.trainingClosed')} />}
@@ -92,20 +97,25 @@ function YearView({ year, onOpen, onMonth }: { year: number; onOpen: (d: Calenda
     data?.data.forEach((d) => map[parse(d.date).getMonth()].push(d))
     return map
   }, [data])
+  const today = ymd(new Date())
   if (isLoading || !data) return <Spinner />
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {byMonth.map((days, month) => {
         const offset = parse(days[0].date).getDay()
         return (
-          <div key={month} className="rounded-2xl border border-navy-100 bg-white p-3">
-            <button type="button" onClick={() => onMonth(month)} className="mb-2 w-full text-start text-sm font-bold text-navy-900 hover:text-link">{new Intl.DateTimeFormat(i18n.language === 'en' ? 'en' : 'ar-QA-u-nu-latn', { month: 'long' }).format(new Date(year, month, 1))}</button>
+          <div key={month} className={clsx('rounded-2xl border bg-white p-3', today.startsWith(`${year}-${String(month + 1).padStart(2, '0')}-`) ? 'border-navy-900' : 'border-navy-100')}>
+            <button type="button" onClick={() => onMonth(month)} className="mb-2 flex w-full items-center justify-between gap-2 text-start text-sm font-bold text-navy-900 hover:text-link">
+              {new Intl.DateTimeFormat(i18n.language === 'en' ? 'en' : 'ar-QA-u-nu-latn', { month: 'long' }).format(new Date(year, month, 1))}
+              {today.startsWith(`${year}-${String(month + 1).padStart(2, '0')}-`) && <span className="rounded-full bg-navy-900 px-2 py-0.5 text-[10px] font-bold text-white">{t('mgmt.calendar.thisMonth')}</span>}
+            </button>
             <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400">{weekdays.map((w) => <span key={w}>{w.slice(0, 1)}</span>)}</div>
             <div className="mt-1 grid grid-cols-7 gap-1">
               {Array.from({ length: offset }, (_, i) => <span key={`b${i}`} />)}
               {days.map((d) => (
-                <button key={d.date} type="button" onClick={() => onOpen(d)} title={`${d.date} · ${d.entry?.title ?? t(`mgmt.calendar.kinds.${d.kind}`)}`}
-                  className={clsx('relative grid aspect-square place-items-center rounded-md text-[10px] font-semibold transition hover:ring-2 hover:ring-gold-400', {
+                <button key={d.date} type="button" onClick={() => onOpen(d)} title={`${d.date === today ? `${t('mgmt.calendar.today')} · ` : ''}${d.date} · ${d.entry?.title ?? t(`mgmt.calendar.kinds.${d.kind}`)}`}
+                  aria-current={d.date === today ? 'date' : undefined}
+                  className={clsx('relative grid aspect-square place-items-center rounded-md text-[10px] font-semibold transition hover:ring-2 hover:ring-gold-400', d.date === today ? 'bg-navy-900 font-bold text-white ring-2 ring-navy-900 ring-offset-1' : {
                     'bg-slate-50 text-slate-700': d.kind === 'workday', 'bg-slate-200/70 text-slate-500': d.kind === 'weekend', 'bg-red-200 text-red-900': d.kind === 'vacation',
                     'bg-amber-200 text-amber-900': d.kind === 'exam', 'bg-sky-200 text-sky-900': d.kind === 'normal', 'ring-2 ring-emerald-500': !!d.approval,
                   })}>
@@ -135,6 +145,7 @@ function TableView({ onOpen }: { onOpen: (d: CalendarDayInfo) => void }) {
   const last = Math.max(1, Math.ceil(rows.length / perPage))
   const shown = rows.slice((page - 1) * perPage, page * perPage)
   const reset = () => setPage(1)
+  const today = ymd(new Date())
 
   return (
     <Card padded={false}>
@@ -158,8 +169,8 @@ function TableView({ onOpen }: { onOpen: (d: CalendarDayInfo) => void }) {
             </tr></thead>
             <tbody className="divide-y divide-navy-100/70">
               {shown.map((d) => (
-                <tr key={d.date} onClick={() => onOpen(d)} className="cursor-pointer transition hover:bg-ivory/70">
-                  <td className="whitespace-nowrap px-3 py-3"><div className="font-semibold text-navy-900">{fmt.date(d.date, { day: 'numeric', month: 'short', year: 'numeric' })}</div><div className="text-xs text-slate-400">{weekdays[d.weekday]}</div></td>
+                <tr key={d.date} onClick={() => onOpen(d)} aria-current={d.date === today ? 'date' : undefined} className={clsx('cursor-pointer transition hover:bg-ivory/70', d.date === today && 'bg-navy-50')}>
+                  <td className="whitespace-nowrap px-3 py-3"><div className="flex items-center gap-2 font-semibold text-navy-900">{fmt.date(d.date, { day: 'numeric', month: 'short', year: 'numeric' })}{d.date === today && <span className="rounded-full bg-navy-900 px-2 py-0.5 text-[10px] font-bold text-white">{t('mgmt.calendar.today')}</span>}</div><div className="text-xs text-slate-400">{weekdays[d.weekday]}</div></td>
                   <td className="px-3 py-3"><Badge color={kindStyle[d.kind].badge}>{t(`mgmt.calendar.kinds.${d.kind}`)}</Badge></td>
                   <td className="px-3 py-3 font-medium text-navy-900">{d.entry?.title ?? (d.kind === 'weekend' ? t('mgmt.calendar.weekendNote') : '—')}</td>
                   <td className="px-3 py-3">
@@ -262,7 +273,7 @@ function DayDetails({ day, canManage, canApprove, onClose, onEdit, onMark, onCha
         <div className="flex items-center gap-3">
           <span className={clsx('grid size-14 place-items-center rounded-2xl text-xl font-bold', kindStyle[day.kind].cell.split(' ')[0], 'ring-1 ring-navy-100')}>{fmt.number(parse(day.date).getDate())}</span>
           <div>
-            <div className="font-bold text-navy-900">{fmt.date(day.date)}</div>
+            <div className="flex items-center gap-2 font-bold text-navy-900">{fmt.date(day.date)}{day.date === ymd(new Date()) && <span className="rounded-full bg-navy-900 px-2 py-0.5 text-[10px] font-bold text-white">{t('mgmt.calendar.today')}</span>}</div>
             <div className="text-sm text-slate-500">{weekdays[day.weekday]}</div>
           </div>
           <Badge className="ms-auto" color={kindStyle[day.kind].badge}>{t(`mgmt.calendar.kinds.${day.kind}`)}</Badge>
@@ -318,9 +329,19 @@ export default function TrainingCalendar() {
   const to = view === 'year' ? `${year}-12-31` : ymd(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0))
   const summary = useRange(from, to)
   const s = summary.data?.meta.summary
-  const refresh = () => { setVersion((v) => v + 1); summary.refetch() }
+  // Today, whatever month is on show: it is named on the «اليوم» button, and one press comes back to it and opens it.
+  const todayIso = ymd(new Date())
+  const todayRange = useRange(todayIso, todayIso)
+  const todayInfo = todayRange.data?.data[0]
+  const onThisMonth = cursor.getFullYear() === new Date().getFullYear() && (view === 'year' || cursor.getMonth() === new Date().getMonth())
+  const openToday = async () => {
+    setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+    const info = todayInfo ?? (await todayRange.refetch()).data?.data[0]
+    if (info) setOpen(info)
+  }
+  const refresh = () => { setVersion((v) => v + 1); summary.refetch(); todayRange.refetch() }
   const shift = (n: number) => setCursor((c) => (view === 'year' ? new Date(c.getFullYear() + n, c.getMonth(), 1) : new Date(c.getFullYear(), c.getMonth() + n, 1)))
-  const title = view === 'year' ? fmt.number(year) : new Intl.DateTimeFormat(i18n.language === 'en' ? 'en' : 'ar-QA-u-nu-latn', { month: 'long', year: 'numeric' }).format(cursor)
+  const title = view === 'year' ? String(year) : new Intl.DateTimeFormat(i18n.language === 'en' ? 'en' : 'ar-QA-u-nu-latn', { month: 'long', year: 'numeric' }).format(cursor)
   const Prev = i18n.language === 'ar' ? ChevronRight : ChevronLeft
   const Next = i18n.language === 'ar' ? ChevronLeft : ChevronRight
 
@@ -340,14 +361,23 @@ export default function TrainingCalendar() {
 
       <Card>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          {view !== 'table' ? (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" aria-label={t('mgmt.calendar.prev')} onClick={() => shift(-1)}><Prev className="size-4" /></Button>
-              <h2 className="min-w-40 text-center text-lg font-bold text-navy-900">{title}</h2>
-              <Button variant="outline" size="sm" aria-label={t('mgmt.calendar.next')} onClick={() => shift(1)}><Next className="size-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>{t('mgmt.calendar.today')}</Button>
-            </div>
-          ) : <span />}
+          <div className="flex flex-wrap items-center gap-2">
+            {view !== 'table' && (
+              <>
+                <Button variant="outline" size="sm" aria-label={t('mgmt.calendar.prev')} onClick={() => shift(-1)}><Prev className="size-4" /></Button>
+                <h2 className="min-w-40 text-center text-lg font-bold text-navy-900">{title}</h2>
+                <Button variant="outline" size="sm" aria-label={t('mgmt.calendar.next')} onClick={() => shift(1)}><Next className="size-4" /></Button>
+              </>
+            )}
+            {/* Today in words, with what kind of day it is; a press comes back to it and opens it. */}
+            <button type="button" onClick={() => void openToday()} title={String(t('mgmt.calendar.openToday'))}
+              className={clsx('inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-start text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500', onThisMonth ? 'border-navy-900 bg-navy-900 text-white hover:bg-navy-950' : 'border-navy-900 bg-white text-navy-900 hover:bg-navy-50')}>
+              <CalendarCheck className={clsx('size-4 shrink-0', onThisMonth ? 'text-gold-300' : 'text-navy-900')} />
+              <span className="font-bold">{t('mgmt.calendar.today')}</span>
+              <span className={clsx('tabular-nums', onThisMonth ? 'text-white/85' : 'text-slate-600')}>{fmt.date(todayIso, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+              {todayInfo && <span className={clsx('hidden rounded-full px-2 py-0.5 text-[11px] font-bold sm:inline', onThisMonth ? 'bg-white/15 text-white' : 'bg-navy-50 text-navy-900')}>{todayInfo.sessions_count > 0 ? t('mgmt.calendar.sessionsCount', { count: todayInfo.sessions_count }) : t(`mgmt.calendar.kinds.${todayInfo.kind}`)}</span>}
+            </button>
+          </div>
           <div className="inline-flex rounded-xl border border-navy-100 bg-white p-1 shadow-sm" role="radiogroup">
             {([['month', CalendarDays], ['year', CalendarRange], ['table', Table2]] as const).map(([id, Icon]) => (
               <button key={id} type="button" role="radio" aria-checked={view === id} onClick={() => setView(id)} className={clsx('inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition', view === id ? 'bg-navy-900 text-white shadow' : 'text-slate-500 hover:text-navy-900')}>
