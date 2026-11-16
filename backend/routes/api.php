@@ -1041,6 +1041,8 @@ Route::prefix('v1')->group(function () {
             // Programs & sessions
             // The program list is a picker for registrations, certificates and impact screens too (it is the public catalogue plus status).
             Route::get('programs', [ProgramController::class, 'index'])->middleware('permission:programs.view|programs.manage|registrations.view|certificates.view|impact.view');
+            // The row of days above the programme list: how many programmes train on each day, days off left out.
+            Route::get('programs/days', [ProgramController::class, 'days'])->middleware('permission:programs.view|programs.manage|registrations.view|certificates.view|impact.view');
             Route::middleware('permission:programs.view|programs.manage')->group(function () {
                 Route::get('programs/{program}', [ProgramController::class, 'show']);
                 Route::get('programs/{program}/sessions', [SessionController::class, 'index']);

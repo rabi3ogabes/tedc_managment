@@ -95,6 +95,7 @@ Errors: `422` business-rule errors return `{message, code, details}`; validation
 | GET | `/admin/lookups` | authenticated |
 | DELETE | `/admin/materials/{material}` | `materials.manage` |
 | GET | `/admin/programs` | `programs.view|programs.manage` |
+| GET | `/admin/programs/days` | `programs.view|programs.manage` |
 | POST | `/admin/programs` | `programs.manage` |
 | GET | `/admin/programs/{program}` | `programs.view|programs.manage` |
 | PUT | `/admin/programs/{program}` | `programs.manage` |
