@@ -19,6 +19,9 @@ list shows the programmes that have a session on it.
 
 The row and the list follow the same filters (search text, status, kind), so a lit day always has something to show.
 
+The two states use the colours of the brand (the palette tokens, so the Brand Studio recolours them): a day with training is the
+maroon (`navy-900`), a day without is the light dune (`gold-100`); the chosen day carries a dune ring.
+
 ## How it is built
 
 * **API** — `GET /api/v1/admin/programs?on=YYYY-MM-DD` narrows the list to the programmes that train on the day, orders it by the first

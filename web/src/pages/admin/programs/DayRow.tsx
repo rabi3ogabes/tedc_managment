@@ -68,8 +68,8 @@ export default function DayRow({ on, win, today, loading, onPick, onAnchor }: {
         {on && <button type="button" onClick={() => onPick(null)} className="inline-flex items-center gap-1.5 rounded-2xl bg-navy-50 px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-navy-100"><X className="size-4" />{t('progDay.clear')}</button>}
 
         <ul className="ms-auto hidden items-center gap-3 text-[11px] font-semibold text-slate-500 lg:flex">
-          <li className="inline-flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_2px_rgb(251_191_36/0.6)]" />{t('progDay.legend.lit')}</li>
-          <li className="inline-flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-[#2e1422]" />{t('progDay.legend.off')}</li>
+          <li className="inline-flex items-center gap-1.5"><span className="size-3 rounded-full bg-navy-900" />{t('progDay.legend.lit')}</li>
+          <li className="inline-flex items-center gap-1.5"><span className="size-3 rounded-full bg-gold-100 ring-1 ring-inset ring-gold-400" />{t('progDay.legend.off')}</li>
         </ul>
       </div>
 
@@ -93,16 +93,17 @@ function DayChip({ day, today, selected, innerRef, onClick }: { day: DayCell; to
   return (
     <button ref={innerRef} type="button" onClick={onClick} aria-pressed={selected} aria-label={label} title={label}
       className={clsx('relative flex h-[6.4rem] w-[4.4rem] flex-col items-center overflow-hidden rounded-2xl border pb-2 pt-2.5 transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-500 motion-safe:hover:-translate-y-0.5 sm:w-full',
-        lit ? 'border-amber-300/80 bg-[radial-gradient(130%_85%_at_50%_0%,#fff0c2_0%,#fffaf0_45%,#ffffff_80%)] text-navy-900 shadow-[0_14px_26px_-18px_rgb(180_120_20/0.8)]'
-          : 'border-white/5 bg-[radial-gradient(120%_90%_at_50%_0%,#2e1422_0%,#1d0c15_55%,#150910_100%)] text-white/80',
-        selected && 'ring-2 ring-navy-900 ring-offset-2')}>
-      {/* The lamp of the day: glowing when programmes train on it, dark when none does. */}
-      <span aria-hidden className={clsx('absolute inset-x-3 top-0 h-1 rounded-b-full', lit ? 'bg-amber-400 shadow-[0_0_14px_3px_rgb(251_191_36/0.65)]' : 'bg-white/10')} />
-      <span className={clsx('text-[11px] font-bold leading-none', isToday ? (lit ? 'text-gold-700' : 'text-gold-300') : lit ? 'text-slate-500' : 'text-white/50')}>{isToday ? t('progDay.today') : fmt.date(noon(day.date), { weekday: 'short' })}</span>
-      <span className={clsx('mt-1 font-display text-2xl font-bold leading-none tabular-nums', !lit && 'text-white')}>{fmt.date(noon(day.date), { day: 'numeric' })}</span>
-      <span className={clsx('mt-0.5 text-[10px] leading-none', lit ? 'text-slate-500' : 'text-white/45')}>{day.off ? t('progDay.dayOff') : fmt.date(noon(day.date), { month: 'short' })}</span>
-      <span className={clsx('mt-auto inline-flex items-center gap-1 text-xs font-bold tabular-nums', lit ? 'text-navy-900' : 'text-white/35')}>
-        {lit ? <><Lightbulb className="size-3.5 text-amber-500" />{fmt.number(day.programs)}</> : <LightbulbOff className="size-3.5" />}
+        // The two states in the colours of the brand: a day with training is the maroon, a day without is the light dune.
+        lit ? 'border-navy-900 bg-navy-900 text-white shadow-[0_14px_24px_-16px_color-mix(in_oklab,var(--color-navy-950)_85%,transparent)]'
+          : 'border-gold-200 bg-gold-100 text-gold-900',
+        selected && 'ring-[3px] ring-gold-500 ring-offset-2')}>
+      {/* The lamp of the day: on when programmes train on it, off when none does. */}
+      <span aria-hidden className={clsx('absolute inset-x-3 top-0 h-1 rounded-b-full', lit ? 'bg-gold-300' : 'bg-gold-300/60')} />
+      <span className={clsx('text-[11px] font-bold leading-none', lit ? (isToday ? 'text-gold-200' : 'text-white/75') : isToday ? 'text-navy-900' : 'text-gold-800')}>{isToday ? t('progDay.today') : fmt.date(noon(day.date), { weekday: 'short' })}</span>
+      <span className="mt-1 font-display text-2xl font-bold leading-none tabular-nums">{fmt.date(noon(day.date), { day: 'numeric' })}</span>
+      <span className={clsx('mt-0.5 text-[10px] leading-none', lit ? 'text-white/70' : 'text-gold-800')}>{day.off ? t('progDay.dayOff') : fmt.date(noon(day.date), { month: 'short' })}</span>
+      <span className={clsx('mt-auto inline-flex items-center gap-1 text-xs font-bold tabular-nums', lit ? 'text-white' : 'text-gold-600')}>
+        {lit ? <><Lightbulb className="size-3.5 text-gold-300" />{fmt.number(day.programs)}</> : <LightbulbOff className="size-3.5" />}
       </span>
     </button>
   )
