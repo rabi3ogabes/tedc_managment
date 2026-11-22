@@ -3,6 +3,8 @@
 Format: Keep a Changelog. Versions: Alpha (core modules), Beta (all modules, integrations, security), Final (production on Azure).
 
 ## [Unreleased]
+### 2026-11-22 — Portal home: each role shows its own content
+The home page of the portal belongs to the role the person is working in. Somebody who is both «مشرف» and «موظف» saw their own training (hours, active and finished programmes, next session, programmes recommended to them) under the supervision dashboard as «مشرف» too. Now «مشرف» shows supervision only, and the person's own training is shown as «موظف». Under «مشرف» a short card says where it is, with one press to switch to the «موظف» profile. A person who does not hold the trainee role keeps their own training on their home page, since they have no other profile to switch to. The supervisor's home no longer asks the server for the personal summary and recommendations it does not show.
 ### 2026-11-22 — Two roles in two tabs: each tab keeps its own role
 The role a person works in was remembered once for the whole browser. With the two roles of one account open in two tabs (one as «مشرف», one as «موظف»), switching in one tab silently changed what the other tab asked the server for: the tab went on saying «مشرف» while showing the trainee's page, and the other way round; a reload then changed the tab's role without being asked. The role now belongs to the tab: each tab keeps asking as its own role, keeps it across a reload, and is not changed by what another tab does. A new tab starts in the role the person last switched to. This completes the fix of the same day for a switch inside one tab.
 ### 2026-11-22 — A person with two roles sees each role's own page after a switch
