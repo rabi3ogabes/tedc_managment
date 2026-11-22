@@ -33,7 +33,10 @@ import { useCenterName } from '@/lib/ThemeProvider'
 export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const { t, i18n } = useTranslation()
   const centerName = useCenterName()
-  const { user, can } = useAuth()
+  const { user, can, activeRole } = useAuth()
+  // The page belongs to the role it was opened in: when the person switches role it is built again from nothing, so its filters,
+  // open panels and loaded lists never carry over to the other role.
+  const roleKey = activeRole?.id ?? 'no-role'
   const { pathname, search } = useLocation()
   const activeTab = new URLSearchParams(search).get('tab')
   const onSettings = pathname.startsWith('/admin/settings')
@@ -245,7 +248,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           </div>
         </header>
         <main className="flex-1 px-4 py-6 sm:px-6">
-          <AppErrorBoundary resetKey={pathname}><Outlet /></AppErrorBoundary>
+          <AppErrorBoundary resetKey={pathname}><Outlet key={roleKey} /></AppErrorBoundary>
           {portal && <AssistantPanel portal />}
         </main>
         <footer className="border-t border-navy-100/70 px-4 py-3 text-center text-[11px] text-slate-400"><VersionStamp /></footer>
@@ -303,7 +306,7 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                 <p className="mt-2 text-sm leading-7 text-slate-600">{t('hlp.featureOffHint')}</p>
                 {can('settings.manage') && <Link to="/admin/settings" className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('hlp.featureOffAction')}</Link>}
               </div>
-            ) : <Outlet />}
+            ) : <Outlet key={roleKey} />}
           </AppErrorBoundary>
           {portal && <AssistantPanel portal />}
           <ReportProblem />

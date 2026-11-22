@@ -66,8 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = useCallback(async (grantId: string) => {
     const { data } = await api.post('/auth/active-role', { role_user_id: grantId })
+    // From here every request is sent as the new role.
     activeRoleStore.set(grantId)
-    // Everything on screen was loaded for the previous role.
+    // Nothing that was loaded for the previous role is kept. The new role is part of the key of every personal query
+    // (queryKeyFor) and the page itself is rebuilt for it (AdminLayout), so no page can go on showing the other role's data.
     queryClient.clear()
     setUser(data.data)
     return (data.data as Me).active_role ?? null
@@ -111,6 +113,14 @@ export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
+}
+
+/**
+ * The id of the role grant the person is working in, or null when nobody is signed in. It is part of the key of every personal
+ * query, so reading it here also redraws whoever asked when the role changes. Safe outside the provider (returns null).
+ */
+export function useActiveRoleId(): string | null {
+  return useContext(AuthContext)?.activeRole?.id ?? null
 }
 
 /** Where a user lands after signing in or switching role: the landing page of the active role. */
