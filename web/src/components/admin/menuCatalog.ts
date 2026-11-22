@@ -4,7 +4,10 @@ import {
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
 
-export type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string }
+export type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string
+  /** A page of the person's own training (portal): listed in the trainee role, see showsOwnTraining. */
+  ownTraining?: boolean
+}
 export type Group = { id: string; title: string; items: Item[] }
 export type MenuBadges = { errors?: number; chats?: number; requests?: number }
 

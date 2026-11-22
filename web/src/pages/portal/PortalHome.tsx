@@ -1,17 +1,17 @@
-import { ArrowLeftRight, Award, BookOpen, CalendarClock, ClipboardList, Clock, GraduationCap, MapPin, Sparkles, Target } from 'lucide-react'
+import { Award, BookOpen, CalendarClock, ClipboardList, Clock, GraduationCap, MapPin, Sparkles, Target } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import RoleCharter from '@/components/dashboard/RoleCharter'
 import RoleDashboard from '@/components/dashboard/RoleDashboard'
 import { ProgramCover } from '@/components/public/ProgramCard'
 import { PendingSurveysBanner } from '@/components/surveys/NeedsSurveys'
-import { Badge, Button, Card, CardTitle, Empty, PageHeader, Progress, Spinner, StatCard } from '@/components/ui'
+import { Badge, Card, CardTitle, Empty, PageHeader, Progress, Spinner, StatCard } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
-import { api, errorMessage } from '@/lib/api'
+import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
-import { showsOwnTraining, TRAINEE_ROLE } from '@/lib/portalHome'
+import { showsOwnTraining } from '@/lib/portalHome'
 import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
 
@@ -24,9 +24,10 @@ type HomeData = {
 }
 
 /**
- * The home page of the portal. It belongs to the role the person is working in: the role's own card and dashboard come first, and
- * the person's own training (hours, programmes, next session, recommendations) is shown in the trainee role. Somebody who is both a
- * supervisor and a trainee therefore sees supervision as «مشرف» and their own training as «موظف» (see showsOwnTraining).
+ * The home page of the portal. It belongs to the role the person is working in: the role's own card («صلاحياتي ومسؤولياتي») and
+ * dashboard come first, and the person's own training («تدريبك الشخصي»: hours, programmes, next session, recommendations) is shown
+ * in the trainee role. Somebody who is both a supervisor and a trainee therefore sees supervision as «مشرف» and their own training
+ * as «موظف» (see showsOwnTraining).
  */
 export default function PortalHome() {
   const { t } = useTranslation()
@@ -39,36 +40,13 @@ export default function PortalHome() {
       <PendingSurveysBanner />
       <RoleCharter />
       <RoleDashboard />
-      {own ? <OwnTraining /> : <OwnTrainingElsewhere />}
+      {own && (
+        <section aria-labelledby="own-training">
+          <h2 id="own-training" className="mb-3 flex items-center gap-2 text-lg font-bold text-navy-900"><GraduationCap className="size-5 text-gold-600" />{t('portal.ownTraining')}</h2>
+          <OwnTraining />
+        </section>
+      )}
     </>
-  )
-}
-
-/** For a role that is not the trainee's: where the person's own training is, one press away. */
-function OwnTrainingElsewhere() {
-  const { t } = useTranslation()
-  const { user, switchRole } = useAuth()
-  const navigate = useNavigate()
-  const [switching, setSwitching] = useState(false)
-  const trainee = user?.roles.find((r) => r.slug === TRAINEE_ROLE)
-  if (!trainee) return null
-  const go = async () => {
-    setSwitching(true)
-    try {
-      const next = await switchRole(trainee.id)
-      navigate(next?.landing_route ?? '/portal')
-      toast(t('roles.switched', { role: next?.name ?? '' }))
-    } catch (e) { toast(errorMessage(e), 'error') } finally { setSwitching(false) }
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-navy-100 bg-white px-5 py-4">
-      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-navy-50 text-navy-900"><GraduationCap className="size-5" /></span>
-      <div className="min-w-0 flex-1">
-        <h2 className="font-bold text-navy-900">{t('portal.ownElsewhere.title')}</h2>
-        <p className="mt-0.5 text-sm leading-6 text-slate-600">{t('portal.ownElsewhere.text', { role: trainee.name })}</p>
-      </div>
-      <Button variant="outline" size="sm" loading={switching} icon={<ArrowLeftRight className="size-4" />} onClick={() => void go()}>{t('portal.ownElsewhere.go', { role: trainee.name })}</Button>
-    </div>
   )
 }
 

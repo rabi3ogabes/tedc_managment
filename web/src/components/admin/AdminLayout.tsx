@@ -4,6 +4,7 @@ import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/componen
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
 import { adminCatalog, type Item } from './menuCatalog'
+import { showsOwnTraining } from '@/lib/portalHome'
 import { applyLayout, EMPTY_LAYOUT, type MenuLayout } from '@/lib/menuLayout'
 import {
   Award, LifeBuoy, Power, Bell, BookOpen, ChevronDown, ClipboardList, GraduationCap, Home, FilePenLine, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, School, Shield, Target, Wallet, X, Search,
@@ -37,6 +38,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   // The page belongs to the role it was opened in: when the person switches role it is built again from nothing, so its filters,
   // open panels and loaded lists never carry over to the other role.
   const roleKey = activeRole?.id ?? 'no-role'
+  // The pages of the person's own training are listed in the trainee role (or when the person has no trainee role to switch to).
+  const ownTraining = showsOwnTraining(activeRole?.slug, (user?.roles ?? []).map((r) => r.slug))
   const { pathname, search } = useLocation()
   const activeTab = new URLSearchParams(search).get('tab')
   const onSettings = pathname.startsWith('/admin/settings')
@@ -84,26 +87,29 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         title: t('nav.portal'),
         items: [
           { to: '/portal', label: t('nav.home'), icon: Home, end: true },
-          { to: '/portal/training', label: t('portal.myTraining'), icon: BookOpen },
-          { to: '/portal/passport', label: t('portal.passport'), icon: GraduationCap },
-          { to: '/portal/certificates', label: t('portal.certificates'), icon: Wallet },
-          { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList },
+          // The pages of the person's own training (ownTraining) are listed in the trainee role. Somebody who is a supervisor and
+          // a trainee finds them as «موظف», not under «مشرف»; a person with no trainee role keeps them (showsOwnTraining).
+          { to: '/portal/training', label: t('portal.myTraining'), icon: BookOpen, ownTraining: true },
+          { to: '/portal/passport', label: t('portal.passport'), icon: GraduationCap, ownTraining: true },
+          { to: '/portal/certificates', label: t('portal.certificates'), icon: Wallet, ownTraining: true },
+          { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList, ownTraining: true },
+          // Impact surveys stay: a supervisor answers them about the people they supervise.
           { to: '/portal/surveys', label: t('portal.surveys'), icon: Target },
-          { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap },
-          { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList },
-          { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList },
-          { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap },
+          { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap, ownTraining: true },
+          { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList, ownTraining: true },
+          { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList, ownTraining: true },
+          { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap, ownTraining: true },
           { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
           { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
           { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
-          { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
+          { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification', ownTraining: true },
           { to: '/portal/my-data', label: t('prv.nav'), icon: Shield },
           { to: '/portal/help', label: t('hlp.nav'), icon: LifeBuoy },
-          { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments' },
+          { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments', ownTraining: true },
           { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
           { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
           { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
-        ],
+        ].filter((item) => ownTraining || !item.ownTraining),
       },
       // Working as a supervisor: his people's requests and needs are one tap away (they used to be reachable only from the administration side, so switching role changed nothing he could see).
       ...(user?.active_role?.slug === 'supervisor' ? [{

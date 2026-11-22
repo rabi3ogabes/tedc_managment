@@ -18,6 +18,15 @@ use Illuminate\Support\Facades\Log;
  */
 class RoleCharter
 {
+    /**
+     * Roles of the system that the document does not name and that read the text of a role it does, by decision of the centre:
+     * «مشرف» reads «مشرف التدريب (قسم التدريب التربوي)» (decided 2026-11-22).
+     *
+     * Only the card follows. rights() and grantMissing() go by the document's own roles, so reading another role's text gives no
+     * right: a heading of the card links to its page only for somebody who already holds the right that page asks for.
+     */
+    public const SHARED = [Role::SUPERVISOR => Role::COORDINATOR];
+
     /** @var array<string, array<string, mixed>>|null */
     private static ?array $roles = null;
 
@@ -32,12 +41,16 @@ class RoleCharter
         return self::$roles;
     }
 
-    /** The charter of one role as the dashboard shows it, or null when the document does not describe the role. */
+    /**
+     * The charter of one role as the dashboard shows it, or null when the document does not describe the role and the role reads
+     * no other role's text (SHARED). `text_of` names the role of the document the text belongs to.
+     */
     public static function for(string $slug): ?array
     {
-        $charter = self::all()[$slug] ?? null;
+        $source = self::SHARED[$slug] ?? $slug;
+        $charter = self::all()[$source] ?? null;
 
-        return $charter ? ['role' => $slug] + $charter : null;
+        return $charter ? ['role' => $slug, 'text_of' => $source] + $charter : null;
     }
 
     /** The rights a role must hold for its charter to be true. @return list<string> */
