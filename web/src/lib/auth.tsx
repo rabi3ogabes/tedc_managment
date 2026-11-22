@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!sessionStore.get()) return setLoading(false)
     try {
       const { data } = await api.get('/auth/me')
+      // This tab now works in the role the server answered with, whatever another tab switches to afterwards.
+      activeRoleStore.set((data.data as Me).active_role?.id ?? null)
       setUser(data.data)
     } catch {
       sessionStore.set(null)
@@ -50,6 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const finish = useCallback((data: any) => {
     sessionStore.set({ access_token: data.access_token, refresh_token: data.refresh_token, expires_at: Date.now() + data.expires_in * 1000 })
+    // A sign-in starts in the role the server chose for this person (never one left over from whoever used the tab before).
+    activeRoleStore.set((data.user as Me).active_role?.id ?? null)
     setUser(data.user)
     if (data.user.locale && data.user.locale !== i18n.language) i18n.changeLanguage(data.user.locale)
     try { if (data.password_expired) sessionStorage.setItem('tedc.pwexpired', '1'); else sessionStorage.removeItem('tedc.pwexpired') } catch { /* storage unavailable */ }
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = useCallback(async (grantId: string) => {
     const { data } = await api.post('/auth/active-role', { role_user_id: grantId })
-    // From here every request is sent as the new role.
+    // From here every request of this tab is sent as the new role. Other tabs keep the role they are working in.
     activeRoleStore.set(grantId)
     // Nothing that was loaded for the previous role is kept. The new role is part of the key of every personal query
     // (queryKeyFor) and the page itself is rebuilt for it (AdminLayout), so no page can go on showing the other role's data.
