@@ -32,8 +32,15 @@ answers for, **in the words of the document**, and every role holds in the syste
 | أخصائي التخطيط | `planning_specialist` | 3 / 5 | 9 |
 | مسؤول الدعم اللوجستي | `logistics_officer` | 3 / 4 | 7 |
 
-Roles of the system that the document does not describe have no card: `center_admin`, `supervisor`, `executive`, `qa_reviewer`,
+Roles of the system that the document does not describe have no card: `center_admin`, `executive`, `qa_reviewer`,
 `finance_officer`, and any custom role.
+
+**«مشرف» (`supervisor`) reads the text of «مشرف التدريب (قسم التدريب التربوي)»** (decided by the centre on 2026-11-22;
+`RoleCharter::SHARED`). The document has no role of that name at school level. Only the card follows: the rights of the system are
+given to the document's own roles, so «مشرف» gains none by reading this text, and a heading of the card links to its page only
+where the role already holds the right that page asks for. Today that is «التقارير واللوحات المعلوماتية»; the other five headings
+(attendance, activities and materials, assignment, training kits, monitoring programmes) describe work «مشرف» cannot do in the
+system until the centre decides to give the role those rights.
 
 ## What each heading rests on
 

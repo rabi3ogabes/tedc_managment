@@ -97,6 +97,30 @@ class RoleCharterTest extends TestCase
         $this->asUser($this->makeUser(Role::FINANCE_OFFICER))->getJson(self::URL)->assertOk()->assertJsonPath('data', null);
     }
 
+    public function test_the_supervisor_reads_the_text_of_the_training_supervisor_and_gains_no_right_by_it(): void
+    {
+        $supervisor = $this->makeUser(Role::SUPERVISOR);
+        $before = $supervisor->roles()->first()->permissions()->pluck('slug')->sort()->values()->all();
+
+        $data = $this->asUser($supervisor)->getJson(self::URL)->assertOk()->json('data');
+        $this->assertSame(Role::SUPERVISOR, $data['role']);
+        $this->assertSame(Role::COORDINATOR, $data['text_of']);
+        $this->assertSame('مشرف التدريب (قسم التدريب التربوي)', $data['name']['ar']);
+        $this->assertSame(RoleCharter::all()[Role::COORDINATOR]['permissions'], $data['permissions']);
+        $this->assertSame(RoleCharter::all()[Role::COORDINATOR]['responsibilities'], $data['responsibilities']);
+
+        // Reading the text is not holding the rights: the document's own roles are the only ones the rights are given to.
+        $this->assertArrayNotHasKey(Role::SUPERVISOR, RoleCharter::all());
+        $this->assertArrayNotHasKey(Role::SUPERVISOR, RoleCharter::grantMissing());
+        $this->assertSame($before, $supervisor->roles()->first()->permissions()->pluck('slug')->sort()->values()->all());
+        $this->assertNotContains('attendance.manage', $before);
+
+        // The training supervisor's own card is the same text under their own role.
+        $own = $this->asUser($this->makeUser(Role::COORDINATOR))->getJson(self::URL)->assertOk()->json('data');
+        $this->assertSame([Role::COORDINATOR, Role::COORDINATOR], [$own['role'], $own['text_of']]);
+        $this->assertSame($own['permissions'], $data['permissions']);
+    }
+
     public function test_a_role_that_lost_a_right_of_its_charter_gets_it_back_and_keeps_what_it_was_given(): void
     {
         $deputy = Role::where('slug', Role::ACADEMIC_DEPUTY)->firstOrFail();
