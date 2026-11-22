@@ -237,7 +237,13 @@ class RolePermissionSeeder extends Seeder
             'certificates.view', 'impact.view', 'needs.submit', 'needs.view', 'reports.view', 'search.global',
             'needs.propose', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager',
         ]],
-        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['surveys.view', 'surveys.results', 'employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global']],
+        Role::SUPERVISOR => ['مشرف', 'Supervisor', 30, ['surveys.view', 'surveys.results', 'employees.view', 'impact.supervise', 'impact.view', 'needs.request', 'needs.approve_individual', 'registrations.approve_manager', 'search.global',
+            // The charter of «مشرف التدريب», which «مشرف» takes (RoleCharter::SHARED, decided by the centre on 2026-11-22): the rights
+            // its headings rest on, then the right each heading's page asks for.
+            'attendance.manage', 'leaves.manage', 'announcements.manage', 'materials.manage', 'trainers.assign', 'saber.trainer.assign',
+            'kits.review', 'kits.publish', 'kits.manage', 'dashboard.view', 'reports.view', 'live_training.view',
+            'programs.view', 'saber.view', 'kits.view',
+        ]],
         Role::EXECUTIVE => ['الإدارة العليا', 'Executive', 80, ['live_training.view', 'plc.view', 'plc.reports', 'surveys.view', 'surveys.results',
             'kpi.view', 'dashboard.view', 'analytics.view', 'analytics.executive', 'schools.view', 'programs.view', 'calendar.view', 'certificates.view',
             'impact.view', 'needs.view', 'ai.assistant', 'reports.view', 'plans.view', 'search.global', 'ai.forecasts.view',

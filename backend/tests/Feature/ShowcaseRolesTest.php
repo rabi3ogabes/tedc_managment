@@ -72,10 +72,14 @@ class ShowcaseRolesTest extends TestCase
         ], []);
     }
 
-    public function test_the_supervisor_has_his_staff_and_no_admin_areas(): void
+    public function test_the_supervisor_has_his_staff_and_the_pages_of_his_charter_and_no_other_admin_areas(): void
     {
-        $this->expect('supervisor-1', ['me/team', 'me/registrations', 'me/notifications', 'me/needs', 'admin/employees', 'admin/surveys'], [
-            'admin/saber/overview', 'admin/roles', 'admin/users', 'admin/registrations', 'admin/reports', 'admin/error-logs', 'admin/showcase-accounts', 'admin/audit-logs',
+        // Since 2026-11-22 «مشرف» takes the charter of «مشرف التدريب»: reports, SABER+, programmes, kits and the live training board
+        // are open to him; the administration of the system stays closed.
+        $this->expect('supervisor-1', ['me/team', 'me/registrations', 'me/notifications', 'me/needs', 'admin/employees', 'admin/surveys',
+            'admin/saber/overview', 'admin/reports', 'admin/programs', 'admin/live-training',
+        ], [
+            'admin/roles', 'admin/users', 'admin/registrations', 'admin/error-logs', 'admin/showcase-accounts', 'admin/audit-logs',
         ]);
         $team = $this->asUser($this->account('supervisor-1'))->getJson('/api/v1/me/team')->assertOk()->json('data');
         $this->assertCount(2, $team, 'the two demo trainees are his staff');
