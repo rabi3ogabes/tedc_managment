@@ -344,7 +344,7 @@ const ar = {
     users: { title: 'المستخدمون والصلاحيات', roles: 'الأدوار', permissions: 'الصلاحيات', users: 'المستخدمون', role: 'الدور', lastLogin: 'آخر دخول' },
     audit: { title: 'سجل التدقيق', action: 'الإجراء', entity: 'الكيان', user: 'المستخدم', ip: 'العنوان' },
     schools: { title: 'المدارس', code: 'الرمز', type: 'النوع', stage: 'المرحلة', region: 'المنطقة', employees: 'الموظفون', partner: 'شريك' },
-    employees: { title: 'الموظفون', number: 'الرقم الوظيفي', jobTitle: 'المسمى الوظيفي', school: 'المدرسة', experience: 'الخبرة (سنة)', passport: 'جواز التدريب', openMode: 'فتح جواز التدريب', openPanel: 'نافذة جانبية', openPage: 'صفحة كاملة', openFull: 'فتح كصفحة كاملة' },
+    employees: { title: 'الموظفون', number: 'الرقم الوظيفي', jobTitle: 'المسمى الوظيفي', school: 'المدرسة', experience: 'الخبرة (سنة)', passport: 'جواز التدريب', openMode: 'فتح الموظف', openPanel: 'نافذة جانبية', openPage: 'صفحة كاملة', openFull: 'فتح كصفحة كاملة', rowHint: 'اضغط على أي موظف لفتحه.', noAccount: 'لا يملك هذا الموظف حساب دخول، فلا صفحات له ولا صلاحيات.', missing: 'تعذّر فتح هذا الموظف: قد يكون خارج نطاق صلاحياتك أو لم يعد موجوداً.' },
     tasks: { title: 'مراجعة المهام', submissions: 'التسليمات', feedback: 'الملاحظات', approve: 'اعتماد', reject: 'رفض', requestChanges: 'طلب تعديل', due: 'تاريخ التسليم', types: 'أنواع التسليم' },
     impact: { title: 'قياس الأثر', score: 'مؤشر الأثر', applied: 'نسبة التطبيق', needsSupport: 'بحاجة لدعم', byStage: 'حسب مرحلة المتابعة', skillsImproved: 'المهارات التي تحسنت', days: 'يوم' },
   },

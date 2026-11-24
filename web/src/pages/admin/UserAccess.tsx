@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Briefcase, Building2, Home, KeyRound, LogIn, School, ShieldCheck, ToggleRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { menuOfRole } from '@/components/admin/menuCatalog'
@@ -34,17 +34,30 @@ type Perm = { slug: string; name_ar: string; name_en: string; group: string }
  * the account in the role being looked at, to see it exactly as the person does.
  */
 export default function UserAccess({ userId, onClose }: { userId: string | null; onClose: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <Modal open={!!userId} onClose={onClose} title={t('userAccess.title')} wide>
+      {userId && <UserAccessBody key={userId} userId={userId} onLeave={onClose} />}
+    </Modal>
+  )
+}
+
+/**
+ * The content of «ما يراه», for the window above and for the side panel of an employee (`embedded`: the panel already
+ * shows the person's name and position, so only what it does not show is repeated). `onLeave` is called when a link
+ * inside takes the administrator to another page.
+ */
+export function UserAccessBody({ userId, embedded = false, onLeave }: { userId: string; embedded?: boolean; onLeave?: () => void }) {
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
   const { can } = useAuth()
-  const access = useGet<{ data: Access }>(userId ? `/admin/users/${userId}/access` : null, undefined, { staleTime: 0 })
-  const catalogue = useGet<{ permissions: Record<string, Perm[]> }>(userId ? '/admin/roles' : null, undefined, { staleTime: 60_000 })
+  const access = useGet<{ data: Access }>(`/admin/users/${userId}/access`, undefined, { staleTime: 0 })
+  const catalogue = useGet<{ permissions: Record<string, Perm[]> }>('/admin/roles', undefined, { staleTime: 60_000 })
   const flags = useFeatures().data?.data.flags ?? {}
   const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
   const [roleId, setRoleId] = useState<string | null>(null)
   const [opening, setOpening] = useState(false)
   const data = access.data?.data
-  useEffect(() => { setRoleId(null) }, [userId])
 
   const role = data?.roles.find((r) => r.id === roleId) ?? data?.roles.find((r) => r.starts_in) ?? data?.roles[0] ?? null
   const nm = (o: { name_ar: string; name_en: string }) => (ar ? o.name_ar : o.name_en)
@@ -63,10 +76,18 @@ export default function UserAccess({ userId, onClose }: { userId: string | null;
     try { window.location.href = (await impersonation.start(data.user.id, undefined, role.id)).landing } catch (e) { toast(errorMessage(e), 'error'); setOpening(false) }
   }
 
+  if (access.isError) return <ErrorState error={access.error} onRetry={() => void access.refetch()} />
+  if (!data) return <Spinner />
   return (
-    <Modal open={!!userId} onClose={onClose} title={t('userAccess.title')} wide>
-      {access.isError ? <ErrorState error={access.error} onRetry={() => void access.refetch()} /> : !data ? <Spinner /> : (
         <div className="space-y-6">
+          {embedded ? (
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-navy-900">
+              <li><StatusBadge status={data.user.status === 'active' ? 'approved' : 'blocked'} label={t(`hlp.userStatus.${data.user.status}`, { defaultValue: data.user.status })} /></li>
+              <li className="text-xs text-slate-500" dir="ltr">{data.user.email}</li>
+              {named(data.position.department) && <li className="inline-flex items-center gap-1.5"><Building2 className="size-4 text-gold-700" aria-hidden />{named(data.position.department)}</li>}
+              {data.position.is_trainer && <li><Badge color="gold">{t('userAccess.trainer')}</Badge></li>}
+            </ul>
+          ) : (
           <header className="flex flex-wrap items-center gap-4">
             <Avatar name={data.user.name} size={56} />
             <div className="min-w-0 flex-1">
@@ -84,6 +105,7 @@ export default function UserAccess({ userId, onClose }: { userId: string | null;
               </ul>
             </div>
           </header>
+          )}
 
           {!role ? <p className="rounded-2xl bg-ivory p-4 text-sm text-slate-600">{t('userAccess.noRoles')}</p> : (
             <>
@@ -142,14 +164,12 @@ export default function UserAccess({ userId, onClose }: { userId: string | null;
                 ) : (
                   <div className="flex flex-wrap items-center gap-4">
                     <p className="min-w-0 flex-1 text-sm leading-6 text-white/80">{t(`userAccess.cannot.${data.sign_in.reason}`)}</p>
-                    {data.sign_in.reason === 'feature_off' && can('settings.manage') && <Link to="/admin/settings?tab=features" onClick={onClose} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gold-500 px-4 py-2 text-sm font-bold text-navy-950 transition-colors hover:bg-gold-400"><ToggleRight className="size-4" />{t('userAccess.openFeatures')}</Link>}
+                    {data.sign_in.reason === 'feature_off' && can('settings.manage') && <Link to="/admin/settings?tab=features" onClick={onLeave} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gold-500 px-4 py-2 text-sm font-bold text-navy-950 transition-colors hover:bg-gold-400"><ToggleRight className="size-4" />{t('userAccess.openFeatures')}</Link>}
                   </div>
                 )}
               </footer>
             </>
           )}
         </div>
-      )}
-    </Modal>
   )
 }
