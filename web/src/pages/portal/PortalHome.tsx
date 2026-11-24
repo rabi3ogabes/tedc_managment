@@ -11,7 +11,8 @@ import { useGet } from '@/hooks/useApi'
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
-import { showsOwnTraining } from '@/lib/portalHome'
+import { showsOwnTraining, TRAINEE_ROLE } from '@/lib/portalHome'
+import MyProgramsCard from '@/pages/admin/duties/MyProgramsCard'
 import { toast } from '@/lib/toast'
 import type { Program } from '@/lib/types'
 
@@ -38,6 +39,8 @@ export default function PortalHome() {
     <>
       <PageHeader title={<>{t('portal.welcome')} {user?.name}</>} />
       <PendingSurveysBanner />
+      {/* What the person was given to supervise or teach, in the role they do it in (their own training is «موظف»'s). */}
+      {activeRole?.slug !== TRAINEE_ROLE && <MyProgramsCard />}
       <RoleCharter />
       <RoleDashboard />
       {own && (

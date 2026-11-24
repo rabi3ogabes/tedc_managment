@@ -9,6 +9,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
+use App\Services\Duties\MyDuties;
 use App\Services\ProgramGrantService;
 use App\Services\RoomService;
 use App\Services\Teaching\TrainerNotices;
@@ -151,6 +152,11 @@ class SessionController extends Controller
         }
     }
 
+    /**
+     * A session's attendance and QR code are for the people who run it: centre staff, a trainer of the session (it is theirs,
+     * or they teach its group or its programme), the supervisor of its group, or somebody the head of training gave the
+     * attendance right on this programme. Holding the attendance right for the role does not open another group's session.
+     */
     private function authorizeTrainer(ProgramSession $session): void
     {
         $user = $this->user();
@@ -158,11 +164,11 @@ class SessionController extends Controller
             return;
         }
 
-        $trainerId = $user->trainer?->id;
-        $delivers = $trainerId && ($session->trainer_id === $trainerId || $session->program->trainers()->where('trainers.id', $trainerId)->exists());
+        $duties = app(MyDuties::class);
+        $runs = $duties->teaches($user, $session) || $duties->supervises($user, $session);
         // Or the head of training gave this person the attendance right on this program.
         $granted = app(ProgramGrantService::class)->allows($user, $session->program_id, 'attendance.mark');
-        abort_unless($delivers || $granted, 403, __('messages.grants.attendance_denied'));
+        abort_unless($runs || $granted, 403, __('messages.grants.attendance_denied'));
     }
 
     private function validated(Request $request, bool $partial = false): array

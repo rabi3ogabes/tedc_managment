@@ -1,5 +1,5 @@
 import {
-  Award, Bell, Boxes, Bug, Home, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
+  Award, Bell, Boxes, Bug, Home, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardCheck, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
@@ -31,6 +31,8 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/saber', label: t('saber.nav'), icon: Layers, permission: 'saber.view' },
       // «البرامج عن بُعد» is hidden for now (its page stays at /admin/programs/remote); it will be merged into another button.
       { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
+      // For whoever delivers training or handles attendance; the page itself lists only the person's own groups.
+      { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck, permission: 'trainers.respond|attendance.manage' },
       { to: '/admin/teaching', label: t('teach.nav'), icon: Presentation, permission: 'trainers.respond' },
       { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
       { to: '/admin/kit-protection', label: t('teach.protection.nav'), icon: ShieldCheck, permission: 'kits.manage' },
@@ -136,6 +138,8 @@ export function portalCatalog(t: TFunction): Item[] {
 /** Working as a supervisor: his people's requests, needs and staff, named the way he reads them. */
 function superviseItems(t: TFunction): Item[] {
   return [
+    // What he was given to supervise: it asks for no right, since it only ever lists his own groups.
+    { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck },
     { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
     { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
     { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },

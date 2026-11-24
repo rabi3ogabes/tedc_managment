@@ -41,6 +41,7 @@ const SaberReview = lazy(() => import('@/pages/admin/saber/SaberReview'))
 const PlanStudio = lazy(() => import('@/pages/admin/PlanStudio'))
 const InternalWorkshops = lazy(() => import('@/pages/admin/InternalWorkshops'))
 const MyAssignments = lazy(() => import('@/pages/admin/MyAssignments'))
+const MyPrograms = lazy(() => import('@/pages/admin/duties/MyPrograms'))
 const PassingPolicies = lazy(() => import('@/pages/admin/PassingPolicies'))
 const EvaluationForms = lazy(() => import('@/pages/admin/EvaluationForms'))
 const EvaluationSettings = lazy(() => import('@/pages/admin/EvaluationSettings'))
@@ -226,6 +227,7 @@ export default function App() {
           <Route path="teaching" element={<RequireAuth permission="trainers.respond|kits.view"><TeachingHub /></RequireAuth>} />
           <Route path="teaching/kits/:kitId" element={<RequireAuth permission="trainers.respond|kits.view"><KitReader /></RequireAuth>} />
           <Route path="kit-protection" element={<RequireAuth permission="kits.manage"><KitProtectionAdmin /></RequireAuth>} />
+          <Route path="my-programs" element={<MyPrograms />} />
           <Route path="my-assignments" element={<RequireAuth permission="trainers.respond"><MyAssignments /></RequireAuth>} />
           <Route path="evaluation-forms" element={<RequireAuth permission="evaluations.manage"><EvaluationForms /></RequireAuth>} />
           <Route path="evaluation-settings" element={<RequireAuth permission="evaluations.manage"><EvaluationSettings /></RequireAuth>} />

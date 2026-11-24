@@ -18,6 +18,7 @@ use App\Models\SiteSetting;
 use App\Models\Task;
 use App\Models\TaskSubmission;
 use App\Models\Trainer;
+use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Support\Supabase;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -43,6 +44,9 @@ class ShowcaseAccounts
     public const DOMAIN = 'demo.shaheen.test';
 
     public const PREFIX = 'TEST-SHOWCASE';
+
+    /** Who supervises the group of each showcase programme (by its number): this week's and next week's, and last month's. */
+    private const SUPERVISES = [1 => 'supervisor-1', 2 => 'supervisor-2', 3 => 'supervisor-1'];
 
     public const SCHOOL = self::PREFIX.'-SCHOOL';
 
@@ -405,6 +409,8 @@ class ShowcaseAccounts
         $this->teach($finished, [$trainers['trainer-2']], $today->copy()->subDays(32), 5);
         $this->teach($upcoming, [$trainers['trainer-1'], $trainers['trainer-2']], $today->copy()->addDays(7), 3);
         $this->teach($draft, [], $today->copy()->addDays(40), 0);
+        // Each supervisor is given groups to supervise, so «برامجي» shows a supervisor what a trainer already saw.
+        $this->assignSupervisors();
 
         // This week: both trainees attend; the second missed one day.
         foreach (['trainee-1' => [], 'trainee-2' => [1]] as $key => $absent) {
@@ -435,11 +441,37 @@ class ShowcaseAccounts
                 'allow_testimonial' => true, 'submitted_at' => $finished->end_date->copy()->setTime(13, 30),
             ]);
         }
+        // A supervisor and a trainer are trained too: each is a trainee of a programme they do not run, and finds it under «موظف».
+        $this->attend($running, $this->enrol($running, $employees['trainer-2'], Registration::STATUS_APPROVED), []);
+        $ownTraining = $this->enrol($finished, $employees['supervisor-1'], Registration::STATUS_COMPLETED);
+        $this->attend($finished, $ownTraining, []);
+        $ownTraining->update(['completed_at' => $finished->end_date, 'attendance_percent' => 100, 'pass_status' => 'passed']);
         // Next week: the first trainee is in; the second waits for the centre's approval.
         $this->enrol($upcoming, $employees['trainee-1'], Registration::STATUS_APPROVED);
         $this->enrol($upcoming, $employees['trainee-2'], Registration::STATUS_PENDING);
 
         $this->inbox($users, $running, $finished, $upcoming, $draft);
+    }
+
+    /**
+     * Gives the showcase supervisors the groups they supervise. It runs with the story, and by itself for accounts that were
+     * built before supervisors were assigned (the dates of their story are left as they are). Safe to run again.
+     *
+     * @return int how many groups now have their supervisor
+     */
+    public function assignSupervisors(): int
+    {
+        $groups = 0;
+        foreach (self::SUPERVISES as $number => $key) {
+            $supervisor = $this->find($key);
+            $program = Program::where('code', self::PREFIX."-{$number}")->first();
+            if ($supervisor && $program) {
+                $program->ensureGroup();
+                $groups += TrainingGroup::where('program_id', $program->id)->update(['supervisor_id' => $supervisor->id]);
+            }
+        }
+
+        return $groups;
     }
 
     /** @param  array{0: string, 1: string, 2: string, 3: string}  $text */
@@ -464,7 +496,8 @@ class ShowcaseAccounts
             $day = $start->copy()->addDays($i - 1);
             ProgramSession::create([
                 'program_id' => $program->id, 'sequence' => $i, 'trainer_id' => $leads[($i - 1) % max(1, count($leads))]->id ?? null,
-                'title_ar' => "اليوم {$i}", 'title_en' => "Day {$i}", 'starts_at' => $day->copy()->setTime(8, 0), 'ends_at' => $day->copy()->setTime(11, 0),
+                // Today's session runs to the end of the day, so the attendance code and the live count can be shown whenever the showcase is.
+                'title_ar' => "اليوم {$i}", 'title_en' => "Day {$i}", 'starts_at' => $day->copy()->setTime(8, 0), 'ends_at' => $day->isToday() ? $day->copy()->setTime(23, 59) : $day->copy()->setTime(11, 0),
                 'location_text' => 'قاعة التدريب 3', 'activities' => ['عرض', 'تطبيق عملي'], 'status' => $day->isPast() && ! $day->isToday() ? 'completed' : 'scheduled',
             ]);
         }
