@@ -119,6 +119,13 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
           { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
           { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
           { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },
+          // The pages of the charter «مشرف» takes («مشرف التدريب»), each shown to whoever holds the right its page asks for.
+          { to: '/admin/absence', label: t('ops.absence.title'), icon: ClipboardList, permission: 'attendance.manage' },
+          { to: '/admin/programs', label: t('admin.menu.programs'), icon: BookOpen, permission: 'programs.view' },
+          { to: '/admin/saber', label: t('saber.nav'), icon: GraduationCap, permission: 'saber.view' },
+          { to: '/admin/kits', label: t('admin.menu.kits'), icon: BookOpen, permission: 'kits.view' },
+          { to: '/admin/reports', label: t('rep.navReports'), icon: FilePenLine, permission: 'reports.view' },
+          { to: '/admin/live-training', label: t('liveT.nav'), icon: Target, permission: 'live_training.view' },
         ],
       }] : [])]
     : applyLayout(adminCatalog(t, { errors: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined, chats: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined, requests: requests.data?.data.pending }), menuLayout, i18n.language === 'ar' ? 'ar' : 'en')

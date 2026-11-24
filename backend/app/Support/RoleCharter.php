@@ -19,11 +19,12 @@ use Illuminate\Support\Facades\Log;
 class RoleCharter
 {
     /**
-     * Roles of the system that the document does not name and that read the text of a role it does, by decision of the centre:
-     * «مشرف» reads «مشرف التدريب (قسم التدريب التربوي)» (decided 2026-11-22).
+     * Roles of the system that the document does not name and that take the charter of a role it does, by decision of the centre:
+     * «مشرف» takes «مشرف التدريب (قسم التدريب التربوي)» (decided 2026-11-22).
      *
-     * Only the card follows. rights() and grantMissing() go by the document's own roles, so reading another role's text gives no
-     * right: a heading of the card links to its page only for somebody who already holds the right that page asks for.
+     * Such a role reads the other role's text on its card and holds the rights that text rests on, with the rights the pages of
+     * its headings ask for, so that what the card says is what the role can do (the centre confirmed this on 2026-11-22, knowing
+     * the rights are not limited to the person's own school). It keeps every right it had; it does not become the other role.
      */
     public const SHARED = [Role::SUPERVISOR => Role::COORDINATOR];
 
@@ -53,10 +54,22 @@ class RoleCharter
         return $charter ? ['role' => $slug, 'text_of' => $source] + $charter : null;
     }
 
-    /** The rights a role must hold for its charter to be true. @return list<string> */
+    /**
+     * The rights a role must hold for its charter to be true. For a role that takes another role's charter (SHARED) these are the
+     * other role's, with the right each heading's page asks for: the role of the document holds those by its own definition, the
+     * role that takes its charter would otherwise not be able to open the pages the card links to.
+     *
+     * @return list<string>
+     */
     public static function rights(string $slug): array
     {
-        return array_values(array_unique(array_merge(...array_map(fn (array $s) => $s['rights'], self::all()[$slug]['permissions'] ?? [[]]) ?: [[]])));
+        $sections = self::all()[self::SHARED[$slug] ?? $slug]['permissions'] ?? [];
+        $rights = array_merge([], ...array_map(fn (array $s) => $s['rights'], $sections));
+        if (isset(self::SHARED[$slug])) {
+            $rights = array_merge($rights, array_values(array_filter(array_map(fn (array $s) => $s['needs'] ?? null, $sections))));
+        }
+
+        return array_values(array_unique($rights));
     }
 
     /**
@@ -70,7 +83,7 @@ class RoleCharter
     {
         $added = [];
         $permissions = Permission::pluck('id', 'slug');
-        foreach (array_keys(self::all()) as $slug) {
+        foreach ([...array_keys(self::all()), ...array_keys(self::SHARED)] as $slug) {
             $role = Role::where('slug', $slug)->first();
             if (! $role) {
                 continue;
