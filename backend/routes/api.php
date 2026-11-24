@@ -174,6 +174,7 @@ use App\Http\Controllers\Api\V1\Me\MyAssessmentController;
 use App\Http\Controllers\Api\V1\Me\MyAssignmentsController;
 use App\Http\Controllers\Api\V1\Me\MyCareerController;
 use App\Http\Controllers\Api\V1\Me\MyCourseController;
+use App\Http\Controllers\Api\V1\Me\MyDutiesController;
 use App\Http\Controllers\Api\V1\Me\MyEvaluationController;
 use App\Http\Controllers\Api\V1\Me\MyEventsController;
 use App\Http\Controllers\Api\V1\Me\MyFormLinkController;
@@ -708,6 +709,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('kits/{kit}/files/{file}/stream', 'stream')->middleware('throttle:120,1');
                 Route::get('kits/{kit}/assets/{asset}', 'asset')->middleware('throttle:600,1');
             });
+            // «برامجي»: the groups the person supervises or teaches, with their sessions, attendance and forms.
+            Route::get('duties', [MyDutiesController::class, 'index']);
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);

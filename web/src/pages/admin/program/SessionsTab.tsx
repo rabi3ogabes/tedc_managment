@@ -135,7 +135,8 @@ export default function SessionsTab({ program }: { program: Program }) {
   )
 }
 
-function AttendanceModal({ session, onClose }: { session: Session; onClose: () => void }) {
+/** The attendance sheet of one session: who came, marking by hand, scanning, leaves, export. Also opened from «برامجي». */
+export function AttendanceModal({ session, onClose }: { session: Pick<Session, 'id' | 'title'>; onClose: () => void }) {
   const { t } = useTranslation()
   const { can } = useAuth()
   const { data, isLoading, refetch } = useGet<{ data: Report }>(`/admin/sessions/${session.id}/attendance`, undefined, { staleTime: 0 })

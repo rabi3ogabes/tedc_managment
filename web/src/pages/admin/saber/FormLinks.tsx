@@ -19,7 +19,7 @@ type Row = Forms & { program: Head }
 const tone = { open: 'bg-emerald-50 text-emerald-700 ring-emerald-200', done: 'bg-emerald-50 text-emerald-700 ring-emerald-200', scheduled: 'bg-sky-50 text-sky-700 ring-sky-200', waiting: 'bg-amber-50 text-amber-700 ring-amber-200', closed: 'bg-slate-100 text-slate-600 ring-slate-200', off: 'bg-slate-100 text-slate-500 ring-slate-200' } as const
 
 /** The status of one form in a word, with the date when it is scheduled. */
-function StatusPill({ kind, form }: { kind: 'trainee' | 'reflection'; form: TraineeForm | ReflectionForm }) {
+export function StatusPill({ kind, form }: { kind: 'trainee' | 'reflection'; form: TraineeForm | ReflectionForm }) {
   const { t } = useTranslation()
   const label = kind === 'trainee' && form.status === 'open' && (form as TraineeForm).mode === 'always' ? t('saber.forms.status.always')
     : form.status === 'scheduled' && (form as TraineeForm).opens_at ? t('saber.forms.status.opensAt', { date: fmt.date((form as TraineeForm).opens_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) })

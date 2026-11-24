@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CalendarClock, ChevronDown, DoorOpen, Library, MonitorPlay, Play, Radio, UserCog, Users } from 'lucide-react'
+import { CalendarClock, ChevronDown, ClipboardCheck, DoorOpen, Library, MonitorPlay, Play, Radio, UserCog, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -22,6 +22,7 @@ export default function TeachingHub() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader title={t('teach.title')} subtitle={t('teach.subtitle')} />
+      <Link to="/admin/my-programs" className="mb-4 flex items-center gap-3 rounded-2xl border border-gold-200 bg-gold-50/60 px-4 py-3 text-sm font-bold text-navy-900 transition-colors hover:border-gold-400"><ClipboardCheck className="size-4 shrink-0 text-gold-700" />{t('duties.more.here')}</Link>
       <OwnershipNotice className="mb-6" />
       {!programs.length ? <Card><Empty text={t('teach.none')} icon={<Library className="size-6" />} /></Card> : (
         <div className="space-y-5">
