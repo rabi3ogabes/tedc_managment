@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\ErrorLog;
 use App\Models\GroupTrainer;
 use App\Models\ProfileChangeRequest;
-use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\User;
 
@@ -75,20 +74,11 @@ class AppActions
     }
 
     /**
-     * The sessions of today: a trainer's own, or the centre's for people who manage programs. @return list<array<string, mixed>>
+     * The sessions of today for the home screen: a trainer's own, or the centre's for people who manage programs, the
+     * first few with their trainers, supervisors, room and attendance (TodayBoard has them all). @return list<array<string, mixed>>
      */
     public function today(User $user): array
     {
-        $q = ProgramSession::with(['program:id,title_ar,title_en,has_course', 'room'])->whereBetween('starts_at', [today(), today()->endOfDay()])->where('status', '!=', 'cancelled')->orderBy('starts_at')->limit(8);
-        if ($user->trainer && ! $user->hasPermission('programs.manage')) {
-            $q->where('trainer_id', $user->trainer->id);
-        } elseif (! $user->hasPermission('programs.view')) {
-            return [];
-        }
-
-        return $q->get()->map(fn (ProgramSession $s) => [
-            'id' => $s->id, 'title' => $s->translate('title'), 'program' => $s->program?->translate('title'), 'program_id' => $s->program_id, 'has_course' => (bool) $s->program?->has_course, 'starts_at' => $s->starts_at->toIso8601String(), 'ends_at' => $s->ends_at->toIso8601String(),
-            'location' => $s->location_text ?? $s->room?->translate('name'), 'room_id' => $s->training_room_id, 'map_place' => app(Wayfinding::class)->placeOf($s->training_room_id, $s->location_text), 'mode' => $s->mode,
-        ])->all();
+        return app(TodayBoard::class)->rows($user, 8);
     }
 }

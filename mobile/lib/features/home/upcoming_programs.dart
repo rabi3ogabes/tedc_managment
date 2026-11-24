@@ -10,19 +10,37 @@ import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 
-/// «My upcoming programs» on the home screen: the programs the person is registered in, as a deck of cards. The first card
-/// is in front, the next two peek out behind it on the left and the right; swipe the front card away (or use the arrows) to bring the next one forward.
-class UpcomingProgramsSlider extends StatefulWidget {
+/// «My upcoming programs» on the home screen: the programs the person is registered in, as a deck of cards.
+class UpcomingProgramsSlider extends StatelessWidget {
   const UpcomingProgramsSlider({super.key, required this.items});
 
   /// Rows of `/me/home` → `upcoming_programs`: registration_id, registration_status, mode, next_session_at, program.
   final List<Json> items;
 
   @override
-  State<UpcomingProgramsSlider> createState() => _UpcomingProgramsSliderState();
+  Widget build(BuildContext context) => ProgramDeck(title: context.s.t('home.myPrograms'), count: items.length, builder: (_, i) => _ProgramSlide(row: items[i]));
 }
 
-class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with SingleTickerProviderStateMixin {
+/// A deck of banners under a section title. The first card is in front, the next two peek out behind it on the left and the
+/// right; swipe the front card away (or use the arrows) to bring the next one forward. Nothing to show takes no space.
+/// The trainee's registered programmes and the programmes given to a supervisor or a trainer are both shown with it.
+class ProgramDeck extends StatefulWidget {
+  const ProgramDeck({super.key, required this.title, required this.count, required this.builder, this.action});
+
+  final String title;
+  final int count;
+
+  /// Draws card [index]; a [ProgramBanner] keeps every deck of the app looking the same.
+  final Widget Function(BuildContext context, int index) builder;
+
+  /// A control beside the title («عرض الكل»).
+  final Widget? action;
+
+  @override
+  State<ProgramDeck> createState() => _ProgramDeckState();
+}
+
+class _ProgramDeckState extends State<ProgramDeck> with SingleTickerProviderStateMixin {
   static const _height = 196.0;
 
   int _top = 0;
@@ -38,7 +56,7 @@ class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with Si
     super.dispose();
   }
 
-  int get _count => widget.items.length;
+  int get _count => widget.count;
 
   void _run(double from, double to, [VoidCallback? done]) {
     _from = from;
@@ -68,7 +86,7 @@ class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with Si
     final behind = [for (var k = math.min(2, _count - 1); k >= 1; k--) k];
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SectionTitle(s.t('home.myPrograms')),
+      SectionTitle(widget.title, action: widget.action),
       LayoutBuilder(builder: (context, box) {
         final width = box.maxWidth;
         return SizedBox(
@@ -87,7 +105,7 @@ class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with Si
                     angle: (k == 1 ? -.035 : .035) * (1 - _progress(width) * (k == 1 ? 1 : 0)),
                     child: Transform.scale(
                       scale: 1 - k * .045 + _progress(width) * (k == 1 ? .045 : 0),
-                      child: IgnorePointer(child: _dim(_ProgramSlide(row: widget.items[(top + k) % _count]), k)),
+                      child: IgnorePointer(child: _dim(widget.builder(context, (top + k) % _count), k)),
                     ),
                   ),
                 ),
@@ -114,7 +132,7 @@ class _UpcomingProgramsSliderState extends State<UpcomingProgramsSlider> with Si
                       },
                 child: Transform.translate(
                   offset: Offset(_dx, 0),
-                  child: Transform.rotate(angle: (_dx / width) * .18, child: _ProgramSlide(row: widget.items[top])),
+                  child: Transform.rotate(angle: (_dx / width) * .18, child: widget.builder(context, top)),
                 ),
               ),
             ),
@@ -159,7 +177,7 @@ IconData _modeIcon(String mode) => switch (mode) {
       _ => Icons.school,
     };
 
-/// One banner: a brand-coloured card with a soft wave, the program's name, its next session and a gold button.
+/// The trainee's banner: the programme they are registered in, its next session, and the way into it.
 class _ProgramSlide extends StatelessWidget {
   const _ProgramSlide({required this.row});
 
@@ -174,17 +192,43 @@ class _ProgramSlide extends StatelessWidget {
     final next = row.date('next_session_at');
     final start = program.date('start_date');
     final id = row.str('registration_id');
-    final when = next != null ? '${s.t('home.nextSessionAt')}: ${fmt.date(next)} · ${fmt.time(next)}' : (start != null ? fmt.date(start) : '');
-    void open() => context.push('/registrations/$id');
+    return ProgramBanner(
+      title: program.str('title'),
+      pills: [(s.t('mode.$mode'), true), (s.status(row.str('registration_status')), false)],
+      line: next != null ? '${s.t('home.nextSessionAt')}: ${fmt.date(next)} · ${fmt.time(next)}' : (start != null ? fmt.date(start) : ''),
+      action: s.t('home.openProgram'),
+      icon: _modeIcon(mode),
+      onTap: id.isEmpty ? null : () => context.push('/registrations/$id'),
+    );
+  }
+}
+
+/// One banner of a [ProgramDeck]: a brand-coloured card with a soft wave, up to two pills, a name, one line under it and a
+/// gold button, with a frosted tile on the far side.
+class ProgramBanner extends StatelessWidget {
+  const ProgramBanner({super.key, required this.title, required this.pills, required this.line, required this.action, required this.icon, this.actionIcon = Icons.play_circle_outline, this.onTap});
+
+  final String title;
+
+  /// Each pill with whether it is the gold one (the first thing to read).
+  final List<(String, bool)> pills;
+  final String line;
+  final String action;
+  final IconData actionIcon;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: program.str('title'),
+      label: title,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppStyle.radius(6)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: id.isEmpty ? null : open,
+          onTap: onTap,
           child: Ink(
             decoration: BoxDecoration(
               gradient: LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [AppColors.navy900, AppColors.navy700]),
@@ -199,14 +243,15 @@ class _ProgramSlide extends StatelessWidget {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        _Pill(s.t('mode.$mode'), gold: true),
-                        const SizedBox(width: 6),
-                        Flexible(child: _Pill(s.status(row.str('registration_status')))),
+                        for (final (i, pill) in pills.where((p) => p.$1.isNotEmpty).indexed) ...[
+                          if (i > 0) const SizedBox(width: 6),
+                          Flexible(child: _Pill(pill.$1, gold: pill.$2)),
+                        ],
                       ]),
                       const SizedBox(height: 10),
-                      Text(program.str('title'), maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800, height: 1.25)),
+                      Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800, height: 1.25)),
                       const SizedBox(height: 4),
-                      Text(when, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
+                      Text(line, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 12.5)),
                       const Spacer(),
                       // The call to action, like the banner it is modelled on: a pill button with an icon.
                       Container(
@@ -214,15 +259,15 @@ class _ProgramSlide extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(gradient: AppColors.goldGradient, borderRadius: BorderRadius.circular(99)),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.play_circle_outline, size: 18, color: AppColors.navy950),
+                          Icon(actionIcon, size: 18, color: AppColors.navy950),
                           const SizedBox(width: 8),
-                          Text(s.t('home.openProgram'), style: TextStyle(color: AppColors.navy950, fontWeight: FontWeight.w800, fontSize: 13)),
+                          Text(action, style: TextStyle(color: AppColors.navy950, fontWeight: FontWeight.w800, fontSize: 13)),
                         ]),
                       ),
                     ]),
                   ),
                   const SizedBox(width: 10),
-                  _Visual(icon: _modeIcon(mode)),
+                  _Visual(icon: icon),
                 ]),
               ),
             ]),

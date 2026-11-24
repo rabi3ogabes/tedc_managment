@@ -10,10 +10,11 @@ import '../../core/providers.dart';
 import '../../core/theme/app_style.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../duties/assigned_programmes.dart';
 import '../reports/dashboard_section.dart';
-import '../wayfinding/classroom_sheet.dart';
 import 'home_screen.dart';
 import 'staff_home.dart';
+import 'today_board.dart';
 
 /// The home screen of everyone who is not working as a trainee (trainer, school administrator, supervisor, coordinator,
 /// centre and system administrators, executive): only what needs their action, with the cards the administrator chose
@@ -26,7 +27,9 @@ class RoleHome extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(getProvider(path));
-    final roleName = (ref.watch(authProvider).value?.activeRole)?.str('name');
+    final me = ref.watch(authProvider).value;
+    final roleName = me?.activeRole?.str('name');
+    final canAttend = me?.can('attendance.manage') ?? false;
     return Scaffold(
       body: RefreshIndicator(
         color: AppColors.gold500,
@@ -42,7 +45,10 @@ class RoleHome extends ConsumerWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
                 sliver: SliverList.list(children: [
-                  for (final key in sections) ..._section(key, context, d),
+                  // What the person was given to supervise or teach comes first; it takes no space for somebody given nothing.
+                  const AssignedProgrammes(),
+                  const SizedBox(height: 16),
+                  for (final key in sections) ..._section(key, context, d, canAttend),
                   const SizedBox(height: 4),
                   OutlinedButton.icon(
                     onPressed: () => launchUrl(StaffHome.dashboardUri, mode: LaunchMode.externalApplication),
@@ -58,13 +64,13 @@ class RoleHome extends ConsumerWidget {
     );
   }
 
-  List<Widget> _section(String key, BuildContext context, Json d) {
+  List<Widget> _section(String key, BuildContext context, Json d, bool canAttend) {
     const gap = SizedBox(height: 16);
     switch (key) {
       case 'actions':
         return [ActionTiles(tiles: d.list('actions')), gap];
       case 'today':
-        return [TodaySessions(sessions: d.list('today'), trainer: d.str('role') == 'trainer'), gap];
+        return [TodaySessions(sessions: d.list('today'), trainer: d.str('role') == 'trainer', canAttend: canAttend, board: true), gap];
       case 'dashboard':
         return const [DashboardSection()];
       default:
@@ -175,19 +181,30 @@ class _Tile extends StatelessWidget {
   }
 }
 
-/// Today's sessions: a trainer's own, or the centre's for people who manage programs.
+/// Today's sessions on the home screen: a trainer's own, or the centre's for people who manage programs. Each one names its
+/// room, trainer and supervisor and shows who came; [board] adds the way to the whole day («برامج اليوم»).
 class TodaySessions extends StatelessWidget {
-  const TodaySessions({super.key, required this.sessions, required this.trainer});
+  const TodaySessions({super.key, required this.sessions, required this.trainer, this.canAttend = false, this.board = false});
 
   final List<Json> sessions;
   final bool trainer;
 
+  /// Whether a tap on a session opens its attendance (a trainer always can).
+  final bool canAttend;
+  final bool board;
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
-    final fmt = Fmt(s.languageCode);
+    final attends = trainer || canAttend;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(s.t('role.today'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(children: [
+          Expanded(child: Text(s.t('role.today'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.navy900))),
+          if (board) TextButton(key: const ValueKey('today-board'), onPressed: () => context.push('/today'), child: Text(s.t('today.open'))),
+        ]),
+      ),
       if (sessions.isEmpty)
         Container(
           width: double.infinity,
@@ -199,56 +216,7 @@ class TodaySessions extends StatelessWidget {
         for (final x in sessions)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: trainer && x.str('id').isNotEmpty ? () => context.push('/roll-call/${x.str('id')}') : null,
-                child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(children: [
-                  Container(
-                    width: 64,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(color: AppColors.navy900, borderRadius: BorderRadius.circular(16)),
-                    child: Column(children: [
-                      Text(fmt.time(x.date('starts_at')), style: TextStyle(color: AppColors.gold300, fontSize: 13, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 2),
-                      Text(fmt.time(x.date('ends_at')), style: const TextStyle(color: Colors.white70, fontSize: 10.5)),
-                    ]),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(x.str('program'), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900, height: 1.25)),
-                      if (x.str('title').isNotEmpty) Text(x.str('title'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
-                      if (x.str('location').isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(children: [
-                            Icon(Icons.place_outlined, size: 14, color: AppColors.gold700),
-                            const SizedBox(width: 4),
-                            Expanded(child: Text(x.str('location'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.muted))),
-                          ]),
-                        ),
-                    ]),
-                  ),
-                  if (x.flag('has_course') && x.str('program_id').isNotEmpty)
-                    IconButton.filled(
-                      key: const ValueKey('open-kit'),
-                      tooltip: s.t('kit.title'),
-                      visualDensity: VisualDensity.compact,
-                      style: IconButton.styleFrom(backgroundColor: AppColors.navy900, foregroundColor: AppColors.gold300),
-                      icon: const Icon(Icons.inventory_2_outlined, size: 20),
-                      onPressed: () => context.push('/kit/${x.str('program_id')}'),
-                    ),
-                  ClassroomMapButton(
-                    mode: x.str('mode'),
-                    target: ClassroomTarget(roomId: x.str('room_id'), placeId: x.str('map_place'), program: x.str('program'), title: x.str('title'), startsAt: x.date('starts_at'), endsAt: x.date('ends_at')),
-                  ),
-                ]),
-              ),
-              ),
-            ),
+            child: TodaySessionCard(row: x, onAttend: attends && x.str('id').isNotEmpty ? () => context.push('/roll-call/${x.str('id')}') : null),
           ),
       if (trainer && sessions.isNotEmpty)
         FilledButton.icon(

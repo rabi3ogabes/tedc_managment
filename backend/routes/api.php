@@ -187,6 +187,7 @@ use App\Http\Controllers\Api\V1\Me\MyPackageController;
 use App\Http\Controllers\Api\V1\Me\MyPassingController;
 use App\Http\Controllers\Api\V1\Me\MyReportsController;
 use App\Http\Controllers\Api\V1\Me\MySurveyController;
+use App\Http\Controllers\Api\V1\Me\MyTodayController;
 use App\Http\Controllers\Api\V1\Me\MyTrainingController;
 use App\Http\Controllers\Api\V1\Me\RealtimeController;
 use App\Http\Controllers\Api\V1\Me\TeachingController;
@@ -570,6 +571,8 @@ Route::prefix('v1')->group(function () {
             Route::get('menu-layout', [MenuLayoutController::class, 'show']);
             Route::get('app-theme', [AppThemesController::class, 'mine']);
             Route::get('app-home', AppHomeMeController::class);
+            // «برامج اليوم»: the day's sessions with their trainers, supervisors, rooms and attendance.
+            Route::get('today-board', MyTodayController::class);
             Route::get('passport', [MeController::class, 'passport']);
             Route::put('skills', [MeController::class, 'updateSkills']);
             Route::post('presence', [PresenceController::class, 'heartbeat'])->middleware('throttle:60,1');
