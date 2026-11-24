@@ -1,7 +1,9 @@
 import clsx from 'clsx'
-import { Copy, LayoutGrid, Network, Plus, Save, Search, ShieldCheck, Trash2 } from 'lucide-react'
+import { Copy, Eye, LayoutGrid, Network, Plus, Save, Search, ShieldCheck, Trash2, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import { pageRightOf, pageRights } from '@/components/admin/menuCatalog'
 import { Badge, Button, Card, Empty, Field, Modal, PageHeader, Spinner } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { api, errorMessage } from '@/lib/api'
@@ -19,7 +21,7 @@ const LANDINGS = ['/admin', '/admin/executive', '/admin/kits', '/admin/programs'
 /** Settings → Roles & permissions: the roles of the RFP, custom roles (new or cloned), and the permission matrix with a diff before saving. */
 export default function RolesPermissions() {
   const { t, i18n } = useTranslation()
-  const { can } = useAuth()
+  const { can, refresh } = useAuth()
   const ar = i18n.language === 'ar'
   const { data, isLoading, refetch } = useGet<Payload>('/admin/roles', undefined, { staleTime: 0 })
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -29,11 +31,13 @@ export default function RolesPermissions() {
   const [view, setView] = useState<'matrix' | 'diagram'>('matrix')
   const [creating, setCreating] = useState(false)
   const [busy, setBusy] = useState(false)
+  // The page rights this screen ticked by itself for the role being edited, so it can say so (see give()).
+  const [paired, setPaired] = useState<string[]>([])
   const nm = (o: { name_ar: string; name_en: string }) => (ar ? o.name_ar : o.name_en)
 
   const selected = data?.data.find((r) => r.id === selectedId) ?? null
   useEffect(() => { if (data && !selectedId) setSelectedId(data.data[0]?.id ?? null) }, [data, selectedId])
-  useEffect(() => { if (selected) setPerms(new Set(selected.permissions.map((p) => p.slug))) }, [selected?.id, data]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (selected) { setPerms(new Set(selected.permissions.map((p) => p.slug))); setPaired([]) } }, [selected?.id, data]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const original = useMemo(() => new Set(selected?.permissions.map((p) => p.slug) ?? []), [selected])
   const added = [...perms].filter((p) => !original.has(p))
@@ -41,16 +45,33 @@ export default function RolesPermissions() {
   const dirty = added.length + removed.length > 0
   const all = useMemo(() => Object.values(data?.permissions ?? {}).flat(), [data])
   const label = (slug: string) => { const p = all.find((x) => x.slug === slug); return p ? nm(p) : slug }
+  // An action of an area whose only door is its page («سابر+», the programmes…) is no use without the page: the two are given together.
+  const pages = useMemo(() => { const known = new Set(all.map((p) => p.slug)); return new Set([...pageRights(t)].filter((p) => known.has(p))) }, [all, t])
 
   if (isLoading || !data) return <Spinner />
   const isSuper = selected?.slug === 'super_admin'
   const canEditMatrix = can('roles.manage') && !isSuper
   const term = filter.trim().toLowerCase()
 
-  const toggleGroup = (list: Perm[], on: boolean) => setPerms((s) => { const n = new Set(s); list.forEach((p) => (on ? n.add(p.slug) : n.delete(p.slug))); return n })
+  const give = (slugs: string[]) => {
+    const next = new Set(perms)
+    const opened: string[] = []
+    for (const slug of slugs) {
+      next.add(slug)
+      const page = pageRightOf(slug, pages)
+      if (page && !next.has(page)) { next.add(page); opened.push(page) }
+    }
+    setPerms(next)
+    if (opened.length) setPaired((was) => [...new Set([...was, ...opened])])
+  }
+  const take = (slugs: string[]) => { setPerms((s) => { const n = new Set(s); slugs.forEach((x) => n.delete(x)); return n }); setPaired((was) => was.filter((x) => !slugs.includes(x))) }
+  const toggleGroup = (list: Perm[], on: boolean) => (on ? give(list.map((p) => p.slug)) : take(list.map((p) => p.slug)))
+  // Areas where the role holds an action but not the page: the action cannot be used, and the screen says so.
+  const shut = [...pages].filter((page) => !perms.has(page) && [...perms].some((x) => pageRightOf(x, pages) === page))
   const save = async () => {
     setBusy(true)
-    try { await api.put(`/admin/roles/${selected!.id}/permissions`, { permissions: [...perms] }); toast(t('rolesAdmin.saved')); setDiff(false); await refetch() }
+    // The server applies the new rights on the next request of everybody who holds the role; this account reads its own again now.
+    try { await api.put(`/admin/roles/${selected!.id}/permissions`, { permissions: [...perms] }); toast(t('rolesAdmin.savedNow')); setDiff(false); await refetch(); void refresh() }
     catch (e) { toast(errorMessage(e), 'error') } finally { setBusy(false) }
   }
   const remove = async () => {
@@ -90,6 +111,13 @@ export default function RolesPermissions() {
               </div>
               {isSuper && <p className="rounded-xl bg-ivory px-3 py-2 text-xs text-slate-600">{t('rolesAdmin.superNote')}</p>}
               {selected.is_system && !isSuper && <p className="rounded-xl bg-ivory px-3 py-2 text-xs text-slate-600">{t('rolesAdmin.systemNote')}</p>}
+              {!isSuper && (
+                <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-gold-200 bg-gold-50/60 px-4 py-3 text-xs leading-6 text-navy-900">
+                  <Zap className="mt-0.5 size-4 shrink-0 text-gold-700" aria-hidden />
+                  <p className="min-w-0 flex-1">{t('rolesAdmin.liveNote')}</p>
+                  {can('users.manage') && <Link to="/admin/users" className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-navy-900 px-3 py-1.5 font-bold text-white transition-colors hover:bg-navy-800"><Eye className="size-3.5" />{t('rolesAdmin.seeAs')}</Link>}
+                </div>
+              )}
 
               <div role="tablist" aria-label={t('rolesAdmin.title')} className="inline-flex rounded-xl bg-ivory p-1 ring-1 ring-navy-100">
                 {([['matrix', LayoutGrid, 'viewMatrix'], ['diagram', Network, 'viewDiagram']] as const).map(([id, Icon, label]) => (
@@ -115,10 +143,19 @@ export default function RolesPermissions() {
                         <input type="checkbox" className="accent-gold-600" disabled={!canEditMatrix} checked={on === list.length} ref={(el) => { if (el) el.indeterminate = on > 0 && on < list.length }}
                           onChange={(e) => toggleGroup(list, e.target.checked)} />{t('rolesAdmin.selectAll')} ({on}/{list.length})
                       </label>
+                      {list.filter((p) => paired.includes(p.slug) && perms.has(p.slug)).map((p) => (
+                        <p key={`paired-${p.slug}`} role="status" className="mb-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs leading-5 text-emerald-900">{t('rolesAdmin.pairedNote', { page: nm(p) })}</p>
+                      ))}
+                      {list.filter((p) => shut.includes(p.slug)).map((p) => (
+                        <p key={`shut-${p.slug}`} role="alert" className="mb-1 flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs leading-5 text-amber-900">
+                          <span className="min-w-0 flex-1">{t('rolesAdmin.shutNote', { page: nm(p) })}</span>
+                          {canEditMatrix && <button type="button" onClick={() => give([p.slug])} className="shrink-0 rounded-md bg-amber-900 px-2 py-0.5 font-bold text-white">{t('rolesAdmin.shutFix')}</button>}
+                        </p>
+                      ))}
                       {shown.map((p) => (
                         <label key={p.slug} className="flex items-center gap-2 py-1 text-sm">
                           <input type="checkbox" className="accent-gold-600" disabled={!canEditMatrix} checked={isSuper || perms.has(p.slug)}
-                            onChange={(e) => setPerms((s) => { const n = new Set(s); if (e.target.checked) n.add(p.slug); else n.delete(p.slug); return n })} />
+                            onChange={(e) => (e.target.checked ? give([p.slug]) : take([p.slug]))} />
                           <span className="min-w-0 flex-1 truncate">{nm(p)}</span><span className="hidden font-mono text-[10px] text-slate-300 sm:inline" dir="ltr">{p.slug}</span>
                         </label>
                       ))}

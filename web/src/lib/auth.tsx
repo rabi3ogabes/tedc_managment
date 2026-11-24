@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { accessChanged, dueForSync, SYNC_EVERY } from './accessSync'
 import { activeRoleStore } from './activeRole'
 import { api, sessionStore } from './api'
 import type { Me, RoleGrant } from './types'
@@ -27,9 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Me | null>(null)
   const [loading, setLoading] = useState(!!sessionStore.get())
   const queryClient = useQueryClient()
+  // The profile the page is showing, and when the server was last asked for it (see sync below).
+  const current = useRef<Me | null>(null)
+  useEffect(() => { current.current = user }, [user])
+  const lastSync = useRef(0)
 
   const refresh = useCallback(async () => {
     if (!sessionStore.get()) return setLoading(false)
+    lastSync.current = Date.now()
     try {
       const { data } = await api.get('/auth/me')
       // This tab now works in the role the server answered with, whatever another tab switches to afterwards.
@@ -42,6 +48,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     }
   }, [])
+
+  // The rights of a role can change while its holders are signed in (Settings → Roles & permissions), and so can the
+  // roles a person holds. The server applies the change on the very next request; the page learns of it here, so the
+  // menus and buttons follow without signing in again: whenever the tab is looked at again, and every few minutes
+  // while it stays in front. A check that fails changes nothing (the person stays signed in with what they had).
+  const sync = useCallback(async () => {
+    const before = current.current
+    if (!before || !sessionStore.get() || !dueForSync(lastSync.current, Date.now())) return
+    lastSync.current = Date.now()
+    try {
+      const { data } = await api.get('/auth/me')
+      const after = data.data as Me
+      if (current.current?.id !== after.id || !accessChanged(current.current, after)) return
+      activeRoleStore.set(after.active_role?.id ?? null)
+      setUser(after)
+      // What was loaded with the old rights is asked for again with the new ones.
+      void queryClient.invalidateQueries()
+    } catch { /* offline, or the session ended: the usual handling of the next request deals with it */ }
+  }, [queryClient])
+
+  useEffect(() => {
+    const onLook = () => { if (document.visibilityState === 'visible') void sync() }
+    document.addEventListener('visibilitychange', onLook)
+    window.addEventListener('focus', onLook)
+    const timer = window.setInterval(onLook, SYNC_EVERY)
+    return () => { document.removeEventListener('visibilitychange', onLook); window.removeEventListener('focus', onLook); window.clearInterval(timer) }
+  }, [sync])
 
   useEffect(() => {
     refresh()

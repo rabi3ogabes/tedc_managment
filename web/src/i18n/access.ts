@@ -12,6 +12,8 @@ export const accessAr = {
     pick: 'اختر دوراً من القائمة.', scopes: 'النطاقات المسموحة', scope: { ministry: 'الوزارة', school_group: 'مجموعة مدارس', school: 'مدرسة', department: 'قسم' }, delete: 'حذف الدور', review: 'مراجعة التغييرات',
     superNote: 'مدير النظام يملك كل الصلاحيات تلقائياً ولا تُعدَّل صلاحياته.', systemNote: 'هذا دور من أدوار النظام: يمكن تعديل صلاحياته، ولا يمكن حذفه. لتخصيص دور كامل أنشئ نسخة منه.',
     viewMatrix: 'المصفوفة', viewDiagram: 'المخطط', diagramTitle: 'ما يديره هذا الدور', diagramHint: 'الدور في الأعلى، وتحته مجالات النظام. المجال المضيء يملك الدور فيه صلاحية، وعدّاده يبيّن كم منها مفتوح.', diagramOnly: 'المفتوح فقط', diagramNothing: 'لا يملك هذا الدور أي صلاحية بعد.', diagramAll: 'كل المجالات وكل الصلاحيات (ضمنياً)', diagramAreas: 'مجال', diagramOf: 'من',
+    liveNote: 'يسري التغيير فور الحفظ على كل من يحمل الدور: تظهر الصفحة الجديدة في قائمته الجانبية عند عودته إلى النظام، دون تسجيل دخول جديد. من يحمل أكثر من دور يرى صلاحيات الدور الذي يعمل به فقط.', seeAs: 'معاينة ما يراه مستخدم',
+    savedNow: 'تم الحفظ. يسري الآن على كل من يحمل الدور.', pairedNote: 'أُضيفت «{{page}}» معها: صفحة هذا المجال لا تُفتح بدونها.', shutNote: 'يملك الدور صلاحيات في هذا المجال دون «{{page}}»، فلن تظهر له الصفحة ولن يستعمل هذه الصلاحيات.', shutFix: 'أضفها',
     search: 'ابحث في الصلاحيات…', selectAll: 'تحديد الكل', saved: 'تم حفظ الصلاحيات', deleted: 'تم حذف الدور', created: 'تم إنشاء الدور', confirmDelete: 'حذف الدور «{{name}}»؟',
     diffTitle: 'معاينة التغييرات', diffIntro: 'ستتغير صلاحيات الدور «{{name}}» كما يلي:', added: 'تُضاف', removed: 'تُزال', confirmSave: 'تأكيد الحفظ', cancel: 'إلغاء',
     nameAr: 'الاسم بالعربية', nameEn: 'الاسم بالإنجليزية', cloneFrom: 'البدء من', cloneHint: 'عند النسخ تنتقل كل صلاحيات الدور المختار إلى الدور الجديد.', fromScratch: 'دور فارغ', landing: 'صفحة البداية', clone: 'نسخ وإنشاء', create: 'إنشاء',
@@ -20,6 +22,18 @@ export const accessAr = {
   userRoles: {
     manage: 'الأدوار', title: 'أدوار {{name}}', add: 'منح دور', role: 'الدور', scope: 'النطاق', expires: 'ينتهي في (اختياري)', expiresHint: 'بعد هذا التاريخ يتوقف الدور تلقائياً.', grant: 'منح الدور', granted: 'تم منح الدور', revoked: 'تم سحب الدور',
     revoke: 'سحب الدور', confirmRevoke: 'سحب الدور «{{role}}»؟', expired: 'منتهي', until: 'حتى {{date}}',
+  },
+  userAccess: {
+    open: 'ما يراه', title: 'ما يراه هذا المستخدم', roles: 'أدواره', startsIn: 'يبدأ به', trainer: 'مدرّب', noProfile: 'بلا ملف متدرب',
+    oneAtATime: 'يعمل بدور واحد في كل مرة، ويبدّل بينها من أعلى الصفحة. اختر الدور لترى صفحاته وصلاحياته.', oneRole: 'يحمل دوراً واحداً. هذه صفحاته وصلاحياته.',
+    noRoles: 'لا يحمل هذا المستخدم أي دور سارٍ، فلن يرى شيئاً بعد الدخول. امنحه دوراً من «الأدوار».',
+    pages: 'الصفحات في قائمته', landing: 'يبدأ من', rights: 'ما يستطيع فعله', rightsHint: 'صلاحيات هذا الدور، وتُعدَّل من «الأدوار والصلاحيات».', noRights: 'لا يملك هذا الدور أي صلاحية.', all: 'كل الصلاحيات', pagesCount: '{{n}} صفحة', rightsCount: '{{n}} صلاحية',
+    signInAs: 'الدخول بحسابه بدور «{{role}}»', signInHint: 'يُفتح حسابه في هذا المتصفح بدور «{{role}}» لمدة ساعة لترى ما يراه تماماً، ثم تعود إلى حسابك بضغطة. تُسجَّل البداية والنهاية في سجل التدقيق.',
+    openFeatures: 'افتح الميزات',
+    cannot: {
+      feature_off: 'الدخول بحساب مستخدم آخر موقوف الآن. يفعّله مدير النظام من الإعدادات ← الميزات مع ذكر السبب، وكل دخول يُسجَّل في سجل التدقيق.',
+      not_system_admin: 'الدخول بحساب مستخدم آخر لمدير النظام وحده.', self: 'هذا حسابك أنت.', admin: 'لا يمكن الدخول بحساب مدير نظام آخر.', inactive: 'الحساب موقوف: فعّله أولاً لتدخل به.',
+    },
   },
   schoolGroups: {
     title: 'مجموعات المدارس', subtitle: 'اجمع المدارس في مديريات أو عناقيد أو مراحل، ثم امنح الأدوار عليها.', new: 'مجموعة جديدة', import: 'استيراد CSV', empty: 'لا توجد مجموعات بعد. أنشئ مجموعة أو استورد ملف CSV.',
@@ -47,6 +61,8 @@ export const accessEn: typeof accessAr = {
     pick: 'Pick a role from the list.', scopes: 'Allowed scopes', scope: { ministry: 'Ministry', school_group: 'School group', school: 'School', department: 'Department' }, delete: 'Delete role', review: 'Review changes',
     superNote: 'The super administrator has every permission automatically; it cannot be edited.', systemNote: 'This is a system role: its permissions can be edited but it cannot be deleted. To customise a role completely, make a copy.',
     viewMatrix: 'Matrix', viewDiagram: 'Diagram', diagramTitle: 'What this role manages', diagramHint: 'The role on top, the areas of the system below it. A lit area is one the role has rights in; its counter shows how many are open.', diagramOnly: 'Open rights only', diagramNothing: 'This role has no rights yet.', diagramAll: 'Every area and every right (implicit)', diagramAreas: 'areas', diagramOf: 'of',
+    liveNote: 'A change applies as soon as it is saved, to everyone who holds the role: the new page appears in their side menu when they come back to the system, with no new sign-in. Someone with several roles sees the rights of the role they are working in only.', seeAs: 'See what a user sees',
+    savedNow: 'Saved. It now applies to everyone who holds the role.', pairedNote: '“{{page}}” was added with it: the page of this area does not open without it.', shutNote: 'The role holds rights in this area without “{{page}}”, so the page will not appear and these rights cannot be used.', shutFix: 'Add it',
     search: 'Search permissions…', selectAll: 'Select all', saved: 'Permissions saved', deleted: 'Role deleted', created: 'Role created', confirmDelete: 'Delete the role “{{name}}”?',
     diffTitle: 'Preview of the changes', diffIntro: 'The permissions of “{{name}}” will change as follows:', added: 'Added', removed: 'Removed', confirmSave: 'Confirm and save', cancel: 'Cancel',
     nameAr: 'Name in Arabic', nameEn: 'Name in English', cloneFrom: 'Start from', cloneHint: 'When you copy a role, all its permissions move to the new role.', fromScratch: 'An empty role', landing: 'Landing page', clone: 'Copy and create', create: 'Create',
@@ -55,6 +71,18 @@ export const accessEn: typeof accessAr = {
   userRoles: {
     manage: 'Roles', title: 'Roles of {{name}}', add: 'Grant a role', role: 'Role', scope: 'Scope', expires: 'Ends on (optional)', expiresHint: 'After this date the role stops by itself.', grant: 'Grant role', granted: 'Role granted', revoked: 'Role removed',
     revoke: 'Remove role', confirmRevoke: 'Remove the role “{{role}}”?', expired: 'Expired', until: 'Until {{date}}',
+  },
+  userAccess: {
+    open: 'What they see', title: 'What this user sees', roles: 'Their roles', startsIn: 'Starts here', trainer: 'Trainer', noProfile: 'No trainee profile',
+    oneAtATime: 'They work in one role at a time and switch from the top of the page. Pick a role to see its pages and rights.', oneRole: 'They hold one role. These are its pages and rights.',
+    noRoles: 'This user holds no role that is in force, so they will see nothing after signing in. Grant one from “Roles”.',
+    pages: 'Pages in their menu', landing: 'Starts at', rights: 'What they can do', rightsHint: 'The rights of this role, edited in “Roles & permissions”.', noRights: 'This role has no rights.', all: 'Every right', pagesCount: '{{n}} pages', rightsCount: '{{n}} rights',
+    signInAs: 'Sign in as them, as “{{role}}”', signInHint: 'Their account opens in this browser as “{{role}}” for one hour so you see exactly what they see, then you return to your own account with one tap. The start and the end are written to the audit log.',
+    openFeatures: 'Open Features',
+    cannot: {
+      feature_off: 'Signing in as another user is switched off. The system administrator switches it on in Settings → Features, giving a reason, and every use is written to the audit log.',
+      not_system_admin: 'Only the system administrator can sign in as another user.', self: 'This is your own account.', admin: 'You cannot sign in as another system administrator.', inactive: 'The account is suspended: activate it first.',
+    },
   },
   schoolGroups: {
     title: 'School groups', subtitle: 'Gather schools into directorates, clusters or stages, then grant roles over them.', new: 'New group', import: 'Import CSV', empty: 'No groups yet. Create one or import a CSV file.',

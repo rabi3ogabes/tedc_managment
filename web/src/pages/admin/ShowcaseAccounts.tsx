@@ -50,7 +50,7 @@ export default function ShowcaseAccounts() {
     setOpening(a.key)
     try {
       const { landing } = await impersonation.start(a.id ?? a.key, { open: `/admin/showcase-accounts/${a.key}/open`, stop: `/admin/showcase-accounts/${a.key}/close`, returnTo: '/admin/settings?tab=showcase' })
-      window.location.href = landing === 'admin' ? '/admin' : '/portal'
+      window.location.href = landing
     } catch (e) { toast(errorMessage(e), 'error'); setOpening(null) }
   }
   const appPassword = async (a: Account) => {
