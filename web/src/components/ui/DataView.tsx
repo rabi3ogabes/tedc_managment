@@ -1,7 +1,8 @@
 import clsx from 'clsx'
 import { LayoutGrid, Rows3 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState, type MouseEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { opensRow } from '@/lib/rowPress'
 import { Empty, Spinner } from './index'
 
 export type ViewMode = 'table' | 'cards'
@@ -86,10 +87,13 @@ type Props<T> = {
   defaultMode?: ViewMode
   cardsClassName?: string
   isSelected?: (row: T) => boolean
+  /** Pressing anywhere on a row or card opens it. Links, buttons and fields inside keep their own action, and selecting text does not open (opensRow). Give the row a real link too, for the keyboard. */
+  onRowClick?: (row: T, event: MouseEvent<HTMLElement>) => void
 }
 
 /** Data list with a luxury card grid and a classic table, switchable by the user. */
-export function DataView<T>({ id, rows, columns, rowKey, loading, emptyText, total, toolbar, defaultMode = 'table', cardsClassName, isSelected }: Props<T>) {
+export function DataView<T>({ id, rows, columns, rowKey, loading, emptyText, total, toolbar, defaultMode = 'table', cardsClassName, isSelected, onRowClick }: Props<T>) {
+  const press = onRowClick && ((row: T, event: MouseEvent<HTMLElement>) => { if (opensRow(event.target as Element, window.getSelection()?.toString() ?? '')) onRowClick(row, event) })
   const { t } = useTranslation()
   const [mode, setMode] = useViewMode(id, defaultMode)
   const count = total ?? rows?.length ?? 0
@@ -105,15 +109,17 @@ export function DataView<T>({ id, rows, columns, rowKey, loading, emptyText, tot
       </div>
 
       {loading ? <Spinner /> : !rows?.length ? <Empty text={emptyText} /> : mode === 'table' ? (
-        <TableView rows={rows} columns={columns} rowKey={rowKey} isSelected={isSelected} />
+        <TableView rows={rows} columns={columns} rowKey={rowKey} isSelected={isSelected} onPress={press} />
       ) : (
-        <CardsView rows={rows} columns={columns} rowKey={rowKey} className={cardsClassName} isSelected={isSelected} />
+        <CardsView rows={rows} columns={columns} rowKey={rowKey} className={cardsClassName} isSelected={isSelected} onPress={press} />
       )}
     </div>
   )
 }
 
-function TableView<T>({ rows, columns, rowKey, isSelected }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string; isSelected?: (r: T) => boolean }) {
+type Press<T> = ((row: T, event: MouseEvent<HTMLElement>) => void) | undefined
+
+function TableView<T>({ rows, columns, rowKey, isSelected, onPress }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string; isSelected?: (r: T) => boolean; onPress?: Press<T> }) {
   const visible = columns.filter((c) => !c.hideInTable)
   return (
     <div className="overflow-x-auto">
@@ -125,7 +131,7 @@ function TableView<T>({ rows, columns, rowKey, isSelected }: { rows: T[]; column
         </thead>
         <tbody className="divide-y divide-navy-100/70">
           {rows.map((row) => (
-            <tr key={rowKey(row)} className={clsx('transition hover:bg-ivory/70', isSelected?.(row) && 'bg-gold-100/40')}>
+            <tr key={rowKey(row)} onClick={onPress && ((ev) => onPress(row, ev))} className={clsx('transition hover:bg-ivory/70', isSelected?.(row) && 'bg-gold-100/40', onPress && 'cursor-pointer')}>
               {visible.map((c) => <td key={c.key} className={clsx('px-3 py-3 align-middle', c.className)}>{c.cell(row)}</td>)}
             </tr>
           ))}
@@ -135,7 +141,7 @@ function TableView<T>({ rows, columns, rowKey, isSelected }: { rows: T[]; column
   )
 }
 
-function CardsView<T>({ rows, columns, rowKey, className, isSelected }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string; className?: string; isSelected?: (r: T) => boolean }) {
+function CardsView<T>({ rows, columns, rowKey, className, isSelected, onPress }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string; className?: string; isSelected?: (r: T) => boolean; onPress?: Press<T> }) {
   const visible = columns.filter((c) => !c.hideInCards)
   const by = (role: Column<T>['role']) => visible.filter((c) => (c.role ?? 'detail') === role)
   const [select, media, title, subtitle, badges, details, actions] = [by('select'), by('media'), by('title'), by('subtitle'), by('badge'), by('detail'), by('actions')]
@@ -145,7 +151,9 @@ function CardsView<T>({ rows, columns, rowKey, className, isSelected }: { rows: 
       {rows.map((row) => (
         <article
           key={rowKey(row)}
+          onClick={onPress && ((ev) => onPress(row, ev))}
           className={clsx(
+            onPress && 'cursor-pointer',
             'group relative flex flex-col overflow-hidden rounded-[var(--radius-card,1rem)] border bg-[var(--color-surface)] transition duration-300 hover:-translate-y-0.5 hover:shadow-glass',
             isSelected?.(row) ? 'border-gold-500 ring-2 ring-gold-100' : 'border-navy-100',
           )}

@@ -1,12 +1,15 @@
-import { Clock3, Hash } from 'lucide-react'
+import { Clock3, Eye, Hash } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import PassportView, { type PassportData } from '@/components/PassportView'
-import { Avatar, Badge, Card, CardTitle, PageHeader, Spinner, StatusBadge } from '@/components/ui'
+import { Avatar, Badge, Button, Card, CardTitle, PageHeader, Spinner, StatusBadge } from '@/components/ui'
 import { DataView } from '@/components/ui/DataView'
 import { useGet } from '@/hooks/useApi'
+import { useAuth } from '@/lib/auth'
 import { fmt } from '@/lib/format'
 import type { Employee, Registration } from '@/lib/types'
+import UserAccess from './UserAccess'
 
 type History = {
   totals: { courses: number; hours: number; by_year: { year: number; courses: number; hours: number }[] }
@@ -21,6 +24,9 @@ export default function EmployeeProfile() {
 /** The employee's training passport and profile — as its own page, or (`embedded`) inside the side panel opened from the employees list, where the panel shows the name. */
 export function EmployeeProfileBody({ id, embedded = false }: { id: string; embedded?: boolean }) {
   const { t } = useTranslation()
+  const { can } = useAuth()
+  // «ما يراه» on the full page; in the side panel it is a view of the panel itself.
+  const [access, setAccess] = useState(false)
   const { data, isLoading } = useGet<{ data: { employee: Employee; passport: PassportData; registrations: Registration[]; training_history: History } }>(`/admin/employees/${id}`)
   if (isLoading || !data) return <Spinner />
   const { employee: e, passport, registrations, training_history: h } = data.data
@@ -32,7 +38,9 @@ export function EmployeeProfileBody({ id, embedded = false }: { id: string; embe
   return (
     <>
       {!embedded && <PageHeader title={<span className="flex items-center gap-4"><Avatar name={e.name ?? ''} size={56} />{e.name}{e.status === 'inactive' && <Badge color="gray">{t('status.inactive', { defaultValue: 'inactive' })}</Badge>}</span>}
-        subtitle={`${e.job_title?.name ?? ''} · ${e.school?.name ?? ''} · ${e.employee_no}`} />}
+        subtitle={`${e.job_title?.name ?? ''} · ${e.school?.name ?? ''} · ${e.employee_no}`}
+        actions={can('users.manage') && e.user_id ? <Button variant="outline" icon={<Eye className="size-4" />} onClick={() => setAccess(true)}>{t('userAccess.open')}</Button> : undefined} />}
+      {!embedded && <UserAccess userId={access ? e.user_id : null} onClose={() => setAccess(false)} />}
       <PassportView data={passport} />
 
       {(hasFacts || (e.employee_numbers?.length ?? 0) > 1) && (

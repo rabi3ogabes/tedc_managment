@@ -24,6 +24,11 @@ export function landingOf(user: Pick<Me, 'roles' | 'active_role'>, roleId?: stri
   return role?.landing_route || '/portal'
 }
 
+/** The page the administrator is on, as a path inside the site (never another site's address). */
+function cameFrom(): string {
+  try { const { pathname, search } = window.location; return pathname.startsWith('/') && !pathname.startsWith('//') ? pathname + search : '/admin/users' } catch { return '/admin/users' }
+}
+
 export const impersonation = {
   get(): ImpersonationState | null {
     try {
@@ -46,7 +51,8 @@ export const impersonation = {
     const role = (roleId && user.roles.some((r) => r.id === roleId) ? roleId : null) ?? user.active_role?.id ?? null
     localStorage.setItem(KEY, JSON.stringify({
       admin, target: { id: user.id, name: user.name, email: user.email }, adminName: data.impersonator.name, until: Date.now() + data.expires_in * 1000,
-      adminRole: activeRoleStore.get(), stopPath: via?.stop, returnTo: via?.returnTo,
+      // Back to where the account was opened from (the Users page, an employee's panel…), with its address as it was.
+      adminRole: activeRoleStore.get(), stopPath: via?.stop, returnTo: via?.returnTo ?? cameFrom(),
     } satisfies ImpersonationState))
     sessionStore.set({ access_token: data.access_token, refresh_token: '', expires_at: Date.now() + data.expires_in * 1000 })
     // The tab now asks as the opened account, in the role it was opened in (never the administrator's own role).
