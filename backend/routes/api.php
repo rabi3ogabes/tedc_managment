@@ -142,6 +142,7 @@ use App\Http\Controllers\Api\V1\Admin\TrainerController;
 use App\Http\Controllers\Api\V1\Admin\TrainingDaySettingsController;
 use App\Http\Controllers\Api\V1\Admin\TrainingGroupController;
 use App\Http\Controllers\Api\V1\Admin\TrainingNeedController;
+use App\Http\Controllers\Api\V1\Admin\UserAccessController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserRoleController;
 use App\Http\Controllers\Api\V1\Admin\VideoInteractionController;
@@ -1842,6 +1843,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
                 Route::put('users/{user}', [UserController::class, 'update']);
+                // What this person sees and may do, role by role (read only).
+                Route::get('users/{user}/access', [UserAccessController::class, 'show']);
                 Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
                 Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
                 Route::delete('users/{user}/roles/{roleUser}', [UserRoleController::class, 'destroy']);

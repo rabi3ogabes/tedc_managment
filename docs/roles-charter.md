@@ -51,8 +51,11 @@ Roles of the system that the document does not describe have no card: `center_ad
   notifications one is now covered by the role.
 * **On a database that already has its roles** the rights are given once by the migration `2026_01_01_009400_supervisor_charter_rights`;
   a new database gets them from `RolePermissionSeeder`. An administrator can still remove any of them in Settings → Roles & permissions.
-* **Where he finds the pages**: the «الإشراف» section of the portal menu lists them (الغياب، البرامج، سابر+، الحقائب التدريبية،
-  التقارير، متابعة التدريب المباشرة), each for whoever holds the right its page asks for, and the headings of the card link to them.
+* **Where he finds the pages**: the «الإشراف» section of the portal menu lists every dashboard page his rights open (الغياب،
+  البرامج، سابر+، الحقائب التدريبية، متابعة التدريب المباشرة and the others), by the general rule of the menu: a page is listed
+  for whoever holds the right it asks for (`menuOfRole`, `docs/roles.md`). Nothing is listed by hand, so a right the
+  administrator adds or removes in Settings → Roles & permissions adds or removes its button. «التقارير» is the portal's own
+  page. The headings of the card link to the same pages.
 
 ## What each heading rests on
 

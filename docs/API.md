@@ -241,6 +241,7 @@ from the storyboard (WebM with captions).
 |---|---|---|
 | GET | `/features` | signed in: `{flags: {key: bool}, unsafe_active: [key], environment}` — which features are on (web `useFeature`, app `featureOn`) |
 | GET | `/admin/features` | `settings.manage`: every flag with title, description, default, source (default/override), reason and the last five changes |
+| GET | `/admin/users/{user}/access` | `users.manage`. What one person sees, read only: `user`, `position` (job title, school, department, trainee profile, trainer), `roles[]` (each grant in force with `landing_route`, `starts_in` and that role's own `permissions`; `['*']` for the system administrator) and `sign_in` `{allowed, reason}` (`not_system_admin`, `self`, `admin`, `inactive`, `feature_off`) |
 | PUT | `/admin/features/{key}` | `settings.manage`: `{enabled, reason?}`. In production, switching on `impersonation`, `test_accounts`, `demo_scenarios` or `self_heal` also needs `users.manage` and a reason (≥ 5 characters); audited as `feature_toggled` |
 | GET | `/admin/rfp-status` | `settings.manage`: coverage of the RFP's requirements (totals, phases, modules with items, the 31 main items), generated from `docs/rfp/gap-register.md` |
 | GET | `/public/mobile-config` | now also returns `demo_accounts` (true only where demo mode is on) |

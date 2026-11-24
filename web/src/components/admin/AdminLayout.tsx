@@ -3,11 +3,11 @@ import clsx from 'clsx'
 import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/components/search/GlobalSearch'
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
-import { adminCatalog, type Item } from './menuCatalog'
+import { adminCatalog, landsOnPortal, portalMenu, visibleGroups, type MenuGroup } from './menuCatalog'
 import { showsOwnTraining } from '@/lib/portalHome'
 import { applyLayout, EMPTY_LAYOUT, type MenuLayout } from '@/lib/menuLayout'
 import {
-  Award, LifeBuoy, Power, Bell, BookOpen, ChevronDown, ClipboardList, GraduationCap, Home, FilePenLine, MessagesSquare, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, School, Shield, Target, Wallet, X, Search,
+  Power, Bell, ChevronDown, GraduationCap, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Shield, X, Search,
 } from 'lucide-react'
 import { useEffect, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -82,57 +82,15 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   useEffect(() => setOpen(false), [pathname, search])
 
   const menuLayout = useGet<{ data: MenuLayout }>(portal ? null : '/me/menu-layout', undefined, { staleTime: 60_000, retry: false }).data?.data ?? EMPTY_LAYOUT
-  const groups: { id?: string; title: string; items: Item[] }[] = portal
-    ? [{
-        title: t('nav.portal'),
-        items: [
-          { to: '/portal', label: t('nav.home'), icon: Home, end: true },
-          // The pages of the person's own training (ownTraining) are listed in the trainee role. Somebody who is a supervisor and
-          // a trainee finds them as «موظف», not under «مشرف»; a person with no trainee role keeps them (showsOwnTraining).
-          { to: '/portal/training', label: t('portal.myTraining'), icon: BookOpen, ownTraining: true },
-          { to: '/portal/passport', label: t('portal.passport'), icon: GraduationCap, ownTraining: true },
-          { to: '/portal/certificates', label: t('portal.certificates'), icon: Wallet, ownTraining: true },
-          { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList, ownTraining: true },
-          // Impact surveys stay: a supervisor answers them about the people they supervise.
-          { to: '/portal/surveys', label: t('portal.surveys'), icon: Target },
-          { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap, ownTraining: true },
-          { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList, ownTraining: true },
-          { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList, ownTraining: true },
-          { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap, ownTraining: true },
-          { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
-          { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
-          { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
-          { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification', ownTraining: true },
-          { to: '/portal/my-data', label: t('prv.nav'), icon: Shield },
-          { to: '/portal/help', label: t('hlp.nav'), icon: LifeBuoy },
-          { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments', ownTraining: true },
-          { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
-          { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
-          { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
-        ].filter((item) => ownTraining || !item.ownTraining),
-      },
-      // Working as a supervisor: his people's requests and needs are one tap away (they used to be reachable only from the administration side, so switching role changed nothing he could see).
-      ...(user?.active_role?.slug === 'supervisor' ? [{
-        id: 'supervise',
-        title: t('nav.supervise'),
-        items: [
-          { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
-          { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
-          { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },
-          // The pages of the charter «مشرف» takes («مشرف التدريب»), each shown to whoever holds the right its page asks for.
-          { to: '/admin/absence', label: t('ops.absence.title'), icon: ClipboardList, permission: 'attendance.manage' },
-          { to: '/admin/programs', label: t('admin.menu.programs'), icon: BookOpen, permission: 'programs.view' },
-          { to: '/admin/saber', label: t('saber.nav'), icon: GraduationCap, permission: 'saber.view' },
-          { to: '/admin/kits', label: t('admin.menu.kits'), icon: BookOpen, permission: 'kits.view' },
-          { to: '/admin/reports', label: t('rep.navReports'), icon: FilePenLine, permission: 'reports.view' },
-          { to: '/admin/live-training', label: t('liveT.nav'), icon: Target, permission: 'live_training.view' },
-        ],
-      }] : [])]
+  // The portal lists its own pages, then every dashboard page the role holds the right for (portalMenu): a right given
+  // in Settings → Roles & permissions shows as a button for whoever holds the role, with no code written per role.
+  const groups: MenuGroup[] = portal
+    ? portalMenu(t, { ownTraining, supervisor: activeRole?.slug === 'supervisor', landsOnPortal: landsOnPortal(activeRole?.landing_route) })
     : applyLayout(adminCatalog(t, { errors: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined, chats: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined, requests: requests.data?.data.pending }), menuLayout, i18n.language === 'ar' ? 'ar' : 'en')
 
   const flags = useFeatures().data?.data.flags ?? {}
   const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
-  const visible = groups.map((g) => ({ ...g, items: g.items.filter((i) => featureOn(i.feature) && (!i.permission || i.permission.split('|').some((x) => can(x)))) })).filter((g) => g.items.length)
+  const visible = visibleGroups(groups, can, featureOn)
   const unreadCount = unread.data?.meta?.total ?? 0
   // The trainee pages need a trainee profile; an account without one (an administrator, for example) is told so instead of waiting for data that never comes.
   const noProfile = portal && !!user && !user.employee && !['/portal/help', '/portal/notifications', '/portal/profile', '/portal/my-data', '/portal/security', '/portal/notification-preferences'].some((p) => pathname === p || pathname.startsWith(`${p}/`))

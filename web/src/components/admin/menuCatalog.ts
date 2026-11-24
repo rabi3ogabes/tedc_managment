@@ -1,14 +1,20 @@
 import {
-  Award, Boxes, Bug, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
+  Award, Bell, Boxes, Bug, Home, Layers, LifeBuoy, KanbanSquare, CalendarRange, School2, Monitor, Palette, Bot, CalendarDays, ClipboardList, DoorOpen, FileSearch, GraduationCap, LayoutDashboard, LineChart, Map, FilePenLine, LayoutTemplate, Megaphone, MessagesSquare, PackageOpen, Radio, School, Settings2, Shield, Target, UserCog, Users, Wallet, ShieldAlert, BookOpen, Presentation, ShieldCheck,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
+import { holds, landsOnPortal, onlyDoors, visibleGroups } from '@/lib/menuRules'
+import { showsOwnTraining } from '@/lib/portalHome'
+
+export { landsOnPortal, pageRightOf, visibleGroups } from '@/lib/menuRules'
 
 export type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string
   /** A page of the person's own training (portal): listed in the trainee role, see showsOwnTraining. */
   ownTraining?: boolean
 }
 export type Group = { id: string; title: string; items: Item[] }
+/** A section as the menu draws it (the portal's own section has no id). */
+export type MenuGroup = { id?: string; title: string; items: Item[] }
 export type MenuBadges = { errors?: number; chats?: number; requests?: number }
 
 /** Every button of the dashboard menu with its default section, before the administrator's arrangement is laid over it. */
@@ -96,4 +102,86 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/settings', label: m('settings'), icon: Settings2, permission: 'settings.manage' },
     ] },
   ]
+}
+
+/** The pages of the trainee portal, in the order of its menu. */
+export function portalCatalog(t: TFunction): Item[] {
+  return [
+    { to: '/portal', label: t('nav.home'), icon: Home, end: true },
+    // The pages of the person's own training (ownTraining) are listed in the trainee role. Somebody who is a supervisor and
+    // a trainee finds them as «موظف», not under «مشرف»; a person with no trainee role keeps them (showsOwnTraining).
+    { to: '/portal/training', label: t('portal.myTraining'), icon: BookOpen, ownTraining: true },
+    { to: '/portal/passport', label: t('portal.passport'), icon: GraduationCap, ownTraining: true },
+    { to: '/portal/certificates', label: t('portal.certificates'), icon: Wallet, ownTraining: true },
+    { to: '/portal/tasks', label: t('portal.tasks'), icon: ClipboardList, ownTraining: true },
+    // Impact surveys stay: a supervisor answers them about the people they supervise.
+    { to: '/portal/surveys', label: t('portal.surveys'), icon: Target },
+    { to: '/portal/needs', label: t('needsHub.my.title'), icon: GraduationCap, ownTraining: true },
+    { to: '/portal/assessments', label: t('assess.runner.title'), icon: ClipboardList, ownTraining: true },
+    { to: '/portal/evaluations', label: t('evalc.my.title'), icon: ClipboardList, ownTraining: true },
+    { to: '/portal/growth', label: t('career.myNav'), icon: GraduationCap, ownTraining: true },
+    { to: '/portal/library', label: t('content.navLibrary'), icon: BookOpen },
+    { to: '/portal/communities', label: t('soc.nav.communities'), icon: MessagesSquare, feature: 'plc|forums' },
+    { to: '/portal/questions', label: t('soc.nav.questions'), icon: GraduationCap, feature: 'forums' },
+    { to: '/portal/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification', ownTraining: true },
+    { to: '/portal/my-data', label: t('prv.nav'), icon: Shield },
+    { to: '/portal/help', label: t('hlp.nav'), icon: LifeBuoy },
+    { to: '/portal/orders', label: t('pay.nav.orders'), icon: Wallet, feature: 'payments', ownTraining: true },
+    { to: '/portal/entity', label: t('pay.nav.entity'), icon: School, feature: 'payments' },
+    { to: '/portal/reports', label: t('rep.navReports'), icon: FilePenLine },
+    { to: '/portal/notifications', label: t('portal.notifications'), icon: Bell },
+  ]
+}
+
+/** Working as a supervisor: his people's requests, needs and staff, named the way he reads them. */
+function superviseItems(t: TFunction): Item[] {
+  return [
+    { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
+    { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
+    { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },
+  ]
+}
+
+/**
+ * Every dashboard page that is opened by a right of its own, for the menu of a role whose home is the portal.
+ *
+ * The portal menu used to be a fixed list: a right given to «مشرف» or «موظف» in Settings → Roles & permissions opened the
+ * page, but no button led to it, so the change looked as if it had done nothing. Now the page a right opens is listed for
+ * whoever holds that right, in every role and for every account. A page that asks for no right (the dashboard, help) is
+ * left out: it says nothing about what the role was given. `taken` are pages the menu already lists under another name.
+ */
+export function workPages(t: TFunction, taken: Iterable<string> = []): Item[] {
+  const skip = new Set(taken)
+  return adminCatalog(t, {}).flatMap((g) => g.items).filter((i) => !!i.permission && !skip.has(i.to))
+}
+
+/**
+ * The menu of the portal for the role the person is working in, before rights and feature switches are applied
+ * (visibleGroups). `landsOnPortal`: the portal is this role's home, so the pages its rights open are listed here; a role
+ * whose home is the dashboard finds them in the dashboard's own menu.
+ */
+export function portalMenu(t: TFunction, o: { ownTraining: boolean; supervisor: boolean; landsOnPortal: boolean }): MenuGroup[] {
+  const supervise = o.supervisor ? superviseItems(t) : []
+  const work = o.landsOnPortal ? [...supervise, ...workPages(t, supervise.map((i) => i.to))] : supervise
+  return [
+    { title: t('nav.portal'), items: portalCatalog(t).filter((i) => o.ownTraining || !i.ownTraining) },
+    ...(work.length ? [{ id: o.supervisor ? 'supervise' : 'work', title: t(o.supervisor ? 'nav.supervise' : 'nav.workPages'), items: work }] : []),
+  ]
+}
+
+/**
+ * The menu a role sees, worked out from its rights alone. The side menu and the administrator's «ما يراه» window both
+ * read it, so what the administrator is shown is what the person gets. (The dashboard menu is shown in its default
+ * arrangement; an administrator's own arrangement of sections changes the order, never what is listed.)
+ */
+export function menuOfRole(t: TFunction, role: { slug: string; landing: string; permissions: readonly string[] }, heldSlugs: readonly string[], featureOn: (feature?: string) => boolean): MenuGroup[] {
+  const groups: MenuGroup[] = landsOnPortal(role.landing)
+    ? portalMenu(t, { ownTraining: showsOwnTraining(role.slug, heldSlugs), supervisor: role.slug === 'supervisor', landsOnPortal: true })
+    : adminCatalog(t, {})
+  return visibleGroups(groups, holds(role.permissions), featureOn)
+}
+
+/** The rights that open a page by themselves, from the pages of the dashboard menu (onlyDoors, pageRightOf). */
+export function pageRights(t: TFunction): Set<string> {
+  return onlyDoors(adminCatalog(t, {}).flatMap((g) => g.items).map((i) => i.permission))
 }
