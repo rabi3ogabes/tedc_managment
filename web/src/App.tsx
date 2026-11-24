@@ -270,28 +270,28 @@ export default function App() {
           <Route path="finance" element={<RequireAuth permission="orders.view|pricing.manage|finance.reports|entity_accounts.manage"><PaymentsAdmin /></RequireAuth>} />
           <Route path="programs/saber-review" element={<RequireAuth permission="saber.publish"><SaberReview /></RequireAuth>} />
           <Route path="programs/:id" element={<ProgramManage />} />
-          <Route path="registrations" element={<Registrations />} />
+          <Route path="registrations" element={<RequireAuth permission="registrations.view"><Registrations /></RequireAuth>} />
           <Route path="needs" element={<Navigate to="/admin/needs-hub?tab=surveys" replace />} />
           <Route path="surveys" element={<RequireAuth permission="surveys.view"><SurveysList /></RequireAuth>} />
           <Route path="surveys/:id" element={<RequireAuth permission="surveys.view"><SurveyStudioV2 /></RequireAuth>} />
           <Route path="needs/surveys/:id" element={<RequireAuth permission="needs.manage"><SurveyStudio /></RequireAuth>} />
-          <Route path="analytics" element={<Executive />} />
+          <Route path="analytics" element={<RequireAuth permission="analytics.executive"><Executive /></RequireAuth>} />
           <Route path="live" element={<RequireAuth permission="analytics.view"><LiveNow /></RequireAuth>} />
           <Route path="live-training" element={<RequireAuth permission="live_training.view"><LiveTraining /></RequireAuth>} />
           <Route path="attendance-attempts" element={<RequireAuth permission="attendance.manage"><AttendanceAttempts /></RequireAuth>} />
-          <Route path="geo" element={<Geographic />} />
+          <Route path="geo" element={<RequireAuth permission="analytics.view"><Geographic /></RequireAuth>} />
           <Route path="ai" element={<AiAssistant />} />
           <Route path="communication" element={<Communication />} />
           <Route path="chats" element={<RequireAuth permission="announcements.manage"><ChatInbox /></RequireAuth>} />
-          <Route path="certificates" element={<Certificates />} />
+          <Route path="certificates" element={<RequireAuth permission="certificates.view"><Certificates /></RequireAuth>} />
           <Route path="room-screens" element={<RequireAuth permission="programs.view"><RoomWall /></RequireAuth>} />
           <Route path="error-log" element={<RequireAuth permission="logs.manage"><ErrorLog /></RequireAuth>} />
           <Route path="certificate-templates" element={<RequireAuth permission="certificates.view"><CertificateTemplates /></RequireAuth>} />
           <Route path="certificate-templates/:id" element={<RequireAuth permission="certificates.issue"><CertificateDesigner /></RequireAuth>} />
-          <Route path="schools" element={<Schools />} />
+          <Route path="schools" element={<RequireAuth permission="schools.view|schools.manage"><Schools /></RequireAuth>} />
           <Route path="schools/:id" element={<RequireAuth permission="schools.view"><SchoolDetail /></RequireAuth>} />
-          <Route path="employees" element={<Employees />} />
-          <Route path="employees/:id" element={<EmployeeProfile />} />
+          <Route path="employees" element={<RequireAuth permission="employees.view|employees.manage"><Employees /></RequireAuth>} />
+          <Route path="employees/:id" element={<RequireAuth permission="employees.view|employees.manage"><EmployeeProfile /></RequireAuth>} />
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
           <Route path="communities" element={<PlcHub />} />
@@ -311,8 +311,8 @@ export default function App() {
           <Route path="gamification" element={<RequireAuth permission="gamification.manage|rewards.manage"><GamificationStudio /></RequireAuth>} />
           <Route path="security" element={<AccountSecurity />} />
           <Route path="profile-requests" element={<RequireAuth permission="employees.manage"><ProfileRequests /></RequireAuth>} />
-          <Route path="users" element={<Users />} />
-          <Route path="audit" element={<AuditLog />} />
+          <Route path="users" element={<RequireAuth permission="users.manage"><Users /></RequireAuth>} />
+          <Route path="audit" element={<RequireAuth permission="audit.view"><AuditLog /></RequireAuth>} />
           <Route path="settings" element={<SettingsWorkspace />} />
           <Route path="reports" element={<Reports />} />
           <Route path="security-policy" element={<RequireAuth permission="security.policy|sessions.manage"><SecurityAdmin /></RequireAuth>} />

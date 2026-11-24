@@ -1,5 +1,6 @@
 import { activeRoleStore } from './activeRole'
 import { api, sessionStore, type StoredSession } from './api'
+import { insidePath } from './insidePath'
 import type { Me } from './types'
 
 const KEY = 'tedc.impersonation'
@@ -26,7 +27,7 @@ export function landingOf(user: Pick<Me, 'roles' | 'active_role'>, roleId?: stri
 
 /** The page the administrator is on, as a path inside the site (never another site's address). */
 function cameFrom(): string {
-  try { const { pathname, search } = window.location; return pathname.startsWith('/') && !pathname.startsWith('//') ? pathname + search : '/admin/users' } catch { return '/admin/users' }
+  try { return insidePath(window.location.pathname + window.location.search, '/admin/users') } catch { return '/admin/users' }
 }
 
 export const impersonation = {
@@ -68,7 +69,7 @@ export const impersonation = {
     activeRoleStore.set(state.adminRole ?? null)
     localStorage.removeItem(KEY)
     try { await api.post(state.stopPath ?? `/admin/users/${state.target.id}/impersonate/stop`) } catch { /* the audit entry is best effort */ }
-    return state.returnTo ?? '/admin/users'
+    return insidePath(state.returnTo, '/admin/users')
   },
 
   /** The borrowed token expired or was refused: go back without asking; resolves with the page to return to, or null. */
@@ -78,6 +79,6 @@ export const impersonation = {
     sessionStore.set(state.admin)
     activeRoleStore.set(state.adminRole ?? null)
     localStorage.removeItem(KEY)
-    return state.returnTo ?? '/admin/users'
+    return insidePath(state.returnTo, '/admin/users')
   },
 }

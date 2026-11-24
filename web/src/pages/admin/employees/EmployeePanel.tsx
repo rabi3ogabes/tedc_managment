@@ -48,8 +48,9 @@ export default function EmployeePanel({ id, initial, view, onView, onClose }: { 
   const body = useRef<HTMLDivElement>(null)
   useEffect(() => { body.current?.scrollTo({ top: 0 }) }, [shownView, id])
 
-  // An employee that cannot be opened (outside the viewer's scope, or gone) has no views and no page to go to.
-  const missing = profile.isError
+  // An employee that cannot be opened (outside the viewer's scope, or gone) has no views and no page to go to. One that
+  // is already loaded stays as it is when a later refresh fails (the network dropped for a moment).
+  const missing = profile.isError && !loaded
   const tabs: { id: PanelView; label: string; icon: typeof Eye }[] = missing ? [] : [
     { id: 'passport', label: t('admin.employees.passport'), icon: GraduationCap },
     ...(mayAccess ? [{ id: 'access' as const, label: t('userAccess.open'), icon: Eye }] : []),
