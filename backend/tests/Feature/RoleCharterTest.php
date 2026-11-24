@@ -97,28 +97,50 @@ class RoleCharterTest extends TestCase
         $this->asUser($this->makeUser(Role::FINANCE_OFFICER))->getJson(self::URL)->assertOk()->assertJsonPath('data', null);
     }
 
-    public function test_the_supervisor_reads_the_text_of_the_training_supervisor_and_gains_no_right_by_it(): void
+    public function test_the_supervisor_takes_the_charter_of_the_training_supervisor_text_and_rights(): void
     {
         $supervisor = $this->makeUser(Role::SUPERVISOR);
-        $before = $supervisor->roles()->first()->permissions()->pluck('slug')->sort()->values()->all();
 
+        // The card: the training supervisor's text, under the supervisor's own role.
         $data = $this->asUser($supervisor)->getJson(self::URL)->assertOk()->json('data');
         $this->assertSame(Role::SUPERVISOR, $data['role']);
         $this->assertSame(Role::COORDINATOR, $data['text_of']);
         $this->assertSame('مشرف التدريب (قسم التدريب التربوي)', $data['name']['ar']);
         $this->assertSame(RoleCharter::all()[Role::COORDINATOR]['permissions'], $data['permissions']);
         $this->assertSame(RoleCharter::all()[Role::COORDINATOR]['responsibilities'], $data['responsibilities']);
+        $this->assertArrayNotHasKey(Role::SUPERVISOR, RoleCharter::all(), 'the document itself is unchanged');
 
-        // Reading the text is not holding the rights: the document's own roles are the only ones the rights are given to.
-        $this->assertArrayNotHasKey(Role::SUPERVISOR, RoleCharter::all());
-        $this->assertArrayNotHasKey(Role::SUPERVISOR, RoleCharter::grantMissing());
-        $this->assertSame($before, $supervisor->roles()->first()->permissions()->pluck('slug')->sort()->values()->all());
-        $this->assertNotContains('attendance.manage', $before);
+        // The rights: what the text rests on, and the right every page of the card asks for. All are rights of the system and all
+        // are in the seeding of the role, beside the ones the role already had.
+        $rights = RoleCharter::rights(Role::SUPERVISOR);
+        $this->assertSame([], array_values(array_diff(RoleCharter::rights(Role::COORDINATOR), $rights)));
+        foreach (['attendance.manage', 'leaves.manage', 'announcements.manage', 'materials.manage', 'trainers.assign', 'saber.trainer.assign', 'kits.review', 'kits.publish', 'kits.manage', 'dashboard.view', 'reports.view', 'live_training.view', 'programs.view', 'saber.view', 'kits.view'] as $right) {
+            $this->assertContains($right, $rights);
+            $this->assertArrayHasKey($right, RolePermissionSeeder::PERMISSIONS);
+        }
+        $this->assertSame([], array_values(array_diff($rights, $this->seeded(Role::SUPERVISOR))), 'the supervisor lacks rights of the charter it takes');
+        foreach (['surveys.view', 'employees.view', 'impact.supervise', 'needs.approve_individual', 'registrations.approve_manager'] as $own) {
+            $this->assertContains($own, $this->seeded(Role::SUPERVISOR), 'the supervisor keeps what it had');
+        }
+        foreach (RoleCharter::all()[Role::COORDINATOR]['permissions'] as $section) {
+            if (isset($section['needs'])) {
+                $this->assertTrue($supervisor->fresh()->hasPermission($section['needs']), "the supervisor cannot open {$section['to']}");
+            }
+        }
 
-        // The training supervisor's own card is the same text under their own role.
-        $own = $this->asUser($this->makeUser(Role::COORDINATOR))->getJson(self::URL)->assertOk()->json('data');
-        $this->assertSame([Role::COORDINATOR, Role::COORDINATOR], [$own['role'], $own['text_of']]);
-        $this->assertSame($own['permissions'], $data['permissions']);
+        // It does not become the training supervisor: rights of that role that the charter does not name are not given.
+        $this->assertFalse($supervisor->fresh()->hasPermission('programs.manage'));
+        $this->assertFalse($supervisor->fresh()->hasPermission('users.manage'));
+
+        // A database from before the decision: the role lacks the rights, and gets them (once) without losing any it had.
+        $role = Role::where('slug', Role::SUPERVISOR)->firstOrFail();
+        $lost = Permission::whereIn('slug', ['attendance.manage', 'kits.publish', 'live_training.view', 'saber.view'])->pluck('id');
+        DB::table('permission_role')->where('role_id', $role->id)->whereIn('permission_id', $lost)->delete();
+        $held = DB::table('permission_role')->where('role_id', $role->id)->count();
+        $added = RoleCharter::grantMissing();
+        $this->assertEqualsCanonicalizing(['attendance.manage', 'kits.publish', 'live_training.view', 'saber.view'], $added[Role::SUPERVISOR]);
+        $this->assertSame($held + 4, DB::table('permission_role')->where('role_id', $role->id)->count());
+        $this->assertSame([], RoleCharter::grantMissing(), 'nothing is given twice');
     }
 
     public function test_a_role_that_lost_a_right_of_its_charter_gets_it_back_and_keeps_what_it_was_given(): void
@@ -147,7 +169,8 @@ class RoleCharterTest extends TestCase
         // A right the database does not have yet (an older database) is created from the catalogue, then given.
         Permission::where('slug', 'live_training.view')->delete();
         $added = RoleCharter::grantMissing();
-        $this->assertSame([Role::COORDINATOR => ['live_training.view']], $added);
+        // Both roles whose charter names it get it: the training supervisor, and the supervisor who takes that charter.
+        $this->assertSame([Role::COORDINATOR => ['live_training.view'], Role::SUPERVISOR => ['live_training.view']], $added);
         $this->assertSame('attendance', Permission::where('slug', 'live_training.view')->value('group'));
     }
 

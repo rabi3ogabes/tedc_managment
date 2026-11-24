@@ -71,13 +71,15 @@ class ProgramGrantsTest extends TestCase
         $this->asUser($manager)->postJson("/api/v1/admin/sessions/{$otherSession->id}/attendance", ['registration_id' => $otherRegistration->id, 'status' => 'present'])->assertForbidden();
     }
 
-    public function test_supervisors_can_be_given_the_right_to_notify_a_programs_trainees_and_to_review_its_tasks(): void
+    public function test_a_person_can_be_given_the_right_to_notify_a_programs_trainees_and_to_review_its_tasks(): void
     {
         [$program, $session, $registration] = $this->setupProgram();
         [$otherProgram] = $this->setupProgram();
         $head = $this->makeUser(Role::TRAINING_HEAD);
-        $manager = $this->makeUser(Role::SUPERVISOR);
-        $send = fn ($p) => $this->asUser($manager)->postJson('/api/v1/admin/notifications/send', ['program_id' => $p->id, 'title_ar' => 'تنبيه', 'title_en' => 'Notice', 'body_ar' => 'نص', 'body_en' => 'Text']);
+        // A school principal holds neither right by role. (The supervisor did not either until 2026-11-22, when «مشرف» took the
+        // charter of «مشرف التدريب»: he now notifies the trainees of any programme by his role, see the end of this test.)
+        $manager = $this->makeUser(Role::SCHOOL_ADMIN);
+        $send = fn ($p, $as = null) => $this->asUser($as ?? $manager)->postJson('/api/v1/admin/notifications/send', ['program_id' => $p->id, 'title_ar' => 'تنبيه', 'title_en' => 'Notice', 'body_ar' => 'نص', 'body_en' => 'Text']);
 
         $send($program)->assertForbidden();
         $this->grant($head, $program, $manager, 'notifications.send')->assertCreated();
@@ -91,6 +93,9 @@ class ProgramGrantsTest extends TestCase
         $review()->assertForbidden();
         $this->grant($head, $program, $manager, 'tasks.review')->assertCreated();
         $review()->assertOk();
+
+        // The supervisor sends by his role, with no grant, to any programme.
+        $send($otherProgram, $this->makeUser(Role::SUPERVISOR))->assertCreated();
     }
 
     public function test_only_people_who_manage_grants_can_grant_and_the_ability_must_be_known(): void

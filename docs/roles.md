@@ -7,11 +7,11 @@ The four showcase accounts (Settings → Showcase accounts) each hold one role. 
 | Account (Arabic) | Role (slug) | Lands on | Rights in the catalogue |
 |---|---|---|---|
 | مدير النظام | `super_admin` | `/admin` | all — implicit, cannot be edited |
-| المشرف | `supervisor` (+ `employee`) | `/portal` | 9 |
+| المشرف | `supervisor` (+ `employee`) | `/portal` | 24 |
 | المدرب | `trainer` (+ `employee`) | `/admin/programs` | 18 |
 | المتدرب | `employee` | `/portal` | 1 — the rest is *own-record* self-service |
 
-> **Supervisor vs training supervisor.** المشرف (`supervisor`) is the school/department line manager who approves his own staff's training. مشرف التدريب (`program_coordinator`, 21 rights) is a centre role that runs programmes. The showcase "المشرف" is the first.
+> **Supervisor vs training supervisor.** المشرف (`supervisor`) is the school/department line manager who approves his own staff's training. مشرف التدريب (`program_coordinator`) is a centre role that runs programmes. The showcase "المشرف" is the first. **Since 2026-11-22**, by decision of the centre, المشرف takes the charter of مشرف التدريب: he reads that text on «صلاحياتي ومسؤولياتي» and holds the 15 rights it rests on, which are rights of the centre and not limited to his school (`docs/roles-charter.md`). He still cannot edit programmes or reach the administration of the system.
 
 A *right* is a row of `RolePermissionSeeder::PERMISSIONS` (181 of them, in 23 areas). A route checks it with `permission:<slug>`; the web and the app hide what the signed-in user lacks. The system administrator is the only role that passes every check without holding the rights.
 
@@ -59,7 +59,8 @@ flowchart TB
 
 ## 2. المشرف — Supervisor (line manager)
 
-Lands on the portal. Sees his own staff and approves their training. No admin dashboard.
+Lands on the portal. Sees his own staff and approves their training. Since 2026-11-22 he also does the work of the charter he takes
+(«مشرف التدريب»), from the «الإشراف» section of the portal menu and the headings of his «صلاحياتي ومسؤولياتي» card.
 
 | Area | Can |
 |---|---|
@@ -69,6 +70,13 @@ Lands on the portal. Sees his own staff and approves their training. No admin da
 | Impact | view impact, give the supervisor's evaluation (`impact.view`, `impact.supervise`) |
 | Surveys | see surveys and their results (`surveys.view`, `surveys.results`) |
 | Search | global search |
+| Attendance | record attendance and absences, manage leaves (`attendance.manage`, `leaves.manage`) — every programme |
+| Announcements | send announcements and notifications (`announcements.manage`) |
+| Materials | upload activities and enrichment materials (`materials.manage`); open the programmes (`programs.view`) |
+| Assignment | assign trainers to groups, also in SABER+ (`trainers.assign`, `saber.trainer.assign`, `saber.view`) |
+| Training kits | review, publish and manage kits (`kits.view`, `kits.review`, `kits.publish`, `kits.manage`) |
+| Reports | dashboard and reports (`dashboard.view`, `reports.view`) |
+| Live training | the live training board (`live_training.view`) |
 | App | **My team** (his people and the programmes they finished, with the impact evaluation), approving registrations and individual needs. Requesting programmes for staff and survey results are on the web dashboard. |
 
 ```mermaid

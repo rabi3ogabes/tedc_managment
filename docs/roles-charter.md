@@ -35,12 +35,27 @@ answers for, **in the words of the document**, and every role holds in the syste
 Roles of the system that the document does not describe have no card: `center_admin`, `executive`, `qa_reviewer`,
 `finance_officer`, and any custom role.
 
-**«مشرف» (`supervisor`) reads the text of «مشرف التدريب (قسم التدريب التربوي)»** (decided by the centre on 2026-11-22;
-`RoleCharter::SHARED`). The document has no role of that name at school level. Only the card follows: the rights of the system are
-given to the document's own roles, so «مشرف» gains none by reading this text, and a heading of the card links to its page only
-where the role already holds the right that page asks for. Today that is «التقارير واللوحات المعلوماتية»; the other five headings
-(attendance, activities and materials, assignment, training kits, monitoring programmes) describe work «مشرف» cannot do in the
-system until the centre decides to give the role those rights.
+**«مشرف» (`supervisor`) takes the charter of «مشرف التدريب (قسم التدريب التربوي)»** (decided by the centre on 2026-11-22;
+`RoleCharter::SHARED`). The document has no role of that name at school level.
+
+* **The card** shows the training supervisor's text under the supervisor's own role.
+* **The rights**: the role holds what that text rests on (`attendance.manage`, `leaves.manage`, `announcements.manage`,
+  `materials.manage`, `trainers.assign`, `saber.trainer.assign`, `kits.review`, `kits.publish`, `kits.manage`, `dashboard.view`,
+  `reports.view`, `live_training.view`) and the right each heading's page asks for (`programs.view`, `saber.view`, `kits.view`). It
+  keeps every right it had. It does not become the training supervisor: rights of that role that the charter does not name
+  (`programs.manage`, for one) are not given.
+* **These rights are not limited to the person's own school.** They are rights of the centre: attendance and absences of every
+  programme, announcements, assigning trainers, materials, reviewing and publishing training kits, and the live training board with
+  the names of the trainees in each room. The centre confirmed this before the change. The per-programme grants of
+  `ProgramGrant` (attendance, notifications, task review for one programme) still exist for other roles; for «مشرف» the
+  notifications one is now covered by the role.
+* **On a database that already has its roles** the rights are given once by the migration `2026_01_01_009400_supervisor_charter_rights`;
+  a new database gets them from `RolePermissionSeeder`. An administrator can still remove any of them in Settings → Roles & permissions.
+* **Where he finds the pages**: the «الإشراف» section of the portal menu lists every dashboard page his rights open (الغياب،
+  البرامج، سابر+، الحقائب التدريبية، متابعة التدريب المباشرة and the others), by the general rule of the menu: a page is listed
+  for whoever holds the right it asks for (`menuOfRole`, `docs/roles.md`). Nothing is listed by hand, so a right the
+  administrator adds or removes in Settings → Roles & permissions adds or removes its button. «التقارير» is the portal's own
+  page. The headings of the card link to the same pages.
 
 ## What each heading rests on
 
