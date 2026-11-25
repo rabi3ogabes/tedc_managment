@@ -1,0 +1,155 @@
+{
+  "status": 200,
+  "body": {
+    "elements": [
+      {
+        "activities": [
+          {
+            "engagementType": "SECONDS_VIEWED",
+            "engagementValue": 5700,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791797400000
+          },
+          {
+            "engagementType": "PROGRESS_PERCENTAGE",
+            "engagementValue": 100,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791797400000
+          },
+          {
+            "engagementType": "COMPLETIONS",
+            "engagementValue": 1,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791797400000
+          }
+        ],
+        "learnerDetails": {
+          "enterpriseGroups": [
+            "Teachers"
+          ],
+          "name": "Sara Al Kuwari",
+          "entity": {
+            "profileUrn": "urn:li:enterpriseProfile:(urn:li:enterpriseAccount:999,1234567)"
+          },
+          "email": "sara.kuwari@example.test",
+          "uniqueUserId": "E-1001"
+        },
+        "contentDetails": {
+          "name": "Course",
+          "contentProviderName": "LinkedIn",
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "contentUrn": "urn:li:lyndaCourse:187499"
+        }
+      },
+      {
+        "activities": [
+          {
+            "engagementType": "SECONDS_VIEWED",
+            "engagementValue": 2400,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791890100000
+          },
+          {
+            "engagementType": "PROGRESS_PERCENTAGE",
+            "engagementValue": 35,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791890100000
+          },
+          {
+            "engagementType": "COMPLETIONS",
+            "engagementValue": 0,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE"
+          }
+        ],
+        "learnerDetails": {
+          "enterpriseGroups": [
+            "Teachers"
+          ],
+          "name": "Ali Al Naimi",
+          "entity": {
+            "profileUrn": "urn:li:enterpriseProfile:(urn:li:enterpriseAccount:999,1234567)"
+          },
+          "email": "ali.naimi@example.test",
+          "uniqueUserId": "E-1002"
+        },
+        "contentDetails": {
+          "name": "Course",
+          "contentProviderName": "LinkedIn",
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "contentUrn": "urn:li:lyndaCourse:187500"
+        }
+      },
+      {
+        "activities": [
+          {
+            "engagementType": "SECONDS_VIEWED",
+            "engagementValue": 5600,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791890100000
+          },
+          {
+            "engagementType": "PROGRESS_PERCENTAGE",
+            "engagementValue": 100,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791890100000
+          },
+          {
+            "engagementType": "COMPLETIONS",
+            "engagementValue": 1,
+            "engagementMetricQualifier": "TOTAL",
+            "assetType": "COURSE",
+            "firstEngagedAt": 1791183600000,
+            "lastEngagedAt": 1791890100000
+          }
+        ],
+        "learnerDetails": {
+          "enterpriseGroups": [
+            "Teachers"
+          ],
+          "name": "A Learner TEDC Does Not Know",
+          "entity": {
+            "profileUrn": "urn:li:enterpriseProfile:(urn:li:enterpriseAccount:999,1234567)"
+          },
+          "email": "stranger@example.test",
+          "uniqueUserId": ""
+        },
+        "contentDetails": {
+          "name": "Course",
+          "contentProviderName": "LinkedIn",
+          "locale": {
+            "country": "US",
+            "language": "en"
+          },
+          "contentUrn": "urn:li:lyndaCourse:187499"
+        }
+      }
+    ],
+    "paging": {
+      "total": 3,
+      "count": 3,
+      "start": 0,
+      "links": []
+    }
+  }
+}

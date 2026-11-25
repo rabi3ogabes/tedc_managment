@@ -1,0 +1,186 @@
+{
+  "key": "hudhud",
+  "label": {
+    "ar": "هدهد (الافتراض الحالي)",
+    "en": "Hudhud (the current assumption)"
+  },
+  "description": {
+    "ar": "طلب JSON مع Bearer token؛ العربية بترميز UCS-2 سداسي عشري؛ نجاح ما لم تكن الحالة failed.",
+    "en": "A JSON request with a bearer token; Arabic as UCS-2 hexadecimal; accepted unless the status is failed."
+  },
+  "contract": {
+    "system": "hudhud",
+    "version": "1.0",
+    "auth": {
+      "type": "bearer",
+      "setting": "api_key",
+      "fallback": {
+        "type": "basic",
+        "user_setting": "username",
+        "password_setting": "password"
+      }
+    },
+    "errors": {
+      "400": {
+        "code": "rejected",
+        "message": {
+          "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+          "en": "The system rejected the request as invalid"
+        }
+      },
+      "401": {
+        "code": "unauthorised",
+        "message": {
+          "ar": "رفض النظام بيانات الاعتماد",
+          "en": "The system refused the credentials"
+        }
+      },
+      "403": {
+        "code": "unauthorised",
+        "message": {
+          "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+          "en": "The account is not allowed to do this in the system"
+        }
+      },
+      "404": {
+        "code": "not_found",
+        "message": {
+          "ar": "لا يوجد هذا السجل في النظام",
+          "en": "The system has no such record"
+        }
+      },
+      "409": {
+        "code": "conflict",
+        "message": {
+          "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+          "en": "The system reports a conflict with an existing record"
+        }
+      },
+      "422": {
+        "code": "rejected",
+        "message": {
+          "ar": "رفض النظام البيانات المرسلة",
+          "en": "The system rejected the data sent"
+        }
+      },
+      "429": {
+        "code": "rate_limited",
+        "retryable": true,
+        "message": {
+          "ar": "يطلب النظام التمهّل في الطلبات",
+          "en": "The system asks to slow down"
+        }
+      },
+      "5xx": {
+        "code": "upstream_error",
+        "retryable": true,
+        "message": {
+          "ar": "حدث خطأ في النظام الآخر",
+          "en": "The system had an error"
+        }
+      }
+    },
+    "sms": {
+      "encoding": "auto",
+      "encoding_names": {
+        "gsm7": "GSM",
+        "ucs2": "UCS2"
+      },
+      "unicode_as": "hex"
+    },
+    "operations": {
+      "send": {
+        "title": {
+          "ar": "إرسال رسالة نصية",
+          "en": "Send a text message"
+        },
+        "method": "POST",
+        "path": "{{ settings.send_path|default:/api/v1/messages|raw }}",
+        "body": {
+          "format": "json",
+          "template": {
+            "sender": "{{ settings.sender|default:TEDC }}",
+            "recipients": [
+              "{{ to }}"
+            ],
+            "reference": "{{ reference }}",
+            "encoding": "{{ encoding }}",
+            "message": "{{ body }}",
+            "message_format?": "{{ body_format }}",
+            "callback_url?": "{{ settings.receipt_url }}"
+          }
+        },
+        "request_schema": {
+          "type": "object",
+          "required": [
+            "recipients",
+            "message"
+          ]
+        },
+        "response": {
+          "values": {
+            "message_id": [
+              "$.message_id",
+              "$.id",
+              "$.data.message_id"
+            ],
+            "status": [
+              "$.status"
+            ]
+          },
+          "error": "$.message"
+        },
+        "success_when": {
+          "path": "$.status",
+          "not_in": [
+            "failed"
+          ]
+        }
+      }
+    },
+    "inbound": {
+      "signature": {
+        "header": "X-Hudhud-Signature",
+        "algorithm": "hmac-sha256",
+        "encoding": "hex",
+        "payload": "{{ body }}",
+        "secret_setting": "receipt_secret"
+      },
+      "receipt": {
+        "records": "$.receipts"
+      }
+    }
+  },
+  "mapping": {
+    "version": 1,
+    "entities": {
+      "receipt": {
+        "fields": {
+          "message_id": {
+            "paths": [
+              "$.message_id",
+              "$.id"
+            ]
+          },
+          "status": {
+            "path": "$.status",
+            "transform": [
+              "lower",
+              "table:status"
+            ]
+          },
+          "reason": "$.reason"
+        },
+        "tables": {
+          "status": {
+            "delivered": "delivered",
+            "failed": "failed",
+            "undelivered": "failed",
+            "rejected": "failed",
+            "expired": "failed"
+          }
+        }
+      }
+    }
+  }
+}

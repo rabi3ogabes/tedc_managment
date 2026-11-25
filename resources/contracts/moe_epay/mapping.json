@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "entities": {
+    "callback": {
+      "fields": {
+        "event_id": {
+          "paths": [
+            "$.event_id",
+            "$.transaction_id"
+          ]
+        },
+        "ref": "$.payment_id",
+        "status": {
+          "path": "$.status",
+          "transform": [
+            "upper",
+            "table:status"
+          ]
+        },
+        "amount": {
+          "path": "$.amount",
+          "transform": [
+            "float"
+          ]
+        },
+        "order_number": "$.order_number"
+      },
+      "tables": {
+        "status": {
+          "SUCCESS": "captured",
+          "CAPTURED": "captured",
+          "PAID": "captured",
+          "CANCELLED": "cancelled",
+          "CANCELED": "cancelled",
+          "FAILED": "failed",
+          "DECLINED": "failed"
+        }
+      }
+    },
+    "transaction": {
+      "fields": {
+        "ref": "$.payment_id",
+        "status": {
+          "path": "$.status",
+          "transform": [
+            "lower",
+            "table:status"
+          ]
+        },
+        "amount": {
+          "path": "$.amount",
+          "transform": [
+            "float"
+          ]
+        }
+      },
+      "tables": {
+        "status": {
+          "success": "captured",
+          "captured": "captured",
+          "paid": "captured",
+          "cancelled": "cancelled",
+          "canceled": "cancelled",
+          "failed": "failed",
+          "declined": "failed"
+        }
+      }
+    }
+  }
+}

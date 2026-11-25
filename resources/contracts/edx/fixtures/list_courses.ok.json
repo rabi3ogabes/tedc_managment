@@ -1,0 +1,87 @@
+{
+  "status": 200,
+  "body": {
+    "results": [
+      {
+        "blocks_url": "https://lms.example.test/api/courses/v2/blocks/?course_id=course-v1%3AMOE%2BTEACH101%2B2026",
+        "effort": "2:00",
+        "end": "2027-03-01T00:00:00Z",
+        "enrollment_start": "2026-09-01T00:00:00Z",
+        "enrollment_end": null,
+        "id": "course-v1:MOE+TEACH101+2026",
+        "name": "Classroom Management",
+        "number": "TEACH101",
+        "org": "MOE",
+        "short_description": "<p>Plan and run a calm, productive classroom.</p>",
+        "start": "2026-09-15T00:00:00Z",
+        "start_display": "Sept. 15, 2026",
+        "start_type": "timestamp",
+        "pacing": "self",
+        "mobile_available": false,
+        "hidden": false,
+        "invitation_only": false,
+        "course_id": "course-v1:MOE+TEACH101+2026",
+        "media": {
+          "banner_image": {
+            "uri": "/asset-v1:MOE+x+2026+type@asset+block@banner.jpg",
+            "uri_absolute": "https://lms.example.test/asset-v1:MOE+x+2026+type@asset+block@banner.jpg"
+          },
+          "course_image": {
+            "uri": "/asset-v1:MOE+x+2026+type@asset+block@course_image.jpg"
+          },
+          "course_video": {
+            "uri": null
+          },
+          "image": {
+            "raw": "https://lms.example.test/img/TEACH101.jpg",
+            "small": "https://lms.example.test/img/TEACH101-s.jpg",
+            "large": "https://lms.example.test/img/TEACH101-l.jpg"
+          }
+        }
+      },
+      {
+        "blocks_url": "https://lms.example.test/api/courses/v2/blocks/?course_id=course-v1%3AMOE%2BDIGI201%2B2026",
+        "effort": "2:00",
+        "end": "2027-03-01T00:00:00Z",
+        "enrollment_start": "2026-09-01T00:00:00Z",
+        "enrollment_end": null,
+        "id": "course-v1:MOE+DIGI201+2026",
+        "name": "Digital Teaching Tools",
+        "number": "DIGI201",
+        "org": "MOE",
+        "short_description": "<p>Use digital tools to teach and assess.</p>",
+        "start": "2026-09-15T00:00:00Z",
+        "start_display": "Sept. 15, 2026",
+        "start_type": "timestamp",
+        "pacing": "instructor",
+        "mobile_available": false,
+        "hidden": false,
+        "invitation_only": false,
+        "course_id": "course-v1:MOE+DIGI201+2026",
+        "media": {
+          "banner_image": {
+            "uri": "/asset-v1:MOE+x+2026+type@asset+block@banner.jpg",
+            "uri_absolute": "https://lms.example.test/asset-v1:MOE+x+2026+type@asset+block@banner.jpg"
+          },
+          "course_image": {
+            "uri": "/asset-v1:MOE+x+2026+type@asset+block@course_image.jpg"
+          },
+          "course_video": {
+            "uri": null
+          },
+          "image": {
+            "raw": "https://lms.example.test/img/DIGI201.jpg",
+            "small": "https://lms.example.test/img/DIGI201-s.jpg",
+            "large": "https://lms.example.test/img/DIGI201-l.jpg"
+          }
+        }
+      }
+    ],
+    "pagination": {
+      "next": null,
+      "previous": null,
+      "count": 2,
+      "num_pages": 1
+    }
+  }
+}

@@ -1,0 +1,13 @@
+# OpenSSL configuration for the keys TEDC makes for itself (the SAML signing and encryption key): no subject defaults
+# from the host's openssl.cnf (Ubuntu's would add C=AU, ST=Some-State, O=Internet Widgits Pty Ltd), and the extensions
+# such a key needs.
+[ req ]
+distinguished_name = req_dn
+x509_extensions = tedc_cert
+
+[ req_dn ]
+
+[ tedc_cert ]
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+subjectKeyIdentifier = hash

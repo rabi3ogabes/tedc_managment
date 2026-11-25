@@ -1,0 +1,463 @@
+{
+  "system": "coursera",
+  "version": "1.0",
+  "title": {
+    "ar": "كورسيرا للأعمال",
+    "en": "Coursera for Business"
+  },
+  "description": {
+    "ar": "كتالوج الدورات والتخصصات المتاحة في برامج التعلم لدى كورسيرا، وإتمام المتعلمين لها لاحتساب ساعاتها في السجل.",
+    "en": "The courses and specializations in the centre's Coursera learning programs, and the learners' completions, so their hours count in the record."
+  },
+  "party": {
+    "ar": "المزوّد",
+    "en": "the provider"
+  },
+  "headings": {
+    "ministry_provides": {
+      "ar": "ما يقدّمه المزوّد",
+      "en": "What the provider gives you"
+    },
+    "joint_tests": {
+      "ar": "اختبارات الإطلاق مع المزوّد",
+      "en": "Tests to run with the provider"
+    }
+  },
+  "sources": [
+    {
+      "title": "Coursera Business API reference",
+      "url": "https://dev.coursera.com/docs/coursera-for-business-api-product/1/overview",
+      "checked": "2026-10-14"
+    },
+    {
+      "title": "Get started with Coursera's APIs (access tokens)",
+      "url": "https://dev.coursera.com/get-started",
+      "checked": "2026-10-14"
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "token_url": "https://api.coursera.com/oauth2/client_credentials/token",
+    "token_url_setting": "token_url",
+    "client_id_setting": "client_id",
+    "client_secret_setting": "client_secret",
+    "client_auth": "basic"
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض المزوّد الطلب لأن بياناته غير صحيحة",
+        "en": "The provider rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض المزوّد بيانات الاعتماد أو انتهت صلاحية الرمز",
+        "en": "The provider refused the credentials, or the token has expired"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية لدى المزوّد",
+        "en": "The account is not allowed to do this at the provider"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا العنصر لدى المزوّد",
+        "en": "The provider has no such item"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب المزوّد التمهّل في الطلبات",
+        "en": "The provider asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ لدى المزوّد",
+        "en": "The provider had an error"
+      }
+    }
+  },
+  "operations": {
+    "list_courses": {
+      "title": {
+        "ar": "دورات وتخصصات البرامج",
+        "en": "Courses and specializations of the programs"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "course",
+      "path": "/api/businesses.v1/{{ settings.org_id }}/contents",
+      "query": {
+        "contentTypes": "Course,Specialization",
+        "modifiedSinceTimestamp?": "{{ since_s }}"
+      },
+      "pagination": {
+        "type": "offset",
+        "param": "start",
+        "size_param": "limit",
+        "size": 100,
+        "max_pages": 300
+      },
+      "response": {
+        "records": "$.elements",
+        "total": "$.paging.total",
+        "error": [
+          "$.message",
+          "$.fault.faultstring",
+          "$.error.message",
+          "$.errorCode"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "elements"
+        ],
+        "properties": {
+          "elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "contentId",
+                "contentType",
+                "name"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "list_completions": {
+      "title": {
+        "ar": "تقدّم المتعلمين وإتمامهم",
+        "en": "Learners' progress and completions"
+      },
+      "method": "GET",
+      "safe": true,
+      "entity": "completion",
+      "path": "/api/businesses.v1/{{ settings.org_id }}/enrollmentReports",
+      "query": {
+        "includeS12n": "true",
+        "completedAtAfter?": "{{ since_ms }}"
+      },
+      "pagination": {
+        "type": "offset",
+        "param": "start",
+        "size_param": "limit",
+        "size": 100,
+        "max_pages": 500
+      },
+      "response": {
+        "records": "$.elements",
+        "total": "$.paging.total",
+        "error": [
+          "$.message",
+          "$.fault.faultstring",
+          "$.error.message",
+          "$.errorCode"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "elements"
+        ],
+        "properties": {
+          "elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "contentId",
+                "contentType",
+                "isCompleted"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "health": {
+      "title": {
+        "ar": "فحص الاتصال",
+        "en": "Connection check"
+      },
+      "method": "GET",
+      "safe": true,
+      "timeout": 8,
+      "path": "/api/businesses.v1/{{ settings.org_id }}",
+      "response": {
+        "error": [
+          "$.message",
+          "$.fault.faultstring",
+          "$.error.message",
+          "$.errorCode"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Catalogue: two courses and a specialization",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/businesses.v1/ORG123/contents",
+          "query": {
+            "contentTypes": "Course,Specialization"
+          }
+        },
+        "records": 3,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "id": "Course~aRxESQNMEeuH3Q6N8dCjzw",
+            "title": "Interaction Design Foundations",
+            "hours": 4.36,
+            "level": "beginner",
+            "language": "en",
+            "url": "https://www.coursera.org/learn/interaction-design-foundations"
+          },
+          "2": {
+            "id": "Specialization~ZxUbYRX3EeWXAyIAC0mP-A",
+            "url": "https://www.coursera.org/specializations/leadership-essentials"
+          }
+        }
+      }
+    },
+    {
+      "name": "Catalogue: only what changed since a date",
+      "operation": "list_courses",
+      "fixture": "list_courses.ok",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "params": {
+        "since_s": 1791619200
+      },
+      "expect": {
+        "request": {
+          "query": {
+            "modifiedSinceTimestamp": "1791619200"
+          }
+        },
+        "records": 3
+      }
+    },
+    {
+      "name": "Catalogue: the token is refused",
+      "operation": "list_courses",
+      "fixture": "list_courses.unauthorised",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Catalogue: Coursera is down",
+      "operation": "list_courses",
+      "fixture": "list_courses.server_error",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    },
+    {
+      "name": "Completions: four reports, two completed",
+      "operation": "list_completions",
+      "fixture": "list_completions.ok",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "params": {
+        "since_ms": 1791619200000
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/businesses.v1/ORG123/enrollmentReports",
+          "query": {
+            "includeS12n": "true",
+            "completedAtAfter": "1791619200000"
+          }
+        },
+        "records": 4,
+        "schema": true,
+        "mapped": {
+          "0": {
+            "course_id": "Course~aRxESQNMEeuH3Q6N8dCjzw",
+            "employee_no": "E-1001",
+            "email": "sara.kuwari@example.test",
+            "completed": true,
+            "completed_at": "2026-10-12T09:30:00+00:00",
+            "progress": 100
+          },
+          "2": {
+            "completed": false,
+            "progress": 40
+          }
+        }
+      }
+    },
+    {
+      "name": "Completions: the account may not read the reports",
+      "operation": "list_completions",
+      "fixture": "list_completions.forbidden",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "expect": {
+        "error": {
+          "code": "unauthorised",
+          "retryable": false
+        }
+      }
+    },
+    {
+      "name": "Connection check: the organization answers",
+      "operation": "health",
+      "fixture": "health.ok",
+      "settings": {
+        "org_id": "ORG123"
+      },
+      "expect": {
+        "request": {
+          "method": "GET",
+          "path": "/api/businesses.v1/ORG123"
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "اتفاقية Coursera for Business سارية، وحساب مسؤول للمنظمة",
+      "en": "A Coursera for Business agreement, and an administrator account of the organization"
+    },
+    {
+      "id": "org_id",
+      "group": "ministry_provides",
+      "ar": "معرّف المنظمة (organization id) كما يظهر أعلى صفحة إعدادات المسؤول",
+      "en": "The organization id, shown at the top of the organization's admin settings page"
+    },
+    {
+      "id": "app",
+      "group": "ministry_provides",
+      "ar": "تطبيق مسجّل في بوابة المطوّرين dev.coursera.com بحساب مسؤول المنظمة، مع تفعيل Coursera Business API",
+      "en": "An app registered in the developer portal (dev.coursera.com) with the organization's admin account, with the Coursera Business API enabled"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "مفتاح التطبيق (client id) وسرّه (client secret)",
+      "en": "The app key (client id) and its secret"
+    },
+    {
+      "id": "programs",
+      "group": "ministry_provides",
+      "ar": "برنامج تعلّم واحد على الأقل يضم الدورات التي سيقدّمها المركز",
+      "en": "At least one learning program with the courses the centre will offer"
+    },
+    {
+      "id": "external_ids",
+      "group": "ministry_provides",
+      "ar": "إضافة المتعلمين برقم خارجي (external id) هو الرقم الوظيفي أو البريد الإلكتروني، وبه تُطابق عمليات الإتمام مع الموظفين",
+      "en": "Learners invited or signed in with an external id that is the employee number or the e-mail address: it is how completions are matched to employees"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة بالوصول إلى api.coursera.com عبر المنفذ 443",
+      "en": "TEDC's outbound addresses allowed to reach api.coursera.com on port 443"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة org_id وclient_id وclient_secret في بطاقة التكامل (عنوان الخدمة الافتراضي صحيح)",
+      "en": "org_id, client_id and client_secret filled in the integration card (the default address is right)"
+    },
+    {
+      "id": "health",
+      "group": "tedc_settings",
+      "ar": "الضغط على «فحص الاتصال» والحصول على «سليم»",
+      "en": "Press “Check connection” and get “ok”"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مقارنة العقد والمطابقة بمرجع Coursera Business API الحالي وتعديل ما يختلف",
+      "en": "Compare the contract and mapping with the current Coursera Business API reference and edit what differs"
+    },
+    {
+      "id": "first_sync",
+      "group": "tedc_settings",
+      "ar": "تشغيل مزامنة الكتالوج وفحص قائمة الدورات والتخصصات في شاشة مزوّدي التعلم",
+      "en": "Run the catalogue sync and check the courses and specializations in the Learning providers screen"
+    },
+    {
+      "id": "catalogue",
+      "group": "joint_tests",
+      "ar": "تظهر الدورات والتخصصات المتاحة في البرامج، وتُحتسب ساعات الدورة من «الوقت التقديري للتعلم»",
+      "en": "The courses and specializations of the programs appear, and a course's hours come from its estimated learning time"
+    },
+    {
+      "id": "programme",
+      "group": "joint_tests",
+      "ar": "إنشاء برنامج من دورة وتسجيل موظف تجريبي فيه",
+      "en": "Make a programme from one course and register a test employee"
+    },
+    {
+      "id": "completion",
+      "group": "joint_tests",
+      "ar": "إتمام دورة قصيرة بمتعلم تجريبي، ثم التأكد من وصول الإتمام في المزامنة التالية وصدور الشهادة والساعات",
+      "en": "Complete a short course with a test learner, then check that the completion arrives in the next sync and the certificate and hours are issued"
+    },
+    {
+      "id": "unknown_learner",
+      "group": "joint_tests",
+      "ar": "إتمام يعود لشخص لا يعرفه TEDC يظهر في «أخطاء مزامنة الإتمام» بسببه",
+      "en": "A completion by someone TEDC does not know shows in “Completion sync errors” with its reason"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "إيقاف البطاقة يوقف كل الاستدعاءات؛ البرامج المنشأة تبقى وتعمل بمسار «إثبات الإتمام» اليدوي",
+      "en": "Switching the card off stops every call; the programmes already made stay and work with the manual “evidence of completion” route"
+    },
+    {
+      "id": "training_mode",
+      "group": "rollback",
+      "ar": "العودة إلى وضع التدريب (driver: fake) للعمل ببيانات تجريبية دون اتصال",
+      "en": "Go back to the training mode (driver: fake) to work with sample data and no connection"
+    }
+  ]
+}

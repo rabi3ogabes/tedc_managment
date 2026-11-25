@@ -1,0 +1,1 @@
+import{o as e}from"./rolldown-runtime-BCiCTKAo.js";import{a as t}from"./i18n-CbGDfktX.js";var n=e(t(),1),r=(0,n.createContext)({active:!0,setDirty:()=>{}});function i(){return(0,n.useContext)(r)}function a(e){let{setDirty:t}=i();(0,n.useEffect)(()=>(t(e),()=>t(!1)),[e,t])}export{i as n,a as r,r as t};

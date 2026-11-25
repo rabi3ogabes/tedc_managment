@@ -1,0 +1,8 @@
+{
+  "status": 403,
+  "body": {
+    "errorCode": "Not Authorized",
+    "message": "Access is denied",
+    "details": null
+  }
+}

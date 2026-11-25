@@ -1,0 +1,259 @@
+{
+  "system": "ministry_site",
+  "version": "1.0",
+  "title": {
+    "ar": "موقع الوزارة",
+    "en": "Ministry website"
+  },
+  "description": {
+    "ar": "الأخبار والفعاليات المعلَّمة للتصدير تُرسل إلى نقطة استقبال موقع الوزارة.",
+    "en": "News and events flagged for export are pushed to the Ministry website's intake address."
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "name_setting": "auth_header",
+    "setting": "api_key",
+    "optional": true
+  },
+  "errors": {
+    "400": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام الطلب لأن بياناته غير صحيحة",
+        "en": "The system rejected the request as invalid"
+      }
+    },
+    "401": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "رفض النظام بيانات الاعتماد",
+        "en": "The system refused the credentials"
+      }
+    },
+    "403": {
+      "code": "unauthorised",
+      "message": {
+        "ar": "لا يملك الحساب صلاحية لهذه العملية في النظام",
+        "en": "The account is not allowed to do this in the system"
+      }
+    },
+    "404": {
+      "code": "not_found",
+      "message": {
+        "ar": "لا يوجد هذا السجل في النظام",
+        "en": "The system has no such record"
+      }
+    },
+    "409": {
+      "code": "conflict",
+      "message": {
+        "ar": "يُبلغ النظام عن تعارض مع سجل موجود",
+        "en": "The system reports a conflict with an existing record"
+      }
+    },
+    "422": {
+      "code": "rejected",
+      "message": {
+        "ar": "رفض النظام البيانات المرسلة",
+        "en": "The system rejected the data sent"
+      }
+    },
+    "429": {
+      "code": "rate_limited",
+      "retryable": true,
+      "message": {
+        "ar": "يطلب النظام التمهّل في الطلبات",
+        "en": "The system asks to slow down"
+      }
+    },
+    "5xx": {
+      "code": "upstream_error",
+      "retryable": true,
+      "message": {
+        "ar": "حدث خطأ في النظام الآخر",
+        "en": "The system had an error"
+      }
+    }
+  },
+  "operations": {
+    "publish_item": {
+      "title": {
+        "ar": "إرسال خبر أو فعالية",
+        "en": "Push a news item or event"
+      },
+      "method": "POST",
+      "path": "{{ settings.publish_path|default:/|raw }}",
+      "body": {
+        "format": "json",
+        "template": {
+          "source": "{{ source }}",
+          "item": "{{ item }}"
+        }
+      },
+      "request_schema": {
+        "type": "object",
+        "required": [
+          "source",
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "type": "object",
+            "required": [
+              "id",
+              "title"
+            ]
+          }
+        }
+      },
+      "response": {
+        "error": "$.message"
+      }
+    }
+  },
+  "tests": [
+    {
+      "name": "Push: the website accepts the item",
+      "operation": "publish_item",
+      "params": {
+        "source": "tedc",
+        "item": {
+          "id": "ann-1",
+          "type": "news",
+          "title": {
+            "ar": "افتتاح التسجيل",
+            "en": "Registration opens"
+          },
+          "url": "https://tedc.example/news/ann-1"
+        }
+      },
+      "fixture": "publish_item.ok",
+      "expect": {
+        "request": {
+          "method": "POST",
+          "body": {
+            "source": "tedc",
+            "item": {
+              "id": "ann-1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Push: the key is refused",
+      "operation": "publish_item",
+      "params": {
+        "source": "tedc",
+        "item": {
+          "id": "ann-1",
+          "title": {
+            "en": "x"
+          }
+        }
+      },
+      "fixture": "publish_item.unauthorised",
+      "expect": {
+        "error": {
+          "code": "unauthorised"
+        }
+      }
+    },
+    {
+      "name": "Push: the website is down (the item is retried)",
+      "operation": "publish_item",
+      "params": {
+        "source": "tedc",
+        "item": {
+          "id": "ann-1",
+          "title": {
+            "en": "x"
+          }
+        }
+      },
+      "fixture": "publish_item.server_error",
+      "expect": {
+        "error": {
+          "code": "upstream_error",
+          "retryable": true
+        }
+      }
+    }
+  ],
+  "checklist": [
+    {
+      "id": "access",
+      "group": "ministry_provides",
+      "ar": "عنوان النظام (بيئة التجربة ثم الإنتاج)",
+      "en": "The system address (test environment first, then production)"
+    },
+    {
+      "id": "credentials",
+      "group": "ministry_provides",
+      "ar": "نوع المصادقة وبيانات الاعتماد (مفتاح أو حساب أو شهادة)",
+      "en": "The authentication type and credentials (key, account or certificate)"
+    },
+    {
+      "id": "network",
+      "group": "ministry_provides",
+      "ar": "السماح لعناوين TEDC الصادرة في قائمة الوزارة المسموحة",
+      "en": "TEDC's outbound addresses added to the Ministry allow-list"
+    },
+    {
+      "id": "samples",
+      "group": "ministry_provides",
+      "ar": "أمثلة حقيقية لكل طلب واستجابة وأكواد الأخطاء",
+      "en": "Real sample requests, responses and error codes"
+    },
+    {
+      "id": "test_account",
+      "group": "ministry_provides",
+      "ar": "حساب أو بيانات تجريبية للاختبار المشترك",
+      "en": "A test account or test data for the joint session"
+    },
+    {
+      "id": "intake",
+      "group": "ministry_provides",
+      "ar": "عنوان نقطة الاستقبال في موقع الوزارة واسم ترويسة المفتاح وقيمته",
+      "en": "The website's intake address and the name and value of the key header"
+    },
+    {
+      "id": "item_format",
+      "group": "ministry_provides",
+      "ar": "صيغة الخبر والفعالية المقبولة (الحقول، الوسوم، الصور) وكيف يتعامل الموقع مع التحديث والحذف",
+      "en": "The news and event format accepted (fields, tags, images) and how the site treats updates and removals"
+    },
+    {
+      "id": "contract_review",
+      "group": "tedc_settings",
+      "ar": "مراجعة العقد والمطابقة مع الوثيقة الرسمية وتعديلهما عند الاختلاف",
+      "en": "The contract and mapping reviewed against the official document, and edited where they differ"
+    },
+    {
+      "id": "settings",
+      "group": "tedc_settings",
+      "ar": "تعبئة إعدادات النظام في بطاقة التكامل",
+      "en": "The system settings filled in on the integration card"
+    },
+    {
+      "id": "health",
+      "group": "joint_tests",
+      "ar": "فحص الاتصال ناجح من بيئة TEDC",
+      "en": "The connection check passes from TEDC's environment"
+    },
+    {
+      "id": "publish_roundtrip",
+      "group": "joint_tests",
+      "ar": "خبر تجريبي يظهر على موقع الوزارة وتعديله لا يكرره",
+      "en": "A test item appears on the Ministry website and an edit does not duplicate it"
+    },
+    {
+      "id": "rollback_plan",
+      "group": "rollback",
+      "ar": "الاتفاق على خطة التراجع: إيقاف التكامل أو الرجوع إلى نسخة العقد السابقة",
+      "en": "The rollback plan agreed: switch the integration off, or return to the previous contract version"
+    }
+  ]
+}

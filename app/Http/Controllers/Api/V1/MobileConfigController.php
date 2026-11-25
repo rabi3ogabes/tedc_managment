@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Role;
+use App\Security\Sso\SsoService;
+use App\Services\AppHomeLayout;
+use App\Services\AttendanceSettings;
+use App\Services\Push\PushSettings;
+use App\Services\ThemeService;
+use App\Support\DemoCredentials;
+use App\Support\DemoGuard;
+use App\Support\Features;
+use App\Support\FontLibrary;
+use Illuminate\Http\JsonResponse;
+
+/**
+ * Runtime configuration for the mobile app: Firebase client options (public values) and brand colors.
+ * Administrators change them from the dashboard, and installed apps pick them up without a new APK.
+ */
+class MobileConfigController extends Controller
+{
+    public function __invoke(PushSettings $push, ThemeService $theme, AttendanceSettings $attendance, AppHomeLayout $home): JsonResponse
+    {
+        $t = $theme->get();
+
+        return response()->json(['data' => [
+            'push' => $push->forMobile(),
+            // The sign-in screens list the demo accounts only where demo mode is on (never on a live system by default) and the accounts exist.
+            'demo_accounts' => $demo = DemoGuard::allowed() && Features::enabled('test_accounts') && DemoGuard::buttonAccountsExist(),
+            // Never on a live system: the clients no longer carry the password, they learn it here while demo mode is on.
+            'demo_password' => $demo ? DemoCredentials::PASSWORD : null,
+            'attendance' => ['geofence' => $attendance->all()['geofence_enabled']],
+            // "Sign in with your Ministry account" in the app (system browser, PKCE).
+            'sso' => app(SsoService::class)->enabled(), 'sso_mandatory' => app(SsoService::class)->mandatory(),
+            'brand' => [
+                'primary' => $t['colors']['primary'],
+                'accent' => $t['colors']['accent'],
+                'background' => $t['colors']['background'],
+                'logo_ar' => $t['identity']['logo_ar'] ?? null,
+                'logo_en' => $t['identity']['logo_en'] ?? null,
+            ],
+            // The loading screen and the occasion in force, so the app opens the way the website does.
+            'typography' => [
+                'arabic_family' => $t['typography']['arabic_family'] ?? null,
+                'latin_family' => $t['typography']['latin_family'] ?? null,
+                'arabic_font_url' => $t['typography']['arabic_font_url'] ?? null,
+                'latin_font_url' => $t['typography']['latin_font_url'] ?? null,
+                // Every weight of the chosen families from the font library, as files the app can register (TTF / OTF).
+                'arabic_files' => FontLibrary::appFiles($t['typography']['library'] ?? [], $t['typography']['arabic_family'] ?? null),
+                'latin_files' => FontLibrary::appFiles($t['typography']['library'] ?? [], $t['typography']['latin_family'] ?? null),
+            ],
+            // The cards of the home screen the administrator wants shown, in their order.
+            'home' => ['sections' => $home->cards(Role::EMPLOYEE)],
+            'navigation' => ['style' => $t['navigation']['style'] ?? 'classic'],
+            'loading' => $t['loading'] ?? null,
+            'occasion' => $t['active_occasion'] ?? null,
+        ]]);
+    }
+}

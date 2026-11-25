@@ -1,0 +1,1 @@
+var e=`tedc.embedded`,t={get(){try{return sessionStorage.getItem(e)===`1`}catch{return!1}},set(t){try{t?sessionStorage.setItem(e,`1`):sessionStorage.removeItem(e)}catch{}window.dispatchEvent(new Event(`tedc:embedded`))}};export{t};

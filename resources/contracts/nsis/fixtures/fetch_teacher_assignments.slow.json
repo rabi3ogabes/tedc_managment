@@ -1,0 +1,30 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "employee_no": "E-1001",
+        "grades": [
+          "4",
+          "5"
+        ],
+        "subjects": [
+          "Arabic"
+        ]
+      },
+      {
+        "employee_no": "E-1002",
+        "grades": [
+          "9",
+          "10",
+          "11"
+        ],
+        "subjects": [
+          "Mathematics",
+          "Physics"
+        ]
+      }
+    ]
+  },
+  "delay_ms": 3000
+}

@@ -1,0 +1,15 @@
+{
+  "status": 200,
+  "body": {
+    "count": 3,
+    "next": "https://acme.udemy.example.test/api-2.0/organizations/8888/courses/list/?page=2&page_size=1",
+    "previous": null,
+    "results": [
+      {
+        "_class": "course",
+        "id": 12345678,
+        "title": "Data Engineering Foundations"
+      }
+    ]
+  }
+}

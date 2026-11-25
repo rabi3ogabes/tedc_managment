@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "entities": {
+    "course": {
+      "fields": {
+        "id": "$.urn",
+        "title": {
+          "path": "$.title.value",
+          "transform": [
+            "trim"
+          ]
+        },
+        "description": {
+          "path": "$.details.shortDescription.value",
+          "transform": [
+            "strip_tags"
+          ]
+        },
+        "url": {
+          "paths": [
+            "$.details.urls.ssoLaunch",
+            "$.details.urls.webLaunch"
+          ]
+        },
+        "duration": {
+          "path": "$.details.timeToComplete.duration",
+          "transform": [
+            "int"
+          ]
+        },
+        "duration_unit": {
+          "path": "$.details.timeToComplete.unit",
+          "transform": [
+            "upper"
+          ]
+        },
+        "level": {
+          "path": "$.details.level",
+          "transform": [
+            "lower"
+          ]
+        },
+        "language": {
+          "path": "$.title.locale.language",
+          "transform": [
+            "lower"
+          ]
+        },
+        "image": "$.details.images.primary",
+        "status": {
+          "path": "$.details.availability",
+          "transform": [
+            "table:availability"
+          ]
+        },
+        "updated_at": {
+          "path": "$.details.lastUpdatedAt",
+          "transform": [
+            "epoch_ms"
+          ]
+        }
+      },
+      "tables": {
+        "availability": {
+          "AVAILABLE": "available",
+          "RETIRED": "retired"
+        }
+      }
+    },
+    "completion": {
+      "fields": {
+        "course_id": "$.contentDetails.contentUrn",
+        "employee_no": {
+          "path": "$.learnerDetails.uniqueUserId",
+          "transform": [
+            "trim"
+          ]
+        },
+        "email": {
+          "path": "$.learnerDetails.email",
+          "transform": [
+            "trim",
+            "lower"
+          ]
+        },
+        "completed": {
+          "path": "$.activities[?(@.engagementType=='COMPLETIONS')].engagementValue",
+          "transform": [
+            "positive"
+          ]
+        },
+        "completed_at": {
+          "path": "$.activities[?(@.engagementType=='COMPLETIONS')].lastEngagedAt",
+          "transform": [
+            "epoch_ms"
+          ]
+        },
+        "progress": {
+          "path": "$.activities[?(@.engagementType=='PROGRESS_PERCENTAGE')].engagementValue",
+          "transform": [
+            "int"
+          ]
+        },
+        "seconds_watched": {
+          "path": "$.activities[?(@.engagementType=='SECONDS_VIEWED')].engagementValue",
+          "transform": [
+            "int"
+          ]
+        }
+      }
+    }
+  }
+}

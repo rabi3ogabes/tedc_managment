@@ -1,0 +1,1 @@
+var e=`employee`;function t(e,t){return e===`employee`||!t.includes(`employee`)}export{t as n,e as t};

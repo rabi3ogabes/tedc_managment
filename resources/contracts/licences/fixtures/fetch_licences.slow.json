@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "employee_no": "E-1001",
+        "path_title": "Teacher licence",
+        "licence_no": "LIC-2024-001",
+        "level_no": 2,
+        "issued_at": "2024-09-01",
+        "expires_at": "2027-08-31",
+        "status": "active"
+      },
+      {
+        "employee_no": "E-1002",
+        "path_title": "Teacher licence",
+        "licence_no": "LIC-2023-114",
+        "level_no": 1,
+        "issued_at": "2023-01-10",
+        "expires_at": "2026-01-09",
+        "status": "expired"
+      }
+    ]
+  },
+  "delay_ms": 3000
+}

@@ -1,0 +1,1 @@
+var e=1;function t(t,n,r){return new Promise(i=>{window.dispatchEvent(new CustomEvent(`tedc:dialog`,{detail:{id:e++,kind:t,message:n,initial:r,resolve:i}}))})}var n={confirm:e=>t(`confirm`,e),prompt:(e,n=``)=>t(`prompt`,e,n)};export{n as t};
