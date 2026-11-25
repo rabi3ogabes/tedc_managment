@@ -37,7 +37,7 @@ export default function Users() {
   // The row that was pressed: the panel shows its name at once, before anything is loaded.
   const [pressed, setPressed] = useState<User | null>(null)
 
-  const show = (u: User, view: UserView = 'rights') => {
+  const show = (u: User, view: UserView = 'pages') => {
     setPressed(u)
     // A new step in the history: the browser's Back button closes the panel.
     navigate({ search: writeUserPanel(location.search, { id: u.id, view }) }, { state: { panel: true } })

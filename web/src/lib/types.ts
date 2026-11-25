@@ -117,6 +117,8 @@ export type CertificateSendResult = {
 export type Me = {
   id: string; name: string; name_en: string; name_ar?: string | null; email: string; locale: string
   roles: RoleGrant[]; active_role?: RoleGrant | null; permissions: string[]; employee: Employee | null; trainer_id?: string | null
+  /** Pages an administrator took out of this person's menu in the role they work in, and the actions (add, edit, delete) taken from them per area of rights. */
+  hidden_pages?: string[]; denied_actions?: Record<string, string[]>
 }
 
 /** A role the user holds, at a scope (Ministry, school group, school or department). */

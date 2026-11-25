@@ -3,13 +3,14 @@ import clsx from 'clsx'
 import GlobalSearch, { useSearchShortcut, type FunctionTarget } from '@/components/search/GlobalSearch'
 import FeatureBanner from './FeatureBanner'
 import ImpersonationBanner from './ImpersonationBanner'
-import { adminCatalog, landsOnPortal, portalMenu, visibleGroups, type MenuGroup } from './menuCatalog'
+import { adminCatalog, everyPage, landsOnPortal, pageAt, portalMenu, visibleGroups, type MenuGroup } from './menuCatalog'
+import { limitsAt } from '@/lib/pageAccess'
 import { showsOwnTraining } from '@/lib/portalHome'
 import { applyLayout, EMPTY_LAYOUT, type MenuLayout } from '@/lib/menuLayout'
 import {
-  Power, Bell, ChevronDown, GraduationCap, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Shield, X, Search,
+  Power, Bell, ChevronDown, Eye, EyeOff, GraduationCap, PanelLeftClose, PanelLeftOpen, Pin, PinOff, Menu, Shield, X, Search,
 } from 'lucide-react'
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import AppErrorBoundary from '@/components/AppErrorBoundary'
@@ -84,13 +85,23 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
   const menuLayout = useGet<{ data: MenuLayout }>(portal ? null : '/me/menu-layout', undefined, { staleTime: 60_000, retry: false }).data?.data ?? EMPTY_LAYOUT
   // The portal lists its own pages, then every dashboard page the role holds the right for (portalMenu): a right given
   // in Settings → Roles & permissions shows as a button for whoever holds the role, with no code written per role.
-  const groups: MenuGroup[] = portal
-    ? portalMenu(t, { ownTraining, supervisor: activeRole?.slug === 'supervisor', landsOnPortal: landsOnPortal(activeRole?.landing_route) })
+  // A role has one menu wherever the person stands (pagesOfRole): somebody whose home is the portal keeps the portal's
+  // menu on a dashboard page too, instead of a second list with other pages in it.
+  const portalHome = landsOnPortal(activeRole?.landing_route)
+  const groups: MenuGroup[] = portal || portalHome
+    ? portalMenu(t, { ownTraining, supervisor: activeRole?.slug === 'supervisor', landsOnPortal: portalHome })
     : applyLayout(adminCatalog(t, { errors: (errorBadge.data?.data.critical || errorBadge.data?.data.open) || undefined, chats: (chats.data?.data.unread ?? 0) + (chats.data?.data.needs_human ?? 0) || undefined, requests: requests.data?.data.pending }), menuLayout, i18n.language === 'ar' ? 'ar' : 'en')
 
   const flags = useFeatures().data?.data.flags ?? {}
   const featureOn = (f?: string) => !f || f.split('|').some((x) => flags[x])
-  const visible = visibleGroups(groups, can, featureOn)
+  // Pages an administrator took out of this person's menu (Settings → Users → «الصفحات»): not listed, not searched, not opened.
+  const hiddenPages = useMemo(() => new Set(user?.hidden_pages ?? []), [user?.hidden_pages])
+  const visible = visibleGroups(groups, can, featureOn, hiddenPages)
+  const pages = useMemo(() => everyPage(t), [t])
+  const here = pageAt(pathname, pages)
+  const hiddenHere = here && hiddenPages.has(here.to) ? here : undefined
+  // What this person may not do on the page they are on (add, edit, delete), said before they try.
+  const limits = hiddenHere ? [] : limitsAt(here, user?.permissions ?? [], user?.denied_actions ?? {})
   const unreadCount = unread.data?.meta?.total ?? 0
   // The trainee pages need a trainee profile; an account without one (an administrator, for example) is told so instead of waiting for data that never comes.
   const noProfile = portal && !!user && !user.employee && !['/portal/help', '/portal/notifications', '/portal/profile', '/portal/my-data', '/portal/security', '/portal/notification-preferences'].some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -192,7 +203,8 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
         ))}
       </nav>
       <div className={clsx('border-t border-white/10', compact ? 'p-3' : 'p-4')}>
-        {portal ? (can('dashboard.view') || can('programs.view')) && <SideLink to="/admin" icon={Shield} compact={compact}>{t('nav.dashboard')}</SideLink>
+        {/* The way across is for a role whose home is the dashboard; a role whose home is the portal has both in its one menu. */}
+        {portalHome ? null : portal ? (can('dashboard.view') || can('programs.view')) && <SideLink to="/admin" icon={Shield} compact={compact}>{t('nav.dashboard')}</SideLink>
           : user?.employee && <SideLink to="/portal" icon={GraduationCap} compact={compact}>{t('nav.portal')}</SideLink>}
         {!compact && !drawer && !pinned && (
           <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs text-white/70">
@@ -270,6 +282,13 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                 <p className="mt-2 text-sm leading-7 text-slate-600">{t('hlp.noProfileHint')}</p>
                 <Link to="/admin" className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('hlp.noProfileAction')}</Link>
               </div>
+            ) : hiddenHere ? (
+              <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-navy-100 bg-white p-8 text-center shadow-glass" role="status">
+                <EyeOff className="mx-auto size-10 text-gold-600" />
+                <h1 className="mt-3 text-xl font-bold text-navy-900">{t('pageAccess.notYours', { name: hiddenHere.label })}</h1>
+                <p className="mt-2 text-sm leading-7 text-slate-600">{t('pageAccess.notYoursHint')}</p>
+                <Link to={activeRole?.landing_route || '/portal'} className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('pageAccess.goHome')}</Link>
+              </div>
             ) : offItem ? (
               <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-navy-100 bg-white p-8 text-center shadow-glass" role="status">
                 <Power className="mx-auto size-10 text-gold-600" />
@@ -277,7 +296,17 @@ export default function AdminLayout({ portal = false }: { portal?: boolean }) {
                 <p className="mt-2 text-sm leading-7 text-slate-600">{t('hlp.featureOffHint')}</p>
                 {can('settings.manage') && <Link to="/admin/settings" className="mt-4 inline-flex rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-bold text-white">{t('hlp.featureOffAction')}</Link>}
               </div>
-            ) : <Outlet key={roleKey} />}
+            ) : (
+              <>
+                {limits.length > 0 && (
+                  <p role="note" className="mb-5 flex items-center gap-2.5 rounded-2xl border border-gold-200 bg-gold-50/70 px-4 py-2.5 text-sm text-navy-900 print:hidden">
+                    <Eye className="size-4 shrink-0 text-gold-700" aria-hidden />
+                    <span>{limits.length === 3 ? t('pageAccess.viewOnlyHere') : t('pageAccess.limitedHere', { actions: limits.map((l) => t(`pageAccess.level.${l}`)).join(t('pageAccess.and')) })}</span>
+                  </p>
+                )}
+                <Outlet key={roleKey} />
+              </>
+            )}
           </AppErrorBoundary>
           {portal && <AssistantPanel portal />}
           <ReportProblem />

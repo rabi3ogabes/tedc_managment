@@ -3,11 +3,12 @@ import { describe, it } from 'node:test'
 import { readUserPanel, writeUserPanel } from './panelAddress.ts'
 
 describe('the user panel in the address of the page', () => {
-  it('reads the user and the view, the rights first', () => {
-    assert.deepEqual(readUserPanel('?tab=users&user=0193a1b2-aaaa-bbbb-cccc-1234567890ab'), { id: '0193a1b2-aaaa-bbbb-cccc-1234567890ab', view: 'rights' })
+  it('reads the user and the view, the pages first', () => {
+    assert.deepEqual(readUserPanel('?tab=users&user=0193a1b2-aaaa-bbbb-cccc-1234567890ab'), { id: '0193a1b2-aaaa-bbbb-cccc-1234567890ab', view: 'pages' })
+    assert.deepEqual(readUserPanel('?user=abc&view=rights'), { id: 'abc', view: 'rights' })
     assert.deepEqual(readUserPanel('?user=abc&view=access'), { id: 'abc', view: 'access' })
     assert.deepEqual(readUserPanel('?user=abc&view=roles'), { id: 'abc', view: 'roles' })
-    assert.deepEqual(readUserPanel('?user=abc&view=anything'), { id: 'abc', view: 'rights' })
+    assert.deepEqual(readUserPanel('?user=abc&view=anything'), { id: 'abc', view: 'pages' })
   })
 
   it('is closed when nothing, or something that is not an id, is given', () => {
@@ -18,7 +19,8 @@ describe('the user panel in the address of the page', () => {
   })
 
   it('keeps the tab of the settings page and whatever else is in the address', () => {
-    assert.equal(writeUserPanel('?tab=users', { id: 'abc', view: 'rights' }), '?tab=users&user=abc')
+    assert.equal(writeUserPanel('?tab=users', { id: 'abc', view: 'pages' }), '?tab=users&user=abc')
+    assert.equal(writeUserPanel('?tab=users', { id: 'abc', view: 'rights' }), '?tab=users&user=abc&view=rights')
     assert.equal(writeUserPanel('?tab=users&user=old&view=access', { id: 'new', view: 'roles' }), '?tab=users&user=new&view=roles')
     assert.equal(writeUserPanel('', { id: 'abc', view: 'access' }), '?user=abc&view=access')
   })

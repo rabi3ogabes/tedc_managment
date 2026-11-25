@@ -244,6 +244,8 @@ class AuthController extends Controller
             'roles' => $roles,
             'active_role' => $roles->firstWhere('active', true),
             'permissions' => $user->isSuperAdmin() ? ['*'] : $user->permissionSlugs(),
+            // Pages hidden from this person in this role, and the actions taken from them per area (Settings → Users → «الصفحات»).
+            ...$user->pageLimits(),
             'employee' => $user->employee ? new EmployeeResource($user->employee) : null,
             'trainer_id' => $user->trainer?->id,
         ];

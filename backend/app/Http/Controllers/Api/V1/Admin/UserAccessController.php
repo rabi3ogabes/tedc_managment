@@ -51,6 +51,7 @@ class UserAccessController extends Controller
                     // What the person may do in this role: the role's rights with what was added for them and without what was taken from them.
                     'permissions' => $role->slug === Role::SUPER_ADMIN ? ['*'] : $grant->effectivePermissions()->sort()->values(),
                     'granted' => $grant->granted_permissions ?? [], 'revoked' => $grant->revoked_permissions ?? [],
+                    'hidden_pages' => array_values($grant->hidden_pages ?? []), 'denied_actions' => (object) ($grant->denied_actions ?? []),
                 ];
             })->values(),
             'sign_in' => $this->signIn($request->user(), $user),

@@ -15,7 +15,7 @@ import { toast } from '@/lib/toast'
 type Named = { ar: string; en: string } | null
 type AccessRole = {
   id: string; slug: string; name_ar: string; name_en: string; scope_type: string; scope_label_ar: string; scope_label_en: string
-  landing_route: string; expires_at: string | null; starts_in: boolean; permissions: string[]
+  landing_route: string; expires_at: string | null; starts_in: boolean; permissions: string[]; hidden_pages?: string[]
 }
 export type SignInReason = 'not_system_admin' | 'self' | 'admin' | 'inactive' | 'feature_off' | null
 type Access = {
@@ -63,7 +63,7 @@ export function UserAccessBody({ userId, embedded = false, onLeave }: { userId: 
   const nm = (o: { name_ar: string; name_en: string }) => (ar ? o.name_ar : o.name_en)
   const named = (o: Named) => (o ? (ar ? o.ar : o.en) : null)
   const held = useMemo(() => (data?.roles ?? []).map((r) => r.slug), [data])
-  const menu = role ? menuOfRole(t, { slug: role.slug, landing: role.landing_route, permissions: role.permissions }, held, featureOn) : []
+  const menu = role ? menuOfRole(t, { slug: role.slug, landing: role.landing_route, permissions: role.permissions }, held, featureOn, new Set(role.hidden_pages ?? [])) : []
   const pages = menu.reduce((n, g) => n + g.items.length, 0)
   const everything = !!role?.permissions.includes('*')
   const areas = role && !everything

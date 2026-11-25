@@ -20,6 +20,14 @@ describe('whether the rights of an open page changed', () => {
     assert.equal(accessChanged(me(['employees.view']), me(['employees.view', 'saber.view'])), true)
   })
 
+  it('sees a page hidden from the person, and an action taken from them, with the same rights', () => {
+    const before = me(['saber.view', 'saber.day.edit'])
+    assert.equal(accessChanged(before, { ...before, hidden_pages: ['/portal/library'] }), true)
+    assert.equal(accessChanged(before, { ...before, denied_actions: { saber: ['delete'] } }), true)
+    assert.equal(accessChanged({ ...before, denied_actions: { saber: ['delete', 'add'] }, hidden_pages: ['/a', '/b'] }, { ...before, denied_actions: { saber: ['add', 'delete'] }, hidden_pages: ['/b', '/a'] }), false)
+    assert.equal(accessChanged(before, { ...before, hidden_pages: [], denied_actions: {} }), false)
+  })
+
   it('sees a right taken away', () => {
     assert.equal(accessChanged(me(['employees.view', 'saber.view']), me(['employees.view'])), true)
   })

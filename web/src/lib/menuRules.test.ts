@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { allowed, holds, landsOnPortal, onlyDoors, pageRightOf, visibleGroups } from './menuRules.ts'
+import { allowed, holds, inside, landsOnPortal, onlyDoors, pageAt, pageRightOf, visibleGroups } from './menuRules.ts'
 
 const on = () => true
 const flags = (set: string[]) => (f?: string) => !f || f.split('|').some((x) => set.includes(x))
@@ -50,6 +50,26 @@ describe('which buttons a role gets', () => {
     ]
     assert.deepEqual(visibleGroups(groups, holds([]), on).map((g) => g.title), ['portal'])
     assert.deepEqual(visibleGroups(groups, holds(['saber.view']), on)[1].items.map((i) => i.to), ['/admin/saber'])
+  })
+
+  it('leaves out the pages an administrator hid from this person, and the section with them when nothing is left', () => {
+    const groups: { title: string; items: { to: string; permission?: string }[] }[] = [
+      { title: 'portal', items: [{ to: '/portal' }, { to: '/portal/library' }] },
+      { title: 'work', items: [{ to: '/admin/absence', permission: 'attendance.manage' }, { to: '/admin/attendance-attempts', permission: 'attendance.manage' }] },
+    ]
+    const can = holds(['attendance.manage'])
+    assert.deepEqual(visibleGroups(groups, can, on, new Set(['/portal/library', '/admin/attendance-attempts'])).map((g) => g.items.map((i) => i.to)), [['/portal'], ['/admin/absence']])
+    assert.deepEqual(visibleGroups(groups, can, on, new Set(['/admin/absence', '/admin/attendance-attempts'])).map((g) => g.title), ['portal'])
+    assert.equal(visibleGroups(groups, can, on).flatMap((g) => g.items).length, 4)
+  })
+
+  it('tells which page of the menu an address belongs to', () => {
+    const pages = [{ to: '/admin', end: true }, { to: '/admin/programs' }, { to: '/admin/programs-archive' }, { to: '/portal', end: true }]
+    assert.equal(pageAt('/admin/programs/remote', pages)?.to, '/admin/programs')
+    assert.equal(pageAt('/admin/programs-archive', pages)?.to, '/admin/programs-archive')
+    assert.equal(pageAt('/admin', pages)?.to, '/admin')
+    assert.equal(pageAt('/admin/settings', pages), undefined, 'the dashboard is its own address only')
+    assert.equal(inside('/portal/library', { to: '/portal', end: true }), false)
   })
 
   it('knows a role whose home is the portal', () => {
