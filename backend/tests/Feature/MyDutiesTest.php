@@ -179,4 +179,41 @@ class MyDutiesTest extends TestCase
         $this->assertCount(2, $this->duties($first));
         $this->assertSame(0, ProgramSession::whereNull('program_id')->count());
     }
+
+    public function test_the_people_who_run_a_group_list_its_trainees_with_what_each_attended(): void
+    {
+        $supervisor = $this->makeUser(Role::SUPERVISOR);
+        $supervisor->roles()->first()->permissions()->syncWithoutDetaching(Permission::where('slug', 'attendance.manage')->pluck('id'));
+        $program = $this->running();
+        $group = $program->ensureGroup();
+        $group->update(['supervisor_id' => $supervisor->id]);
+        $first = $this->makeSession($program, now()->subDay(), 3);
+        $second = $this->makeSession($program, now()->subHour(), 3);
+        $this->makeSession($program, now()->addDay(), 3);
+        $registrations = [];
+        foreach (['باسل' => [$first, $second], 'أحمد' => [$second], 'جود' => []] as $name => $came) {
+            $employee = $this->makeEmployee([], $this->makeUser(Role::EMPLOYEE, ['name_ar' => $name, 'name' => $name]));
+            $registrations[$name] = Registration::create(['program_id' => $program->id, 'employee_id' => $employee->id, 'source' => 'self', 'status' => Registration::STATUS_APPROVED]);
+            foreach ($came as $session) {
+                Attendance::create(['program_session_id' => $session->id, 'registration_id' => $registrations[$name]->id, 'employee_id' => $employee->id, 'status' => 'present', 'check_in_at' => now(), 'method' => 'qr']);
+            }
+        }
+        // Somebody whose registration was not approved is not a trainee of the group.
+        Registration::create(['program_id' => $program->id, 'employee_id' => $this->makeEmployee()->id, 'source' => 'self', 'status' => Registration::STATUS_PENDING]);
+
+        $data = $this->asUser($supervisor)->getJson("/api/v1/me/duties/{$group->id}")->assertOk()->json('data');
+        $this->assertSame($group->id, $data['id']);
+        $this->assertSame(2, $data['held'], 'the session of tomorrow has not been held');
+        $this->assertSame(['أحمد', 'باسل', 'جود'], array_column($data['trainees'], 'name'));
+        $this->assertSame([1, 2, 0], array_column($data['trainees'], 'attended'));
+        $this->assertSame($registrations['أحمد']->id, $data['trainees'][0]['registration_id']);
+
+        // A group that is not his is not found, whatever right he holds.
+        $foreign = $this->running()->ensureGroup();
+        $this->asUser($supervisor)->getJson("/api/v1/me/duties/{$foreign->id}")->assertNotFound();
+        // His own group without the attendance right: the names stay closed, as the attendance sheet does.
+        $plain = $this->makeUser(Role::EMPLOYEE);
+        $group->update(['supervisor_id' => $plain->id]);
+        $this->asUser($plain)->getJson("/api/v1/me/duties/{$group->id}")->assertForbidden();
+    }
 }

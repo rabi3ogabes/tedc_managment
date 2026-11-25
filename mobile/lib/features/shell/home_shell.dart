@@ -9,7 +9,6 @@ import '../../core/auth/session_store.dart';
 import '../../core/biometric.dart';
 import '../../core/config.dart';
 import '../../core/l10n/strings.dart';
-import '../../core/models.dart';
 import '../../core/notification_route.dart';
 import '../../core/offline/offline_providers.dart';
 import '../../core/providers.dart';
@@ -22,13 +21,19 @@ import '../home/role_home.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
 import '../security/biometric_offer.dart';
+import '../supervisor/supervisor_home.dart';
+import '../supervisor/supervisor_programmes.dart';
+import '../supervisor/supervisor_tabs.dart';
 import 'app_nav_bar.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
 class HomeShell extends ConsumerStatefulWidget {
-  const HomeShell({super.key, required this.shell});
+  const HomeShell({super.key, required this.shell, this.location = ''});
 
   final StatefulNavigationShell shell;
+
+  /// The address on screen: a tab is replaced by a role's own screen only at its root, never under a page opened inside it.
+  final String location;
 
   @override
   ConsumerState<HomeShell> createState() => _HomeShellState();
@@ -181,7 +186,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 
   /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
-  void _open(String route) => NotificationRoute.isTab(route) ? context.go(route) : context.push(route);
+  void _open(String route) => NotificationRoute.isTab(route) ? context.go(tabAddress(route, supervisor: ref.read(authProvider).value?.worksAsSupervisor ?? false)) : context.push(route);
 
   @override
   Widget build(BuildContext context) {
@@ -191,13 +196,15 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // A trainer without a trainee profile still reaches the certificate wallet (their thank-you certificates).
     final showStaffHome = staff && widget.shell.currentIndex < 4 && !(me.isTrainer && widget.shell.currentIndex == 3);
     // Everyone who is not working as a trainee gets the home screen of their role: what needs their action.
-    final slug = me?.activeRole?.str('slug') ?? (me == null || me.employee != null ? 'employee' : (me.roles.isEmpty ? 'employee' : me.roles.first));
+    final slug = me?.workSlug ?? 'employee';
     final roleHome = me != null && slug != 'employee' && widget.shell.currentIndex == 0;
+    // «مشرف»: the first four tabs are their own — home, their programmes, attendance, the surveys.
+    final supervisor = supervisorTab(me?.worksAsSupervisor ?? false, widget.shell.currentIndex, widget.location);
     final darkTop = (roleHome || !staff) && AppStyle.header != 'flat';
 
     return Scaffold(
       body: Stack(children: [
-        roleHome ? const RoleHome() : (showStaffHome ? const StaffHome() : widget.shell),
+        supervisor ?? (roleHome ? const RoleHome() : (showStaffHome ? const StaffHome() : widget.shell)),
         // The notifications button lives at the left of the home screen (physical left in both languages).
         if (widget.shell.currentIndex == 0)
           Positioned(
@@ -223,4 +230,23 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       ),
     );
   }
+}
+
+/// Where a notification that names a tab leads. A supervisor's «البرامج», «تدريبي» and «الشهادات» tabs are their own
+/// screens, and a notice about their own training (a certificate, a registration) means the page it names: `own=1` asks
+/// for that page as it is.
+String tabAddress(String route, {required bool supervisor}) => supervisor && const ['/programs', '/training', '/certificates'].contains(route) ? '$route?own=1' : route;
+
+/// The supervisor's own screen for a tab, or null where the tab keeps what everybody has (the account, any page opened
+/// inside a tab, and a tab asked for as it is — see [tabAddress]). The tabs keep their addresses, so links that open a
+/// tab still work.
+Widget? supervisorTab(bool supervisor, int index, String location) {
+  if (!supervisor || index < 0 || index > 3) return null;
+  if (location.isNotEmpty && location != appTabs[index]) return null;
+  return switch (index) {
+    0 => const SupervisorHome(),
+    1 => const SupervisorProgrammes(),
+    2 => const SupervisorAttendance(),
+    _ => const SupervisorSurveys(),
+  };
 }

@@ -158,6 +158,35 @@ class MyDuties
         })->values()->all();
     }
 
+    /**
+     * The trainees of a group, each with how many of the group's sessions held so far they attended: the list the people
+     * who run the group work from. A trainee placed in no group belongs to the programme's only group, as in rows().
+     *
+     * @return array{held: int, trainees: list<array<string, mixed>>}
+     */
+    public function trainees(TrainingGroup $group): array
+    {
+        $single = TrainingGroup::where('program_id', $group->program_id)->where('status', '!=', 'cancelled')->count() <= 1;
+        $registrations = Registration::with('employee.user:id,name,name_ar', 'employee.school:id,name_ar,name_en')
+            ->where('program_id', $group->program_id)->whereIn('status', [Registration::STATUS_APPROVED, Registration::STATUS_COMPLETED])
+            ->when(! $single, fn ($q) => $q->where('training_group_id', $group->id))->get();
+        $held = ProgramSession::where('program_id', $group->program_id)->where('status', '!=', 'cancelled')->where('starts_at', '<=', now())
+            ->where(fn ($q) => $q->whereNull('training_group_id')->orWhere('training_group_id', $group->id))->pluck('id');
+        $attended = Attendance::whereIn('program_session_id', $held)->whereIn('registration_id', $registrations->pluck('id'))->whereIn('status', ['present', 'late'])
+            ->groupBy('registration_id')->selectRaw('registration_id as id, count(*) as n')->pluck('n', 'id');
+
+        return [
+            'held' => $held->count(),
+            'trainees' => $registrations->map(fn (Registration $r) => [
+                'registration_id' => $r->id,
+                'name' => (string) ($r->employee?->user?->displayName() ?? ''),
+                'employee_no' => $r->employee?->employee_no,
+                'school' => $r->employee?->school?->translate('name'),
+                'attended' => (int) ($attended[$r->id] ?? 0),
+            ])->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values()->all(),
+        ];
+    }
+
     /** @return array<string, mixed> */
     private function sessionRow(ProgramSession $s, int $present, int $expected, \DateTimeInterface $now, bool $focus): array
     {

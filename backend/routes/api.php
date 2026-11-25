@@ -714,6 +714,7 @@ Route::prefix('v1')->group(function () {
             });
             // «برامجي»: the groups the person supervises or teaches, with their sessions, attendance and forms.
             Route::get('duties', [MyDutiesController::class, 'index']);
+            Route::get('duties/{group}', [MyDutiesController::class, 'show'])->whereUuid('group');
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);

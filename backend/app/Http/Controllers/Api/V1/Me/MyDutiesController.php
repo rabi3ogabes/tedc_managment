@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1\Me;
 
 use App\Http\Controllers\Controller;
+use App\Models\TrainingGroup;
 use App\Services\Duties\MyDuties;
+use App\Services\ProgramGrantService;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -30,5 +32,19 @@ class MyDutiesController extends Controller
             ],
             'now' => now()->toIso8601String(),
         ]]);
+    }
+
+    /**
+     * The trainees of one of the person's own groups, with how much of it each attended. The names are what the attendance
+     * sheet of the group's sessions already shows, so it asks for what the sheet asks for: the group is theirs to run, and
+     * they hold the attendance right (for their role, or given on this programme). Another group is not found.
+     */
+    public function show(TrainingGroup $group, MyDuties $duties, ProgramGrantService $grants): JsonResponse
+    {
+        $user = $this->user();
+        abort_unless($duties->supervisedGroupIds($user)->merge($duties->taughtGroupIds($user))->contains($group->id), 404);
+        abort_unless($user->hasPermission('attendance.manage') || $grants->allows($user, $group->program_id, 'attendance.mark'), 403, __('messages.grants.attendance_denied'));
+
+        return response()->json(['data' => ['id' => $group->id] + $duties->trainees($group)]);
     }
 }

@@ -32,4 +32,11 @@ class Me {
   bool hasRole(String role) => roles.contains(role);
   bool get isSchoolAdmin => hasRole('school_admin');
   bool get isSupervisor => hasRole('supervisor');
+
+  /// The role the person is working in right now: the one they chose, else a trainee when they have an employee
+  /// profile, else the first role they hold.
+  String get workSlug => activeRole?.str('slug') ?? (employee != null || roles.isEmpty ? 'employee' : roles.first);
+
+  /// «مشرف»: the app is laid out around the programmes given to them (see features/supervisor).
+  bool get worksAsSupervisor => workSlug == 'supervisor';
 }
