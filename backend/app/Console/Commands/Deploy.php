@@ -6,6 +6,7 @@ use App\Ai\Rag\Embedders;
 use App\Ai\Rag\Indexer;
 use App\Ai\Rag\LocalEmbedder;
 use App\Models\Embedding;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\School;
 use App\Needs\LegacyNeedsMigrator;
@@ -29,11 +30,14 @@ class Deploy extends Command
 {
     public function handle(): int
     {
+        $known = Schema::hasTable('permissions') ? Permission::pluck('slug')->all() : [];
         $this->call('migrate', ['--force' => true]);
 
-        // New roles and permissions of this release reach an existing database without touching hand-made changes.
+        // New roles and permissions of this release reach an existing database without touching hand-made changes: a right is
+        // given to the existing roles only when the database did not have it before this deploy, so one an administrator took
+        // from a role is not given back by the next release.
         if (Schema::hasTable('roles') && Schema::hasColumn('roles', 'scope_levels')) {
-            (new RolePermissionSeeder)->additive();
+            (new RolePermissionSeeder)->additive($known);
         }
 
         // First deploy only: roles, permissions and reference data (plus demo data when TEDC_SEED_DEMO=true).

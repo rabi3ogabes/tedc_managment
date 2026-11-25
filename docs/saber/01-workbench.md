@@ -41,7 +41,7 @@ Plan: `00-gap-analysis.md` (items A1–A13, E1–E2). Screen: **«سابر+»** 
 | saber.import, saber.meeting.recurring | ✓ | ✓ | ✓ | | recurring |
 | trainers.validate | ✓ | ✓ | ✓ | | |
 
-New rights reach existing roles on the next deployment (`RolePermissionSeeder::ADDITIVE`).
+New rights reach existing roles on the deployment that first brings them (`RolePermissionSeeder::additive`); after that they are the administrator's to give and take.
 
 ## Data (`2026_01_01_008700_saber_plus_foundation`)
 
