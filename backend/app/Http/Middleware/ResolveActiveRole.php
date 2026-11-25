@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\ActiveRole;
+use App\Support\WriteAction;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +32,8 @@ class ResolveActiveRole
             $assignment = $this->active->defaultFor($user, $assignments);
         }
         $this->active->set($user, $assignment);
+        // What the request does to the data, for the limits an administrator set on this person (User::hasPermission).
+        $user->acting(WriteAction::of($request));
 
         return $next($request);
     }

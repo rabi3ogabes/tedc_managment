@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\WriteAction;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -24,7 +25,7 @@ class RoleUser extends Pivot
 
     protected function casts(): array
     {
-        return ['granted_at' => 'datetime', 'expires_at' => 'datetime', 'granted_permissions' => 'array', 'revoked_permissions' => 'array'];
+        return ['granted_at' => 'datetime', 'expires_at' => 'datetime', 'granted_permissions' => 'array', 'revoked_permissions' => 'array', 'hidden_pages' => 'array', 'denied_actions' => 'array'];
     }
 
     /**
@@ -41,6 +42,19 @@ class RoleUser extends Pivot
             ->merge($this->granted_permissions ?? [])
             ->diff($this->revoked_permissions ?? [])
             ->unique()->values();
+    }
+
+    /**
+     * Whether this grant lets its holder do `$action` (add, edit, delete) with a right: the grant carries the right and
+     * the action was not taken from the person in the right's area. Reading is never limited here.
+     */
+    public function allows(string $slug, ?string $action): bool
+    {
+        if (! $this->effectivePermissions()->contains($slug)) {
+            return false;
+        }
+
+        return $action === null || ! in_array($action, $this->denied_actions[WriteAction::area($slug)] ?? [], true);
     }
 
     public function role(): BelongsTo

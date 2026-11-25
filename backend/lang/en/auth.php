@@ -13,6 +13,11 @@ return [
     'tls_error' => 'The server could not verify the Supabase SSL certificate. Set SUPABASE_CA_BUNDLE — see the Supabase setup guide.',
     'role_not_held' => 'You do not hold this role, or it has expired.',
     'forbidden' => 'You are not allowed to perform this action.',
+    'action_denied' => [
+        'add' => 'Adding on this page is not part of what your account was given. Ask the system administrator if you need it.',
+        'edit' => 'Editing on this page is not part of what your account was given. Ask the system administrator if you need it.',
+        'delete' => 'Deleting on this page is not part of what your account was given. Ask the system administrator if you need it.',
+    ],
     'unauthenticated' => 'Authentication required.',
     'locked' => 'This account is locked after too many wrong passwords. Try again in :minutes minutes or ask an administrator to unlock it.',
     'pw' => [

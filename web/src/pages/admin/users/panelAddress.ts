@@ -1,11 +1,11 @@
 /**
  * Which user the side panel of the Users page shows, and which of its views, kept in the address of the page:
- * `…?user=<id>&view=rights`. The Users page is reached two ways (`/admin/users` and Settings → Users,
+ * `…?user=<id>&view=rights` (no view: «الصفحات», the first one). The Users page is reached two ways (`/admin/users` and Settings → Users,
  * `/admin/settings?tab=users`), so only these two parameters are touched and everything else in the address is kept.
  * The panel survives a reload, the browser's Back button closes it, and the administrator who opens the person's
  * account from it comes back to it.
  */
-export const USER_VIEWS = ['rights', 'roles', 'access'] as const
+export const USER_VIEWS = ['pages', 'rights', 'roles', 'access'] as const
 export type UserView = (typeof USER_VIEWS)[number]
 export type UserPanelState = { id: string; view: UserView } | null
 
@@ -17,7 +17,7 @@ export function readUserPanel(search: string): UserPanelState {
   const id = params.get('user') ?? ''
   if (!ID.test(id)) return null
   const view = params.get('view') as UserView | null
-  return { id, view: view && USER_VIEWS.includes(view) ? view : 'rights' }
+  return { id, view: view && USER_VIEWS.includes(view) ? view : 'pages' }
 }
 
 /** The query string with the panel set (or removed with `null`); the other parameters of the page are kept. */
@@ -27,7 +27,7 @@ export function writeUserPanel(search: string, panel: UserPanelState): string {
   params.delete('view')
   if (panel) {
     params.set('user', panel.id)
-    if (panel.view !== 'rights') params.set('view', panel.view)
+    if (panel.view !== 'pages') params.set('view', panel.view)
   }
   const out = params.toString()
   return out ? `?${out}` : ''

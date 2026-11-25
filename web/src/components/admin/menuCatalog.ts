@@ -6,11 +6,13 @@ import type { TFunction } from 'i18next'
 import { holds, landsOnPortal, onlyDoors, visibleGroups, type Gated } from '@/lib/menuRules'
 import { showsOwnTraining } from '@/lib/portalHome'
 
-export { landsOnPortal, pageRightOf, visibleGroups } from '@/lib/menuRules'
+export { landsOnPortal, pageAt, pageRightOf, visibleGroups } from '@/lib/menuRules'
 
 export type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string
   /** Hidden from whoever is shown the button with this gate (menuRules.allowed). */
   without?: Gated
+  /** A page that only shows things: it has nothing to add, edit or delete (lib/pageAccess). */
+  plain?: boolean
   /** A page of the person's own training (portal): listed in the trainee role, see showsOwnTraining. */
   ownTraining?: boolean
 }
@@ -33,8 +35,9 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/saber', label: t('saber.nav'), icon: Layers, permission: 'saber.view' },
       // «البرامج عن بُعد» is hidden for now (its page stays at /admin/programs/remote); it will be merged into another button.
       { to: '/admin/kits', label: m('kits'), icon: PackageOpen, permission: 'kits.view' },
-      // For whoever delivers training or handles attendance; the page itself lists only the person's own groups.
-      { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck, permission: 'trainers.respond|attendance.manage' },
+      // For whoever delivers training or handles attendance; the page itself lists only the person's own groups, and what
+      // is done on it is done by assignment (the group's trainer or supervisor), not by a right: no add / edit / delete to set.
+      { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck, plain: true, permission: 'trainers.respond|attendance.manage' },
       { to: '/admin/teaching', label: t('teach.nav'), icon: Presentation, permission: 'trainers.respond' },
       { to: '/admin/my-assignments', label: t('assignments.title'), icon: GraduationCap, permission: 'trainers.respond' },
       { to: '/admin/kit-protection', label: t('teach.protection.nav'), icon: ShieldCheck, permission: 'kits.manage' },
@@ -145,7 +148,7 @@ export function portalCatalog(t: TFunction): Item[] {
 function superviseItems(t: TFunction): Item[] {
   return [
     // What he was given to supervise: it asks for no right, since it only ever lists his own groups.
-    { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck },
+    { to: '/admin/my-programs', label: t('duties.nav'), icon: ClipboardCheck, plain: true },
     { to: '/admin/approvals', label: t('admission.nav'), icon: ClipboardList, permission: 'registrations.approve_manager' },
     { to: '/admin/needs-hub', label: t('needsHub.nav'), icon: Target, permission: 'needs.request|needs.approve_individual' },
     { to: '/admin/employees', label: t('nav.myStaff'), icon: School, permission: 'employees.view' },
@@ -172,7 +175,9 @@ export function workPages(t: TFunction, taken: Iterable<string> = []): Item[] {
  */
 export function portalMenu(t: TFunction, o: { ownTraining: boolean; supervisor: boolean; landsOnPortal: boolean }): MenuGroup[] {
   const supervise = o.supervisor ? superviseItems(t) : []
-  const work = o.landsOnPortal ? [...supervise, ...workPages(t, supervise.map((i) => i.to))] : supervise
+  // «لوحة القيادة» used to be a link at the foot of the menu; it is a page like the others, so it can be given or not.
+  const dashboard: Item = { to: '/admin', label: t('admin.menu.dashboard'), icon: LayoutDashboard, end: true, plain: true, permission: 'dashboard.view|programs.view' }
+  const work = o.landsOnPortal ? [...supervise, dashboard, ...workPages(t, supervise.map((i) => i.to))] : supervise
   return [
     { title: t('nav.portal'), items: portalCatalog(t).filter((i) => o.ownTraining || !i.ownTraining) },
     ...(work.length ? [{ id: o.supervisor ? 'supervise' : 'work', title: t(o.supervisor ? 'nav.supervise' : 'nav.workPages'), items: work }] : []),
@@ -184,11 +189,25 @@ export function portalMenu(t: TFunction, o: { ownTraining: boolean; supervisor: 
  * read it, so what the administrator is shown is what the person gets. (The dashboard menu is shown in its default
  * arrangement; an administrator's own arrangement of sections changes the order, never what is listed.)
  */
-export function menuOfRole(t: TFunction, role: { slug: string; landing: string; permissions: readonly string[] }, heldSlugs: readonly string[], featureOn: (feature?: string) => boolean): MenuGroup[] {
-  const groups: MenuGroup[] = landsOnPortal(role.landing)
+export function menuOfRole(t: TFunction, role: { slug: string; landing: string; permissions: readonly string[] }, heldSlugs: readonly string[], featureOn: (feature?: string) => boolean, hidden?: ReadonlySet<string>): MenuGroup[] {
+  return visibleGroups(pagesOfRole(t, role, heldSlugs), holds(role.permissions), featureOn, hidden)
+}
+
+/**
+ * Every page the menu of a role can list, before rights, feature switches and the person's hidden pages are applied.
+ * A role has one menu, on every page: the portal's for a role whose home is the portal (its own pages, then the dashboard
+ * pages its rights open), the dashboard's for the others. The menu used to change with the page the person stood on, so
+ * a supervisor saw one list on the portal and another on a dashboard page, and «ما يراه» could only show one of them.
+ */
+export function pagesOfRole(t: TFunction, role: { slug: string; landing: string }, heldSlugs: readonly string[]): MenuGroup[] {
+  return landsOnPortal(role.landing)
     ? portalMenu(t, { ownTraining: showsOwnTraining(role.slug, heldSlugs), supervisor: role.slug === 'supervisor', landsOnPortal: true })
     : adminCatalog(t, {})
-  return visibleGroups(groups, holds(role.permissions), featureOn)
+}
+
+/** Every page of both menus, to tell which page an address belongs to (pageAt). */
+export function everyPage(t: TFunction): Item[] {
+  return [...adminCatalog(t, {}).flatMap((g) => g.items), ...portalCatalog(t)]
 }
 
 /** The rights that open a page by themselves, from the pages of the dashboard menu (onlyDoors, pageRightOf). */

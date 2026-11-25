@@ -23,6 +23,9 @@ class User extends Authenticatable
 
     private ?Collection $permissionCache = null;
 
+    /** What the current request does to the data: add, edit, delete, or null when it only reads (WriteAction). */
+    private ?string $acting = null;
+
     protected function casts(): array
     {
         return [
@@ -127,9 +130,58 @@ class User extends Authenticatable
             ->values();
     }
 
+    /**
+     * Whether the person may use a right for what this request does. A request that adds, edits or deletes (acting) only
+     * counts a right when the action was not taken from the person in the right's area (RoleUser::allows): somebody given
+     * a page "to view only" keeps reading it and is refused every change to it, wherever the check is made.
+     */
     public function hasPermission(string $slug): bool
     {
-        return $this->isSuperAdmin() || $this->permissionSlugs()->contains($slug);
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        if (! $this->permissionSlugs()->contains($slug)) {
+            return false;
+        }
+
+        return $this->acting === null || $this->effectiveGrants()->contains(fn (RoleUser $grant) => $grant->allows($slug, $this->acting));
+    }
+
+    /** Sets what the current request does to the data (WriteAction), or null for a request that only reads. */
+    public function acting(?string $action): void
+    {
+        $this->acting = $action;
+    }
+
+    /**
+     * Whether one of these rights is held but refused only because of what the request does: the answer to "is this a
+     * page the person may read but not change?", for a clearer refusal than "not allowed".
+     *
+     * @param  list<string>  $slugs
+     */
+    public function limitedOn(array $slugs): ?string
+    {
+        if ($this->acting === null || $this->isSuperAdmin()) {
+            return null;
+        }
+
+        return collect($slugs)->contains(fn (string $slug) => $this->permissionSlugs()->contains($slug)) ? $this->acting : null;
+    }
+
+    /**
+     * The pages hidden from the person in the role they work in, and the actions taken from them per area.
+     *
+     * @return array{hidden_pages: list<string>, denied_actions: array<string, list<string>>}
+     */
+    public function pageLimits(): array
+    {
+        $grants = $this->effectiveGrants();
+        if ($this->isSuperAdmin() || $grants->count() !== 1) {
+            return ['hidden_pages' => [], 'denied_actions' => []];
+        }
+        $grant = $grants->first();
+
+        return ['hidden_pages' => array_values($grant->hidden_pages ?? []), 'denied_actions' => $grant->denied_actions ?? []];
     }
 
     public function displayName(?string $locale = null): string

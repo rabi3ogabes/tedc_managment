@@ -6,6 +6,7 @@ import { NeedsSurveys } from '@/components/surveys/NeedsSurveys'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card, Empty, Field, PageHeader, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
+import { useFeature } from '@/hooks/useFeature'
 import { api, errorMessage } from '@/lib/api'
 import { fmt } from '@/lib/format'
 
@@ -32,7 +33,9 @@ type StudioRow = { id: string; title: string; description?: string | null; priva
 /** Surveys of the new engine addressed to the person (shown only when the engine is switched on). */
 function StudioSurveys() {
   const { t } = useTranslation()
-  const { data } = useGet<{ data: StudioRow[] }>('/me/studio-surveys', undefined, { retry: false })
+  // The route exists only while the engine is on: with it off the request was refused on every visit of the page.
+  const on = useFeature('survey_studio_v2')
+  const { data } = useGet<{ data: StudioRow[] }>(on ? '/me/studio-surveys' : null, undefined, { retry: false })
   if (!data?.data.length) return null
   return (
     <section className="mb-10">

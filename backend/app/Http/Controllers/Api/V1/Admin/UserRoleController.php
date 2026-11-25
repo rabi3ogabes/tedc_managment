@@ -13,6 +13,7 @@ use App\Models\School;
 use App\Models\SchoolGroup;
 use App\Models\User;
 use App\Support\ScopeLabel;
+use App\Support\WriteAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -108,16 +109,28 @@ class UserRoleController extends Controller
         $data = $request->validate([
             'granted' => ['present', 'array'], 'granted.*' => ['string', Rule::in($known)],
             'revoked' => ['present', 'array'], 'revoked.*' => ['string', Rule::in($known)],
+            // The person's pages («الصفحات»): left as they are when not sent.
+            'hidden_pages' => ['sometimes', 'array', 'max:300'], 'hidden_pages.*' => ['string', 'max:120', 'regex:#^/(admin|portal)(/[A-Za-z0-9_/-]*)?$#'],
+            'denied_actions' => ['sometimes', 'array', 'max:200'], 'denied_actions.*' => ['array', 'max:3'], 'denied_actions.*.*' => ['string', Rule::in(WriteAction::ALL)],
         ]);
         $own = $role->permissions->pluck('slug');
         $granted = collect($data['granted'])->unique()->diff($own)->sort()->values();
         $revoked = collect($data['revoked'])->unique()->intersect($own)->sort()->values();
-        $before = ['granted' => $roleUser->granted_permissions ?? [], 'revoked' => $roleUser->revoked_permissions ?? []];
+        $before = ['granted' => $roleUser->granted_permissions ?? [], 'revoked' => $roleUser->revoked_permissions ?? [], 'hidden_pages' => $roleUser->hidden_pages ?? [], 'denied_actions' => $roleUser->denied_actions ?? []];
 
-        $roleUser->update(['granted_permissions' => $granted->all() ?: null, 'revoked_permissions' => $revoked->all() ?: null]);
+        // A page is hidden by its address in the menu; an action is only taken in an area that has rights.
+        $areas = collect($known)->map(fn (string $slug) => WriteAction::area($slug))->unique();
+        $hidden = array_key_exists('hidden_pages', $data)
+            ? collect($data['hidden_pages'])->map(fn (string $page) => rtrim($page, '/'))->unique()->sort()->values()->all()
+            : ($roleUser->hidden_pages ?? []);
+        $denied = array_key_exists('denied_actions', $data)
+            ? collect($data['denied_actions'])->only($areas->all())->map(fn (array $actions) => array_values(array_intersect(WriteAction::ALL, $actions)))->filter()->sortKeys()->all()
+            : ($roleUser->denied_actions ?? []);
+
+        $roleUser->update(['granted_permissions' => $granted->all() ?: null, 'revoked_permissions' => $revoked->all() ?: null, 'hidden_pages' => $hidden ?: null, 'denied_actions' => $denied ?: null]);
         AuditLog::create([
             'user_id' => $this->user()->id, 'action' => 'user_permissions_changed', 'auditable_type' => User::class, 'auditable_id' => $user->id,
-            'old_values' => $before, 'new_values' => ['for' => $user->email, 'role' => $role->slug, 'granted' => $granted->all(), 'revoked' => $revoked->all()],
+            'old_values' => $before, 'new_values' => ['for' => $user->email, 'role' => $role->slug, 'granted' => $granted->all(), 'revoked' => $revoked->all(), 'hidden_pages' => $hidden, 'denied_actions' => $denied],
             'ip_address' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255), 'url' => $request->fullUrl(),
         ]);
 
@@ -135,6 +148,8 @@ class UserRoleController extends Controller
             'granted_at' => $g->granted_at?->toIso8601String(), 'expires_at' => $g->expires_at?->toIso8601String(), 'expired' => ! $g->isActive(),
             // Rights of this person only, on top of the role's (added) and out of the role's (taken).
             'granted_permissions' => $g->granted_permissions ?? [], 'revoked_permissions' => $g->revoked_permissions ?? [],
+            // Pages the person is not shown in this role, and what they may not do per area (add, edit, delete).
+            'hidden_pages' => array_values($g->hidden_pages ?? []), 'denied_actions' => (object) ($g->denied_actions ?? []),
         ];
     }
 

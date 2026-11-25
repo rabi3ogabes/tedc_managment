@@ -19,9 +19,23 @@ export function allowed(item: Gated, can: (slug: string) => boolean, featureOn: 
   return !(item.without && allowed(item.without, can, featureOn))
 }
 
-/** The sections with only the buttons the role may use; a section left empty is dropped. */
-export function visibleGroups<I extends Gated, G extends { items: I[] }>(groups: G[], can: (slug: string) => boolean, featureOn: (feature?: string) => boolean): G[] {
-  return groups.map((g) => ({ ...g, items: g.items.filter((i) => allowed(i, can, featureOn)) })).filter((g) => g.items.length > 0)
+/**
+ * The sections with only the buttons the role may use; a section left empty is dropped. `hidden`: pages an administrator
+ * took out of this person's menu (Settings → Users → the person → «الصفحات»), by their address.
+ */
+export function visibleGroups<I extends Gated & { to?: string }, G extends { items: I[] }>(groups: G[], can: (slug: string) => boolean, featureOn: (feature?: string) => boolean, hidden?: ReadonlySet<string>): G[] {
+  return groups.map((g) => ({ ...g, items: g.items.filter((i) => allowed(i, can, featureOn) && !(i.to && hidden?.has(i.to))) })).filter((g) => g.items.length > 0)
+}
+
+/** Whether an address is inside a page of the menu: the page itself or anything under it (a page marked `end` is itself only). */
+export const inside = (pathname: string, page: { to: string; end?: boolean }) => pathname === page.to || (!page.end && pathname.startsWith(`${page.to}/`))
+
+/**
+ * The page of the menu an address belongs to: the longest one that contains it, so `/admin/programs/remote` is
+ * «البرامج» and not «لوحة القيادة».
+ */
+export function pageAt<P extends { to: string; end?: boolean }>(pathname: string, pages: readonly P[]): P | undefined {
+  return pages.filter((p) => inside(pathname, p)).sort((a, b) => b.to.length - a.to.length)[0]
 }
 
 /** Whether a role's home is the portal. */

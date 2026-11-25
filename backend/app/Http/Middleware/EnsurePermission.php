@@ -27,6 +27,10 @@ class EnsurePermission
         }
 
         SecurityEvents::denied($user, $request);
+        // The person may read this page but was not given this action on it: say which, instead of a bare refusal.
+        if ($action = $user->limitedOn(explode('|', $permissions))) {
+            return response()->json(['message' => __('auth.action_denied.'.$action), 'code' => 'action_denied', 'action' => $action], 403);
+        }
 
         abort(403, __('auth.forbidden'));
     }

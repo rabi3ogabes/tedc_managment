@@ -1,11 +1,12 @@
 import clsx from 'clsx'
-import { Eye, KeyRound, ShieldCheck, X } from 'lucide-react'
+import { Eye, KeyRound, LayoutList, ShieldCheck, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Badge, ErrorState, Spinner, StatusBadge } from '@/components/ui'
 import { useGet } from '@/hooks/useApi'
 import { UserAccessBody } from '../UserAccess'
 import { UserRolesBody } from '../UserRolesDialog'
+import UserPages from './UserPages'
 import UserRights from './UserRights'
 import { type UserView } from './panelAddress'
 
@@ -13,7 +14,8 @@ type Head = { user: { id: string; name: string; name_ar: string | null; name_en:
 export type PressedUser = { id: string; name: string; name_ar?: string; email: string; status: string; roles: { slug: string; name_ar: string; name_en: string }[] }
 
 /**
- * A user in a side panel over the Users list. Three views: «الصلاحيات» (the rights of this person in each role: what the
+ * A user in a side panel over the Users list. Four views: «الصفحات» (the pages of the menu this person is shown, and
+ * whether they may add, edit and delete on each), «الصلاحيات» (the rights of this person in each role: what the
  * role gives, what was added for them, what was taken from them), «الأدوار» (the roles they hold, granted and removed
  * here) and «ما يراه» (the pages and rights they end up with, and the way into the account).
  *
@@ -54,6 +56,7 @@ export default function UserPanel({ id, initial, view, onView, onClose, onChange
   const changed = () => { void access.refetch(); onChanged() }
 
   const tabs: { id: UserView; label: string; icon: typeof Eye }[] = missing ? [] : [
+    { id: 'pages', label: t('userPages.tab'), icon: LayoutList },
     { id: 'rights', label: t('userRights.tab'), icon: KeyRound },
     { id: 'roles', label: t('userRoles.manage'), icon: ShieldCheck },
     { id: 'access', label: t('userAccess.open'), icon: Eye },
@@ -91,6 +94,7 @@ export default function UserPanel({ id, initial, view, onView, onClose, onChange
         <div ref={body} id="user-panel-body" role={tabs.length ? 'tabpanel' : undefined} aria-labelledby={tabs.length ? `user-tab-${view}` : undefined} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
           {missing ? <ErrorState message={t('userPanel.missing')} error={access.error} onRetry={() => void access.refetch()} />
             : !loaded && !pressed ? <Spinner />
+            : view === 'pages' ? <UserPages key={id} userId={id} onChanged={changed} />
             : view === 'rights' ? <UserRights key={id} userId={id} onChanged={changed} />
             : view === 'roles' ? <UserRolesBody key={id} userId={id} onChanged={changed} />
             : <UserAccessBody key={id} userId={id} embedded onLeave={onClose} />}
