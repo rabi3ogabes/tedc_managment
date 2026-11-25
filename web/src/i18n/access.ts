@@ -23,6 +23,18 @@ export const accessAr = {
     manage: 'الأدوار', title: 'أدوار {{name}}', add: 'منح دور', role: 'الدور', scope: 'النطاق', expires: 'ينتهي في (اختياري)', expiresHint: 'بعد هذا التاريخ يتوقف الدور تلقائياً.', grant: 'منح الدور', granted: 'تم منح الدور', revoked: 'تم سحب الدور',
     revoke: 'سحب الدور', confirmRevoke: 'سحب الدور «{{role}}»؟', expired: 'منتهي', until: 'حتى {{date}}',
   },
+  userRights: {
+    tab: 'الصلاحيات', noRoles: 'لا يحمل هذا المستخدم أي دور سارٍ. امنحه دوراً من «الأدوار» أولاً.',
+    intro: 'هذه صلاحيات هذا المستخدم بدور «{{role}}». ضع علامة على صلاحية لا يمنحها الدور فتُضاف له وحده، أو أزل العلامة عن صلاحية يمنحها الدور فتُحجب عنه وحده. الدور نفسه لا يتغيّر، فلا يتأثر غيره ممن يحملونه.',
+    onlyChanged: 'المختلف عن الدور فقط', added: 'مضافة له', taken: 'محجوبة عنه', addedMany: 'مضافة لهذا المستخدم', takenMany: 'محجوبة عنه',
+    sameAsRole: 'صلاحياته هي صلاحيات الدور كما هي.', reset: 'أعده إلى صلاحيات الدور', save: 'حفظ صلاحيات هذا المستخدم', saved: 'حُفظت صلاحيات المستخدم. تسري عليه الآن.',
+    confirm: 'تغيير صلاحيات هذا المستخدم بدور «{{role}}»: تُضاف له {{added}} وتُحجب عنه {{taken}}. يسري التغيير فوراً ويُسجَّل في سجل التدقيق. متابعة؟',
+    readOnly: 'تعديل صلاحيات المستخدمين لمن يملك صلاحية إدارة الأدوار.', changedN: 'مخصّص {{n}}',
+  },
+  userPanel: {
+    rowHint: 'اضغط على أي مستخدم لتفتح صلاحياته وأدواره وما يراه.', missing: 'تعذّر فتح هذا المستخدم: قد لا يكون موجوداً.', suspend: 'إيقاف الحساب', activate: 'تفعيل الحساب',
+    label: { rights: 'صلاحيات المستخدم', roles: 'أدوار المستخدم', access: 'ما يراه هذا المستخدم' },
+  },
   userAccess: {
     open: 'ما يراه', title: 'ما يراه هذا المستخدم', roles: 'أدواره', startsIn: 'يبدأ به', trainer: 'مدرّب', noProfile: 'بلا ملف متدرب',
     oneAtATime: 'يعمل بدور واحد في كل مرة، ويبدّل بينها من أعلى الصفحة. اختر الدور لترى صفحاته وصلاحياته.', oneRole: 'يحمل دوراً واحداً. هذه صفحاته وصلاحياته.',
@@ -71,6 +83,18 @@ export const accessEn: typeof accessAr = {
   userRoles: {
     manage: 'Roles', title: 'Roles of {{name}}', add: 'Grant a role', role: 'Role', scope: 'Scope', expires: 'Ends on (optional)', expiresHint: 'After this date the role stops by itself.', grant: 'Grant role', granted: 'Role granted', revoked: 'Role removed',
     revoke: 'Remove role', confirmRevoke: 'Remove the role “{{role}}”?', expired: 'Expired', until: 'Until {{date}}',
+  },
+  userRights: {
+    tab: 'Rights', noRoles: 'This user holds no role that is in force. Grant one from “Roles” first.',
+    intro: 'These are this user\'s rights as “{{role}}”. Tick a right the role does not give to add it for them alone, or untick one the role gives to take it from them alone. The role itself does not change, so nobody else who holds it is affected.',
+    onlyChanged: 'Only what differs from the role', added: 'Added for them', taken: 'Taken from them', addedMany: 'added for this user', takenMany: 'taken from them',
+    sameAsRole: 'Their rights are the role\'s rights as they are.', reset: 'Back to the role\'s rights', save: 'Save this user\'s rights', saved: 'The user\'s rights are saved. They apply now.',
+    confirm: 'Change this user\'s rights as “{{role}}”: {{added}} added, {{taken}} taken. It applies at once and is written to the audit log. Continue?',
+    readOnly: 'Changing a user\'s rights is for whoever holds the right to manage roles.', changedN: '{{n}} customised',
+  },
+  userPanel: {
+    rowHint: 'Press any user to open their rights, their roles and what they see.', missing: 'This user could not be opened: they may not exist.', suspend: 'Suspend the account', activate: 'Activate the account',
+    label: { rights: 'Rights of the user', roles: 'Roles of the user', access: 'What this user sees' },
   },
   userAccess: {
     open: 'What they see', title: 'What this user sees', roles: 'Their roles', startsIn: 'Starts here', trainer: 'Trainer', noProfile: 'No trainee profile',

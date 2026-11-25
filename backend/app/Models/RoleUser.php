@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Support\Collection;
 
 /** A role granted to a user at a scope: Ministry-wide, one school group, one school or one department. */
 class RoleUser extends Pivot
@@ -23,7 +24,23 @@ class RoleUser extends Pivot
 
     protected function casts(): array
     {
-        return ['granted_at' => 'datetime', 'expires_at' => 'datetime'];
+        return ['granted_at' => 'datetime', 'expires_at' => 'datetime', 'granted_permissions' => 'array', 'revoked_permissions' => 'array'];
+    }
+
+    /**
+     * The rights this grant gives its holder: the role's own, plus the ones added for this person, minus the ones taken
+     * from this person. With nothing added or taken it is the role's rights, as it always was.
+     *
+     * @return Collection<int, string>
+     */
+    public function effectivePermissions(): Collection
+    {
+        $this->loadMissing('role.permissions:id,slug');
+
+        return ($this->role?->permissions->pluck('slug') ?? collect())
+            ->merge($this->granted_permissions ?? [])
+            ->diff($this->revoked_permissions ?? [])
+            ->unique()->values();
     }
 
     public function role(): BelongsTo

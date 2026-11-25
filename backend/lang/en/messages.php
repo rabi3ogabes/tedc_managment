@@ -153,7 +153,7 @@ return [
     'roles' => [
         'scope_not_allowed' => 'This role cannot be granted at this scope.', 'scope_required' => 'Choose the school, group or department for this scope.', 'already_granted' => 'This role is already granted at this scope.',
         'last_role' => 'A user\'s last role cannot be removed.', 'system_protected' => 'System roles cannot be edited or deleted. Make a copy instead.', 'in_use' => 'A role that users hold cannot be deleted.',
-        'no_clone_super' => 'The super administrator role cannot be copied.', 'group_in_use' => 'The group is the scope of a granted role. Remove the grant first.',
+        'no_clone_super' => 'The super administrator role cannot be copied.', 'super_admin_fixed' => 'The rights of the system administrator are complete and fixed: nothing is added to them or taken from them.', 'group_in_use' => 'The group is the scope of a granted role. Remove the grant first.',
     ],
     'features' => ['disabled' => 'This feature is switched off. A system administrator can switch it on in Settings → Features.', 'fix_suggested' => 'Suggested remedy: :fix. It was not applied because automatic fixing is off.', 'no_remedy' => 'There is no known remedy for this error.', 'reason_required' => 'Write a reason (at least 5 characters): this tool is used with care on a live system.'],
     'showcase' => ['code_wrong' => 'The showcase code is not right.', 'code_wait' => 'Too many wrong codes; wait a quarter of an hour and try again.'],

@@ -25,7 +25,6 @@ class UserAccessController extends Controller
         $user->loadMissing(['employee.school', 'employee.jobTitle', 'employee.department', 'trainer']);
         $grants = $context->assignments($user);
         $default = $context->defaultFor($user, $grants);
-        $rights = Role::whereIn('id', $grants->pluck('role_id')->unique())->with('permissions:id,slug')->get()->keyBy('id');
         $employee = $user->employee;
         $named = fn ($model) => $model ? ['ar' => $model->name_ar, 'en' => $model->name_en ?: $model->name_ar] : null;
 
@@ -38,7 +37,7 @@ class UserAccessController extends Controller
                 'job_title' => $named($employee?->jobTitle), 'school' => $named($employee?->school), 'department' => $named($employee?->department),
                 'has_trainee_profile' => $employee !== null, 'is_trainer' => $user->trainer !== null,
             ],
-            'roles' => $grants->map(function (RoleUser $grant) use ($default, $rights) {
+            'roles' => $grants->map(function (RoleUser $grant) use ($default) {
                 $role = $grant->role;
                 $scope = ScopeLabel::for($grant);
 
@@ -49,7 +48,9 @@ class UserAccessController extends Controller
                     'expires_at' => $grant->expires_at?->toIso8601String(),
                     // The role the person starts in when they sign in.
                     'starts_in' => $default?->id === $grant->id,
-                    'permissions' => $role->slug === Role::SUPER_ADMIN ? ['*'] : ($rights[$role->id]?->permissions->pluck('slug')->sort()->values() ?? []),
+                    // What the person may do in this role: the role's rights with what was added for them and without what was taken from them.
+                    'permissions' => $role->slug === Role::SUPER_ADMIN ? ['*'] : $grant->effectivePermissions()->sort()->values(),
+                    'granted' => $grant->granted_permissions ?? [], 'revoked' => $grant->revoked_permissions ?? [],
                 ];
             })->values(),
             'sign_in' => $this->signIn($request->user(), $user),
