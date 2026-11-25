@@ -45,6 +45,15 @@ class Me {
   /// two the person is working as, or null for everybody else. The same person working as a trainee keeps the trainee's app.
   String? get workspace => switch (workSlug) { 'supervisor' => 'supervisor', 'trainer' => 'trainer', _ => null };
 
+  /// The grant that lets the person work as a supervisor or a trainer, when they hold one and are not working in it now:
+  /// the way back for somebody who went to their own training.
+  Json? get workGrant {
+    for (final g in roleGrants) {
+      if (const ['supervisor', 'trainer'].contains(g.str('slug')) && !g.flag('active') && g.str('id').isNotEmpty) return g;
+    }
+    return null;
+  }
+
   /// The grant that lets the person work as a trainee, when they hold one and are not working in it now.
   Json? get traineeGrant {
     for (final g in roleGrants) {

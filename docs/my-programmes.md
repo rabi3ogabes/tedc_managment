@@ -70,9 +70,23 @@ a programme she does not teach.
 
 `ShowcaseAccounts::assignSupervisors()` gives the showcase supervisors their groups (this week's and next week's programmes to the
 first, last month's to the second). It runs when the showcase is built and, for accounts built earlier, once by the migration
-`2026_01_01_009500_showcase_supervisors`, which touches only the `TEST-SHOWCASE` programmes. The story's dates move only when the
-showcase is rebuilt (Settings → الحسابات التجريبية); today's session of the running programme lasts until the end of the day so
-the attendance code can be shown whenever the showcase is.
+`2026_01_01_009500_showcase_supervisors`, which touches only the `TEST-SHOWCASE` programmes. Today's session of the running
+programme lasts until the end of the day so the attendance code can be shown whenever the showcase is.
+
+**The story keeps itself current** (since 2026-11-25). It is written around the day it is built: a programme running this week,
+one finished last month, one opening next week. Left alone, a few days later nothing is happening in it any more: the trainee has
+no session to attend and no code to scan, and the supervisor and the trainer have no attendance to take. `ShowcaseAccounts::stale()`
+says so (the programme that should be running has ended), and `keepCurrent()` then writes the story again around today. It runs
+**when a showcase account is opened** from the sign-in page and **at every deploy** (`tedc:deploy`), does nothing while the story
+is current, and one caller at a time. Only the story starts again (its programmes' dates, sessions, registrations, attendance,
+task, evaluations and notices): the accounts, their roles and whatever the administrator gave or took from each of them (their
+rights, their pages) stay as they are. The audit log records `showcase_story_moved`. «إنشاء / إعادة البناء» in Settings →
+الحسابات التجريبية still brings everything, the accounts included, back to the starting point.
+
+**A showcase account opens as the person its name says** (`openAsNamed`): «المشرف التجريبي» as a supervisor and «المدرّب
+التجريبي» as a trainer, even when whoever opened it last left it working as a trainee. In the app the other role is one press
+away both ways: «أنت متدرب أيضاً» on the home of a supervisor or a trainer, and «أنت مشرف أيضاً» / «أنت مدرب أيضاً» on top of
+the trainee's home (`BackToWork`).
 
 ## In the mobile app
 

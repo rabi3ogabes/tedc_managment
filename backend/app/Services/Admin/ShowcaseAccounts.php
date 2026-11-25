@@ -13,6 +13,7 @@ use App\Models\ProgramCategory;
 use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\RoleUser;
 use App\Models\School;
 use App\Models\SiteSetting;
 use App\Models\Task;
@@ -260,6 +261,80 @@ class ShowcaseAccounts
             $this->story($users, $employees, $trainers);
             $this->audit($by, 'showcase_accounts_built', ['accounts' => count($users)]);
         });
+    }
+
+    /**
+     * Whether the story has gone by: the programme that should be running this week has ended. A showcase left alone for
+     * a few days has nothing happening today — no session to attend, no code to scan, nothing to take attendance of —
+     * which is exactly what it is opened to show.
+     */
+    public function stale(): bool
+    {
+        $running = Program::where('code', self::PREFIX.'-1')->first();
+
+        return $running?->end_date !== null && $running->end_date->lt(today());
+    }
+
+    /**
+     * Brings a story that has gone by back to today, so whoever opens a showcase account finds a programme running this
+     * week with a session today, one finished last month and one opening next week. It is the story that starts again
+     * (its programmes' dates, sessions, registrations, attendance, task, evaluations and notices): the accounts, their
+     * roles and whatever the administrator gave or took from each of them stay exactly as they are. It runs when an
+     * account is opened and at each deploy, does nothing while the story is current, and one caller at a time.
+     *
+     * @return bool whether the story was moved
+     */
+    public function keepCurrent(): bool
+    {
+        if (! $this->stale()) {
+            return false;
+        }
+
+        return Cache::lock('showcase-story', 120)->get(function () {
+            // Somebody else moved it while this caller waited for nothing: look again.
+            if (! $this->stale()) {
+                return false;
+            }
+            $users = [];
+            $employees = [];
+            $trainers = [];
+            foreach (self::ACCOUNTS as $key => [, , , , $hasEmployee]) {
+                $user = $this->find($key);
+                $employee = $user && $hasEmployee ? Employee::where('user_id', $user->id)->first() : null;
+                // A showcase that is not whole (an account removed by hand) is the administrator's to rebuild.
+                if (! $user || ($hasEmployee && ! $employee)) {
+                    return false;
+                }
+                $users[$key] = $user;
+                $hasEmployee && $employees[$key] = $employee;
+            }
+            foreach (['trainer-1', 'trainer-2'] as $key) {
+                $trainers[$key] = Trainer::where('user_id', $users[$key]->id)->first();
+                if (! $trainers[$key]) {
+                    return false;
+                }
+            }
+
+            DB::transaction(function () use ($users, $employees, $trainers) {
+                $this->story($users, $employees, $trainers);
+                AuditLog::create(['user_id' => null, 'action' => 'showcase_story_moved', 'auditable_type' => Program::class, 'new_values' => ['to' => today()->toDateString()]]);
+            });
+
+            return true;
+        }) === true;
+    }
+
+    /**
+     * A showcase account opens as the person its name says: «المشرف التجريبي» as a supervisor, «المدرّب التجريبي» as a
+     * trainer, even when whoever opened it last left it working as a trainee. The other roles stay one press away.
+     */
+    public function openAsNamed(User $user): void
+    {
+        $key = collect(array_keys(self::ACCOUNTS))->first(fn (string $k) => self::email($k) === $user->email);
+        $named = $key === null ? null : RoleUser::where('user_id', $user->id)->whereHas('role', fn ($q) => $q->where('slug', self::ACCOUNTS[$key][1][0]))->value('id');
+        if ($named && $user->active_role_user_id !== $named) {
+            $user->forceFill(['active_role_user_id' => $named])->saveQuietly();
+        }
     }
 
     /** Removes the accounts and everything made for them: programmes, sessions, registrations, attendance, evaluations, notifications. */

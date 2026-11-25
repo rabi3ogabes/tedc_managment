@@ -9,6 +9,7 @@ use App\Models\Embedding;
 use App\Models\Role;
 use App\Models\School;
 use App\Needs\LegacyNeedsMigrator;
+use App\Services\Admin\ShowcaseAccounts;
 use App\Support\DemoGuard;
 use Database\Seeders\DemoFeatureSamplesSeeder;
 use Database\Seeders\DemoNeedsSurveySeeder;
@@ -71,6 +72,11 @@ class Deploy extends Command
         // The national school list (government, private, specialised) with map positions, from the copy shipped with the code.
         if (Schema::hasColumn('schools', 'source') && School::where('source', 'like', 'moe_%')->count() < 700) {
             $this->call('tedc:schools-sync');
+        }
+
+        // The showcase accounts' story is brought back to today when it has gone by, so a release never ships with an empty showcase.
+        if (Schema::hasTable('programs') && Schema::hasTable('training_groups') && app(ShowcaseAccounts::class)->keepCurrent()) {
+            $this->info('The showcase story was moved to today.');
         }
 
         // Read-only file systems (serverless) cannot hold the public/storage symlink.

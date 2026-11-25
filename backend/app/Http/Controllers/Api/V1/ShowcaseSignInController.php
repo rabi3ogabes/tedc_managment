@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Models\User;
 use App\Services\Admin\ShowcaseAccounts;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * The sign-in page's showcase accounts (web and app): the supervisors, trainers and trainees, opened by anyone in one tap while
@@ -34,8 +36,23 @@ class ShowcaseSignInController extends AuthController
         $user = $showcase->findLeadership($key);
         abort_unless($user !== null, 404);
         $showcase->audit($user, 'showcase_leadership_sign_in', ['as' => $user->email, 'ip' => $request->ip()], $user);
+        $this->ready($showcase, $user);
 
         return $this->complete($this->auth->issueForUser($user, 'showcase'));
+    }
+
+    /**
+     * Before a showcase account opens: its story is brought back to today when it has gone by, and it opens as the person
+     * its name says. Neither is allowed to stop the sign-in.
+     */
+    private function ready(ShowcaseAccounts $showcase, User $user): void
+    {
+        try {
+            $showcase->keepCurrent();
+            $showcase->openAsNamed($user);
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     private function assertCode(Request $request, ShowcaseAccounts $showcase): void
@@ -51,6 +68,7 @@ class ShowcaseSignInController extends AuthController
         $user = $showcase->findPublic($key);
         abort_unless($user !== null, 404);
         $showcase->audit($user, 'showcase_public_sign_in', ['as' => $user->email], $user);
+        $this->ready($showcase, $user);
 
         return $this->complete($this->auth->issueForUser($user, 'showcase'));
     }

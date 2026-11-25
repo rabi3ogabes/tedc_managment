@@ -15,6 +15,7 @@ import '../needs/needs_survey_screen.dart';
 import '../reports/dashboard_section.dart';
 import '../wayfinding/classroom_sheet.dart';
 import 'top_cards.dart';
+import '../workspace/workspace_home.dart';
 import 'upcoming_programs.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -54,6 +55,8 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 sliver: SliverList.list(children: [
                   if (ref.watch(brandProvider).occasionName case final occasion?) ...[_OccasionBanner(name: occasion, message: ref.watch(brandProvider).message), const SizedBox(height: 14)],
+                  // A supervisor or a trainer looking at their own training has the way back to their work on top.
+                  const BackToWork(),
                   // The cards, in the order the administrator chose (Settings → App home); each one skips itself when it has nothing to show.
                   for (final key in AppStyle.home ?? ref.watch(brandProvider).homeSections) ..._card(key, context, ref, d: d, stats: stats, current: current, upcoming: upcoming, recommended: recommended, fmt: fmt),
                 ]),
