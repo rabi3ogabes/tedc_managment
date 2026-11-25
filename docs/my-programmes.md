@@ -38,7 +38,11 @@ page of the portal in any role but «موظف», and from a line on the trainer'
 
 ## Who may open a session's attendance and code
 
-`SessionController::authorizeTrainer`, for `GET …/sessions/{id}/qr`, `GET` and `POST …/sessions/{id}/attendance`:
+One rule, in one place (`App\Http\Controllers\Concerns\GuardsSessionAttendance`, which asks `MyDuties::runs`), for every way a
+session's attendance is read or recorded: the sheet and the code (`GET …/sessions/{id}/qr`, `GET` and `POST …/sessions/{id}/attendance`),
+the kiosk and its signatures (`…/kiosk`, `…/signatures`), scanning a personal code (`…/staff-scan`), the trainers' attendance
+(`GET` and `POST …/trainer-attendance`), and the files (`…/attendance/export`, `…/sheet.pdf`). The export of a group
+(`GET …/groups/{id}/attendance/export`) follows the same rule by the group (`MyDuties::runsGroup`).
 
 1. centre staff;
 2. a trainer of the session: it is theirs, or they are approved for its group, or they are a trainer of its programme;
@@ -48,6 +52,9 @@ page of the portal in any role but «موظف», and from a line on the trainer'
 The route still asks for `attendance.manage` (or a programme grant) first, so the role decides whether a person works with attendance
 at all, and the assignment decides which sessions. Holding `attendance.manage` does not open a session of a group the person was not
 given. A session that belongs to no group is a session of every group of its programme.
+
+Until 2026-11-25 only the sheet and the code made this check: the kiosk, staff scanning, the trainers' attendance and the exports
+were open to anybody holding `attendance.manage`, for any session by its id.
 
 If an administrator removes `attendance.manage` from a role, «برامجي» still lists the person's groups and the counts, and says that
 the sheet and the code are not available in that role.
@@ -97,7 +104,8 @@ same `TodaySessionCard`; the screen refreshes every minute. A tap opens the roll
 
 ## Tests
 
-`MyDutiesTest` (7): a supervisor's groups and only his; a trainer's groups by each kind of assignment, not proposed ones or drafts;
+`MyDutiesTest` (8): a supervisor's groups and only his; a trainer's groups by each kind of assignment, not proposed ones or drafts;
 both capacities at once and nothing for somebody with no assignment; the attendance count of a session; the supervisor of a group
-opens its attendance and code and is refused another group's; a trainer approved for one group is refused another group of the same
+opens its attendance and code and is refused another group's, and the same for the kiosk, the signature, staff scanning, the
+trainers' attendance and the exports (centre staff still pass); a trainer approved for one group is refused another group of the same
 programme; the showcase story. Web: `duties/model.test.ts`.

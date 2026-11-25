@@ -7,7 +7,9 @@ use App\Models\Registration;
 use App\Models\Role;
 use App\Models\Trainer;
 use App\Models\TrainerAttendance;
+use App\Services\AttendanceMethodsService;
 use App\Services\AttendanceService;
+use App\Services\ProgramGrantService;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -136,5 +138,33 @@ class AttendanceMethodsTest extends TestCase
         $second->update(['trainer_id' => $trainer->id]);
         $this->asUser($this->makeUser(Role::COORDINATOR))->postJson("/api/v1/admin/sessions/{$second->id}/trainer-attendance", ['trainer_id' => $trainer->id, 'status' => 'present'])->assertOk();
         $this->assertSame(2, TrainerAttendance::where('trainer_id', $trainer->id)->count());
+    }
+
+    public function test_a_trainer_and_a_holder_of_the_programme_right_scan_and_list_only_the_sessions_that_are_theirs(): void
+    {
+        [$program, $employee, , $session] = $this->setupSession();
+        [$otherProgram, $otherEmployee, , $otherSession] = $this->setupSession();
+        $qr = fn ($e) => app(AttendanceMethodsService::class)->personalQr('e', $e->id)['payload'];
+
+        // The trainer role holds «إدارة الحضور»; it is the session being his that opens it.
+        $trainerUser = $this->makeUser(Role::TRAINER);
+        $session->update(['trainer_id' => Trainer::create(['user_id' => $trainerUser->id, 'name_ar' => 'م', 'name_en' => 'T', 'status' => 'active', 'source' => 'center'])->id]);
+        $this->asUser($trainerUser)->getJson("/api/v1/admin/sessions/{$session->id}/kiosk")->assertOk();
+        $this->asUser($trainerUser)->getJson("/api/v1/admin/sessions/{$session->id}/trainer-attendance")->assertOk();
+        $this->asUser($trainerUser)->getJson("/api/v1/admin/sessions/{$otherSession->id}/kiosk")->assertForbidden();
+        $this->asUser($trainerUser)->getJson("/api/v1/admin/sessions/{$otherSession->id}/trainer-attendance")->assertForbidden();
+        $this->asUser($trainerUser)->postJson("/api/v1/admin/sessions/{$otherSession->id}/staff-scan", ['payload' => $qr($otherEmployee)])->assertForbidden();
+
+        // The right given on one programme by the head of training opens that programme's sessions and no other's.
+        $granted = $this->makeEmployee()->user;
+        app(ProgramGrantService::class)->grant($program, $granted, 'attendance.mark', $this->makeUser(Role::CENTER_ADMIN), null);
+        $this->asUser($granted)->postJson("/api/v1/admin/sessions/{$session->id}/staff-scan", ['payload' => $qr($employee)])->assertOk()->assertJsonPath('data.action', 'check_in');
+        $this->asUser($granted)->get("/api/v1/admin/groups/{$program->ensureGroup()->id}/attendance/export?format=xlsx")->assertOk();
+        $this->asUser($granted)->postJson("/api/v1/admin/sessions/{$otherSession->id}/staff-scan", ['payload' => $qr($otherEmployee)])->assertForbidden();
+        $this->asUser($granted)->get("/api/v1/admin/groups/{$otherProgram->ensureGroup()->id}/attendance/export?format=xlsx")->assertForbidden();
+        $this->assertSame(0, Attendance::where('program_session_id', $otherSession->id)->count());
+
+        // Centre staff are not tied to an assignment.
+        $this->asUser($this->makeUser(Role::CENTER_ADMIN))->postJson("/api/v1/admin/sessions/{$otherSession->id}/staff-scan", ['payload' => $qr($otherEmployee)])->assertOk();
     }
 }

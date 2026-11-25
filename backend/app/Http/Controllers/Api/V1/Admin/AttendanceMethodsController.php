@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Http\Controllers\Concerns\GuardsSessionAttendance;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramSession;
 use App\Models\Registration;
@@ -14,13 +15,21 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 
-/** Kiosk signature, staff scanning, the personal QR and trainer attendance. */
+/**
+ * Kiosk signature, staff scanning, the personal QR and trainer attendance.
+ *
+ * Everything here that reads or records the attendance of a session (or exports a group's) is for the people who run it,
+ * as the attendance sheet itself is: see GuardsSessionAttendance.
+ */
 class AttendanceMethodsController extends Controller
 {
+    use GuardsSessionAttendance;
+
     public function __construct(private readonly AttendanceMethodsService $methods) {}
 
     public function kiosk(ProgramSession $session): JsonResponse
     {
+        $this->authorizeSessionAttendance($session);
         $session->loadMissing('program');
 
         return response()->json(['data' => ['session' => ['id' => $session->id, 'title_ar' => $session->title_ar, 'title_en' => $session->title_en, 'starts_at' => $session->starts_at->toIso8601String(), 'ends_at' => $session->ends_at->toIso8601String()], 'roster' => $this->methods->roster($session, $this->user())]]);
@@ -28,6 +37,7 @@ class AttendanceMethodsController extends Controller
 
     public function sign(Request $request, ProgramSession $session): JsonResponse
     {
+        $this->authorizeSessionAttendance($session);
         $d = $request->validate(['registration_id' => ['required', 'uuid'], 'direction' => ['required', Rule::in(['in', 'out'])], 'signature' => ['required', 'string', 'max:420000']]);
         $a = $this->methods->sign($session, Registration::findOrFail($d['registration_id']), $d['direction'], $d['signature'], $this->user());
 
@@ -36,16 +46,21 @@ class AttendanceMethodsController extends Controller
 
     public function staffScan(Request $request, ProgramSession $session): JsonResponse
     {
+        $this->authorizeSessionAttendance($session);
+
         return response()->json(['data' => $this->methods->staffScan($session, $request->validate(['payload' => ['required', 'string', 'max:200']])['payload'], $this->user())]);
     }
 
     public function trainerRows(ProgramSession $session): JsonResponse
     {
+        $this->authorizeSessionAttendance($session);
+
         return response()->json(['data' => $this->methods->trainerRows($session)]);
     }
 
     public function markTrainer(Request $request, ProgramSession $session): JsonResponse
     {
+        $this->authorizeSessionAttendance($session);
         $d = $request->validate(['trainer_id' => ['required', 'uuid', 'exists:trainers,id'], 'status' => ['required', Rule::in(['present', 'absent'])], 'notes' => ['nullable', 'string', 'max:500']]);
         $this->methods->markTrainer($session, Trainer::findOrFail($d['trainer_id']), $d['status'], $this->user(), $d['notes'] ?? null);
 
@@ -54,6 +69,7 @@ class AttendanceMethodsController extends Controller
 
     public function exportSession(Request $request, ProgramSession $session, AttendanceExport $export): Response
     {
+        $this->authorizeSessionAttendance($session);
         $format = $request->validate(['format' => ['required', Rule::in(['xlsx', 'pdf'])]])['format'];
 
         return $this->file($format === 'xlsx' ? $export->sessionXlsx($session) : $export->sessionPdf($session), $format, 'attendance-'.$session->id);
@@ -61,6 +77,7 @@ class AttendanceMethodsController extends Controller
 
     public function exportGroup(Request $request, TrainingGroup $group, AttendanceExport $export): Response
     {
+        $this->authorizeGroupAttendance($group);
         $format = $request->validate(['format' => ['required', Rule::in(['xlsx', 'pdf'])]])['format'];
 
         return $this->file($format === 'xlsx' ? $export->groupXlsx($group) : $export->groupPdf($group), $format, 'attendance-'.$group->code);
@@ -68,6 +85,8 @@ class AttendanceMethodsController extends Controller
 
     public function blankSheet(ProgramSession $session, AttendanceExport $export): Response
     {
+        $this->authorizeSessionAttendance($session);
+
         return $this->file($export->blankSheet($session), 'pdf', 'sheet-'.$session->id);
     }
 
