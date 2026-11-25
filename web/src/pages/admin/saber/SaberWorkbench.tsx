@@ -330,7 +330,7 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onP
         </button>
         <button type="button" onClick={() => onDetails(p.id)} title={t('saber.details.open')} aria-label={t('saber.details.open')} className="grid size-9 place-items-center rounded-xl text-slate-400 transition hover:bg-ivory hover:text-navy-900"><Info className="size-4" /></button>
         <Lights lights={p.lights} complete={complete} />
-        <KitToggle program={p} disabled={!can('saber.group.manage')} onChange={(v) => patch({ kit_ready: v })} />
+        <KitToggle program={p} disabled={!can('saber.program.edit')} onChange={(v) => patch({ kit_ready: v })} />
       </div>
       {p.draft && <div className="px-4 pb-3"><DraftBar program={p} overview={overview} onChanged={onDraft} /></div>}
 
@@ -348,14 +348,14 @@ function ProgramRow({ program: p, overview, view, open, onToggle, onDetails, onP
             </label>
             <label className="flex items-center gap-2 text-xs font-semibold text-slate-500">
               {t('saber.program.daysPerGroup')}
-              <input type="number" min={1} max={200} defaultValue={p.days} key={p.days} disabled={!can('saber.group.manage')}
+              <input type="number" min={1} max={200} defaultValue={p.days} key={p.days} disabled={!can('saber.program.edit')}
                 onBlur={(e) => { const n = Number(e.target.value); if (n && n !== p.days) patch({ training_days: n }) }}
                 className="h-9 w-16 rounded-xl border border-navy-100 bg-white text-center text-sm font-bold text-navy-900" />
             </label>
             <FormsChip programId={p.id} />
             <div className="ms-auto flex items-center gap-2">
               <Link to={`/admin/programs/${p.id}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-navy-700 hover:text-gold-700"><ExternalLink className="size-3.5" />{t('saber.program.open')}</Link>
-              {can('saber.group.manage') && !p.cancelled && <Button size="sm" variant="gold" icon={<Plus className="size-4" />} loading={adding} onClick={addGroup}>{t('saber.group.add')}</Button>}
+              {can('saber.group.create') && !p.cancelled && <Button size="sm" variant="gold" icon={<Plus className="size-4" />} loading={adding} onClick={addGroup}>{t('saber.group.add')}</Button>}
             </div>
           </div>
           {p.groups.map((g) => <GroupPanel key={g.id} program={p} group={g} overview={overview} view={view} onGroup={onGroup} onRemoved={onRemoved} />)}

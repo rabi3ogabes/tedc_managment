@@ -34,7 +34,8 @@ Plan: `00-gap-analysis.md` (items A1–A13, E1–E2). Screen: **«سابر+»** 
 | saber.view | ✓ | ✓ | ✓ | ✓ | ✓ |
 | saber.program.create / cancel | ✓ | ✓ | ✓ | create | |
 | saber.program.reactivate | ✓ | | | | |
-| saber.group.manage / rename | ✓ | ✓ | ✓ | ✓ | |
+| saber.program.edit (kit readiness, days per group) | ✓ | ✓ | ✓ | ✓ | |
+| saber.group.create, group.edit, group.delete, group.rename | ✓ | ✓ | ✓ | ✓ | |
 | saber.group.validate | ✓ | ✓ | ✓ | | |
 | saber.day.edit, room.assign, trainer.assign | ✓ | ✓ | ✓ | ✓ | room |
 | saber.supervisor.assign, plan.view, survey_links.manage | ✓ | ✓ | ✓ | ✓ | |
@@ -42,6 +43,8 @@ Plan: `00-gap-analysis.md` (items A1–A13, E1–E2). Screen: **«سابر+»** 
 | trainers.validate | ✓ | ✓ | ✓ | | |
 
 New rights reach existing roles on the next deployment (`RolePermissionSeeder::ADDITIVE`).
+
+Since 2026-11-25 adding a group, editing it, deleting it and editing the programme's fields are four rights (they were one, `saber.group.manage`; migration `009800` gave the four to every role and person that held it). `saber.group.rename` names a group (name, colour, term) without renumbering it. Deleting a group also needs «السماح بحذف المجموعات» in the SABER+ settings. To give one person some of these and not others: Settings → Users → the person → «الصفحات» → «سابر+» → «المزايا».
 
 ## Data (`2026_01_01_008700_saber_plus_foundation`)
 

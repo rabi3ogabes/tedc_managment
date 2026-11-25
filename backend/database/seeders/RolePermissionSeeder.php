@@ -65,8 +65,12 @@ class RolePermissionSeeder extends Seeder
         'saber.program.cancel' => ['saber', 'إلغاء برنامج أو مجموعة', 'Cancel a programme or a group'],
         'saber.program.reactivate' => ['saber', 'إعادة تفعيل برنامج أو مجموعة ملغاة', 'Reactivate a cancelled programme or group'],
         'saber.meeting.recurring' => ['saber', 'حجز قاعة اجتماعات متكرر', 'Recurring meeting-room booking'],
-        'saber.group.manage' => ['saber', 'إدارة المجموعات (إضافة، ترقيم، لون، فصل، حقيبة)', 'Manage groups (add, number, colour, term, kit)'],
-        'saber.group.rename' => ['saber', 'تسمية المجموعات', 'Rename groups'],
+        // One right per action, so each can be given by itself (it was one right, `saber.group.manage`, until migration 009800).
+        'saber.program.edit' => ['saber', 'تعديل بيانات البرنامج (جاهزية الحقيبة، عدد الأيام)', "Edit a programme's details (kit readiness, number of days)"],
+        'saber.group.create' => ['saber', 'إضافة مجموعة', 'Add a group'],
+        'saber.group.edit' => ['saber', 'تعديل المجموعة (الترقيم، الاسم، اللون، الفصل)', 'Edit a group (number, name, colour, term)'],
+        'saber.group.delete' => ['saber', 'حذف مجموعة', 'Delete a group'],
+        'saber.group.rename' => ['saber', 'تسمية المجموعة فقط (الاسم، اللون، الفصل)', 'Name a group only (name, colour, term)'],
         'saber.group.validate' => ['saber', 'اعتماد المجموعة (رئيس قسم التدريب)', 'Approve a group (head of training)'],
         'saber.day.edit' => ['saber', 'تعديل أيام المجموعة وتواريخها', "Edit a group's days and dates"],
         'saber.room.assign' => ['saber', 'إسناد القاعات لأيام المجموعات', "Assign rooms to groups' days"],
@@ -228,7 +232,7 @@ class RolePermissionSeeder extends Seeder
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports',
-            'saber.view', 'saber.program.create', 'saber.group.manage', 'saber.group.rename', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign',
+            'saber.view', 'saber.program.create', 'saber.program.edit', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.group.rename', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign',
             'saber.supervisor.assign', 'saber.plan.view', 'saber.survey_links.manage',
         ]],
         Role::TRAINER => ['مدرب', 'Trainer', 50, ['plc.view', 'surveys.view', 'surveys.results', 'library.view', 'programs.view', 'materials.manage', 'attendance.manage', 'tasks.manage', 'tasks.review', 'trainers.respond', 'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'search.global', 'communities.create', 'ai.feedback.review', 'adaptive.manage']],
@@ -262,7 +266,7 @@ class RolePermissionSeeder extends Seeder
             'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
             'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
             'pricing.manage', 'orders.view', 'entity_accounts.manage', 'finance.reports', 'refunds.approve',
-            'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
+            'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.meeting.recurring', 'saber.program.edit', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.group.rename', 'saber.group.validate',
             'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate', 'saber.publish',
         ]],
         Role::ACADEMIC_DEPUTY => ['مسؤول التطوير المهني (النائب الأكاديمي)', 'Professional Development Officer (Academic Deputy)', 45, ['plc.view', 'plc.internal.submit', 'plc.nominate', 'plc.attendance.manage', 'plc.reports',
@@ -381,7 +385,7 @@ class RolePermissionSeeder extends Seeder
         // Phase 18
         'help.manage',
         // سابر+ (docs/saber)
-        'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename',
+        'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.rename',
         'saber.group.validate', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
         'saber.publish',
     ];

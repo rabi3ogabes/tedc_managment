@@ -84,15 +84,16 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
     } catch (e) { toast(errorMessage(e), 'error') }
   }
 
-  const canManage = can('saber.group.manage')
-  const canRename = canManage || can('saber.group.rename')
+  // Each control has its own right: numbering is editing the group, naming may also be given by itself, deleting is its own.
+  const canEdit = can('saber.group.edit')
+  const canRename = canEdit || can('saber.group.rename')
   const colour = group.color ?? overview.palette[0]
 
   return (
     <section className="overflow-visible rounded-2xl border border-navy-100 bg-white" style={{ borderInlineStartWidth: 4, borderInlineStartColor: colour }}>
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-navy-50 px-4 py-3">
         <ColourDot value={colour} palette={overview.palette} disabled={!canRename || !editable} onPick={(c) => patchGroup({ color: c })} label={t('saber.group.colour')} />
-        <input type="number" min={1} defaultValue={group.number} key={`n-${group.number}`} disabled={!canManage || !editable} aria-label={t('saber.group.number')}
+        <input type="number" min={1} defaultValue={group.number} key={`n-${group.number}`} disabled={!canEdit || !editable} aria-label={t('saber.group.number')}
           onBlur={(e) => { const n = Number(e.target.value); if (n && n !== group.number) patchGroup({ sequence: n }); else e.target.value = String(group.number) }}
           className="h-8 w-14 rounded-lg border border-transparent bg-ivory text-center text-sm font-bold text-navy-900 hover:border-navy-100 focus:border-gold-400 focus:outline-none disabled:bg-transparent" />
         <input defaultValue={group.title ?? ''} key={`t-${group.title}`} disabled={!canRename || !editable} aria-label={t('saber.group.name')} placeholder={name}
@@ -111,7 +112,7 @@ export default function GroupPanel({ program, group, overview, view, onGroup, on
           {can('saber.plan.view') && editable && <IconButton label={t('saber.plan.fromGroup')} onClick={() => actions.plan(program, group)}><CalendarRange className="size-4" /></IconButton>}
           {can('saber.day.edit') && editable && <IconButton label={t('saber.group.reset')} onClick={resetGroup}><Eraser className="size-4" /></IconButton>}
           {live && can('saber.program.cancel') && editable && <IconButton label={t('saber.cancel.cancelGroup')} onClick={() => actions.cancelGroup(program, group)} danger><Ban className="size-4" /></IconButton>}
-          {canManage && overview.settings.group_delete_enabled && <IconButton label={t('saber.group.delete')} onClick={remove} danger><Trash2 className="size-4" /></IconButton>}
+          {can('saber.group.delete') && overview.settings.group_delete_enabled && <IconButton label={t('saber.group.delete')} onClick={remove} danger><Trash2 className="size-4" /></IconButton>}
         </div>
       </header>
 

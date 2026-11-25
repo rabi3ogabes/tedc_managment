@@ -164,3 +164,49 @@ export function limitsAt(page: Page | undefined, rights: readonly string[], deni
   const held = areasOf(page).filter((a) => rights.some((r) => areaOf(r) === a && writes(r)))
   return held.length ? LEVELS.filter((l) => held.every((a) => (denied[a] ?? []).includes(l))) : []
 }
+
+// ── The features of a page, one by one ─────────────────────────────────────────────────────────────────────────────────
+
+/** What a right lets the person do, told from its last word: `saber.group.create` adds, `saber.program.cancel` deletes. */
+export type Kind = 'view' | 'add' | 'edit' | 'delete' | 'other'
+const KINDS: Record<Exclude<Kind, 'other'>, readonly string[]> = {
+  view: ['view'],
+  add: ['create', 'add', 'import', 'book', 'request', 'propose', 'submit', 'nominate', 'generate', 'issue'],
+  edit: ['edit', 'rename', 'assign', 'manage', 'settings', 'schedule', 'status', 'recurring', 'grade', 'moderate'],
+  delete: ['delete', 'cancel', 'revoke', 'purge'],
+}
+export function kindOf(slug: string): Kind {
+  const last = slug.split('.').pop() ?? ''
+  return (Object.keys(KINDS) as Exclude<Kind, 'other'>[]).find((k) => KINDS[k].includes(last)) ?? 'other'
+}
+
+/**
+ * The areas whose features are listed under this page. An area is listed once, under the first page of the menu it
+ * opens (the rights of «البرامج» are under «البرامج», not again under «القاعات»), and never under a page that only shows things.
+ */
+export const featureAreas = (page: Page, g: Ground): string[] =>
+  page.plain ? [] : areasOf(page).filter((a) => g.pages.find((q) => !q.plain && areasOf(q).includes(a))?.to === page.to)
+/** Every right of those areas, in the order of the catalogue: the features an administrator gives one by one. */
+export const featuresOf = (page: Page, g: Ground): string[] => { const areas = featureAreas(page, g); return g.known.filter((k) => areas.includes(areaOf(k))) }
+/** A right that cannot be switched off here: it is the last one keeping the page open (the page has its own switch for that). */
+export const keepsOpen = (page: Page, slug: string, d: Draft): boolean => { const held = doorsOf(page).filter((x) => d.rights.has(x)); return held.length === 1 && held[0] === slug }
+/** The other pages a right opens, so the administrator sees what else it touches. */
+export const alsoOpens = (page: Page, slug: string, g: Ground): Page[] => g.pages.filter((q) => q.to !== page.to && doorsOf(q).includes(slug))
+
+/** Gives or takes one feature. A page the right would also open was not asked for, so it starts hidden (as in `show`). */
+export function setFeature(page: Page, slug: string, on: boolean, d: Draft, g: Ground): Draft {
+  if (!shown(page, d) || d.rights.has(slug) === on || (!on && keepsOpen(page, slug, d))) return d
+  const rights = new Set(d.rights)
+  const hidden = new Set(d.hidden)
+  if (on) {
+    const before = new Set(g.pages.filter((q) => opens(q, d.rights)).map((q) => q.to))
+    rights.add(slug)
+    for (const q of g.pages) if (!before.has(q.to) && opens(q, rights)) hidden.add(q.to)
+  } else rights.delete(slug)
+  return clean({ rights, hidden, denied: d.denied })
+}
+
+/** Every feature of the page at once: all of them, or none but what keeps the page open ("to look only"). */
+export function setFeatures(page: Page, on: boolean, d: Draft, g: Ground): Draft {
+  return featuresOf(page, g).reduce((draft, slug) => setFeature(page, slug, on, draft, g), d)
+}
