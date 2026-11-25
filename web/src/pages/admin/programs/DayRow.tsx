@@ -70,6 +70,7 @@ export default function DayRow({ on, win, today, loading, onPick, onAnchor }: {
         <ul className="ms-auto hidden items-center gap-3 text-[11px] font-semibold text-slate-500 lg:flex">
           <li className="inline-flex items-center gap-1.5"><span className="size-3 rounded-full bg-navy-900" />{t('progDay.legend.lit')}</li>
           <li className="inline-flex items-center gap-1.5"><span className="size-3 rounded-full bg-gold-100 ring-1 ring-inset ring-gold-400" />{t('progDay.legend.off')}</li>
+          <li className="inline-flex items-center gap-1.5"><span className="rounded-md bg-gold-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-navy-950">{t('progDay.today')}</span>{t('progDay.legend.today')}</li>
         </ul>
       </div>
 
@@ -96,11 +97,24 @@ function DayChip({ day, today, selected, innerRef, onClick }: { day: DayCell; to
         // The two states in the colours of the brand: a day with training is the maroon, a day without is the light dune.
         lit ? 'border-navy-900 bg-navy-900 text-white shadow-[0_14px_24px_-16px_color-mix(in_oklab,var(--color-navy-950)_85%,transparent)]'
           : 'border-gold-200 bg-gold-100 text-gold-900',
-        selected && 'ring-[3px] ring-gold-500 ring-offset-2')}>
-      {/* The lamp of the day: on when programmes train on it, off when none does. */}
-      <span aria-hidden className={clsx('absolute inset-x-3 top-0 h-1 rounded-b-full', lit ? 'bg-gold-300' : 'bg-gold-300/60')} />
-      <span className={clsx('text-[11px] font-bold leading-none', lit ? (isToday ? 'text-gold-200' : 'text-white/75') : isToday ? 'text-navy-900' : 'text-gold-800')}>{isToday ? t('progDay.today') : fmt.date(noon(day.date), { weekday: 'short' })}</span>
-      <span className="mt-1 font-display text-2xl font-bold leading-none tabular-nums">{fmt.date(noon(day.date), { day: 'numeric' })}</span>
+        // Today is outlined whether it trains or not; the ring of the chosen day sits outside the outline when today is chosen too.
+        isToday && (lit ? 'outline outline-2 -outline-offset-2 outline-gold-400' : 'outline outline-2 -outline-offset-2 outline-navy-900'),
+        selected && 'ring-[3px] ring-gold-500 ring-offset-2')}
+      aria-current={isToday ? 'date' : undefined} data-today={isToday || undefined}>
+      {isToday ? (
+        // Today carries its name on a band across the top of the tile, in the accent of the other state, so it is found at a
+        // glance among lit and unlit days alike.
+        <span className={clsx('absolute inset-x-0 top-0 flex h-[1.35rem] items-center justify-center gap-1 text-[11px] font-bold leading-none', lit ? 'bg-gold-400 text-navy-950' : 'bg-navy-900 text-white')}>
+          <span aria-hidden className={clsx('size-1.5 rounded-full motion-safe:animate-pulse', lit ? 'bg-navy-900' : 'bg-gold-300')} />{t('progDay.today')}
+        </span>
+      ) : (
+        <>
+          {/* The lamp of the day: on when programmes train on it, off when none does. */}
+          <span aria-hidden className={clsx('absolute inset-x-3 top-0 h-1 rounded-b-full', lit ? 'bg-gold-300' : 'bg-gold-300/60')} />
+          <span className={clsx('text-[11px] font-bold leading-none', lit ? 'text-white/75' : 'text-gold-800')}>{fmt.date(noon(day.date), { weekday: 'short' })}</span>
+        </>
+      )}
+      <span className={clsx('font-display text-2xl font-bold leading-none tabular-nums', isToday ? 'mt-[1.15rem]' : 'mt-1')}>{fmt.date(noon(day.date), { day: 'numeric' })}</span>
       <span className={clsx('mt-0.5 text-[10px] leading-none', lit ? 'text-white/70' : 'text-gold-800')}>{day.off ? t('progDay.dayOff') : fmt.date(noon(day.date), { month: 'short' })}</span>
       <span className={clsx('mt-auto inline-flex items-center gap-1 text-xs font-bold tabular-nums', lit ? 'text-white' : 'text-gold-600')}>
         {lit ? <><Lightbulb className="size-3.5 text-gold-300" />{fmt.number(day.programs)}</> : <LightbulbOff className="size-3.5" />}
