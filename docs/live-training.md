@@ -47,8 +47,8 @@ attendance is not recorded it would be raised in every room.
   The board is read in a fixed number of queries whatever the number of rooms; it carries only what the drawing needs (the names of
   the trainees who are seated, not the whole roster). The card is read when a room is opened.
 * **Permission** — `live_training.view` (new). Granted to the system administrator, the centre administrator, the training
-  supervisor (مشرف التدريب), the head of training, the centre leadership and the executive role. A deploy adds it to existing
-  databases (`RolePermissionSeeder::additive`). Trainers, school roles and trainees do not see the page.
+  supervisor (مشرف التدريب), the head of training, the centre leadership and the executive role. The deploy that brings it adds it to existing
+  databases, once (`RolePermissionSeeder::additive`). Trainers, school roles and trainees do not see the page.
 * **Refresh** — while it shows today the page asks for the board every 5 seconds around a session (from fifteen minutes before a
   start until five minutes after an end), every 15 seconds while sessions are still ahead and every 30 once the day is over
   (`pollEvery`; the host is serverless, so there is no socket). Another day is read once.

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -310,79 +311,49 @@ class RolePermissionSeeder extends Seeder
     }
 
     /**
-     * For a database that already exists: adds the permissions and roles that are new in this release and gives system
-     * roles the permissions they lack — it never removes a permission an administrator granted or revoked by hand.
+     * For a database that already exists (every deploy runs it): brings what is new in this release and leaves the rest as the
+     * administrator set it in Settings → Roles & permissions.
+     *
+     * A right that is new to the database is created and given, that one time, to the existing roles this seeder lists it for;
+     * a role that is new gets its whole set. A right that was already there is never given again, so one an administrator took
+     * from a role stays taken, and nothing is ever removed.
+     *
+     * @param  list<string>|null  $known  the rights the database had before the migrations of this deploy ran: a right one of
+     *                                    them created (RoleCharter::grantMissing) is still new, and reaches the other roles
+     *                                    that are meant to hold it
      */
-    public function additive(): void
+    public function additive(?array $known = null): void
     {
-        foreach (self::PERMISSIONS as $slug => [$group, $ar, $en]) {
-            Permission::firstOrCreate(['slug' => $slug], ['group' => $group, 'name_ar' => $ar, 'name_en' => $en]);
-        }
-        $all = Permission::pluck('id', 'slug');
-
-        foreach (self::ROLES as $slug => [$ar, $en, $level, $grants]) {
-            $role = Role::where('slug', $slug)->first();
-            $created = ! $role;
-            $role ??= Role::create(['slug' => $slug, 'name_ar' => $ar, 'name_en' => $en, 'level' => $level, 'is_system' => true]);
-            $role->fill(['is_system' => true, 'level' => $level, 'scope_levels' => $role->scope_levels ?? (self::SCOPE_LEVELS[$slug] ?? ['ministry']), 'landing_route' => $role->landing_route ?? (self::LANDING[$slug] ?? null)]);
-            if ($created || $slug === Role::COORDINATOR) {
-                $role->fill(['name_ar' => $ar, 'name_en' => $en]);   // new roles, and the renamed coordinator
+        DB::transaction(function () use ($known) {
+            $new = [];
+            foreach (self::PERMISSIONS as $slug => [$group, $ar, $en]) {
+                if (Permission::firstOrCreate(['slug' => $slug], ['group' => $group, 'name_ar' => $ar, 'name_en' => $en])->wasRecentlyCreated) {
+                    $new[] = $slug;
+                }
             }
-            $role->save();
+            $all = Permission::pluck('id', 'slug');
+            if ($known !== null) {
+                $new = array_diff($all->keys()->all(), $known);
+            }
 
-            $slugs = in_array('*', $grants, true) ? $all->keys()->all() : $grants;
-            $slugs = array_diff($slugs, array_map(fn ($g) => ltrim($g, '-'), array_filter($grants, fn ($g) => str_starts_with($g, '-'))));
-            // Only the permissions introduced in this release are attached to existing roles; a new role gets its whole set.
-            $role->permissions()->syncWithoutDetaching($all->only($created ? $slugs : array_intersect($slugs, self::ADDITIVE))->values());
-        }
+            foreach (self::ROLES as $slug => [$ar, $en, $level, $grants]) {
+                $role = Role::where('slug', $slug)->first();
+                $created = ! $role;
+                $role ??= Role::create(['slug' => $slug, 'name_ar' => $ar, 'name_en' => $en, 'level' => $level, 'is_system' => true]);
+                $role->fill(['is_system' => true, 'level' => $level, 'scope_levels' => $role->scope_levels ?? (self::SCOPE_LEVELS[$slug] ?? ['ministry']), 'landing_route' => $role->landing_route ?? (self::LANDING[$slug] ?? null)]);
+                if ($created || $slug === Role::COORDINATOR) {
+                    $role->fill(['name_ar' => $ar, 'name_en' => $en]);   // new roles, and the renamed coordinator
+                }
+                $role->save();
+
+                $slugs = in_array('*', $grants, true) ? $all->keys()->all() : $grants;
+                $slugs = array_diff($slugs, array_map(fn ($g) => ltrim($g, '-'), array_filter($grants, fn ($g) => str_starts_with($g, '-'))));
+                // An existing role gets only the rights that are new to the database; a new role gets its whole set.
+                $give = $all->only($created ? $slugs : array_intersect($slugs, $new))->values();
+                if ($give->isNotEmpty()) {
+                    $role->permissions()->syncWithoutDetaching($give);
+                }
+            }
+        });
     }
-
-    /**
-     * Permissions introduced by the RFP phases, so a deploy attaches them to existing roles without touching the rest.
-     * Every phase appends its new permissions here.
-     */
-    private const ADDITIVE = [
-        // Live training board
-        'live_training.view',
-        // Phase 01
-        'scopes.manage', 'roles.create', 'program_grants.manage', 'trainers.assign', 'trainers.approve', 'rooms.book', 'logistics.manage', 'plans.view', 'plans.manage', 'plans.approve', 'instruments.approve', 'pd.approve', 'workshops.internal', 'search.global',
-        // Phase 02
-        'groups.manage', 'groups.status', 'workshops.approve', 'trainers.respond',
-        // Phase 03
-        'competencies.manage', 'needs.cycles', 'needs.propose', 'needs.request', 'needs.approve_individual', 'performance.import', 'gaps.view',
-        // Phase 04
-        'seats.manage', 'priority.manage', 'registrations.approve_manager', 'registrations.approve_center', 'withdrawals.decide', 'withdrawals.policy', 'external_forms.manage', 'external_requests.review',
-        // Phase 05
-        'attendance.devices', 'excuses.decide', 'leaves.manage', 'seating.manage', 'places.manage',
-        // Phase 06
-        'banks.manage', 'assessments.manage', 'assessments.grade', 'assessments.invigilate', 'assessments.analytics',
-        // Phase 07
-        'passing.manage', 'pass_exceptions.grant', 'tasks.final_approve',
-        // Phase 10
-        'packages.manage', 'lti.manage', 'standards.manage', 'library.manage', 'library.view', 'sharing.manage', 'providers.manage', 'job_groups.manage',
-        // Phase 09
-        'paths.manage', 'licences.manage', 'pd.types.manage', 'pd.recognise', 'pd.targets.manage', 'knowledge_transfer.review',
-        // Phase 13
-        'integrations.manage', 'integrations.logs', 'webhooks.manage', 'sso.manage', 'security.policy', 'sessions.manage', 'migration.run',
-        // Phase 12
-        'reports.builder', 'reports.schedule', 'reports.export_personal', 'dashboards.manage', 'kpi.view',
-        // Phase 11
-        'notifications.rules', 'notifications.schedule', 'notifications.reports', 'announcements.publish', 'cms.manage', 'ministry_feed.manage',
-        // Phase 08
-        'evaluations.manage', 'evaluations.respond_planning', 'evaluation_reports.prepare', 'evaluation_reports.approve', 'interviews.manage', 'satisfaction_alerts.manage',
-        // Phase 14
-        'communities.create', 'communities.moderate', 'forums.moderate', 'ratings.moderate', 'gamification.manage', 'rewards.manage',
-        // Phase 15
-        'ai.settings', 'ai.forecasts.view', 'ai.feedback.review', 'adaptive.manage',
-        // Phase 16
-        'pricing.manage', 'orders.view', 'refunds.approve', 'entity_accounts.manage', 'finance.reports',
-        // Phase 17
-        'privacy.manage',
-        // Phase 18
-        'help.manage',
-        // سابر+ (docs/saber)
-        'saber.view', 'saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename',
-        'saber.group.validate', 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage', 'trainers.validate',
-        'saber.publish',
-    ];
 }
