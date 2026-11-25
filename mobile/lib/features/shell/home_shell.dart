@@ -21,9 +21,10 @@ import '../home/role_home.dart';
 import '../home/staff_home.dart';
 import '../notifications/notification_bell.dart';
 import '../security/biometric_offer.dart';
-import '../supervisor/supervisor_home.dart';
-import '../supervisor/supervisor_programmes.dart';
-import '../supervisor/supervisor_tabs.dart';
+import '../workspace/kits.dart';
+import '../workspace/workspace_home.dart';
+import '../workspace/workspace_programmes.dart';
+import '../workspace/workspace_tabs.dart';
 import 'app_nav_bar.dart';
 
 /// Main navigation: Home · Programs · My Training · Certificates · Notifications · Profile.
@@ -186,7 +187,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 
   /// Tabs are switched with go(); screens opened on top (e.g. a survey) are pushed so Back works.
-  void _open(String route) => NotificationRoute.isTab(route) ? context.go(tabAddress(route, supervisor: ref.read(authProvider).value?.worksAsSupervisor ?? false)) : context.push(route);
+  void _open(String route) => NotificationRoute.isTab(route) ? context.go(tabAddress(route, workspace: ref.read(authProvider).value?.workspace)) : context.push(route);
 
   @override
   Widget build(BuildContext context) {
@@ -198,13 +199,13 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // Everyone who is not working as a trainee gets the home screen of their role: what needs their action.
     final slug = me?.workSlug ?? 'employee';
     final roleHome = me != null && slug != 'employee' && widget.shell.currentIndex == 0;
-    // «مشرف»: the first four tabs are their own — home, their programmes, attendance, the surveys.
-    final supervisor = supervisorTab(me?.worksAsSupervisor ?? false, widget.shell.currentIndex, widget.location);
+    // «مشرف» and «مدرب»: the first four tabs are their own — home, their programmes, attendance, then the surveys or the kits.
+    final own = workspaceTab(me?.workspace, widget.shell.currentIndex, widget.location);
     final darkTop = (roleHome || !staff) && AppStyle.header != 'flat';
 
     return Scaffold(
       body: Stack(children: [
-        supervisor ?? (roleHome ? const RoleHome() : (showStaffHome ? const StaffHome() : widget.shell)),
+        own ?? (roleHome ? const RoleHome() : (showStaffHome ? const StaffHome() : widget.shell)),
         // The notifications button lives at the left of the home screen (physical left in both languages).
         if (widget.shell.currentIndex == 0)
           Positioned(
@@ -232,21 +233,21 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
   }
 }
 
-/// Where a notification that names a tab leads. A supervisor's «البرامج», «تدريبي» and «الشهادات» tabs are their own
-/// screens, and a notice about their own training (a certificate, a registration) means the page it names: `own=1` asks
-/// for that page as it is.
-String tabAddress(String route, {required bool supervisor}) => supervisor && const ['/programs', '/training', '/certificates'].contains(route) ? '$route?own=1' : route;
+/// Where a notification that names a tab leads. In a [workspace] (a supervisor's or a trainer's app) «البرامج», «تدريبي»
+/// and «الشهادات» are the person's own screens, and a notice about their own training (a certificate, a registration)
+/// means the page it names: `own=1` asks for that page as it is.
+String tabAddress(String route, {required String? workspace}) => workspace != null && const ['/programs', '/training', '/certificates'].contains(route) ? '$route?own=1' : route;
 
-/// The supervisor's own screen for a tab, or null where the tab keeps what everybody has (the account, any page opened
-/// inside a tab, and a tab asked for as it is — see [tabAddress]). The tabs keep their addresses, so links that open a
-/// tab still work.
-Widget? supervisorTab(bool supervisor, int index, String location) {
-  if (!supervisor || index < 0 || index > 3) return null;
+/// The screen of a supervisor or a trainer for a tab, or null where the tab keeps what everybody has (the account, any
+/// page opened inside a tab, and a tab asked for as it is — see [tabAddress]). The tabs keep their addresses, so links
+/// that open a tab still work.
+Widget? workspaceTab(String? workspace, int index, String location) {
+  if (workspace == null || index < 0 || index > 3) return null;
   if (location.isNotEmpty && location != appTabs[index]) return null;
   return switch (index) {
-    0 => const SupervisorHome(),
-    1 => const SupervisorProgrammes(),
-    2 => const SupervisorAttendance(),
-    _ => const SupervisorSurveys(),
+    0 => const WorkspaceHome(),
+    1 => const WorkspaceProgrammes(),
+    2 => const WorkspaceAttendance(),
+    _ => workspace == 'trainer' ? const WorkspaceKits() : const WorkspaceSurveys(),
   };
 }

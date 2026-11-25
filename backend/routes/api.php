@@ -1121,6 +1121,11 @@ Route::prefix('v1')->group(function () {
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
                 Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
                 Route::post('sessions/{session}/attendance', [SessionController::class, 'mark']);
+                // From the sheet: a trainee who left early (and taking it back), a comment about a trainee, a remark about the session.
+                Route::post('sessions/{session}/early-leave', [SessionController::class, 'earlyLeave']);
+                Route::delete('sessions/{session}/early-leave/{registration}', [SessionController::class, 'stayed'])->whereUuid('registration');
+                Route::put('sessions/{session}/attendance/{registration}/note', [SessionController::class, 'note'])->whereUuid('registration');
+                Route::put('sessions/{session}/remark', [SessionController::class, 'remark']);
                 Route::get('sessions/{session}/attendance/export', [AttendanceMethodsController::class, 'exportSession']);
                 Route::get('groups/{group}/attendance/export', [AttendanceMethodsController::class, 'exportGroup']);
                 Route::get('sessions/{session}/sheet.pdf', [AttendanceMethodsController::class, 'blankSheet']);

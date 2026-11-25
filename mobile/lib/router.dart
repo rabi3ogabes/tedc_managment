@@ -48,8 +48,9 @@ import 'features/shell/home_shell.dart';
 import 'features/profile/approvals_screen.dart';
 import 'features/attendance/roll_call_screen.dart';
 import 'features/duties/my_programmes_screen.dart';
-import 'features/supervisor/session_codes.dart';
-import 'features/supervisor/supervisor_programmes.dart';
+import 'features/workspace/kits.dart';
+import 'features/workspace/session_codes.dart';
+import 'features/workspace/workspace_programmes.dart';
 import 'features/team/team_screen.dart';
 import 'features/profile/my_qr_screen.dart';
 import 'features/profile/assignments_screen.dart';
@@ -101,6 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/team', builder: (_, _) => const TeamScreen()),
           GoRoute(path: '/my-programs', builder: (_, _) => const MyProgrammesScreen()),
           GoRoute(path: '/my-programs/:id', builder: (_, s) => ProgrammeScreen(groupId: s.pathParameters['id']!, part: s.uri.queryParameters['part'])),
+          GoRoute(path: '/teaching-kit/:id', builder: (_, s) => KitInfoScreen(kitId: s.pathParameters['id']!, programId: s.uri.queryParameters['program'] ?? '')),
           GoRoute(path: '/session-qr/:id', builder: (_, s) => SessionQrScreen(sessionId: s.pathParameters['id']!, fromSheet: s.uri.queryParameters['from'] == 'sheet')),
           GoRoute(path: '/staff-scan/:id', builder: (_, s) => StaffScanScreen(sessionId: s.pathParameters['id']!, fromSheet: s.uri.queryParameters['from'] == 'sheet')),
           GoRoute(path: '/today', builder: (_, _) => const TodayBoardScreen()),

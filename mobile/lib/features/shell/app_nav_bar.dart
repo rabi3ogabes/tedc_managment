@@ -11,15 +11,17 @@ import 'nav_styles.dart';
 /// The five tabs, in order. Every screen of the app shows the same footer so the user can always jump to another section.
 const appTabs = ['/home', '/programs', '/training', '/certificates', '/profile'];
 
-/// Which tab a screen belongs to (the one that should look selected under it). A [supervisor] has «برامجي» as the second
-/// tab and «الحضور» as the third, so a group's page and the screens of a session's attendance sit under those.
-int tabIndexFor(String location, {bool supervisor = false}) {
+/// Which tab a screen belongs to (the one that should look selected under it). In a [workspace] (a supervisor's or a
+/// trainer's app) «برامجي» is the second tab and «الحضور» the third, so a group's page and the screens of a session's
+/// attendance sit under those; a trainer's fourth tab is «الحقائب», where a kit opens.
+int tabIndexFor(String location, {String? workspace}) {
   for (var i = 0; i < appTabs.length; i++) {
     if (location == appTabs[i] || location.startsWith('${appTabs[i]}/')) return i;
   }
-  if (supervisor) {
+  if (workspace != null) {
     if (location.startsWith('/my-programs')) return 1;
     if (const ['/roll-call', '/session-qr', '/staff-scan', '/today'].any((p) => location == p || location.startsWith('$p/'))) return 2;
+    if (workspace == 'trainer' && const ['/teaching-kit', '/kit'].any((p) => location.startsWith('$p/'))) return 3;
   }
   const training = ['/sessions', '/registrations', '/courses', '/lessons', '/tasks', '/surveys', '/my-program', '/scan', '/roll-call'];
   if (training.any((p) => location == p || location.startsWith('$p/'))) return 2;
@@ -36,13 +38,13 @@ class AppNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = context.s;
-    final supervisor = ref.watch(authProvider).value?.worksAsSupervisor ?? false;
+    final workspace = ref.watch(authProvider).value?.workspace;
     return StyledNavBar(
       style: AppStyle.nav ?? ref.watch(brandProvider).navStyle,
       selectedIndex: selectedIndex,
       onSelected: onSelected,
-      tabs: supervisor
-          ? supervisorTabs(s)
+      tabs: workspace != null
+          ? workspaceTabs(s, workspace)
           : [
               NavTab(Icons.home_outlined, Icons.home, s.t('nav.home')),
               NavTab(Icons.menu_book_outlined, Icons.menu_book, s.t('nav.programs')),
@@ -54,12 +56,13 @@ class AppNavBar extends ConsumerWidget {
   }
 }
 
-/// The supervisor's five tabs, in the place of the trainee's: home, their programmes, attendance, the surveys, the account.
-List<NavTab> supervisorTabs(S s) => [
+/// The five tabs of a supervisor or a trainer, in the place of the trainee's: home, their programmes, attendance, then
+/// the surveys for a supervisor and the training kits for a trainer, and the account.
+List<NavTab> workspaceTabs(S s, String workspace) => [
       NavTab(Icons.home_outlined, Icons.home, s.t('nav.home')),
-      NavTab(Icons.assignment_outlined, Icons.assignment, s.t('sup.nav.programs')),
-      NavTab(Icons.fact_check_outlined, Icons.fact_check, s.t('sup.nav.attendance')),
-      NavTab(Icons.rate_review_outlined, Icons.rate_review, s.t('sup.nav.surveys')),
+      NavTab(Icons.assignment_outlined, Icons.assignment, s.t('work.nav.programs')),
+      NavTab(Icons.fact_check_outlined, Icons.fact_check, s.t('work.nav.attendance')),
+      if (workspace == 'trainer') NavTab(Icons.inventory_2_outlined, Icons.inventory_2, s.t('work.nav.kits')) else NavTab(Icons.rate_review_outlined, Icons.rate_review, s.t('work.nav.surveys')),
       NavTab(Icons.person_outline, Icons.person, s.t('nav.profile')),
     ];
 
@@ -75,7 +78,7 @@ class DetailShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
         body: child,
         bottomNavigationBar: AppNavBar(
-          selectedIndex: tabIndexFor(location, supervisor: ref.watch(authProvider).value?.worksAsSupervisor ?? false),
+          selectedIndex: tabIndexFor(location, workspace: ref.watch(authProvider).value?.workspace),
           onSelected: (i) => context.go(appTabs[i]),
         ),
       );

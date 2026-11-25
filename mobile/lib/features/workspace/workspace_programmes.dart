@@ -10,17 +10,18 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../duties/duties_model.dart';
 import 'parts.dart';
-import 'supervision.dart';
+import 'workspace.dart';
 
-/// «برامجي» in the supervisor's app: every programme group given to them, by where it stands. A group opens its own page.
-class SupervisorProgrammes extends ConsumerStatefulWidget {
-  const SupervisorProgrammes({super.key});
+/// «برامجي» in the app of a supervisor or a trainer: every programme group given to them, by where it stands. A group
+/// opens its own page.
+class WorkspaceProgrammes extends ConsumerStatefulWidget {
+  const WorkspaceProgrammes({super.key});
 
   @override
-  ConsumerState<SupervisorProgrammes> createState() => _SupervisorProgrammesState();
+  ConsumerState<WorkspaceProgrammes> createState() => _WorkspaceProgrammesState();
 }
 
-class _SupervisorProgrammesState extends ConsumerState<SupervisorProgrammes> {
+class _WorkspaceProgrammesState extends ConsumerState<WorkspaceProgrammes> {
   String _phase = 'all';
 
   @override
@@ -74,7 +75,23 @@ class _SupervisorProgrammesState extends ConsumerState<SupervisorProgrammes> {
   }
 }
 
-/// One group in a list: what it is, where it stands, when and where it runs, and how many are in it. It opens the group.
+bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// The days a group runs: one day, or the first and the last.
+String groupDates(Json group, Fmt fmt) {
+  final from = group.date('from');
+  final to = group.date('to');
+  return from == null ? '—' : (to == null || _sameDay(from, to) ? fmt.date(from) : '${fmt.dayMonth(from)} – ${fmt.date(to)}');
+}
+
+/// Where a group is held: online, its rooms, or not set yet.
+String groupPlace(Json group, S s) {
+  final rooms = group.list('rooms').map((r) => Duties.name(r, s.languageCode)).where((r) => r.isNotEmpty).join('، ');
+  return group.obj('program')?.str('delivery_mode') == 'online' ? s.t('mode.online') : (rooms.isEmpty ? s.t('duties.placeTbd') : rooms);
+}
+
+/// One group in a list: what it is, where it stands, the days and the hour it starts, its room, its hours, and how many
+/// are in it; its kits for somebody who teaches it. It opens the group.
 class GroupTile extends StatelessWidget {
   const GroupTile({super.key, required this.group});
 
@@ -88,14 +105,13 @@ class GroupTile extends StatelessWidget {
     final program = group.obj('program') ?? const {};
     final phase = group.str('phase');
     final sub = Duties.groupTitle(group, lang);
-    final from = group.date('from');
-    final to = group.date('to');
-    final rooms = group.list('rooms').map((r) => Duties.name(r, lang)).where((r) => r.isNotEmpty).join('، ');
-    final place = program.str('delivery_mode') == 'online' ? s.t('mode.online') : (rooms.isEmpty ? s.t('duties.placeTbd') : rooms);
     final sessions = group.list('sessions');
     final done = sessions.where((x) => x.str('when') == 'past').length;
     final (bg, fg) = stateColors(phase);
-    final dates = from == null ? '—' : (to == null || _sameDay(from, to) ? fmt.date(from) : '${fmt.dayMonth(from)} – ${fmt.date(to)}');
+    final hours = Workspace.groupHours(group);
+    final kits = Workspace.kitCount(group);
+    final both = Duties.supervises(group) && Duties.teaches(group);
+    final starts = sessions.isEmpty ? null : Workspace.firstStart(group);
 
     return Surface(
       key: ValueKey('group-${group.str('id')}'),
@@ -106,7 +122,9 @@ class GroupTile extends StatelessWidget {
             child: Wrap(spacing: 6, runSpacing: 6, children: [
               Tag(s.t('duties.phase.$phase'), background: bg, foreground: fg, icon: phase == 'running' ? Icons.sensors : null),
               if (program.str('code').isNotEmpty) Tag(program.str('code'), background: AppColors.gold100, foreground: AppColors.gold700, latin: true),
-              if (Duties.teaches(group)) Tag(s.t('duties.capacity.trainer'), background: AppColors.navy100, foreground: AppColors.navy900),
+              // Somebody who both supervises and teaches a group is told so; one capacity alone is the app they are in.
+              if (both) Tag('${s.t('duties.capacity.supervisor')} · ${s.t('duties.capacity.trainer')}', background: AppColors.navy100, foreground: AppColors.navy900),
+              if (kits > 0) Tag(s.count('work.kit.count', kits), background: AppColors.navy100, foreground: AppColors.navy900, icon: Icons.inventory_2_outlined),
             ]),
           ),
           Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.gold700),
@@ -115,21 +133,18 @@ class GroupTile extends StatelessWidget {
         Text(Duties.title(group, lang), maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.navy900, height: 1.3)),
         if (sub != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, style: TextStyle(color: AppColors.gold700, fontWeight: FontWeight.w700, fontSize: 12.5))),
         const SizedBox(height: 10),
-        _Line(Icons.event_outlined, dates),
-        _Line(Icons.meeting_room_outlined, place),
+        _Line(Icons.event_outlined, [groupDates(group, fmt), if (starts != null) fmt.time(starts)].join(' · ')),
+        _Line(Icons.meeting_room_outlined, groupPlace(group, s)),
         const SizedBox(height: 4),
         Row(children: [
-          _Count(Icons.groups_2_outlined, fmt.number(group.number('trainees')), s.t('sup.count.trainees')),
+          _Count(Icons.groups_2_outlined, fmt.number(group.number('trainees')), s.t('work.count.trainees')),
           const SizedBox(width: 14),
-          _Count(Icons.co_present_outlined, fmt.number(group.list('trainers').length), s.t('sup.count.trainers')),
-          const SizedBox(width: 14),
-          _Count(Icons.calendar_month_outlined, '${fmt.number(done)}/${fmt.number(sessions.length)}', s.t('sup.count.sessions')),
+          if (hours > 0) ...[_Count(Icons.schedule, Workspace.hoursText(hours), s.t('work.count.hours')), const SizedBox(width: 14)],
+          _Count(Icons.calendar_month_outlined, '${fmt.number(done)}/${fmt.number(sessions.length)}', s.t('work.count.sessions')),
         ]),
       ]),
     );
   }
-
-  static bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
 class _Line extends StatelessWidget {
@@ -168,17 +183,15 @@ class _Count extends StatelessWidget {
       );
 }
 
-/// The parts of a group's page.
-const programmeParts = ['sessions', 'trainees', 'trainers', 'surveys'];
-
-/// One group given to the person: what it is, then its sessions, its trainees with what each attended, its trainers, and
-/// the two surveys of its programme with their links.
+/// One group given to the person: what it is, then its sessions, its trainees with what each attended, its team (the
+/// supervisor with the way to reach them, and the trainers), its training kits for somebody who teaches it, and the two
+/// surveys of its programme with their links.
 class ProgrammeScreen extends ConsumerStatefulWidget {
   const ProgrammeScreen({super.key, required this.groupId, this.part});
 
   final String groupId;
 
-  /// The part to open on (one of [programmeParts]).
+  /// The part to open on (one of [Workspace.parts]).
   final String? part;
 
   @override
@@ -186,7 +199,7 @@ class ProgrammeScreen extends ConsumerStatefulWidget {
 }
 
 class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
-  late String _part = programmeParts.contains(widget.part) ? widget.part! : 'sessions';
+  late String _part = widget.part ?? 'sessions';
   String _query = '';
 
   @override
@@ -196,29 +209,32 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
     final mayAttend = ref.watch(authProvider).value?.can('attendance.manage') ?? false;
     return Scaffold(
       backgroundColor: AppColors.ivory,
-      appBar: AppBar(title: Text(s.t('sup.prog.title'))),
+      appBar: AppBar(title: Text(s.t('work.prog.title'))),
       body: RefreshIndicator(
         color: AppColors.gold500,
         onRefresh: () {
-          ref.invalidate(getProvider(Supervision.traineesPath(widget.groupId)));
+          ref.invalidate(getProvider(Workspace.traineesPath(widget.groupId)));
           return ref.refresh(getProvider(Duties.path).future);
         },
         child: AsyncView(
           value: value,
           onRetry: () => ref.invalidate(getProvider(Duties.path)),
           builder: (raw) {
-            final group = Supervision.group(Duties.groups(raw), widget.groupId);
+            final group = Workspace.group(Duties.groups(raw), widget.groupId);
             if (group == null) {
-              return ListView(padding: const EdgeInsets.fromLTRB(16, 48, 16, 28), children: [Quiet(icon: Icons.search_off, text: s.t('sup.prog.missing'))]);
+              return ListView(padding: const EdgeInsets.fromLTRB(16, 48, 16, 28), children: [Quiet(icon: Icons.search_off, text: s.t('work.prog.missing'))]);
             }
+            final parts = Workspace.parts(group);
+            final part = parts.contains(_part) ? _part : 'sessions';
             return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 32), children: [
               ProgrammeHead(group: group),
               const SizedBox(height: 14),
-              _Parts(part: _part, group: group, onChanged: (p) => setState(() => _part = p)),
+              _Parts(part: part, parts: parts, group: group, onChanged: (p) => setState(() => _part = p)),
               const SizedBox(height: 14),
-              ...switch (_part) {
+              ...switch (part) {
                 'trainees' => _trainees(context, group),
-                'trainers' => _trainers(context, group),
+                'team' => _team(context, group),
+                'kits' => _kits(context, group),
                 'surveys' => _surveys(context, group),
                 _ => _sessions(context, group, mayAttend),
               },
@@ -231,22 +247,22 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
 
   List<Widget> _sessions(BuildContext context, Json group, bool mayAttend) {
     final sessions = group.list('sessions');
-    if (sessions.isEmpty) return [Quiet(icon: Icons.calendar_month_outlined, text: context.s.t('sup.prog.noSessions'))];
+    if (sessions.isEmpty) return [Quiet(icon: Icons.calendar_month_outlined, text: context.s.t('work.prog.noSessions'))];
     return [for (final x in sessions) Padding(padding: const EdgeInsets.only(bottom: 10), child: SlotCard(slot: (group: group, session: x), mayAttend: mayAttend, showDate: true, inGroup: true))];
   }
 
   List<Widget> _trainees(BuildContext context, Json group) {
     final s = context.s;
-    final value = ref.watch(getProvider(Supervision.traineesPath(widget.groupId)));
+    final value = ref.watch(getProvider(Workspace.traineesPath(widget.groupId)));
     return [
       AsyncView(
         value: value,
-        onRetry: () => ref.invalidate(getProvider(Supervision.traineesPath(widget.groupId))),
+        onRetry: () => ref.invalidate(getProvider(Workspace.traineesPath(widget.groupId))),
         builder: (raw) {
           final data = raw is Map ? (Map<String, dynamic>.from(raw).obj('data') ?? const <String, dynamic>{}) : const <String, dynamic>{};
           final all = data.list('trainees');
-          if (all.isEmpty) return Quiet(icon: Icons.groups_2_outlined, text: s.t('sup.prog.noTrainees'));
-          final shown = Supervision.search(all, _query);
+          if (all.isEmpty) return Quiet(icon: Icons.groups_2_outlined, text: s.t('work.prog.noTrainees'));
+          final shown = Workspace.search(all, _query);
           return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             if (all.length > 6)
               Padding(
@@ -256,7 +272,7 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
                   onChanged: (v) => setState(() => _query = v),
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
-                    hintText: s.t('sup.prog.search'),
+                    hintText: s.t('work.prog.search'),
                     prefixIcon: const Icon(Icons.search, size: 20),
                     isDense: true,
                     filled: true,
@@ -267,7 +283,7 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
                 ),
               ),
             if (shown.isEmpty)
-              Quiet(icon: Icons.search_off, text: s.t('sup.prog.noMatch'))
+              Quiet(icon: Icons.search_off, text: s.t('work.prog.noMatch'))
             else
               Surface(
                 padding: EdgeInsets.zero,
@@ -284,12 +300,17 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
     ];
   }
 
-  List<Widget> _trainers(BuildContext context, Json group) {
+  /// The supervisor of the group first, with the way to reach them; then the trainers.
+  List<Widget> _team(BuildContext context, Json group) {
     final s = context.s;
     final lang = s.languageCode;
     final trainers = Duties.people(group.list('trainers'), lang);
     final supervisor = group.obj('supervisor');
     return [
+      Heading(s.t('duties.supervisor')),
+      if (supervisor == null) Quiet(icon: Icons.supervisor_account_outlined, text: s.t('duties.noSupervisor')) else ContactCard(person: supervisor, role: s.t('duties.capacity.supervisor')),
+      const SizedBox(height: 18),
+      Heading(s.t('duties.trainers'), count: trainers.isEmpty ? null : trainers.length),
       if (trainers.isEmpty)
         Quiet(icon: Icons.co_present_outlined, text: s.t('duties.noTrainers'))
       else
@@ -302,18 +323,23 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
             ],
           ]),
         ),
-      if (supervisor != null) ...[
-        const SizedBox(height: 18),
-        Heading(s.t('duties.supervisor')),
-        Surface(padding: EdgeInsets.zero, child: _Person(name: Duties.name(supervisor, lang), role: s.t('duties.capacity.supervisor'), me: supervisor.flag('me'), icon: Icons.supervisor_account_outlined)),
-      ],
+    ];
+  }
+
+  List<Widget> _kits(BuildContext context, Json group) {
+    final programId = group.obj('program')?.str('id') ?? '';
+    return [
+      for (final kit in Workspace.kits(group)) Padding(padding: const EdgeInsets.only(bottom: 10), child: KitTile(kit: kit, programId: programId)),
+      if (Workspace.hasCourse(group)) CourseKitTile(programId: programId),
+      const SizedBox(height: 12),
+      const KitOwnershipNote(),
     ];
   }
 
   List<Widget> _surveys(BuildContext context, Json group) {
     final s = context.s;
-    final surveys = Supervision.surveys(group);
-    if (surveys.isEmpty) return [Quiet(icon: Icons.rate_review_outlined, text: s.t('sup.survey.none'))];
+    final surveys = Workspace.surveys(group);
+    if (surveys.isEmpty) return [Quiet(icon: Icons.rate_review_outlined, text: s.t('work.survey.none'))];
     final title = Duties.title(group, s.languageCode);
     return [
       for (final (kind, form) in surveys) Padding(padding: const EdgeInsets.only(bottom: 10), child: Surface(child: SurveyLink(kind: kind, form: form, programme: title))),
@@ -321,7 +347,20 @@ class _ProgrammeScreenState extends ConsumerState<ProgrammeScreen> {
   }
 }
 
-/// The top of a group's page: what it is and where it stands, when and where it runs.
+/// The training kits belong to the centre: they are read in the protected reader, never downloaded.
+class KitOwnershipNote extends StatelessWidget {
+  const KitOwnershipNote({super.key});
+
+  @override
+  Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.verified_user_outlined, size: 15, color: AppColors.muted)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(context.s.t('work.kit.ownership'), style: const TextStyle(color: AppColors.muted, fontSize: 12, height: 1.6))),
+      ]);
+}
+
+/// The top of a group's page: what it is and where it stands, when and where it runs, how many hours it is, and the way
+/// to its room.
 class ProgrammeHead extends StatelessWidget {
   const ProgrammeHead({super.key, required this.group});
 
@@ -335,11 +374,11 @@ class ProgrammeHead extends StatelessWidget {
     final program = group.obj('program') ?? const {};
     final phase = group.str('phase');
     final sub = Duties.groupTitle(group, lang);
-    final from = group.date('from');
-    final to = group.date('to');
-    final rooms = group.list('rooms').map((r) => Duties.name(r, lang)).where((r) => r.isNotEmpty).join('، ');
-    final place = program.str('delivery_mode') == 'online' ? s.t('mode.online') : (rooms.isEmpty ? s.t('duties.placeTbd') : rooms);
-    final dates = from == null ? '—' : (to == null || GroupTile._sameDay(from, to) ? fmt.date(from) : '${fmt.dayMonth(from)} – ${fmt.date(to)}');
+    final sessions = group.list('sessions');
+    final hours = Workspace.groupHours(group);
+    final starts = sessions.isEmpty ? null : Workspace.firstStart(group);
+    // The room to walk to: the session to act on, when it still has to be held.
+    final next = Duties.focus(group);
     Widget fact(IconData icon, String text) => Padding(
           padding: const EdgeInsets.only(top: 7),
           child: Row(children: [
@@ -363,18 +402,21 @@ class ProgrammeHead extends StatelessWidget {
         Text(Duties.title(group, lang), style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, height: 1.3)),
         if (sub != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, style: TextStyle(color: AppColors.gold300, fontWeight: FontWeight.w700, fontSize: 13))),
         const SizedBox(height: 6),
-        fact(Icons.event_outlined, dates),
-        fact(Icons.meeting_room_outlined, place),
+        fact(Icons.event_outlined, [groupDates(group, fmt), if (starts != null) fmt.time(starts)].join(' · ')),
+        fact(Icons.meeting_room_outlined, groupPlace(group, s)),
+        if (hours > 0) fact(Icons.schedule, '${hoursLabel(s, hours)} · ${s.count('work.sessionsCount', sessions.length)}'),
+        if (next != null) RoomWay(slot: (group: group, session: next), onDark: true, padding: const EdgeInsets.only(top: 12)),
       ]),
     );
   }
 }
 
-/// The four parts of a group's page, each with how many it holds.
+/// The parts of a group's page as one strip, each with how many it holds.
 class _Parts extends StatelessWidget {
-  const _Parts({required this.part, required this.group, required this.onChanged});
+  const _Parts({required this.part, required this.parts, required this.group, required this.onChanged});
 
   final String part;
+  final List<String> parts;
   final Json group;
   final ValueChanged<String> onChanged;
 
@@ -384,19 +426,20 @@ class _Parts extends StatelessWidget {
     final counts = {
       'sessions': group.list('sessions').length,
       'trainees': group.number('trainees').toInt(),
-      'trainers': group.list('trainers').length,
-      'surveys': Supervision.surveys(group).length,
+      'team': group.list('trainers').length + (group.obj('supervisor') == null ? 0 : 1),
+      'kits': Workspace.kitCount(group),
+      'surveys': Workspace.surveys(group).length,
     };
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.navy100)),
       child: Row(children: [
-        for (final p in programmeParts)
+        for (final p in parts)
           Expanded(
             child: Semantics(
               button: true,
               selected: part == p,
-              label: '${s.t('sup.prog.$p')}: ${counts[p]}',
+              label: '${s.t('work.prog.$p')}: ${counts[p]}',
               excludeSemantics: true,
               child: Material(
                 color: part == p ? AppColors.navy900 : Colors.transparent,
@@ -409,7 +452,7 @@ class _Parts extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
                     child: Column(children: [
                       Text(Fmt('en').number(counts[p]), style: TextStyle(color: part == p ? AppColors.gold300 : AppColors.navy900, fontSize: 16, fontWeight: FontWeight.w800, height: 1.2)),
-                      Text(s.t('sup.prog.$p'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: part == p ? Colors.white : AppColors.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                      Text(s.t('work.prog.$p'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: part == p ? Colors.white : AppColors.muted, fontSize: parts.length > 4 ? 11 : 12, fontWeight: FontWeight.w700)),
                     ]),
                   ),
                 ),
@@ -439,7 +482,7 @@ class TraineeRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       child: Row(children: [
-        CircleAvatar(radius: 18, backgroundColor: AppColors.navy100, child: Text(Supervision.initial(row.str('name')), style: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w800))),
+        CircleAvatar(radius: 18, backgroundColor: AppColors.navy100, child: Text(Workspace.initial(row.str('name')), style: TextStyle(color: AppColors.navy900, fontWeight: FontWeight.w800))),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -450,7 +493,7 @@ class TraineeRow extends StatelessWidget {
         const SizedBox(width: 10),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text(held == 0 ? '—' : '${fmt.number(attended)} / ${fmt.number(held)}', textDirection: TextDirection.ltr, style: TextStyle(color: tone, fontWeight: FontWeight.w800, fontSize: 13.5)),
-          Text(s.t(held == 0 ? 'sup.prog.notHeld' : 'sup.prog.attended'), style: const TextStyle(color: AppColors.muted, fontSize: 10.5)),
+          Text(s.t(held == 0 ? 'work.prog.notHeld' : 'work.prog.attended'), style: const TextStyle(color: AppColors.muted, fontSize: 10.5)),
         ]),
       ]),
     );

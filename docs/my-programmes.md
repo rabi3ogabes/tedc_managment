@@ -84,32 +84,56 @@ the attendance code can be shown whenever the showcase is.
   `attendance.manage`, the trainee survey with «اعرض الرمز» (a code and the link to copy), and every session.
 - The decisions are in `Duties` (`lib/features/duties/duties_model.dart`), tested in `test/duties_test.dart`.
 
-### The supervisor's app (since 2026-11-25)
+### The app of a supervisor and of a trainer (since 2026-11-25)
 
-Somebody **working as «مشرف»** (`Me.worksAsSupervisor`: the active role, not the roles held, so the same person working as a
-trainee keeps the trainee's app) gets an app laid out around the programmes given to them. The five tabs keep their addresses
-(`/home`, `/programs`, `/training`, `/certificates`, `/profile`), so links still work; `supervisorTab` in `home_shell.dart` puts
-the supervisor's own screen at the root of the first four, and `supervisorTabs` names them:
+Somebody **working as «مشرف» or as «مدرب»** (`Me.workspace`: the active role, not the roles held, so the same person working
+as a trainee keeps the trainee's app) gets an app laid out around the programmes given to them. The five tabs keep their
+addresses (`/home`, `/programs`, `/training`, `/certificates`, `/profile`), so links still work; `workspaceTab` in
+`home_shell.dart` puts the person's own screen at the root of the first four, and `workspaceTabs` names them:
 
 | Tab | Screen | What it holds |
 |---|---|---|
-| «الرئيسية» | `SupervisorHome` | The session to act on now (`NowCard`: who came, «كشف الحضور», «رمز الحضور», «مسح رمز متدرب»), or a free day with the next session; four numbers (running, upcoming, sessions today, trainees); the rest of today; the running programmes; the upcoming ones; what waits for the person (`/me/app-home` → `actions`). |
-| «برامجي» | `SupervisorProgrammes` | Every group by phase (`GroupTile`). A group opens `ProgrammeScreen` (`/my-programs/{group}`): its sessions, its **trainees** with what each attended (`/me/duties/{group}`, searched by name, number or school), its **trainers** and supervisor, and the two surveys. |
-| «الحضور» | `SupervisorAttendance` | The sessions by day: today's with the three ways to take attendance, the ones already held (a tap opens the sheet), the days ahead. |
-| «الاستبانات» | `SupervisorSurveys` | For every programme, once: the link of the **trainees' survey** (`/f/t/{code}`) and of the **trainer's survey** (`/f/r/{code}`, the self-reflection), each with where it stands and how many answered, the link itself (a press copies it), «اعرض الرمز» and «فتح الرابط». |
+| «الرئيسية» | `WorkspaceHome` | The session to act on now (`NowCard`: who came, «كشف الحضور», «رمز الحضور», «مسح رمز متدرب», «موقع القاعة»; for a trainer also «الحقيبة» and «حضوري أنا»), or a free day with the next session; four numbers (running, upcoming, sessions today, then the trainees for a supervisor and the **hours still to give** for a trainer); the rest of today; the running programmes; the upcoming ones; what waits for the person (`/me/app-home` → `actions`); «أنت متدرب أيضاً» for somebody who also holds the trainee's role (one press switches to it); a trainer's own certificates. |
+| «برامجي» | `WorkspaceProgrammes` | Every group by phase (`GroupTile`: the days and the hour it starts, the room, the **hours**, the trainees, the sessions held, and the **kits** for somebody who teaches it). A group opens `ProgrammeScreen` (`/my-programs/{group}`): its sessions (each with its room, its hours and «موقع القاعة»), its **trainees** with what each attended (`/me/duties/{group}`), its **team** — the supervisor with **the way to reach them** (`ContactCard`: call, e-mail; a long press copies), then the trainers —, its **kits** for a trainer, and the two surveys. |
+| «الحضور» | `WorkspaceAttendance` | The sessions by day: today's with the three ways to take attendance, the ones already held (a tap opens the sheet), the days ahead. |
+| «الاستبانات» (supervisor) | `WorkspaceSurveys` | For every programme, once: the link of the **trainees' survey** (`/f/t/{code}`) and of the **trainer's survey** (`/f/r/{code}`, the self-reflection), each with where it stands and how many answered, the link itself (a press copies it), «اعرض الرمز» and «فتح الرابط». |
+| «الحقائب» (trainer) | `WorkspaceKits` | The **training kits** of every programme they teach, once per programme (`KitTile` → `KitInfoScreen`, `/teaching-kit/{kit}`: what the kit is for, its objectives and its files, from `/me/teaching/kits/{kit}`), and the content of an online programme (`CourseKitTile` → the existing `/kit/{program}`). The files of a kit open in the centre's **protected reader** on the dashboard (`/admin/teaching/kits/{kit}`); the app holds no copy of them. |
 | «حسابي» | `ProfileScreen` | Unchanged. |
 
-- **«كشف الحضور»** (`RollCallScreen`, also the trainer's): headed by its session, searched by name, narrowed to one mark, and
-  leading to the two codes for a session of today.
-- **«رمز الحضور»** (`SessionQrScreen`, `/session-qr/{session}`): the rotating code of the session (`/admin/sessions/{id}/qr`) on
-  the supervisor's phone for the trainees to scan; it asks for the next code as each runs out and shows who has come.
+What `/me/duties` adds for this: `program.hours` and `program.has_course`; `supervisor.email` and `supervisor.phone` (the
+account's own, for the people of the group); `kits` (the approved or published kits of the programme, **only for somebody who
+teaches the group**); and on every session `room_id` and `map_place` (where the room stands on the plans of the centre).
+
+**«كشف الحضور»** (`RollCallScreen`, the sheet of both roles) is headed by its session, searched by name, narrowed to one mark
+(or to the ones who left early), and leads to the two codes for a session of today. From a trainee's row:
+
+- **«خروج مبكر»** for somebody present or late: the time they left (now while the session runs; chosen for a session
+  already held) and, if they said, why. `POST /admin/sessions/{session}/early-leave` (`registration_id`, `at`, `reason`)
+  closes their attendance at that time, keeps the minutes missed as an early leave (`attendance_leaves`, with the reason),
+  counts their attendance of the programme again and tells the trainee (when «leave_notifies_trainee» is on). Recording it
+  again moves the time. **«بقي حتى النهاية»** takes it back (`DELETE …/early-leave/{registration}`).
+- **«تعليق»**: a comment about that trainee in that session, kept on their attendance record (`attendance.notes`).
+  `PUT /admin/sessions/{session}/attendance/{registration}/note` (`note`; empty removes it). A trainee with no mark yet gets
+  the record the sheet already shows for them: absent.
+
+Under the rows, **«ملاحظات الجلسة»**: each person who runs the session writes one remark about it (how it went, the room, what
+to raise with the centre), rewrites it or removes it, and reads the others'. `PUT /admin/sessions/{session}/remark` (`body`;
+empty removes one's own); table `session_remarks` (one per person per session). The sheet (`GET …/attendance`) carries
+`remarks`, and on every row `left_early_at` and `note`. All four writes ask what the sheet asks: the attendance right, and
+the session is the person's own to run (`SessionController::authorizeTrainer`). The dashboard's sheet («البرامج» → الجلسات →
+الحضور) shows the comment under the trainee's name, «خرج مبكراً» with its time, and the remarks under the table.
+
+- **«رمز الحضور»** (`SessionQrScreen`, `/session-qr/{session}`): the rotating code of the session (`/admin/sessions/{id}/qr`)
+  on the phone for the trainees to scan; it asks for the next code as each runs out and shows who has come.
 - **«مسح رمز متدرب»** (`StaffScanScreen`, `/staff-scan/{session}`): the camera reads the code a trainee shows from «رمز حضوري»
   (`/admin/sessions/{id}/staff-scan`): the first scan records the entry, the next one the leaving; it stays open for the next person.
+- **«موقع القاعة»** (`RoomWay`): the guide of the centre to the room of a session, for a session still to be held in a room
+  that stands on the plans (the same sheet a trainee opens from their session).
 - Without `attendance.manage` the sessions and their numbers are still shown; nothing to press is offered, and «الحضور» says why.
-- A notice that names a tab about the supervisor's own training (a certificate, a registration) opens that page as it is
-  (`tabAddress` adds `own=1`).
-- The decisions are in `Supervision` (`lib/features/supervisor/supervision.dart`), tested with the screens in
-  `test/supervisor_test.dart`.
+- A notice that names a tab about the person's own training (a certificate, a registration) opens that page as it is
+  (`tabAddress` adds `own=1`); the trainer's «شهاداتي» uses the same way.
+- The decisions are in `Workspace` (`lib/features/workspace/workspace.dart`), tested with the screens in
+  `test/workspace_test.dart`; the server's in `MyDutiesTest` and `SessionSheetTest`.
 
 ## «برامج اليوم» — the day, for whoever runs the centre
 

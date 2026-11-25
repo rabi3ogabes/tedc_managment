@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SessionResource;
+use App\Models\Attendance;
 use App\Models\Program;
 use App\Models\ProgramSession;
 use App\Models\Registration;
+use App\Models\SessionRemark;
+use App\Services\AbsenceService;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
 use App\Services\Duties\MyDuties;
@@ -102,7 +105,67 @@ class SessionController extends Controller
     {
         $this->authorizeTrainer($session);
 
-        return response()->json(['data' => $this->attendance->sessionReport($session)]);
+        return response()->json(['data' => $this->sheet($session)]);
+    }
+
+    /** The attendance sheet with what the people who run the session wrote about it. @return array<string, mixed> */
+    private function sheet(ProgramSession $session): array
+    {
+        $me = $this->user()->id;
+        $remarks = SessionRemark::with('user:id,name,name_ar')->where('program_session_id', $session->id)->orderBy('updated_at')->get()
+            ->map(fn (SessionRemark $r) => ['id' => $r->id, 'body' => $r->body, 'by' => $r->user?->displayName(), 'mine' => $r->user_id === $me, 'at' => $r->updated_at?->toIso8601String()])->values()->all();
+
+        return $this->attendance->sessionReport($session) + ['remarks' => $remarks];
+    }
+
+    /** «خروج مبكر»: a trainee marked present left before the end (now, or at the time given). */
+    public function earlyLeave(Request $request, ProgramSession $session, AbsenceService $absence): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+        $data = $request->validate(['registration_id' => ['required', 'uuid'], 'at' => ['nullable', 'date'], 'reason' => ['nullable', 'string', 'max:500']]);
+        $registration = Registration::where('program_id', $session->program_id)->findOrFail($data['registration_id']);
+        $attendance = Attendance::where('program_session_id', $session->id)->where('registration_id', $registration->id)->first();
+        abort_unless($attendance, 422, __('messages.leave.not_present'));
+        $absence->leftEarly($attendance, $this->user(), isset($data['at']) ? Carbon::parse($data['at']) : now(), $data['reason'] ?? null);
+
+        return response()->json(['data' => $this->sheet($session)]);
+    }
+
+    /** Takes an early leave back: the trainee stayed to the end. */
+    public function stayed(ProgramSession $session, Registration $registration, AbsenceService $absence): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+        abort_unless($registration->program_id === $session->program_id, 404);
+        $attendance = Attendance::where('program_session_id', $session->id)->where('registration_id', $registration->id)->whereNotNull('left_early_at')->firstOrFail();
+        $absence->stayed($attendance, $this->user());
+
+        return response()->json(['data' => $this->sheet($session)]);
+    }
+
+    /** A comment about one trainee in this session (empty removes it). */
+    public function note(Request $request, ProgramSession $session, Registration $registration): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+        abort_unless($registration->program_id === $session->program_id, 404);
+        $data = $request->validate(['note' => ['nullable', 'string', 'max:1000']]);
+        $this->attendance->note($session, $registration, $this->user(), $data['note'] ?? null);
+
+        return response()->json(['data' => $this->sheet($session)]);
+    }
+
+    /** The person's own remark about the session (empty removes it). Everybody who runs the session reads every remark. */
+    public function remark(Request $request, ProgramSession $session): JsonResponse
+    {
+        $this->authorizeTrainer($session);
+        $data = $request->validate(['body' => ['nullable', 'string', 'max:2000']]);
+        $body = trim((string) ($data['body'] ?? ''));
+        if ($body === '') {
+            SessionRemark::where('program_session_id', $session->id)->where('user_id', $this->user()->id)->delete();
+        } else {
+            SessionRemark::updateOrCreate(['program_session_id' => $session->id, 'user_id' => $this->user()->id], ['body' => $body]);
+        }
+
+        return response()->json(['data' => $this->sheet($session)]);
     }
 
     public function mark(Request $request, ProgramSession $session): JsonResponse

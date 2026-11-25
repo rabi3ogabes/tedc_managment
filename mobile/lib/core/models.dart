@@ -37,6 +37,19 @@ class Me {
   /// profile, else the first role they hold.
   String get workSlug => activeRole?.str('slug') ?? (employee != null || roles.isEmpty ? 'employee' : roles.first);
 
-  /// «مشرف»: the app is laid out around the programmes given to them (see features/supervisor).
   bool get worksAsSupervisor => workSlug == 'supervisor';
+
+  bool get worksAsTrainer => workSlug == 'trainer';
+
+  /// «مشرف» and «مدرب» get an app laid out around the programmes given to them (see features/workspace): which of the
+  /// two the person is working as, or null for everybody else. The same person working as a trainee keeps the trainee's app.
+  String? get workspace => switch (workSlug) { 'supervisor' => 'supervisor', 'trainer' => 'trainer', _ => null };
+
+  /// The grant that lets the person work as a trainee, when they hold one and are not working in it now.
+  Json? get traineeGrant {
+    for (final g in roleGrants) {
+      if (g.str('slug') == 'employee' && !g.flag('active') && g.str('id').isNotEmpty) return g;
+    }
+    return null;
+  }
 }

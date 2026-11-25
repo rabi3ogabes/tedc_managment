@@ -13,7 +13,7 @@ import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../duties/duties_model.dart';
-import 'supervision.dart';
+import 'workspace.dart';
 
 /// «رمز الحضور»: the code of a session on the supervisor's phone, for the trainees to scan from their own app. The server
 /// changes the code every few seconds, so the screen asks for the next one as each runs out, and shows who has come.
@@ -42,18 +42,18 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
     super.initState();
     _load();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && _code != null) setState(() => _left = Supervision.secondsLeft(_code!.date('expires_at'), DateTime.now()));
+      if (mounted && _code != null) setState(() => _left = Workspace.secondsLeft(_code!.date('expires_at'), DateTime.now()));
     });
     // Who has come changes as trainees scan: the count under the code follows.
     _count = Timer.periodic(const Duration(seconds: 12), (_) {
-      if (mounted) ref.invalidate(getProvider(Supervision.attendancePath(widget.sessionId)));
+      if (mounted) ref.invalidate(getProvider(Workspace.attendancePath(widget.sessionId)));
     });
   }
 
   Future<void> _load() async {
     _next?.cancel();
     try {
-      final raw = await ref.read(apiProvider).get(Supervision.qrPath(widget.sessionId));
+      final raw = await ref.read(apiProvider).get(Workspace.qrPath(widget.sessionId));
       if (!mounted) return;
       final data = raw is Map ? Map<String, dynamic>.from(raw).obj('data') : null;
       if (data == null || data.str('payload').isEmpty) throw ApiException(context.s.t('common.error'));
@@ -61,7 +61,7 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
       setState(() {
         _code = data;
         _error = null;
-        _left = Supervision.secondsLeft(expires, DateTime.now());
+        _left = Workspace.secondsLeft(expires, DateTime.now());
       });
       // Ask for the next code just after this one runs out (at least every half minute, whatever the clocks say).
       final wait = expires == null ? const Duration(seconds: 20) : expires.difference(DateTime.now()) + const Duration(milliseconds: 400);
@@ -89,8 +89,8 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
     final fmt = Fmt(lang);
     final code = _code;
     final session = code?.obj('session');
-    final slot = Supervision.slot(Duties.groups(ref.watch(getProvider(Duties.path)).value), widget.sessionId);
-    final sheet = ref.watch(getProvider(Supervision.attendancePath(widget.sessionId))).value;
+    final slot = Workspace.slot(Duties.groups(ref.watch(getProvider(Duties.path)).value), widget.sessionId);
+    final sheet = ref.watch(getProvider(Workspace.attendancePath(widget.sessionId))).value;
     final counts = sheet is Map ? Map<String, dynamic>.from(sheet).obj('data') : null;
     final rotation = (code?.number('rotation_seconds') ?? 0).toInt();
 
@@ -99,7 +99,7 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.navy950,
         foregroundColor: Colors.white,
-        title: Text(s.t('sup.act.code'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+        title: Text(s.t('work.act.code'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: ListView(padding: const EdgeInsets.fromLTRB(24, 8, 24, 28), children: [
@@ -161,10 +161,10 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(s.t('sup.qr.renews').replaceFirst('{n}', fmt.number(_left)), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text(s.t('work.qr.renews').replaceFirst('{n}', fmt.number(_left)), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 12)),
           ],
           const SizedBox(height: 18),
-          Text(s.t('sup.qr.hint'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6)),
+          Text(s.t('work.qr.hint'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.6)),
           if (counts != null) ...[
             const SizedBox(height: 18),
             Center(
@@ -174,7 +174,7 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(Icons.how_to_reg_outlined, size: 18, color: AppColors.gold300),
                   const SizedBox(width: 8),
-                  Text(s.t('sup.qr.present'), style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(s.t('work.qr.present'), style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
                   const SizedBox(width: 10),
                   Text('${fmt.number(counts.number('present'))} / ${fmt.number(counts.number('expected'))}', textDirection: TextDirection.ltr, style: TextStyle(color: AppColors.gold300, fontSize: 17, fontWeight: FontWeight.w800)),
                 ]),
@@ -188,7 +188,7 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: BorderSide(color: Colors.white.withValues(alpha: .45)), padding: const EdgeInsets.symmetric(vertical: 12)),
                 onPressed: () => widget.fromSheet ? context.pop() : context.pushReplacement('/roll-call/${widget.sessionId}'),
                 icon: const Icon(Icons.fact_check_outlined, size: 18),
-                label: Text(s.t('sup.act.sheet'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                label: Text(s.t('work.act.sheet'), style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ),
             const SizedBox(width: 10),
@@ -197,7 +197,7 @@ class _SessionQrScreenState extends ConsumerState<SessionQrScreen> {
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: BorderSide(color: Colors.white.withValues(alpha: .45)), padding: const EdgeInsets.symmetric(vertical: 12)),
                 onPressed: () => context.pushReplacement('/staff-scan/${widget.sessionId}${widget.fromSheet ? '?from=sheet' : ''}'),
                 icon: const Icon(Icons.qr_code_scanner, size: 18),
-                label: Text(s.t('sup.act.scan'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
+                label: Text(s.t('work.act.scan'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ),
           ]),
@@ -231,18 +231,18 @@ class _StaffScanScreenState extends ConsumerState<StaffScanScreen> {
   Future<void> _onDetect(BarcodeCapture capture) async {
     final value = capture.barcodes.firstOrNull?.rawValue;
     if (_busy || value == null) return;
-    if (!Supervision.personalCode(value)) {
-      _show((ok: false, message: context.s.t('sup.scan.notPersonal')));
+    if (!Workspace.personalCode(value)) {
+      _show((ok: false, message: context.s.t('work.scan.notPersonal')));
       return;
     }
     setState(() => _busy = true);
     try {
-      final raw = await ref.read(apiProvider).post(Supervision.staffScanPath(widget.sessionId), {'payload': value});
+      final raw = await ref.read(apiProvider).post(Workspace.staffScanPath(widget.sessionId), {'payload': value});
       if (!mounted) return;
       final data = raw is Map ? (Map<String, dynamic>.from(raw).obj('data') ?? const <String, dynamic>{}) : const <String, dynamic>{};
       _recorded++;
-      _show((ok: true, message: context.s.t(data.str('action') == 'check_out' ? 'sup.scan.out' : 'sup.scan.in').replaceFirst('{name}', data.str('name'))));
-      ref.invalidate(getProvider(Supervision.attendancePath(widget.sessionId)));
+      _show((ok: true, message: context.s.t(data.str('action') == 'check_out' ? 'work.scan.out' : 'work.scan.in').replaceFirst('{name}', data.str('name'))));
+      ref.invalidate(getProvider(Workspace.attendancePath(widget.sessionId)));
       ref.invalidate(getProvider(Duties.path));
     } catch (e) {
       if (mounted) _show((ok: false, message: ApiException.from(e).message));
@@ -273,7 +273,7 @@ class _StaffScanScreenState extends ConsumerState<StaffScanScreen> {
     final result = _result;
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: Text(s.t('sup.act.scan'), style: const TextStyle(color: Colors.white))),
+      appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: Text(s.t('work.act.scan'), style: const TextStyle(color: Colors.white))),
       body: Stack(children: [
         MobileScanner(controller: _controller, onDetect: _onDetect),
         Center(
@@ -290,7 +290,7 @@ class _StaffScanScreenState extends ConsumerState<StaffScanScreen> {
           bottom: 28,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (result == null)
-              Text(s.t('sup.scan.hint'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5))
+              Text(s.t('work.scan.hint'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5))
             else
               Container(
                 key: const ValueKey('scan-result'),
@@ -306,14 +306,14 @@ class _StaffScanScreenState extends ConsumerState<StaffScanScreen> {
             const SizedBox(height: 14),
             Row(children: [
               if (_recorded > 0)
-                Expanded(child: Text(s.t('sup.scan.count').replaceFirst('{n}', Fmt(s.languageCode).number(_recorded)), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700)))
+                Expanded(child: Text(s.t('work.scan.count').replaceFirst('{n}', Fmt(s.languageCode).number(_recorded)), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700)))
               else
                 const Spacer(),
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: AppColors.gold500, foregroundColor: AppColors.navy950),
                 onPressed: () => widget.fromSheet ? context.pop() : context.pushReplacement('/roll-call/${widget.sessionId}'),
                 icon: const Icon(Icons.fact_check_outlined, size: 18),
-                label: Text(s.t('sup.act.sheet'), style: const TextStyle(fontWeight: FontWeight.w800)),
+                label: Text(s.t('work.act.sheet'), style: const TextStyle(fontWeight: FontWeight.w800)),
               ),
             ]),
           ]),

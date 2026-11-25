@@ -9,18 +9,18 @@ import '../../core/theme/app_theme.dart';
 import '../../core/widgets/widgets.dart';
 import '../duties/duties_model.dart';
 import 'parts.dart';
-import 'supervision.dart';
+import 'workspace.dart';
 
 /// «الحضور» in the supervisor's app: the sessions of the groups given to them, by day. Today's come with the three ways
 /// to take attendance; a session already held opens its sheet to look at it again; the days ahead are only listed.
-class SupervisorAttendance extends ConsumerStatefulWidget {
-  const SupervisorAttendance({super.key});
+class WorkspaceAttendance extends ConsumerStatefulWidget {
+  const WorkspaceAttendance({super.key});
 
   @override
-  ConsumerState<SupervisorAttendance> createState() => _SupervisorAttendanceState();
+  ConsumerState<WorkspaceAttendance> createState() => _WorkspaceAttendanceState();
 }
 
-class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
+class _WorkspaceAttendanceState extends ConsumerState<WorkspaceAttendance> {
   static const _views = ['today', 'held', 'ahead'];
   String _view = 'today';
 
@@ -31,7 +31,7 @@ class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
     final mayAttend = ref.watch(authProvider).value?.can('attendance.manage') ?? false;
     return Scaffold(
       backgroundColor: AppColors.ivory,
-      appBar: AppBar(title: Text(s.t('sup.nav.attendance'))),
+      appBar: AppBar(title: Text(s.t('work.nav.attendance'))),
       body: RefreshIndicator(
         color: AppColors.gold500,
         onRefresh: () => ref.refresh(getProvider(Duties.path).future),
@@ -40,7 +40,7 @@ class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
           onRetry: () => ref.invalidate(getProvider(Duties.path)),
           builder: (raw) {
             final groups = Duties.groups(raw);
-            final lists = {'today': Supervision.today(groups), 'held': Supervision.held(groups), 'ahead': Supervision.ahead(groups)};
+            final lists = {'today': Workspace.today(groups), 'held': Workspace.held(groups), 'ahead': Workspace.ahead(groups)};
             final shown = lists[_view]!;
             return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 28), children: [
               SingleChildScrollView(
@@ -52,7 +52,7 @@ class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
                       padding: const EdgeInsetsDirectional.only(end: 8),
                       child: ChoiceChip(
                         key: ValueKey('view-$v'),
-                        label: Text('${s.t('sup.att.$v')} (${lists[v]!.length})'),
+                        label: Text('${s.t('work.att.$v')} (${lists[v]!.length})'),
                         selected: _view == v,
                         onSelected: (_) => setState(() => _view = v),
                         selectedColor: AppColors.navy900,
@@ -70,11 +70,11 @@ class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Icon(Icons.lock_outline, size: 17, color: AppColors.warning),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(s.t('sup.att.noRight'), style: const TextStyle(color: AppColors.warning, fontSize: 12.5, fontWeight: FontWeight.w700, height: 1.5))),
+                    Expanded(child: Text(s.t('work.att.noRight'), style: const TextStyle(color: AppColors.warning, fontSize: 12.5, fontWeight: FontWeight.w700, height: 1.5))),
                   ]),
                 ),
               if (shown.isEmpty)
-                Quiet(icon: _view == 'today' ? Icons.event_available_outlined : Icons.calendar_month_outlined, text: s.t('sup.att.none.$_view'))
+                Quiet(icon: _view == 'today' ? Icons.event_available_outlined : Icons.calendar_month_outlined, text: s.t('work.att.none.$_view'))
               else
                 for (final x in shown) Padding(padding: const EdgeInsets.only(bottom: 10), child: SlotCard(slot: x, mayAttend: mayAttend, showDate: _view != 'today')),
             ]);
@@ -87,8 +87,8 @@ class _SupervisorAttendanceState extends ConsumerState<SupervisorAttendance> {
 
 /// «الاستبانات» in the supervisor's app: for every programme given to them, the link of the trainees' survey and the link
 /// of the trainer's own, each as a code, a copy, or opened.
-class SupervisorSurveys extends ConsumerWidget {
-  const SupervisorSurveys({super.key});
+class WorkspaceSurveys extends ConsumerWidget {
+  const WorkspaceSurveys({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +96,7 @@ class SupervisorSurveys extends ConsumerWidget {
     final value = ref.watch(getProvider(Duties.path));
     return Scaffold(
       backgroundColor: AppColors.ivory,
-      appBar: AppBar(title: Text(s.t('sup.nav.surveys'))),
+      appBar: AppBar(title: Text(s.t('work.nav.surveys'))),
       body: RefreshIndicator(
         color: AppColors.gold500,
         onRefresh: () => ref.refresh(getProvider(Duties.path).future),
@@ -104,11 +104,11 @@ class SupervisorSurveys extends ConsumerWidget {
           value: value,
           onRetry: () => ref.invalidate(getProvider(Duties.path)),
           builder: (raw) {
-            final programmes = [for (final g in Supervision.programmes(Duties.groups(raw))) if (Supervision.surveys(g).isNotEmpty) g];
+            final programmes = [for (final g in Workspace.programmes(Duties.groups(raw))) if (Workspace.surveys(g).isNotEmpty) g];
             return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 28), children: [
-              Padding(padding: const EdgeInsets.only(bottom: 14), child: Text(s.t('sup.survey.intro'), style: const TextStyle(color: AppColors.muted, fontSize: 13, height: 1.6))),
+              Padding(padding: const EdgeInsets.only(bottom: 14), child: Text(s.t('work.survey.intro'), style: const TextStyle(color: AppColors.muted, fontSize: 13, height: 1.6))),
               if (programmes.isEmpty)
-                Quiet(icon: Icons.rate_review_outlined, text: s.t('sup.survey.none'))
+                Quiet(icon: Icons.rate_review_outlined, text: s.t('work.survey.none'))
               else
                 for (final g in programmes) Padding(padding: const EdgeInsets.only(bottom: 12), child: ProgrammeSurveys(group: g)),
             ]);
@@ -133,7 +133,7 @@ class ProgrammeSurveys extends StatelessWidget {
     final code = group.obj('program')?.str('code') ?? '';
     final phase = group.str('phase');
     final (bg, fg) = stateColors(phase);
-    final surveys = Supervision.surveys(group);
+    final surveys = Workspace.surveys(group);
     return Surface(
       padding: EdgeInsets.zero,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

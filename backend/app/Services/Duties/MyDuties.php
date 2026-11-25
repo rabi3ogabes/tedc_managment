@@ -9,8 +9,10 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Trainer;
 use App\Models\TrainingGroup;
+use App\Models\TrainingKit;
 use App\Models\User;
 use App\Services\Saber\FormLinks;
+use App\Services\Wayfinding;
 use Illuminate\Support\Collection;
 
 /**
@@ -28,7 +30,7 @@ class MyDuties
     /** A programme in these states is not announced to the people assigned to it. */
     private const HIDDEN = [Program::STATUS_DRAFT, Program::STATUS_CANCELLED, Program::STATUS_ARCHIVED];
 
-    public function __construct(private readonly FormLinks $forms) {}
+    public function __construct(private readonly FormLinks $forms, private readonly Wayfinding $wayfinding) {}
 
     /** @return Collection<int, string> the groups this person supervises */
     public function supervisedGroupIds(User $user): Collection
@@ -90,7 +92,7 @@ class MyDuties
     {
         $supervised = $this->supervisedGroupIds($user);
         $taught = $this->taughtGroupIds($user);
-        $groups = TrainingGroup::with(['program.coordinator', 'program.trainers.user', 'supervisor', 'trainers.trainer.user'])
+        $groups = TrainingGroup::with(['program.coordinator', 'program.trainers.user', 'program.kits' => fn ($q) => $q->withCount('files'), 'supervisor', 'trainers.trainer.user'])
             ->whereIn('id', $supervised->merge($taught)->unique())->where('status', '!=', 'cancelled')
             ->whereHas('program', fn ($q) => $q->whereNotIn('status', self::HIDDEN))->get();
         if ($groups->isEmpty()) {
@@ -134,15 +136,23 @@ class MyDuties
                 'id' => $group->id,
                 'capacities' => array_values(array_filter([$supervised->contains($group->id) ? 'supervisor' : null, $taught->contains($group->id) ? 'trainer' : null])),
                 'phase' => $phase,
-                'program' => ['id' => $program->id, 'code' => $program->code, 'title_ar' => $program->title_ar, 'title_en' => $program->title_en ?: $program->title_ar, 'status' => $program->status, 'delivery_mode' => $program->delivery_mode],
+                'program' => ['id' => $program->id, 'code' => $program->code, 'title_ar' => $program->title_ar, 'title_en' => $program->title_en ?: $program->title_ar, 'status' => $program->status, 'delivery_mode' => $program->delivery_mode,
+                    'hours' => (float) $program->total_hours, 'has_course' => (bool) $program->has_course],
                 'group' => ['id' => $group->id, 'title_ar' => $group->displayTitle('ar'), 'title_en' => $group->displayTitle('en'), 'status' => $group->status, 'only' => $single],
                 'from' => $from?->toIso8601String(), 'to' => $to?->toIso8601String(),
-                'supervisor' => $supervisor ? ['ar' => $supervisor->displayName('ar'), 'en' => $supervisor->displayName('en'), 'me' => $supervisor->id === $group->supervisor_id && $supervised->contains($group->id)] : null,
+                // The people of a group reach its supervisor: the e-mail and the telephone of the account, when it has them.
+                'supervisor' => $supervisor ? ['ar' => $supervisor->displayName('ar'), 'en' => $supervisor->displayName('en'), 'me' => $supervisor->id === $group->supervisor_id && $supervised->contains($group->id),
+                    'email' => $supervisor->email ?: null, 'phone' => $supervisor->phone ?: null] : null,
                 'trainers' => $trainers->map(fn (Trainer $t) => ['ar' => $t->user?->displayName('ar') ?? $t->name_ar ?? $t->name_en, 'en' => $t->user?->displayName('en') ?? $t->name_en ?? $t->name_ar, 'me' => $t->id === $trainerId])->values()->all(),
                 'rooms' => $rooms,
                 'trainees' => $trainees,
                 'sessions' => $own->map(fn (ProgramSession $s) => $this->sessionRow($s, (int) ($present[$s->id] ?? 0), $expected, $now, $focus?->id === $s->id))->all(),
                 'forms' => $forms[$program->id] ?? null,
+                // «الحقائب التدريبية» of the programme, for the people who teach it: read in the protected reader, never downloaded.
+                'kits' => $taught->contains($group->id)
+                    ? $program->kits->filter(fn (TrainingKit $k) => in_array($k->status, [TrainingKit::APPROVED, TrainingKit::PUBLISHED], true))
+                        ->map(fn (TrainingKit $k) => ['id' => $k->id, 'code' => $k->code, 'title_ar' => $k->title_ar, 'title_en' => $k->title_en ?: $k->title_ar, 'version' => $k->version, 'hours' => (float) $k->duration_hours, 'files' => (int) $k->files_count])->values()->all()
+                    : [],
             ];
         });
 
@@ -196,6 +206,8 @@ class MyDuties
             'id' => $s->id, 'sequence' => $s->sequence, 'title_ar' => $s->title_ar, 'title_en' => $s->title_en ?: $s->title_ar,
             'starts_at' => $s->starts_at?->toIso8601String(), 'ends_at' => $s->ends_at?->toIso8601String(), 'status' => $s->status, 'mode' => $s->mode,
             'when' => $when, 'focus' => $focus, 'place' => $this->place($s),
+            // Where the room stands on the plans of the centre, for «موقع القاعة» in the app.
+            'room_id' => $s->training_room_id, 'map_place' => $this->wayfinding->placeOf($s->training_room_id, $s->location_text),
             'present' => $present, 'expected' => $expected,
         ];
     }
