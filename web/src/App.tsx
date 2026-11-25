@@ -297,6 +297,7 @@ export default function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="notification-preferences" element={<NotificationPrefs />} />
           <Route path="communities" element={<PlcHub />} />
+          <Route path="discussions" element={<Communities />} />
           <Route path="communities/workshops/new" element={<RequireAuth permission="plc.manage|plc.internal.submit"><PlcWorkshopWizard /></RequireAuth>} />
           <Route path="communities/workshops/:id/edit" element={<RequireAuth permission="plc.manage|plc.internal.submit"><PlcWorkshopWizard /></RequireAuth>} />
           <Route path="communities/workshops/:id/schools" element={<RequireAuth permission="plc.view"><PlcSchoolsStep /></RequireAuth>} />

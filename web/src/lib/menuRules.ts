@@ -3,15 +3,20 @@
  * The side menu, the search and the administrator's «ما يراه» window all go through them.
  */
 
-/** What a button asks for: one of several rights (`a|b`), a feature that is switched on (`x|y`), both, or nothing. */
-export type Gated = { permission?: string; feature?: string }
+/**
+ * What a button asks for: one of several rights (`a|b`), a feature that is switched on (`x|y`), both, or nothing.
+ * `without`: the button stands in for another one and is hidden from whoever is shown that other one. «المجتمعات
+ * والمنتديات» is for the people who do not get «مجتمعات التعلم المهنية», which already carries the discussions as a tab.
+ */
+export type Gated = { permission?: string; feature?: string; without?: Gated }
 
 /** `holds(['saber.view'])('saber.view')`: whether a list of rights carries one ('*' carries all). */
 export const holds = (permissions: readonly string[]) => (slug: string) => permissions.includes('*') || permissions.includes(slug)
 
 /** A button is shown when its feature is on and the role holds one of the rights it names (or it names none). */
 export function allowed(item: Gated, can: (slug: string) => boolean, featureOn: (feature?: string) => boolean): boolean {
-  return featureOn(item.feature) && (!item.permission || item.permission.split('|').some((x) => can(x)))
+  if (!featureOn(item.feature) || (item.permission && !item.permission.split('|').some((x) => can(x)))) return false
+  return !(item.without && allowed(item.without, can, featureOn))
 }
 
 /** The sections with only the buttons the role may use; a section left empty is dropped. */

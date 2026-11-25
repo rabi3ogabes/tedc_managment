@@ -3,12 +3,14 @@ import {
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { TFunction } from 'i18next'
-import { holds, landsOnPortal, onlyDoors, visibleGroups } from '@/lib/menuRules'
+import { holds, landsOnPortal, onlyDoors, visibleGroups, type Gated } from '@/lib/menuRules'
 import { showsOwnTraining } from '@/lib/portalHome'
 
 export { landsOnPortal, pageRightOf, visibleGroups } from '@/lib/menuRules'
 
 export type Item = { to: string; label: string; icon: ComponentType<{ className?: string }>; permission?: string; end?: boolean; badge?: number; feature?: string
+  /** Hidden from whoever is shown the button with this gate (menuRules.allowed). */
+  without?: Gated
   /** A page of the person's own training (portal): listed in the trainee role, see showsOwnTraining. */
   ownTraining?: boolean
 }
@@ -81,7 +83,11 @@ export function adminCatalog(t: TFunction, badges: MenuBadges): Group[] {
       { to: '/admin/dashboard-presets', label: t('rep.dash.presets'), icon: LayoutDashboard, permission: 'dashboards.manage' },
       { to: '/admin/appearance/home', label: t('comm.navHome'), icon: LayoutTemplate, permission: 'cms.manage' },
       { to: '/admin/error-log', label: t('logs.nav'), icon: Bug, permission: 'logs.manage', badge: badges.errors },
-      { to: '/admin/communities', label: t('plc.nav'), icon: MessagesSquare, feature: 'plc|forums' },
+      // «مجتمعات التعلم المهنية» is the management hub: its data needs `plc.view` on the server, so the button asks for it too
+      // (it used to show for everybody and open on «هذه الصفحة خارج صلاحياتك»). The discussions, open to all, were reachable
+      // only as the hub's last tab: whoever is not shown the hub gets them as a button of their own.
+      { to: '/admin/communities', label: t('plc.nav'), icon: MessagesSquare, permission: 'plc.view', feature: 'plc' },
+      { to: '/admin/discussions', label: t('soc.hub.title'), icon: MessagesSquare, feature: 'plc|forums', without: { permission: 'plc.view', feature: 'plc' } },
       { to: '/admin/trainer-inbox', label: t('soc.nav.inbox'), icon: ClipboardList, permission: 'trainers.respond|forums.moderate|ratings.moderate', feature: 'forums' },
       { to: '/admin/gamification', label: t('soc.nav.studio'), icon: Award, permission: 'gamification.manage|rewards.manage', feature: 'gamification' },
       { to: '/admin/achievements', label: t('soc.nav.achievements'), icon: Award, feature: 'gamification' },
