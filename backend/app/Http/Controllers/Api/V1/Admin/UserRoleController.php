@@ -6,6 +6,7 @@ use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Department;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\RoleUser;
 use App\Models\School;
@@ -91,6 +92,38 @@ class UserRoleController extends Controller
         return response()->json(['data' => ['revoked' => true]]);
     }
 
+    /**
+     * The rights of one person in one of their roles: what is added for them on top of the role, and what is taken from
+     * them out of it. The role itself is not touched, so nobody else who holds it is affected. What is sent is tidied:
+     * a right the role already gives is not "added", and only a right the role gives can be "taken".
+     */
+    public function permissions(Request $request, User $user, RoleUser $roleUser): JsonResponse
+    {
+        abort_unless($roleUser->user_id === $user->id, 404);
+        $role = $roleUser->role()->with('permissions:id,slug')->firstOrFail();
+        // The system administrator's rights are implicit and complete: there is nothing to add to them or take from them.
+        abort_if($role->slug === Role::SUPER_ADMIN, 422, __('messages.roles.super_admin_fixed'));
+
+        $known = Permission::pluck('slug')->all();
+        $data = $request->validate([
+            'granted' => ['present', 'array'], 'granted.*' => ['string', Rule::in($known)],
+            'revoked' => ['present', 'array'], 'revoked.*' => ['string', Rule::in($known)],
+        ]);
+        $own = $role->permissions->pluck('slug');
+        $granted = collect($data['granted'])->unique()->diff($own)->sort()->values();
+        $revoked = collect($data['revoked'])->unique()->intersect($own)->sort()->values();
+        $before = ['granted' => $roleUser->granted_permissions ?? [], 'revoked' => $roleUser->revoked_permissions ?? []];
+
+        $roleUser->update(['granted_permissions' => $granted->all() ?: null, 'revoked_permissions' => $revoked->all() ?: null]);
+        AuditLog::create([
+            'user_id' => $this->user()->id, 'action' => 'user_permissions_changed', 'auditable_type' => User::class, 'auditable_id' => $user->id,
+            'old_values' => $before, 'new_values' => ['for' => $user->email, 'role' => $role->slug, 'granted' => $granted->all(), 'revoked' => $revoked->all()],
+            'ip_address' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255), 'url' => $request->fullUrl(),
+        ]);
+
+        return response()->json(['data' => $this->present($roleUser->fresh()->load('role'))]);
+    }
+
     /** @return array<string, mixed> */
     private function present(RoleUser $g): array
     {
@@ -100,6 +133,8 @@ class UserRoleController extends Controller
             'id' => $g->id, 'role_id' => $g->role_id, 'slug' => $g->role->slug, 'name_ar' => $g->role->name_ar, 'name_en' => $g->role->name_en,
             'scope_type' => $g->scope_type, 'scope_id' => $g->scope_id, 'scope_label_ar' => $label['ar'], 'scope_label_en' => $label['en'],
             'granted_at' => $g->granted_at?->toIso8601String(), 'expires_at' => $g->expires_at?->toIso8601String(), 'expired' => ! $g->isActive(),
+            // Rights of this person only, on top of the role's (added) and out of the role's (taken).
+            'granted_permissions' => $g->granted_permissions ?? [], 'revoked_permissions' => $g->revoked_permissions ?? [],
         ];
     }
 

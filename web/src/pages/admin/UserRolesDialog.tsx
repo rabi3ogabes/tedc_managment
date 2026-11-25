@@ -14,14 +14,24 @@ type Grant = { id: string; role_id: string; slug: string; name_ar: string; name_
 type Role = { id: string; slug: string; name_ar: string; name_en: string; scope_levels: string[] | null }
 const SCOPES = ['ministry', 'school_group', 'school', 'department']
 
-/** The roles of one person: each granted at a scope (Ministry / school group / school / department), optionally until a date. */
+/** The roles of one person, in a window of their own (the same content is a view of the person's side panel). */
 export default function UserRolesDialog({ user, onClose, onChanged }: { user: { id: string; name: string } | null; onClose: () => void; onChanged: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <Modal open={!!user} onClose={onClose} title={user ? t('userRoles.title', { name: user.name }) : ''} wide>
+      {user && <UserRolesBody key={user.id} userId={user.id} onChanged={onChanged} />}
+    </Modal>
+  )
+}
+
+/** The roles of one person: each granted at a scope (Ministry / school group / school / department), optionally until a date. */
+export function UserRolesBody({ userId, onChanged }: { userId: string; onChanged: () => void }) {
   const { t, i18n } = useTranslation()
   const ar = i18n.language === 'ar'
-  const grants = useGet<{ data: Grant[] }>(user ? `/admin/users/${user.id}/roles` : null, undefined, { staleTime: 0 })
-  const roles = useGet<{ data: Role[] }>(user ? '/admin/roles' : null, undefined, { staleTime: 60_000 })
-  const groups = useGet<{ data: { id: string; name_ar: string; name_en: string }[] }>(user ? '/admin/school-groups' : null, { per_page: 100 }, { retry: false })
-  const lookups = useGet<{ data: { departments: { id: string; name_ar: string; name_en: string }[] } }>(user ? '/admin/lookups' : null, undefined, { staleTime: 60_000 })
+  const grants = useGet<{ data: Grant[] }>(`/admin/users/${userId}/roles`, undefined, { staleTime: 0 })
+  const roles = useGet<{ data: Role[] }>('/admin/roles', undefined, { staleTime: 60_000 })
+  const groups = useGet<{ data: { id: string; name_ar: string; name_en: string }[] }>('/admin/school-groups', { per_page: 100 }, { retry: false })
+  const lookups = useGet<{ data: { departments: { id: string; name_ar: string; name_en: string }[] } }>('/admin/lookups', undefined, { staleTime: 60_000 })
   const [form, setForm] = useState({ role_id: '', scope_type: 'ministry', scope_id: '', expires_at: '' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,19 +48,18 @@ export default function UserRolesDialog({ user, onClose, onChanged }: { user: { 
   const add = async () => {
     setBusy(true); setError(null)
     try {
-      await api.post(`/admin/users/${user!.id}/roles`, { role_id: form.role_id, scope_type: form.scope_type, scope_id: form.scope_id || undefined, expires_at: form.expires_at || undefined })
+      await api.post(`/admin/users/${userId}/roles`, { role_id: form.role_id, scope_type: form.scope_type, scope_id: form.scope_id || undefined, expires_at: form.expires_at || undefined })
       toast(t('userRoles.granted')); setForm({ role_id: '', scope_type: 'ministry', scope_id: '', expires_at: '' }); await grants.refetch(); onChanged()
     } catch (e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }
   const revoke = async (g: Grant) => {
     if (!await dialogs.confirm(t('userRoles.confirmRevoke', { role: nm(g) }))) return
-    try { await api.delete(`/admin/users/${user!.id}/roles/${g.id}`); toast(t('userRoles.revoked')); await grants.refetch(); onChanged() } catch (e) { toast(errorMessage(e), 'error') }
+    try { await api.delete(`/admin/users/${userId}/roles/${g.id}`); toast(t('userRoles.revoked')); await grants.refetch(); onChanged() } catch (e) { toast(errorMessage(e), 'error') }
   }
   const needsScope = form.scope_type !== 'ministry'
   const ready = form.role_id && (!needsScope || form.scope_id)
 
   return (
-    <Modal open={!!user} onClose={onClose} title={user ? t('userRoles.title', { name: user.name }) : ''} wide>
       <div className="space-y-5">
         {grants.isLoading ? <Spinner /> : (
           <ul className="space-y-2">
@@ -78,6 +87,5 @@ export default function UserRolesDialog({ user, onClose, onChanged }: { user: { 
           <Button variant="gold" icon={<Plus className="size-4" />} loading={busy} disabled={!ready} onClick={() => void add()}>{t('userRoles.grant')}</Button>
         </div>
       </div>
-    </Modal>
   )
 }

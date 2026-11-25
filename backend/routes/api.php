@@ -1854,6 +1854,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('users/{user}/roles', [UserRoleController::class, 'index']);
                 Route::post('users/{user}/roles', [UserRoleController::class, 'store']);
                 Route::delete('users/{user}/roles/{roleUser}', [UserRoleController::class, 'destroy']);
+                // Rights of one person in one of their roles: added on top of the role, or taken out of it.
+                Route::put('users/{user}/roles/{roleUser}/permissions', [UserRoleController::class, 'permissions'])->middleware('permission:roles.manage');
                 Route::get('roles', [UserController::class, 'roles']);
             });
             // Role names only (no permission lists): for the screens that share content with a role.

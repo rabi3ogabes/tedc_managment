@@ -41,7 +41,7 @@ class User extends Authenticatable
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class)->using(RoleUser::class)->withPivot(['id', 'scope_type', 'scope_id', 'granted_by', 'granted_at', 'expires_at'])->withTimestamps();
+        return $this->belongsToMany(Role::class)->using(RoleUser::class)->withPivot(['id', 'scope_type', 'scope_id', 'granted_by', 'granted_at', 'expires_at', 'granted_permissions', 'revoked_permissions'])->withTimestamps();
     }
 
     public function roleAssignments(): HasMany
@@ -97,12 +97,32 @@ class User extends Authenticatable
         return $this->hasRole(Role::SUPER_ADMIN);
     }
 
+    /**
+     * The grants that count right now: the active one during a request (a person works as one role at a time),
+     * otherwise — console, jobs — every grant that has not expired.
+     *
+     * @return Collection<int, RoleUser>
+     */
+    public function effectiveGrants(): Collection
+    {
+        $context = app(ActiveRole::class);
+        if ($context->isSet($this)) {
+            $active = $context->for($this);
+
+            return $active ? collect([$active]) : collect();
+        }
+
+        return $this->roleAssignments()->with('role.permissions:id,slug')->get()->filter(fn (RoleUser $grant) => $grant->role !== null && $grant->isActive())->values();
+    }
+
+    /**
+     * What the person may do now: the rights of the role they work in, with what an administrator added for them in that
+     * role and without what was taken from them in it (RoleUser::effectivePermissions).
+     */
     public function permissionSlugs(): Collection
     {
-        return $this->permissionCache ??= Role::whereIn('id', $this->effectiveRoles()->pluck('id'))
-            ->with('permissions:id,slug')
-            ->get()
-            ->flatMap(fn (Role $role) => $role->permissions->pluck('slug'))
+        return $this->permissionCache ??= $this->effectiveGrants()
+            ->flatMap(fn (RoleUser $grant) => $grant->effectivePermissions())
             ->unique()
             ->values();
     }
