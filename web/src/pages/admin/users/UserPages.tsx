@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Eye, EyeOff, Home, Pencil, Plus, Power, RotateCcw, Save, Search, ShieldCheck, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, Eye, EyeOff, Home, ListChecks, Lock, Pencil, Plus, Power, RotateCcw, Save, Search, ShieldCheck, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 import { pageRights, pagesOfRole, type Item } from '@/components/admin/menuCatalog'
@@ -9,8 +9,9 @@ import { useFeatures } from '@/hooks/useFeature'
 import { api, errorMessage } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { dialogs } from '@/lib/dialogs'
-import { customised, doorToGive, doorsOf, draftOf, hasLevels, hide, levelOn, LEVELS, linked, replaced, sameSaved, savedOf, setAllLevels, setLevel, show, shown, type Draft, type Ground, type Level, type Saved } from '@/lib/pageAccess'
+import { alsoOpens, areaOf, customised, doorToGive, doorsOf, draftOf, featuresOf, hasLevels, hide, keepsOpen, kindOf, levelOn, LEVELS, linked, replaced, sameSaved, savedOf, setAllLevels, setFeature, setFeatures, setLevel, show, shown, type Draft, type Ground, type Kind, type Level, type Saved } from '@/lib/pageAccess'
 import { toast } from '@/lib/toast'
+import { featureGroups } from './featureGroups'
 
 type Grant = { id: string; role_id: string; slug: string; name_ar: string; name_en: string; scope_label_ar: string; scope_label_en: string; expired: boolean; granted_permissions: string[]; revoked_permissions: string[]; hidden_pages: string[]; denied_actions: Record<string, Level[]> }
 type Role = { id: string; slug: string; permissions: { slug: string }[] }
@@ -19,10 +20,21 @@ type AccessRole = { id: string; landing_route: string; slug: string }
 type Filter = 'all' | 'shown' | 'off'
 
 const LEVEL_ICON: Record<Level, ComponentType<{ className?: string }>> = { add: Plus, edit: Pencil, delete: Trash2 }
+/** What a feature does, at a glance: it adds, edits, deletes, only shows, or is a step of its own (approve, publish…). */
+const KIND: Record<Kind, { icon: ComponentType<{ className?: string }>; tone: string }> = {
+  view: { icon: Eye, tone: 'bg-navy-900 text-gold-300' },
+  add: { icon: Plus, tone: 'bg-emerald-100 text-emerald-800' },
+  edit: { icon: Pencil, tone: 'bg-gold-100 text-gold-800' },
+  delete: { icon: Trash2, tone: 'bg-red-100 text-red-700' },
+  other: { icon: Check, tone: 'bg-navy-100 text-navy-900' },
+}
 
 /**
  * «الصفحات» of one person: every page of the menu of the role they hold, with a switch (shown or not) and, where the
  * page has something to change, whether the person may add, edit and delete on it.
+ *
+ * A page with several features (سابر+: add a programme, edit it, cancel it, add a group, edit it, delete it…) opens on
+ * «المزايا»: every feature of the page with its own switch, so each is given or kept back by itself.
  *
  * The administrator decides by page; the rights follow (lib/pageAccess): a page switched on gives the right that opens
  * it, a page switched off takes it when no other shown page needs it, and the pages that share a right are told apart
@@ -43,6 +55,9 @@ export default function UserPages({ userId, onChanged }: { userId: string; onCha
   const [term, setTerm] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [busy, setBusy] = useState(false)
+  // The pages whose features are open, one by one.
+  const [opened, setOpened] = useState<ReadonlySet<string>>(new Set())
+  const toggleOpened = (to: string) => setOpened((was) => { const next = new Set(was); if (!next.delete(to)) next.add(to); return next })
   const nm = (o: { name_ar: string; name_en: string }) => (ar ? o.name_ar : o.name_en)
 
   const live = useMemo(() => (grants.data?.data ?? []).filter((g) => !g.expired), [grants.data])
@@ -157,7 +172,11 @@ export default function UserPages({ userId, onChanged }: { userId: string; onCha
                       const home = page.to === landing
                       const off = !featureOn(page.feature)
                       const stands = replaced(page, draft)
-                      const changed = on !== shown(page, start) || LEVELS.some((l) => levelOn(page, l, draft) !== levelOn(page, l, start))
+                      const features = on ? featuresOf(page, ground) : []
+                      const heldFeatures = features.filter((f) => draft.rights.has(f)).length
+                      const expanded = features.length > 1 && opened.has(page.to)
+                      const changed = on !== shown(page, start) || LEVELS.some((l) => levelOn(page, l, draft) !== levelOn(page, l, start)) || featuresOf(page, ground).some((f) => draft.rights.has(f) !== start.rights.has(f))
+                      const limited = [...new Set(features.map(areaOf))].flatMap((a) => draft.denied[a] ?? [])
                       const levels = on && hasLevels(page, draft, ground)
                       const moves = levels ? linked(page, ground).filter((p) => shown(p, draft)) : []
                       return (
@@ -172,6 +191,14 @@ export default function UserPages({ userId, onChanged }: { userId: string; onCha
                             </div>
                             <p className="mt-0.5 text-xs leading-5 text-slate-500">{reason(page, on)}{moves.length > 0 && <span title={moves.map((p) => (p as Item).label).join('، ')}> · {t('userPages.movesWith', { pages: moves.slice(0, 2).map((p) => (p as Item).label).join('، ') })}{moves.length > 2 && t('userPages.andMore', { n: moves.length - 2 })}</span>}</p>
                           </div>
+                          {features.length > 1 && (
+                            <button type="button" aria-expanded={expanded} aria-controls={`features-${page.to}`} data-features onClick={() => toggleOpened(page.to)}
+                              className={clsx('inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-colors', expanded ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-900 hover:border-gold-400')}>
+                              <ListChecks className={clsx('size-3.5', expanded ? 'text-gold-300' : 'text-gold-700')} aria-hidden />{t('userPages.features')}
+                              <span className={clsx('tabular-nums', expanded ? 'text-gold-300' : 'text-slate-500')}>{heldFeatures}/{features.length}</span>
+                              <ChevronDown className={clsx('size-3.5 transition-transform', expanded && 'rotate-180')} aria-hidden />
+                            </button>
+                          )}
                           <div className="flex items-center gap-1.5" role="group" aria-label={t('userPages.levelsOf', { page: page.label })}>
                             {levels ? LEVELS.map((level) => {
                               const allowedNow = levelOn(page, level, draft)
@@ -189,6 +216,48 @@ export default function UserPages({ userId, onChanged }: { userId: string; onCha
                             className={clsx('relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50', on ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')}>
                             <span className="grid size-5 place-items-center rounded-full bg-white shadow">{on ? <Eye className="size-3 text-gold-700" aria-hidden /> : <EyeOff className="size-3 text-slate-400" aria-hidden />}</span>
                           </button>
+                          {expanded && (
+                            <div id={`features-${page.to}`} className="basis-full rounded-2xl border border-navy-100 bg-ivory/60 p-4">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <div className="min-w-0 flex-1 basis-64">
+                                  <h4 className="font-bold text-navy-900">{t('userPages.featuresOf', { page: page.label })} <span className="text-xs font-semibold tabular-nums text-slate-500">{t('userPages.sectionCount', { n: heldFeatures, total: features.length })}</span></h4>
+                                  <p className="mt-0.5 text-xs leading-5 text-slate-600">{t('userPages.featuresHint')}</p>
+                                </div>
+                                {editable && (
+                                  <div className="flex gap-2">
+                                    <button type="button" data-all="off" onClick={() => setDraft(setFeatures(page, false, draft, ground))} className="inline-flex items-center gap-1.5 rounded-xl border border-navy-100 bg-white px-3 py-1.5 text-xs font-bold text-navy-900 transition-colors hover:border-gold-400"><Eye className="size-3.5 text-gold-700" aria-hidden />{t('userPages.viewOnly')}</button>
+                                    <button type="button" data-all="on" onClick={() => setDraft(setFeatures(page, true, draft, ground))} className="inline-flex items-center gap-1.5 rounded-xl border border-navy-100 bg-white px-3 py-1.5 text-xs font-bold text-navy-900 transition-colors hover:border-gold-400"><Check className="size-3.5 text-gold-700" aria-hidden />{t('userPages.allOn')}</button>
+                                  </div>
+                                )}
+                              </div>
+                              {limited.length > 0 && <p role="note" className="mt-3 rounded-xl border border-gold-200 bg-gold-50 px-3 py-2 text-xs leading-5 text-navy-900">{t('userPages.generalLimit', { actions: LEVELS.filter((l) => limited.includes(l)).map((l) => t(`pageAccess.level.${l}`)).join('، ') })}</p>}
+                              <div className="mt-3 space-y-3">
+                                {featureGroups(features).map((group) => (
+                                  <fieldset key={group.id || 'all'}>
+                                    {group.id && <legend className="mb-1.5 text-[11px] font-bold text-gold-700">{t(`userPages.featureGroups.${group.id}`)}</legend>}
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                      {group.features.map((slug) => {
+                                        const has = draft.rights.has(slug)
+                                        const locked = has && keepsOpen(page, slug, draft)
+                                        const kind = KIND[kindOf(slug)]
+                                        const others = alsoOpens(page, slug, ground) as Item[]
+                                        const note = locked ? t('userPages.opensPage') : (t(`userPages.featureNote.${slug.replaceAll('.', '_')}`, { defaultValue: '' }) as string) || (others.length ? t('userPages.alsoPage', { pages: others.map((o) => o.label).join('، ') }) : '')
+                                        return (
+                                          <button key={slug} type="button" role="switch" aria-checked={has} data-feature={slug} title={slug} disabled={!editable || locked} onClick={() => setDraft(setFeature(page, slug, !has, draft, ground))}
+                                            className={clsx('flex items-center gap-2.5 rounded-xl border px-3 py-2 text-start transition-colors disabled:cursor-not-allowed', has ? 'border-navy-100 bg-white text-navy-900 shadow-sm' : 'border-dashed border-slate-300 text-slate-500 hover:border-slate-400', has !== start.rights.has(slug) && 'ring-2 ring-gold-400/60')}>
+                                            <span className={clsx('grid size-7 shrink-0 place-items-center rounded-lg', has ? kind.tone : 'bg-slate-100 text-slate-400')} aria-hidden><kind.icon className="size-3.5" /></span>
+                                            <span className="min-w-0 flex-1"><span className="block text-sm font-semibold leading-5">{rightName(slug)}</span>{note && <span className="block text-[11px] leading-4 text-slate-500">{note}</span>}</span>
+                                            {locked ? <Lock className="size-4 shrink-0 text-gold-700" aria-hidden />
+                                              : <span className={clsx('relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors', has ? 'justify-end bg-gold-500' : 'justify-start bg-slate-300')} aria-hidden><span className="size-4 rounded-full bg-white shadow" /></span>}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  </fieldset>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </li>
                       )
                     })}

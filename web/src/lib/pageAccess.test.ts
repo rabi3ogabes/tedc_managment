@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { draftOf, hide, levelOn, limitsAt, linked, savedOf, sameSaved, setAllLevels, setLevel, show, shown, type Draft, type Ground, type Page, type Saved } from './pageAccess.ts'
+import { alsoOpens, draftOf, featuresOf, hide, keepsOpen, kindOf, levelOn, limitsAt, linked, savedOf, sameSaved, setAllLevels, setFeature, setFeatures, setLevel, show, shown, type Draft, type Ground, type Page, type Saved } from './pageAccess.ts'
 
 const page = (to: string, permission?: string, more: Partial<Page> = {}): Page => ({ to, permission, ...more })
 const home = page('/portal')
@@ -144,5 +144,59 @@ describe('what the person is told on the page', () => {
     assert.deepEqual(limitsAt(undefined, [], {}), [])
     // A page whose work is done by assignment, not by a right, says nothing.
     assert.deepEqual(limitsAt({ ...chats, plain: true }, ['announcements.manage'], { announcements: ['add'] }), [])
+  })
+})
+
+describe('the features of a page, one by one', () => {
+  const full: Ground = { ...ground, known: ['saber.view', 'saber.program.create', 'saber.program.edit', 'saber.program.cancel', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.day.edit', 'programs.view', 'programs.manage', 'attendance.manage', 'attendance.devices', 'kits.view', 'kits.manage'] }
+  const mine = ['saber.view', 'programs.view', 'attendance.manage']
+  const viewer = () => draftOf(mine, none)
+  const ofSaber = (d: Draft) => [...d.rights].filter((r) => r.startsWith('saber.')).sort()
+
+  it('lists every right of the area under its first page only', () => {
+    assert.deepEqual(featuresOf(saber, full), ['saber.view', 'saber.program.create', 'saber.program.edit', 'saber.program.cancel', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.day.edit'])
+    assert.deepEqual(featuresOf(programs, full), ['programs.view', 'programs.manage'])
+    assert.deepEqual(featuresOf(rooms, full), [], '«القاعات» shares the area of «البرامج», which lists it')
+    assert.deepEqual(featuresOf(reports, full), [])
+  })
+
+  it('gives exactly the feature that was pressed: add a programme, not edit or delete', () => {
+    const d = setFeature(saber, 'saber.program.create', true, viewer(), full)
+    assert.deepEqual(ofSaber(d), ['saber.program.create', 'saber.view'])
+    assert.deepEqual(savedOf(mine, d, full), { ...none, granted: ['saber.program.create'] })
+    const two = setFeature(saber, 'saber.group.delete', true, d, full)
+    assert.equal(two.rights.has('saber.group.delete'), true)
+    assert.equal(two.rights.has('saber.group.edit'), false)
+    assert.deepEqual(ofSaber(setFeature(saber, 'saber.program.create', false, two, full)), ['saber.group.delete', 'saber.view'])
+  })
+
+  it('keeps the right that opens the page: the page has its own switch', () => {
+    const d = viewer()
+    assert.equal(keepsOpen(saber, 'saber.view', d), true)
+    assert.deepEqual(setFeature(saber, 'saber.view', false, d, full), d)
+    // A page with two doors lets one go while the other is held.
+    const both = draftOf(['attendance.manage', 'attendance.devices'], none)
+    assert.equal(keepsOpen(absence, 'attendance.manage', both), false)
+    assert.equal(setFeature(absence, 'attendance.manage', false, both, full).rights.has('attendance.devices'), true)
+  })
+
+  it('makes a page to look only, and gives everything, in one press', () => {
+    const everything = setFeatures(saber, true, viewer(), full)
+    assert.equal(featuresOf(saber, full).every((f) => everything.rights.has(f)), true)
+    assert.deepEqual(ofSaber(setFeatures(saber, false, everything, full)), ['saber.view'])
+  })
+
+  it('does not open another page by the way', () => {
+    const kits = page('/admin/kits', 'kits.view')
+    const protection = page('/admin/kit-protection', 'kits.manage')
+    const g: Ground = { ...full, pages: [...full.pages, kits, protection] }
+    const d = setFeature(kits, 'kits.manage', true, draftOf(['kits.view'], none), g)
+    assert.equal(d.rights.has('kits.manage'), true)
+    assert.equal(shown(protection, d), false)
+    assert.deepEqual(alsoOpens(kits, 'kits.manage', g).map((p) => p.to), ['/admin/kit-protection'])
+  })
+
+  it('tells what a right does from its name', () => {
+    assert.deepEqual(['saber.view', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.program.cancel', 'saber.publish', 'saber.room.assign'].map(kindOf), ['view', 'add', 'edit', 'delete', 'delete', 'other', 'edit'])
   })
 })

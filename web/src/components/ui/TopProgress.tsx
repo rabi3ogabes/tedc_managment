@@ -1,33 +1,38 @@
 import { useIsFetching, useIsMutating } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
+/** How long a load must last before the line is drawn: a quick answer never shows it. */
+const SHOW_AFTER = 300
+
 /**
- * A slim progress line in the brand colors at the top of the window while data loads or saves.
- * It appears only after a short delay, so instant (cached) responses never flash it.
+ * A hairline at the top of the window while a page loads its first data or a change is being saved.
+ *
+ * It used to follow every request, so the quiet refreshes a page makes by itself (unread notices every minute, badges,
+ * the check of the person's rights) drew a bar sweeping across the top again and again, on every page. Now it follows
+ * only what the person is waiting for: data a page does not have yet, and saving. It grows once towards the end and
+ * finishes, instead of looping.
  */
 export function TopProgress() {
-  const busy = useIsFetching() + useIsMutating() > 0
+  // `pending`: the request has nothing to show yet. A refresh of data already on the screen is not a wait.
+  const waiting = useIsFetching({ predicate: (query) => query.state.status === 'pending' }) + useIsMutating() > 0
   const [phase, setPhase] = useState<'idle' | 'running' | 'done'>('idle')
 
   useEffect(() => {
-    if (busy) {
-      const show = setTimeout(() => setPhase('running'), 150)
+    if (waiting) {
+      const show = setTimeout(() => setPhase('running'), SHOW_AFTER)
       return () => clearTimeout(show)
     }
     if (phase !== 'running') return
     setPhase('done')
-    const hide = setTimeout(() => setPhase('idle'), 400)
+    const hide = setTimeout(() => setPhase('idle'), 450)
     return () => clearTimeout(hide)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busy])
+  }, [waiting])
 
   if (phase === 'idle') return null
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px] overflow-hidden" role="progressbar" aria-busy={phase === 'running'} aria-label="Loading">
-      <div
-        className={phase === 'running' ? 'top-progress-run h-full' : 'h-full w-full opacity-0 transition-opacity duration-300'}
-        style={{ background: 'linear-gradient(90deg, var(--color-gold-400), var(--color-navy-900), var(--color-gold-400))', boxShadow: '0 0 12px var(--color-gold-400)' }}
-      />
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5 print:hidden" role="progressbar" aria-busy={phase === 'running'} aria-label="Loading">
+      <div className={phase === 'running' ? 'top-progress h-full' : 'top-progress top-progress-done h-full'} />
     </div>
   )
 }

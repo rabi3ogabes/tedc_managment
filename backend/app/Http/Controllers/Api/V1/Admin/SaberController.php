@@ -70,7 +70,7 @@ class SaberController extends Controller
             'offday_pending' => CalendarRequest::where('status', CalendarRequest::PENDING)->when(! $user->hasPermission('calendar.approve'), fn ($q) => $q->where('requested_by', $user->id))->count(),
             'settings' => $this->settings(),
             'day' => ['hours' => $this->day->hours()] + $this->day->all(),
-            'can' => collect(['saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.group.manage', 'saber.group.rename', 'saber.group.validate',
+            'can' => collect(['saber.program.create', 'saber.program.cancel', 'saber.program.reactivate', 'saber.meeting.recurring', 'saber.program.edit', 'saber.group.create', 'saber.group.edit', 'saber.group.delete', 'saber.group.rename', 'saber.group.validate',
                 'saber.day.edit', 'saber.room.assign', 'saber.trainer.assign', 'saber.supervisor.assign', 'saber.plan.view', 'saber.import', 'saber.survey_links.manage',
                 'trainers.manage', 'calendar.manage', 'calendar.approve', 'surveys.export', 'settings.manage', 'rooms.book', 'rooms.manage', 'programs.manage', 'saber.publish'])->mapWithKeys(fn ($p) => [$p => $user->hasPermission($p)]),
         ]]);
@@ -181,7 +181,7 @@ class SaberController extends Controller
         ]);
         $this->need(match (true) {
             array_key_exists('coordinator_id', $d) => 'saber.supervisor.assign',
-            default => 'saber.group.manage',
+            default => 'saber.program.edit',
         });
         if (array_key_exists('coordinator_id', $d)) {
             abort_unless($this->settings()['supervisor_edit_enabled'], 403, __('messages.saber.supervisor_locked'));
@@ -229,7 +229,7 @@ class SaberController extends Controller
 
     public function addGroup(Program $program): JsonResponse
     {
-        $this->need('saber.group.manage');
+        $this->need('saber.group.create');
         $rev = $this->drafts->draft($program, $this->user());
         $group = $this->drafts->addGroup($rev, $this->user(), ['supervisor_id' => $this->drafts->field($program, $rev->state, 'coordinator_id')]);
 
@@ -244,10 +244,10 @@ class SaberController extends Controller
             'supervisor_id' => ['sometimes', 'nullable', 'uuid', 'exists:users,id'],
         ]);
         if (array_key_exists('title_ar', $d) || array_key_exists('color', $d) || array_key_exists('term', $d)) {
-            abort_unless($this->user()->hasPermission('saber.group.rename') || $this->user()->hasPermission('saber.group.manage'), 403);
+            abort_unless($this->user()->hasPermission('saber.group.rename') || $this->user()->hasPermission('saber.group.edit'), 403);
         }
         if (array_key_exists('sequence', $d)) {
-            $this->need('saber.group.manage');
+            $this->need('saber.group.edit');
         }
         if (array_key_exists('supervisor_id', $d)) {
             $this->need('saber.supervisor.assign');
@@ -266,7 +266,7 @@ class SaberController extends Controller
 
     public function deleteGroup(Program $program, string $key): JsonResponse
     {
-        $this->need('saber.group.manage');
+        $this->need('saber.group.delete');
         abort_unless($this->settings()['group_delete_enabled'], 403, __('messages.saber.delete_disabled'));
         $this->drafts->deleteGroup($this->drafts->draft($program, $this->user()), $key, $this->user());
 
