@@ -27,6 +27,22 @@ describe('which buttons a role gets', () => {
     assert.equal(allowed({ feature: 'plc|forums' }, holds([]), flags(['forums'])), true)
   })
 
+  it('shows a stand-in only to whoever is not shown the button it stands in for', () => {
+    // «مجتمعات التعلم المهنية» needs its right and its feature; «المجتمعات والمنتديات» is for everybody else.
+    const hub = { permission: 'plc.view', feature: 'plc' }
+    const discussions = { feature: 'plc|forums', without: hub }
+    const plc = flags(['plc'])
+    assert.equal(allowed(hub, holds([]), plc), false)
+    assert.equal(allowed(discussions, holds([]), plc), true)
+    assert.equal(allowed(hub, holds(['plc.view']), plc), true)
+    assert.equal(allowed(discussions, holds(['plc.view']), plc), false)
+    // The feature of the hub is off but forums are on: a holder of the right still reaches the discussions.
+    assert.equal(allowed(hub, holds(['plc.view']), flags(['forums'])), false)
+    assert.equal(allowed(discussions, holds(['plc.view']), flags(['forums'])), true)
+    // Neither feature: nothing.
+    assert.equal(allowed(discussions, holds([]), flags([])), false)
+  })
+
   it('drops a section that is left empty', () => {
     const groups: { title: string; items: { to: string; permission?: string }[] }[] = [
       { title: 'portal', items: [{ to: '/portal' }] },
