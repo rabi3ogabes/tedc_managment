@@ -10,9 +10,12 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
 use App\Models\Trainer;
+use App\Models\TrainerAttendance;
 use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\Admin\ShowcaseAccounts;
+use App\Services\AttendanceMethodsService;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /** «برامجي»: what a supervisor and a trainer were given, and the attendance of the sessions that are theirs to run. */
@@ -130,6 +133,62 @@ class MyDutiesTest extends TestCase
         // Holding the attendance right for the role does not open a session of a group he was not given.
         $this->asUser($supervisor)->getJson("/api/v1/admin/sessions/{$foreign->id}/attendance")->assertForbidden();
         $this->asUser($supervisor)->getJson("/api/v1/admin/sessions/{$foreign->id}/qr")->assertForbidden();
+    }
+
+    /** Each of the two: a programme with its group, a session on now with its trainer, and one registered trainee. */
+    private function staffed(?User $supervisor = null): array
+    {
+        $program = $this->running();
+        $group = $program->ensureGroup();
+        $group->update(['supervisor_id' => $supervisor?->id]);
+        $session = $this->makeSession($program, now()->subMinutes(5), 3);
+        $session->update(['trainer_id' => $this->trainer()[1]->id]);
+        $employee = $this->makeEmployee();
+        $registration = Registration::create(['program_id' => $program->id, 'employee_id' => $employee->id, 'source' => 'center_nomination', 'status' => Registration::STATUS_APPROVED]);
+
+        return [$session, $group, $employee, $registration];
+    }
+
+    public function test_the_supervisor_of_a_group_takes_its_attendance_in_every_way_and_not_that_of_another_group(): void
+    {
+        Storage::fake('local');
+        $supervisor = $this->makeUser(Role::SUPERVISOR);
+        $supervisor->roles()->first()->permissions()->syncWithoutDetaching(Permission::where('slug', 'attendance.manage')->pluck('id'));
+        [$own, $ownGroup, $ownEmployee, $ownRegistration] = $this->staffed($supervisor);
+        [$foreign, $foreignGroup, $foreignEmployee, $foreignRegistration] = $this->staffed($this->makeUser(Role::SUPERVISOR));
+        $qr = fn ($employee) => app(AttendanceMethodsService::class)->personalQr('e', $employee->id)['payload'];
+        $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+        $me = fn () => $this->asUser($supervisor);
+
+        // His own group: the roster, the trainee's personal code, the signature, the trainers' attendance, the sheets.
+        $this->assertCount(1, $me()->getJson("/api/v1/admin/sessions/{$own->id}/kiosk")->assertOk()->json('data.roster'));
+        $me()->postJson("/api/v1/admin/sessions/{$own->id}/staff-scan", ['payload' => $qr($ownEmployee)])->assertOk()->assertJsonPath('data.kind', 'trainee');
+        $me()->postJson("/api/v1/admin/sessions/{$own->id}/signatures", ['registration_id' => $ownRegistration->id, 'direction' => 'out', 'signature' => $png])->assertOk();
+        $me()->getJson("/api/v1/admin/sessions/{$own->id}/trainer-attendance")->assertOk()->assertJsonPath('data.0.trainer_id', $own->trainer_id);
+        $me()->postJson("/api/v1/admin/sessions/{$own->id}/trainer-attendance", ['trainer_id' => $own->trainer_id, 'status' => 'present'])->assertOk();
+        $me()->get("/api/v1/admin/sessions/{$own->id}/attendance/export?format=xlsx")->assertOk();
+        $me()->get("/api/v1/admin/groups/{$ownGroup->id}/attendance/export?format=xlsx")->assertOk();
+        $this->assertStringStartsWith('%PDF', $me()->get("/api/v1/admin/sessions/{$own->id}/sheet.pdf")->assertOk()->getContent());
+
+        // Holding the attendance right for the role opens none of it for a group he was not given, by its id.
+        $me()->getJson("/api/v1/admin/sessions/{$foreign->id}/kiosk")->assertForbidden();
+        $me()->postJson("/api/v1/admin/sessions/{$foreign->id}/staff-scan", ['payload' => $qr($foreignEmployee)])->assertForbidden();
+        $me()->postJson("/api/v1/admin/sessions/{$foreign->id}/signatures", ['registration_id' => $foreignRegistration->id, 'direction' => 'in', 'signature' => $png])->assertForbidden();
+        $me()->getJson("/api/v1/admin/sessions/{$foreign->id}/trainer-attendance")->assertForbidden();
+        $me()->postJson("/api/v1/admin/sessions/{$foreign->id}/trainer-attendance", ['trainer_id' => $foreign->trainer_id, 'status' => 'present'])->assertForbidden();
+        $me()->get("/api/v1/admin/sessions/{$foreign->id}/attendance/export?format=xlsx")->assertForbidden();
+        $me()->get("/api/v1/admin/groups/{$foreignGroup->id}/attendance/export?format=xlsx")->assertForbidden();
+        $me()->get("/api/v1/admin/sessions/{$foreign->id}/sheet.pdf")->assertForbidden();
+        // Nothing was read or written there: no record, and the roster was not opened.
+        $this->assertSame(0, Attendance::where('program_session_id', $foreign->id)->count());
+        $this->assertSame(0, TrainerAttendance::where('session_id', $foreign->id)->count());
+        $this->assertDatabaseMissing('audit_logs', ['action' => 'kiosk_opened', 'auditable_id' => $foreign->id]);
+
+        // Centre staff run every group, as before.
+        $coordinator = $this->makeUser(Role::COORDINATOR);
+        $this->asUser($coordinator)->getJson("/api/v1/admin/sessions/{$foreign->id}/kiosk")->assertOk();
+        $this->asUser($coordinator)->postJson("/api/v1/admin/sessions/{$foreign->id}/staff-scan", ['payload' => $qr($foreignEmployee)])->assertOk();
+        $this->asUser($coordinator)->get("/api/v1/admin/groups/{$foreignGroup->id}/attendance/export?format=xlsx")->assertOk();
     }
 
     public function test_a_trainer_approved_for_a_group_opens_the_sessions_of_that_group(): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Http\Controllers\Concerns\GuardsSessionAttendance;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SessionResource;
 use App\Models\Program;
@@ -9,8 +10,6 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Services\AttendanceService;
 use App\Services\CalendarService;
-use App\Services\Duties\MyDuties;
-use App\Services\ProgramGrantService;
 use App\Services\RoomService;
 use App\Services\Teaching\TrainerNotices;
 use App\Services\TrainerCertificateService;
@@ -26,6 +25,8 @@ use Illuminate\Validation\Rule;
 
 class SessionController extends Controller
 {
+    use GuardsSessionAttendance;
+
     public function __construct(private readonly AttendanceService $attendance, private readonly CalendarService $calendar, private readonly RoomService $rooms, private readonly TrainerService $trainers) {}
 
     public function index(Program $program): AnonymousResourceCollection
@@ -91,7 +92,7 @@ class SessionController extends Controller
      */
     public function qr(ProgramSession $session): JsonResponse
     {
-        $this->authorizeTrainer($session);
+        $this->authorizeSessionAttendance($session);
 
         return response()->json(['data' => $this->attendance->currentQr($session) + [
             'session' => ['id' => $session->id, 'title' => $session->translate('title'), 'starts_at' => $session->starts_at->toIso8601String(), 'ends_at' => $session->ends_at->toIso8601String()],
@@ -100,14 +101,14 @@ class SessionController extends Controller
 
     public function attendance(ProgramSession $session): JsonResponse
     {
-        $this->authorizeTrainer($session);
+        $this->authorizeSessionAttendance($session);
 
         return response()->json(['data' => $this->attendance->sessionReport($session)]);
     }
 
     public function mark(Request $request, ProgramSession $session): JsonResponse
     {
-        $this->authorizeTrainer($session);
+        $this->authorizeSessionAttendance($session);
 
         $data = $request->validate([
             'registration_id' => ['required', 'uuid'],
@@ -150,25 +151,6 @@ class SessionController extends Controller
         if ($trainerId) {
             $this->trainers->assertAssignable($trainerId, $start, $end, $exceptSessionId);
         }
-    }
-
-    /**
-     * A session's attendance and QR code are for the people who run it: centre staff, a trainer of the session (it is theirs,
-     * or they teach its group or its programme), the supervisor of its group, or somebody the head of training gave the
-     * attendance right on this programme. Holding the attendance right for the role does not open another group's session.
-     */
-    private function authorizeTrainer(ProgramSession $session): void
-    {
-        $user = $this->user();
-        if ($this->isCenterStaff($user)) {
-            return;
-        }
-
-        $duties = app(MyDuties::class);
-        $runs = $duties->teaches($user, $session) || $duties->supervises($user, $session);
-        // Or the head of training gave this person the attendance right on this program.
-        $granted = app(ProgramGrantService::class)->allows($user, $session->program_id, 'attendance.mark');
-        abort_unless($runs || $granted, 403, __('messages.grants.attendance_denied'));
     }
 
     private function validated(Request $request, bool $partial = false): array

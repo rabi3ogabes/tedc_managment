@@ -81,6 +81,18 @@ class MyDuties
             ->whereIn('group_id', TrainingGroup::where('program_id', $session->program_id)->when($session->training_group_id, fn ($q, $group) => $q->whereKey($group))->pluck('id'))->exists();
     }
 
+    /** Whether this session is the person's to run: they teach it or supervise its group. */
+    public function runs(User $user, ProgramSession $session): bool
+    {
+        return $this->teaches($user, $session) || $this->supervises($user, $session);
+    }
+
+    /** Whether this group is the person's to run: they supervise it or teach it. */
+    public function runsGroup(User $user, TrainingGroup $group): bool
+    {
+        return $this->supervisedGroupIds($user)->contains($group->id) || $this->taughtGroupIds($user)->contains($group->id);
+    }
+
     /**
      * One row per group, the one in progress first, then the next to start, then the finished ones (newest first).
      *
