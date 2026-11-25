@@ -714,6 +714,7 @@ Route::prefix('v1')->group(function () {
             });
             // «برامجي»: the groups the person supervises or teaches, with their sessions, attendance and forms.
             Route::get('duties', [MyDutiesController::class, 'index']);
+            Route::get('duties/{group}', [MyDutiesController::class, 'show'])->whereUuid('group');
             Route::get('assignments', [MyAssignmentsController::class, 'index']);
             Route::put('assignments/{id}/form', [MyAssignmentsController::class, 'form']);
             Route::get('programs/{program}/eligibility', [MyTrainingController::class, 'eligibility']);
@@ -1120,6 +1121,11 @@ Route::prefix('v1')->group(function () {
                 Route::get('sessions/{session}/attendance', [SessionController::class, 'attendance']);
                 Route::get('attendance-attempts', [AttendanceAttemptsController::class, 'index']);
                 Route::post('sessions/{session}/attendance', [SessionController::class, 'mark']);
+                // From the sheet: a trainee who left early (and taking it back), a comment about a trainee, a remark about the session.
+                Route::post('sessions/{session}/early-leave', [SessionController::class, 'earlyLeave']);
+                Route::delete('sessions/{session}/early-leave/{registration}', [SessionController::class, 'stayed'])->whereUuid('registration');
+                Route::put('sessions/{session}/attendance/{registration}/note', [SessionController::class, 'note'])->whereUuid('registration');
+                Route::put('sessions/{session}/remark', [SessionController::class, 'remark']);
                 Route::get('sessions/{session}/attendance/export', [AttendanceMethodsController::class, 'exportSession']);
                 Route::get('groups/{group}/attendance/export', [AttendanceMethodsController::class, 'exportGroup']);
                 Route::get('sessions/{session}/sheet.pdf', [AttendanceMethodsController::class, 'blankSheet']);

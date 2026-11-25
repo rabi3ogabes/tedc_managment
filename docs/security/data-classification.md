@@ -15,8 +15,8 @@
 
 ## Totals
 
-- Public: 824 columns
-- Internal: 2362 columns
+- Public: 827 columns
+- Internal: 2365 columns
 - Confidential: 557 columns
 - Restricted: 28 columns
 
@@ -4213,6 +4213,17 @@ Other Restricted columns hold password hashes, one-time or expiring tokens, or r
 | `request_id` | Confidential | masked in exports |
 | `meta` | Confidential | masked in exports |
 | `created_at` | Confidential | masked in exports |
+
+### `session_remarks`
+
+| Column | Class | Control |
+|---|---|---|
+| `id` | Public | — |
+| `program_session_id` | Internal | — |
+| `user_id` | Internal | — |
+| `body` | Internal | — |
+| `created_at` | Public | — |
+| `updated_at` | Public | — |
 
 ### `sessions`
 

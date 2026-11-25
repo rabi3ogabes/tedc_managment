@@ -17,6 +17,9 @@ class Fmt {
 
   String date(DateTime? d) => d == null ? '—' : _latin(DateFormat.yMMMd(_intl)).format(d);
 
+  /// The day and the month, without the year: a date close enough that its year goes without saying.
+  String dayMonth(DateTime? d) => d == null ? '—' : _latin(DateFormat.MMMd(_intl)).format(d);
+
   String dateTime(DateTime? d) => d == null ? '—' : _latin(DateFormat.MMMd(_intl).add_jm()).format(d);
 
   String time(DateTime? d) => d == null ? '—' : _latin(DateFormat.jm(_intl)).format(d);

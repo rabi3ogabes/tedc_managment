@@ -302,6 +302,22 @@ class AttendanceService
         return $attendance;
     }
 
+    /**
+     * A comment about one trainee in one session, written by somebody who runs it. It is kept on the trainee's attendance
+     * record; a trainee with no record yet gets one that says what the sheet already shows for them: absent.
+     */
+    public function note(ProgramSession $session, Registration $registration, User $actor, ?string $note): Attendance
+    {
+        $attendance = Attendance::firstOrNew(['program_session_id' => $session->id, 'registration_id' => $registration->id]);
+        if (! $attendance->exists) {
+            $attendance->fill(['employee_id' => $registration->employee_id, 'status' => 'absent', 'method' => 'manual', 'minutes_attended' => 0, 'recorded_by' => $actor->id]);
+        }
+        $attendance->notes = $note !== null && trim($note) !== '' ? trim($note) : null;
+        $attendance->save();
+
+        return $attendance;
+    }
+
     /** Trainers and school staff may enter attendance by hand only for a short while after the session starts; centre staff are not limited. */
     public function assertManualWindow(ProgramSession $session, User $actor): void
     {
@@ -383,6 +399,8 @@ class AttendanceService
             'attendance_id' => $records->get($r->id)?->id,
             'method' => $records->get($r->id)?->method,
             'leave_minutes' => $records->get($r->id)?->leave_minutes ?? 0,
+            'left_early_at' => $records->get($r->id)?->left_early_at?->toIso8601String(),
+            'note' => $records->get($r->id)?->notes,
             'participated' => (bool) ($records->get($r->id)?->participated ?? false),
         ])->values();
 

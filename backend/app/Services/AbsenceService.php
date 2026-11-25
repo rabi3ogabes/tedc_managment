@@ -11,6 +11,7 @@ use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /** Absence thresholds, excuses decided by the direct manager, and leaves (استئذان). */
@@ -177,6 +178,59 @@ class AbsenceService
         }
 
         return $leave;
+    }
+
+    /**
+     * «خروج مبكر»: a trainee who was present left before the end of the session. Their attendance closes at that time, the
+     * minutes they missed are kept as an early leave (with the reason, when one is given), and their attendance of the
+     * programme is counted again. Recording it again moves the time; it does not add a second leave.
+     */
+    public function leftEarly(Attendance $a, User $by, \DateTimeInterface $at, ?string $reason = null): Attendance
+    {
+        $a->loadMissing(['session', 'registration.employee.user', 'registration.program']);
+        $session = $a->session;
+        $at = Carbon::instance($at);
+        $from = $a->check_in_at && $a->check_in_at->gt($session->starts_at) ? $a->check_in_at : $session->starts_at;
+        if (! in_array($a->status, ['present', 'late'], true)) {
+            throw new BusinessRuleException(__('messages.leave.not_present'), 'leave_not_present');
+        }
+        if ($at->lte($from) || $at->gte($session->ends_at)) {
+            throw new BusinessRuleException(__('messages.leave.bad_time'), 'leave_bad_time');
+        }
+        $first = $a->left_early_at === null;
+        $missed = max(1, (int) round(abs($at->diffInMinutes($session->ends_at))));
+        $clock = fn ($t) => $t->copy()->timezone(config('app.timezone'))->format('H:i');
+
+        AttendanceLeave::where('attendance_id', $a->id)->where('type', 'early_leave')->delete();
+        $leave = AttendanceLeave::create(['attendance_id' => $a->id, 'type' => 'early_leave', 'from_time' => $clock($at), 'to_time' => $clock($session->ends_at), 'minutes' => $missed, 'reason' => $reason, 'entered_by' => $by->id]);
+        $other = (int) AttendanceLeave::where('attendance_id', $a->id)->where('type', '!=', 'early_leave')->sum('minutes');
+        $a->update(['left_early_at' => $at, 'check_out_at' => $at, 'minutes_attended' => max(0, (int) round(abs($from->diffInMinutes($at))) - $other), 'leave_minutes' => $other + $missed, 'recorded_by' => $by->id]);
+        $this->attendance->recalculate($a->registration);
+
+        if ($first && $this->settings->all()['leave_notifies_trainee'] && $a->registration->employee?->user_id) {
+            $program = $a->registration->program;
+            $this->notifications->send($a->registration->employee->user_id, 'leave.recorded', ['ar' => 'سُجّل خروج مبكر', 'en' => 'An early leave was recorded'],
+                ['ar' => "سُجّل لك خروج مبكر ({$missed} دقيقة) في «{$program->title_ar}».", 'en' => "An early leave ({$missed} minutes) was recorded for you in \"{$program->title_en}\"."], ['detail_ar' => "خروج مبكر {$missed} دقيقة في «{$program->title_ar}»", 'detail_en' => "{$missed}-minute early leave in \"{$program->title_en}\"", 'registration_id' => $a->registration_id]);
+            $leave->update(['notified_at' => now()]);
+        }
+
+        return $a->fresh();
+    }
+
+    /** Takes an early leave back: the trainee stayed after all. Their attendance runs to the end of the session again. */
+    public function stayed(Attendance $a, User $by): Attendance
+    {
+        $a->loadMissing(['session', 'registration']);
+        $session = $a->session;
+        AttendanceLeave::where('attendance_id', $a->id)->where('type', 'early_leave')->delete();
+        $other = (int) AttendanceLeave::where('attendance_id', $a->id)->sum('minutes');
+        $from = $a->check_in_at && $a->check_in_at->gt($session->starts_at) ? $a->check_in_at : $session->starts_at;
+        // A session still running has no leaving time yet for somebody who came by code; a mark made by hand, or a session that is over, runs to its end.
+        $open = $session->ends_at->isFuture() && $a->method !== 'manual';
+        $a->update(['left_early_at' => null, 'check_out_at' => $open ? null : $session->ends_at, 'minutes_attended' => $open ? 0 : max(0, (int) round(abs($from->diffInMinutes($session->ends_at))) - $other), 'leave_minutes' => $other, 'recorded_by' => $by->id]);
+        $this->attendance->recalculate($a->registration);
+
+        return $a->fresh();
     }
 
     public function deleteLeave(AttendanceLeave $leave): void
