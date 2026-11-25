@@ -2,13 +2,19 @@ import { ShieldAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useFeatures } from '@/hooks/useFeature'
+import { useAuth } from '@/lib/auth'
 
-/** On a live system, tools meant for demonstrations and support stay visible for as long as they are switched on. */
+/**
+ * On a live system, tools meant for demonstrations and support stay visible for as long as they are switched on — to the
+ * people who can switch them off (Settings → Features). Everybody else used to see the strip too, on every page, with a
+ * «مراجعة» button that led them to a page they may not open.
+ */
 export default function FeatureBanner() {
   const { t } = useTranslation()
+  const { can } = useAuth()
   const { data } = useFeatures()
   const active = data?.data.unsafe_active ?? []
-  if (!active.length) return null
+  if (!active.length || !can('settings.manage')) return null
   return (
     <div role="status" className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900">
       <ShieldAlert className="size-4 shrink-0" />

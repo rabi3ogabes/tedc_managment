@@ -5,7 +5,7 @@ export const progDayAr = {
     today: 'اليوم', tomorrow: 'غداً', yesterday: 'أمس', prev: 'اليوم السابق', next: 'اليوم التالي', earlier: 'أيام أسبق', later: 'أيام لاحقة',
     pick: 'اختر يوماً من التقويم', backToday: 'اليوم', clear: 'كل التواريخ', dayOff: 'عطلة',
     count: { none: 'لا تدريب', one: 'برنامج واحد', two: 'برنامجان', few: '{{n}} برامج', many: '{{n}} برنامجاً' },
-    chip: '{{day}}: {{count}}', legend: { lit: 'مضيء: فيه تدريب', off: 'مطفأ: لا تدريب' },
+    chip: '{{day}}: {{count}}', legend: { lit: 'مضيء: فيه تدريب', off: 'مطفأ: لا تدريب', today: 'هذا اليوم' },
     heading: 'برامج يوم {{day}}', column: 'موعد اليوم', more: 'و{{n}} أخرى',
     search: { placeholder: 'ابحث باسم البرنامج أو رمزه، أو اكتب تاريخاً مثل 16/11/2026', apply: 'اعرض برامج يوم {{day}}' },
     empty: {
@@ -21,7 +21,7 @@ export const progDayEn = {
     today: 'Today', tomorrow: 'Tomorrow', yesterday: 'Yesterday', prev: 'Previous day', next: 'Next day', earlier: 'Earlier days', later: 'Later days',
     pick: 'Pick a day from the calendar', backToday: 'Today', clear: 'All dates', dayOff: 'Day off',
     count: { none: 'No training', one: '1 programme', two: '2 programmes', few: '{{n}} programmes', many: '{{n}} programmes' },
-    chip: '{{day}}: {{count}}', legend: { lit: 'Lit: training that day', off: 'Off: no training' },
+    chip: '{{day}}: {{count}}', legend: { lit: 'Lit: training that day', off: 'Off: no training', today: 'this day' },
     heading: 'Programmes on {{day}}', column: 'That day', more: 'and {{n}} more',
     search: { placeholder: 'Search by programme name or code, or type a date such as 16/11/2026', apply: 'Show the programmes of {{day}}' },
     empty: {

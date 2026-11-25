@@ -32,6 +32,7 @@ import 'features/auth/login_screen.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/certificates/wallet_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/home/today_board.dart';
 import 'features/notifications/notifications_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/programs/program_detail_screen.dart';
@@ -46,6 +47,7 @@ import 'features/shell/app_nav_bar.dart';
 import 'features/shell/home_shell.dart';
 import 'features/profile/approvals_screen.dart';
 import 'features/attendance/roll_call_screen.dart';
+import 'features/duties/my_programmes_screen.dart';
 import 'features/team/team_screen.dart';
 import 'features/profile/my_qr_screen.dart';
 import 'features/profile/assignments_screen.dart';
@@ -95,6 +97,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-qr', builder: (_, _) => const MyQrScreen()),
           GoRoute(path: '/approvals', builder: (_, _) => const ApprovalsScreen()),
           GoRoute(path: '/team', builder: (_, _) => const TeamScreen()),
+          GoRoute(path: '/my-programs', builder: (_, _) => const MyProgrammesScreen()),
+          GoRoute(path: '/today', builder: (_, _) => const TodayBoardScreen()),
           GoRoute(path: '/roll-call/:id', builder: (_, s) => RollCallScreen(sessionId: s.pathParameters['id']!)),
           GoRoute(path: '/my-needs', builder: (_, _) => const NeedsScreen()),
           GoRoute(path: '/my-assessments', builder: (_, _) => const AssessmentsScreen()),

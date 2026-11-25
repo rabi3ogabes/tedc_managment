@@ -67,6 +67,34 @@ first, last month's to the second). It runs when the showcase is built and, for 
 showcase is rebuilt (Settings → الحسابات التجريبية); today's session of the running programme lasts until the end of the day so
 the attendance code can be shown whenever the showcase is.
 
+## In the mobile app
+
+- **Home screen of a supervisor or a trainer** (`RoleHome`): `AssignedProgrammes` draws the groups of `/me/duties` that are running
+  or still to start as a `ProgramDeck` of `ProgramBanner`s, the same deck a trainee has for «برامجي القادمة» (`/me/home` →
+  `upcoming_programs`, unchanged). It takes no space while loading, for somebody given nothing, and on a server without the route.
+- **«برامجي»** (`/my-programs`, `MyProgrammesScreen`): a filter by phase and a `DutyCard` per group: facts, the session to act on
+  with attendance, «تسجيل حضور المتدربين» (the existing roll-call screen) for a session of today when the role holds
+  `attendance.manage`, the trainee survey with «اعرض الرمز» (a code and the link to copy), and every session.
+- The decisions are in `Duties` (`lib/features/duties/duties_model.dart`), tested in `test/duties_test.dart`.
+
+## «برامج اليوم» — the day, for whoever runs the centre
+
+`App\Services\TodayBoard` reads the sessions of today (not cancelled, of programmes that are not cancelled or archived) in the
+order they start. Each row keeps what the app's home card always read and adds `program_code`, `room`, `trainers`, `supervisors`,
+`when` (`past`, `now`, `later`), `present`, `expected` and `attention` (a session still to be held with no trainer or no room).
+
+- **Trainers**: the trainer written on the session; else the approved trainers of its group and the trainers of the programme.
+- **Supervisors**: the supervisor of the session's group (of every group of the programme when the session belongs to none);
+  else the programme's coordinator.
+- **Who sees what** (unchanged): a trainer who does not manage programmes sees their own sessions; anybody else needs
+  `programs.view`; nobody else gets a row.
+
+`GET /me/app-home` → `today` carries the first eight rows; `GET /me/today-board` carries them all with `summary` (sessions, now,
+later, past, attention, programmes, rooms, trainers, supervisors, and present / expected of the sessions on now) and
+`whole_centre`. In the app the home card (`TodaySessions`) and the screen «برامج اليوم» (`/today`, `TodayBoardScreen`) draw the
+same `TodaySessionCard`; the screen refreshes every minute. A tap opens the roll-call of the session for a trainer or a holder of
+`attendance.manage` (`SessionController::authorizeTrainer` still decides). Tests: `TodayBoardTest` (4), `test/today_board_test.dart`.
+
 ## Tests
 
 `MyDutiesTest` (7): a supervisor's groups and only his; a trainer's groups by each kind of assignment, not proposed ones or drafts;
