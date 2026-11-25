@@ -279,14 +279,52 @@ class _Stat extends StatelessWidget {
 
 /// «أنت متدرب أيضاً»: a supervisor or a trainer who is registered in programmes as a trainee has, one press away, the app
 /// of their own training (their programmes, their sessions, their certificates). It takes no space for anybody else.
-class AlsoTrainee extends ConsumerStatefulWidget {
+class AlsoTrainee extends ConsumerWidget {
   const AlsoTrainee({super.key});
 
   @override
-  ConsumerState<AlsoTrainee> createState() => _AlsoTraineeState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    return OtherRoleCard(key: const ValueKey('also-trainee'), grant: ref.watch(authProvider).value?.traineeGrant, icon: Icons.school_outlined, title: s.t('work.alsoTrainee'), hint: s.t('work.alsoTraineeHint'));
+  }
 }
 
-class _AlsoTraineeState extends ConsumerState<AlsoTrainee> {
+/// «أنت مشرف أيضاً» / «أنت مدرب أيضاً»: the way back, on the trainee's home, for a supervisor or a trainer who went to
+/// their own training. It takes no space for somebody who is only a trainee.
+class BackToWork extends ConsumerWidget {
+  const BackToWork({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.s;
+    final grant = ref.watch(authProvider).value?.workGrant;
+    final supervisor = grant?.str('slug') == 'supervisor';
+    return OtherRoleCard(
+      key: const ValueKey('back-to-work'),
+      grant: grant,
+      icon: supervisor ? Icons.supervisor_account_outlined : Icons.co_present_outlined,
+      title: s.t(supervisor ? 'work.alsoSupervisor' : 'work.alsoTrainer'),
+      hint: s.t('work.backHint'),
+      padding: const EdgeInsets.only(bottom: 14),
+    );
+  }
+}
+
+/// One press to work as another role the person holds: the whole app is loaded again for it. It takes no space without a grant.
+class OtherRoleCard extends ConsumerStatefulWidget {
+  const OtherRoleCard({super.key, required this.grant, required this.icon, required this.title, required this.hint, this.padding = EdgeInsets.zero});
+
+  final Json? grant;
+  final IconData icon;
+  final String title;
+  final String hint;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  ConsumerState<OtherRoleCard> createState() => _OtherRoleCardState();
+}
+
+class _OtherRoleCardState extends ConsumerState<OtherRoleCard> {
   bool _busy = false;
 
   Future<void> _switch(String grantId) async {
@@ -303,28 +341,29 @@ class _AlsoTraineeState extends ConsumerState<AlsoTrainee> {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.s;
-    final grant = ref.watch(authProvider).value?.traineeGrant;
+    final grant = widget.grant;
     if (grant == null) return const SizedBox.shrink();
-    return Surface(
-      key: const ValueKey('also-trainee'),
-      onTap: _busy ? null : () => _switch(grant.str('id')),
-      child: Row(children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.circular(14)),
-          child: _busy ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.navy900)) : Icon(Icons.school_outlined, color: AppColors.gold700),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.t('work.alsoTrainee'), style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900, fontSize: 14.5)),
-            Text(s.t('work.alsoTraineeHint'), style: const TextStyle(color: AppColors.muted, fontSize: 12, height: 1.5)),
-          ]),
-        ),
-        Icon(Icons.swap_horiz, color: AppColors.gold700),
-      ]),
+    return Padding(
+      padding: widget.padding,
+      child: Surface(
+        onTap: _busy ? null : () => _switch(grant.str('id')),
+        child: Row(children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: AppColors.gold100, borderRadius: BorderRadius.circular(14)),
+            child: _busy ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.navy900)) : Icon(widget.icon, color: AppColors.gold700),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(widget.title, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy900, fontSize: 14.5)),
+              Text(widget.hint, style: const TextStyle(color: AppColors.muted, fontSize: 12, height: 1.5)),
+            ]),
+          ),
+          Icon(Icons.swap_horiz, color: AppColors.gold700),
+        ]),
+      ),
     );
   }
 }

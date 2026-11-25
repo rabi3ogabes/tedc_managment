@@ -7,9 +7,12 @@ use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Evaluation;
 use App\Models\Program;
+use App\Models\ProgramSession;
 use App\Models\Registration;
 use App\Models\Role;
+use App\Models\RoleUser;
 use App\Models\School;
+use App\Models\TrainingGroup;
 use App\Models\User;
 use App\Services\Admin\ShowcaseAccounts;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -230,5 +233,54 @@ class ShowcaseAccountsTest extends TestCase
 
         app(ShowcaseAccounts::class)->remove($this->admin);
         Http::assertSent(fn ($r) => $r->method() === 'DELETE' && str_ends_with($r->url(), '/auth/v1/admin/users/0b6a3e1c-4d55-4b9e-9a3c-1f2e3d4c5b6a'));
+    }
+
+    public function test_a_story_that_has_gone_by_is_brought_back_to_today_when_an_account_is_opened(): void
+    {
+        $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
+        $showcase = app(ShowcaseAccounts::class);
+        $this->assertFalse($showcase->stale());
+        $this->assertFalse($showcase->keepCurrent(), 'a current story is left alone');
+
+        // The administrator gave the first supervisor a right of his own, and three weeks went by.
+        $supervisor = $showcase->find('supervisor-1');
+        $grant = RoleUser::where('user_id', $supervisor->id)->whereHas('role', fn ($q) => $q->where('slug', Role::SUPERVISOR))->firstOrFail();
+        RoleUser::whereKey($grant->id)->update(['granted_permissions' => json_encode(['attendance.manage'])]);
+        $this->travel(21)->days();
+        $this->assertTrue($showcase->stale());
+        $trainee = $showcase->find('trainee-1');
+        $this->assertSame(0, ProgramSession::whereIn('program_id', Program::whereIn('code', [ShowcaseAccounts::PREFIX.'-1', ShowcaseAccounts::PREFIX.'-2', ShowcaseAccounts::PREFIX.'-3'])->pluck('id'))->where('ends_at', '>=', now())->count(), 'nothing is happening any more');
+
+        // Anyone opening an account from the sign-in page finds the story at today again.
+        $this->postJson('/api/v1/public/showcase-accounts/trainee-1/sign-in')->assertOk();
+        $this->assertFalse($showcase->stale());
+        $running = Program::where('code', ShowcaseAccounts::PREFIX.'-1')->firstOrFail();
+        $this->assertSame(Program::STATUS_IN_PROGRESS, $running->status);
+        $this->assertTrue($running->start_date->lte(today()) && $running->end_date->gte(today()));
+        $today = ProgramSession::where('program_id', $running->id)->whereDate('starts_at', today())->firstOrFail();
+        $this->assertTrue($today->ends_at->isFuture() || $today->ends_at->isToday(), 'a session of today, to attend and to take attendance of');
+        $this->assertTrue(Registration::where('program_id', $running->id)->where('employee_id', $trainee->employee->id)->where('status', Registration::STATUS_APPROVED)->exists());
+        $this->assertSame(1, AuditLog::where('action', 'showcase_story_moved')->count());
+
+        // What the administrator gave the account is still his, and so are his groups.
+        $this->assertSame(['attendance.manage'], RoleUser::findOrFail($grant->id)->granted_permissions);
+        $this->assertSame($supervisor->id, TrainingGroup::where('program_id', $running->id)->value('supervisor_id'));
+
+        // Opening another account the same day moves nothing.
+        $this->postJson('/api/v1/public/showcase-accounts/trainer-1/sign-in')->assertOk();
+        $this->assertSame(1, AuditLog::where('action', 'showcase_story_moved')->count());
+    }
+
+    public function test_a_showcase_account_opens_as_the_person_its_name_says(): void
+    {
+        $this->asUser($this->admin)->postJson('/api/v1/admin/showcase-accounts')->assertOk();
+        $supervisor = app(ShowcaseAccounts::class)->find('supervisor-1');
+        $asTrainee = RoleUser::where('user_id', $supervisor->id)->whereHas('role', fn ($q) => $q->where('slug', Role::EMPLOYEE))->value('id');
+        // Whoever opened it last left it working as a trainee.
+        $supervisor->forceFill(['active_role_user_id' => $asTrainee])->saveQuietly();
+
+        $this->postJson('/api/v1/public/showcase-accounts/supervisor-1/sign-in')->assertOk()->assertJsonPath('user.active_role.slug', Role::SUPERVISOR);
+        $this->postJson('/api/v1/public/showcase-accounts/trainer-1/sign-in')->assertOk()->assertJsonPath('user.active_role.slug', Role::TRAINER);
+        $this->postJson('/api/v1/public/showcase-accounts/trainee-1/sign-in')->assertOk()->assertJsonPath('user.active_role.slug', Role::EMPLOYEE);
     }
 }

@@ -137,7 +137,7 @@ void main() {
       'work.survey.st.waiting', 'work.survey.st.done', 'work.survey.code', 'work.survey.copy', 'work.survey.open', 'work.survey.copied', 'work.survey.none', 'work.survey.intro', 'work.qr.hint', 'work.qr.renews',
       'work.qr.present', 'work.scan.hint', 'work.scan.in', 'work.scan.out', 'work.scan.notPersonal', 'work.scan.count',
       'work.nav.kits', 'work.hoursUnit', 'work.count.hours', 'work.sessionsCount.other', 'work.stat.hours', 'work.roomWay', 'work.call', 'work.email', 'work.copied', 'work.noContact', 'work.prog.team',
-      'work.prog.kits', 'work.alsoTrainee', 'work.alsoTraineeHint', 'work.myCertificates', 'work.kit.short', 'work.kit.count.other', 'work.kit.files.other', 'work.kit.version', 'work.kit.title',
+      'work.prog.kits', 'work.alsoTrainee', 'work.alsoTraineeHint', 'work.alsoSupervisor', 'work.alsoTrainer', 'work.backHint', 'work.myCertificates', 'work.kit.short', 'work.kit.count.other', 'work.kit.files.other', 'work.kit.version', 'work.kit.title',
       'work.kit.course', 'work.kit.courseHint', 'work.kit.none', 'work.kit.noneHint', 'work.kit.ownership', 'work.kit.open', 'work.kit.openHint', 'work.kit.about', 'work.kit.objectives',
       'work.kit.contents', 'work.kit.empty', 'work.kit.presentable', 'work.kit.acknowledged', 'roll.early', 'roll.early.short', 'roll.early.left', 'roll.early.undo', 'roll.early.at',
       'roll.early.reason', 'roll.early.save', 'roll.early.done', 'roll.early.badTime', 'roll.note.add', 'roll.note.edit', 'roll.note.title', 'roll.note.hint', 'roll.remark.heading',
@@ -511,7 +511,33 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(_app(const Scaffold(body: AlsoTrainee()), me: _trainer()));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('also-trainee')), findsNothing);
+      expect(find.text('You are a trainee too'), findsNothing);
+    });
+
+    testWidgets('and from their own training, the way back to their work; somebody who is only a trainee sees nothing', (tester) async {
+      // The same trainer, now working as a trainee.
+      final asTrainee = Me({
+        'id': 'u2', 'name': 'Khalid', 'trainer_id': 't1', 'employee': {'id': 'e2'}, 'active_role': {'slug': 'employee'},
+        'roles': [{'id': 'grant-trainer', 'slug': 'trainer', 'active': false}, {'id': 'grant-trainee', 'slug': 'employee', 'active': true}],
+      });
+      expect(asTrainee.workspace, isNull);
+      expect(asTrainee.workGrant?['id'], 'grant-trainer');
+      await tester.pumpWidget(_app(const Scaffold(body: BackToWork()), me: asTrainee));
+      await tester.pumpAndSettle();
+      expect(find.text('You are a trainer too'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      final supervisorAsTrainee = Me({'employee': {'id': 'e1'}, 'active_role': {'slug': 'employee'}, 'roles': [{'id': 'gs', 'slug': 'supervisor', 'active': false}, {'id': 'ge', 'slug': 'employee', 'active': true}]});
+      await tester.pumpWidget(_app(const Scaffold(body: BackToWork()), me: supervisorAsTrainee));
+      await tester.pumpAndSettle();
+      expect(find.text('You are a supervisor too'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      final onlyTrainee = Me({'employee': {'id': 'e3'}, 'active_role': {'slug': 'employee'}, 'roles': [{'id': 'g3', 'slug': 'employee', 'active': true}]});
+      expect(onlyTrainee.workGrant, isNull);
+      await tester.pumpWidget(_app(const Scaffold(body: BackToWork()), me: onlyTrainee));
+      await tester.pumpAndSettle();
+      expect(find.byType(Surface), findsNothing);
     });
 
     testWidgets('a group\'s page gives the hours, the way to reach the supervisor, and the kits', (tester) async {
